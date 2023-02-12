@@ -3283,8 +3283,10 @@ module.exports = class binance extends Exchange {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
+            'ACCEPTED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'CANCELLED': 'canceled',
             'PENDING_CANCEL': 'canceling', // currently unused
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
@@ -3407,6 +3409,34 @@ module.exports = class binance extends Exchange {
         //       "updateTime": "1636061952660"
         //     }
         //
+        // option: createOrder, fetchOrder, fetchOpenOrders, fetchOrders
+        //
+        //     {
+        //         "orderId": 4728833085436977152,
+        //         "symbol": "ETH-230211-1500-C",
+        //         "price": "10.0",
+        //         "quantity": "1.00",
+        //         "executedQty": "0.00",
+        //         "fee": "0",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "timeInForce": "GTC",
+        //         "reduceOnly": false,
+        //         "postOnly": false,
+        //         "createTime": 1676083034462,
+        //         "updateTime": 1676083034462,
+        //         "status": "ACCEPTED",
+        //         "avgPrice": "0",
+        //         "source": "API",
+        //         "clientOrderId": "",
+        //         "priceScale": 1,
+        //         "quantityScale": 2,
+        //         "optionSide": "CALL",
+        //         "quoteAsset": "USDT",
+        //         "lastTrade": {"id":"69","time":"1676084430567","price":"24.9","qty":"1.00"},
+        //         "mmp": false
+        //     }
+        //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const marketType = ('closePosition' in order) ? 'contract' : 'spot';
@@ -3422,6 +3452,9 @@ module.exports = class binance extends Exchange {
         } else if ('transactTime' in order) {
             lastTradeTimestamp = this.safeInteger (order, 'transactTime');
             timestamp = this.safeInteger (order, 'transactTime');
+        } else if ('createTime' in order) {
+            lastTradeTimestamp = this.safeInteger (order, 'updateTime');
+            timestamp = this.safeInteger (order, 'createTime');
         } else if ('updateTime' in order) {
             if (status === 'open') {
                 if (Precise.stringGt (filled, '0')) {
@@ -3433,7 +3466,7 @@ module.exports = class binance extends Exchange {
         }
         const average = this.safeString (order, 'avgPrice');
         const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'origQty');
+        const amount = this.safeString2 (order, 'origQty', 'quantity');
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
@@ -3442,7 +3475,7 @@ module.exports = class binance extends Exchange {
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
-        const fills = this.safeValue (order, 'fills', []);
+        const fills = this.safeValue2 (order, 'fills', 'lastTrade', []);
         const clientOrderId = this.safeString (order, 'clientOrderId');
         let timeInForce = this.safeString (order, 'timeInForce');
         if (timeInForce === 'GTX') {
@@ -3476,7 +3509,11 @@ module.exports = class binance extends Exchange {
             'filled': filled,
             'remaining': undefined,
             'status': status,
-            'fee': undefined,
+            'fee': {
+                'currency': this.safeString (order, 'quoteAsset'),
+                'cost': this.safeNumber (order, 'fee'),
+                'rate': undefined,
+            },
             'trades': fills,
         }, market);
     }
@@ -3915,28 +3952,31 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        // https://github.com/ccxt/ccxt/issues/6507
-        const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const request = {
             'symbol': market['id'],
             // 'orderId': id,
             // 'origClientOrderId': id,
         };
-        if (origClientOrderId === undefined) {
-            request['orderId'] = id;
+        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            if (market['option']) {
+                request['clientOrderId'] = clientOrderId;
+            } else {
+                request['origClientOrderId'] = clientOrderId;
+            }
         } else {
-            request['origClientOrderId'] = origClientOrderId;
+            request['orderId'] = id;
         }
         let method = 'privateDeleteOrder';
-        if (market['linear']) {
+        if (market['option']) {
+            method = 'eapiPrivateDeleteOrder';
+        } else if (market['linear']) {
             method = 'fapiPrivateDeleteOrder';
         } else if (market['inverse']) {
             method = 'dapiPrivateDeleteOrder';
