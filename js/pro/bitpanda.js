@@ -1033,7 +1033,8 @@ module.exports = class bitpanda extends bitpandaRest {
                 subscription = {};
             }
         }
-        if (subscription[marketId] === undefined) {
+        const subscriptionMarketId = this.safeValue (subscription, marketId);
+        if (subscriptionMarketId === undefined) {
             subscription[marketId] = {};
         }
         subscription[marketId][timeframe] = true;
@@ -1166,20 +1167,8 @@ module.exports = class bitpanda extends bitpandaRest {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleErrorMessage (client, message) {
         //
-        // subscribe
-        //     {
-        //         channels: [{
-        //             instrument_codes: [Array],
-        //             depth: 0,
-        //             name: 'ORDER_BOOK'
-        //         }],
-        //         type: 'SUBSCRIPTIONS',
-        //         time: '2022-06-23T15:36:26.948282Z'
-        //     }
-        //
-        // error
         //     {
         //         error: 'MALFORMED_JSON',
         //         channel_name: 'SYSTEM',
@@ -1187,9 +1176,13 @@ module.exports = class bitpanda extends bitpandaRest {
         //         time: '2022-06-23T15:38:25.470391Z'
         //     }
         //
+        throw new ExchangeError (this.id + ' ' + this.json (message));
+    }
+
+    handleMessage (client, message) {
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
-            throw new ExchangeError (this.id + ' ' + this.json (message));
+            return this.handleErrorMessage (client, message);
         }
         const type = this.safeValue (message, 'type');
         const handlers = {
