@@ -105,7 +105,7 @@ module.exports = class bitpanda extends bitpandaRest {
         return await this.watch (url, messageHash, request, subscribeHash, request);
     }
 
-    handleBalanceSnnapshot (client, message) {
+    handleBalanceSnapshot (client, message) {
         //
         // snapshot
         //     {
@@ -297,6 +297,9 @@ module.exports = class bitpanda extends bitpandaRest {
         };
         const request = this.deepExtend (subscribe, params);
         const trades = await this.watch (url, messageHash, request, subscribeHash, request);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
@@ -700,11 +703,14 @@ module.exports = class bitpanda extends bitpandaRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const rawOrders = this.safeValue (message, 'orders', []);
-        const orders = this.parseOrders (rawOrders);
-        for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
+        const rawOrdersLength = rawOrders.length;
+        if (rawOrdersLength === 0) {
+            return;
+        }
+        for (let i = 0; i < rawOrders.length; i++) {
+            const order = this.parseOrder (rawOrders[i]);
             this.orders.append (order);
-            const rawTrades = this.safeValue (order, 'trades', []);
+            const rawTrades = this.safeValue (rawOrders[i], 'trades', []);
             for (let ii = 0; ii < rawTrades.length; ii++) {
                 this.myTrades.append (this.parseTrade (rawTrades[ii]));
             }
@@ -1209,7 +1215,7 @@ module.exports = class bitpanda extends bitpandaRest {
             'ACTIVE_ORDERS_SNAPSHOT': this.handleOrders,
             'INACTIVE_ORDERS_SNAPSHOT': this.handleOrders,
             'ACCOUNT_UPDATE': this.handleAccountUpdate,
-            'BALANCES_SNAPSHOT': this.handleBalanceSnnapshot,
+            'BALANCES_SNAPSHOT': this.handleBalanceSnapshot,
             'SUBSCRIPTIONS': this.handleSubscriptions,
             'SUBSCRIPTION_UPDATED': this.handleSubscriptions,
             'PRICE_TICK': this.handleTicker,
@@ -1233,7 +1239,7 @@ module.exports = class bitpanda extends bitpandaRest {
         if (handler !== undefined) {
             return handler.call (this, client, message);
         }
-        // throw new NotSupported (this.id + ' no handler found for this message ' + this.json (message));
+        throw new NotSupported (this.id + ' no handler found for this message ' + this.json (message));
     }
 
     handlePricePointUpdates (client, message) {
