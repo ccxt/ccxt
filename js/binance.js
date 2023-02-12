@@ -3961,9 +3961,7 @@ module.exports = class binance extends Exchange {
          * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelAllOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -3973,7 +3971,9 @@ module.exports = class binance extends Exchange {
         params = this.omit (params, [ 'type' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         let method = 'privateDeleteOpenOrders';
-        if (market['linear']) {
+        if (market['option']) {
+            method = 'eapiPrivateDeleteAllOpenOrders';
+        } else if (market['linear']) {
             method = 'fapiPrivateDeleteAllOpenOrders';
         } else if (market['inverse']) {
             method = 'dapiPrivateDeleteAllOpenOrders';
