@@ -178,6 +178,9 @@ module.exports = class bitpanda extends bitpandaRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const subscriptionHash = 'MARKET_TICKER';
         const messageHash = 'tickers';
         const request = {
