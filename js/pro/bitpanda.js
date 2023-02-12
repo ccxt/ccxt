@@ -948,9 +948,24 @@ module.exports = class bitpanda extends bitpandaRest {
         if (updateType === 'ORDER_REJECTED' || updateType === 'ORDER_CLOSED' || updateType === 'STOP_ORDER_TRIGGERED') {
             const orderId = this.safeString (update, 'order_id');
             const datetime = this.safeString2 (update, 'time', 'timestamp');
-            this.orders.append ({ 'id': orderId, 'status': this.parseWSOrderStatus (updateType), 'timestamp': this.parse8601 (datetime), 'datetime': datetime });
+            const previousOrderArray = this.filterByArray (this.orders, 'id', orderId, false);
+            const previousOrder = this.safeValue (previousOrderArray, 0, {});
+            const symbol = previousOrder['symbol'];
+            const filled = this.safeNumber (update, 'filled_amount');
+            let status = this.parseWSOrderStatus (updateType);
+            if (updateType === 'ORDER_CLOSED' && filled === 0) {
+                status = 'canceled';
+            }
+            this.orders.append ({
+                'id': orderId,
+                'symbol': symbol,
+                'status': status,
+                'timestamp': this.parse8601 (datetime),
+                'datetime': datetime,
+            });
+        } else {
+            this.orders.append (this.parseOrder (update));
         }
-        this.orders.append (update);
         client.resolve (this.orders, 'orders');
         // update balance
         const balanceKeys = [ 'locked', 'unlocked', 'spent', 'spent_on_fees', 'credited', 'deducted' ];
