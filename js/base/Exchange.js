@@ -3224,4 +3224,13 @@ module.exports = class Exchange {
         const sorted = this.sortBy (result, 'timestamp');
         return this.filterBySinceLimit (sorted, since, limit);
     }
+
+    getMarketFromSymbols (symbols = undefined) {
+        if (symbols === undefined) {
+            return undefined;
+        }
+        const firstMarket = this.safeString (symbols, 0);
+        const market = this.market (firstMarket);
+        return market;
+    }
 };
