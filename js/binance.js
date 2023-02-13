@@ -878,7 +878,7 @@ module.exports = class binance extends Exchange {
             // exchange-specific options
             'options': {
                 'sandboxMode': false,
-                'fetchMarkets': [ 'spot', 'linear', 'inverse' ],
+                'fetchMarkets': [ 'spot', 'linear', 'inverse', 'option' ],
                 'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
