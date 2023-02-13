@@ -3511,7 +3511,7 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (contract, 'timestamp');
-        contract = this.omit (contract, 'timestamp');
+        contact = this.omit (contract, 'timestamp');
         const fundingDelta = this.safeInteger (contract, 'funding_time') * 60 * 1000;
         const fundingHour = (timestamp + fundingDelta) / 3600000;
         const fundingTimestamp = Math.round (fundingHour) * 3600000;
