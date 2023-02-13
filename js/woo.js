@@ -198,6 +198,7 @@ module.exports = class woo extends Exchange {
                             'algo/orders': 1,
                             'balances': 1,
                             'accountinfo': 60,
+                            'positions': 3.33,
                         },
                         'post': {
                             'algo/order': 5,
@@ -2262,46 +2263,49 @@ module.exports = class woo extends Exchange {
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.v1PrivateGetPositions (params);
+        const response = await this.v3PrivateGetPositions (params);
         //
         //     {
-        //         "positions":[
-        //             {
-        //                 "symbol":"PERP_ETC_USDT",
-        //                 "holding":0.0,
-        //                 "pending_long_qty":0.0,
-        //                 "pending_short_qty":0.0,
-        //                 "settle_price":0.0,
-        //                 "average_open_price":0,
-        //                 "timestamp":"1652231044.920",
-        //                 "mark_price":22.68,
-        //                 "pnl_24_h":0,
-        //                 "fee_24_h":0
-        //             }
-        //         ],
-        //         "initial_margin_ratio":1000,
-        //         "current_margin_ratio":1000,
-        //         "maintenance_margin_ratio":1000,
-        //         "success":true
+        //         "success": true,
+        //         "data": {
+        //             "positions": [
+        //                 {
+        //                     "symbol": "0_symbol",
+        //                     "holding": 1,
+        //                     "pendingLongQty": 0,
+        //                     "pendingShortQty": 1,
+        //                     "settlePrice": 1,
+        //                     "averageOpenPrice": 1,
+        //                     "pnl24H": 1,
+        //                     "fee24H": 1,
+        //                     "markPrice": 1,
+        //                     "estLiqPrice": 1,
+        //                     "timestamp": 12321321
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1673323880342
         //     }
         //
-        const result = this.safeValue (response, 'positions', []);
-        return this.parsePositions (result, symbols);
+        const result = this.safeValue (response, 'data', {});
+        const positions = this.safeValue (result, 'positions', []);
+        return this.parsePositions (positions, symbols);
     }
 
     parsePosition (position, market = undefined) {
         //
         //     {
-        //         "symbol":"PERP_ETC_USDT",
-        //         "holding":0.0,
-        //         "pending_long_qty":0.0,
-        //         "pending_short_qty":0.0,
-        //         "settle_price":0.0,
-        //         "average_open_price":0,
-        //         "timestamp":"1652231044.920",
-        //         "mark_price":22.68,
-        //         "pnl_24_h":0,
-        //         "fee_24_h":0
+        //         "symbol": "0_symbol",
+        //         "holding": 1,
+        //         "pendingLongQty": 0,
+        //         "pendingShortQty": 1,
+        //         "settlePrice": 1,
+        //         "averageOpenPrice": 1,
+        //         "pnl24H": 1,
+        //         "fee24H": 1,
+        //         "markPrice": 1,
+        //         "estLiqPrice": 1,
+        //         "timestamp": 12321321
         //     }
         //
         const contract = this.safeString (position, 'symbol');
@@ -2314,9 +2318,9 @@ module.exports = class woo extends Exchange {
             side = 'short';
         }
         const contractSize = this.safeString (market, 'contractSize');
-        const markPrice = this.safeString (position, 'mark_price');
+        const markPrice = this.safeString (position, 'markPrice');
         const timestamp = this.safeTimestamp (position, 'timestamp');
-        const entryPrice = this.safeString (position, 'average_open_price');
+        const entryPrice = this.safeString (position, 'averageOpenPrice');
         const priceDifference = Precise.stringSub (markPrice, entryPrice);
         const unrealisedPnl = Precise.stringMul (priceDifference, size);
         size = Precise.stringAbs (size);
@@ -2338,7 +2342,7 @@ module.exports = class woo extends Exchange {
             'contracts': this.parseNumber (size),
             'contractSize': this.parseNumber (contractSize),
             'marginRatio': undefined,
-            'liquidationPrice': this.safeNumber (position, 'est_liq_price'),
+            'liquidationPrice': this.safeNumber (position, 'estLiqPrice'),
             'markPrice': this.parseNumber (markPrice),
             'collateral': undefined,
             'marginMode': 'cross',
