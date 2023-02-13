@@ -4671,7 +4671,7 @@ module.exports = class binance extends Exchange {
         // transfer
         //
         //     {
-        //         "tranId":13526853623
+        //         "tranId":13526853622
         //     }
         //
         // fetchTransfers
