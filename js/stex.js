@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OrderNotFound, PermissionDenied, BadRequest, BadSymbol, DDoSProtection, InvalidOrder, AccountSuspended } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -279,7 +278,7 @@ module.exports = class stex extends Exchange {
                     'fillResponseFromRequest': true,
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     // {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}

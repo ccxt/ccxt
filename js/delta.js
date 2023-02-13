@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -178,7 +177,7 @@ module.exports = class delta extends Exchange {
                     'TRC20(TRON)': 'TRC20',
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': false,

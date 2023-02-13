@@ -3,7 +3,6 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -101,7 +100,7 @@ module.exports = class bl3p extends Exchange {
             'markets': {
                 'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': true },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
         });
     }
 

@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -174,7 +173,7 @@ module.exports = class buda extends Exchange {
                     },
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'not_authorized': AuthenticationError,  // { message: 'Invalid credentials', code: 'not_authorized' }
                 'forbidden': PermissionDenied,  // { message: 'You dont have access to this resource', code: 'forbidden' }

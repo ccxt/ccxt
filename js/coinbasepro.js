@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
@@ -168,7 +167,7 @@ module.exports = class coinbasepro extends Exchange {
             'commonCurrencies': {
                 'CGLD': 'CELO',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': true, // complicated tier system per coin

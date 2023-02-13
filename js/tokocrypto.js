@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -201,7 +200,7 @@ module.exports = class tokocrypto extends Exchange {
                     'maker': this.parseNumber ('0.0075'), // 0.1% trading fee, zero fees for all trading pairs before November 1
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': this.DECIMAL_PLACES,
             'options': {
                 // 'fetchTradesMethod': 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
@@ -1604,10 +1603,10 @@ module.exports = class tokocrypto extends Exchange {
                 const quoteOrderQty = this.safeValue2 (params, 'quoteOrderQty', 'cost');
                 const precision = market['precision']['price'];
                 if (quoteOrderQty !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
+                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, this.TRUNCATE, precision, this.precisionMode);
                     params = this.omit (params, [ 'quoteOrderQty', 'cost' ]);
                 } else if (price !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
+                    request['quoteOrderQty'] = this.decimalToPrecision (amount * price, this.TRUNCATE, precision, this.precisionMode);
                 } else {
                     quantityIsRequired = true;
                 }

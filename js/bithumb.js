@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
-const { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -113,7 +112,7 @@ module.exports = class bithumb extends Exchange {
                     'taker': this.parseNumber ('0.0025'),
                 },
             },
-            'precisionMode': SIGNIFICANT_DIGITS,
+            'precisionMode': this.SIGNIFICANT_DIGITS,
             'exceptions': {
                 'Bad Request(SSL)': BadRequest,
                 'Bad Request(Bad Method)': BadRequest,
@@ -176,7 +175,7 @@ module.exports = class bithumb extends Exchange {
     }
 
     amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+        return this.decimalToPrecision (amount, this.TRUNCATE, this.markets[symbol]['precision']['amount'], this.DECIMAL_PLACES);
     }
 
     async fetchMarkets (params = {}) {

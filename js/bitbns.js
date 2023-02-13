@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest, BadSymbol } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -139,7 +138,7 @@ module.exports = class bitbns extends Exchange {
                     'maker': this.parseNumber ('0.0025'),
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '400': BadRequest, // {"msg":"Invalid Request","status":-1,"code":400}

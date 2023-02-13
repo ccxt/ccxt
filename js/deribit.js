@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { TICK_SIZE } = require ('./base/functions/number');
 const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
@@ -371,7 +370,7 @@ module.exports = class deribit extends Exchange {
                 '-32000': BadRequest, // 'Missing params' see JSON-RPC spec.
                 '11054': InvalidOrder, // 'post_only_reject' post order would be filled immediately
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'options': {
                 'code': 'BTC',
                 'fetchBalance': {

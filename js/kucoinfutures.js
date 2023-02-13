@@ -5,7 +5,6 @@
 const { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, OrderNotFound, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const kucoin = require ('./kucoin.js');
-const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -170,7 +169,7 @@ module.exports = class kucoinfutures extends kucoin {
                     },
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '400': BadRequest, // Bad Request -- Invalid request format

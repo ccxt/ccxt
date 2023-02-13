@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, BadSymbol, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -290,7 +289,7 @@ module.exports = class coinex extends Exchange {
             'commonCurrencies': {
                 'ACM': 'Actinium',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
         });
     }
 

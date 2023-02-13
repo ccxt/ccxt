@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -232,7 +231,7 @@ module.exports = class poloniex extends Exchange {
                     'futures': 'future',
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'You may only place orders that reduce your position.': InvalidOrder,

@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, BadSymbol, BadRequest, InvalidOrder, ArgumentsRequired, OrderNotFound, InsufficientFunds, DDoSProtection } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -112,7 +111,7 @@ module.exports = class ripio extends Exchange {
                     'maker': this.parseNumber ('0.0'),
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': false,

@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -136,7 +135,7 @@ module.exports = class lbank extends Exchange {
             'options': {
                 'cacheSecretAsPem': true,
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
         });
     }
 

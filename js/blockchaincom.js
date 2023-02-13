@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -164,7 +163,7 @@ module.exports = class blockchaincom extends Exchange {
                 'apiKey': false,
                 'secret': true,
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '401': AuthenticationError,

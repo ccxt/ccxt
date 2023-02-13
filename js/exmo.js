@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -196,7 +195,7 @@ module.exports = class exmo extends Exchange {
             'commonCurrencies': {
                 'GMT': 'GMT Token',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '40005': AuthenticationError, // Authorization error, incorrect signature

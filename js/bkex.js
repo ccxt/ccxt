@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -254,7 +253,7 @@ module.exports = class bkex extends Exchange {
             'commonCurrencies': {
                 'SHINJA': 'SHINJA(1M)',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '1005': InsufficientFunds,

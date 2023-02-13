@@ -4,8 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-
 //  ---------------------------------------------------------------------------
 
 module.exports = class mercado extends Exchange {
@@ -146,7 +144,7 @@ module.exports = class mercado extends Exchange {
                     'XRP': 0.1,
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
         });
     }
 

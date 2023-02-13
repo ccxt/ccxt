@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { AccountSuspended, BadRequest, BadResponse, NetworkError, NotSupported, DDoSProtection, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -214,7 +213,7 @@ module.exports = class digifinex extends Exchange {
                     'taker': this.parseNumber ('0.002'),
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '10001': [ BadRequest, "Wrong request method, please check it's a GET ot POST request" ],

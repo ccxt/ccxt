@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } = require ('./base/errors');
-const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -245,7 +244,7 @@ module.exports = class huobijp extends Exchange {
                     'taker': this.parseNumber ('0.002'),
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': OnMaintenance,
@@ -407,7 +406,7 @@ module.exports = class huobijp extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
+        return this.decimalToPrecision (cost, this.TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
     }
 
     async fetchMarkets (params = {}) {

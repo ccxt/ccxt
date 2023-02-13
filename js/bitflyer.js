@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -108,7 +107,7 @@ module.exports = class bitflyer extends Exchange {
                     'taker': this.parseNumber ('0.002'),
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
         });
     }
 

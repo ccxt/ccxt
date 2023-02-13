@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, NotSupported, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, AccountSuspended } = require ('./base/errors');
-const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -309,7 +308,7 @@ module.exports = class kraken extends Exchange {
                     'ZRX': '0x (ZRX)',
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
                 'EAPI:Invalid key': AuthenticationError,
@@ -339,7 +338,7 @@ module.exports = class kraken extends Exchange {
     }
 
     feeToPrecision (symbol, fee) {
-        return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['amount'], this.precisionMode);
+        return this.decimalToPrecision (fee, this.TRUNCATE, this.markets[symbol]['precision']['amount'], this.precisionMode);
     }
 
     async fetchMarkets (params = {}) {

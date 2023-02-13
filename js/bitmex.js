@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { TICK_SIZE } = require ('./base/functions/number');
 const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
@@ -213,7 +212,7 @@ module.exports = class bitmex extends Exchange {
                     'We require all new traders to verify': PermissionDenied, // {"message":"We require all new traders to verify their identity before their first deposit. Please visit bitmex.com/verify to complete the process.","name":"HTTPError"}
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'options': {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789

@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -248,7 +247,7 @@ module.exports = class zonda extends Exchange {
                     'fillResponseFromRequest': true,
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 '400': ExchangeError, // At least one parameter wasn't set
                 '401': InvalidOrder, // Invalid order type

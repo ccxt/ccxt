@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, RateLimitExceeded } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -238,7 +237,7 @@ module.exports = class yobit extends Exchange {
                     'BSC': 'BEP20',
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)

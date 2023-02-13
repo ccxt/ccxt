@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -232,7 +231,7 @@ module.exports = class ndax extends Exchange {
                 'password': true,
                 // 'twofa': true,
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Not_Enough_Funds': InsufficientFunds, // {"status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101}

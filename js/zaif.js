@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -135,7 +134,7 @@ module.exports = class zaif extends Exchange {
                     'PEPECASH/BT': { 'maker': this.parseNumber ('0'), 'taker': this.parseNumber ('0.0001') },
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'unsupported currency_pair': BadRequest, // {"error": "unsupported currency_pair"}

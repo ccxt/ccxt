@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } = require ('./base/errors');
-const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -237,7 +236,7 @@ module.exports = class bitmart extends Exchange {
                     },
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     // general errors
@@ -1855,7 +1854,7 @@ module.exports = class bitmart extends Exchange {
                     } else {
                         notional = (notional === undefined) ? amount : notional;
                     }
-                    request['notional'] = this.decimalToPrecision (notional, TRUNCATE, market['precision']['price'], this.precisionMode);
+                    request['notional'] = this.decimalToPrecision (notional, this.TRUNCATE, market['precision']['price'], this.precisionMode);
                 } else if (side === 'sell') {
                     request['size'] = this.amountToPrecision (symbol, amount);
                 }

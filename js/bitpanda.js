@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -194,7 +193,7 @@ module.exports = class bitpanda extends Exchange {
                 'apiKey': true,
                 'secret': false,
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'INVALID_CLIENT_UUID': InvalidOrder,

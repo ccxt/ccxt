@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, ExchangeError, AuthenticationError } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -150,7 +149,7 @@ module.exports = class coincheck extends Exchange {
                     'taker': this.parseNumber ('0'),
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'disabled API Key': AuthenticationError, // {"success":false,"error":"disabled API Key"}'

@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection, BadRequest } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -137,7 +136,7 @@ module.exports = class btcmarkets extends Exchange {
                 '1h': '1h',
                 '1d': '1d',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 '3': InvalidOrder,
                 '6': DDoSProtection,

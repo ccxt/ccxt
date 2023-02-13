@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -128,7 +127,7 @@ module.exports = class independentreserve extends Exchange {
             'commonCurrencies': {
                 'PLA': 'PlayChip',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
         });
     }
 

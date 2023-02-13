@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class cryptocom extends Exchange {
@@ -298,7 +297,7 @@ module.exports = class cryptocom extends Exchange {
             'commonCurrencies': {
                 'USD_STABLE_COIN': 'USDC',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '10001': ExchangeError,

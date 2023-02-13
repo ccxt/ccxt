@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequired } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -125,7 +124,7 @@ module.exports = class coinfalcon extends Exchange {
                     'taker': 0.002, // tiered fee starts at 0.2%
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
         });
     }
 

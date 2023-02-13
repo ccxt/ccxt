@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { TICK_SIZE } = require ('./base/functions/number');
 const { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
@@ -285,7 +284,7 @@ module.exports = class btcex extends Exchange {
                 'broad': {
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'options': {
                 'accountsByType': {
                     'wallet': 'WALLET',

@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance } = require ('./base/errors');
-const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -246,7 +245,7 @@ module.exports = class bitrue extends Exchange {
             'commonCurrencies': {
                 'MIM': 'MIM Swarm',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
                 'exact': {
@@ -323,13 +322,13 @@ module.exports = class bitrue extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision (cost, this.TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
 
     currencyToPrecision (code, fee, networkCode = undefined) {
         // info is available in currencies only if the user has configured his api keys
         if (this.safeValue (this.currencies[code], 'precision') !== undefined) {
-            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
+            return this.decimalToPrecision (fee, this.TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
         } else {
             return this.numberToString (fee);
         }

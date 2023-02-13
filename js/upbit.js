@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -148,7 +147,7 @@ module.exports = class upbit extends Exchange {
                     'deposit': {},
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'This key has expired.': AuthenticationError,

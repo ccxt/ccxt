@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -241,7 +240,7 @@ module.exports = class ascendex extends Exchange {
                     'maker': this.parseNumber ('0.002'),
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'options': {
                 'account-category': 'cash', // 'cash', 'margin', 'futures' // obsolete
                 'account-group': undefined,

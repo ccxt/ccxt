@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -130,7 +129,7 @@ module.exports = class bitforex extends Exchange {
                 'NOIA': 'METANOIA',
                 'TON': 'To The Moon',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 '1000': OrderNotFound, // {"code":"1000","success":false,"time":1643047898676,"message":"The order does not exist or the status is wrong"}
                 '1003': BadSymbol, // {"success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error"}

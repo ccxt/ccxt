@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired, AccountNotEnabled } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -146,7 +145,7 @@ module.exports = class novadax extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'A99999': ExchangeError, // 500 Failed Internal error

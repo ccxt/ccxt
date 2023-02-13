@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, RequestTimeout, AuthenticationError } = require ('./base/errors');
-const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -194,7 +193,7 @@ module.exports = class hitbtc extends Exchange {
                     },
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -267,7 +266,7 @@ module.exports = class hitbtc extends Exchange {
     }
 
     feeToPrecision (symbol, fee) {
-        return this.decimalToPrecision (fee, TRUNCATE, 0.00000001, TICK_SIZE);
+        return this.decimalToPrecision (fee, this.TRUNCATE, 0.00000001, this.TICK_SIZE);
     }
 
     async fetchMarkets (params = {}) {

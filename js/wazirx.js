@@ -2,7 +2,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class wazirx extends Exchange {
@@ -112,7 +111,7 @@ module.exports = class wazirx extends Exchange {
             'fees': {
                 'WRX': { 'maker': this.parseNumber ('0.0'), 'taker': this.parseNumber ('0.0') },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '-1121': BadSymbol, // { "code": -1121, "message": "Invalid symbol." }

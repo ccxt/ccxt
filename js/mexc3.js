@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -324,7 +323,7 @@ module.exports = class mexc3 extends Exchange {
                     },
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'timeframes': {
                 '1m': '1m', // spot, swap
                 '3m': '3m', // spot

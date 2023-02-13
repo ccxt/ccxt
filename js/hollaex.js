@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderImmediatelyFillable, OrderNotFound, InsufficientFunds } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -110,7 +109,7 @@ module.exports = class hollaex extends Exchange {
                 'doc': 'https://apidocs.hollaex.com',
                 'referral': 'https://pro.hollaex.com/signup?affiliation_code=QSWA6G',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,

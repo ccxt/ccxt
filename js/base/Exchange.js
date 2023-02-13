@@ -216,8 +216,8 @@ module.exports = class Exchange {
                 'BCHABC': 'BCH',
                 'BCHSV': 'BSV',
             },
-            'precisionMode': DECIMAL_PLACES,
-            'paddingMode': NO_PADDING,
+            'precisionMode': this.DECIMAL_PLACES,
+            'paddingMode': this.NO_PADDING,
             'limits': {
                 'leverage': { 'min': undefined, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },

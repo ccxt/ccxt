@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -120,7 +119,7 @@ module.exports = class coinone extends Exchange {
                     'maker': 0.002,
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 '405': OnMaintenance, // {"errorCode":"405","status":"maintenance","result":"error"}
                 '104': OrderNotFound, // {"errorCode":"104","errorMsg":"Order id is not exist","result":"error"}

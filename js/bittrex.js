@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } = require ('./base/errors');
-const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -205,7 +204,7 @@ module.exports = class bittrex extends Exchange {
                     'percentage': false,
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'BAD_REQUEST': BadRequest, // {"code":"BAD_REQUEST","detail":"Refer to the data field for specific field validation failures.","data":{"invalidRequestParameter":"day"}}
@@ -293,7 +292,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     feeToPrecision (symbol, fee) {
-        return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['price'], this.precisionMode);
+        return this.decimalToPrecision (fee, this.TRUNCATE, this.markets[symbol]['precision']['price'], this.precisionMode);
     }
 
     async fetchMarkets (params = {}) {

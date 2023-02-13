@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, NotSupported } = require ('./base/errors');
-const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -896,7 +895,7 @@ module.exports = class huobi extends Exchange {
                     'dw-withdraw-min-limit': BadRequest, // {"status":"error","err-code":"dw-withdraw-min-limit","err-msg":"The withdrawal amount is less than the minimum limit.","data":null}
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'options': {
                 'fetchMarkets': {
                     'types': {
@@ -1404,7 +1403,7 @@ module.exports = class huobi extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
+        return this.decimalToPrecision (cost, this.TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
     }
 
     async fetchMarkets (params = {}) {

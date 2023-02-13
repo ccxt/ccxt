@@ -2,7 +2,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, PermissionDenied } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class tidex extends Exchange {
@@ -127,7 +126,7 @@ module.exports = class tidex extends Exchange {
                 'EMGO': 'MGO',
                 'MGO': 'WMGO',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)

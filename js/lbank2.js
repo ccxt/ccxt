@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidAddress, DuplicateOrderId, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -185,7 +184,7 @@ module.exports = class lbank2 extends Exchange {
                 'VET_ERC20': 'VEN',
                 'PNT': 'Penta',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'options': {
                 'cacheSecretAsPem': true,
                 'createMarketBuyOrderRequiresPrice': true,

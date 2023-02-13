@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, NotSupported, BadRequest, ArgumentsRequired } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -94,7 +93,7 @@ module.exports = class bitso extends Exchange {
                 'fees': 'https://bitso.com/fees',
                 'referral': 'https://bitso.com/?ref=itej',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'options': {
                 'precision': {
                     'XRP': 0.000001,

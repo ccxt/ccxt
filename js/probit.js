@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
-const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -176,7 +175,7 @@ module.exports = class probit extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'timeInForce': {
@@ -1129,7 +1128,7 @@ module.exports = class probit extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
+        return this.decimalToPrecision (cost, this.TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

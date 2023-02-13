@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------xs
 
@@ -133,7 +132,7 @@ module.exports = class alpaca extends Exchange {
                 '1w': '1W',
                 '1M': '1M',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,

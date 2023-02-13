@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -285,7 +284,7 @@ module.exports = class kuna extends Exchange {
             'commonCurrencies': {
                 'PLA': 'Plair',
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': this.TICK_SIZE,
             'exceptions': {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
