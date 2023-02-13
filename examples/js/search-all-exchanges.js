@@ -68,7 +68,7 @@ const checkAgainst = strict ?
             // agent, // set up keys and settings, if any
         }))
 
-        if (exchange.has.publicAPI) {
+        if (exchange.has.fetchMarkets) {
 
             try {
 

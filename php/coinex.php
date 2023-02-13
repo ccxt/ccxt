@@ -984,7 +984,7 @@ class coinex extends Exchange {
         $marketId = $this->safe_string($trade, 'market');
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, null, $defaultType);
         $costString = $this->safe_string($trade, 'deal_money');
         $fee = null;
         $feeCostString = $this->safe_string_2($trade, 'fee', 'deal_fee');

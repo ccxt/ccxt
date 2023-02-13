@@ -977,7 +977,7 @@ class coinex(Exchange):
         marketId = self.safe_string(trade, 'market')
         defaultType = self.safe_string(self.options, 'defaultType')
         market = self.safe_market(marketId, market, None, defaultType)
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, None, defaultType)
         costString = self.safe_string(trade, 'deal_money')
         fee = None
         feeCostString = self.safe_string_2(trade, 'fee', 'deal_fee')

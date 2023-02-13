@@ -157,8 +157,6 @@ class binance(Exchange):
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivateV2': 'https://testnet.binancefuture.com/dapi/v2',
-                    'eapiPublic': 'https://testnet.binanceops.com/eapi/v1',
-                    'eapiPrivate': 'https://testnet.binanceops.com/eapi/v1',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
@@ -902,7 +900,8 @@ class binance(Exchange):
             'precisionMode': DECIMAL_PLACES,
             # exchange-specific options
             'options': {
-                'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
+                'sandboxMode': False,
+                'fetchMarkets': ['spot', 'linear', 'inverse'],
                 'fetchCurrencies': True,  # self is a private call and it requires API keys
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
@@ -1427,6 +1426,10 @@ class binance(Exchange):
         else:
             return subType == 'linear'
 
+    def set_sandbox_mode(self, enable):
+        super(binance, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable
+
     def market(self, symbol):
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
@@ -1677,7 +1680,11 @@ class binance(Exchange):
         :returns [dict]: an array of objects representing market data
         """
         promises = []
-        fetchMarkets = self.safe_value(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse', 'option'])
+        fetchMarkets = self.safe_value(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        if not sandboxMode:
+            # options not available in sandbox mode
+            fetchMarkets.append('option')
         for i in range(0, len(fetchMarkets)):
             marketType = fetchMarkets[i]
             if marketType == 'spot':
