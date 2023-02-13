@@ -2174,6 +2174,18 @@ module.exports = class binance extends Exchange {
                 account['used'] = Precise.stringAdd (frozen, Precise.stringAdd (locked, withdrawing));
                 result[code] = account;
             }
+        } else if (type === 'option') {
+            timestamp = this.safeInteger (response, 'time');
+            const assets = this.safeValue (response, 'asset', []);
+            for (let i = 0; i < assets.length; i++) {
+                const balance = assets[i];
+                const currencyId = this.safeString (balance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'available');
+                account['used'] = this.safeString (balance, 'locked');
+                result[code] = account;
+            }
         } else {
             let balances = response;
             if (!Array.isArray (response)) {
@@ -2247,6 +2259,8 @@ module.exports = class binance extends Exchange {
             method = 'sapiGetLendingUnionAccount';
         } else if (type === 'funding') {
             method = 'sapiPostAssetGetFundingAsset';
+        } else if (type === 'option') {
+            method = 'eapiPrivateGetAccount';
         }
         const requestParams = this.omit (query, [ 'type', 'symbols' ]);
         const response = await this[method] (this.extend (request, requestParams));
@@ -2475,6 +2489,22 @@ module.exports = class binance extends Exchange {
         //         "withdrawing": "0"
         //       }
         //     ]
+        //
+        // options (eapi)
+        //
+        //     {
+        //         "asset": [
+        //             {
+        //                 "asset": "USDT",
+        //                 "marginBalance": "25.45130462",
+        //                 "equity": "25.45130462",
+        //                 "available": "25.45130462",
+        //                 "locked": "0.00000000",
+        //                 "unrealizedPNL": "0.00000000"
+        //             }
+        //         ],
+        //         "time": 1676328152755
+        //     }
         //
         return this.parseBalance (response, type, marginMode);
     }
