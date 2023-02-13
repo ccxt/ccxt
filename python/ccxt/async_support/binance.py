@@ -902,7 +902,7 @@ class binance(Exchange):
             # exchange-specific options
             'options': {
                 'sandboxMode': False,
-                'fetchMarkets': ['spot', 'linear', 'inverse'],
+                'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'fetchCurrencies': True,  # self is a private call and it requires API keys
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
@@ -1681,11 +1681,14 @@ class binance(Exchange):
         :returns [dict]: an array of objects representing market data
         """
         promises = []
-        fetchMarkets = self.safe_value(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
+        rawFetchMarkets = self.safe_value(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
-        if not sandboxMode:
-            # options not available in sandbox mode
-            fetchMarkets.append('option')
+        fetchMarkets = []
+        for i in range(0, len(rawFetchMarkets)):
+            type = rawFetchMarkets[i]
+            if type == 'option' and sandboxMode:
+                continue
+            fetchMarkets.append(type)
         for i in range(0, len(fetchMarkets)):
             marketType = fetchMarkets[i]
             if marketType == 'spot':

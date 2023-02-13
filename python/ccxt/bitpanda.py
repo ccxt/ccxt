@@ -92,8 +92,6 @@ class bitpanda(Exchange):
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
-                'privateAPI': True,
-                'publicAPI': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMargin': False,

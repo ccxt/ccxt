@@ -877,7 +877,7 @@ class binance extends Exchange {
             // exchange-specific options
             'options' => array(
                 'sandboxMode' => false,
-                'fetchMarkets' => array( 'spot', 'linear', 'inverse' ),
+                'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
                 'fetchCurrencies' => true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
@@ -1687,11 +1687,15 @@ class binance extends Exchange {
          * @return {[array]} an array of objects representing market data
          */
         $promises = array();
-        $fetchMarkets = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'linear', 'inverse' ));
+        $rawFetchMarkets = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'linear', 'inverse' ));
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
-        if (!$sandboxMode) {
-            // options not available in sandbox mode
-            $fetchMarkets[] = 'option';
+        $fetchMarkets = array();
+        for ($i = 0; $i < count($rawFetchMarkets); $i++) {
+            $type = $rawFetchMarkets[$i];
+            if ($type === 'option' && $sandboxMode) {
+                continue;
+            }
+            $fetchMarkets[] = $type;
         }
         for ($i = 0; $i < count($fetchMarkets); $i++) {
             $marketType = $fetchMarkets[$i];

@@ -93,8 +93,6 @@ class bkex extends Exchange {
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
-                'privateAPI' => true,
-                'publicAPI' => true,
                 'reduceMargin' => null,
                 'setLeverage' => null,
                 'setMarginMode' => null,

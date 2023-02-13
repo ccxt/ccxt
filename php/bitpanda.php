@@ -80,8 +80,6 @@ class bitpanda extends Exchange {
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
-                'privateAPI' => true,
-                'publicAPI' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
