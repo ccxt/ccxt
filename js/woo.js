@@ -199,6 +199,7 @@ module.exports = class woo extends Exchange {
                             'balances': 1,
                             'accountinfo': 60,
                             'positions': 3.33,
+                            'buypower': 1,
                         },
                         'post': {
                             'algo/order': 5,
@@ -1946,7 +1947,11 @@ module.exports = class woo extends Exchange {
                     body = this.json (params);
                     auth += body;
                 } else {
-                    auth += this.urlencode (params);
+                    if (Object.keys (params).length) {
+                        const query = this.urlencode (params);
+                        url += '?' + query;
+                        auth += '?' + query;
+                    }
                 }
                 headers['content-type'] = 'application/json';
             } else {
