@@ -267,6 +267,7 @@ class Transpiler {
             [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
             [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
             [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
+            // [ /\(((.*?), |)\.\.\. (.*?)\)/g, '($1*$3)' ], // this line transpiles variable arguments lile ` myMethod (arg1, arg2, ... arg3) ` to `def methodName(arg1, arg2, *arg3)`
             //
             // too broad, have to rewrite these cause they don't work
             //
@@ -1803,6 +1804,7 @@ class Transpiler {
     // ============================================================================
 
     transpileExchangeTests () {
+
         const tests = [
             {
                 'jsFile': './js/test/Exchange/test.market.js',
@@ -1853,6 +1855,12 @@ class Transpiler {
         for (const test of tests) {
             this.transpileTest (test)
         }
+
+        this.transpileMainTest ({
+            'jsFile': './js/test/test.js',
+            'pyFile': './python/ccxt/test/test_async_transpiled.py',
+            'phpFile': './php/test/test_async_transpiled.php',
+        });
     }
 
     // ============================================================================
@@ -1890,6 +1898,33 @@ class Transpiler {
 
         overwriteFile (test.pyFile, python)
         overwriteFile (test.phpFile, php)
+    }
+
+    transpileMainTest (test) {
+        log.magenta ('Transpiling from', test.jsFile.yellow)
+        let js = fs.readFileSync (test.jsFile).toString ()
+
+        js = this.regexAll (js, [
+            [ /\'use strict\';?\s+/g, '' ],
+            [ /[^\n]+require[^\n]+\n/g, '' ],
+            [ /module.exports\s+=\s+[^;]+;/g, '' ],
+        ])
+
+        const commentPreJsPhp = '// ';
+        const commentPrePy = '# ';
+        const startLine = '### AUTO-TRANSPILER-START ###';
+        const endLIne = '### AUTO-TRANSPILER-END ###';
+
+        let mainContent = js.split(commentPreJsPhp + startLine)[1];
+        mainContent = mainContent.split(commentPreJsPhp + endLIne)[0];
+        let { python3Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js:mainContent, removeEmptyLines: false })
+
+        const existinPhpBody = fs.readFileSync (test.phpFile).toString ();
+        const existinPythonBody = fs.readFileSync (test.phpFile).toString ();
+        const newPhp = existinPhpBody.split(commentPreJsPhp + startLine)[0] + commentPreJsPhp + startLine + '\n' + phpBody + '\n' + commentPreJsPhp + endLIne + existinPhpBody.split(commentPreJsPhp + endLIne)[1]; 
+        const newPython = existinPythonBody.split(commentPrePy + startLine)[0] + commentPrePy + startLine + '\n' + python3Body + '\n' + commentPrePy + endLIne + existinPythonBody.split(commentPrePy + endLIne)[1];
+        overwriteFile (test.pyFile, newPython)
+        overwriteFile (test.phpFile, newPhp)
     }
 
     // ============================================================================
