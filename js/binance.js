@@ -1694,11 +1694,15 @@ module.exports = class binance extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         let promises = [];
-        const fetchMarkets = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
+        const rawFetchMarkets = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
-        if (!sandboxMode) {
-            // options not available in sandbox mode
-            fetchMarkets.push ('option');
+        const fetchMarkets = [];
+        for (let i = 0; i < rawFetchMarkets.length; i++) {
+            const type = fetchMarkets[i];
+            if (type === 'option' && sandboxMode) {
+                continue;
+            }
+            fetchMarkets.push (type);
         }
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
