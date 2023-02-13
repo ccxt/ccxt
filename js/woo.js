@@ -197,6 +197,7 @@ module.exports = class woo extends Exchange {
                             'algo/order/{oid}': 1,
                             'algo/orders': 1,
                             'balances': 1,
+                            'accountinfo': 60,
                         },
                         'post': {
                             'algo/order': 5,
@@ -525,35 +526,43 @@ module.exports = class woo extends Exchange {
          * @method
          * @name woo#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://docs.woo.org/#get-account-information-new
          * @param {object} params extra parameters specific to the woo api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.v1PrivateGetClientInfo (params);
+        const response = await this.v3PrivateGetAccountinfo (params);
         //
         //     {
-        //         "application":{
-        //             "id":45585,
-        //             "leverage":3.00,
-        //             "otpauth":false,
-        //             "alias":"email@address.com",
-        //             "application_id":"c2cc4d74-c8cb-4e10-84db-af2089b8c68a",
-        //             "account":"email@address.com",
-        //             "account_mode":"PURE_SPOT",
-        //             "taker_fee_rate":5.00,
-        //             "maker_fee_rate":2.00,
-        //             "interest_rate":0.00,
-        //             "futures_leverage":1.00,
-        //             "futures_taker_fee_rate":5.00,
-        //             "futures_maker_fee_rate":2.00
+        //         "success": true,
+        //         "data": {
+        //             "applicationId": "dsa",
+        //             "account": "dsa",
+        //             "alias": "haha",
+        //             "accountMode": "MARGIN",
+        //             "leverage": 1,
+        //             "takerFeeRate": 1,
+        //             "makerFeeRate": 1,
+        //             "interestRate": 1,
+        //             "futuresTakerFeeRate": 1,
+        //             "futuresMakerFeeRate": 1,
+        //             "otpauth": true,
+        //             "marginRatio": 1,
+        //             "openMarginRatio": 1,
+        //             "initialMarginRatio": 1,
+        //             "maintenanceMarginRatio": 1,
+        //             "totalCollateral": 1,
+        //             "freeCollateral": 1,
+        //             "totalAccountValue": 1,
+        //             "totalVaultValue": 1,
+        //             "totalStakingValue": 1
         //         },
-        //         "margin_rate":1000,
-        //         "success":true
+        //         "timestamp": 1673323685109
         //     }
         //
-        const application = this.safeValue (response, 'application', {});
-        const maker = this.safeString (application, 'maker_fee_rate');
-        const taker = this.safeString (application, 'taker_fee_rate');
+        const data = this.safeValue (response, 'data', {});
+        const maker = this.safeString (data, 'makerFeeRate');
+        const taker = this.safeString (data, 'takerFeeRate');
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
@@ -2178,28 +2187,36 @@ module.exports = class woo extends Exchange {
 
     async fetchLeverage (symbol, params = {}) {
         await this.loadMarkets ();
-        const response = await this.v1PrivateGetClientInfo (params);
+        const response = await this.v3PrivateGetAccountinfo (params);
         //
         //     {
         //         "success": true,
-        //         "application": {
-        //             "application_id": "8935820a-6600-4c2c-9bc3-f017d89aa173",
-        //             "account": "CLIENT_ACCOUNT_01",
-        //             "alias": "CLIENT_ACCOUNT_01",
-        //             "account_mode":"FUTURES" //account mode
-        //             "leverage": 5,
-        //             "taker_fee_rate": 0,
-        //             "maker_fee_rate": 0,
-        //             "interest_rate": 0,
-        //             "futures_leverage": 5,
-        //             "futures_taker_fee_rate": 0,
-        //             "futures_maker_fee_rate": 0,
-        //             "otpauth": false
+        //         "data": {
+        //             "applicationId": "dsa",
+        //             "account": "dsa",
+        //             "alias": "haha",
+        //             "accountMode": "MARGIN",
+        //             "leverage": 1,
+        //             "takerFeeRate": 1,
+        //             "makerFeeRate": 1,
+        //             "interestRate": 1,
+        //             "futuresTakerFeeRate": 1,
+        //             "futuresMakerFeeRate": 1,
+        //             "otpauth": true,
+        //             "marginRatio": 1,
+        //             "openMarginRatio": 1,
+        //             "initialMarginRatio": 1,
+        //             "maintenanceMarginRatio": 1,
+        //             "totalCollateral": 1,
+        //             "freeCollateral": 1,
+        //             "totalAccountValue": 1,
+        //             "totalVaultValue": 1,
+        //             "totalStakingValue": 1
         //         },
-        //         "margin_rate": 1000
+        //         "timestamp": 1673323685109
         //     }
         //
-        const result = this.safeValue (response, 'application');
+        const result = this.safeValue (response, 'data');
         const leverage = this.safeNumber (result, 'leverage');
         return {
             'info': response,
