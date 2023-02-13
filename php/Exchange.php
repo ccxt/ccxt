@@ -63,6 +63,16 @@ class Exchange {
 
     public $defined_rest_api = array();
 
+    public $TICK_SIZE = null;
+    public $DECIMAL_PLACES = null;
+    public $SIGNIFICANT_DIGITS = null;
+    public $TRUNCATE = null;
+    public $ROUND = null;
+    public $ROUND_UP = null;
+    public $ROUND_DOWN = null;
+    public $NO_PADDING = null;
+    public $PAD_WITH_ZERO = null;
+    
     public $curl = null;
     public $curl_options = array(); // overrideable by user, empty by default
     public $curl_reset = true;
@@ -1458,6 +1468,9 @@ class Exchange {
             }
         }
 
+        $this->options = $this->get_default_options(); // exchange-specific options if any
+        $this->add_base_properties(); // add transpilable base properties
+    
         if ($this->api) {
             $this->define_rest_api($this->api, 'request');
         }

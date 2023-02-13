@@ -29,7 +29,7 @@ const { // eslint-disable-line object-curly-newline
     , RateLimitExceeded
     , ArgumentsRequired } = require ('./errors')
 
-const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE } = functions.precisionConstants
+const { TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, DECIMAL_PLACES, SIGNIFICANT_DIGITS, NO_PADDING, PAD_WITH_ZERO, TICK_SIZE } = functions.precisionConstants
 
 const BN = require ('../static_dependencies/BN/bn')
 const Precise = require ('./Precise')
@@ -216,8 +216,8 @@ module.exports = class Exchange {
                 'BCHABC': 'BCH',
                 'BCHSV': 'BSV',
             },
-            'precisionMode': DECIMAL_PLACES,
-            'paddingMode': NO_PADDING,
+            'precisionMode': this.DECIMAL_PLACES,
+            'paddingMode': this.NO_PADDING,
             'limits': {
                 'leverage': { 'min': undefined, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
@@ -240,6 +240,7 @@ module.exports = class Exchange {
         //     }
         //
         this.options = this.getDefaultOptions(); // exchange-specific options, if any
+        this.addBaseProperties(); // add transpilable base properties
         // fetch implementation options (JS only)
         this.fetchOptions = {
             // keepalive: true, // does not work in Chrome, https://github.com/ccxt/ccxt/issues/6368
@@ -802,6 +803,18 @@ module.exports = class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    addBaseProperties () {
+        this.TICK_SIZE = TICK_SIZE;
+        this.DECIMAL_PLACES = DECIMAL_PLACES;
+        this.SIGNIFICANT_DIGITS = SIGNIFICANT_DIGITS;
+        this.TRUNCATE = TRUNCATE;
+        this.ROUND = ROUND;
+        this.ROUND_UP = ROUND_UP;
+        this.ROUND_DOWN = ROUND_DOWN;
+        this.NO_PADDING = NO_PADDING;
+        this.PAD_WITH_ZERO = PAD_WITH_ZERO;
+    }
+
     getDefaultOptions () {
         return {
             'defaultNetworkCodeReplacements': {
@@ -890,7 +903,7 @@ module.exports = class Exchange {
             let quoteCurrencies = [];
             for (let i = 0; i < values.length; i++) {
                 const market = values[i];
-                const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
+                const defaultCurrencyPrecision = (this.precisionMode === this.DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
                 const marketPrecision = this.safeValue (market, 'precision', {});
                 if ('base' in market) {
                     const currencyPrecision = this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
@@ -927,7 +940,7 @@ module.exports = class Exchange {
                 let highestPrecisionCurrency = this.safeValue (groupedCurrenciesCode, 0);
                 for (let j = 1; j < groupedCurrenciesCode.length; j++) {
                     const currentCurrency = groupedCurrenciesCode[j];
-                    if (this.precisionMode === TICK_SIZE) {
+                    if (this.precisionMode === this.TICK_SIZE) {
                         highestPrecisionCurrency = (currentCurrency['precision'] < highestPrecisionCurrency['precision']) ? currentCurrency : highestPrecisionCurrency;
                     } else {
                         highestPrecisionCurrency = (currentCurrency['precision'] > highestPrecisionCurrency['precision']) ? currentCurrency : highestPrecisionCurrency;
@@ -2626,12 +2639,12 @@ module.exports = class Exchange {
 
     costToPrecision (symbol, cost) {
         const market = this.market (symbol);
-        return this.decimalToPrecision (cost, TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision (cost, this.TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
 
     priceToPrecision (symbol, price) {
         const market = this.market (symbol);
-        const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const result = this.decimalToPrecision (price, this.ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
         if (result === '0') {
             throw new ArgumentsRequired (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + this.numberToString (market['precision']['price']));
         }
@@ -2640,7 +2653,7 @@ module.exports = class Exchange {
 
     amountToPrecision (symbol, amount) {
         const market = this.market (symbol);
-        const result = this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        const result = this.decimalToPrecision (amount, this.TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
         if (result === '0') {
             throw new ArgumentsRequired (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
         }
@@ -2649,7 +2662,7 @@ module.exports = class Exchange {
 
     feeToPrecision (symbol, fee) {
         const market = this.market (symbol);
-        return this.decimalToPrecision (fee, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision (fee, this.ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
 
     currencyToPrecision (code, fee, networkCode = undefined) {
@@ -2663,7 +2676,7 @@ module.exports = class Exchange {
         if (precision === undefined) {
             return fee;
         } else {
-            return this.decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
+            return this.decimalToPrecision (fee, this.ROUND, precision, this.precisionMode, this.paddingMode);
         }
     }
 
