@@ -89,7 +89,7 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
         symbol = market['symbol']
         if (limit is None) or (limit > 1440):
             limit = 100
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         channel = 'bar' + ':' + interval + ':' + market['id']
         params = {
             'ch': channel,

@@ -27,7 +27,7 @@ class coinspot extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'createMarketOrder' => null,
+                'createMarketOrder' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -287,7 +287,7 @@ class coinspot extends Exchange {
              * @see https://www.coinspot.com.au/api#latestprices
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the coinspot api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetLatest ($params));
@@ -393,8 +393,9 @@ class coinspot extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://www.coinspot.com.au/api#placebuyorder
              * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
+             * @param {string} $type must be 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders

@@ -708,7 +708,7 @@ class stex extends Exchange {
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the stex api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTicker ($params));
@@ -798,7 +798,7 @@ class stex extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'currencyPairId' => $market['id'],
-                'candlesType' => $this->timeframes[$timeframe], // default 1d
+                'candlesType' => $this->safe_string($this->timeframes, $timeframe, $timeframe), // default 1d
                 // 'timeStart' => 1574709092, // unix timestamp in seconds, required
                 // 'timeEnd' => 1574709092, // unix timestamp in seconds, required
                 // 'limit' => 100, // default 100, optional

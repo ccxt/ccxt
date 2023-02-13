@@ -734,7 +734,7 @@ class coinex(Exchange):
         see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -979,7 +979,7 @@ class coinex(Exchange):
         marketId = self.safe_string(trade, 'market')
         defaultType = self.safe_string(self.options, 'defaultType')
         market = self.safe_market(marketId, market, None, defaultType)
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, None, defaultType)
         costString = self.safe_string(trade, 'deal_money')
         fee = None
         feeCostString = self.safe_string_2(trade, 'fee', 'deal_fee')
@@ -1176,7 +1176,7 @@ class coinex(Exchange):
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'type': self.timeframes[timeframe],
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit
@@ -2484,7 +2484,8 @@ class coinex(Exchange):
     def safe_network(self, networkId, currency=None):
         networks = self.safe_value(currency, 'networks', {})
         networksCodes = list(networks.keys())
-        if networkId is None and len(networksCodes) == 1:
+        networksCodesLength = len(networksCodes)
+        if networkId is None and networksCodesLength == 1:
             return networks[networksCodes[0]]
         return {
             'id': networkId,
@@ -2506,7 +2507,8 @@ class coinex(Exchange):
         parts = coinAddress.split(':')
         address = None
         tag = None
-        if len(parts) > 1:
+        partsLength = len(parts)
+        if partsLength > 1:
             address = parts[0]
             tag = parts[1]
         else:
@@ -3275,6 +3277,8 @@ class coinex(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         ticker = self.safe_value(data, 'ticker', {})
+        timestamp = self.safe_integer(data, 'date')
+        ticker['timestamp'] = timestamp  # avoid changing parseFundingRate signature
         return self.parse_funding_rate(ticker, market)
 
     def parse_funding_rate(self, contract, market=None):
@@ -3304,6 +3308,11 @@ class coinex(Exchange):
         #         "sell_amount": "0.9388"
         #     }
         #
+        timestamp = self.safe_integer(contract, 'timestamp')
+        contract = self.omit(contract, 'timestamp')
+        fundingDelta = self.safe_integer(contract, 'funding_time') * 60 * 1000
+        fundingHour = (timestamp + fundingDelta) / 3600000
+        fundingTimestamp = int(round(fundingHour)) * 3600000
         return {
             'info': contract,
             'symbol': self.safe_symbol(None, market),
@@ -3311,11 +3320,11 @@ class coinex(Exchange):
             'indexPrice': self.safe_number(contract, 'index_price'),
             'interestRate': None,
             'estimatedSettlePrice': None,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'fundingRate': self.safe_number(contract, 'funding_rate_next'),
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': self.safe_number(contract, 'funding_rate_predict'),
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
@@ -3328,9 +3337,9 @@ class coinex(Exchange):
         """
          *  @method
         fetch the current funding rates
-        :param array symbols: unified market symbols
+        :param [str] symbols: unified market symbols
         :param dict params: extra parameters specific to the coinex api endpoint
-        :returns array: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -3376,6 +3385,7 @@ class coinex(Exchange):
         #     }
         data = self.safe_value(response, 'data', {})
         tickers = self.safe_value(data, 'ticker', {})
+        timestamp = self.safe_integer(data, 'date')
         result = []
         marketIds = list(tickers.keys())
         for i in range(0, len(marketIds)):
@@ -3383,6 +3393,7 @@ class coinex(Exchange):
             if marketId.find('_') == -1:  # skip _signprice and _indexprice
                 market = self.safe_market(marketId, None, None, 'swap')
                 ticker = tickers[marketId]
+                ticker['timestamp'] = timestamp
                 result.append(self.parse_funding_rate(ticker, market))
         return self.filter_by_array(result, 'symbol', symbols)
 

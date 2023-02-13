@@ -37,7 +37,6 @@ class indodax(Exchange):
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'createDepositAddress': False,
-                'createMarketOrder': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
@@ -62,19 +61,17 @@ class indodax(Exchange):
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyTrades': None,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': None,
+                'fetchOrders': False,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
-                'fetchTickers': None,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -439,7 +436,7 @@ class indodax(Exchange):
         see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         #

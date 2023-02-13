@@ -35,7 +35,7 @@ module.exports = class bitfinex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': undefined,
+                'fetchDeposits': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchIndexOHLCV': false,
@@ -59,7 +59,7 @@ module.exports = class bitfinex extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
                 'fetchTransactions': true,
-                'fetchWithdrawals': undefined,
+                'fetchWithdrawals': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -853,7 +853,7 @@ module.exports = class bitfinex extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -1325,7 +1325,7 @@ module.exports = class bitfinex extends Exchange {
         const v2id = 't' + market['id'];
         const request = {
             'symbol': v2id,
-            'timeframe': this.timeframes[timeframe],
+            'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
             'sort': 1,
             'limit': limit,
         };

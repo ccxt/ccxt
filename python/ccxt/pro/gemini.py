@@ -25,7 +25,7 @@ class gemini(Exchange, ccxt.async_support.gemini):
                 'watchOrderBook': True,
                 'watchOHLCV': True,
             },
-            'hostname:': 'api.gemini.com',
+            'hostname': 'api.gemini.com',
             'urls': {
                 'api': {
                     'ws': 'wss://api.gemini.com',

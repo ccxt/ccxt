@@ -27,7 +27,7 @@ class btctradeua(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'createMarketOrder': None,
+                'createMarketOrder': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
@@ -371,7 +371,7 @@ class btctradeua(Exchange):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders

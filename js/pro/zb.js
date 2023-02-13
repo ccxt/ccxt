@@ -188,7 +188,7 @@ module.exports = class zb extends zbRest {
         if ((limit === undefined) || (limit > 1440)) {
             limit = 100;
         }
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = market['id'] + '.KLine' + '_' + interval;
         const url = this.implodeHostname (this.urls['api']['ws']['contract']);
         const ohlcv = await this.watchPublic (url, messageHash, symbol, this.handleOHLCV, limit, params);

@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.6.36';
+$version = '2.7.91';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.6.36';
+    const VERSION = '2.7.91';
 
     public $browser;
     public $marketsLoading = null;
@@ -94,6 +94,7 @@ class Exchange extends \ccxt\Exchange {
             $this->lastRestRequestTimestamp = $this->milliseconds();
 
             try {
+                $body = $body ?? ''; // https://github.com/ccxt/ccxt/pull/16555
                 $result = React\Async\await($this->browser->request($method, $url, $headers, $body));
             } catch (Exception $e) {
                 $message = $e->getMessage();
@@ -426,7 +427,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function safe_order($order, $market = null) {
         // parses numbers as strings
-        // it is important pass the $trades as unparsed $rawTrades
+        // * it is important pass the $trades as unparsed $rawTrades
         $amount = $this->omit_zero($this->safe_string($order, 'amount'));
         $remaining = $this->safe_string($order, 'remaining');
         $filled = $this->safe_string($order, 'filled');
@@ -633,8 +634,22 @@ class Exchange extends \ccxt\Exchange {
             // $timeInForce is not null here
             $postOnly = $timeInForce === 'PO';
         }
+        $timestamp = $this->safe_integer($order, 'timestamp');
+        $datetime = $this->safe_string($order, 'datetime');
+        if ($timestamp === null) {
+            $timestamp = $this->parse8601 ($timestamp);
+        }
+        if ($datetime === null) {
+            $datetime = $this->iso8601 ($timestamp);
+        }
+        $triggerPrice = $this->parse_number($this->safe_string_2($order, 'triggerPrice', 'stopPrice'));
         return array_merge($order, array(
+            'id' => $this->safe_string($order, 'id'),
+            'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
             'symbol' => $symbol,
+            'type' => $this->safe_string($order, 'type'),
             'side' => $side,
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
             'price' => $this->parse_number($price),
@@ -646,6 +661,11 @@ class Exchange extends \ccxt\Exchange {
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'trades' => $trades,
+            'reduceOnly' => $this->safe_value($order, 'reduceOnly'),
+            'stopPrice' => $triggerPrice,  // ! deprecated, use $triggerPrice instead
+            'triggerPrice' => $triggerPrice,
+            'status' => $this->safe_string($order, 'status'),
+            'fee' => $this->safe_value($order, 'fee'),
         ));
     }
 
@@ -2542,7 +2562,8 @@ class Exchange extends \ccxt\Exchange {
          * @param {[string]} $options a list of $options that the $argument can be
          * @return {null}
          */
-        if (($argument === null) || ((strlen($options) > 0) && (!($this->in_array($argument, $options))))) {
+        $optionsLength = count($options);
+        if (($argument === null) || (($optionsLength > 0) && (!($this->in_array($argument, $options))))) {
             $messageOptions = implode(', ', $options);
             $message = $this->id . ' ' . $methodName . '() requires a ' . $argumentName . ' argument';
             if ($messageOptions !== '') {
@@ -2642,5 +2663,25 @@ class Exchange extends \ccxt\Exchange {
             }
         }
         return $fee;
+    }
+
+    public function parse_incomes($incomes, $market = null, $since = null, $limit = null) {
+        /**
+         * @ignore
+         * parses funding fee info from exchange response
+         * @param {[array]} $incomes each item describes once instance of currency being received or paid
+         * @param {array|null} $market ccxt $market
+         * @param {int|null} $since when defined, the response items are filtered to only include items after this timestamp
+         * @param {int|null} $limit limits the number of items in the response
+         * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structures}
+         */
+        $result = array();
+        for ($i = 0; $i < count($incomes); $i++) {
+            $entry = $incomes[$i];
+            $parsed = $this->parse_income($entry, $market);
+            $result[] = $parsed;
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 }

@@ -258,7 +258,7 @@ class idex extends \ccxt\async\idex {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $name = 'candles';
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $subscribeObject = array(
                 'name' => $name,
                 'markets' => [ $market['id'] ],

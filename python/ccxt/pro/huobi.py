@@ -256,7 +256,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = 'market.' + market['id'] + '.kline.' + interval
         url = self.get_url_by_market_type(market['type'], market['linear'])
         ohlcv = await self.subscribe_public(url, symbol, messageHash, None, params)

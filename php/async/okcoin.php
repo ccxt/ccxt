@@ -1328,7 +1328,7 @@ class okcoin extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the okcoin api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             $symbols = $this->market_symbols($symbols);
             $first = $this->safe_string($symbols, 0);
@@ -1571,7 +1571,7 @@ class okcoin extends Exchange {
             $duration = $this->parse_timeframe($timeframe);
             $request = array(
                 'instrument_id' => $market['id'],
-                'granularity' => $this->timeframes[$timeframe],
+                'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $options = $this->safe_value($this->options, 'fetchOHLCV', array());
             $defaultType = $this->safe_string($options, 'type', 'Candles'); // Candles or HistoryCandles

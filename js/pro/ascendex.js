@@ -92,7 +92,7 @@ module.exports = class ascendex extends ascendexRest {
         if ((limit === undefined) || (limit > 1440)) {
             limit = 100;
         }
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const channel = 'bar' + ':' + interval + ':' + market['id'];
         params = {
             'ch': channel,

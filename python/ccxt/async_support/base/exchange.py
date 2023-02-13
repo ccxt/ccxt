@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.6.36'
+__version__ = '2.7.91'
 
 # -----------------------------------------------------------------------------
 
@@ -444,7 +444,7 @@ class Exchange(BaseExchange):
 
     def safe_order(self, order, market=None):
         # parses numbers as strings
-        # it is important pass the trades as unparsed rawTrades
+        # * it is important pass the trades as unparsed rawTrades
         amount = self.omit_zero(self.safe_string(order, 'amount'))
         remaining = self.safe_string(order, 'remaining')
         filled = self.safe_string(order, 'filled')
@@ -607,8 +607,20 @@ class Exchange(BaseExchange):
         elif postOnly is None:
             # timeInForce is not None here
             postOnly = timeInForce == 'PO'
+        timestamp = self.safe_integer(order, 'timestamp')
+        datetime = self.safe_string(order, 'datetime')
+        if timestamp is None:
+            timestamp = self.parse8601(timestamp)
+        if datetime is None:
+            datetime = self.iso8601(timestamp)
+        triggerPrice = self.parse_number(self.safe_string_2(order, 'triggerPrice', 'stopPrice'))
         return self.extend(order, {
+            'id': self.safe_string(order, 'id'),
+            'clientOrderId': self.safe_string(order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': datetime,
             'symbol': symbol,
+            'type': self.safe_string(order, 'type'),
             'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),
@@ -620,6 +632,11 @@ class Exchange(BaseExchange):
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'trades': trades,
+            'reduceOnly': self.safe_value(order, 'reduceOnly'),
+            'stopPrice': triggerPrice,  # ! deprecated, use triggerPrice instead
+            'triggerPrice': triggerPrice,
+            'status': self.safe_string(order, 'status'),
+            'fee': self.safe_value(order, 'fee'),
         })
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
@@ -2101,7 +2118,8 @@ class Exchange(BaseExchange):
         :param [str] options: a list of options that the argument can be
         :returns None:
         """
-        if (argument is None) or ((len(options) > 0) and (not(self.in_array(argument, options)))):
+        optionsLength = len(options)
+        if (argument is None) or ((optionsLength > 0) and (not(self.in_array(argument, options)))):
             messageOptions = ', '.join(options)
             message = self.id + ' ' + methodName + '() requires a ' + argumentName + ' argument'
             if messageOptions != '':
@@ -2187,3 +2205,21 @@ class Exchange(BaseExchange):
                 fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw']
                 fee['deposit'] = fee['networks'][networkKeys[i]]['deposit']
         return fee
+
+    def parse_incomes(self, incomes, market=None, since=None, limit=None):
+        """
+         * @ignore
+        parses funding fee info from exchange response
+        :param [dict] incomes: each item describes once instance of currency being received or paid
+        :param dict|None market: ccxt market
+        :param int|None since: when defined, the response items are filtered to only include items after self timestamp
+        :param int|None limit: limits the number of items in the response
+        :returns [dict]: an array of `funding history structures <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        """
+        result = []
+        for i in range(0, len(incomes)):
+            entry = incomes[i]
+            parsed = self.parse_income(entry, market)
+            result.append(parsed)
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_since_limit(sorted, since, limit)

@@ -268,7 +268,7 @@ module.exports = class woo extends wooRest {
             throw new ExchangeError (this.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
         }
         const market = this.market (symbol);
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'kline';
         const topic = market['id'] + '@' + name + '_' + interval;
         const request = {
@@ -648,14 +648,16 @@ module.exports = class woo extends wooRest {
                 return method.call (this, client, message);
             }
             const splitTopic = topic.split ('@');
-            if (splitTopic.length === 2) {
+            const splitLength = splitTopic.length;
+            if (splitLength === 2) {
                 const name = this.safeString (splitTopic, 1);
                 method = this.safeValue (methods, name);
                 if (method !== undefined) {
                     return method.call (this, client, message);
                 }
                 const splitName = name.split ('_');
-                if (splitName.length === 2) {
+                const splitNameLength = splitTopic.length;
+                if (splitNameLength === 2) {
                     method = this.safeValue (methods, this.safeString (splitName, 0));
                     if (method !== undefined) {
                         return method.call (this, client, message);

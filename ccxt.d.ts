@@ -451,6 +451,7 @@ declare module 'ccxt' {
     
     /* tslint:disable */
 
+    export class ace extends Exchange {}
     export class alpaca extends Exchange {}
     export class ascendex extends Exchange {}
     export class bequant extends hitbtc {}
@@ -560,13 +561,13 @@ declare module 'ccxt' {
     export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
-    export class zipmex extends ndax {}
     export class zonda extends Exchange {}
 
     
     /* tslint:enable */
 
     export type ExchangeId =
+        | 'ace'
         | 'alpaca'
         | 'ascendex'
         | 'bequant'
@@ -676,7 +677,6 @@ declare module 'ccxt' {
         | 'yobit'
         | 'zaif'
         | 'zb'
-        | 'zipmex'
         | 'zonda'
         
 
@@ -751,6 +751,5 @@ declare module 'ccxt' {
         class whitebit extends Exchange {}
         class woo extends Exchange {}
         class zb extends Exchange {}
-        class zipmex extends Exchange {}
     }
 }

@@ -39,7 +39,7 @@ class bitfinex extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
-                'fetchDeposits' => null,
+                'fetchDeposits' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchIndexOHLCV' => false,
@@ -63,7 +63,7 @@ class bitfinex extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
                 'fetchTransactions' => true,
-                'fetchWithdrawals' => null,
+                'fetchWithdrawals' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -856,7 +856,7 @@ class bitfinex extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bitfinex api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1330,7 +1330,7 @@ class bitfinex extends Exchange {
             $v2id = 't' . $market['id'];
             $request = array(
                 'symbol' => $v2id,
-                'timeframe' => $this->timeframes[$timeframe],
+                'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'sort' => 1,
                 'limit' => $limit,
             );

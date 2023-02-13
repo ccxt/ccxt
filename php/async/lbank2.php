@@ -459,7 +459,7 @@ class lbank2 extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the lbank api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -693,7 +693,7 @@ class lbank2 extends Exchange {
             }
             $request = array(
                 'symbol' => $market['id'],
-                'type' => $this->timeframes[$timeframe],
+                'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'time' => intval($since / 1000),
                 'size' => $limit, // max 2000
             );
@@ -2343,8 +2343,7 @@ class lbank2 extends Exchange {
                 } else {
                     $pem = $this->convert_secret_to_pem($this->encode($this->secret));
                 }
-                $encodedPem = $this->encode($pem);
-                $sign = $this->binary_to_base64($this->rsa($uppercaseHash, $encodedPem, 'RS256'));
+                $sign = $this->rsa($uppercaseHash, $pem);
             } elseif ($signatureMethod === 'HmacSHA256') {
                 $sign = $this->hmac($this->encode($uppercaseHash), $this->encode($this->secret));
             }

@@ -272,7 +272,7 @@ module.exports = class cex extends cexRest {
          * @description watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the cex api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -859,7 +859,8 @@ module.exports = class cex extends cexRest {
         }
         this.orders = myOrders;
         const messageHash = 'orders:' + symbol;
-        if (myOrders.length > 0) {
+        const ordersLength = myOrders.length;
+        if (ordersLength > 0) {
             client.resolve (myOrders, messageHash);
         }
     }
@@ -1135,7 +1136,8 @@ module.exports = class cex extends cexRest {
             ];
             stored.append (ohlcv);
         }
-        if (data.length > 0) {
+        const dataLength = data.length;
+        if (dataLength > 0) {
             client.resolve (stored, messageHash);
         }
     }

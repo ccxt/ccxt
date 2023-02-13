@@ -52,14 +52,14 @@ class upbit(Exchange):
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyTrades': None,
+                'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
-                'fetchOrders': None,
+                'fetchOrders': False,
                 'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -67,7 +67,7 @@ class upbit(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
-                'fetchTransactions': None,
+                'fetchTransactions': False,
                 'fetchWithdrawals': True,
                 'transfer': False,
                 'withdraw': True,
@@ -645,7 +645,7 @@ class upbit(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the upbit api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -918,7 +918,7 @@ class upbit(Exchange):
         self.load_markets()
         market = self.market(symbol)
         timeframePeriod = self.parse_timeframe(timeframe)
-        timeframeValue = self.timeframes[timeframe]
+        timeframeValue = self.safe_string(self.timeframes, timeframe, timeframe)
         if limit is None:
             limit = 200
         request = {

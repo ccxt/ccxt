@@ -77,7 +77,7 @@ class bittrex extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => null,
-                'fetchTransactions' => null,
+                'fetchTransactions' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -254,25 +254,6 @@ class bittrex extends Exchange {
                 ),
                 'parseOrderStatus' => false,
                 'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
-                // With certain currencies, like
-                // AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
-                // an additional tag / memo / payment id is usually required by exchanges.
-                // With Bittrex some currencies imply the "base address . tag" logic.
-                // The base address for depositing is stored on $this->currencies[code]
-                // The base address identifies the exchange as the recipient
-                // while the tag identifies the user account within the exchange
-                // and the tag is retrieved with fetchDepositAddress.
-                'tag' => array(
-                    'NXT' => true, // NXT, BURST
-                    'CRYPTO_NOTE_PAYMENTID' => true, // AEON, XMR
-                    'BITSHAREX' => true, // BTS
-                    'RIPPLE' => true, // XRP
-                    'NEM' => true, // XEM
-                    'STELLAR' => true, // XLM
-                    'STEEM' => true, // SBD, GOLOS
-                    // https://github.com/ccxt/ccxt/issues/4794
-                    // 'LISK' => true, // LSK
-                ),
                 'subaccountId' => null,
                 // see the implementation of fetchClosedOrdersV3 below
                 // 'fetchClosedOrdersMethod' => 'fetch_closed_orders_v3',
@@ -488,7 +469,6 @@ class bittrex extends Exchange {
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
-                'address' => $this->safe_string($currency, 'baseAddress'),
                 'info' => $currency,
                 'type' => $this->safe_string($currency, 'coinType'),
                 'name' => $this->safe_string($currency, 'name'),
@@ -570,7 +550,7 @@ class bittrex extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bittrex api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -661,7 +641,7 @@ class bittrex extends Exchange {
          * fetches the bid and ask price and volume for multiple markets
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} $params extra parameters specific to the binance api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $response = $this->publicGetMarketsTickers ($params);
@@ -907,7 +887,7 @@ class bittrex extends Exchange {
         $market = $this->market($symbol);
         $reverseId = $market['baseId'] . '-' . $market['quoteId'];
         $request = array(
-            'candleInterval' => $this->timeframes[$timeframe],
+            'candleInterval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'marketSymbol' => $reverseId,
         );
         $method = 'publicGetMarketsMarketSymbolCandlesCandleIntervalRecent';
@@ -1969,16 +1949,12 @@ class bittrex extends Exchange {
         if (!$address || $message === 'REQUESTED') {
             throw new AddressPending($this->id . ' the $address for ' . $code . ' is being generated (pending, not ready yet, retry again later)');
         }
-        $tag = $this->safe_string($response, 'cryptoAddressTag');
-        if (($tag === null) && (is_array($this->options['tag']) && array_key_exists($currency['type'], $this->options['tag']))) {
-            $tag = $address;
-            $address = $currency['address'];
-        }
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
-            'tag' => $tag,
+            'tag' => $this->safe_string($response, 'cryptoAddressTag'),
+            'network' => null,
             'info' => $response,
         );
     }
@@ -2009,16 +1985,11 @@ class bittrex extends Exchange {
         if (!$address || $message === 'REQUESTED') {
             throw new AddressPending($this->id . ' the $address for ' . $code . ' is being generated (pending, not ready yet, retry again later)');
         }
-        $tag = $this->safe_string($response, 'cryptoAddressTag');
-        if (($tag === null) && (is_array($this->options['tag']) && array_key_exists($currency['type'], $this->options['tag']))) {
-            $tag = $address;
-            $address = $currency['address'];
-        }
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
-            'tag' => $tag,
+            'tag' => $this->safe_string($response, 'cryptoAddressTag'),
             'network' => null,
             'info' => $response,
         );
