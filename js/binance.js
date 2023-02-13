@@ -2731,7 +2731,8 @@ module.exports = class binance extends Exchange {
 
     async fetchLastPrices (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchLastPrices', undefined, params);
+        const market = this.getMarketFromSymbols (symbols);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
         let method = undefined;
         if (marketType === 'future') {
             method = 'fapiPublicGetTickerPrice';
@@ -2803,7 +2804,8 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const marketId = this.safeString (info, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        market = this.safeMarket (marketId, market, undefined, defaultType);
         const timestamp = this.safeInteger (info, 'time');
         const price = this.safeNumber (info, 'price');
         return {
