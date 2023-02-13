@@ -1341,13 +1341,23 @@ module.exports = class Exchange {
             }
             cost = Precise.stringMul (multiplyPrice, amount);
         }
-        const parseFee = this.safeValue (trade, 'fee') === undefined;
-        const parseFees = this.safeValue (trade, 'fees') === undefined;
-        const shouldParseFees = parseFee || parseFees;
-        const fees = [];
         const fee = this.safeValue (trade, 'fee');
+        const fees = this.safeValue (trade, 'fees');
+        const parseFee = fee === undefined;
+        const parseFees = fees === undefined;
+        const shouldParseFees = parseFee || parseFees;
+        const feesTemp = [];
         if (shouldParseFees) {
-            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
+            if (fees !== undefined) {
+                for (let j = 0; j < fees.length; j++) {
+                    feesTemp.push (this.extend ({}, fees[j]));
+                }
+            } else {
+                if (fee !== undefined) {
+                    feesTemp.push (this.extend ({}, fee));
+                }
+            }
+            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (feesTemp) : feesTemp;
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
@@ -1376,6 +1386,10 @@ module.exports = class Exchange {
                 }
                 trade['fee'] = tradeFee;
             }
+        }
+        const tradeFeesFinal = this.safeValue (trade, 'fees', []);
+        for (let j = 0; j < tradeFeesFinal.length; j++) {
+            trade['fees'][j]['cost'] = this.safeNumber (trade['fees'][j], 'cost');
         }
         trade['amount'] = this.parseNumber (amount);
         trade['price'] = this.parseNumber (price);
