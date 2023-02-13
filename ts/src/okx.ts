@@ -1199,12 +1199,10 @@ export default class okx extends Exchange {
             }
         }
         const tickSize = this.safeString (market, 'tickSz');
-        const minAmountString = this.safeString (market, 'minSz');
-        const minAmount = this.parseNumber (minAmountString);
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
-        const precisionPrice = this.parseNumber (tickSize);
         let maxLeverage = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
+        const maxSpotCost = this.safeNumber (market, 'maxMktSz');
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -1231,7 +1229,7 @@ export default class okx extends Exchange {
             'optionType': optionType,
             'precision': {
                 'amount': this.safeNumber (market, 'lotSz'),
-                'price': precisionPrice,
+                'price': this.parseNumber (tickSize),
             },
             'limits': {
                 'leverage': {
@@ -1239,16 +1237,16 @@ export default class okx extends Exchange {
                     'max': this.parseNumber (maxLeverage),
                 },
                 'amount': {
-                    'min': minAmount,
-                    'max': undefined,
+                    'min': this.safeNumber (market, 'minSz'),
+                    'max': this.safeNumber (market, 'maxLmtSz'),
                 },
                 'price': {
-                    'min': precisionPrice,
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': contract ? undefined : maxSpotCost,
                 },
             },
             'info': market,
