@@ -29,7 +29,7 @@ const { // eslint-disable-line object-curly-newline
     , RateLimitExceeded
     , ArgumentsRequired } = require ('./errors')
 
-const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE } = functions.precisionConstants
+const { TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, DECIMAL_PLACES, SIGNIFICANT_DIGITS, NO_PADDING, PAD_WITH_ZERO, TICK_SIZE } = functions.precisionConstants
 
 const BN = require ('../static_dependencies/BN/bn')
 const Precise = require ('./Precise')
@@ -356,6 +356,7 @@ module.exports = class Exchange {
         if (this.markets) {
             this.setMarkets (this.markets)
         }
+        this.addBaseProperties(); // add transpilable base properties
     }
 
     encodeURIComponent (...args) {
@@ -801,6 +802,18 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    addBaseProperties () {
+        this.TICK_SIZE = TICK_SIZE;
+        this.DECIMAL_PLACES = DECIMAL_PLACES;
+        this.SIGNIFICANT_DIGITS = SIGNIFICANT_DIGITS;
+        this.TRUNCATE = TRUNCATE;
+        this.ROUND = ROUND;
+        this.ROUND_UP = ROUND_UP;
+        this.ROUND_DOWN = ROUND_DOWN;
+        this.NO_PADDING = NO_PADDING;
+        this.PAD_WITH_ZERO = PAD_WITH_ZERO;
+    }
 
     getDefaultOptions () {
         return {

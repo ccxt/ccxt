@@ -1450,6 +1450,7 @@ class Exchange {
         if ($this->markets) {
             $this->set_markets($this->markets);
         }
+        $this->add_base_properties(); // add transpilable base properties
     }
 
     public function set_sandbox_mode($enabled) {

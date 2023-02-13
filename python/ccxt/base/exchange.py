@@ -25,7 +25,7 @@ from ccxt.base.errors import RateLimitExceeded
 # -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import decimal_to_precision
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, PAD_WITH_ZERO, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
 
@@ -412,6 +412,7 @@ class Exchange(object):
         if self.markets:
             self.set_markets(self.markets)
 
+        self.add_base_properties() # add transpilable base properties
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
         for name in dir(self):
