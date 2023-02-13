@@ -81,7 +81,9 @@ class coinfalcon(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
-                'api': 'https://coinfalcon.com',
+                'api': {
+                    'rest': 'https://coinfalcon.com',
+                },
                 'www': 'https://coinfalcon.com',
                 'doc': 'https://docs.coinfalcon.com',
                 'fees': 'https://coinfalcon.com/fees',
@@ -126,10 +128,6 @@ class coinfalcon(Exchange):
                     'maker': 0.0,
                     'taker': 0.002,  # tiered fee starts at 0.2%
                 },
-            },
-            'precision': {
-                'amount': self.parse_number('0.00000001'),
-                'price': self.parse_number('0.00000001'),
             },
             'precisionMode': TICK_SIZE,
         })
@@ -277,9 +275,10 @@ class coinfalcon(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetMarkets(params)
         #
         #     {
@@ -614,6 +613,7 @@ class coinfalcon(Exchange):
             'side': side,
             'price': priceString,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amountString,
             'filled': filledString,
@@ -807,7 +807,7 @@ class coinfalcon(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': self.safeStingLower(currency, 'id'),
+            'currency': self.safe_string_lower(currency, 'id'),
             'address': address,
             'amount': amount,
             # 'tag': 'string',  # withdraw tag/memo
@@ -937,7 +937,7 @@ class coinfalcon(Exchange):
                 'CF-API-SIGNATURE': signature,
                 'Content-Type': 'application/json',
             }
-        url = self.urls['api'] + request
+        url = self.urls['api']['rest'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

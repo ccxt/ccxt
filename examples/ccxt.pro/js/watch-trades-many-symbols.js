@@ -1,8 +1,8 @@
 'use strict';
 
-const ccxtpro = require ('ccxt.pro');
+const ccxt = require ('ccxt');
 
-console.log ('CCXT Pro Version:', ccxtpro.version)
+console.log ('CCXT Version:', ccxt.version)
 
 async function watchTrades (exchange, symbol) {
 
@@ -18,7 +18,7 @@ async function watchTrades (exchange, symbol) {
 
 async function main () {
     const symbols = [ 'USDT/THB', 'BTC/THB', 'ETH/THB' ]
-    const exchange = new ccxtpro.zipmex({
+     const exchange = new ccxt.pro.zipmex({
         'newUpdates': true
     })
     const markets = await exchange.loadMarkets ()

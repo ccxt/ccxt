@@ -391,9 +391,10 @@ class novadax(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the novadax api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetMarketTickers(params)
         #
         #     {
@@ -584,7 +585,7 @@ class novadax(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'unit': self.timeframes[timeframe],
+            'unit': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
         now = self.seconds()
@@ -711,7 +712,7 @@ class novadax(Exchange):
             # 'stopPrice': self.price_to_precision(symbol, stopPrice),
             # 'accountId': '...',  # subaccount id, optional
         }
-        stopPrice = self.safe_number(params, 'stopPrice')
+        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if stopPrice is None:
             if (uppercaseType == 'STOP_LIMIT') or (uppercaseType == 'STOP_MARKET'):
                 raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter for ' + uppercaseType + ' orders')
@@ -723,7 +724,7 @@ class novadax(Exchange):
             defaultOperator = 'LTE' if (uppercaseSide == 'BUY') else 'GTE'
             request['operator'] = self.safe_string(params, 'operator', defaultOperator)
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-            params = self.omit(params, 'stopPrice')
+            params = self.omit(params, ['triggerPrice', 'stopPrice'])
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
             request['amount'] = self.amount_to_precision(symbol, amount)
@@ -838,7 +839,7 @@ class novadax(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the novadax api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         request = {
@@ -906,7 +907,7 @@ class novadax(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the novadax api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'status': 'FILLED,CANCELED,REJECTED',
@@ -1029,6 +1030,7 @@ class novadax(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1089,11 +1091,13 @@ class novadax(Exchange):
         #
         id = self.safe_string(transfer, 'data')
         status = self.safe_string(transfer, 'message')
+        currencyCode = self.safe_currency_code(None, currency)
         return {
             'info': transfer,
             'id': id,
             'amount': None,
-            'code': self.safe_currency_code(None, currency),
+            'code': currencyCode,  # kept here for backward-compatibility, but will be removed soon
+            'currency': currencyCode,
             'fromAccount': None,
             'toAccount': None,
             'timestamp': None,
@@ -1396,7 +1400,7 @@ class novadax(Exchange):
             queryString = None
             if method == 'POST':
                 body = self.json(query)
-                queryString = self.hash(body, 'md5')
+                queryString = self.hash(self.encode(body), 'md5')
                 headers['Content-Type'] = 'application/json'
             else:
                 if query:

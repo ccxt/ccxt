@@ -398,7 +398,7 @@ class blockchaincom(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the blockchaincom api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         tickers = await self.publicGetTickers(params)
@@ -608,7 +608,7 @@ class blockchaincom(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the blockchaincom api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         state = 'FILLED'
         return await self.fetch_orders_by_state(state, symbol, since, limit, params)
@@ -828,10 +828,11 @@ class blockchaincom(Exchange):
             })
         return result
 
-    async def fetch_withdrawal_whitelist_by_currency(self, currency, params={}):
+    async def fetch_withdrawal_whitelist_by_currency(self, code, params={}):
         await self.load_markets()
+        currency = self.currency(code)
         request = {
-            'currency': self.currencyId(currency),
+            'currency': currency['id'],
         }
         response = await self.privateGetWhitelistCurrency(self.extend(request, params))
         result = []
@@ -860,7 +861,7 @@ class blockchaincom(Exchange):
         request = {
             'amount': amount,
             'currency': currency['id'],
-            # 'beneficiary': address/id,
+            'beneficiary': address,
             'sendMax': False,
         }
         response = await self.privatePostWithdrawals(self.extend(request, params))
@@ -893,8 +894,11 @@ class blockchaincom(Exchange):
         }
         if since is not None:
             request['from'] = since
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = await self.privateGetWithdrawals(self.extend(request, params))
-        return self.parse_transactions(response, code, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_withdrawal(self, id, code=None, params={}):
         """
@@ -927,8 +931,11 @@ class blockchaincom(Exchange):
         }
         if since is not None:
             request['from'] = since
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = await self.privateGetDeposits(self.extend(request, params))
-        return self.parse_transactions(response, code, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_deposit(self, id, code=None, params={}):
         """

@@ -19,7 +19,15 @@ def test_transaction(exchange, transaction, code, now):
     assert 'tag' in transaction
     assert 'txid' in transaction
     assert transaction['datetime'] == exchange.iso8601(transaction['timestamp'])
-    assert(transaction['status'] == 'ok') or (transaction['status'] == 'pending') or (transaction['status'] == 'canceled')
+    statuses = [
+        'ok',
+        'pending',
+        'failed',
+        'rejected',
+        'canceled',
+    ]
+    transactionStatusIsValid = exchange.in_array(transaction['status'], statuses)
+    assert transactionStatusIsValid
     assert transaction['currency'] == code
     assert isinstance(transaction['type'], str)
     assert transaction['type'] == 'deposit' or transaction['type'] == 'withdrawal'

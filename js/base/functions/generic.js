@@ -131,7 +131,7 @@ module.exports = {
 
         Returns an array:
         [
-            value1: { someKey: 'value1', anotherKey: 'anotherValue1' },
+            { someKey: 'value1', anotherKey: 'anotherValue1' },
         ]
     */
 
@@ -242,24 +242,4 @@ module.exports = {
         }
         return out;
     },
-
-    // ------------------------------------------------------------------------
-
-    merge (target, ...args) {
-        // doesn't overwrite defined keys with undefined
-        const overwrite = {};
-        const merged = Object.assign ({}, ...args);
-        const keys = Object.keys (merged);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (target[key] === undefined) {
-                overwrite[key] = merged[key];
-            }
-        }
-        // eslint-disable-next-line
-        return Object.assign ({}, target, overwrite)
-    },
-
-    // ----------------------------------------------------------------------------
-
 };

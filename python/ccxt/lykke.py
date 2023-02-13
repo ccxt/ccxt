@@ -382,7 +382,7 @@ class lykke(Exchange):
         #         "timestamp":1643305510990
         #     }
         #
-        timestamp = self.safe_integer(ticker, 'timestamp')
+        timestamp = None  # temporary bug in lykke api, returns unrealistic numbers
         marketId = self.safe_string(ticker, 'assetPairId')
         market = self.safe_market(marketId, market)
         close = self.safe_string(ticker, 'lastPrice')
@@ -465,7 +465,7 @@ class lykke(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the lykke api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetTickers(params)
@@ -573,10 +573,6 @@ class lykke(Exchange):
         if amount is None:
             amount = self.safe_string_2(trade, 'baseVolume', 'amount')
         side = self.safe_string_lower(trade, 'side')
-        fee = {
-            'cost': self.parse_number('0'),  # There are no fees for trading.
-            'currency': market['quote'],
-        }
         return self.safe_trade({
             'id': id,
             'info': trade,
@@ -590,7 +586,7 @@ class lykke(Exchange):
             'price': price,
             'amount': amount,
             'cost': None,
-            'fee': fee,
+            'fee': None,
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -735,6 +731,7 @@ class lykke(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -939,7 +936,7 @@ class lykke(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the lykke api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = None

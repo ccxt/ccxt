@@ -201,7 +201,11 @@ class probit(Exchange):
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
-                    'TRX': 'TRON',
+                },
+                'networksById': {
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'TRON': 'TRC20',
                 },
             },
             'commonCurrencies': {
@@ -532,7 +536,7 @@ class probit(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the probit api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         request = {}
@@ -851,7 +855,7 @@ class probit(Exchange):
         """
         self.load_markets()
         market = self.market(symbol)
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         limit = 100 if (limit is None) else limit
         requestLimit = self.sum(limit, 1)
         requestLimit = min(1000, requestLimit)  # max 1000
@@ -867,9 +871,8 @@ class probit(Exchange):
         endTime = now
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires either a since argument or a limit argument')
-            else:
-                startTime = now - limit * duration * 1000
+                limit = requestLimit
+            startTime = now - limit * duration * 1000
         else:
             if limit is None:
                 endTime = now
@@ -950,7 +953,7 @@ class probit(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the probit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         request = {
@@ -1056,6 +1059,7 @@ class probit(Exchange):
             'status': status,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -1171,13 +1175,15 @@ class probit(Exchange):
         address = self.safe_string(depositAddress, 'address')
         tag = self.safe_string(depositAddress, 'destination_tag')
         currencyId = self.safe_string(depositAddress, 'currency_id')
-        code = self.safe_currency_code(currencyId)
+        currency = self.safe_currency(currencyId, currency)
+        code = currency['code']
+        network = self.safe_string(depositAddress, 'platform_id')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': None,
+            'network': network,
             'info': depositAddress,
         }
 
@@ -1192,14 +1198,33 @@ class probit(Exchange):
         currency = self.currency(code)
         request = {
             'currency_id': currency['id'],
+            # 'platform_id': 'TRON',(undocumented)
         }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['platform_id'] = network
+            params = self.omit(params, 'platform_id')
         response = self.privateGetDepositAddress(self.extend(request, params))
         #
+        # without 'platform_id'
         #     {
         #         "data":[
         #             {
         #                 "currency_id":"ETH",
         #                 "address":"0x12e2caf3c4051ba1146e612f532901a423a9898a",
+        #                 "destination_tag":null
+        #             }
+        #         ]
+        #     }
+        #
+        # with 'platform_id'
+        #     {
+        #         "data":[
+        #             {
+        #                 "platform_id":"TRON",
+        #                 "address":"TDQLMxBTa6MzuoZ6deSGZkqET3Ek8v7uC6",
         #                 "destination_tag":null
         #             }
         #         ]
@@ -1323,6 +1348,135 @@ class probit(Exchange):
             'cancelling': 'canceled',
         }
         return self.safe_string(statuses, status, status)
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the poloniex api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetCurrencyWithPlatform(params)
+        #
+        #  {
+        #     "data": [
+        #       {
+        #       "id": "AFX",
+        #       "display_name": {
+        #       "ko-kr": "아프릭스",
+        #       "en-us": "Afrix"
+        #       },
+        #       "show_in_ui": True,
+        #       "platform": [
+        #       {
+        #       "id": "ZYN",
+        #       "priority": 1,
+        #       "deposit": True,
+        #       "withdrawal": True,
+        #       "currency_id": "AFX",
+        #       "precision": 18,
+        #       "min_confirmation_count": 60,
+        #       "require_destination_tag": False,
+        #       "allow_withdrawal_destination_tag": False,
+        #       "display_name": {
+        #       "name": {
+        #       "ko-kr": "지네코인",
+        #       "en-us": "Wethio"
+        #       }
+        #       },
+        #       "min_deposit_amount": "0",
+        #       "min_withdrawal_amount": "0",
+        #       "withdrawal_fee": [
+        #       {
+        #       "currency_id": "ZYN",
+        #       "amount": "0.5",
+        #       "priority": 1
+        #       }
+        #       ],
+        #       "deposit_fee": {},
+        #       "suspended_reason": "",
+        #       "deposit_suspended": False,
+        #       "withdrawal_suspended": False,
+        #       "platform_currency_display_name": {}
+        #       }
+        #       ],
+        #       "internal_transfer": {
+        #       "suspended_reason": null,
+        #       "suspended": False
+        #       },
+        #       "stakeable": False,
+        #       "unstakeable": False,
+        #       "auto_stake": False,
+        #       "auto_stake_amount": "0"
+        #       },
+        #     ]
+        #  }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes, 'id')
+
+    def parse_deposit_withdraw_fee(self, fee, currency):
+        #
+        # {
+        #     id: 'USDT',
+        #     display_name: {'ko-kr': '테더', 'en-us': 'Tether'},
+        #     show_in_ui: True,
+        #     platform: [
+        #       {
+        #         id: 'ETH',
+        #         priority: '1',
+        #         deposit: True,
+        #         withdrawal: True,
+        #         currency_id: 'USDT',
+        #         precision: '6',
+        #         min_confirmation_count: '15',
+        #         require_destination_tag: False,
+        #         allow_withdrawal_destination_tag: False,
+        #         display_name: [Object],
+        #         min_deposit_amount: '0',
+        #         min_withdrawal_amount: '1',
+        #         withdrawal_fee: [Array],
+        #         deposit_fee: {},
+        #         suspended_reason: '',
+        #         deposit_suspended: False,
+        #         withdrawal_suspended: False,
+        #         platform_currency_display_name: [Object]
+        #       },
+        #     ],
+        #     internal_transfer: {suspended_reason: null, suspended: False},
+        #     stakeable: False,
+        #     unstakeable: False,
+        #     auto_stake: False,
+        #     auto_stake_amount: '0'
+        #   }
+        #
+        depositWithdrawFee = self.deposit_withdraw_fee({})
+        platforms = self.safe_value(fee, 'platform', [])
+        depositResult = {
+            'fee': None,
+            'percentage': None,
+        }
+        for i in range(0, len(platforms)):
+            network = platforms[i]
+            networkId = self.safe_string(network, 'id')
+            networkCode = self.network_id_to_code(networkId, currency['code'])
+            withdrawalFees = self.safe_value(network, 'withdrawal_fee', {})
+            withdrawFee = self.safe_number(withdrawalFees[0], 'amount')
+            if len(withdrawalFees) > 0:
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': False if (withdrawFee is not None) else None,
+                }
+                if i == 0:
+                    depositWithdrawFee['withdraw'] = withdrawResult
+                depositWithdrawFee['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': depositResult,
+                }
+        depositWithdrawFee['info'] = fee
+        return depositWithdrawFee
 
     def nonce(self):
         return self.milliseconds()

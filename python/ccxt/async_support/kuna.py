@@ -59,7 +59,6 @@ class kuna(Exchange):
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setPositionMode': False,
-                'withdraw': None,
             },
             'timeframes': None,
             'urls': {
@@ -451,27 +450,17 @@ class kuna(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the kuna api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetTickers(params)
         ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = None
-            symbol = id
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-            else:
-                base = id[0:3]
-                quote = id[3:6]
-                base = base.upper()
-                quote = quote.upper()
-                base = self.safe_currency_code(base)
-                quote = self.safe_currency_code(quote)
-                symbol = base + '/' + quote
+            market = self.safe_market(id)
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(response[id], market)
         return self.filter_by_array(result, 'symbol', symbols)
 
@@ -714,6 +703,7 @@ class kuna(Exchange):
             'side': side,
             'price': self.safe_string(order, 'price'),
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': self.safe_string(order, 'volume'),
             'filled': self.safe_string(order, 'executed_volume'),
             'remaining': self.safe_string(order, 'remaining_volume'),

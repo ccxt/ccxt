@@ -65,7 +65,9 @@ class bl3p(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
-                'api': 'https://api.bl3p.eu',
+                'api': {
+                    'rest': 'https://api.bl3p.eu',
+                },
                 'www': 'https://bl3p.eu',  # 'https://bitonic.nl'
                 'doc': [
                     'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
@@ -100,7 +102,6 @@ class bl3p(Exchange):
             },
             'markets': {
                 'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': True},
-                'LTC/EUR': {'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'baseId': 'LTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': True},
             },
             'precisionMode': TICK_SIZE,
         })
@@ -134,11 +135,11 @@ class bl3p(Exchange):
         return self.parse_balance(response)
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
-        price = self.safe_number(bidask, priceKey)
-        size = self.safe_number(bidask, amountKey)
+        price = self.safe_string(bidask, priceKey)
+        size = self.safe_string(bidask, amountKey)
         return [
-            price / 100000.0,
-            size / 100000000.0,
+            self.parse_number(Precise.string_div(price, '100000.0')),
+            self.parse_number(Precise.string_div(size, '100000000.0')),
         ]
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -331,14 +332,16 @@ class bl3p(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         market = self.market(symbol)
+        amountString = self.number_to_string(amount)
+        priceString = self.number_to_string(price)
         order = {
             'market': market['id'],
-            'amount_int': int(amount * 100000000),
+            'amount_int': int(Precise.string_mul(amountString, '100000000')),
             'fee_currency': market['quote'],
             'type': 'bid' if (side == 'buy') else 'ask',
         }
         if type == 'limit':
-            order['price_int'] = int(price * 100000.0)
+            order['price_int'] = int(Precise.string_mul(priceString, '100000.0'))
         response = self.privatePostMarketMoneyOrderAdd(self.extend(order, params))
         orderId = self.safe_string(response['data'], 'order_id')
         return {
@@ -361,7 +364,7 @@ class bl3p(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.implode_params(path, params)
-        url = self.urls['api'] + '/' + self.version + '/' + request
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + request
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:

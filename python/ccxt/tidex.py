@@ -37,7 +37,7 @@ class tidex(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'createMarketOrder': None,
+                'createMarketOrder': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
@@ -86,7 +86,7 @@ class tidex(Exchange):
                 },
                 'www': 'https://tidex.com',
                 'doc': 'https://tidex.com/exchange/public-api',
-                'referral': 'https://tidex.com/exchange/?ref=57f5638d9cd7',
+                'referral': 'https://tidex.com/exchange',
                 'fees': [
                     'https://tidex.com/exchange/assets-spec',
                     'https://tidex.com/exchange/pairs-spec',
@@ -449,7 +449,7 @@ class tidex(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             symbol = self.safe_symbol(id)
-            result[symbol] = self.parse_order_book(response[id])
+            result[symbol] = self.parse_order_book(response[id], symbol)
         return result
 
     def parse_ticker(self, ticker, market=None):
@@ -497,9 +497,10 @@ class tidex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the tidex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         ids = self.ids
         if symbols is None:
             numIds = len(ids)
@@ -718,6 +719,7 @@ class tidex(Exchange):
             'side': self.safe_string(order, 'type'),
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amount,
             'remaining': remaining,

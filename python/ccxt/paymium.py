@@ -48,7 +48,9 @@ class paymium(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
-                'api': 'https://paymium.com/api',
+                'api': {
+                    'rest': 'https://paymium.com/api',
+                },
                 'www': 'https://www.paymium.com',
                 'fees': 'https://www.paymium.com/page/help/fees',
                 'doc': [
@@ -508,7 +510,7 @@ class paymium(Exchange):
         return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:

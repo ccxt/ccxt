@@ -92,8 +92,6 @@ class bitpanda(Exchange):
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
-                'privateAPI': True,
-                'publicAPI': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
@@ -344,6 +342,8 @@ class bitpanda(Exchange):
                 'active': None,
                 'fee': None,
                 'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
+                'withdraw': None,
+                'deposit': None,
                 'limits': {
                     'amount': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
@@ -636,9 +636,10 @@ class bitpanda(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitpanda api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetMarketTicker(params)
         #
         #     [
@@ -1408,6 +1409,7 @@ class bitpanda(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': None,
             'average': None,
@@ -1726,7 +1728,7 @@ class bitpanda(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitpanda api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'with_cancelled_and_rejected': True,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"

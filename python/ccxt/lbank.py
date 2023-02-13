@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -54,7 +53,7 @@ class lbank(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
-                'fetchOpenOrders': None,  # status 0 API doesn't work
+                'fetchOpenOrders': False,  # status 0 API doesn't work
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -90,7 +89,9 @@ class lbank(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
-                'api': 'https://api.lbank.info',
+                'api': {
+                    'rest': 'https://api.lbank.info',
+                },
                 'www': 'https://www.lbank.info',
                 'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees': 'https://www.lbank.info/fees.html',
@@ -133,6 +134,7 @@ class lbank(Exchange):
             'commonCurrencies': {
                 'GMT': 'GMT Token',
                 'PNT': 'Penta',
+                'SHINJA': 'SHINJA(1M)',
                 'VET_ERC20': 'VEN',
             },
             'options': {
@@ -304,9 +306,10 @@ class lbank(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the lbank api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {
             'symbol': 'all',
         }
@@ -349,7 +352,9 @@ class lbank(Exchange):
         id = self.safe_string(trade, 'tid')
         type = None
         side = self.safe_string(trade, 'type')
-        side = side.replace('_market', '')
+        # remove type additions from i.e. buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
+        splited = side.split('_')
+        side = splited[0]
         return {
             'id': id,
             'info': self.safe_value(trade, 'info', trade),
@@ -408,7 +413,7 @@ class lbank(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=1000, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -420,13 +425,14 @@ class lbank(Exchange):
         """
         self.load_markets()
         market = self.market(symbol)
-        if since is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a `since` argument')
         if limit is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a `limit` argument')
+            limit = 100  # as it's defined in lbank2
+        if since is None:
+            duration = self.parse_timeframe(timeframe)
+            since = self.milliseconds() - duration * 1000 * limit
         request = {
             'symbol': market['id'],
-            'type': self.timeframes[timeframe],
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
             'size': limit,
             'time': int(since / 1000),
         }
@@ -544,6 +550,7 @@ class lbank(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amount,
             'filled': filled,
@@ -632,7 +639,7 @@ class lbank(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the lbank api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         if limit is None:
@@ -654,7 +661,7 @@ class lbank(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the lbank api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         if symbol is not None:
@@ -745,7 +752,7 @@ class lbank(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         # Every endpoint ends with ".do"
         url += '.do'
         if api == 'public':
@@ -767,8 +774,7 @@ class lbank(Exchange):
                     self.options['pem'] = pem
             else:
                 pem = self.convert_secret_to_pem(self.secret)
-            sign = self.binary_to_base64(self.rsa(message, self.encode(pem), 'RS256'))
-            query['sign'] = sign
+            query['sign'] = self.rsa(message, pem, 'RS256')
             body = self.urlencode(query)
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

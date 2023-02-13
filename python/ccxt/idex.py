@@ -79,7 +79,7 @@ class idex(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': None,
+                'fetchOrders': False,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
@@ -90,7 +90,7 @@ class idex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
-                'fetchTransactions': None,
+                'fetchTransactions': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -359,7 +359,7 @@ class idex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the idex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         # [
@@ -882,7 +882,7 @@ class idex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the idex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'closed': True,
@@ -1043,6 +1043,7 @@ class idex(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': average,

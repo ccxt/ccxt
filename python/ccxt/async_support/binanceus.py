@@ -38,7 +38,16 @@ class binanceus(binance):
                 },
             },
             'options': {
-                'fetchCurrencies': False,
+                'fetchMarkets': ['spot'],
+                'defaultType': 'spot',
                 'quoteOrderQty': False,
+            },
+            'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
             },
         })
