@@ -1698,7 +1698,7 @@ module.exports = class binance extends Exchange {
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         const fetchMarkets = [];
         for (let i = 0; i < rawFetchMarkets.length; i++) {
-            const type = fetchMarkets[i];
+            const type = rawFetchMarkets[i];
             if (type === 'option' && sandboxMode) {
                 continue;
             }
