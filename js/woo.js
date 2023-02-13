@@ -196,6 +196,7 @@ module.exports = class woo extends Exchange {
                         'get': {
                             'algo/order/{oid}': 1,
                             'algo/orders': 1,
+                            'balances': 1,
                         },
                         'post': {
                             'algo/order': 5,
@@ -1361,35 +1362,37 @@ module.exports = class woo extends Exchange {
          * @method
          * @name woo#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.woo.org/#get-current-holding-get-balance-new
          * @param {object} params extra parameters specific to the woo api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v2PrivateGetClientHolding (params);
+        const response = await this.v3PrivateGetBalances (params);
         //
-        // {
-        //     holding: [
-        //       {
-        //         token: 'USDT',
-        //         holding: '23.56', // free balance
-        //         frozen: '888.0', // i.e. if in processing withdrawal
-        //         interest: '0.0',
-        //         outstanding_holding: '-56.7', // this value is set (negative number) if there is an open limit order, and this is QUOTE currency of order
-        //         pending_exposure: '333.45', //  this value is set  (positive number) if there is an open limit order, and this is BASE currency of order
-        //         opening_cost: '0.00000000',
-        //         holding_cost: '0.00000000',
-        //         realised_pnl: '0.00000000',
-        //         settled_pnl: '0.00000000',
-        //         fee_24_h: '0',
-        //         settled_pnl_24_h: '0',
-        //         updated_time: '1641370779'
-        //       },
-        //       ...
-        //     ],
-        //     success: true
-        // }
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "holding": [
+        //                 {
+        //                     "token": "0_token",
+        //                     "holding": 1,
+        //                     "frozen": 0,
+        //                     "staked": 0,
+        //                     "unbonding": 0,
+        //                     "vault": 0,
+        //                     "interest": 0,
+        //                     "pendingShortQty": 0,
+        //                     "pendingLongQty": 0,
+        //                     "availableBalance": 0,
+        //                     "updatedTime": 312321.121
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1673323746259
+        //     }
         //
-        return this.parseBalance (response);
+        const data = this.safeValue (response, 'data');
+        return this.parseBalance (data);
     }
 
     parseBalance (response) {
@@ -1402,8 +1405,7 @@ module.exports = class woo extends Exchange {
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
-            const used = this.safeString (balance, 'outstanding_holding');
-            account['used'] = Precise.stringNeg (used);
+            account['free'] = this.safeString (balance, 'availableBalance');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1928,10 +1930,14 @@ module.exports = class woo extends Exchange {
                 'x-api-key': this.apiKey,
                 'x-api-timestamp': ts,
             };
-            if (version === 'v3' && (method === 'POST' || method === 'PUT' || method === 'DELETE')) {
-                auth = this.json (params);
-                body = auth;
-                auth = ts + method + '/' + version + '/' + pathWithParams + body;
+            if (version === 'v3') {
+                auth = ts + method + '/' + version + '/' + pathWithParams;
+                if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+                    body = this.json (params);
+                    auth += body;
+                } else {
+                    auth += this.urlencode (params);
+                }
                 headers['content-type'] = 'application/json';
             } else {
                 auth = this.urlencode (params);
