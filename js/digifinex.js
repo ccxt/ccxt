@@ -954,7 +954,7 @@ module.exports = class digifinex extends Exchange {
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tickers
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the digifinex api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -1497,7 +1497,7 @@ module.exports = class digifinex extends Exchange {
             }
         } else {
             request['symbol'] = market['id'];
-            request['period'] = this.timeframes[timeframe];
+            request['period'] = this.safeString (this.timeframes, timeframe, timeframe);
             if (since !== undefined) {
                 const startTime = parseInt (since / 1000);
                 request['start_time'] = startTime;
@@ -2739,13 +2739,7 @@ module.exports = class digifinex extends Exchange {
         //         "code": 0
         //     }
         //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'amount': amount,
-            'currency': code,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        });
+        return this.parseTransfer (response, currency);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

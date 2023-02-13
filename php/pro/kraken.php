@@ -40,9 +40,9 @@ class kraken extends \ccxt\async\kraken {
                     ),
                 ),
             ),
-            'versions' => array(
-                'ws' => '0.2.0',
-            ),
+            // 'versions' => array(
+            //     'ws' => '0.2.0',
+            // ),
             'options' => array(
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
@@ -323,7 +323,7 @@ class kraken extends \ccxt\async\kraken {
                 ),
                 'subscription' => array(
                     'name' => $name,
-                    'interval' => $this->timeframes[$timeframe],
+                    'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 ),
             );
             $request = $this->deep_extend($subscribe, $params);

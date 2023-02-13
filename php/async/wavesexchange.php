@@ -784,17 +784,31 @@ class wavesexchange extends Exchange {
         //           "timestamp":1640232379124
         //       }
         //
+        //  fetch $ticker
+        //
+        //       {
+        //           firstPrice => '21749',
+        //           lastPrice => '22000',
+        //           volume => '0.73747149',
+        //           $quoteVolume => '16409.44564928645471',
+        //           $high => '23589.999941',
+        //           $low => '21010.000845',
+        //           weightedAveragePrice => '22250.955964',
+        //           txsCount => '148',
+        //           volumeWaves => '0.0000000000680511203072'
+        //       }
+        //
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, '/');
         $symbol = $market['symbol'];
-        $last = $this->safe_string($ticker, '24h_close');
-        $low = $this->safe_string($ticker, '24h_low');
-        $high = $this->safe_string($ticker, '24h_high');
-        $vwap = $this->safe_string($ticker, '24h_vwap');
-        $baseVolume = $this->safe_string($ticker, '24h_volume');
-        $quoteVolume = $this->safe_string($ticker, '24h_priceVolume');
-        $open = $this->safe_string($ticker, '24h_open');
+        $last = $this->safe_string_2($ticker, '24h_close', 'lastPrice');
+        $low = $this->safe_string_2($ticker, '24h_low', 'low');
+        $high = $this->safe_string_2($ticker, '24h_high', 'high');
+        $vwap = $this->safe_string_2($ticker, '24h_vwap', 'weightedAveragePrice');
+        $baseVolume = $this->safe_string_2($ticker, '24h_volume', 'volume');
+        $quoteVolume = $this->safe_string_2($ticker, '24h_priceVolume', 'quoteVolume');
+        $open = $this->safe_string_2($ticker, '24h_open', 'firstPrice');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -858,7 +872,8 @@ class wavesexchange extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $ticker = $this->safe_value($data, 0, array());
-            return $this->parse_ticker($ticker, $market);
+            $dataTicker = $this->safe_value($ticker, 'data', array());
+            return $this->parse_ticker($dataTicker, $market);
         }) ();
     }
 
@@ -868,7 +883,7 @@ class wavesexchange extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the aax api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->marketGetTickers ($params));
@@ -920,7 +935,7 @@ class wavesexchange extends Exchange {
             $request = array(
                 'baseId' => $market['baseId'],
                 'quoteId' => $market['quoteId'],
-                'interval' => $this->timeframes[$timeframe],
+                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $allowedCandles = $this->safe_integer($this->options, 'allowedCandles', 1440);
             if ($limit === null) {

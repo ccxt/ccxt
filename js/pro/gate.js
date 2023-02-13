@@ -60,6 +60,7 @@ module.exports = class gate extends gateRest {
                 'watchOrderBook': {
                     'interval': '100ms',
                     'snapshotDelay': 10, // how many deltas to cache before fetching a snapshot
+                    'maxRetries': 3,
                 },
                 'watchBalance': {
                     'settle': 'usdt', // or btc
@@ -188,12 +189,15 @@ module.exports = class gate extends gateRest {
         const storedOrderBook = this.safeValue (this.orderbooks, symbol);
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            let cacheLength = 0;
+            if (storedOrderBook !== undefined) {
+                cacheLength = storedOrderBook.cache.length;
+            }
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
             const waitAmount = isSpot ? snapshotDelay : 0;
             if (cacheLength === waitAmount) {
                 // max limit is 100
-                const subscription = client.subscriptions[channel];
+                const subscription = client.subscriptions[messageHash];
                 const limit = this.safeInteger (subscription, 'limit');
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
@@ -281,7 +285,7 @@ module.exports = class gate extends gateRest {
          * @method
          * @name gate#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {Array} symbols unified symbol of the market to fetch the ticker for
+         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -442,7 +446,7 @@ module.exports = class gate extends gateRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.candlesticks';
         const messageHash = 'candles:' + interval + ':' + market['symbol'];
@@ -629,7 +633,7 @@ module.exports = class gate extends gateRest {
             'option': 'options',
         });
         const channel = channelType + '.balances';
-        const messageHash = 'balance';
+        const messageHash = type + '.balance';
         return await this.subscribePrivate (url, messageHash, undefined, channel, params, requiresUid);
     }
 
@@ -704,8 +708,17 @@ module.exports = class gate extends gateRest {
             account['total'] = this.safeString2 (rawBalance, 'total', 'balance');
             this.balance[code] = account;
         }
+        const channel = this.safeString (message, 'channel');
+        const parts = channel.split ('.');
+        const rawType = this.safeString (parts, 0);
+        const channelType = this.getSupportedMapping (rawType, {
+            'spot': 'spot',
+            'futures': 'swap',
+            'options': 'option',
+        });
+        const messageHash = channelType + '.balance';
         this.balance = this.safeBalance (this.balance);
-        client.resolve (this.balance, 'balance');
+        client.resolve (this.balance, messageHash);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -861,7 +874,7 @@ module.exports = class gate extends gateRest {
         }
     }
 
-    handleBalanceSubscription (client, message) {
+    handleBalanceSubscription (client, message, subscription = undefined) {
         this.balance = {};
     }
 
@@ -871,13 +884,17 @@ module.exports = class gate extends gateRest {
             'balance': this.handleBalanceSubscription,
             'order_book': this.handleOrderBookSubscription,
         };
-        const keys = Object.keys (methods);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (channel.indexOf (key) >= 0) {
-                const method = methods[key];
-                const subscription = client.subscriptions[channel];
-                method.call (this, client, message, subscription);
+        const id = this.safeInteger (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, id);
+        if (subscription !== undefined) {
+            const keys = Object.keys (methods);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                if (channel.indexOf (key) >= 0) {
+                    const method = methods[key];
+                    method.call (this, client, message, subscription);
+                }
             }
         }
     }
@@ -1059,7 +1076,7 @@ module.exports = class gate extends gateRest {
             'messageHash': messageHash,
         });
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, subscriptionHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
     async subscribePrivate (url, messageHash, payload, subscriptionHash, params, requiresUid = false) {
@@ -1101,6 +1118,6 @@ module.exports = class gate extends gateRest {
             'id': requestId,
             'messageHash': messageHash,
         };
-        return await this.watch (url, messageHash, message, subscriptionHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 };

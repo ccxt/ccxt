@@ -731,7 +731,7 @@ class coinex extends Exchange {
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the coinex api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -984,7 +984,7 @@ class coinex extends Exchange {
         $marketId = $this->safe_string($trade, 'market');
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, null, $defaultType);
         $costString = $this->safe_string($trade, 'deal_money');
         $fee = null;
         $feeCostString = $this->safe_string_2($trade, 'fee', 'deal_fee');
@@ -1194,7 +1194,7 @@ class coinex extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
-            'type' => $this->timeframes[$timeframe],
+            'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2578,7 +2578,8 @@ class coinex extends Exchange {
     public function safe_network($networkId, $currency = null) {
         $networks = $this->safe_value($currency, 'networks', array());
         $networksCodes = is_array($networks) ? array_keys($networks) : array();
-        if ($networkId === null && strlen($networksCodes) === 1) {
+        $networksCodesLength = count($networksCodes);
+        if ($networkId === null && $networksCodesLength === 1) {
             return $networks[$networksCodes[0]];
         }
         return array(
@@ -2603,7 +2604,8 @@ class coinex extends Exchange {
         $parts = explode(':', $coinAddress);
         $address = null;
         $tag = null;
-        if (strlen($parts) > 1) {
+        $partsLength = count($parts);
+        if ($partsLength > 1) {
             $address = $parts[0];
             $tag = $parts[1];
         } else {
@@ -3420,6 +3422,8 @@ class coinex extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $ticker = $this->safe_value($data, 'ticker', array());
+        $timestamp = $this->safe_integer($data, 'date');
+        $ticker['timestamp'] = $timestamp; // avoid changing parseFundingRate signature
         return $this->parse_funding_rate($ticker, $market);
     }
 
@@ -3450,6 +3454,11 @@ class coinex extends Exchange {
         //         "sell_amount" => "0.9388"
         //     }
         //
+        $timestamp = $this->safe_integer($contract, 'timestamp');
+        $contract = $this->omit($contract, 'timestamp');
+        $fundingDelta = $this->safe_integer($contract, 'funding_time') * 60 * 1000;
+        $fundingHour = ($timestamp . $fundingDelta) / 3600000;
+        $fundingTimestamp = (int) round($fundingHour) * 3600000;
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol(null, $market),
@@ -3457,11 +3466,11 @@ class coinex extends Exchange {
             'indexPrice' => $this->safe_number($contract, 'index_price'),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'fundingRate' => $this->safe_number($contract, 'funding_rate_next'),
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => $this->safe_number($contract, 'funding_rate_predict'),
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
@@ -3475,9 +3484,9 @@ class coinex extends Exchange {
         /**
          *  @method
          * fetch the current funding rates
-         * @param {array} $symbols unified $market $symbols
+         * @param {[string]} $symbols unified $market $symbols
          * @param {array} $params extra parameters specific to the coinex api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
+         * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -3525,6 +3534,7 @@ class coinex extends Exchange {
         //     }
         $data = $this->safe_value($response, 'data', array());
         $tickers = $this->safe_value($data, 'ticker', array());
+        $timestamp = $this->safe_integer($data, 'date');
         $result = array();
         $marketIds = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -3532,6 +3542,7 @@ class coinex extends Exchange {
             if (mb_strpos($marketId, '_') === -1) { // skip _signprice and _indexprice
                 $market = $this->safe_market($marketId, null, null, 'swap');
                 $ticker = $tickers[$marketId];
+                $ticker['timestamp'] = $timestamp;
                 $result[] = $this->parse_funding_rate($ticker, $market);
             }
         }

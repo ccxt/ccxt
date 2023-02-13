@@ -276,7 +276,7 @@ class okcoin extends \ccxt\async\okcoin {
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $name = 'candle' . $interval . 's';
             $ohlcv = Async\await($this->subscribe($name, $symbol, $params));
             if ($this->newUpdates) {

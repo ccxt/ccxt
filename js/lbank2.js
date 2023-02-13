@@ -457,7 +457,7 @@ module.exports = class lbank2 extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the lbank api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -691,7 +691,7 @@ module.exports = class lbank2 extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'type': this.timeframes[timeframe],
+            'type': this.safeString (this.timeframes, timeframe, timeframe),
             'time': parseInt (since / 1000),
             'size': limit, // max 2000
         };
@@ -2324,8 +2324,7 @@ module.exports = class lbank2 extends Exchange {
                 } else {
                     pem = this.convertSecretToPem (this.encode (this.secret));
                 }
-                const encodedPem = this.encode (pem);
-                sign = this.binaryToBase64 (this.rsa (uppercaseHash, encodedPem, 'RS256'));
+                sign = this.rsa (uppercaseHash, pem);
             } else if (signatureMethod === 'HmacSHA256') {
                 sign = this.hmac (this.encode (uppercaseHash), this.encode (this.secret));
             }

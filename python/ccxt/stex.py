@@ -694,7 +694,7 @@ class stex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetTicker(params)
@@ -780,7 +780,7 @@ class stex(Exchange):
         market = self.market(symbol)
         request = {
             'currencyPairId': market['id'],
-            'candlesType': self.timeframes[timeframe],  # default 1d
+            'candlesType': self.safe_string(self.timeframes, timeframe, timeframe),  # default 1d
             # 'timeStart': 1574709092,  # unix timestamp in seconds, required
             # 'timeEnd': 1574709092,  # unix timestamp in seconds, required
             # 'limit': 100,  # default 100, optional

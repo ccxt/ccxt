@@ -55,6 +55,8 @@ class okx extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -319,8 +321,8 @@ class okx extends Exchange {
                         'users/subaccount/delete-apikey' => 10,
                         'users/subaccount/modify-apikey' => 10,
                         'users/subaccount/apikey' => 10,
+                        'users/subaccount/set-transfer-out' => 10,
                         'asset/subaccount/transfer' => 10,
-                        'asset/subaccount/set-transfer-out' => 10,
                         // broker
                         'broker/nd/create-subaccount' => 10,
                         'broker/nd/delete-subaccount' => 10,
@@ -705,16 +707,24 @@ class okx extends Exchange {
             'options' => array(
                 'defaultNetwork' => 'ERC20',
                 'networks' => array(
-                    'ETH' => 'ERC20',
-                    'TRX' => 'TRC20',
+                    'BTC' => 'Bitcoin',
                     'OMNI' => 'Omni',
-                    'SOLANA' => 'Solana',
-                    'POLYGON' => 'Polygon',
-                    'OEC' => 'OEC',
-                    'ALGO' => 'ALGO', // temporarily unavailable
-                    'OPTIMISM' => 'Optimism',
-                    'ARBITRUM' => 'Arbitrum one',
-                    'AVALANCHE' => 'Avalanche C-Chain',
+                    'SOL' => 'Solana',
+                    'LTC' => 'Litecoin',
+                    'MATIC' => 'Polygon',
+                    'OP' => 'Optimism',
+                    'ARB' => 'Arbitrum one',
+                    'AVAX' => 'Avalanche C-Chain',
+                ),
+                'networksById' => array(
+                    'Bitcoin' => 'BTC',
+                    'Omni' => 'OMNI',
+                    'Solana' => 'SOL',
+                    'Litecoin' => 'LTC',
+                    'Polygon' => 'MATIC',
+                    'Optimism' => 'OP',
+                    'Arbitrum one' => 'ARB',
+                    'Avalanche C-Chain' => 'AVAX',
                 ),
                 'fetchOpenInterestHistory' => array(
                     'timeframes' => array(
@@ -1175,6 +1185,7 @@ class okx extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
          * @param {array} $params extra parameters specific to the okx api endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -1512,7 +1523,7 @@ class okx extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the okx api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1678,7 +1689,7 @@ class okx extends Exchange {
             $limit = 100; // default 100, max 100
         }
         $duration = $this->parse_timeframe($timeframe);
-        $bar = $this->timeframes[$timeframe];
+        $bar = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         if (($timezone === 'UTC') && ($duration >= 21600)) { // if utc and $timeframe >= 6h
             $bar .= strtolower($timezone);
         }
@@ -4088,7 +4099,7 @@ class okx extends Exchange {
         if ($type !== null) {
             $request['instType'] = $this->convert_to_instrument_type($type);
         }
-        $response = $this->privateGetAccountPositions ($query);
+        $response = $this->privateGetAccountPositions (array_merge($request, $query));
         //
         //     {
         //         "code" => "0",
@@ -4165,7 +4176,8 @@ class okx extends Exchange {
                 $market = $this->market($entry);
                 $marketIds[] = $market['id'];
             }
-            if (strlen($marketIds) > 0) {
+            $marketIdsLength = count($marketIds);
+            if ($marketIdsLength > 0) {
                 $request['instId'] = implode(',', $marketIds);
             }
         }
@@ -4271,9 +4283,9 @@ class okx extends Exchange {
         $symbol = $market['symbol'];
         $pos = $this->safe_string($position, 'pos'); // 'pos' field => One way mode => 0 if $position is not open, 1 if open | Two way (hedge) mode => -1 if short, 1 if long, 0 if $position is not open
         $contractsAbs = Precise::string_abs($pos);
-        $contracts = null;
         $side = $this->safe_string($position, 'posSide');
         $hedged = $side !== 'net';
+        $contracts = $this->parse_number($contractsAbs);
         if ($market['margin']) {
             // margin $position
             if ($side === 'net') {
@@ -4285,7 +4297,6 @@ class okx extends Exchange {
             }
         } else {
             if ($pos !== null) {
-                $contracts = $this->parse_number($contractsAbs);
                 if ($side === 'net') {
                     if (Precise::string_gt($pos, '0')) {
                         $side = 'long';
@@ -4297,7 +4308,7 @@ class okx extends Exchange {
                 }
             }
         }
-        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSize = $this->safe_number($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPx');
         $notionalString = $this->safe_string($position, 'notionalUsd');
@@ -4815,8 +4826,8 @@ class okx extends Exchange {
             if ($posSide === null) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a $posSide argument for isolated margin');
             }
-            if ($posSide !== 'long' && $posSide !== 'short') {
-                throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long" or "short"');
+            if ($posSide !== 'long' && $posSide !== 'short' && $posSide !== 'net') {
+                throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long", "short" or "net"');
             }
         }
         $response = $this->privatePostAccountSetLeverage (array_merge($request, $params));
@@ -5628,6 +5639,125 @@ class okx extends Exchange {
         } elseif (is_array($this->headers) && array_key_exists('x-simulated-trading', $this->headers)) {
             $this->headers = $this->omit($this->headers, 'x-simulated-trading');
         }
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
+         * @param {[string]|null} $codes list of unified currency $codes
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fees structures}
+         */
+        $this->load_markets();
+        $response = $this->privateGetAssetCurrencies ($params);
+        //
+        //    {
+        //        "code" => "0",
+        //        "data" => array(
+        //            array(
+        //                "canDep" => true,
+        //                "canInternal" => false,
+        //                "canWd" => true,
+        //                "ccy" => "USDT",
+        //                "chain" => "USDT-TRC20",
+        //                "logoLink" => "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //                "mainNet" => false,
+        //                "maxFee" => "1.6",
+        //                "maxWd" => "8852150",
+        //                "minFee" => "0.8",
+        //                "minWd" => "2",
+        //                "name" => "Tether",
+        //                "usedWdQuota" => "0",
+        //                "wdQuota" => "500",
+        //                "wdTickSz" => "3"
+        //            ),
+        //            array(
+        //                "canDep" => true,
+        //                "canInternal" => false,
+        //                "canWd" => true,
+        //                "ccy" => "USDT",
+        //                "chain" => "USDT-ERC20",
+        //                "logoLink" => "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //                "mainNet" => false,
+        //                "maxFee" => "16",
+        //                "maxWd" => "8852150",
+        //                "minFee" => "8",
+        //                "minWd" => "2",
+        //                "name" => "Tether",
+        //                "usedWdQuota" => "0",
+        //                "wdQuota" => "500",
+        //                "wdTickSz" => "3"
+        //            ),
+        //            ...
+        //        ),
+        //        "msg" => ""
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_deposit_withdraw_fees($data, $codes);
+    }
+
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+        //
+        // array(
+        //   {
+        //       "canDep" => true,
+        //       "canInternal" => false,
+        //       "canWd" => true,
+        //       "ccy" => "USDT",
+        //       "chain" => "USDT-TRC20",
+        //       "logoLink" => "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //       "mainNet" => false,
+        //       "maxFee" => "1.6",
+        //       "maxWd" => "8852150",
+        //       "minFee" => "0.8",
+        //       "minWd" => "2",
+        //       "name" => "Tether",
+        //       "usedWdQuota" => "0",
+        //       "wdQuota" => "500",
+        //       "wdTickSz" => "3"
+        //   }
+        // )
+        //
+        $depositWithdrawFees = array();
+        $codes = $this->market_codes($codes);
+        for ($i = 0; $i < count($response); $i++) {
+            $feeInfo = $response[$i];
+            $currencyId = $this->safe_string($feeInfo, 'ccy');
+            $code = $this->safe_currency_code($currencyId);
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $depositWithdrawFee = $this->safe_value($depositWithdrawFees, $code);
+                if ($depositWithdrawFee === null) {
+                    $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
+                }
+                $depositWithdrawFees[$code]['info'][$currencyId] = $feeInfo;
+                $chain = $this->safe_string($feeInfo, 'chain');
+                $chainSplit = explode('-', $chain);
+                $networkId = $this->safe_value($chainSplit, 1);
+                $withdrawFee = $this->safe_number($feeInfo, 'minFee');
+                $withdrawResult = array(
+                    'fee' => $withdrawFee,
+                    'percentage' => ($withdrawFee !== null) ? false : null,
+                );
+                $depositResult = array(
+                    'fee' => null,
+                    'percentage' => null,
+                );
+                $networkCode = $this->network_id_to_code($networkId, $code);
+                $depositWithdrawFees[$code]['networks'][$networkCode] = array(
+                    'withdraw' => $withdrawResult,
+                    'deposit' => $depositResult,
+                );
+            }
+        }
+        $depositWithdrawCodes = is_array($depositWithdrawFees) ? array_keys($depositWithdrawFees) : array();
+        for ($i = 0; $i < count($depositWithdrawCodes); $i++) {
+            $code = $depositWithdrawCodes[$i];
+            $currency = $this->currency($code);
+            $depositWithdrawFees[$code] = $this->assign_default_deposit_withdraw_fees($depositWithdrawFees[$code], $currency);
+        }
+        return $depositWithdrawFees;
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

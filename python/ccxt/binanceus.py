@@ -49,6 +49,5 @@ class binanceus(binance):
                 'swap': None,
                 'future': None,
                 'option': None,
-                'fetchTickers': False,
             },
         })

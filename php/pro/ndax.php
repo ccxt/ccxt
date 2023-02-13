@@ -215,7 +215,7 @@ class ndax extends \ccxt\async\ndax {
             $payload = array(
                 'OMSId' => $omsId,
                 'InstrumentId' => intval($market['id']), // conditionally optional
-                'Interval' => intval($this->timeframes[$timeframe]),
+                'Interval' => intval($this->safe_string($this->timeframes, $timeframe, $timeframe)),
                 'IncludeLastCount' => 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
             );
             $request = array(
@@ -270,7 +270,7 @@ class ndax extends \ccxt\async\ndax {
             $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
             for ($j = 0; $j < count($keys); $j++) {
                 $timeframe = $keys[$j];
-                $interval = $this->timeframes[$timeframe];
+                $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
                 $duration = intval($interval) * 1000;
                 $timestamp = $this->safe_integer($ohlcv, 0);
                 $parsed = array(

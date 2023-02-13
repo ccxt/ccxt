@@ -36,6 +36,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
                 'tradesLimit': 1000,
                 'watchOrderBook': {
                     'snapshotDelay': 20,
+                    'maxRetries': 3,
                 },
                 'watchTicker': {
                     'name': 'contractMarket/tickerV2', // market/ticker

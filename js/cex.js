@@ -556,7 +556,7 @@ module.exports = class cex extends Exchange {
             //         "data1m":"[[1591403940,0.024972,0.024972,0.024969,0.024969,0.49999900]]",
             //     }
             //
-            const key = 'data' + this.timeframes[timeframe];
+            const key = 'data' + this.safeString (this.timeframes, timeframe, timeframe);
             const data = this.safeString (response, key);
             const ohlcvs = JSON.parse (data);
             return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
@@ -607,7 +607,7 @@ module.exports = class cex extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the cex api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);

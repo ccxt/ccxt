@@ -34,7 +34,7 @@ class bitfinex2 extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
-                'editOrder' => null,
+                'editOrder' => false,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => true,
                 'fetchClosedOrders' => true,
@@ -1084,7 +1084,7 @@ class bitfinex2 extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1162,26 +1162,6 @@ class bitfinex2 extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_symbol($marketId) {
-        if ($marketId === null) {
-            return $marketId;
-        }
-        $marketId = str_replace('t', '', $marketId);
-        $baseId = null;
-        $quoteId = null;
-        if (mb_strpos($marketId, ':') !== false) {
-            $parts = explode(':', $marketId);
-            $baseId = $parts[0];
-            $quoteId = $parts[1];
-        } else {
-            $baseId = mb_substr($marketId, 0, 3 - 0);
-            $quoteId = mb_substr($marketId, 3, 6 - 3);
-        }
-        $base = $this->safe_currency_code($baseId);
-        $quote = $this->safe_currency_code($quoteId);
-        return $base . '/' . $quote;
-    }
-
     public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
@@ -1233,7 +1213,7 @@ class bitfinex2 extends Exchange {
         $timestamp = $this->safe_integer($trade, $timestampIndex);
         if ($isPrivate) {
             $marketId = $trade[1];
-            $symbol = $this->parse_symbol($marketId);
+            $symbol = $this->safe_symbol($marketId);
             $orderId = $this->safe_string($trade, 3);
             $maker = $this->safe_integer($trade, 8);
             $takerOrMaker = ($maker === 1) ? 'maker' : 'taker';
@@ -1324,7 +1304,7 @@ class bitfinex2 extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            'timeframe' => $this->timeframes[$timeframe],
+            'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'sort' => 1,
             'start' => $since,
             'limit' => $limit,
@@ -1409,7 +1389,7 @@ class bitfinex2 extends Exchange {
     public function parse_order($order, $market = null) {
         $id = $this->safe_string($order, 0);
         $marketId = $this->safe_string($order, 3);
-        $symbol = $this->parse_symbol($marketId);
+        $symbol = $this->safe_symbol($marketId);
         // https://github.com/ccxt/ccxt/issues/6686
         // $timestamp = $this->safe_timestamp($order, 5);
         $timestamp = $this->safe_integer($order, 5);

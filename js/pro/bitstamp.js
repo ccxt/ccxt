@@ -31,6 +31,7 @@ module.exports = class bitstamp extends bitstampRest {
                 'wsSessionToken': '',
                 'watchOrderBook': {
                     'snapshotDelay': 6,
+                    'maxRetries': 3,
                 },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,

@@ -99,7 +99,7 @@ class ascendex extends \ccxt\async\ascendex {
             if (($limit === null) || ($limit > 1440)) {
                 $limit = 100;
             }
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $channel = 'bar' . ':' . $interval . ':' . $market['id'];
             $params = array(
                 'ch' => $channel,

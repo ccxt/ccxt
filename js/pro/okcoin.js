@@ -270,7 +270,7 @@ module.exports = class okcoin extends okcoinRest {
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'candle' + interval + 's';
         const ohlcv = await this.subscribe (name, symbol, params);
         if (this.newUpdates) {

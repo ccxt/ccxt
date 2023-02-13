@@ -22,7 +22,7 @@ module.exports = class gemini extends geminiRest {
                 'watchOrderBook': true,
                 'watchOHLCV': true,
             },
-            'hostname:': 'api.gemini.com',
+            'hostname': 'api.gemini.com',
             'urls': {
                 'api': {
                     'ws': 'wss://api.gemini.com',
