@@ -1175,6 +1175,7 @@ class Exchange {
         $this->hostname = null; // in case of inaccessibility of the "main" domain
 
         $this->options = $this->get_default_options(); // exchange-specific options if any
+        $this->add_base_properties(); // add transpilable base properties
 
         $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
         $this->quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
@@ -1450,7 +1451,6 @@ class Exchange {
         if ($this->markets) {
             $this->set_markets($this->markets);
         }
-        $this->add_base_properties(); // add transpilable base properties
     }
 
     public function set_sandbox_mode($enabled) {

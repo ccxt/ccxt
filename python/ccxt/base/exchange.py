@@ -387,6 +387,7 @@ class Exchange(object):
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
+        self.add_base_properties() # add transpilable base properties
         self.decimal_to_precision = decimal_to_precision
         self.number_to_string = number_to_string
 
@@ -412,7 +413,6 @@ class Exchange(object):
         if self.markets:
             self.set_markets(self.markets)
 
-        self.add_base_properties() # add transpilable base properties
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
         for name in dir(self):

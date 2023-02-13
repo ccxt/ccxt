@@ -241,6 +241,7 @@ module.exports = class Exchange {
         //
         this.options = this.getDefaultOptions(); // exchange-specific options, if any
         // fetch implementation options (JS only)
+        this.addBaseProperties(); // add transpilable base properties
         this.fetchOptions = {
             // keepalive: true, // does not work in Chrome, https://github.com/ccxt/ccxt/issues/6368
         }
@@ -356,7 +357,6 @@ module.exports = class Exchange {
         if (this.markets) {
             this.setMarkets (this.markets)
         }
-        this.addBaseProperties(); // add transpilable base properties
     }
 
     encodeURIComponent (...args) {
