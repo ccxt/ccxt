@@ -140,6 +140,7 @@ module.exports = class independentreserve extends independentreserveRest {
         if (limit === undefined) {
             limit = 100;
         }
+        limit = this.numberToString (limit);
         const url = this.urls['api']['ws'] + '/orderbook/' + limit + '?subscribe=' + market['base'] + '-' + market['quote'];
         const messageHash = 'orderbook:' + symbol + ':' + limit;
         const orderbook = await this.watch (url, messageHash, undefined, messageHash);
@@ -227,8 +228,9 @@ module.exports = class independentreserve extends independentreserveRest {
     valueToChecksum (value) {
         let result = value.toFixed (8);
         result = result.replace ('.', '');
-        result = result.replace (/^0+/, '');
-        result = result.replace ('.', '');
+        // remove leading zeros
+        result = this.parseNumber (result);
+        result = this.numberToString (result);
         return result;
     }
 
