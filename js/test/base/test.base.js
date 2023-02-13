@@ -4,6 +4,7 @@ global.log = require ('ololog') // for easier debugging
 
 const { Exchange, index, aggregate, unCamelCase } = require ('../../../ccxt')
 const { strictEqual: equal, deepEqual } = require ('assert')
+const { TICK_SIZE, DECIMAL_PLACES } = require('../../base/functions/number')
 
 require ('./functions/test.generic')
 require ('./functions/test.time')
@@ -25,10 +26,6 @@ function testCalculateFee() {
         'quote':  'BAR',
         'taker':   taker,
         'maker':   maker,
-        'precision': {
-            'amount': 8,
-            'price': 8,
-        },
     }
 
     const exchange = new Exchange ({
@@ -36,7 +33,13 @@ function testCalculateFee() {
         'markets': {
             'FOO/BAR': market,
         },
+        'precisionMode': TICK_SIZE,
     })
+
+    market['precision'] =  {
+        'amount': exchange.parseNumber ('1e-8'),
+        'price': exchange.parseNumber ('1e-8'),
+    };
 
     Object.keys (fees).forEach ((takerOrMaker) => {
 
@@ -55,15 +58,16 @@ function testExchangeConfigExtension () {
 
 
     const cost = { 'min': 0.001, 'max': 1000 }
-    const precision = { 'amount': 3 }
     const exchange = new binance ({
         'markets': {
-            'ETH/BTC': { 'limits': { cost }, precision },
+            'ETH/BTC': { 'limits': { cost } },
         },
+        'precisionMode': DECIMAL_PLACES,
     })
+    exchange.markets['ETH/BTC'].precision = { 'amount': exchange.parseNumber ('3') }
 
     deepEqual (exchange.markets['ETH/BTC'].limits.cost, cost)
-    deepEqual (exchange.markets['ETH/BTC'].precision, { 'price': 6, 'amount': 3 })
+    deepEqual (exchange.markets['ETH/BTC'].precision, { 'price': exchange.parseNumber ('6'), 'amount': exchange.parseNumber ('3') })
     deepEqual (exchange.markets['ETH/BTC'].symbol, 'ETH/BTC')
 }
 
