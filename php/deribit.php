@@ -1492,6 +1492,9 @@ class deribit extends Exchange {
         $lastUpdate = $this->safe_integer($order, 'last_update_timestamp');
         $id = $this->safe_string($order, 'order_id');
         $priceString = $this->safe_string($order, 'price');
+        if ($priceString === 'market_price') {
+            $priceString = null;
+        }
         $averageString = $this->safe_string($order, 'average_price');
         // Inverse contracts $amount is in USD which in ccxt is the $cost
         // For options and Linear contracts $amount is in corresponding cryptocurrency, e.g., BTC or ETH
