@@ -74,70 +74,101 @@ Object.keys (errors)
         testFiles[error] = require (__dirname + '/errors/test.' + error + '.js');
     });
 
-//-----------------------------------------------------------------------------
+// non-transpiled commons
+class emptyClass {}
 
-const keysGlobal = 'keys.json';
-const keysLocal = 'keys.local.json';
+const targetDir = __dirname + '/../../';
+const envVars = process.env;
 
-const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal;
-// eslint-disable-next-line import/no-dynamic-require, no-path-concat
-const settings = require (__dirname + '/../../' + keysFile)[exchangeId];
-
-if (settings) {
-    const keys = Object.keys (settings);
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        if (settings[key]) {
-            settings[key] = ccxt.deepExtend (exchange[key] || {}, settings[key]);
-        }
-    }
+function io_file_exists(path) {
+    return fs.existsSync(path);
 }
 
-Object.assign (exchange, settings);
-
-// check auth keys in env var
-const requiredCredentials = exchange.requiredCredentials;
-for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
-    if (isRequired && exchange[credential] === undefined) {
-        const credentialEnvName = (exchangeId + '_' + credential).toUpperCase (); // example: KRAKEN_APIKEY
-        const credentialValue = process.env[credentialEnvName];
-        if (credentialValue) {
-            exchange[credential] = credentialValue;
-        }
-    }
-}
-
-if (settings && settings.skip) {
-    console.log ('[Skipped]', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' });
-    process.exit ();
-}
-if (exchange.alias) {
-    console.log ('[Skipped alias]', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' });
-    process.exit ();
-}
-
-//-----------------------------------------------------------------------------
-
-if (settings && settings.httpProxy) {
-    const agent = new HttpsProxyAgent (settings.httpProxy)
-    exchange.agent = agent;
-}
-
-// ### common language specific methods ###
-async function variableMethod(methodName, exchange, args) {
-    return await testFiles[methodName](exchange, ... args);
+function io_file_read(path, decode = true) {
+    const content = fs.readFileSync(path);
+    return decode ? JSON.parse(content) : content;
 }
 
 function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.message.slice (0, 200);
 }
 
-class emptyClass {}
-// ### end of language specific common methods ###
+async function variableMethod(methodName, exchange, args) {
+    return await testFiles[methodName](exchange, ... args);
+}
 
+function addProxyAgent (exchange, settings) {
+    if (settings && settings.httpProxy) {
+        const agent = new HttpsProxyAgent (settings.httpProxy)
+        exchange.agent = agent;
+    }
+}
+
+function exit_script() {
+    process.exit();
+}
+
+function getObjectProp (exchange, prop, defaultValue = undefined) {
+    return (prop in exchange) ? exchange[prop] : defaultValue;
+}
+
+function setObjectProp (exchange, prop, value) {
+    exchange[prop] = value;
+}
+
+// #############################
 // ### AUTO-TRANSPILER-START ###
 
 module.exports = class testMainClass extends emptyClass {
+
+    init (exchange, symbol) {
+        this.expandSettings(exchange, symbol);
+        this.startTest (exchange, symbol);
+    }
+
+    expandSettings (exchange, symbol) {
+        const exchangeId = exchange.id;
+        const keysGlobal = targetDir + 'keys.json';
+        const keysLocal = targetDir + 'keys.local.json';
+        const keysFile = io_file_exists (keysLocal) ? keysLocal : keysGlobal;
+        const allSettings = io_file_read (keysFile);
+        const exchangeSettings = allSettings[exchangeId];
+        if (exchangeSettings) {
+            const settingKeys = Object.keys (exchangeSettings);
+            for (let i = 0; i < settingKeys.length; i++) {
+                const key = settingKeys[i];
+                if (exchangeSettings[key]) {
+                    const existing = getObjectProp (exchange, key, {});
+                    setObjectProp (exchange, key, exchange.deepExtend (existing, exchangeSettings[key]));
+                }
+            }
+        }
+        // credentials
+        const reqCreds = getObjectProp (exchange, 're' + 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        const objkeys = Object.keys (reqCreds);
+        for (let i = 0; i < objkeys.length; i++) {
+            const credential = objkeys[i];
+            const isRequired = reqCreds[credential];
+            if (isRequired && getObjectProp(exchange, credential) === undefined) {
+                const fullKey = exchangeId + '_' + credential;
+                const credentialEnvName = fullKey.toUpperCase (); // example: KRAKEN_APIKEY
+                const credentialValue = envVars[credentialEnvName];
+                if (credentialValue) {
+                    setObjectProp (exchange, credential, credentialValue);
+                }
+            }
+        }
+        // others
+        if (exchangeSettings && exchange.safeValue (exchangeSettings, 'skip')) {
+            console.log ('[Skipped]', 'exchange', exchangeId, 'symbol', symbol);
+            exit_script();
+        }
+        if (exchange.alias) {
+            console.log ('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
+            exit_script();
+        }
+        addProxyAgent (exchange, exchangeSettings);
+    }
 
     async testMethod (methodName, exchange, args) {
         let skipMessage = undefined;
@@ -531,12 +562,12 @@ module.exports = class testMainClass extends emptyClass {
         }
     }
 
-    async main (exchange, symbol) {
+    async startTest (exchange, symbol) {
         // we don't need to test aliases
         if (exchange.alias) {
             return;
         }
-        if (sandbox || exchange.sandbox) {
+        if (sandbox || getObjectProp (exchange, 'sandbox')) {
             exchange.setSandboxMode (true);
         }
         await this.loadExchange (exchange);
@@ -545,4 +576,6 @@ module.exports = class testMainClass extends emptyClass {
 };
 
 // ### AUTO-TRANSPILER-END ###
-(new testMainClass ()).main (exchange, exchangeSymbol)
+// ###########################
+const cls = module.exports;
+(new cls ()).init (exchange, exchangeSymbol);

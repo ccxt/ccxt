@@ -57,6 +57,13 @@ $exchanges = null;
 $verbose = in_array('--verbose', $argv);
 $args = $argv;
 
+$exchangeSymbol = $nonPrefixedArgs[3] ?? null;
+define ('exchangeSymbol', $nonPrefixedArgs[3] ?? null);
+define ('sandbox', in_array('--sandbox', $args));
+define ('privateTest', in_array('--private', $args));
+define ('privateOnly', in_array('--privateOnly', $args));
+
+
 //-----------------------------------------------------------------------------
 foreach (Exchange::$exchanges as $id) {
     if (in_array($id, $args)) {
@@ -69,40 +76,33 @@ foreach (Exchange::$exchanges as $id) {
                             // timeout,
     }
 }
+
 if (!$exchange) {
     throw new \Exception('No exchange specified');
 }
-$exchangeSymbol = $nonPrefixedArgs[3] ?? null;
-define ('exchangeSymbol', $nonPrefixedArgs[3] ?? null);
-define ('sandbox', in_array('--sandbox', $args));
-define ('privateTest', in_array('--private', $args));
-define ('privateOnly', in_array('--privateOnly', $args));
 
+// non-transpiled commons
+class emptyClass {}
 
-$keys_global = './keys.json';
-$keys_local = './keys.local.json';
-$keys_file = file_exists($keys_local) ? $keys_local : $keys_global;
-
-var_dump($keys_file);
-
-$config = json_decode(file_get_contents($keys_file), true);
-
-foreach ($config as $id => $params) {
-    foreach ($params as $key => $value) {
-        if (array_key_exists($id, $exchanges)) {
-            if (property_exists($exchanges[$id], $key)) {
-                $exchanges[$id]->$key = is_array($exchanges[$id]->$key) ? array_replace_recursive($exchanges[$id]->$key, $value) : $value;
-            }
-        }
-    }
-}
+define('targetDir', __DIR__ . '/../../');
 
 include_once (__DIR__. '/test_transpiled_fetchTicker.php');
 define ('testFiles', [
     'fetchTicker' => 'test_ticker',
 ]);
+define('envVars', []);
 
-// ### common language specific methods ###
+// commons
+
+function io_file_exists($path) {
+    return file_exists($path);
+}
+
+function io_file_read($path, $decode = true) {
+    $content = file_get_contents($path);
+    return $decode ? json_decode($content, true) : $content;
+}
+
 function variableMethod($methodName, $exchange, $args) {
     global $testFiles;
     return Async\await($testFiles[$methodName]($exchange, ... $args));
@@ -112,9 +112,26 @@ function exceptionMessage ($exc) {
     return '[' . get_class($exc) . '] ' . substr($exc->getMessage(), 0, 200);
 }
 
-class emptyClass {}
-// ### end of language specific common methods ###
+function addProxyAgent ($exchange, $settings) {
+    // placeholder function in php
+}
 
+function exit_script() {
+    exit();
+}
+
+function reqCredentials ($exchange) {
+    return $exchange->requiredCredenials;
+}
+
+function getObjectProp ($exchange, $prop, $defaultValue = null) {
+    return property_exists ($exchange, $prop) ? $exchange->{$prop} : $defaultValue;
+}
+
+function setObjectProp ($exchange, $prop, $value) {
+    $exchange->{$prop} = $value;
+}
+// #############################
 // ### AUTO-TRANSPILER-START ###
 
 
@@ -127,6 +144,55 @@ use React\Async;
 use React\Promise;
 
 class testMainClass extends emptyClass {
+
+    public function init($exchange, $symbol) {
+        $this->expand_settings($exchange, $symbol);
+        $this->start_test($exchange, $symbol);
+    }
+
+    public function expand_settings($exchange, $symbol) {
+        $exchangeId = $exchange->id;
+        $keysGlobal = targetDir . 'keys.json';
+        $keysLocal = targetDir . 'keys.local.json';
+        $keysFile = io_file_exists ($keysLocal) ? $keysLocal : $keysGlobal;
+        $allSettings = io_file_read ($keysFile);
+        $exchangeSettings = $allSettings[$exchangeId];
+        if ($exchangeSettings) {
+            $settingKeys = is_array($exchangeSettings) ? array_keys($exchangeSettings) : array();
+            for ($i = 0; $i < count($settingKeys); $i++) {
+                $key = $settingKeys[$i];
+                if ($exchangeSettings[$key]) {
+                    $existing = getObjectProp ($exchange, $key, array());
+                    setObjectProp ($exchange, $key, $exchange->deep_extend($existing, $exchangeSettings[$key]));
+                }
+            }
+        }
+        // credentials
+        $reqCreds = getObjectProp ($exchange, 're' . 'quiredCredentials'); // dont glue the r-e-q-u-$i-r-e phrase, because leads to messed up transpilation
+        $objkeys = is_array($reqCreds) ? array_keys($reqCreds) : array();
+        for ($i = 0; $i < count($objkeys); $i++) {
+            $credential = $objkeys[$i];
+            $isRequired = $reqCreds[$credential];
+            if ($isRequired && getObjectProp($exchange, $credential) === null) {
+                $fullKey = $exchangeId . '_' . $credential;
+                $credentialEnvName = strtoupper($fullKey); // example => KRAKEN_APIKEY
+                $credentialValue = envVars[$credentialEnvName];
+                if ($credentialValue) {
+                    setObjectProp ($exchange, $credential, $credentialValue);
+                }
+            }
+        }
+        // others
+        if ($exchangeSettings && $exchange->safe_value($exchangeSettings, 'skip')) {
+            var_dump ('[Skipped]', 'exchange', $exchangeId, 'symbol', $symbol);
+            exit_script();
+        }
+        if ($exchange->alias) {
+            var_dump ('[Skipped] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
+            exit_script();
+        }
+        addProxyAgent ($exchange, $exchangeSettings);
+    }
 
     public function test_method($methodName, $exchange, $args) {
         return Async\async(function () use ($methodName, $exchange, $args) {
@@ -532,13 +598,13 @@ class testMainClass extends emptyClass {
         }) ();
     }
 
-    public function main($exchange, $symbol) {
+    public function start_test($exchange, $symbol) {
         return Async\async(function () use ($exchange, $symbol) {
             // we don't need to test aliases
             if ($exchange->alias) {
                 return;
             }
-            if (sandbox || $exchange->sandbox) {
+            if (sandbox || getObjectProp ($exchange, 'sandbox')) {
                 $exchange->set_sandbox_mode(true);
             }
             Async\await($this->load_exchange($exchange));
@@ -548,5 +614,6 @@ class testMainClass extends emptyClass {
 }
 
 // ### AUTO-TRANSPILER-END ###
-$promise = (new testMainClass())->main($exchange, $exchangeSymbol); // Async\coroutine(
-Async\await($promise);
+// ###########################
+$promise = (new testMainClass())->init($exchange, $exchangeSymbol); // Async\coroutine(
+//Async\await($promise);

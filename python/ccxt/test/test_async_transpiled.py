@@ -140,6 +140,45 @@ from ccxt.base.errors import NotSupported
 
 class testMainClass(emptyClass):
 
+    def init(self, exchange, symbol):
+        self.expand_settings(exchange, symbol)
+        self.start_test(exchange, symbol)
+
+    def expand_settings(self, exchange, symbol):
+        exchangeId = exchange.id
+        keysGlobal = targetDir + 'keys.json'
+        keysLocal = targetDir + 'keys.local.json'
+        keysFile = io_file_exists keysLocal if (keysLocal) else keysGlobal
+        allSettings = io_file_read(keysFile)
+        exchangeSettings = allSettings[exchangeId]
+        if exchangeSettings:
+            settingKeys = list(exchangeSettings.keys())
+            for i in range(0, len(settingKeys)):
+                key = settingKeys[i]
+                if exchangeSettings[key]:
+                    existing = getObjectProp(exchange, key, {})
+                    setObjectProp(exchange, key, exchange.deep_extend(existing, exchangeSettings[key]))
+        # credentials
+        reqCreds = getObjectProp(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        objkeys = list(reqCreds.keys())
+        for i in range(0, len(objkeys)):
+            credential = objkeys[i]
+            isRequired = reqCreds[credential]
+            if isRequired and getObjectProp(exchange, credential) is None:
+                fullKey = exchangeId + '_' + credential
+                credentialEnvName = fullKey.upper()  # example: KRAKEN_APIKEY
+                credentialValue = envVars[credentialEnvName]
+                if credentialValue:
+                    setObjectProp(exchange, credential, credentialValue)
+        # others
+        if exchangeSettings and exchange.safe_value(exchangeSettings, 'skip'):
+            print('[Skipped]', 'exchange', exchangeId, 'symbol', symbol)
+            exit_script()
+        if exchange.alias:
+            print('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
+            exit_script()
+        addProxyAgent(exchange, exchangeSettings)
+
     async def test_method(self, methodName, exchange, args):
         skipMessage = None
         if not (methodName in exchange.has) or not exchange.has[methodName]:
@@ -481,11 +520,11 @@ class testMainClass(emptyClass):
         if len(errors) > 0:
             raise Error('Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
 
-    async def main(self, exchange, symbol):
+    async def start_test(self, exchange, symbol):
         # we don't need to test aliases
         if exchange.alias:
             return
-        if sandbox or exchange.sandbox:
+        if sandbox or getObjectProp(exchange, 'sandbox'):
             exchange.set_sandbox_mode(True)
         await self.load_exchange(exchange)
         await self.test_exchange(exchange, symbol)
