@@ -2583,7 +2583,7 @@ module.exports = class Exchange {
                 return markets[0];
             }
         }
-        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+        throw new BadSymbol (this.id + ' does not have market symbol ' + this.json (symbol));
     }
 
     handleWithdrawTagAndParams (tag, params) {

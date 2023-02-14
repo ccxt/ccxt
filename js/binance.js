@@ -1465,7 +1465,7 @@ module.exports = class binance extends Exchange {
                 }
             }
         }
-        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+        throw new BadSymbol (this.id + ' does not have market symbol ' + this.json (symbol));
     }
 
     costToPrecision (symbol, cost) {
