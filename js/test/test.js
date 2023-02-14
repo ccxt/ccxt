@@ -124,7 +124,7 @@ if (settings && settings.httpProxy) {
 }
 
 // ### common language specific methods ###
-async function variableMethod(exchange, methodName, args) {
+async function variableMethod(methodName, exchange, args) {
     return await testFiles[methodName](exchange, ... args);
 }
 
@@ -138,7 +138,7 @@ function exceptionMessage (exc) {
 
 class testMainClass {
 
-    async testMethod (exchange, methodName, args) {
+    async testMethod (methodName, exchange, args) {
         let skipMessage = undefined;
         if (!(methodName in exchange.has) || !exchange.has[methodName]) {
             skipMessage = 'not supported';
@@ -151,7 +151,7 @@ class testMainClass {
         }
         console.log ('Testing', exchange.id, methodName, '(', args, ')');
         try {
-            return await variableMethod (exchange, methodName, args);
+            return await variableMethod (methodName, exchange, args);
         } catch (e) {
             if (e instanceof ccxt.NotSupported) {
                 console.log ('Not supported', exchange.id, methodName, '(', args, ')');
@@ -162,9 +162,9 @@ class testMainClass {
         }
     }
 
-    async testSafe(exchange, methodName, args) {
+    async testSafe(methodName, exchange, args) {
         try {
-            await this.testMethod(exchange, methodName, args);
+            await this.testMethod(methodName, exchange, args);
             return true;
         } catch (e) {
             return false;
@@ -173,32 +173,38 @@ class testMainClass {
 
     async runPublicTests (exchange, symbol) {
         const tests = {
-            'loadMarkets': [exchange],
-            'fetchCurrencies': [exchange],
-            'fetchTicker': [exchange, symbol],
-            'fetchTickers': [exchange, symbol],
-            'fetchOHLCV': [exchange, symbol],
-            'fetchTrades': [exchange, symbol],
-            'fetchOrderBook': [exchange, symbol],
-            'fetchL2OrderBook': [exchange, symbol],
-            'fetchOrderBooks': [exchange],
-            'fetchBidsAsks': [exchange],
-            'fetchFundingRates': [exchange, symbol],
-            'fetchFundingRate': [exchange, symbol],
-            'fetchFundingRateHistory': [exchange, symbol],
-            'fetchIndexOHLCV': [exchange, symbol],
-            'fetchMarkOHLCV': [exchange, symbol],
-            'fetchPremiumIndexOHLCV': [exchange, symbol],
-            'fetchStatus': [exchange],
-            'fetchTime': [exchange],
+            'loadMarkets': [],
+            'fetchCurrencies': [],
+            'fetchTicker': [symbol],
+            'fetchTickers': [symbol],
+            'fetchOHLCV': [symbol],
+            'fetchTrades': [symbol],
+            'fetchOrderBook': [symbol],
+            'fetchL2OrderBook': [symbol],
+            'fetchOrderBooks': [],
+            'fetchBidsAsks': [],
+            'fetchStatus': [],
+            'fetchTime': [],
         };
+        const market = exchange.market (symbol);
+        const isSpot = market['spot'];
+        if (isSpot) {
+            tests['fetchCurrencies'] = [symbol];
+        } else {
+            tests['fetchFundingRates'] = [symbol];
+            tests['fetchFundingRate'] = [symbol];
+            tests['fetchFundingRateHistory'] = [symbol];
+            tests['fetchIndexOHLCV'] = [symbol];
+            tests['fetchMarkOHLCV'] = [symbol];
+            tests['fetchPremiumIndexOHLCV'] = [symbol];
+        }
 
         const testNames = Object.keys (tests);
         const promises = [];
         for (let i = 0; i < testNames.length; i++) {
             const testName = testNames[i];
             const testArgs = tests[testName];
-            promises.push (this.testSafe (exchange, testName, testArgs));
+            promises.push (this.testSafe (testName, exchange, testArgs));
         }
         await Promise.all (promises);
     }
@@ -539,7 +545,7 @@ class testMainClass {
         for (let i = 0; i < testNames.length; i++) {
             const testName = testNames[i];
             const testArgs = tests[testName];
-            promises.push (this.testSafe (exchange, testName, testArgs));
+            promises.push (this.testSafe (testName, exchange, testArgs));
         }
         const results = await Promise.all (promises);
         const errors = [];
