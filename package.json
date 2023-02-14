@@ -85,7 +85,7 @@
     "check-ws-php-syntax": "php -f php/pro/test/syntax.php",
     "bundle": "npm run bundle-cjs && npm run bundle-browser",
     "bundle-cjs": "rollup -c rollup.config.js",
-    "bundle-browser": "rollup -c rollup.config.browser.js",
+    "bundle-browser": "browserify ./js/ccxt.js -p esmify --standalone ccxt  > dist/ccxt.browser.js",
     "copy-python-files": "npm run copy-python-package && npm run copy-python-license && npm run copy-python-keys && npm run copy-python-readme",
     "copy-python-package": "node build/copy package.json python/package.json",
     "copy-python-license": "node build/copy LICENSE.txt python/LICENSE.txt",
