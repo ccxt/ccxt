@@ -142,6 +142,7 @@ module.exports = class derivadex extends Exchange {
                 'v2': {
                     'get': {
                         'rest/ohlcv': 1,
+                        'encryption-key': 1,
                     },
                 },
                 'private': {
@@ -159,6 +160,10 @@ module.exports = class derivadex extends Exchange {
                 },
                 'broad': {
                 },
+            },
+            'requiredCredentials': {
+                'walletAddress': true,
+                'privateKey': true,
             },
             'precisionMode': TICK_SIZE,
             'options': {
@@ -390,19 +395,15 @@ module.exports = class derivadex extends Exchange {
         const request = {
             'symbol': symbol,
         };
-        const orderBookResponse = await this.publicGetMarketsOrderBookL2Symbol (this.extend (request, params)); // markets/order_book endpoint response is cached for 10 seconds
+        const [ orderBookResponse, tickerResponse ] = await Promise.all ([
+            this.publicGetMarketsOrderBookL2Symbol (this.extend (request, params)),
+            this.publicGetMarketsTickers ({ 'symbol': symbol }),
+        ]);
         const orderBookValue = orderBookResponse['value'];
         const bid = this.safeString (orderBookValue[0], 'price');
         const bidVolume = this.safeString (orderBookValue[0], 'amount');
         const ask = this.safeString (orderBookValue[1], 'price');
         const askVolume = this.safeString (orderBookValue[1], 'amount');
-        const volumeParams = {};
-        volumeParams['symbol'] = symbol;
-        volumeParams['aggregationPeriod'] = 'day';
-        const volumeAggregationResponse = await this.publicGetAggregationsVolume (volumeParams);
-        const volumeValue = volumeAggregationResponse['value'][0];
-        const volumeKey = 'volume_' + symbol;
-        const tickerResponse = await this.publicGetMarketsTickers ({ 'symbol': symbol });
         const ticker = tickerResponse['value'][0];
         const timestamp = this.safeString (tickerResponse, 'timestamp');
         return {
@@ -423,9 +424,9 @@ module.exports = class derivadex extends Exchange {
             'change': this.safeString (ticker, 'change'),
             'percentage': this.safeString (ticker, 'percentage'),
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': volumeValue[volumeKey],
-            'info': { orderBookResponse, volumeAggregationResponse, tickerResponse },
+            'baseVolume': this.safeString (ticker, 'base_volume'),
+            'quoteVolume': this.safeString (ticker, 'notional_volume'),
+            'info': { orderBookResponse, tickerResponse },
         };
     }
 
@@ -541,6 +542,7 @@ module.exports = class derivadex extends Exchange {
         const result = {};
         const params = {
             'orderHash': [],
+            'order': 'desc',
         };
         for (let i = 0; i < trades.length; i++) {
             params['orderHash'].push (trades[i]['takerOrderHash']);
@@ -583,18 +585,13 @@ module.exports = class derivadex extends Exchange {
         const sideNumber = this.safeInteger (orderIntents[takerOrderHash], 'side');
         const orderTypeNumber = this.safeInteger (orderIntents[takerOrderHash], 'orderType');
         const side = sideNumber === 0 ? 'buy' : 'sell';
-        let orderType = undefined;
-        if (orderTypeNumber === 0) {
-            orderType = 'limit';
-        } else if (orderTypeNumber === 1) {
-            orderType = 'market';
-        } else if (orderTypeNumber === 2) {
-            orderType = 'stop';
-        }
-        let takerOrMaker = 'taker';
-        if (trade['traderAddress'] !== undefined && trade['traderAddress'] !== this.safeString (trade['order_intents'][takerOrderHash], 'traderAddress')) {
-            takerOrMaker = 'maker';
-        }
+        const orderType = this.getOrderType (orderTypeNumber);
+        // liquidations have will null takerOrderHash
+        const takerOrMaker = takerOrderHash !== null ? 'taker' : 'maker';
+        // TODO: enable this for fetchMyTrades()
+        // if (trade['traderAddress'] !== undefined && trade['traderAddress'] !== this.safeString (trade['order_intents'][takerOrderHash], 'traderAddress')) {
+        //     takerOrMaker = 'maker';
+        // }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -832,14 +829,7 @@ module.exports = class derivadex extends Exchange {
         // };
         // const fillsResponse = await this.publicGetFills (params);
         // const trades = fillsResponse['value'];
-        let orderType = undefined;
-        if (orderTypeNumber === 0) {
-            orderType = 'limit';
-        } else if (orderTypeNumber === 1) {
-            orderType = 'market';
-        } else if (orderTypeNumber === 2) {
-            orderType = 'stop';
-        }
+        const orderType = this.getOrderType (orderTypeNumber);
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
@@ -861,6 +851,91 @@ module.exports = class derivadex extends Exchange {
             'fee': undefined,
             'info': order,
         }, market);
+    }
+
+    getOrderType (orderTypeNumber) {
+        if (orderTypeNumber === 0) {
+            return 'limit';
+        } else if (orderTypeNumber === 1) {
+            return 'market';
+        } else if (orderTypeNumber === 2) {
+            return 'stop';
+        }
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name derivadex#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the derivadex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const orderType = this.capitalize (type);
+        // get the order intent
+        const orderIntent = this.getOperatorSubmitOrderIntent (market, side, orderType, amount, price);
+        // get the scaled order intent
+        const scaledOrderIntent = this.getScaledOrderIntent (orderIntent);
+        // get the order intent typed data
+        const typedData = {};
+        // get the order signature
+        const signature = {};
+        orderIntent.signature = signature;
+        const intent = { 't': 'Order', 'c': orderIntent };
+        // encrypt intent
+        const encryptedIntent = await this.encryptIntent (intent);
+        // get the 21 byte trader address
+        const twentyOneByteAccount = this.addDiscriminant (this.walletAddress);
+        // make the request
+        // submitOrderParamsAsync.request({ traderAddress: twentyOneByteAccount, encryptedIntent }));
+    }
+
+    addDiscriminant (traderAddress) {
+        // TODO: look up / resolve discriminant from chainId -- hard coding 00 for ethereum for now
+        const prefix = '00x';
+        return `${prefix}${traderAddress.slice (2)}`;
+    }
+
+    asNonce (num) {
+        return `0x${num.toString (16).padStart (64, '0')}`;
+    }
+
+    getOperatorSubmitOrderIntent (symbol, side, orderType, amount, price) {
+        return {
+            'traderAddress': this.walletAddress,
+            symbol,
+            'strategy': 'main',
+            'side': side === 'buy' ? 'Bid' : 'Ask',
+            orderType,
+            'nonce': this.asNonce (Date.now ()),
+            'amount': amount,
+            'price': price,
+            'stopPrice': 0,
+            'signature': '0x0',
+        };
+    }
+
+    getScaledOrderIntent (intent) {
+        // const operatorDecimals = 6;
+        // const operatorDecimalMultiplier = new BigInt (10) ** operatorDecimals;
+        // return {
+        //     ...intent,
+        //     amount: new BigInt (intent['amount']) * operatorDecimalMultiplier,
+        //     price: new BigInt (intent['price']) * operatorDecimalMultiplier,
+        //     stopPrice: new BigInt (intent['stopPrice']) * operatorDecimalMultiplier,
+        // };
+    }
+
+    async encryptIntent (intent) {
+        const encryptionKey = await this.v2GetEncryptionkey ();
+        // get the encryption key from the operator and do the thing
     }
 
     sign (path, api = 'stats', method = 'GET', params = {}, headers = undefined, body = undefined) {
