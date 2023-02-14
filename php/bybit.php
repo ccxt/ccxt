@@ -7077,11 +7077,7 @@ class bybit extends Exchange {
                     $authFull = $auth_base . $body;
                 } else {
                     $authFull = $auth_base . $queryEncoded;
-                    if ($path === 'unified/v3/private/order/list') {
-                        $url .= '?' . $this->rawencode($query);
-                    } else {
-                        $url .= '?' . $this->urlencode($query);
-                    }
+                    $url .= '?' . $this->rawencode($query);
                 }
                 $headers['X-BAPI-SIGN'] = $this->hmac($this->encode($authFull), $this->encode($this->secret));
             } else {
@@ -7110,11 +7106,7 @@ class bybit extends Exchange {
                         );
                     }
                 } else {
-                    if ($path === 'contract/v3/private/order/list') {
-                        $url .= '?' . $this->rawencode($sortedQuery);
-                    } else {
-                        $url .= '?' . $this->urlencode($sortedQuery);
-                    }
+                    $url .= '?' . $this->rawencode($sortedQuery);
                     $url .= '&sign=' . $signature;
                 }
             }
