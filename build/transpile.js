@@ -1917,7 +1917,7 @@ class Transpiler {
         let { python2, python3, phpSync, phpAsync, className, baseClass } = this.transpileClass (mainContent);
         phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
         const existinPhpBody = fs.readFileSync (test.phpFile).toString ();
-        const newPhp = existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + phpAsync + '\n' + commentEndLine + existinPhpBody.split(commentEndLine)[1];
+        const newPhp = existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + phpAsync + '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1];
         overwriteFile (test.phpFile, newPhp)
 
         const existinPythonBody = fs.readFileSync (test.pyFile).toString ();

@@ -132,9 +132,9 @@ function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.message.slice (0, 200);
 }
 
+class emptyClass {}
 // ### end of language specific common methods ###
 
-class emptyClass {}
 // ### AUTO-TRANSPILER-START ###
 
 module.exports = class testMainClass extends emptyClass {
@@ -208,7 +208,6 @@ module.exports = class testMainClass extends emptyClass {
         }
         await Promise.all (promises);
     }
-    //-----------------------------------------------------------------------------
 
     async loadExchange (exchange) {
         const markets = await exchange.loadMarkets ();
@@ -281,7 +280,7 @@ module.exports = class testMainClass extends emptyClass {
 
     getExchangeCode (exchange, codes = undefined) {
         if (codes === undefined) {
-            codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT']
+            codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT'];
         }
         const code = codes[0];
         for (let i = 0; i < codes.length; i++) {
@@ -532,7 +531,7 @@ module.exports = class testMainClass extends emptyClass {
         }
     }
 
-    async main () {
+    async main (exchange, symbol) {
         // we don't need to test aliases
         if (exchange.alias) {
             return;
@@ -541,9 +540,9 @@ module.exports = class testMainClass extends emptyClass {
             exchange.setSandboxMode (true);
         }
         await this.loadExchange (exchange);
-        await this.testExchange (exchange, exchangeSymbol);
+        await this.testExchange (exchange, symbol);
     }
 };
 
 // ### AUTO-TRANSPILER-END ###
-(new testMainClass ()).main ()
+(new testMainClass ()).main (exchange, exchangeSymbol)
