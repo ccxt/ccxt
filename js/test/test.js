@@ -134,9 +134,10 @@ function exceptionMessage (exc) {
 
 // ### end of language specific common methods ###
 
+class emptyClass {}
 // ### AUTO-TRANSPILER-START ###
 
-class testMainClass {
+module.exports = class testMainClass extends emptyClass {
 
     async testMethod (methodName, exchange, args) {
         let skipMessage = undefined;
@@ -162,7 +163,7 @@ class testMainClass {
         }
     }
 
-    async testSafe(methodName, exchange, args) {
+    async testSafe (methodName, exchange, args) {
         try {
             await this.testMethod(methodName, exchange, args);
             return true;
@@ -198,7 +199,6 @@ class testMainClass {
             tests['fetchMarkOHLCV'] = [symbol];
             tests['fetchPremiumIndexOHLCV'] = [symbol];
         }
-
         const testNames = Object.keys (tests);
         const promises = [];
         for (let i = 0; i < testNames.length; i++) {
@@ -211,9 +211,7 @@ class testMainClass {
     //-----------------------------------------------------------------------------
 
     async loadExchange (exchange) {
-
         const markets = await exchange.loadMarkets ();
-
         assert (typeof exchange.markets === 'object', '.markets is not an object');
         assert (Array.isArray (exchange.symbols), '.symbols is not an array');
         const symbolsLength = exchange.symbols.length;
@@ -221,7 +219,6 @@ class testMainClass {
         assert (symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');
         assert (marketKeysLength > 0, '.markets objects keys length <= 0 (less than or equal to zero)');
         assert (symbolsLength === marketKeysLength, 'number of .symbols is not equal to the number of .markets');
-
         const symbols = [
             'BTC/CNY',
             'BTC/USD',
@@ -245,7 +242,6 @@ class testMainClass {
             'LTC/BTC',
             'EUR/USD',
         ];
-
         const resultSymbols = [];
         const exchangeSpecificSymbols = exchange.symbols;
         for (let i = 0; i < exchangeSpecificSymbols.length; i++) {
@@ -254,7 +250,6 @@ class testMainClass {
                 resultSymbols.push (symbol);
             }
         }
-
         let resultMsg = '';
         const resultLength = resultSymbols.length;
         const exchangeSymbolsLength = exchange.symbols.length;
@@ -265,11 +260,8 @@ class testMainClass {
                 resultMsg = resultSymbols.join (', ');
             }
         }
-
         console.log (exchangeSymbolsLength, 'symbols', resultMsg);
     }
-
-    //-----------------------------------------------------------------------------
 
     getTestSymbol (exchange, symbols) {
         let symbol = undefined;
@@ -287,8 +279,6 @@ class testMainClass {
         return symbol;
     }
 
-    //-----------------------------------------------------------------------------
-
     getExchangeCode (exchange, codes = undefined) {
         if (codes === undefined) {
             codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT']
@@ -302,9 +292,7 @@ class testMainClass {
         return code;
     }
 
-    //-----------------------------------------------------------------------------
-
-    getSymbolsFromExchange(exchange, spot = true) {
+    getSymbolsFromExchange (exchange, spot = true) {
         let res = [];
         let markets = exchange.markets;
         const keys = Object.keys(markets);
@@ -319,8 +307,6 @@ class testMainClass {
         }
         return res;
     }
-
-    //-----------------------------------------------------------------------------
 
     getValidSymbol (exchange, spot = true) {
         const codes = [
@@ -355,7 +341,6 @@ class testMainClass {
             'ZEC',
             'ZRX',
         ];
-
         const spotSymbols = [
             'BTC/USD',
             'BTC/USDT',
@@ -369,8 +354,7 @@ class testMainClass {
             'LTC/BTC',
             'ZRX/WETH',
             'EUR/USD',
-        ]
-
+        ];
         const swapSymbols = [
             'BTC/USDT:USDT',
             'BTC/USD:USD',
@@ -381,14 +365,10 @@ class testMainClass {
             'ADA/USDT:USDT',
             'BTC/USD:BTC',
             'ETH/USD:ETH',
-        ]
-
+        ];
         const targetSymbols = spot ? spotSymbols : swapSymbols;
-
         let symbol = this.getTestSymbol (exchange, targetSymbols);
-
         const exchangeMarkets = this.getSymbolsFromExchange(exchange, spot);
-
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if (symbol === undefined) {
             for (let i = 0; i < codes.length; i++) {
@@ -401,25 +381,20 @@ class testMainClass {
                 }
             }
         }
-
         // if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if (symbol === undefined) {
             const activeMarkets = exchange.filterBy (exchangeMarkets, 'active', true);
             const activeSymbols = Object.keys (activeMarkets);
             symbol = this.getTestSymbol (exchange, activeSymbols);
         }
-
         if (symbol === undefined) {
             const first = exchangeMarkets[0];
             if (first !== undefined) {
                 symbol = first['symbol'];
             }
         }
-
         return symbol;
     }
-
-    //-----------------------------------------------------------------------------
 
     async testExchange (exchange, providedSymbol = undefined) {
         let spotSymbol = undefined;
@@ -441,7 +416,6 @@ class testMainClass {
         if (swapSymbol !== undefined) {
             console.log ('SWAP SYMBOL:', swapSymbol);
         }
-
         if (!privateOnly) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 exchange.options['type'] = 'spot';
@@ -452,7 +426,6 @@ class testMainClass {
                 await this.runPublicTests (exchange, swapSymbol);
             }
         }
-
         if (privateTest || privateOnly) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 exchange.options['defaultType'] = 'spot';
@@ -465,9 +438,7 @@ class testMainClass {
         }
     }
 
-    //-----------------------------------------------------------------------------
-
-    async runPrivateTests(exchange, symbol) {
+    async runPrivateTests (exchange, symbol) {
         if (!exchange.checkRequiredCredentials (false)) {
             console.log ('[Skipped]', 'Keys not found, skipping private tests');
             return;
@@ -561,8 +532,6 @@ class testMainClass {
         }
     }
 
-    //-----------------------------------------------------------------------------
-
     async main () {
         // we don't need to test aliases
         if (exchange.alias) {
@@ -574,7 +543,7 @@ class testMainClass {
         await this.loadExchange (exchange);
         await this.testExchange (exchange, exchangeSymbol);
     }
-}
+};
 
 // ### AUTO-TRANSPILER-END ###
 (new testMainClass ()).main ()

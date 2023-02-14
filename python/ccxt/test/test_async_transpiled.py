@@ -126,53 +126,11 @@ sys.excepthook = handle_all_unhandled_exceptions
 # ------------------------------------------------------------------------------
 
 
-def read_credentials_from_env(exchange):
-    requiredCredentials = exchange.requiredCredentials
-    for credential, isRequired in requiredCredentials.items():
-        if isRequired and credential and not getattr(exchange, credential, None):
-            credentialEnvName = (exchange.id + '_' + credential).upper()  # example: KRAKEN_APIKEY
-            if credentialEnvName in os.environ:
-                credentialValue = os.environ[credentialEnvName]
-                setattr(exchange, credential, credentialValue)
 
+### AUTO-TRANSPILER-START ###
 
-# ------------------------------------------------------------------------------
+### AUTO-TRANSPILER-END ###
 
-proxies = [
-    '',
-    'https://cors-anywhere.herokuapp.com/',
-]
-
-# prefer local testing keys to global keys
-keys_folder = os.path.dirname(root)
-keys_global = os.path.join(keys_folder, 'keys.json')
-keys_local = os.path.join(keys_folder, 'keys.local.json')
-keys_file = keys_local if os.path.exists(keys_local) else keys_global
-
-# load the api keys from config
-with open(keys_file, encoding='utf8') as file:
-    config = json.load(file)
-
-# instantiate all exchanges
-for id in ccxt.exchanges:
-    exchange = getattr(ccxt, id)
-    exchange_config = {'verbose': argv.verbose}
-    if sys.version_info[0] < 3:
-        exchange_config.update()
-    if id in config:
-        exchange_config = ccxt.Exchange.deep_extend(exchange_config, config[id])
-    exchanges[id] = exchange(exchange_config)
-
-    # check auth keys in env var
-    read_credentials_from_env(exchanges[id])
-
-# ------------------------------------------------------------------------------
-
-
-# ### AUTO-TRANSPILER-START ###
-
-
-# ### AUTO-TRANSPILER-END ###
 
 if __name__ == '__main__':
     asyncio.run(main())

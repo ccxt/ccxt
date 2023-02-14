@@ -1907,24 +1907,22 @@ class Transpiler {
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
             [ /[^\n]+require[^\n]+\n/g, '' ],
-            [ /module.exports\s+=\s+[^;]+;/g, '' ],
+           // [ /module.exports\s+=\s+[^;]+;/g, '' ],
         ])
 
-        const commentPreJsPhp = '// ';
-        const commentPrePy = '# ';
-        const startLine = '### AUTO-TRANSPILER-START ###';
-        const endLIne = '### AUTO-TRANSPILER-END ###';
+        const commentStartLine = '### AUTO-TRANSPILER-START ###';
+        const commentEndLine = '### AUTO-TRANSPILER-END ###';
 
-        let mainContent = js.split(commentPreJsPhp + startLine)[1];
-        mainContent = mainContent.split(commentPreJsPhp + endLIne)[0];
-        let { python3Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js:mainContent, removeEmptyLines: false })
-
+        const mainContent = js.split (commentStartLine)[1].split (commentEndLine)[0];
+        let { python2, python3, phpSync, phpAsync, className, baseClass } = this.transpileClass (mainContent);
+        phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
         const existinPhpBody = fs.readFileSync (test.phpFile).toString ();
-        const existinPythonBody = fs.readFileSync (test.phpFile).toString ();
-        const newPhp = existinPhpBody.split(commentPreJsPhp + startLine)[0] + commentPreJsPhp + startLine + '\n' + phpBody + '\n' + commentPreJsPhp + endLIne + existinPhpBody.split(commentPreJsPhp + endLIne)[1]; 
-        const newPython = existinPythonBody.split(commentPrePy + startLine)[0] + commentPrePy + startLine + '\n' + python3Body + '\n' + commentPrePy + endLIne + existinPythonBody.split(commentPrePy + endLIne)[1];
-        overwriteFile (test.pyFile, newPython)
+        const newPhp = existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + phpAsync + '\n' + commentEndLine + existinPhpBody.split(commentEndLine)[1];
         overwriteFile (test.phpFile, newPhp)
+
+        const existinPythonBody = fs.readFileSync (test.pyFile).toString ();
+        const newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
+        overwriteFile (test.pyFile, newPython)
     }
 
     // ============================================================================
