@@ -2730,6 +2730,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchLastPrices (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchLastPrices
+         * @description fetches the last price for multiple markets
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the last prices
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.getMarketFromSymbols (symbols);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
