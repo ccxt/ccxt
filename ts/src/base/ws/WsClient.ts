@@ -21,9 +21,9 @@ export default class WsClient extends Client {
         this.connectionStarted = milliseconds ()
         this.setConnectionTimeout ()
         if (isNode) {
-            this.connection = new WebSocket (this.url, this.protocols, this.options)
+            this.connection = new WebSocketPlatform (this.url, this.protocols, this.options)
         } else {
-            this.connection = new WebSocket (this.url, this.protocols)
+            this.connection = new WebSocketPlatform (this.url, this.protocols)
         }
 
         this.connection.onopen = this.onOpen.bind (this)
@@ -54,11 +54,11 @@ export default class WsClient extends Client {
     }
 
     isOpen () {
-        return (this.connection.readyState === WebSocket.OPEN)
+        return (this.connection.readyState === WebSocketPlatform.OPEN)
     }
 
     close () {
-        if (this.connection instanceof WebSocket) {
+        if (this.connection instanceof WebSocketPlatform) {
             return this.connection.close ()
         }
     }

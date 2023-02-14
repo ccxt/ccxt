@@ -15,7 +15,7 @@ export default {
     commonjs({
       transformMixedEsModules: true,
       dynamicRequireTargets: ["**/js/src/static_dependencies/**/*.cjs"],
-      
+
     }),
   ]
 };
