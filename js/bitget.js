@@ -822,6 +822,13 @@ module.exports = class bitget extends Exchange {
                     'USD_MIX': 'swap',
                 },
                 'sandboxMode': false,
+                'networks': {
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                    'BSC': 'BEP20',
+                },
+                'networksById': {
+                },
             },
         });
     }
