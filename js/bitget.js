@@ -828,6 +828,8 @@ module.exports = class bitget extends Exchange {
                     'BSC': 'BEP20',
                 },
                 'networksById': {
+                    'TRC20': 'TRX',
+                    'BSC': 'BEP20',
                 },
             },
         });
@@ -1511,11 +1513,12 @@ module.exports = class bitget extends Exchange {
         //
         const currencyId = this.safeString (depositAddress, 'coin');
         const networkId = this.safeString (depositAddress, 'chain');
+        const parsedCurrency = this.safeCurrencyCode (currencyId, currency);
         return {
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': parsedCurrency,
             'address': this.safeString (depositAddress, 'address'),
             'tag': this.safeString (depositAddress, 'tag'),
-            'network': networkId,
+            'network': this.networkIdToCode (networkId, parsedCurrency),
             'info': depositAddress,
         };
     }
