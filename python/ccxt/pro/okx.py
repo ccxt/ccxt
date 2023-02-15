@@ -285,6 +285,8 @@ class okx(Exchange, ccxt.async_support.okx):
         # 3. Data feeds will be delivered every 100ms(vs. every 200ms now)
         #
         depth = self.safe_string(options, 'depth', 'books')
+        if (depth == 'books-l2-tbt') or (depth == 'books50-l2-tbt'):
+            await self.authenticate({'access': 'public'})
         orderbook = await self.subscribe('public', depth, symbol, params)
         return orderbook.limit()
 
@@ -483,7 +485,9 @@ class okx(Exchange, ccxt.async_support.okx):
 
     def authenticate(self, params={}):
         self.check_required_credentials()
-        url = self.urls['api']['ws']['private']
+        access = self.safe_string(params, 'access', 'private')
+        params = self.omit(params, ['access'])
+        url = self.urls['api']['ws'][access]
         messageHash = 'authenticated'
         client = self.client(url)
         future = self.safe_value(client.subscriptions, messageHash)

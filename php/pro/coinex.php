@@ -427,6 +427,8 @@ class coinex extends \ccxt\async\coinex {
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
@@ -436,20 +438,21 @@ class coinex extends \ccxt\async\coinex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchTrades', $market, $params);
             $url = $this->urls['api']['ws'][$type];
             $messageHash = 'trades:' . $symbol;
+            $subscriptionHash = 'trades';
+            $subscribedSymbols = $this->safe_value($this->options, 'watchTradesSubscriptions', array());
+            $subscribedSymbols[] = $market['id'];
             $message = array(
                 'method' => 'deals.subscribe',
-                'params' => [
-                    $market['id'],
-                ],
+                'params' => $subscribedSymbols,
                 'id' => $this->request_id(),
             );
+            $this->options['watchTradesSubscriptions'] = $subscribedSymbols;
             $request = $this->deep_extend($message, $params);
-            $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
+            $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
