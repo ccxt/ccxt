@@ -3744,8 +3744,7 @@ class binance(Exchange):
         :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+        self.check_required_symbol('fetchOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'fetchOrders', 'defaultType', 'spot')
@@ -3755,7 +3754,9 @@ class binance(Exchange):
             'symbol': market['id'],
         }
         method = 'privateGetAllOrders'
-        if market['linear']:
+        if market['option']:
+            method = 'eapiPrivateGetHistoryOrders'
+        elif market['linear']:
             method = 'fapiPrivateGetAllOrders'
         elif market['inverse']:
             method = 'dapiPrivateGetAllOrders'
@@ -3809,6 +3810,36 @@ class binance(Exchange):
         #             "side": "BUY",
         #             "stopPrice": "0.0",
         #             "updateTime": 1499827319559
+        #         }
+        #     ]
+        #
+        # options
+        #
+        #     [
+        #         {
+        #             "orderId": 4728833085436977152,
+        #             "symbol": "ETH-230211-1500-C",
+        #             "price": "10.0",
+        #             "quantity": "1.00",
+        #             "executedQty": "0.00",
+        #             "fee": "0",
+        #             "side": "BUY",
+        #             "type": "LIMIT",
+        #             "timeInForce": "GTC",
+        #             "reduceOnly": False,
+        #             "postOnly": False,
+        #             "createTime": 1676083034462,
+        #             "updateTime": 1676083034462,
+        #             "status": "ACCEPTED",
+        #             "avgPrice": "0",
+        #             "source": "API",
+        #             "clientOrderId": "",
+        #             "priceScale": 1,
+        #             "quantityScale": 2,
+        #             "optionSide": "CALL",
+        #             "quoteAsset": "USDT",
+        #             "lastTrade": {"id":"69","time":"1676084430567","price":"24.9","qty":"1.00"},
+        #             "mmp": False
         #         }
         #     ]
         #
