@@ -4035,9 +4035,7 @@ class binance extends Exchange {
              * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $symbol argument');
-            }
+            $this->check_required_symbol('cancelAllOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -4047,7 +4045,9 @@ class binance extends Exchange {
             $params = $this->omit($params, array( 'type' ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
             $method = 'privateDeleteOpenOrders';
-            if ($market['linear']) {
+            if ($market['option']) {
+                $method = 'eapiPrivateDeleteAllOpenOrders';
+            } elseif ($market['linear']) {
                 $method = 'fapiPrivateDeleteAllOpenOrders';
             } elseif ($market['inverse']) {
                 $method = 'dapiPrivateDeleteAllOpenOrders';

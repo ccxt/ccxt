@@ -3823,8 +3823,7 @@ class binance(Exchange):
         :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
+        self.check_required_symbol('cancelAllOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -3834,7 +3833,9 @@ class binance(Exchange):
         params = self.omit(params, ['type'])
         marginMode, query = self.handle_margin_mode_and_params('cancelAllOrders', params)
         method = 'privateDeleteOpenOrders'
-        if market['linear']:
+        if market['option']:
+            method = 'eapiPrivateDeleteAllOpenOrders'
+        elif market['linear']:
             method = 'fapiPrivateDeleteAllOpenOrders'
         elif market['inverse']:
             method = 'dapiPrivateDeleteAllOpenOrders'
