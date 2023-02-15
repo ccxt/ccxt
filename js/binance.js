@@ -3594,7 +3594,7 @@ module.exports = class binance extends Exchange {
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
-        const fills = this.safeValue2 (order, 'fills', 'lastTrade', []);
+        const fills = this.safeValue (order, 'fills', []);
         const clientOrderId = this.safeString (order, 'clientOrderId');
         let timeInForce = this.safeString (order, 'timeInForce');
         if (timeInForce === 'GTX') {
