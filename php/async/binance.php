@@ -3781,9 +3781,7 @@ class binance extends Exchange {
              * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
              * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', 'spot');
@@ -3793,7 +3791,9 @@ class binance extends Exchange {
                 'symbol' => $market['id'],
             );
             $method = 'privateGetOrder';
-            if ($market['linear']) {
+            if ($market['option']) {
+                $method = 'eapiPrivateGetOrder';
+            } elseif ($market['linear']) {
                 $method = 'fapiPrivateGetOrder';
             } elseif ($market['inverse']) {
                 $method = 'dapiPrivateGetOrder';
@@ -3805,7 +3805,11 @@ class binance extends Exchange {
             }
             $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
             if ($clientOrderId !== null) {
-                $request['origClientOrderId'] = $clientOrderId;
+                if ($market['option']) {
+                    $request['clientOrderId'] = $clientOrderId;
+                } else {
+                    $request['origClientOrderId'] = $clientOrderId;
+                }
             } else {
                 $request['orderId'] = $id;
             }

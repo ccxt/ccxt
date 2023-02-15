@@ -3601,8 +3601,7 @@ class binance(Exchange):
         :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        self.check_required_symbol('fetchOrder', symbol)
         await self.load_markets()
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', 'spot')
@@ -3612,7 +3611,9 @@ class binance(Exchange):
             'symbol': market['id'],
         }
         method = 'privateGetOrder'
-        if market['linear']:
+        if market['option']:
+            method = 'eapiPrivateGetOrder'
+        elif market['linear']:
             method = 'fapiPrivateGetOrder'
         elif market['inverse']:
             method = 'dapiPrivateGetOrder'
@@ -3622,7 +3623,10 @@ class binance(Exchange):
                 request['isIsolated'] = True
         clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
-            request['origClientOrderId'] = clientOrderId
+            if market['option']:
+                request['clientOrderId'] = clientOrderId
+            else:
+                request['origClientOrderId'] = clientOrderId
         else:
             request['orderId'] = id
         requestParams = self.omit(query, ['type', 'clientOrderId', 'origClientOrderId'])
