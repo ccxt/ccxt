@@ -1092,6 +1092,7 @@ module.exports = class bybit extends bybitRest {
         //        C: false, // is close
         //        v: '0', // leverage
         //        d: 'NO_LIQ'
+        //        t: '2222929292828722'
         //    }
         //
         const id = this.safeString (order, 'i');
@@ -1151,6 +1152,7 @@ module.exports = class bybit extends bybitRest {
             'remaining': undefined,
             'status': status,
             'fee': fee,
+            'trades': [ this.safeString (order, 't') ],
         }, market);
     }
 
