@@ -3295,7 +3295,7 @@ class binance(Exchange):
         #       "updateTime": "1636061952660"
         #     }
         #
-        # option: createOrder
+        # option: createOrder, fetchOrder, fetchOpenOrders, fetchOrders
         #
         #     {
         #         "orderId": 4728833085436977152,
@@ -3775,26 +3775,29 @@ class binance(Exchange):
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+        self.check_required_symbol('cancelOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        # https://github.com/ccxt/ccxt/issues/6507
-        origClientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         marginMode, query = self.handle_margin_mode_and_params('cancelOrder', params)
         request = {
             'symbol': market['id'],
             # 'orderId': id,
             # 'origClientOrderId': id,
         }
-        if origClientOrderId is None:
-            request['orderId'] = id
+        clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
+        if clientOrderId is not None:
+            if market['option']:
+                request['clientOrderId'] = clientOrderId
+            else:
+                request['origClientOrderId'] = clientOrderId
         else:
-            request['origClientOrderId'] = origClientOrderId
+            request['orderId'] = id
         method = 'privateDeleteOrder'
-        if market['linear']:
+        if market['option']:
+            method = 'eapiPrivateDeleteOrder'
+        elif market['linear']:
             method = 'fapiPrivateDeleteOrder'
         elif market['inverse']:
             method = 'dapiPrivateDeleteOrder'

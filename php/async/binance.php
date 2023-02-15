@@ -3433,7 +3433,7 @@ class binance extends Exchange {
         //       "updateTime" => "1636061952660"
         //     }
         //
-        // option => createOrder
+        // option => createOrder, fetchOrder, fetchOpenOrders, fetchOrders
         //
         //     {
         //         "orderId" => 4728833085436977152,
@@ -3982,28 +3982,31 @@ class binance extends Exchange {
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
+            $this->check_required_symbol('cancelOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $defaultType);
-            // https://github.com/ccxt/ccxt/issues/6507
-            $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
             list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrder', $params);
             $request = array(
                 'symbol' => $market['id'],
                 // 'orderId' => $id,
                 // 'origClientOrderId' => $id,
             );
-            if ($origClientOrderId === null) {
-                $request['orderId'] = $id;
+            $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
+            if ($clientOrderId !== null) {
+                if ($market['option']) {
+                    $request['clientOrderId'] = $clientOrderId;
+                } else {
+                    $request['origClientOrderId'] = $clientOrderId;
+                }
             } else {
-                $request['origClientOrderId'] = $origClientOrderId;
+                $request['orderId'] = $id;
             }
             $method = 'privateDeleteOrder';
-            if ($market['linear']) {
+            if ($market['option']) {
+                $method = 'eapiPrivateDeleteOrder';
+            } elseif ($market['linear']) {
                 $method = 'fapiPrivateDeleteOrder';
             } elseif ($market['inverse']) {
                 $method = 'dapiPrivateDeleteOrder';
