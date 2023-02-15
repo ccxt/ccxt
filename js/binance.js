@@ -3926,9 +3926,7 @@ module.exports = class binance extends Exchange {
          * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
@@ -3938,7 +3936,9 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         };
         let method = 'privateGetAllOrders';
-        if (market['linear']) {
+        if (market['option']) {
+            method = 'eapiPrivateGetHistoryOrders';
+        } else if (market['linear']) {
             method = 'fapiPrivateGetAllOrders';
         } else if (market['inverse']) {
             method = 'dapiPrivateGetAllOrders';
@@ -3996,6 +3996,36 @@ module.exports = class binance extends Exchange {
         //             "side": "BUY",
         //             "stopPrice": "0.0",
         //             "updateTime": 1499827319559
+        //         }
+        //     ]
+        //
+        // options
+        //
+        //     [
+        //         {
+        //             "orderId": 4728833085436977152,
+        //             "symbol": "ETH-230211-1500-C",
+        //             "price": "10.0",
+        //             "quantity": "1.00",
+        //             "executedQty": "0.00",
+        //             "fee": "0",
+        //             "side": "BUY",
+        //             "type": "LIMIT",
+        //             "timeInForce": "GTC",
+        //             "reduceOnly": false,
+        //             "postOnly": false,
+        //             "createTime": 1676083034462,
+        //             "updateTime": 1676083034462,
+        //             "status": "ACCEPTED",
+        //             "avgPrice": "0",
+        //             "source": "API",
+        //             "clientOrderId": "",
+        //             "priceScale": 1,
+        //             "quantityScale": 2,
+        //             "optionSide": "CALL",
+        //             "quoteAsset": "USDT",
+        //             "lastTrade": {"id":"69","time":"1676084430567","price":"24.9","qty":"1.00"},
+        //             "mmp": false
         //         }
         //     ]
         //
