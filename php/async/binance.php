@@ -3307,8 +3307,10 @@ class binance extends Exchange {
         $statuses = array(
             'NEW' => 'open',
             'PARTIALLY_FILLED' => 'open',
+            'ACCEPTED' => 'open',
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
+            'CANCELLED' => 'canceled',
             'PENDING_CANCEL' => 'canceling', // currently unused
             'REJECTED' => 'rejected',
             'EXPIRED' => 'expired',
@@ -3431,6 +3433,34 @@ class binance extends Exchange {
         //       "updateTime" => "1636061952660"
         //     }
         //
+        // option => createOrder
+        //
+        //     {
+        //         "orderId" => 4728833085436977152,
+        //         "symbol" => "ETH-230211-1500-C",
+        //         "price" => "10.0",
+        //         "quantity" => "1.00",
+        //         "executedQty" => "0.00",
+        //         "fee" => "0",
+        //         "side" => "BUY",
+        //         "type" => "LIMIT",
+        //         "timeInForce" => "GTC",
+        //         "reduceOnly" => false,
+        //         "postOnly" => false,
+        //         "createTime" => 1676083034462,
+        //         "updateTime" => 1676083034462,
+        //         "status" => "ACCEPTED",
+        //         "avgPrice" => "0",
+        //         "source" => "API",
+        //         "clientOrderId" => "",
+        //         "priceScale" => 1,
+        //         "quantityScale" => 2,
+        //         "optionSide" => "CALL",
+        //         "quoteAsset" => "USDT",
+        //         "lastTrade" => array("id":"69","time":"1676084430567","price":"24.9","qty":"1.00"),
+        //         "mmp" => false
+        //     }
+        //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $marketType = (is_array($order) && array_key_exists('closePosition', $order)) ? 'contract' : 'spot';
@@ -3446,6 +3476,9 @@ class binance extends Exchange {
         } elseif (is_array($order) && array_key_exists('transactTime', $order)) {
             $lastTradeTimestamp = $this->safe_integer($order, 'transactTime');
             $timestamp = $this->safe_integer($order, 'transactTime');
+        } elseif (is_array($order) && array_key_exists('createTime', $order)) {
+            $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
+            $timestamp = $this->safe_integer($order, 'createTime');
         } elseif (is_array($order) && array_key_exists('updateTime', $order)) {
             if ($status === 'open') {
                 if (Precise::string_gt($filled, '0')) {
@@ -3457,7 +3490,7 @@ class binance extends Exchange {
         }
         $average = $this->safe_string($order, 'avgPrice');
         $price = $this->safe_string($order, 'price');
-        $amount = $this->safe_string($order, 'origQty');
+        $amount = $this->safe_string_2($order, 'origQty', 'quantity');
         // - Spot/Margin $market => cummulativeQuoteQty
         // - Futures $market => cumQuote.
         //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
@@ -3466,7 +3499,7 @@ class binance extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
-        $fills = $this->safe_value($order, 'fills', array());
+        $fills = $this->safe_value_2($order, 'fills', 'lastTrade', array());
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         if ($timeInForce === 'GTX') {
@@ -3500,7 +3533,11 @@ class binance extends Exchange {
             'filled' => $filled,
             'remaining' => null,
             'status' => $status,
-            'fee' => null,
+            'fee' => array(
+                'currency' => $this->safe_string($order, 'quoteAsset'),
+                'cost' => $this->safe_number($order, 'fee'),
+                'rate' => null,
+            ),
             'trades' => $fills,
         ), $market);
     }
@@ -3580,14 +3617,6 @@ class binance extends Exchange {
                     $uppercaseType = $market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
                 }
             }
-            $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
-            if (!$this->in_array($uppercaseType, $validOrderTypes)) {
-                if ($initialUppercaseType !== $uppercaseType) {
-                    throw new InvalidOrder($this->id . ' $stopPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
-                } else {
-                    throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
-                }
-            }
             if ($marginMode === 'isolated') {
                 $request['isIsolated'] = true;
             }
@@ -3605,8 +3634,23 @@ class binance extends Exchange {
             if (($marketType === 'spot') || ($marketType === 'margin')) {
                 $request['newOrderRespType'] = $this->safe_value($this->options['newOrderRespType'], $type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
             } else {
-                // delivery and future
+                // swap, futures and options
                 $request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
+            }
+            if ($market['option']) {
+                if ($type === 'market') {
+                    throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
+                }
+                $method = 'eapiPrivatePostOrder';
+            } else {
+                $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
+                if (!$this->in_array($uppercaseType, $validOrderTypes)) {
+                    if ($initialUppercaseType !== $uppercaseType) {
+                        throw new InvalidOrder($this->id . ' $stopPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
+                    } else {
+                        throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
+                    }
+                }
             }
             $request['type'] = $uppercaseType;
             // additional required fields depending on the order $type

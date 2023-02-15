@@ -3172,8 +3172,10 @@ class binance(Exchange):
         statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
+            'ACCEPTED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'CANCELLED': 'canceled',
             'PENDING_CANCEL': 'canceling',  # currently unused
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
@@ -3295,6 +3297,34 @@ class binance(Exchange):
         #       "updateTime": "1636061952660"
         #     }
         #
+        # option: createOrder
+        #
+        #     {
+        #         "orderId": 4728833085436977152,
+        #         "symbol": "ETH-230211-1500-C",
+        #         "price": "10.0",
+        #         "quantity": "1.00",
+        #         "executedQty": "0.00",
+        #         "fee": "0",
+        #         "side": "BUY",
+        #         "type": "LIMIT",
+        #         "timeInForce": "GTC",
+        #         "reduceOnly": False,
+        #         "postOnly": False,
+        #         "createTime": 1676083034462,
+        #         "updateTime": 1676083034462,
+        #         "status": "ACCEPTED",
+        #         "avgPrice": "0",
+        #         "source": "API",
+        #         "clientOrderId": "",
+        #         "priceScale": 1,
+        #         "quantityScale": 2,
+        #         "optionSide": "CALL",
+        #         "quoteAsset": "USDT",
+        #         "lastTrade": {"id":"69","time":"1676084430567","price":"24.9","qty":"1.00"},
+        #         "mmp": False
+        #     }
+        #
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         marketType = 'contract' if ('closePosition' in order) else 'spot'
@@ -3310,6 +3340,9 @@ class binance(Exchange):
         elif 'transactTime' in order:
             lastTradeTimestamp = self.safe_integer(order, 'transactTime')
             timestamp = self.safe_integer(order, 'transactTime')
+        elif 'createTime' in order:
+            lastTradeTimestamp = self.safe_integer(order, 'updateTime')
+            timestamp = self.safe_integer(order, 'createTime')
         elif 'updateTime' in order:
             if status == 'open':
                 if Precise.string_gt(filled, '0'):
@@ -3318,7 +3351,7 @@ class binance(Exchange):
                     timestamp = self.safe_integer(order, 'updateTime')
         average = self.safe_string(order, 'avgPrice')
         price = self.safe_string(order, 'price')
-        amount = self.safe_string(order, 'origQty')
+        amount = self.safe_string_2(order, 'origQty', 'quantity')
         # - Spot/Margin market: cummulativeQuoteQty
         # - Futures market: cumQuote.
         #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
@@ -3327,7 +3360,7 @@ class binance(Exchange):
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        fills = self.safe_value(order, 'fills', [])
+        fills = self.safe_value_2(order, 'fills', 'lastTrade', [])
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         if timeInForce == 'GTX':
@@ -3359,7 +3392,11 @@ class binance(Exchange):
             'filled': filled,
             'remaining': None,
             'status': status,
-            'fee': None,
+            'fee': {
+                'currency': self.safe_string(order, 'quoteAsset'),
+                'cost': self.safe_number(order, 'fee'),
+                'rate': None,
+            },
             'trades': fills,
         }, market)
 
@@ -3429,12 +3466,6 @@ class binance(Exchange):
                 uppercaseType = 'TAKE_PROFIT_MARKET' if market['contract'] else 'TAKE_PROFIT'
             elif isLimitOrder:
                 uppercaseType = 'TAKE_PROFIT' if market['contract'] else 'TAKE_PROFIT_LIMIT'
-        validOrderTypes = self.safe_value(market['info'], 'orderTypes')
-        if not self.in_array(uppercaseType, validOrderTypes):
-            if initialUppercaseType != uppercaseType:
-                raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
-            else:
-                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
         if marginMode == 'isolated':
             request['isIsolated'] = True
         if clientOrderId is None:
@@ -3448,8 +3479,19 @@ class binance(Exchange):
         if (marketType == 'spot') or (marketType == 'margin'):
             request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         else:
-            # delivery and future
+            # swap, futures and options
             request['newOrderRespType'] = 'RESULT'  # "ACK", "RESULT", default "ACK"
+        if market['option']:
+            if type == 'market':
+                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
+            method = 'eapiPrivatePostOrder'
+        else:
+            validOrderTypes = self.safe_value(market['info'], 'orderTypes')
+            if not self.in_array(uppercaseType, validOrderTypes):
+                if initialUppercaseType != uppercaseType:
+                    raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+                else:
+                    raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
         request['type'] = uppercaseType
         # additional required fields depending on the order type
         timeInForceIsRequired = False
