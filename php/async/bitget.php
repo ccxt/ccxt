@@ -830,6 +830,15 @@ class bitget extends Exchange {
                     'USD_MIX' => 'swap',
                 ),
                 'sandboxMode' => false,
+                'networks' => array(
+                    'TRX' => 'TRC20',
+                    'ETH' => 'ERC20',
+                    'BSC' => 'BEP20',
+                ),
+                'networksById' => array(
+                    'TRC20' => 'TRX',
+                    'BSC' => 'BEP20',
+                ),
             ),
         ));
     }
@@ -1474,10 +1483,15 @@ class bitget extends Exchange {
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
              */
             Async\await($this->load_markets());
+            $networkCode = $this->safe_string($params, 'network');
+            $networkId = $this->network_code_to_id($networkCode, $code);
             $currency = $this->currency($code);
             $request = array(
                 'coin' => $currency['code'],
             );
+            if ($networkId !== null) {
+                $request['chain'] = $networkId;
+            }
             $response = Async\await($this->privateSpotGetWalletDepositAddress (array_merge($request, $params)));
             //
             //     {
@@ -1509,11 +1523,12 @@ class bitget extends Exchange {
         //
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $networkId = $this->safe_string($depositAddress, 'chain');
+        $parsedCurrency = $this->safe_currency_code($currencyId, $currency);
         return array(
-            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $parsedCurrency,
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => $this->safe_string($depositAddress, 'tag'),
-            'network' => $networkId,
+            'network' => $this->network_id_to_code($networkId, $parsedCurrency),
             'info' => $depositAddress,
         );
     }
