@@ -15,6 +15,7 @@ class independentreserve extends Exchange {
             'name' => 'Independent Reserve',
             'countries' => array( 'AU', 'NZ' ), // Australia, New Zealand
             'rateLimit' => 1000,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -570,7 +571,7 @@ class independentreserve extends Exchange {
                 $side = 'sell';
             }
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -584,7 +585,7 @@ class independentreserve extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

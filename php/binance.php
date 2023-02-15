@@ -63,7 +63,8 @@ class binance extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
-                'fetchL3OrderBook' => false,
+                'fetchL3OrderBook' => null,
+                'fetchLastPrices' => true,
                 'fetchLedger' => null,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
@@ -145,6 +146,7 @@ class binance extends Exchange {
                     'sapi' => 'https://api.binance.com/sapi/v1',
                     'sapiV2' => 'https://api.binance.com/sapi/v2',
                     'sapiV3' => 'https://api.binance.com/sapi/v3',
+                    'sapiV4' => 'https://api.binance.com/sapi/v4',
                     'dapiPublic' => 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate' => 'https://dapi.binance.com/dapi/v1',
                     'eapiPublic' => 'https://eapi.binance.com/eapi/v1',
@@ -493,6 +495,11 @@ class binance extends Exchange {
                     ),
                     'post' => array(
                         'asset/getUserAsset' => 0.5,
+                    ),
+                ),
+                'sapiV4' => array(
+                    'get' => array(
+                        'sub-account/assets' => 1,
                     ),
                 ),
                 // deprecated
@@ -2712,6 +2719,103 @@ class binance extends Exchange {
         }
         $response = $this->$method ($params);
         return $this->parse_tickers($response, $symbols);
+    }
+
+    public function fetch_last_prices($symbols = null, $params = array ()) {
+        /**
+         * fetches the last price for multiple markets
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the last prices
+         * @param {array} $params extra parameters specific to the binance api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
+        $this->load_markets();
+        $market = $this->get_market_from_symbols($symbols);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
+        $method = null;
+        if ($marketType === 'future') {
+            $method = 'fapiPublicGetTickerPrice';
+            //
+            //     array(
+            //         array(
+            //             "symbol" => "LTCBTC",
+            //             "price" => "4.00000200"
+            //             "time" => 1589437530011
+            //         ),
+            //         ...
+            //     )
+            //
+        } elseif ($marketType === 'delivery') {
+            $method = 'dapiPublicGetTickerPrice';
+            //
+            //     array(
+            //         {
+            //             "symbol" => "BTCUSD_200626",
+            //             "ps" => "9647.8",
+            //             "price" => "9647.8",
+            //             "time" => 1591257246176
+            //         }
+            //     )
+            //
+        } elseif ($marketType === 'spot') {
+            $method = 'publicGetTickerPrice';
+            //
+            //     array(
+            //         array(
+            //             "symbol" => "LTCBTC",
+            //             "price" => "4.00000200"
+            //         ),
+            //         ...
+            //     )
+            //
+        } else {
+            throw new NotSupported($this->id . ' fetchLastPrices() does not support ' . $marketType . ' markets yet');
+        }
+        $response = $this->$method ($query);
+        return $this->parse_last_prices($response, $symbols);
+    }
+
+    public function parse_last_price($info, $market = null) {
+        //
+        // spot
+        //
+        //     {
+        //         "symbol" => "LTCBTC",
+        //         "price" => "4.00000200"
+        //     }
+        //
+        // usdm (swap/future)
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "price" => "6000.01",
+        //         "time" => 1589437530011   // Transaction time
+        //     }
+        //
+        //
+        // coinm (swap/future)
+        //
+        //     {
+        //         "symbol" => "BTCUSD_200626", // symbol ("BTCUSD_200626", "BTCUSD_PERP", etc..)
+        //         "ps" => "BTCUSD", // pair
+        //         "price" => "9647.8",
+        //         "time" => 1591257246176
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
+        $timestamp = $this->safe_integer($info, 'time');
+        $price = $this->safe_number($info, 'price');
+        return array(
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'price' => $price,
+            'side' => null,
+            'baseVolume' => null,
+            'quoteVolume' => null,
+            'info' => $info,
+        );
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -6562,7 +6666,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
+        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();
             $query = null;
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');

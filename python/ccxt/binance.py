@@ -87,7 +87,8 @@ class binance(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
-                'fetchL3OrderBook': False,
+                'fetchL3OrderBook': None,
+                'fetchLastPrices': True,
                 'fetchLedger': None,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
@@ -169,6 +170,7 @@ class binance(Exchange):
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'sapiV2': 'https://api.binance.com/sapi/v2',
                     'sapiV3': 'https://api.binance.com/sapi/v3',
+                    'sapiV4': 'https://api.binance.com/sapi/v4',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
                     'eapiPublic': 'https://eapi.binance.com/eapi/v1',
@@ -517,6 +519,11 @@ class binance(Exchange):
                     },
                     'post': {
                         'asset/getUserAsset': 0.5,
+                    },
+                },
+                'sapiV4': {
+                    'get': {
+                        'sub-account/assets': 1,
                     },
                 },
                 # deprecated
@@ -2658,6 +2665,100 @@ class binance(Exchange):
             method = 'publicGetTickerBookTicker'
         response = getattr(self, method)(params)
         return self.parse_tickers(response, symbols)
+
+    def fetch_last_prices(self, symbols=None, params={}):
+        """
+        fetches the last price for multiple markets
+        :param [str]|None symbols: unified symbols of the markets to fetch the last prices
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        self.load_markets()
+        market = self.get_market_from_symbols(symbols)
+        marketType, query = self.handle_market_type_and_params('fetchLastPrices', market, params)
+        method = None
+        if marketType == 'future':
+            method = 'fapiPublicGetTickerPrice'
+            #
+            #     [
+            #         {
+            #             "symbol": "LTCBTC",
+            #             "price": "4.00000200"
+            #             "time": 1589437530011
+            #         },
+            #         ...
+            #     ]
+            #
+        elif marketType == 'delivery':
+            method = 'dapiPublicGetTickerPrice'
+            #
+            #     [
+            #         {
+            #             "symbol": "BTCUSD_200626",
+            #             "ps": "9647.8",
+            #             "price": "9647.8",
+            #             "time": 1591257246176
+            #         }
+            #     ]
+            #
+        elif marketType == 'spot':
+            method = 'publicGetTickerPrice'
+            #
+            #     [
+            #         {
+            #             "symbol": "LTCBTC",
+            #             "price": "4.00000200"
+            #         },
+            #         ...
+            #     ]
+            #
+        else:
+            raise NotSupported(self.id + ' fetchLastPrices() does not support ' + marketType + ' markets yet')
+        response = getattr(self, method)(query)
+        return self.parse_last_prices(response, symbols)
+
+    def parse_last_price(self, info, market=None):
+        #
+        # spot
+        #
+        #     {
+        #         "symbol": "LTCBTC",
+        #         "price": "4.00000200"
+        #     }
+        #
+        # usdm(swap/future)
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "price": "6000.01",
+        #         "time": 1589437530011   # Transaction time
+        #     }
+        #
+        #
+        # coinm(swap/future)
+        #
+        #     {
+        #         "symbol": "BTCUSD_200626",  # symbol("BTCUSD_200626", "BTCUSD_PERP", etc..)
+        #         "ps": "BTCUSD",  # pair
+        #         "price": "9647.8",
+        #         "time": 1591257246176
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+        market = self.safe_market(marketId, market, None, defaultType)
+        timestamp = self.safe_integer(info, 'time')
+        price = self.safe_number(info, 'price')
+        return {
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'price': price,
+            'side': None,
+            'baseVolume': None,
+            'quoteVolume': None,
+            'info': info,
+        }
 
     def fetch_tickers(self, symbols=None, params={}):
         """
@@ -6203,7 +6304,7 @@ class binance(Exchange):
                     body = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
+        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
