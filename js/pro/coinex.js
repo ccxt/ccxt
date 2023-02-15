@@ -16,7 +16,7 @@ module.exports = class coinex extends coinexRest {
                 'ws': true,
                 'watchBalance': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchMyTrades': false, // can query but can't subscribe
                 'watchOrders': true,
@@ -129,16 +129,21 @@ module.exports = class coinex extends coinexRest {
         //
         const defaultType = this.safeString (this.options, 'defaultType');
         const params = this.safeValue (message, 'params', []);
-        const first = this.safeValue (params, 0, {});
-        const keys = Object.keys (first);
-        const marketId = this.safeString (keys, 0);
-        const symbol = this.safeSymbol (marketId, undefined, undefined, defaultType);
-        const ticker = this.safeValue (first, marketId, {});
-        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
-        const parsedTicker = this.parseWSTicker (ticker, market);
-        const messageHash = 'ticker:' + symbol;
-        this.tickers[symbol] = parsedTicker;
-        client.resolve (parsedTicker, messageHash);
+        const rawTickers = this.safeValue (params, 0, {});
+        const keys = Object.keys (rawTickers);
+        const newTickers = [];
+        for (let i = 0; i < keys.length; i++) {
+            const marketId = keys[i];
+            const rawTicker = rawTickers[marketId];
+            const symbol = this.safeSymbol (marketId, undefined, undefined, defaultType);
+            const market = this.safeMarket (marketId, undefined, undefined, defaultType);
+            const parsedTicker = this.parseWSTicker (rawTicker, market);
+            const messageHash = 'ticker:' + symbol;
+            this.tickers[symbol] = parsedTicker;
+            newTickers.push (parsedTicker);
+            client.resolve (parsedTicker, messageHash);
+        }
+        client.resolve (newTickers, 'tickers');
     }
 
     parseWSTicker (ticker, market = undefined) {
@@ -370,32 +375,56 @@ module.exports = class coinex extends coinexRest {
         /**
          * @method
          * @name coinex#watchTicker
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        return await this.watchTickers ([ symbol ], params);
+    }
+
+    async watchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#watchTickers
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        symbols = this.marketSymbols (symbols);
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', undefined, params);
         const url = this.urls['api']['ws'][type];
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'tickers';
         const subscribe = {
             'method': 'state.subscribe',
             'id': this.requestId (),
-            'params': [
-                market['id'],
-            ],
+            'params': [],
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash, request);
+        const tickers = await this.watch (url, messageHash, request, messageHash);
+        const result = this.filterByArray (tickers, 'symbol', symbols);
+        const keys = Object.keys (result);
+        const resultLength = keys.length;
+        if (resultLength > 0) {
+            if (this.newUpdates) {
+                return result;
+            }
+            return this.filterByArray (this.tickers, 'symbol', symbols);
+        }
+        return await this.watchTickers (symbols, params);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinex#watchTrades
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
@@ -405,20 +434,21 @@ module.exports = class coinex extends coinexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        symbol = market['symbol'];
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
         const url = this.urls['api']['ws'][type];
         const messageHash = 'trades:' + symbol;
+        const subscriptionHash = 'trades';
+        const subscribedSymbols = this.safeValue (this.options, 'watchTradesSubscriptions', []);
+        subscribedSymbols.push (market['id']);
         const message = {
             'method': 'deals.subscribe',
-            'params': [
-                market['id'],
-            ],
+            'params': subscribedSymbols,
             'id': this.requestId (),
         };
+        this.options['watchTradesSubscriptions'] = subscribedSymbols;
         const request = this.deepExtend (message, params);
-        const trades = await this.watch (url, messageHash, request, messageHash, request);
+        const trades = await this.watch (url, messageHash, request, subscriptionHash);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -426,6 +456,8 @@ module.exports = class coinex extends coinexRest {
         /**
          * @method
          * @name coinex#watchOrderBook
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -455,18 +487,17 @@ module.exports = class coinex extends coinexRest {
             throw new NotSupported (this.id + ' watchOrderBook() aggregation must be one of ' + aggregations.join (', '));
         }
         params = this.omit (params, 'aggregation');
+        const watchOrderBookSubscriptions = this.safeValue (this.options, 'watchOrderBookSubscriptions', {});
+        watchOrderBookSubscriptions[symbol] = [ market['id'], limit, aggregation, true ];
         const subscribe = {
-            'method': 'depth.subscribe',
+            'method': 'depth.subscribe_multi',
             'id': this.requestId (),
-            'params': [
-                market['id'],
-                limit,
-                aggregation,
-                true,
-            ],
+            'params': Object.values (watchOrderBookSubscriptions),
         };
+        this.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions;
+        const subscriptionHash = this.hash (this.encode (this.json (watchOrderBookSubscriptions)));
         const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        const orderbook = await this.watch (url, messageHash, request, subscriptionHash, request);
         return orderbook.limit ();
     }
 

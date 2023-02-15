@@ -994,7 +994,7 @@ class deribit(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the deribit api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1465,6 +1465,8 @@ class deribit(Exchange):
         lastUpdate = self.safe_integer(order, 'last_update_timestamp')
         id = self.safe_string(order, 'order_id')
         priceString = self.safe_string(order, 'price')
+        if priceString == 'market_price':
+            priceString = None
         averageString = self.safe_string(order, 'average_price')
         # Inverse contracts amount is in USD which in ccxt is the cost
         # For options and Linear contracts amount is in corresponding cryptocurrency, e.g., BTC or ETH
