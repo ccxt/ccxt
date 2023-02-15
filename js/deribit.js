@@ -1517,7 +1517,10 @@ module.exports = class deribit extends Exchange {
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         const lastUpdate = this.safeInteger (order, 'last_update_timestamp');
         const id = this.safeString (order, 'order_id');
-        const priceString = this.safeString (order, 'price');
+        let priceString = this.safeString (order, 'price');
+        if (priceString === 'market_price') {
+            priceString = undefined;
+        }
         const averageString = this.safeString (order, 'average_price');
         // Inverse contracts amount is in USD which in ccxt is the cost
         // For options and Linear contracts amount is in corresponding cryptocurrency, e.g., BTC or ETH

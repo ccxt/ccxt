@@ -100,8 +100,6 @@ class bkex(Exchange):
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
-                'privateAPI': True,
-                'publicAPI': True,
                 'reduceMargin': None,
                 'setLeverage': None,
                 'setMarginMode': None,
