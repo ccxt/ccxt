@@ -143,7 +143,10 @@ module.exports = class independentreserve extends independentreserveRest {
         limit = this.numberToString (limit);
         const url = this.urls['api']['ws'] + '/orderbook/' + limit + '?subscribe=' + market['base'] + '-' + market['quote'];
         const messageHash = 'orderbook:' + symbol + ':' + limit;
-        const orderbook = await this.watch (url, messageHash, undefined, messageHash);
+        const subscription = {
+            'receivedSnapshot': false,
+        };
+        const orderbook = await this.watch (url, messageHash, undefined, messageHash, subscription);
         return orderbook.limit ();
     }
 
@@ -181,6 +184,8 @@ module.exports = class independentreserve extends independentreserveRest {
         const symbol = base + '/' + quote;
         const orderBook = this.safeValue (message, 'Data', {});
         const messageHash = 'orderbook:' + symbol + ':' + depth;
+        const subscription = this.safeValue (client.subscriptions, messageHash, {});
+        const receivedSnapshot = this.safeValue (subscription, 'receivedSnapshot', false);
         const timestamp = this.safeInteger (message, 'Time');
         let storedOrderBook = this.safeValue (this.orderbooks, symbol);
         if (storedOrderBook === undefined) {
@@ -190,6 +195,7 @@ module.exports = class independentreserve extends independentreserveRest {
         if (event === 'OrderBookSnapshot') {
             const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume');
             storedOrderBook.reset (snapshot);
+            subscription['receivedSnapshot'] = true;
         } else {
             const asks = this.safeValue (orderBook, 'Offers', []);
             const bids = this.safeValue (orderBook, 'Bids', []);
@@ -199,7 +205,7 @@ module.exports = class independentreserve extends independentreserveRest {
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
         }
         const checksum = this.safeValue (this.options, 'checksum', true);
-        if (checksum) {
+        if (checksum && receivedSnapshot) {
             const storedAsks = storedOrderBook['asks'];
             const storedBids = storedOrderBook['bids'];
             const asksLength = storedAsks.length;
@@ -222,7 +228,9 @@ module.exports = class independentreserve extends independentreserveRest {
                 client.reject (error, messageHash);
             }
         }
-        client.resolve (storedOrderBook, messageHash);
+        if (receivedSnapshot) {
+            client.resolve (storedOrderBook, messageHash);
+        }
     }
 
     valueToChecksum (value) {
