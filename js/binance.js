@@ -880,7 +880,7 @@ module.exports = class binance extends Exchange {
                 'sandboxMode': false,
                 'fetchMarkets': [ 'spot', 'linear', 'inverse', 'option' ],
                 'fetchCurrencies': true, // this is a private call and it requires API keys
-                // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
+                // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'defaultSubType': undefined, // 'linear', 'inverse'
@@ -2983,6 +2983,18 @@ module.exports = class binance extends Exchange {
         //       "tradeId": "1234",
         //     }
         //
+        // options (eapi)
+        //
+        //     {
+        //         "id": 1,
+        //         "symbol": "ETH-230216-1500-C",
+        //         "price": "35.5",
+        //         "qty": "0.03",
+        //         "quoteQty": "1.065",
+        //         "side": 1,
+        //         "time": 1676366446072
+        //     }
+        //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
         const price = this.safeString2 (trade, 'p', 'price');
         const amount = this.safeString2 (trade, 'q', 'qty');
@@ -3018,6 +3030,11 @@ module.exports = class binance extends Exchange {
         if ('maker' in trade) {
             takerOrMaker = trade['maker'] ? 'maker' : 'taker';
         }
+        let type = undefined;
+        if (market['option']) {
+            type = 'limit';
+            side = (side === '1') ? 'buy' : 'sell';
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -3025,7 +3042,7 @@ module.exports = class binance extends Exchange {
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': undefined,
+            'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
@@ -3060,6 +3077,8 @@ module.exports = class binance extends Exchange {
             defaultMethod = 'fapiPublicGetAggTrades';
         } else if (market['inverse']) {
             defaultMethod = 'dapiPublicGetAggTrades';
+        } else if (market['option']) {
+            defaultMethod = 'eapiPublicGetTrades';
         } else {
             defaultMethod = 'publicGetAggTrades';
         }
@@ -3076,12 +3095,16 @@ module.exports = class binance extends Exchange {
             } else if (market['inverse']) {
                 method = 'dapiPublicGetHistoricalTrades';
             }
+        } else {
+            method = 'eapiPublicGetTrades';
         }
-        if (since !== undefined) {
-            request['startTime'] = since;
-            // https://github.com/ccxt/ccxt/issues/6400
-            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-            request['endTime'] = this.sum (since, 3600000);
+        if (!market['option']) {
+            if (since !== undefined) {
+                request['startTime'] = since;
+                // https://github.com/ccxt/ccxt/issues/6400
+                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+                request['endTime'] = this.sum (since, 3600000);
+            }
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
@@ -3123,6 +3146,20 @@ module.exports = class binance extends Exchange {
         //             "isBuyerMaker": true,
         //             "isBestMatch": true
         //         }
+        //     ]
+        //
+        // options (eapi)
+        //
+        //     [
+        //         {
+        //             "id": 1,
+        //             "symbol": "ETH-230216-1500-C",
+        //             "price": "35.5",
+        //             "qty": "0.03",
+        //             "quoteQty": "1.065",
+        //             "side": 1,
+        //             "time": 1676366446072
+        //         },
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
