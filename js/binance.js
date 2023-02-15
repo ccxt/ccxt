@@ -4070,7 +4070,15 @@ module.exports = class binance extends Exchange {
         [ subType, query ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
         const requestParams = this.omit (query, 'type');
         let method = 'privateGetOpenOrders';
-        if (this.isLinear (type, subType)) {
+        if (type === 'option') {
+            method = 'eapiPrivateGetOpenOrders';
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else if (this.isLinear (type, subType)) {
             method = 'fapiPrivateGetOpenOrders';
         } else if (this.isInverse (type, subType)) {
             method = 'dapiPrivateGetOpenOrders';
