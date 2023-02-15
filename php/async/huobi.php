@@ -1944,7 +1944,7 @@ class huobi extends Exchange {
              * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-$market-data-overview-v2
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -6108,23 +6108,29 @@ class huobi extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
-             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {[string]|null} $symbols list of unified $market $symbols
              * @param {array} $params extra parameters specific to the huobi api endpoint
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
+            $market = null;
+            if ($symbols !== null) {
+                $first = $this->safe_string($symbols, 0);
+                $market = $this->market($first);
+            }
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositions', $params);
             $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-            $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params, 'linear');
             $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
             if ($marketType === 'spot') {
                 $marketType = 'future';
             }
             $method = null;
-            if ($defaultSubType === 'linear') {
+            if ($subType === 'linear') {
                 $method = $this->get_supported_mapping($marginMode, array(
                     'isolated' => 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
                     'cross' => 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',
