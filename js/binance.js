@@ -3771,9 +3771,7 @@ module.exports = class binance extends Exchange {
          * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
@@ -3783,7 +3781,9 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         };
         let method = 'privateGetOrder';
-        if (market['linear']) {
+        if (market['option']) {
+            method = 'eapiPrivateGetOrder';
+        } else if (market['linear']) {
             method = 'fapiPrivateGetOrder';
         } else if (market['inverse']) {
             method = 'dapiPrivateGetOrder';
@@ -3795,7 +3795,11 @@ module.exports = class binance extends Exchange {
         }
         const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
-            request['origClientOrderId'] = clientOrderId;
+            if (market['option']) {
+                request['clientOrderId'] = clientOrderId;
+            } else {
+                request['origClientOrderId'] = clientOrderId;
+            }
         } else {
             request['orderId'] = id;
         }
