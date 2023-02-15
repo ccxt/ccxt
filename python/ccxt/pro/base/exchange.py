@@ -74,8 +74,7 @@ class Exchange(BaseExchange):
         sleep_time = self.safe_number(new_connections_rate_limit_config, 'rateLimit', self.safe_number(default_rate_limit_config, 'rateLimit', self.rateLimit))
         if elapsed < sleep_time:
             delay = sleep_time - elapsed
-            time.sleep(delay/1000.0)
-
+            time.sleep(delay / 1000.0)
 
     def client(self, url):
         ws_options = self.safe_value(self.options, 'ws', {})
