@@ -3422,7 +3422,7 @@ module.exports = class binance extends Exchange {
         //       "updateTime": "1636061952660"
         //     }
         //
-        // option: createOrder, fetchOrder
+        // option: createOrder, fetchOrder, fetchOpenOrders, fetchOrders
         //
         //     {
         //         "orderId": 4728833085436977152,
@@ -3976,28 +3976,31 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        // https://github.com/ccxt/ccxt/issues/6507
-        const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const request = {
             'symbol': market['id'],
             // 'orderId': id,
             // 'origClientOrderId': id,
         };
-        if (origClientOrderId === undefined) {
-            request['orderId'] = id;
+        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            if (market['option']) {
+                request['clientOrderId'] = clientOrderId;
+            } else {
+                request['origClientOrderId'] = clientOrderId;
+            }
         } else {
-            request['origClientOrderId'] = origClientOrderId;
+            request['orderId'] = id;
         }
         let method = 'privateDeleteOrder';
-        if (market['linear']) {
+        if (market['option']) {
+            method = 'eapiPrivateDeleteOrder';
+        } else if (market['linear']) {
             method = 'fapiPrivateDeleteOrder';
         } else if (market['inverse']) {
             method = 'dapiPrivateDeleteOrder';
