@@ -1928,7 +1928,7 @@ module.exports = class huobi extends Exchange {
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -6078,17 +6078,23 @@ module.exports = class huobi extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const first = this.safeString (symbols, 0);
+            market = this.market (first);
+        }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPositions', params);
         marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params, 'linear');
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
         if (marketType === 'spot') {
             marketType = 'future';
         }
         let method = undefined;
-        if (defaultSubType === 'linear') {
+        if (subType === 'linear') {
             method = this.getSupportedMapping (marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',

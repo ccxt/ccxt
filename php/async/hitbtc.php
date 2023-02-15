@@ -374,13 +374,13 @@ class hitbtc extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
-             * $transfer $currency internally between wallets on the same account
+             * transfer $currency internally between wallets on the same account
              * @param {string} $code unified $currency $code
-             * @param {float} $amount amount to $transfer
-             * @param {string} $fromAccount account to $transfer from
-             * @param {string} $toAccount account to $transfer to
+             * @param {float} $amount amount to transfer
+             * @param {string} $fromAccount account to transfer from
+             * @param {string} $toAccount account to transfer to
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
              */
             // account can be "exchange" or "bank", with aliases "main" or "trading" respectively
             Async\await($this->load_markets());
@@ -396,7 +396,7 @@ class hitbtc extends Exchange {
                 $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
                 $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
                 if ($fromId === $toId) {
-                    throw new ExchangeError($this->id . ' $transfer() from and to cannot be the same account');
+                    throw new ExchangeError($this->id . ' transfer() from and to cannot be the same account');
                 }
                 $type = $fromId . 'To' . $this->capitalize($toId);
             }
@@ -407,12 +407,7 @@ class hitbtc extends Exchange {
             //         'id' => '2db6ebab-fb26-4537-9ef8-1a689472d236'
             //     }
             //
-            $transfer = $this->parse_transfer($response, $currency);
-            return array_merge($transfer, array(
-                'fromAccount' => $fromAccount,
-                'toAccount' => $toAccount,
-                'amount' => $this->parse_number($requestAmount),
-            ));
+            return $this->parse_transfer($response, $currency);
         }) ();
     }
 
@@ -720,7 +715,7 @@ class hitbtc extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
