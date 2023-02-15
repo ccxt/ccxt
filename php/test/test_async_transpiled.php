@@ -53,22 +53,14 @@ if (!$exchange) {
 
 define('targetDir', __DIR__ . '/../../');
 
-include_once (__DIR__. '/test_transpiled_fetchTicker.php');
-
-$tests_methods = [];
-
 global $testMethodsArray;
+$testMethodsArray = [];
 
-$declared_functions = get_defined_functions()['user'];
-$namespace = 'ccxt\\test_methods\\';
-foreach ($declared_functions as $functionFullName) {
-    if (strpos($functionFullName, $namespace) !== false) {
-        $methodName = str_replace($namespace, '', $functionFullName);
-        $tests_methods[$methodName] = $functionFullName;
-    }
+foreach (glob(__DIR__ . '/transpiled_test_*.php') as $filename) {
+    include_once $filename;
 }
-$x = function_exists($namespace.'fetchTicker');
-define('testFiles', $tests_methods);
+
+define('testFiles', $testMethodsArray);
 define('envVars', []);
 
 
@@ -85,11 +77,7 @@ function io_file_read($path, $decode = true) {
 }
 
 function call_method($methodName, $exchange, $args) {
-    return testFiles[strtolower($methodName)]($exchange, ... $args);
-}
-
-function test_method_exists($methodName) {
-    return array_key_exists(strtolower($methodName), testFiles);
+    return testFiles[$methodName](testFiles, $exchange, ... $args);
 }
 
 function exception_message ($exc) {
@@ -183,7 +171,7 @@ class testMainClass extends emptyClass {
             $skipMessage = null;
             if (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName]) {
                 $skipMessage = 'not supported';
-            } elseif (!test_method_exists($methodName)) {
+            } elseif (!(is_array(testFiles) && array_key_exists($methodName, testFiles))) {
                 $skipMessage = 'test not available';
             }
             if ($skipMessage) {

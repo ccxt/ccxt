@@ -183,7 +183,7 @@ class testMainClass(emptyClass):
         skipMessage = None
         if not (methodName in exchange.has) or not exchange.has[methodName]:
             skipMessage = 'not supported'
-        elif not test_method_exists(methodName):
+        elif not (methodName in testFiles):
             skipMessage = 'test not available'
         if skipMessage:
             print('[Skipping]', exchange.id, methodName, ' - ' + skipMessage)

@@ -97,10 +97,6 @@ async function call_method(methodName, exchange, args) {
     return await testFiles[methodName](exchange, ... args);
 }
 
-function test_method_exists(methodName) {
-    return (methodName in testFiles);
-}
-
 function add_proxy_agent (exchange, settings) {
     if (settings && settings.httpProxy) {
         const agent = new HttpsProxyAgent (settings.httpProxy)
@@ -178,7 +174,7 @@ module.exports = class testMainClass extends emptyClass {
         let skipMessage = undefined;
         if (!(methodName in exchange.has) || !exchange.has[methodName]) {
             skipMessage = 'not supported';
-        } else if (!test_method_exists(methodName)) {
+        } else if (!(methodName in testFiles)) {
             skipMessage = 'test not available';
         }
         if (skipMessage) {
