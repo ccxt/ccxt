@@ -3878,7 +3878,13 @@ class binance(Exchange):
         subType, query = self.handle_sub_type_and_params('fetchOpenOrders', market, params)
         requestParams = self.omit(query, 'type')
         method = 'privateGetOpenOrders'
-        if self.is_linear(type, subType):
+        if type == 'option':
+            method = 'eapiPrivateGetOpenOrders'
+            if since is not None:
+                request['startTime'] = since
+            if limit is not None:
+                request['limit'] = limit
+        elif self.is_linear(type, subType):
             method = 'fapiPrivateGetOpenOrders'
         elif self.is_inverse(type, subType):
             method = 'dapiPrivateGetOpenOrders'

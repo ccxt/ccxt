@@ -4034,7 +4034,15 @@ class binance extends Exchange {
         list($subType, $query) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params);
         $requestParams = $this->omit($query, 'type');
         $method = 'privateGetOpenOrders';
-        if ($this->is_linear($type, $subType)) {
+        if ($type === 'option') {
+            $method = 'eapiPrivateGetOpenOrders';
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+        } elseif ($this->is_linear($type, $subType)) {
             $method = 'fapiPrivateGetOpenOrders';
         } elseif ($this->is_inverse($type, $subType)) {
             $method = 'dapiPrivateGetOpenOrders';
