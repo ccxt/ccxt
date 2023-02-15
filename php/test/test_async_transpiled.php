@@ -1,41 +1,11 @@
 <?php
-
 namespace ccxt;
+
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
 include_once 'vendor/autoload.php';
-include_once 'test_trade.php';
-include_once 'test_order.php';
-include_once 'test_ohlcv.php';
-include_once 'test_position.php';
-include_once 'test_transaction.php';
-include_once 'test_account.php';
 
-function style($s, $style) {
-    return $style . $s . "\033[0m";
-}
-function green($s) {
-    return style($s, "\033[92m");
-}
-function blue($s) {
-    return style($s, "\033[94m");
-}
-function yellow($s) {
-    return style($s, "\033[93m");
-}
-function red($s) {
-    return style($s, "\033[91m");
-}
-function pink($s) {
-    return style($s, "\033[95m");
-}
-function bold($s) {
-    return style($s, "\033[1m");
-}
-function underline($s) {
-    return style($s, "\033[4m");
-}
 function dump($s) {
     echo implode(' ', func_get_args()) . "\n";
 }
@@ -81,18 +51,29 @@ if (!$exchange) {
     throw new \Exception('No exchange specified');
 }
 
-// non-transpiled commons
-class emptyClass {}
-
 define('targetDir', __DIR__ . '/../../');
 
 include_once (__DIR__. '/test_transpiled_fetchTicker.php');
-define ('testFiles', [
-    'fetchTicker' => 'test_ticker',
-]);
+
+$tests_methods = [];
+
+global $testMethodsArray;
+
+$declared_functions = get_defined_functions()['user'];
+$namespace = 'ccxt\\test_methods\\';
+foreach ($declared_functions as $functionFullName) {
+    if (strpos($functionFullName, $namespace) !== false) {
+        $methodName = str_replace($namespace, '', $functionFullName);
+        $tests_methods[$methodName] = $functionFullName;
+    }
+}
+$x = function_exists($namespace.'fetchTicker');
+define('testFiles', $tests_methods);
 define('envVars', []);
 
-// commons
+
+// non-transpiled commons
+class emptyClass {}
 
 function io_file_exists($path) {
     return file_exists($path);
@@ -103,16 +84,19 @@ function io_file_read($path, $decode = true) {
     return $decode ? json_decode($content, true) : $content;
 }
 
-function variableMethod($methodName, $exchange, $args) {
-    global $testFiles;
-    return Async\await($testFiles[$methodName]($exchange, ... $args));
+function call_method($methodName, $exchange, $args) {
+    return testFiles[strtolower($methodName)]($exchange, ... $args);
 }
 
-function exceptionMessage ($exc) {
+function test_method_exists($methodName) {
+    return array_key_exists(strtolower($methodName), testFiles);
+}
+
+function exception_message ($exc) {
     return '[' . get_class($exc) . '] ' . substr($exc->getMessage(), 0, 200);
 }
 
-function addProxyAgent ($exchange, $settings) {
+function add_proxy_agent ($exchange, $settings) {
     // placeholder function in php
 }
 
@@ -124,11 +108,11 @@ function reqCredentials ($exchange) {
     return $exchange->requiredCredenials;
 }
 
-function getObjectProp ($exchange, $prop, $defaultValue = null) {
+function get_exchange_prop ($exchange, $prop, $defaultValue = null) {
     return property_exists ($exchange, $prop) ? $exchange->{$prop} : $defaultValue;
 }
 
-function setObjectProp ($exchange, $prop, $value) {
+function set_exchange_prop ($exchange, $prop, $value) {
     $exchange->{$prop} = $value;
 }
 // #############################
@@ -162,23 +146,23 @@ class testMainClass extends emptyClass {
             for ($i = 0; $i < count($settingKeys); $i++) {
                 $key = $settingKeys[$i];
                 if ($exchangeSettings[$key]) {
-                    $existing = getObjectProp ($exchange, $key, array());
-                    setObjectProp ($exchange, $key, $exchange->deep_extend($existing, $exchangeSettings[$key]));
+                    $existing = get_exchange_prop ($exchange, $key, array());
+                    set_exchange_prop ($exchange, $key, $exchange->deep_extend($existing, $exchangeSettings[$key]));
                 }
             }
         }
         // credentials
-        $reqCreds = getObjectProp ($exchange, 're' . 'quiredCredentials'); // dont glue the r-e-q-u-$i-r-e phrase, because leads to messed up transpilation
+        $reqCreds = get_exchange_prop ($exchange, 're' . 'quiredCredentials'); // dont glue the r-e-q-u-$i-r-e phrase, because leads to messed up transpilation
         $objkeys = is_array($reqCreds) ? array_keys($reqCreds) : array();
         for ($i = 0; $i < count($objkeys); $i++) {
             $credential = $objkeys[$i];
             $isRequired = $reqCreds[$credential];
-            if ($isRequired && getObjectProp($exchange, $credential) === null) {
+            if ($isRequired && get_exchange_prop($exchange, $credential) === null) {
                 $fullKey = $exchangeId . '_' . $credential;
                 $credentialEnvName = strtoupper($fullKey); // example => KRAKEN_APIKEY
                 $credentialValue = envVars[$credentialEnvName];
                 if ($credentialValue) {
-                    setObjectProp ($exchange, $credential, $credentialValue);
+                    set_exchange_prop ($exchange, $credential, $credentialValue);
                 }
             }
         }
@@ -191,7 +175,7 @@ class testMainClass extends emptyClass {
             var_dump ('[Skipped] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script();
         }
-        addProxyAgent ($exchange, $exchangeSettings);
+        add_proxy_agent ($exchange, $exchangeSettings);
     }
 
     public function test_method($methodName, $exchange, $args) {
@@ -199,7 +183,7 @@ class testMainClass extends emptyClass {
             $skipMessage = null;
             if (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName]) {
                 $skipMessage = 'not supported';
-            } elseif (!(is_array(testFiles) && array_key_exists($methodName, testFiles))) {
+            } elseif (!test_method_exists($methodName)) {
                 $skipMessage = 'test not available';
             }
             if ($skipMessage) {
@@ -208,12 +192,12 @@ class testMainClass extends emptyClass {
             }
             var_dump ('Testing', $exchange->id, $methodName, '(', $args, ')');
             try {
-                return Async\await(variableMethod ($methodName, $exchange, $args));
+                return Async\await(call_method ($methodName, $exchange, $args));
             } catch (Exception $e) {
                 if ($e instanceof ccxt.NotSupported) {
                     var_dump ('Not supported', $exchange->id, $methodName, '(', $args, ')');
                 } else {
-                    var_dump (exceptionMessage($e));
+                    var_dump (exception_message($e));
                     throw $e;
                 }
             }
@@ -276,7 +260,8 @@ class testMainClass extends emptyClass {
             assert (gettype($exchange->markets) === 'array', '.markets is not an object');
             assert (gettype($exchange->symbols) === 'array' && array_keys($exchange->symbols) === array_keys(array_keys($exchange->symbols)), '.symbols is not an array');
             $symbolsLength = count($exchange->symbols);
-            $marketKeysLength = $exchange->markets;
+            $marketKeys = is_array($exchange->markets) ? array_keys($exchange->markets) : array();
+            $marketKeysLength = count($marketKeys);
             assert ($symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');
             assert ($marketKeysLength > 0, '.markets objects keys length <= 0 (less than or equal to zero)');
             assert ($symbolsLength === $marketKeysLength, 'number of .symbols is not equal to the number of .markets');
@@ -604,7 +589,7 @@ class testMainClass extends emptyClass {
             if ($exchange->alias) {
                 return;
             }
-            if (sandbox || getObjectProp ($exchange, 'sandbox')) {
+            if (sandbox || get_exchange_prop ($exchange, 'sandbox')) {
                 $exchange->set_sandbox_mode(true);
             }
             Async\await($this->load_exchange($exchange));

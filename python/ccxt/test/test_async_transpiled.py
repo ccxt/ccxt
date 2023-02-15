@@ -156,20 +156,20 @@ class testMainClass(emptyClass):
             for i in range(0, len(settingKeys)):
                 key = settingKeys[i]
                 if exchangeSettings[key]:
-                    existing = getObjectProp(exchange, key, {})
-                    setObjectProp(exchange, key, exchange.deep_extend(existing, exchangeSettings[key]))
+                    existing = get_exchange_prop(exchange, key, {})
+                    set_exchange_prop(exchange, key, exchange.deep_extend(existing, exchangeSettings[key]))
         # credentials
-        reqCreds = getObjectProp(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        reqCreds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         objkeys = list(reqCreds.keys())
         for i in range(0, len(objkeys)):
             credential = objkeys[i]
             isRequired = reqCreds[credential]
-            if isRequired and getObjectProp(exchange, credential) is None:
+            if isRequired and get_exchange_prop(exchange, credential) is None:
                 fullKey = exchangeId + '_' + credential
                 credentialEnvName = fullKey.upper()  # example: KRAKEN_APIKEY
                 credentialValue = envVars[credentialEnvName]
                 if credentialValue:
-                    setObjectProp(exchange, credential, credentialValue)
+                    set_exchange_prop(exchange, credential, credentialValue)
         # others
         if exchangeSettings and exchange.safe_value(exchangeSettings, 'skip'):
             print('[Skipped]', 'exchange', exchangeId, 'symbol', symbol)
@@ -177,25 +177,25 @@ class testMainClass(emptyClass):
         if exchange.alias:
             print('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
-        addProxyAgent(exchange, exchangeSettings)
+        add_proxy_agent(exchange, exchangeSettings)
 
     async def test_method(self, methodName, exchange, args):
         skipMessage = None
         if not (methodName in exchange.has) or not exchange.has[methodName]:
             skipMessage = 'not supported'
-        elif not (methodName in testFiles):
+        elif not test_method_exists(methodName):
             skipMessage = 'test not available'
         if skipMessage:
             print('[Skipping]', exchange.id, methodName, ' - ' + skipMessage)
             return
         print('Testing', exchange.id, methodName, '(', args, ')')
         try:
-            return await variableMethod(methodName, exchange, args)
+            return await call_method(methodName, exchange, args)
         except Exception as e:
             if isinstance(e, ccxt.NotSupported):
                 print('Not supported', exchange.id, methodName, '(', args, ')')
             else:
-                print(exceptionMessage(e))
+                print(exception_message(e))
                 raise e
 
     async def test_safe(self, methodName, exchange, args):
@@ -244,7 +244,8 @@ class testMainClass(emptyClass):
         assert isinstance(exchange.markets, dict), '.markets is not an object'
         assert isinstance(exchange.symbols, list), '.symbols is not an array'
         symbolsLength = len(exchange.symbols)
-        marketKeysLength = exchange.markets
+        marketKeys = list(exchange.markets.keys())
+        marketKeysLength = len(marketKeys)
         assert symbolsLength > 0, '.symbols count <= 0(less than or equal to zero)'
         assert marketKeysLength > 0, '.markets objects keys length <= 0(less than or equal to zero)'
         assert symbolsLength == marketKeysLength, 'number of .symbols is not equal to the number of .markets'
@@ -524,7 +525,7 @@ class testMainClass(emptyClass):
         # we don't need to test aliases
         if exchange.alias:
             return
-        if sandbox or getObjectProp(exchange, 'sandbox'):
+        if sandbox or get_exchange_prop(exchange, 'sandbox'):
             exchange.set_sandbox_mode(True)
         await self.load_exchange(exchange)
         await self.test_exchange(exchange, symbol)

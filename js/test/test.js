@@ -89,15 +89,19 @@ function io_file_read(path, decode = true) {
     return decode ? JSON.parse(content) : content;
 }
 
-function exceptionMessage (exc) {
+function exception_message (exc) {
     return '[' + exc.constructor.name + '] ' + exc.message.slice (0, 200);
 }
 
-async function variableMethod(methodName, exchange, args) {
+async function call_method(methodName, exchange, args) {
     return await testFiles[methodName](exchange, ... args);
 }
 
-function addProxyAgent (exchange, settings) {
+function test_method_exists(methodName) {
+    return (methodName in testFiles);
+}
+
+function add_proxy_agent (exchange, settings) {
     if (settings && settings.httpProxy) {
         const agent = new HttpsProxyAgent (settings.httpProxy)
         exchange.agent = agent;
@@ -108,11 +112,11 @@ function exit_script() {
     process.exit();
 }
 
-function getObjectProp (exchange, prop, defaultValue = undefined) {
+function get_exchange_prop (exchange, prop, defaultValue = undefined) {
     return (prop in exchange) ? exchange[prop] : defaultValue;
 }
 
-function setObjectProp (exchange, prop, value) {
+function set_exchange_prop (exchange, prop, value) {
     exchange[prop] = value;
 }
 
@@ -138,23 +142,23 @@ module.exports = class testMainClass extends emptyClass {
             for (let i = 0; i < settingKeys.length; i++) {
                 const key = settingKeys[i];
                 if (exchangeSettings[key]) {
-                    const existing = getObjectProp (exchange, key, {});
-                    setObjectProp (exchange, key, exchange.deepExtend (existing, exchangeSettings[key]));
+                    const existing = get_exchange_prop (exchange, key, {});
+                    set_exchange_prop (exchange, key, exchange.deepExtend (existing, exchangeSettings[key]));
                 }
             }
         }
         // credentials
-        const reqCreds = getObjectProp (exchange, 're' + 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        const reqCreds = get_exchange_prop (exchange, 're' + 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         const objkeys = Object.keys (reqCreds);
         for (let i = 0; i < objkeys.length; i++) {
             const credential = objkeys[i];
             const isRequired = reqCreds[credential];
-            if (isRequired && getObjectProp(exchange, credential) === undefined) {
+            if (isRequired && get_exchange_prop(exchange, credential) === undefined) {
                 const fullKey = exchangeId + '_' + credential;
                 const credentialEnvName = fullKey.toUpperCase (); // example: KRAKEN_APIKEY
                 const credentialValue = envVars[credentialEnvName];
                 if (credentialValue) {
-                    setObjectProp (exchange, credential, credentialValue);
+                    set_exchange_prop (exchange, credential, credentialValue);
                 }
             }
         }
@@ -167,14 +171,14 @@ module.exports = class testMainClass extends emptyClass {
             console.log ('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
             exit_script();
         }
-        addProxyAgent (exchange, exchangeSettings);
+        add_proxy_agent (exchange, exchangeSettings);
     }
 
     async testMethod (methodName, exchange, args) {
         let skipMessage = undefined;
         if (!(methodName in exchange.has) || !exchange.has[methodName]) {
             skipMessage = 'not supported';
-        } else if (!(methodName in testFiles)) {
+        } else if (!test_method_exists(methodName)) {
             skipMessage = 'test not available';
         }
         if (skipMessage) {
@@ -183,12 +187,12 @@ module.exports = class testMainClass extends emptyClass {
         }
         console.log ('Testing', exchange.id, methodName, '(', args, ')');
         try {
-            return await variableMethod (methodName, exchange, args);
+            return await call_method (methodName, exchange, args);
         } catch (e) {
             if (e instanceof ccxt.NotSupported) {
                 console.log ('Not supported', exchange.id, methodName, '(', args, ')');
             } else {
-                console.log (exceptionMessage(e));
+                console.log (exception_message(e));
                 throw e;
             }
         }
@@ -245,7 +249,8 @@ module.exports = class testMainClass extends emptyClass {
         assert (typeof exchange.markets === 'object', '.markets is not an object');
         assert (Array.isArray (exchange.symbols), '.symbols is not an array');
         const symbolsLength = exchange.symbols.length;
-        const marketKeysLength = Object.keys (exchange.markets).length;
+        const marketKeys = Object.keys (exchange.markets);
+        const marketKeysLength = marketKeys.length;
         assert (symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');
         assert (marketKeysLength > 0, '.markets objects keys length <= 0 (less than or equal to zero)');
         assert (symbolsLength === marketKeysLength, 'number of .symbols is not equal to the number of .markets');
@@ -567,7 +572,7 @@ module.exports = class testMainClass extends emptyClass {
         if (exchange.alias) {
             return;
         }
-        if (sandbox || getObjectProp (exchange, 'sandbox')) {
+        if (sandbox || get_exchange_prop (exchange, 'sandbox')) {
             exchange.setSandboxMode (true);
         }
         await this.loadExchange (exchange);
