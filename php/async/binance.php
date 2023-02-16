@@ -898,7 +898,7 @@ class binance extends Exchange {
                 'sandboxMode' => false,
                 'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
                 'fetchCurrencies' => true, // this is a private call and it requires API keys
-                // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
+                // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'defaultSubType' => null, // 'linear', 'inverse'
@@ -3130,15 +3130,51 @@ class binance extends Exchange {
         //       "tradeId" => "1234",
         //     }
         //
+        // options => fetchMyTrades
+        //
+        //     {
+        //         "id" => 1125899906844226012,
+        //         "tradeId" => 73,
+        //         "orderId" => 4638761100843040768,
+        //         "symbol" => "ETH-230211-1500-C",
+        //         "price" => "18.70000000",
+        //         "quantity" => "-0.57000000",
+        //         "fee" => "0.17305890",
+        //         "realizedProfit" => "-3.53400000",
+        //         "side" => "SELL",
+        //         "type" => "LIMIT",
+        //         "volatility" => "0.30000000",
+        //         "liquidity" => "MAKER",
+        //         "time" => 1676085216845,
+        //         "priceScale" => 1,
+        //         "quantityScale" => 2,
+        //         "optionSide" => "CALL",
+        //         "quoteAsset" => "USDT"
+        //     }
+        //
+        // options => fetchTrades
+        //
+        //     {
+        //         "id" => 1,
+        //         "symbol" => "ETH-230216-1500-C",
+        //         "price" => "35.5",
+        //         "qty" => "0.03",
+        //         "quoteQty" => "1.065",
+        //         "side" => 1,
+        //         "time" => 1676366446072
+        //     }
+        //
         $timestamp = $this->safe_integer_2($trade, 'T', 'time');
         $price = $this->safe_string_2($trade, 'p', 'price');
         $amount = $this->safe_string_2($trade, 'q', 'qty');
+        $amount = $this->safe_string($trade, 'quantity', $amount);
         $cost = $this->safe_string_2($trade, 'quoteQty', 'baseQty');  // inverse futures
         $marketId = $this->safe_string($trade, 'symbol');
         $marketType = (is_array($trade) && array_key_exists('M', $trade)) || (is_array($trade) && array_key_exists('orderListId', $trade)) ? 'spot' : 'contract';
-        $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
+        $market = $this->safe_market($marketId, $market, null, $marketType);
+        $symbol = $market['symbol'];
         $id = $this->safe_string_2($trade, 't', 'a');
-        $id = $this->safe_string_2($trade, 'id', 'tradeId', $id);
+        $id = $this->safe_string_2($trade, 'tradeId', 'id', $id);
         $side = null;
         $orderId = $this->safe_string($trade, 'orderId');
         $buyerMaker = $this->safe_value_2($trade, 'm', 'isBuyerMaker');
@@ -3165,6 +3201,29 @@ class binance extends Exchange {
         if (is_array($trade) && array_key_exists('maker', $trade)) {
             $takerOrMaker = $trade['maker'] ? 'maker' : 'taker';
         }
+        if ((is_array($trade) && array_key_exists('optionSide', $trade)) || $market['option']) {
+            $settle = $this->safe_currency_code($this->safe_string($trade, 'quoteAsset', 'USDT'));
+            if ($symbol === null) {
+                $optionParts = explode('-', $marketId);
+                $optionType = $this->safe_string($optionParts, 3);
+                $symbol = $this->safe_string($optionParts, 0) . '/' . $settle . ':' . $settle . '-' . $this->safe_string($optionParts, 1) . '-' . $this->safe_string($optionParts, 2) . '-' . $optionType;
+            }
+            $takerOrMaker = $this->safe_string_lower($trade, 'liquidity');
+            if (is_array($trade) && array_key_exists('fee', $trade)) {
+                $fee = array(
+                    'cost' => $this->safe_string($trade, 'fee'),
+                    'currency' => $settle,
+                );
+            }
+            if (($side !== 'buy') && ($side !== 'sell')) {
+                $side = ($side === '1') ? 'buy' : 'sell';
+            }
+            if (is_array($trade) && array_key_exists('optionSide', $trade)) {
+                if ($side !== 'buy') {
+                    $amount = Precise::string_mul('-1', $amount);
+                }
+            }
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -3172,7 +3231,7 @@ class binance extends Exchange {
             'symbol' => $symbol,
             'id' => $id,
             'order' => $orderId,
-            'type' => null,
+            'type' => $this->safe_string_lower($trade, 'type'),
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
@@ -3201,33 +3260,25 @@ class binance extends Exchange {
                 // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
                 // 'limit' => 500,     // default = 500, maximum = 1000
             );
-            $defaultMethod = null;
-            if ($market['linear']) {
-                $defaultMethod = 'fapiPublicGetAggTrades';
-            } elseif ($market['inverse']) {
-                $defaultMethod = 'dapiPublicGetAggTrades';
-            } else {
-                $defaultMethod = 'publicGetAggTrades';
-            }
-            $method = $this->safe_string($this->options, 'fetchTradesMethod', $defaultMethod);
-            if ($method === 'publicGetAggTrades') {
-                if ($market['linear']) {
+            $method = $this->safe_string($this->options, 'fetchTradesMethod');
+            if ($method === null) {
+                if ($market['option']) {
+                    $method = 'eapiPublicGetTrades';
+                } elseif ($market['linear']) {
                     $method = 'fapiPublicGetAggTrades';
                 } elseif ($market['inverse']) {
                     $method = 'dapiPublicGetAggTrades';
-                }
-            } elseif ($method === 'publicGetHistoricalTrades') {
-                if ($market['linear']) {
-                    $method = 'fapiPublicGetHistoricalTrades';
-                } elseif ($market['inverse']) {
-                    $method = 'dapiPublicGetHistoricalTrades';
+                } else {
+                    $method = 'publicGetAggTrades';
                 }
             }
-            if ($since !== null) {
-                $request['startTime'] = $since;
-                // https://github.com/ccxt/ccxt/issues/6400
-                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-                $request['endTime'] = $this->sum($since, 3600000);
+            if (!$market['option']) {
+                if ($since !== null) {
+                    $request['startTime'] = $since;
+                    // https://github.com/ccxt/ccxt/issues/6400
+                    // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+                    $request['endTime'] = $this->sum($since, 3600000);
+                }
             }
             if ($limit !== null) {
                 $request['limit'] = $limit; // default = 500, maximum = 1000
@@ -3269,6 +3320,20 @@ class binance extends Exchange {
             //             "isBuyerMaker" => true,
             //             "isBestMatch" => true
             //         }
+            //     )
+            //
+            // options (eapi)
+            //
+            //     array(
+            //         array(
+            //             "id" => 1,
+            //             "symbol" => "ETH-230216-1500-C",
+            //             "price" => "35.5",
+            //             "qty" => "0.03",
+            //             "quoteQty" => "1.065",
+            //             "side" => 1,
+            //             "time" => 1676366446072
+            //         ),
             //     )
             //
             return $this->parse_trades($response, $market, $since, $limit);

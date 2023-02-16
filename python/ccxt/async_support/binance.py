@@ -911,7 +911,7 @@ class binance(Exchange):
                 'sandboxMode': False,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'fetchCurrencies': True,  # self is a private call and it requires API keys
-                # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
+                # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
                 'defaultSubType': None,  # 'linear', 'inverse'
@@ -3025,15 +3025,51 @@ class binance(Exchange):
         #       "tradeId": "1234",
         #     }
         #
+        # options: fetchMyTrades
+        #
+        #     {
+        #         "id": 1125899906844226012,
+        #         "tradeId": 73,
+        #         "orderId": 4638761100843040768,
+        #         "symbol": "ETH-230211-1500-C",
+        #         "price": "18.70000000",
+        #         "quantity": "-0.57000000",
+        #         "fee": "0.17305890",
+        #         "realizedProfit": "-3.53400000",
+        #         "side": "SELL",
+        #         "type": "LIMIT",
+        #         "volatility": "0.30000000",
+        #         "liquidity": "MAKER",
+        #         "time": 1676085216845,
+        #         "priceScale": 1,
+        #         "quantityScale": 2,
+        #         "optionSide": "CALL",
+        #         "quoteAsset": "USDT"
+        #     }
+        #
+        # options: fetchTrades
+        #
+        #     {
+        #         "id": 1,
+        #         "symbol": "ETH-230216-1500-C",
+        #         "price": "35.5",
+        #         "qty": "0.03",
+        #         "quoteQty": "1.065",
+        #         "side": 1,
+        #         "time": 1676366446072
+        #     }
+        #
         timestamp = self.safe_integer_2(trade, 'T', 'time')
         price = self.safe_string_2(trade, 'p', 'price')
         amount = self.safe_string_2(trade, 'q', 'qty')
+        amount = self.safe_string(trade, 'quantity', amount)
         cost = self.safe_string_2(trade, 'quoteQty', 'baseQty')  # inverse futures
         marketId = self.safe_string(trade, 'symbol')
         marketType = ('M' in trade) or 'spot' if ('orderListId' in trade) else 'contract'
-        symbol = self.safe_symbol(marketId, market, None, marketType)
+        market = self.safe_market(marketId, market, None, marketType)
+        symbol = market['symbol']
         id = self.safe_string_2(trade, 't', 'a')
-        id = self.safe_string_2(trade, 'id', 'tradeId', id)
+        id = self.safe_string_2(trade, 'tradeId', 'id', id)
         side = None
         orderId = self.safe_string(trade, 'orderId')
         buyerMaker = self.safe_value_2(trade, 'm', 'isBuyerMaker')
@@ -3055,6 +3091,23 @@ class binance(Exchange):
             takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
         if 'maker' in trade:
             takerOrMaker = 'maker' if trade['maker'] else 'taker'
+        if ('optionSide' in trade) or market['option']:
+            settle = self.safe_currency_code(self.safe_string(trade, 'quoteAsset', 'USDT'))
+            if symbol is None:
+                optionParts = marketId.split('-')
+                optionType = self.safe_string(optionParts, 3)
+                symbol = self.safe_string(optionParts, 0) + '/' + settle + ':' + settle + '-' + self.safe_string(optionParts, 1) + '-' + self.safe_string(optionParts, 2) + '-' + optionType
+            takerOrMaker = self.safe_string_lower(trade, 'liquidity')
+            if 'fee' in trade:
+                fee = {
+                    'cost': self.safe_string(trade, 'fee'),
+                    'currency': settle,
+                }
+            if (side != 'buy') and (side != 'sell'):
+                side = 'buy' if (side == '1') else 'sell'
+            if 'optionSide' in trade:
+                if side != 'buy':
+                    amount = Precise.string_mul('-1', amount)
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -3062,7 +3115,7 @@ class binance(Exchange):
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': None,
+            'type': self.safe_string_lower(trade, 'type'),
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
@@ -3089,29 +3142,22 @@ class binance(Exchange):
             # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
             # 'limit': 500,     # default = 500, maximum = 1000
         }
-        defaultMethod = None
-        if market['linear']:
-            defaultMethod = 'fapiPublicGetAggTrades'
-        elif market['inverse']:
-            defaultMethod = 'dapiPublicGetAggTrades'
-        else:
-            defaultMethod = 'publicGetAggTrades'
-        method = self.safe_string(self.options, 'fetchTradesMethod', defaultMethod)
-        if method == 'publicGetAggTrades':
-            if market['linear']:
+        method = self.safe_string(self.options, 'fetchTradesMethod')
+        if method is None:
+            if market['option']:
+                method = 'eapiPublicGetTrades'
+            elif market['linear']:
                 method = 'fapiPublicGetAggTrades'
             elif market['inverse']:
                 method = 'dapiPublicGetAggTrades'
-        elif method == 'publicGetHistoricalTrades':
-            if market['linear']:
-                method = 'fapiPublicGetHistoricalTrades'
-            elif market['inverse']:
-                method = 'dapiPublicGetHistoricalTrades'
-        if since is not None:
-            request['startTime'] = since
-            # https://github.com/ccxt/ccxt/issues/6400
-            # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-            request['endTime'] = self.sum(since, 3600000)
+            else:
+                method = 'publicGetAggTrades'
+        if not market['option']:
+            if since is not None:
+                request['startTime'] = since
+                # https://github.com/ccxt/ccxt/issues/6400
+                # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+                request['endTime'] = self.sum(since, 3600000)
         if limit is not None:
             request['limit'] = limit  # default = 500, maximum = 1000
         #
@@ -3151,6 +3197,20 @@ class binance(Exchange):
         #             "isBuyerMaker": True,
         #             "isBestMatch": True
         #         }
+        #     ]
+        #
+        # options(eapi)
+        #
+        #     [
+        #         {
+        #             "id": 1,
+        #             "symbol": "ETH-230216-1500-C",
+        #             "price": "35.5",
+        #             "qty": "0.03",
+        #             "quoteQty": "1.065",
+        #             "side": 1,
+        #             "time": 1676366446072
+        #         },
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
