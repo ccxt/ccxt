@@ -3111,6 +3111,18 @@ module.exports = class binance extends Exchange {
         //         "quoteAsset": "USDT"
         //     }
         //
+        // options: fetchTrades
+        //
+        //     {
+        //         "id": 1,
+        //         "symbol": "ETH-230216-1500-C",
+        //         "price": "35.5",
+        //         "qty": "0.03",
+        //         "quoteQty": "1.065",
+        //         "side": 1,
+        //         "time": 1676366446072
+        //     }
+        //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
         const price = this.safeString2 (trade, 'p', 'price');
         let amount = this.safeString2 (trade, 'q', 'qty');
@@ -3147,11 +3159,11 @@ module.exports = class binance extends Exchange {
         if ('maker' in trade) {
             takerOrMaker = trade['maker'] ? 'maker' : 'taker';
         }
-        const settle = this.safeCurrencyCode (this.safeString (trade, 'quoteAsset'));
-        if (('optionSide' in trade)) {
-            const optionId = this.safeString (trade, 'symbol');
-            const optionParts = optionId.split ('-');
-            symbol = this.safeString (optionParts, 0) + '/' + settle + ':' + settle + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + this.safeString (optionParts, 3);
+        if (('optionSide' in trade) || market['option']) {
+            const settle = this.safeCurrencyCode (this.safeString (trade, 'quoteAsset', 'USDT'));
+            const optionParts = marketId.split ('-');
+            const optionType = this.safeString (optionParts, 3);
+            symbol = this.safeString (optionParts, 0) + '/' + settle + ':' + settle + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + optionType;
             takerOrMaker = this.safeStringLower (trade, 'liquidity');
             if ('fee' in trade) {
                 fee = {
@@ -3162,8 +3174,10 @@ module.exports = class binance extends Exchange {
             if ((side !== 'buy') && (side !== 'sell')) {
                 side = (side === '1') ? 'buy' : 'sell';
             }
-            if (side !== 'buy') {
-                amount = Precise.stringMul ('-1', amount);
+            if ('optionSide' in trade) {
+                if (side !== 'buy') {
+                    amount = Precise.stringMul ('-1', amount);
+                }
             }
         }
         return this.safeTrade ({
