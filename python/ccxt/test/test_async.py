@@ -20,23 +20,12 @@ sys.path.append(root)
 # ------------------------------------------------------------------------------
 
 import ccxt.async_support as ccxt  # noqa: E402
-# from test_account import test_account  # noqa: E402
-# from test_balance import test_balance  # noqa: E402
-# # from test_borrow_rate import test_borrow_rate  # noqa: E402
-# from test_currency import test_currency  # noqa: E402
-# from test_ledger_item import test_ledger_item  # noqa: E402
-# from test_leverage_tier import test_leverage_tier  # noqa: E402
-# from test_margin_modification import test_margin_modification  # noqa: E402
-# from test_market import test_market  # noqa: E402
-from test_ohlcv import test_ohlcv  # noqa: E402
-# from test_open_interest import test_open_interest  # noqa: E402
-from test_order import test_order  # noqa: E402
-# from test_order_book import test_order_book  # noqa: E402
-from test_position import test_position  # noqa: E402
-# from test_ticker import test_ticker  # noqa: E402
 from test_trade import test_trade  # noqa: E402
-# from test_trading_fee import test_trading_fee  # noqa: E402
+from test_order import test_order  # noqa: E402
+from test_ohlcv import test_ohlcv  # noqa: E402
+from test_position import test_position  # noqa: E402
 from test_transaction import test_transaction  # noqa: E402
+
 # ------------------------------------------------------------------------------
 
 
@@ -130,7 +119,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 # ------------------------------------------------------------------------------
 
 
-async def test_fetch_order_book(exchange, symbol):
+async def test_order_book(exchange, symbol):
     method = 'fetchOrderBook'
     if exchange.has[method]:
         delay = int(exchange.rateLimit / 1000)
@@ -152,7 +141,7 @@ async def test_fetch_order_book(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
-async def test_fetch_ohlcvs(exchange, symbol):
+async def test_ohlcvs(exchange, symbol):
     method = 'fetchOHLCV'
     ignored_exchanges = [
         'cex',  # CEX can return historical candles for a certain date only
@@ -180,7 +169,7 @@ async def test_fetch_ohlcvs(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
-async def test_fetch_tickers(exchange, symbol):
+async def test_tickers(exchange, symbol):
     method = 'fetchTickers'
     ignored_exchanges = [
         'digifinex',  # requires apiKey to call v2 tickers
@@ -200,9 +189,9 @@ async def test_fetch_tickers(exchange, symbol):
             tickers = await exchange.fetch_tickers([symbol])
             dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
     elif argv.token_bucket:
-        await test_fetch_tickers_async(exchange)
+        await test_tickers_async(exchange)
     if argv.token_bucket:
-        await test_fetch_l2_order_books_async(exchange)
+        await test_l2_order_books_async(exchange)
 
 
 # ------------------------------------------------------------------------------
@@ -215,7 +204,7 @@ def is_active_symbol(exchange, symbol):
     return ('.' not in symbol) and (('active' not in exchange.markets[symbol]) or (exchange.markets[symbol]['active']))
 
 
-async def test_fetch_tickers_async(exchange):
+async def test_tickers_async(exchange):
     print('Activated here')
     dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
     symbols_to_load = get_active_symbols(exchange)
@@ -228,7 +217,7 @@ async def test_fetch_tickers_async(exchange):
     dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
 
 
-async def test_fetch_l2_order_books_async(exchange):
+async def test_l2_order_books_async(exchange):
     dump(green(exchange.id), 'fetching all order books by simultaneous multiple concurrent requests')
     symbols_to_load = get_active_symbols(exchange)
     input_coroutines = [exchange.fetch_l2_order_book(symbol) for symbol in symbols_to_load]
@@ -242,7 +231,7 @@ async def test_fetch_l2_order_books_async(exchange):
 # ------------------------------------------------------------------------------
 
 
-async def test_fetch_ticker(exchange, symbol):
+async def test_ticker(exchange, symbol):
     method = 'fetchTicker'
     ignored_exchanges = [
         'digifinex',  # requires apiKey to call v2 tickers
@@ -269,7 +258,7 @@ async def test_fetch_ticker(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
-async def test_fetch_trades(exchange, symbol):
+async def test_trades(exchange, symbol):
     method = 'fetchTrades'
     if exchange.has[method]:
         delay = int(exchange.rateLimit / 1000)
@@ -285,7 +274,7 @@ async def test_fetch_trades(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
-async def test_fetch_orders(exchange, symbol):
+async def test_orders(exchange, symbol):
     method = 'fetchOrders'
     if exchange.has[method]:
         skipped_exchanges = [
@@ -308,7 +297,7 @@ async def test_fetch_orders(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
-async def test_fetch_positions(exchange, symbol):
+async def test_positions(exchange, symbol):
     method = 'fetchPositions'
     if exchange.has[method]:
         skipped_exchanges = [
@@ -337,7 +326,7 @@ async def test_fetch_positions(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
-async def test_fetch_closed_orders(exchange, symbol):
+async def test_closed_orders(exchange, symbol):
     method = 'fetchClosedOrders'
     if exchange.has[method]:
         delay = int(exchange.rateLimit / 1000)
@@ -354,7 +343,7 @@ async def test_fetch_closed_orders(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
-async def test_fetch_open_orders(exchange, symbol):
+async def test_open_orders(exchange, symbol):
     method = 'fetchOpenOrders'
     if exchange.has[method]:
         delay = int(exchange.rateLimit / 1000)
@@ -371,7 +360,7 @@ async def test_fetch_open_orders(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
-async def test_fetch_transactions(exchange, code):
+async def test_transactions(exchange, code):
     method = 'fetchTransactions'
     if exchange.has[method]:
         delay = int(exchange.rateLimit / 1000)
@@ -387,7 +376,7 @@ async def test_fetch_transactions(exchange, code):
 # ------------------------------------------------------------------------------
 
 
-async def test_fetch_balance(exchange):
+async def test_balance(exchange):
     method = 'fetchBalance'
     if exchange.has[method]:
         delay = int(exchange.rateLimit / 1000)
@@ -405,20 +394,20 @@ async def test_symbol(exchange, symbol, code):
     dump(green('SYMBOL: ' + symbol))
     dump(green('CODE: ' + code))
     dump('Testing fetch_ticker:' + symbol)
-    await test_fetch_ticker(exchange, symbol)
+    await test_ticker(exchange, symbol)
     dump('Testing fetch_tickers:' + symbol)
-    await test_fetch_tickers(exchange, symbol)
+    await test_tickers(exchange, symbol)
     dump('Testing fetch_ohlcv:' + symbol)
-    await test_fetch_ohlcvs(exchange, symbol)
+    await test_ohlcvs(exchange, symbol)
 
     if exchange.id == 'coinmarketcap':
         response = await exchange.fetchGlobal()
         dump(green(response))
     else:
         dump('Testing fetch_order_book:' + symbol)
-        await test_fetch_order_book(exchange, symbol)
+        await test_order_book(exchange, symbol)
         dump('Testing fetch_trades:' + symbol)
-        await test_fetch_trades(exchange, symbol)
+        await test_trades(exchange, symbol)
         if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
             return
         method = 'signIn'
@@ -426,17 +415,17 @@ async def test_symbol(exchange, symbol, code):
             dump('Testing ' + method + '()')
             await getattr(exchange, method)()
         dump('Testing fetch_orders:' + symbol)
-        await test_fetch_orders(exchange, symbol)
+        await test_orders(exchange, symbol)
         dump('Testing fetch_open_orders:' + symbol)
-        await test_fetch_open_orders(exchange, symbol)
+        await test_open_orders(exchange, symbol)
         dump('Testing fetch_closed_orders:' + symbol)
-        await test_fetch_closed_orders(exchange, symbol)
+        await test_closed_orders(exchange, symbol)
         dump('Testing fetch_transactions:' + code)
-        await test_fetch_transactions(exchange, code)
+        await test_transactions(exchange, code)
         dump('Testing fetch_balance')
-        await test_fetch_balance(exchange)
+        await test_balance(exchange)
         dump('Testing fetch_positions:' + symbol)
-        await test_fetch_positions(exchange, symbol)
+        await test_positions(exchange, symbol)
 
 # ------------------------------------------------------------------------------
 
