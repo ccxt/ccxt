@@ -884,9 +884,14 @@ export default class binance extends Exchange {
             // exchange-specific options
             'options': {
                 'sandboxMode': false,
-                'fetchMarkets': [ 'spot', 'linear', 'inverse', 'option' ],
+                'fetchMarkets': [
+                    'spot', // allows CORS in browsers
+                    'linear', // allows CORS in browsers
+                    'inverse', // allows CORS in browsers
+                    // 'option', // does not allow CORS, enable outside of the browser only
+                ],
                 'fetchCurrencies': true, // this is a private call and it requires API keys
-                // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
+                // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'defaultSubType': undefined, // 'linear', 'inverse'
@@ -3088,15 +3093,51 @@ export default class binance extends Exchange {
         //       "tradeId": "1234",
         //     }
         //
+        // options: fetchMyTrades
+        //
+        //     {
+        //         "id": 1125899906844226012,
+        //         "tradeId": 73,
+        //         "orderId": 4638761100843040768,
+        //         "symbol": "ETH-230211-1500-C",
+        //         "price": "18.70000000",
+        //         "quantity": "-0.57000000",
+        //         "fee": "0.17305890",
+        //         "realizedProfit": "-3.53400000",
+        //         "side": "SELL",
+        //         "type": "LIMIT",
+        //         "volatility": "0.30000000",
+        //         "liquidity": "MAKER",
+        //         "time": 1676085216845,
+        //         "priceScale": 1,
+        //         "quantityScale": 2,
+        //         "optionSide": "CALL",
+        //         "quoteAsset": "USDT"
+        //     }
+        //
+        // options: fetchTrades
+        //
+        //     {
+        //         "id": 1,
+        //         "symbol": "ETH-230216-1500-C",
+        //         "price": "35.5",
+        //         "qty": "0.03",
+        //         "quoteQty": "1.065",
+        //         "side": 1,
+        //         "time": 1676366446072
+        //     }
+        //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
         const price = this.safeString2 (trade, 'p', 'price');
-        const amount = this.safeString2 (trade, 'q', 'qty');
+        let amount = this.safeString2 (trade, 'q', 'qty');
+        amount = this.safeString (trade, 'quantity', amount);
         const cost = this.safeString2 (trade, 'quoteQty', 'baseQty');  // inverse futures
         const marketId = this.safeString (trade, 'symbol');
         const marketType = ('M' in trade) || ('orderListId' in trade) ? 'spot' : 'contract';
-        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
+        market = this.safeMarket (marketId, market, undefined, marketType);
+        let symbol = market['symbol'];
         let id = this.safeString2 (trade, 't', 'a');
-        id = this.safeString2 (trade, 'id', 'tradeId', id);
+        id = this.safeString2 (trade, 'tradeId', 'id', id);
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
         const buyerMaker = this.safeValue2 (trade, 'm', 'isBuyerMaker');
@@ -3123,6 +3164,29 @@ export default class binance extends Exchange {
         if ('maker' in trade) {
             takerOrMaker = trade['maker'] ? 'maker' : 'taker';
         }
+        if (('optionSide' in trade) || market['option']) {
+            const settle = this.safeCurrencyCode (this.safeString (trade, 'quoteAsset', 'USDT'));
+            if (symbol === undefined) {
+                const optionParts = marketId.split ('-');
+                const optionType = this.safeString (optionParts, 3);
+                symbol = this.safeString (optionParts, 0) + '/' + settle + ':' + settle + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + optionType;
+            }
+            takerOrMaker = this.safeStringLower (trade, 'liquidity');
+            if ('fee' in trade) {
+                fee = {
+                    'cost': this.safeString (trade, 'fee'),
+                    'currency': settle,
+                };
+            }
+            if ((side !== 'buy') && (side !== 'sell')) {
+                side = (side === '1') ? 'buy' : 'sell';
+            }
+            if ('optionSide' in trade) {
+                if (side !== 'buy') {
+                    amount = Precise.stringMul ('-1', amount);
+                }
+            }
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -3130,7 +3194,7 @@ export default class binance extends Exchange {
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': undefined,
+            'type': this.safeStringLower (trade, 'type'),
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
@@ -3160,33 +3224,25 @@ export default class binance extends Exchange {
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit': 500,     // default = 500, maximum = 1000
         };
-        let defaultMethod = undefined;
-        if (market['linear']) {
-            defaultMethod = 'fapiPublicGetAggTrades';
-        } else if (market['inverse']) {
-            defaultMethod = 'dapiPublicGetAggTrades';
-        } else {
-            defaultMethod = 'publicGetAggTrades';
-        }
-        let method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
-        if (method === 'publicGetAggTrades') {
-            if (market['linear']) {
+        let method = this.safeString (this.options, 'fetchTradesMethod');
+        if (method === undefined) {
+            if (market['option']) {
+                method = 'eapiPublicGetTrades';
+            } else if (market['linear']) {
                 method = 'fapiPublicGetAggTrades';
             } else if (market['inverse']) {
                 method = 'dapiPublicGetAggTrades';
-            }
-        } else if (method === 'publicGetHistoricalTrades') {
-            if (market['linear']) {
-                method = 'fapiPublicGetHistoricalTrades';
-            } else if (market['inverse']) {
-                method = 'dapiPublicGetHistoricalTrades';
+            } else {
+                method = 'publicGetAggTrades';
             }
         }
-        if (since !== undefined) {
-            request['startTime'] = since;
-            // https://github.com/ccxt/ccxt/issues/6400
-            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-            request['endTime'] = this.sum (since, 3600000);
+        if (!market['option']) {
+            if (since !== undefined) {
+                request['startTime'] = since;
+                // https://github.com/ccxt/ccxt/issues/6400
+                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+                request['endTime'] = this.sum (since, 3600000);
+            }
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
@@ -3228,6 +3284,20 @@ export default class binance extends Exchange {
         //             "isBuyerMaker": true,
         //             "isBestMatch": true
         //         }
+        //     ]
+        //
+        // options (eapi)
+        //
+        //     [
+        //         {
+        //             "id": 1,
+        //             "symbol": "ETH-230216-1500-C",
+        //             "price": "35.5",
+        //             "qty": "0.03",
+        //             "quoteQty": "1.065",
+        //             "side": 1,
+        //             "time": 1676366446072
+        //         },
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
@@ -3593,7 +3663,7 @@ export default class binance extends Exchange {
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
-        const fills = this.safeValue2 (order, 'fills', 'lastTrade', []);
+        const fills = this.safeValue (order, 'fills', []);
         const clientOrderId = this.safeString (order, 'clientOrderId');
         let timeInForce = this.safeString (order, 'timeInForce');
         if (timeInForce === 'GTX') {
