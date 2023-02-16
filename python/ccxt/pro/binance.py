@@ -272,8 +272,9 @@ class binance(Exchange, ccxt.async_support.binance):
         #         ]
         #     }
         #
-        index = client.url.find('/stream')
-        marketType = 'spot' if (index >= 0) else 'contract'
+        testnetSpot = client.url.find('testnet') > 0
+        isSpot = client.url.find('/stream.binance') > 0
+        marketType = 'spot' if (testnetSpot or isSpot) else 'contract'
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
