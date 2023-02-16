@@ -3199,6 +3199,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
+    parseLastPrice (price, market = undefined) {
+        throw new NotSupported (this.id + ' parseLastPrice() is not supported yet');
+    }
+
     async fetchDepositAddress (code: string, params = {}) {
         if (this.has['fetchDepositAddresses']) {
             const depositAddresses = await (this as any).fetchDepositAddresses ([ code ], params);
