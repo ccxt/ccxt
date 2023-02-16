@@ -2173,6 +2173,18 @@ class binance extends Exchange {
                 $account['used'] = Precise::string_add($frozen, Precise::string_add($locked, $withdrawing));
                 $result[$code] = $account;
             }
+        } elseif ($type === 'option') {
+            $timestamp = $this->safe_integer($response, 'time');
+            $assets = $this->safe_value($response, 'asset', array());
+            for ($i = 0; $i < count($assets); $i++) {
+                $balance = $assets[$i];
+                $currencyId = $this->safe_string($balance, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($balance, 'available');
+                $account['used'] = $this->safe_string($balance, 'locked');
+                $result[$code] = $account;
+            }
         } else {
             $balances = $response;
             if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
@@ -2244,6 +2256,8 @@ class binance extends Exchange {
             $method = 'sapiGetLendingUnionAccount';
         } elseif ($type === 'funding') {
             $method = 'sapiPostAssetGetFundingAsset';
+        } elseif ($type === 'option') {
+            $method = 'eapiPrivateGetAccount';
         }
         $requestParams = $this->omit($query, array( 'type', 'symbols' ));
         $response = $this->$method (array_merge($request, $requestParams));
@@ -2472,6 +2486,22 @@ class binance extends Exchange {
         //         "withdrawing" => "0"
         //       }
         //     )
+        //
+        // $options (eapi)
+        //
+        //     {
+        //         "asset" => array(
+        //             {
+        //                 "asset" => "USDT",
+        //                 "marginBalance" => "25.45130462",
+        //                 "equity" => "25.45130462",
+        //                 "available" => "25.45130462",
+        //                 "locked" => "0.00000000",
+        //                 "unrealizedPNL" => "0.00000000"
+        //             }
+        //         ),
+        //         "time" => 1676328152755
+        //     }
         //
         return $this->parse_balance($response, $type, $marginMode);
     }

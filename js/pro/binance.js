@@ -244,8 +244,11 @@ module.exports = class binance extends binanceRest {
         //         ]
         //     }
         //
+        const testnetSpot = client.url.indexOf ('testnet') > 0;
+        const isSpot = client.url.indexOf ('/stream.binance') > 0;
+        const marketType = (testnetSpot || isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString (message, 's');
-        const market = this.safeMarket (marketId);
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;

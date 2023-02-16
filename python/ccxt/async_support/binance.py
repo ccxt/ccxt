@@ -2143,6 +2143,17 @@ class binance(Exchange):
                 locked = self.safe_string(entry, 'locked')
                 account['used'] = Precise.string_add(frozen, Precise.string_add(locked, withdrawing))
                 result[code] = account
+        elif type == 'option':
+            timestamp = self.safe_integer(response, 'time')
+            assets = self.safe_value(response, 'asset', [])
+            for i in range(0, len(assets)):
+                balance = assets[i]
+                currencyId = self.safe_string(balance, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'available')
+                account['used'] = self.safe_string(balance, 'locked')
+                result[code] = account
         else:
             balances = response
             if not isinstance(response, list):
@@ -2207,6 +2218,8 @@ class binance(Exchange):
             method = 'sapiGetLendingUnionAccount'
         elif type == 'funding':
             method = 'sapiPostAssetGetFundingAsset'
+        elif type == 'option':
+            method = 'eapiPrivateGetAccount'
         requestParams = self.omit(query, ['type', 'symbols'])
         response = await getattr(self, method)(self.extend(request, requestParams))
         #
@@ -2434,6 +2447,22 @@ class binance(Exchange):
         #         "withdrawing": "0"
         #       }
         #     ]
+        #
+        # options(eapi)
+        #
+        #     {
+        #         "asset": [
+        #             {
+        #                 "asset": "USDT",
+        #                 "marginBalance": "25.45130462",
+        #                 "equity": "25.45130462",
+        #                 "available": "25.45130462",
+        #                 "locked": "0.00000000",
+        #                 "unrealizedPNL": "0.00000000"
+        #             }
+        #         ],
+        #         "time": 1676328152755
+        #     }
         #
         return self.parse_balance(response, type, marginMode)
 

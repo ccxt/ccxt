@@ -1810,6 +1810,18 @@ module.exports = class binance extends Exchange {
                 account['used'] = Precise.stringAdd (frozen, Precise.stringAdd (locked, withdrawing));
                 result[code] = account;
             }
+        } else if (type === 'option') {
+            timestamp = this.safeInteger (response, 'time');
+            const assets = this.safeValue (response, 'asset', []);
+            for (let i = 0; i < assets.length; i++) {
+                const balance = assets[i];
+                const currencyId = this.safeString (balance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'available');
+                account['used'] = this.safeString (balance, 'locked');
+                result[code] = account;
+            }
         } else {
             let balances = response;
             if (!Array.isArray (response)) {
@@ -1844,30 +1856,28 @@ module.exports = class binance extends Exchange {
          */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        let type = this.safeString (params, 'type', defaultType);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
         let method = 'privateGetAccount';
         const request = {};
-        if (type === 'future') {
+        if (this.isLinear (type, subType)) {
             const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
-        } else if (type === 'delivery') {
+            type = 'linear';
+        } else if (this.isInverse (type, subType)) {
             const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
-        } else if (type === 'margin' || marginMode === 'cross') {
-            method = 'sapiGetMarginAccount';
-        } else if (type === 'savings') {
-            method = 'sapiGetLendingUnionAccount';
-        } else if (type === 'funding') {
-            method = 'sapiPostAssetGetFundingAsset';
+            type = 'inverse';
         } else if (marginMode === 'isolated') {
             method = 'sapiGetMarginIsolatedAccount';
             const paramSymbols = this.safeValue (params, 'symbols');
             if (paramSymbols !== undefined) {
                 let symbols = '';
-                if (this.isArray (paramSymbols)) {
+                if (Array.isArray (paramSymbols)) {
                     symbols = this.marketId (paramSymbols[0]);
                     for (let i = 1; i < paramSymbols.length; i++) {
                         const symbol = paramSymbols[i];
@@ -1879,6 +1889,14 @@ module.exports = class binance extends Exchange {
                 }
                 request['symbols'] = symbols;
             }
+        } else if ((type === 'margin') || (marginMode === 'cross')) {
+            method = 'sapiGetMarginAccount';
+        } else if (type === 'savings') {
+            method = 'sapiGetLendingUnionAccount';
+        } else if (type === 'funding') {
+            method = 'sapiPostAssetGetFundingAsset';
+        } else if (type === 'option') {
+            method = 'eapiPrivateGetAccount';
         }
         const requestParams = this.omit (query, [ 'type', 'symbols' ]);
         const response = await this[method] (this.extend (request, requestParams));
@@ -2107,6 +2125,22 @@ module.exports = class binance extends Exchange {
         //         "withdrawing": "0"
         //       }
         //     ]
+        //
+        // options (eapi)
+        //
+        //     {
+        //         "asset": [
+        //             {
+        //                 "asset": "USDT",
+        //                 "marginBalance": "25.45130462",
+        //                 "equity": "25.45130462",
+        //                 "available": "25.45130462",
+        //                 "locked": "0.00000000",
+        //                 "unrealizedPNL": "0.00000000"
+        //             }
+        //         ],
+        //         "time": 1676328152755
+        //     }
         //
         return this.parseBalance (response, type, marginMode);
     }

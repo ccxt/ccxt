@@ -300,8 +300,9 @@ class binance extends \ccxt\async\binance {
         //         )
         //     }
         //
-        $index = mb_strpos($client->url, '/stream');
-        $marketType = ($index >= 0) ? 'spot' : 'contract';
+        $testnetSpot = mb_strpos($client->url, 'testnet') > 0;
+        $isSpot = mb_strpos($client->url, '/stream.binance') > 0;
+        $marketType = ($testnetSpot || $isSpot) ? 'spot' : 'contract';
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
