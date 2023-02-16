@@ -29,6 +29,7 @@
     "huobi":         { "skipWs": true },
     "hollaex":       { "skipWs": true },
     "idex":          { "skipWs": true },
+    "independentreserve": { "skip": true },
     "kucoin":        { "skipWs": true },
     "kucoinfutures": { "skipWs": true },
     "ndax":          { "skipWs": true },
