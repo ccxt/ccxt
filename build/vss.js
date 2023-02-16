@@ -15,7 +15,7 @@ const fs           = require ('fs')
 //-----------------------------------------------------------------------------
 
 function vss (filename, template, version, global = false) {
-    let flag = global ? 'g' : ''
+    const flag = global ? 'g' : ''
     log.bright.cyan ('Single-sourcing version', version, './package.json → ' + filename.yellow)
     const content = fs.readFileSync (filename, 'utf8')
     const regexp  = new RegExp (template.replace (/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') // escape string for use in regexp
