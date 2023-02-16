@@ -2057,8 +2057,8 @@ module.exports = class ndax extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    exchangeSpecificJsonAlterations (jsonString) {
-        return jsonString.replaceAll ('\\', '').replaceAll ('"{', '{').replaceAll ('}"', '}');
+    onJsonResponse (jsonString) {
+        return jsonString;
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
