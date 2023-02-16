@@ -3488,7 +3488,7 @@ class binance(Exchange):
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        fills = self.safe_value_2(order, 'fills', 'lastTrade', [])
+        fills = self.safe_value(order, 'fills', [])
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         if timeInForce == 'GTX':

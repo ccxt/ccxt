@@ -3596,7 +3596,7 @@ class binance extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
-        $fills = $this->safe_value_2($order, 'fills', 'lastTrade', array());
+        $fills = $this->safe_value($order, 'fills', array());
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         if ($timeInForce === 'GTX') {
