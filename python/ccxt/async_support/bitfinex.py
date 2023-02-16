@@ -51,7 +51,7 @@ class bitfinex(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
-                'fetchDeposits': None,
+                'fetchDeposits': False,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchIndexOHLCV': False,
@@ -75,7 +75,7 @@ class bitfinex(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
                 'fetchTransactions': True,
-                'fetchWithdrawals': None,
+                'fetchWithdrawals': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -595,23 +595,27 @@ class bitfinex(Exchange):
                 quoteId = id[3:6]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+            type = 'spot'
+            if id.find('F0') > -1:
+                type = 'swap'
             result.append({
                 'id': id,
-                'symbol': base + '/' + quote,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': None,
-                'type': 'spot',
-                'spot': True,
+                'type': type,
+                'spot': (type == 'spot'),
                 'margin': self.safe_value(market, 'margin'),
-                'swap': False,
+                'swap': (type == 'swap'),
                 'future': False,
                 'option': False,
                 'active': True,
-                'contract': False,
+                'contract': (type == 'swap'),
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
@@ -652,9 +656,11 @@ class bitfinex(Exchange):
         # https://docs.bitfinex.com/docs/introduction#amount-precision
         # The amount field allows up to 8 decimals.
         # Anything exceeding self will be rounded to the 8th decimal.
+        symbol = self.safe_symbol(symbol)
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def price_to_precision(self, symbol, price):
+        symbol = self.safe_symbol(symbol)
         price = self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
         # https://docs.bitfinex.com/docs/introduction#price-precision
         # The precision level of all trading prices is based on significant figures.
@@ -818,7 +824,7 @@ class bitfinex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitfinex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -847,21 +853,9 @@ class bitfinex(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        elif 'pair' in ticker:
-            marketId = self.safe_string(ticker, 'pair')
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                    symbol = market['symbol']
-                else:
-                    baseId = marketId[0:3]
-                    quoteId = marketId[3:6]
-                    base = self.safe_currency_code(baseId)
-                    quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
+        marketId = self.safe_string(market, 'pair')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         last = self.safe_string(ticker, 'last_price')
         return self.safe_ticker({
             'symbol': symbol,
@@ -1020,17 +1014,22 @@ class bitfinex(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         postOnly = self.safe_value(params, 'postOnly', False)
+        type = type.lower()
         params = self.omit(params, ['postOnly'])
+        if market['spot']:
+            # although they claim that type needs to be 'exchange limit' or 'exchange market'
+            # in fact that's not the case for swap markets
+            type = self.safe_string_lower(self.options['orderTypes'], type, type)
         request = {
             'symbol': market['id'],
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
-            'type': self.safe_string(self.options['orderTypes'], type, type),
+            'type': type,
             'ocoorder': False,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
         }
-        if type == 'market':
+        if type.find('market') > -1:
             request['price'] = str(self.nonce())
         else:
             request['price'] = self.price_to_precision(symbol, price)
@@ -1138,6 +1137,7 @@ class bitfinex(Exchange):
             'side': side,
             'price': self.safe_string(order, 'price'),
             'stopPrice': None,
+            'triggerPrice': None,
             'average': self.safe_string(order, 'avg_execution_price'),
             'amount': self.safe_string(order, 'original_amount'),
             'remaining': self.safe_string(order, 'remaining_amount'),
@@ -1239,7 +1239,7 @@ class bitfinex(Exchange):
         v2id = 't' + market['id']
         request = {
             'symbol': v2id,
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
             'sort': 1,
             'limit': limit,
         }
@@ -1392,33 +1392,30 @@ class bitfinex(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(transaction, 'timestamp_created')
-        updated = self.safe_timestamp(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        type = self.safe_string_lower(transaction, 'type')  # DEPOSIT or WITHDRAWAL
-        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         feeCost = self.safe_string(transaction, 'fee')
         if feeCost is not None:
             feeCost = Precise.string_abs(feeCost)
-        tag = self.safe_string(transaction, 'description')
         return {
             'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'withdrawal_id'),
             'txid': self.safe_string(transaction, 'txid'),
+            'type': self.safe_string_lower(transaction, 'type'),  # DEPOSIT or WITHDRAWAL,
+            'currency': code,
+            'network': None,
+            'amount': self.safe_number(transaction, 'amount'),
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
             'address': self.safe_string(transaction, 'address'),  # todo: self is actually the tag for XRP transfers(the address is missing)
-            'addressTo': None,
             'addressFrom': None,
-            'tag': tag,
-            'tagTo': None,
+            'addressTo': None,
+            'tag': self.safe_string(transaction, 'description'),
             'tagFrom': None,
-            'type': type,
-            'amount': self.safe_number(transaction, 'amount'),
-            'currency': code,
-            'status': status,
-            'updated': updated,
+            'tagTo': None,
+            'updated': self.safe_timestamp(transaction, 'timestamp'),
+            'comment': None,
             'fee': {
                 'currency': code,
                 'cost': self.parse_number(feeCost),
@@ -1546,8 +1543,7 @@ class bitfinex(Exchange):
             return
         throwError = False
         if code >= 400:
-            firstChar = self.safe_string(body, 0)
-            if firstChar == '{':
+            if body[0] == '{':
                 throwError = True
         else:
             # json response with error, i.e:

@@ -32,12 +32,22 @@ module.exports = class binanceus extends binance {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': this.parseNumber ('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker': this.parseNumber ('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'taker': this.parseNumber ('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1.
+                    'maker': this.parseNumber ('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1.
                 },
             },
             'options': {
+                'fetchMarkets': [ 'spot' ],
+                'defaultType': 'spot',
                 'quoteOrderQty': false,
+            },
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
             },
         });
     }

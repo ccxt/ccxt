@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -141,34 +142,46 @@ module.exports = class delta extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.15 / 100,
-                    'maker': 0.10 / 100,
+                    'taker': this.parseNumber ('0.0015'),
+                    'maker': this.parseNumber ('0.0010'),
                     'tiers': {
                         'taker': [
-                            [ 0, 0.15 / 100 ],
-                            [ 100, 0.13 / 100 ],
-                            [ 250, 0.13 / 100 ],
-                            [ 1000, 0.1 / 100 ],
-                            [ 5000, 0.09 / 100 ],
-                            [ 10000, 0.075 / 100 ],
-                            [ 20000, 0.065 / 100 ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('100'), this.parseNumber ('0.0013') ],
+                            [ this.parseNumber ('250'), this.parseNumber ('0.0013') ],
+                            [ this.parseNumber ('1000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('5000'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.00075') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.00065') ],
                         ],
                         'maker': [
-                            [ 0, 0.1 / 100 ],
-                            [ 100, 0.1 / 100 ],
-                            [ 250, 0.09 / 100 ],
-                            [ 1000, 0.075 / 100 ],
-                            [ 5000, 0.06 / 100 ],
-                            [ 10000, 0.05 / 100 ],
-                            [ 20000, 0.05 / 100 ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('100'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('250'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('1000'), this.parseNumber ('0.00075') ],
+                            [ this.parseNumber ('5000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.0005') ],
                         ],
                     },
+                },
+            },
+            'options': {
+                'networks': {
+                    'TRC20': 'TRC20(TRON)',
+                    'TRX': 'TRC20(TRON)',
+                    'BEP20': 'BEP20(BSC)',
+                    'BSC': 'BEP20(BSC)',
+                },
+                'networksById': {
+                    'BEP20(BSC)': 'BSC',
+                    'TRC20(TRON)': 'TRC20',
                 },
             },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
-                'secret': false,
+                'secret': true,
             },
             'exceptions': {
                 'exact': {
@@ -775,7 +788,7 @@ module.exports = class delta extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -1027,7 +1040,7 @@ module.exports = class delta extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
         limit = limit ? limit : 2000; // max 2000
@@ -1132,7 +1145,7 @@ module.exports = class delta extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return result;
+        return this.parsePosition (result, market);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -1150,21 +1163,93 @@ module.exports = class delta extends Exchange {
         //     {
         //         "success": true,
         //         "result": [
-        //             {
-        //                 "user_id": 0,
-        //                 "size": 0,
-        //                 "entry_price": "string",
-        //                 "margin": "string",
-        //                 "liquidation_price": "string",
-        //                 "bankruptcy_price": "string",
-        //                 "adl_level": 0,
-        //                 "product_id": 0
-        //             }
+        //           {
+        //             "user_id": 0,
+        //             "size": 0,
+        //             "entry_price": "string",
+        //             "margin": "string",
+        //             "liquidation_price": "string",
+        //             "bankruptcy_price": "string",
+        //             "adl_level": 0,
+        //             "product_id": 0,
+        //             "product_symbol": "string",
+        //             "commission": "string",
+        //             "realized_pnl": "string",
+        //             "realized_funding": "string"
+        //           }
         //         ]
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        return result;
+        return this.parsePositions (result, symbols);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        // fetchPosition
+        //
+        //     {
+        //         "entry_price":null,
+        //         "size":0,
+        //         "timestamp":1605454074268079
+        //     }
+        //
+        //
+        // fetchPositions
+        //
+        //     {
+        //         "user_id": 0,
+        //         "size": 0,
+        //         "entry_price": "string",
+        //         "margin": "string",
+        //         "liquidation_price": "string",
+        //         "bankruptcy_price": "string",
+        //         "adl_level": 0,
+        //         "product_id": 0,
+        //         "product_symbol": "string",
+        //         "commission": "string",
+        //         "realized_pnl": "string",
+        //         "realized_funding": "string"
+        //     }
+        //
+        const marketId = this.safeString (position, 'product_symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const timestamp = this.safeIntegerProduct (position, 'timestamp', 0.001);
+        const sizeString = this.safeString (position, 'size');
+        let side = undefined;
+        if (sizeString !== undefined) {
+            if (Precise.stringGt (sizeString, '0')) {
+                side = 'buy';
+            } else if (Precise.stringLt (sizeString, '0')) {
+                side = 'sell';
+            }
+        }
+        return {
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'notional': undefined,
+            'marginMode': undefined,
+            'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
+            'entryPrice': this.safeNumber (position, 'entry_price'),
+            'unrealizedPnl': undefined, // todo - realized_pnl ?
+            'percentage': undefined,
+            'contracts': this.parseNumber (sizeString),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'markPrice': undefined,
+            'side': side,
+            'hedged': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+        };
     }
 
     parseOrderStatus (status) {
@@ -1729,10 +1814,10 @@ module.exports = class delta extends Exchange {
         const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId');
         currency = this.safeValue (currenciesByNumericId, currencyId, currency);
         const code = (currency === undefined) ? undefined : currency['code'];
-        const amount = this.safeNumber (item, 'amount');
+        const amount = this.safeString (item, 'amount');
         const timestamp = this.parse8601 (this.safeString (item, 'created_at'));
-        const after = this.safeNumber (item, 'balance');
-        const before = Math.max (0, after - amount);
+        const after = this.safeString (item, 'balance');
+        const before = Precise.stringMax ('0', Precise.stringSub (after, amount));
         const status = 'ok';
         return {
             'info': item,
@@ -1743,9 +1828,9 @@ module.exports = class delta extends Exchange {
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
-            'before': before,
-            'after': after,
+            'amount': this.parseNumber (amount),
+            'before': this.parseNumber (before),
+            'after': this.parseNumber (after),
             'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1760,6 +1845,7 @@ module.exports = class delta extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {string} params.network unified network code
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
@@ -1767,31 +1853,58 @@ module.exports = class delta extends Exchange {
         const request = {
             'asset_symbol': currency['id'],
         };
+        const networkCode = this.safeStringUpper (params, 'network');
+        if (networkCode !== undefined) {
+            request['network'] = this.networkCodeToId (networkCode, code);
+            params = this.omit (params, 'network');
+        }
         const response = await this.privateGetDepositsAddress (this.extend (request, params));
         //
-        //     {
-        //         "success":true,
-        //         "result":{
-        //             "id":19628,
-        //             "user_id":22142,
-        //             "address":"0x0eda26523397534f814d553a065d8e46b4188e9a",
-        //             "status":"active",
-        //             "updated_at":"2020-11-15T20:25:53.000Z",
-        //             "created_at":"2020-11-15T20:25:53.000Z",
-        //             "asset_symbol":"USDT",
-        //             "custodian":"onc"
-        //         }
-        //     }
+        //    {
+        //        "success": true,
+        //        "result": {
+        //            "id": 1915615,
+        //            "user_id": 27854758,
+        //            "address": "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+        //            "memo": "",
+        //            "status": "active",
+        //            "updated_at": "2023-01-12T06:03:46.000Z",
+        //            "created_at": "2023-01-12T06:03:46.000Z",
+        //            "asset_symbol": "USDT",
+        //            "network": "TRC20(TRON)",
+        //            "custodian": "fireblocks"
+        //        }
+        //    }
         //
         const result = this.safeValue (response, 'result', {});
-        const address = this.safeString (result, 'address');
+        return this.parseDepositAddress (result, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //    {
+        //        "id": 1915615,
+        //        "user_id": 27854758,
+        //        "address": "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+        //        "memo": "",
+        //        "status": "active",
+        //        "updated_at": "2023-01-12T06:03:46.000Z",
+        //        "created_at": "2023-01-12T06:03:46.000Z",
+        //        "asset_symbol": "USDT",
+        //        "network": "TRC20(TRON)",
+        //        "custodian": "fireblocks"
+        //    }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const marketId = this.safeString (depositAddress, 'asset_symbol');
+        const networkId = this.safeString (depositAddress, 'network');
         this.checkAddress (address);
         return {
-            'currency': code,
+            'currency': this.safeCurrencyCode (marketId, currency),
             'address': address,
-            'tag': undefined,
-            'network': undefined,
-            'info': response,
+            'tag': this.safeString (depositAddress, 'memo'),
+            'network': this.networkIdToCode (networkId),
+            'info': depositAddress,
         };
     }
 

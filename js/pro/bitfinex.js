@@ -5,6 +5,7 @@
 const bitfinexRest = require ('../bitfinex.js');
 const { ExchangeError, AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+const Precise = require ('../base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -113,30 +114,28 @@ module.exports = class bitfinex extends bitfinexRest {
         const marketId = this.safeString (subscription, 'pair');
         const messageHash = channel + ':' + marketId;
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const data = this.safeValue (message, 1);
-            let stored = this.safeValue (this.trades, symbol);
-            if (stored === undefined) {
-                stored = new ArrayCache (tradesLimit);
-                this.trades[symbol] = stored;
-            }
-            if (Array.isArray (data)) {
-                const trades = this.parseTrades (data, market);
-                for (let i = 0; i < trades.length; i++) {
-                    stored.append (trades[i]);
-                }
-            } else {
-                const second = this.safeString (message, 1);
-                if (second !== 'tu') {
-                    return;
-                }
-                const trade = this.parseTrade (message, market);
-                stored.append (trade);
-            }
-            client.resolve (stored, messageHash);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const data = this.safeValue (message, 1);
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            stored = new ArrayCache (tradesLimit);
+            this.trades[symbol] = stored;
         }
+        if (Array.isArray (data)) {
+            const trades = this.parseTrades (data, market);
+            for (let i = 0; i < trades.length; i++) {
+                stored.append (trades[i]);
+            }
+        } else {
+            const second = this.safeString (message, 1);
+            if (second !== 'tu') {
+                return;
+            }
+            const trade = this.parseTrade (message, market);
+            stored.append (trade);
+        }
+        client.resolve (stored, messageHash);
         return message;
     }
 
@@ -225,11 +224,11 @@ module.exports = class bitfinex extends bitfinexRest {
         const symbol = this.safeSymbol (marketId);
         const channel = 'ticker';
         const messageHash = channel + ':' + marketId;
-        const last = this.safeFloat (message, 7);
-        const change = this.safeFloat (message, 5);
+        const last = this.safeString (message, 7);
+        const change = this.safeString (message, 5);
         let open = undefined;
         if ((last !== undefined) && (change !== undefined)) {
-            open = last - change;
+            open = Precise.stringSub (last, change);
         }
         const result = {
             'symbol': symbol,
@@ -242,11 +241,11 @@ module.exports = class bitfinex extends bitfinexRest {
             'ask': this.safeFloat (message, 3),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
-            'close': last,
-            'last': last,
+            'open': this.parseNumber (open),
+            'close': this.parseNumber (last),
+            'last': this.parseNumber (last),
             'previousClose': undefined,
-            'change': change,
+            'change': this.parseNumber (change),
             'percentage': this.safeFloat (message, 6),
             'average': undefined,
             'baseVolume': this.safeFloat (message, 8),
@@ -575,12 +574,12 @@ module.exports = class bitfinex extends bitfinexRest {
         const id = this.safeString (order, 0);
         const marketId = this.safeString (order, 1);
         const symbol = this.safeSymbol (marketId);
-        let amount = this.safeFloat (order, 2);
-        let remaining = this.safeFloat (order, 3);
+        let amount = this.safeString (order, 2);
+        let remaining = this.safeString (order, 3);
         let side = 'buy';
-        if (amount < 0) {
-            amount = Math.abs (amount);
-            remaining = Math.abs (remaining);
+        if (Precise.stringLt (amount, '0')) {
+            amount = Precise.stringAbs (amount);
+            remaining = Precise.stringAbs (remaining);
             side = 'sell';
         }
         let type = this.safeString (order, 4);
@@ -590,10 +589,10 @@ module.exports = class bitfinex extends bitfinexRest {
             type = 'market';
         }
         const status = this.parseWsOrderStatus (this.safeString (order, 5));
-        const price = this.safeFloat (order, 6);
+        const price = this.safeString (order, 6);
         const rawDatetime = this.safeString (order, 8);
         const timestamp = this.parse8601 (rawDatetime);
-        const parsed = {
+        const parsed = this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -605,15 +604,16 @@ module.exports = class bitfinex extends bitfinexRest {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': undefined,
             'amount': amount,
             'remaining': remaining,
-            'filled': amount - remaining,
+            'filled': undefined,
             'status': status,
             'fee': undefined,
             'cost': undefined,
             'trades': undefined,
-        };
+        });
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);

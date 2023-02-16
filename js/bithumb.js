@@ -167,6 +167,14 @@ module.exports = class bithumb extends Exchange {
         });
     }
 
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        // bithumb has a different type of conflict in markets, because
+        // their ids are the base currency (BTC for instance), so we can have
+        // multiple "BTC" ids representing the different markets (BTC/ETH, "BTC/DOGE", etc)
+        // since they're the same we just need to return one
+        return super.safeMarket (marketId, market, delimiter, 'spot');
+    }
+
     amountToPrecision (symbol, amount) {
         return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
@@ -388,7 +396,7 @@ module.exports = class bithumb extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bithumb api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -508,7 +516,7 @@ module.exports = class bithumb extends Exchange {
         const market = this.market (symbol);
         const request = {
             'currency': market['base'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const response = await this.publicGetCandlestickCurrencyInterval (this.extend (request, params));
         //
@@ -632,7 +640,7 @@ module.exports = class bithumb extends Exchange {
         const request = {
             'currency': market['base'],
         };
-        if (limit === undefined) {
+        if (limit !== undefined) {
             request['count'] = limit; // default 20, max 100
         }
         const response = await this.publicGetTransactionHistoryCurrency (this.extend (request, params));
@@ -843,6 +851,7 @@ module.exports = class bithumb extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': undefined,

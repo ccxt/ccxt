@@ -1,0 +1,73 @@
+name: New Issue
+description: Report bugs here
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## If you want your issue to be resolved quickly, we strongly recommend that you
+
+        - Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), and give special attention to the following sections:
+          - [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
+          - [Rate Limit](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit)
+          - [DDoS Protection](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
+          - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
+          - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
+        - Read the [API docs](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) for your exchange.
+
+        ---
+
+        ## Ensure
+        - You have already searched for [existing issues](https://github.com/ccxt/ccxt/issues) and confirmed that this issue is not a duplicate
+        - This question is directly related to ccxt
+        - You have read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions
+        - You have read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section of the manual and followed troubleshooting steps
+
+        ---
+
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating System
+    validations:
+      required: false
+
+  - type: dropdown
+    id: language
+    attributes:
+      multiple: true
+      label: Programming Languages
+      description: Which language are you using?
+      options:
+        - JS
+        - python
+        - php
+    validations:
+      required: false
+
+  - type: input
+    id: ccxt-version
+    attributes:
+      label: CCXT Version
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: Description
+      description: Describe the issue that you're having precisely. Include clear steps for how to reproduce the issue.
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: Code
+      description: Don't post your API keys or secret keys!
+      value: |
+        ```
+          
+
+        ```
+    validations:
+      required: false

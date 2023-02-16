@@ -248,7 +248,7 @@ class cex(Exchange, ccxt.async_support.cex):
         watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the cex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -263,7 +263,7 @@ class cex(Exchange, ccxt.async_support.cex):
         request = self.deep_extend(message, params)
         ticker = await self.watch(url, messageHash, request, messageHash)
         tickerSymbol = ticker['symbol']
-        if symbols is not None and not self.in_array(symbols, tickerSymbol):
+        if symbols is not None and not self.in_array(tickerSymbol, symbols):
             return await self.watch_tickers(symbols, params)
         if self.newUpdates:
             result = {}
@@ -624,6 +624,9 @@ class cex(Exchange, ccxt.async_support.cex):
         symbol = base + '/' + quote
         market = self.safe_market(symbol)
         remains = self.currency_from_precision(base, remains)
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
         ordersBySymbol = self.safe_value(self.orders['hashmap'], symbol, {})
         order = self.safe_value(ordersBySymbol, orderId)
         if order is None:
@@ -730,6 +733,7 @@ class cex(Exchange, ccxt.async_support.cex):
             'side': self.safe_string(order, 'type'),
             'price': self.safe_number(order, 'price'),
             'stopPrice': None,
+            'triggerPrice': None,
             'average': None,
             'cost': None,
             'amount': amount,
@@ -788,7 +792,9 @@ class cex(Exchange, ccxt.async_support.cex):
             myOrders.append(order)
         self.orders = myOrders
         messageHash = 'orders:' + symbol
-        client.resolve(myOrders, messageHash)
+        ordersLength = len(myOrders)
+        if ordersLength > 0:
+            client.resolve(myOrders, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         """
@@ -1042,7 +1048,8 @@ class cex(Exchange, ccxt.async_support.cex):
                 self.safe_number(data[i], 5),
             ]
             stored.append(ohlcv)
-        if len(data) > 0:
+        dataLength = len(data)
+        if dataLength > 0:
             client.resolve(stored, messageHash)
 
     def handle_connected(self, client, message):

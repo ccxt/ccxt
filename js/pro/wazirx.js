@@ -192,7 +192,7 @@ module.exports = class wazirx extends wazirxRest {
          * @name wazirx#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @see https://docs.wazirx.com/#all-market-tickers-stream
-         * @param {Array} symbols unified symbol of the market to fetch the ticker for
+         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the wazirx api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -646,6 +646,7 @@ module.exports = class wazirx extends wazirxRest {
             'side': this.safeString (order, 'o'),
             'price': this.safeString (order, 'p'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': this.safeString (order, 'V'),
             'filled': undefined,
             'remaining': this.safeString (order, 'q'),
@@ -780,10 +781,10 @@ module.exports = class wazirx extends wazirxRest {
         const messageHash = 'authenticated';
         const now = this.milliseconds ();
         let subscription = this.safeValue (client.subscriptions, messageHash);
-        const expires = this.safeNumber (subscription, 'expires');
+        const expires = this.safeInteger (subscription, 'expires');
         if (subscription === undefined || now > expires) {
             subscription = await this.privatePostCreateAuthToken ();
-            subscription['expires'] = now + this.safeNumber (subscription, 'timeout_duration') * 1000;
+            subscription['expires'] = now + this.safeInteger (subscription, 'timeout_duration') * 1000;
             //
             //     {
             //         "auth_key": "Xx***dM",

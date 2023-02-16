@@ -272,7 +272,7 @@ module.exports = class cex extends cexRest {
          * @description watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the cex api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -287,7 +287,7 @@ module.exports = class cex extends cexRest {
         const request = this.deepExtend (message, params);
         const ticker = await this.watch (url, messageHash, request, messageHash);
         const tickerSymbol = ticker['symbol'];
-        if (symbols !== undefined && !this.inArray (symbols, tickerSymbol)) {
+        if (symbols !== undefined && !this.inArray (tickerSymbol, symbols)) {
             return await this.watchTickers (symbols, params);
         }
         if (this.newUpdates) {
@@ -673,6 +673,10 @@ module.exports = class cex extends cexRest {
         const symbol = base + '/' + quote;
         const market = this.safeMarket (symbol);
         remains = this.currencyFromPrecision (base, remains);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
         const ordersBySymbol = this.safeValue (this.orders['hashmap'], symbol, {});
         let order = this.safeValue (ordersBySymbol, orderId);
         if (order === undefined) {
@@ -789,6 +793,7 @@ module.exports = class cex extends cexRest {
             'side': this.safeString (order, 'type'),
             'price': this.safeNumber (order, 'price'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': undefined,
             'cost': undefined,
             'amount': amount,
@@ -854,7 +859,10 @@ module.exports = class cex extends cexRest {
         }
         this.orders = myOrders;
         const messageHash = 'orders:' + symbol;
-        client.resolve (myOrders, messageHash);
+        const ordersLength = myOrders.length;
+        if (ordersLength > 0) {
+            client.resolve (myOrders, messageHash);
+        }
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1128,7 +1136,8 @@ module.exports = class cex extends cexRest {
             ];
             stored.append (ohlcv);
         }
-        if (data.length > 0) {
+        const dataLength = data.length;
+        if (dataLength > 0) {
             client.resolve (stored, messageHash);
         }
     }

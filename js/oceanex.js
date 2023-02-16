@@ -57,7 +57,6 @@ module.exports = class oceanex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTradingLimits': undefined,
                 'fetchTransactionFees': undefined,
             },
             'timeframes': {
@@ -273,7 +272,7 @@ module.exports = class oceanex extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the oceanex api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -788,7 +787,7 @@ module.exports = class oceanex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'period': this.timeframes[timeframe],
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['timestamp'] = since;
@@ -845,6 +844,7 @@ module.exports = class oceanex extends Exchange {
             'side': this.safeValue (order, 'side'),
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': average,
             'amount': amount,
             'remaining': remaining,

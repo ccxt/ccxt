@@ -28,15 +28,15 @@ class bitmex(Exchange, ccxt.async_support.bitmex):
             },
             'urls': {
                 'test': {
-                    'ws': 'wss://testnet.bitmex.com/realtime',
+                    'ws': 'wss://ws.testnet.bitmex.com/realtime',
                 },
                 'api': {
-                    'ws': 'wss://www.bitmex.com/realtime',
+                    'ws': 'wss://ws.bitmex.com/realtime',
                 },
             },
-            'versions': {
-                'ws': '0.2.0',
-            },
+            # 'versions': {
+            #     'ws': '0.2.0',
+            # },
             'options': {
                 'watchOrderBookLevel': 'orderBookL2',  # 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
                 'tradesLimit': 1000,
@@ -942,7 +942,7 @@ class bitmex(Exchange, ccxt.async_support.bitmex):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        table = 'tradeBin' + self.timeframes[timeframe]
+        table = 'tradeBin' + self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = table + ':' + market['id']
         url = self.urls['api']['ws']
         request = {

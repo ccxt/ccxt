@@ -77,7 +77,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -254,25 +254,6 @@ module.exports = class bittrex extends Exchange {
                 },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
-                // With certain currencies, like
-                // AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
-                // an additional tag / memo / payment id is usually required by exchanges.
-                // With Bittrex some currencies imply the "base address + tag" logic.
-                // The base address for depositing is stored on this.currencies[code]
-                // The base address identifies the exchange as the recipient
-                // while the tag identifies the user account within the exchange
-                // and the tag is retrieved with fetchDepositAddress.
-                'tag': {
-                    'NXT': true, // NXT, BURST
-                    'CRYPTO_NOTE_PAYMENTID': true, // AEON, XMR
-                    'BITSHAREX': true, // BTS
-                    'RIPPLE': true, // XRP
-                    'NEM': true, // XEM
-                    'STELLAR': true, // XLM
-                    'STEEM': true, // SBD, GOLOS
-                    // https://github.com/ccxt/ccxt/issues/4794
-                    // 'LISK': true, // LSK
-                },
                 'subaccountId': undefined,
                 // see the implementation of fetchClosedOrdersV3 below
                 // 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
@@ -361,8 +342,8 @@ module.exports = class bittrex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber ('0.00000001'),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision', '8'))),
+                    'amount': this.parseNumber ('1e-8'), // seems exchange has same amount-precision across all pairs in UI too. This is same as 'minTradeSize' digits after dot
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -490,13 +471,12 @@ module.exports = class bittrex extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            const precision = this.parseNumber ('0.00000001'); // default precision, todo: fix "magic constants"
+            const precision = this.parseNumber ('1e-8'); // default precision, seems exchange has same amount-precision across all pairs in UI too. todo: fix "magic constants"
             const fee = this.safeNumber (currency, 'txFee'); // todo: redesign
             const isActive = this.safeString (currency, 'status');
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': this.safeString (currency, 'baseAddress'),
                 'info': currency,
                 'type': this.safeString (currency, 'coinType'),
                 'name': this.safeString (currency, 'name'),
@@ -580,7 +560,7 @@ module.exports = class bittrex extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -675,7 +655,7 @@ module.exports = class bittrex extends Exchange {
          * @description fetches the bid and ask price and volume for multiple markets
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} params extra parameters specific to the binance api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetMarketsTickers (params);
@@ -931,7 +911,7 @@ module.exports = class bittrex extends Exchange {
         const market = this.market (symbol);
         const reverseId = market['baseId'] + '-' + market['quoteId'];
         const request = {
-            'candleInterval': this.timeframes[timeframe],
+            'candleInterval': this.safeString (this.timeframes, timeframe, timeframe),
             'marketSymbol': reverseId,
         };
         let method = 'publicGetMarketsMarketSymbolCandlesCandleIntervalRecent';
@@ -1807,6 +1787,7 @@ module.exports = class bittrex extends Exchange {
             'side': direction,
             'price': limit,
             'stopPrice': this.safeString (order, 'triggerPrice'),
+            'triggerPrice': this.safeString (order, 'triggerPrice'),
             'cost': proceeds,
             'average': undefined,
             'amount': quantity,
@@ -2017,21 +1998,17 @@ module.exports = class bittrex extends Exchange {
         //         "cryptoAddressTag":"392034158"
         //     }
         //
-        let address = this.safeString (response, 'cryptoAddress');
+        const address = this.safeString (response, 'cryptoAddress');
         const message = this.safeString (response, 'status');
         if (!address || message === 'REQUESTED') {
             throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
-        }
-        let tag = this.safeString (response, 'cryptoAddressTag');
-        if ((tag === undefined) && (currency['type'] in this.options['tag'])) {
-            tag = address;
-            address = currency['address'];
         }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': this.safeString (response, 'cryptoAddressTag'),
+            'network': undefined,
             'info': response,
         };
     }
@@ -2059,21 +2036,16 @@ module.exports = class bittrex extends Exchange {
         //         "cryptoAddressTag":"392034158"
         //     }
         //
-        let address = this.safeString (response, 'cryptoAddress');
+        const address = this.safeString (response, 'cryptoAddress');
         const message = this.safeString (response, 'status');
         if (!address || message === 'REQUESTED') {
             throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
-        }
-        let tag = this.safeString (response, 'cryptoAddressTag');
-        if ((tag === undefined) && (currency['type'] in this.options['tag'])) {
-            tag = address;
-            address = currency['address'];
         }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': this.safeString (response, 'cryptoAddressTag'),
             'network': undefined,
             'info': response,
         };

@@ -196,7 +196,7 @@ class wazirx extends \ccxt\async\wazirx {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @see https://docs.wazirx.com/#all-market-$tickers-$stream
-             * @param {Array} $symbols unified symbol of the market to fetch the ticker for
+             * @param {[string]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} $params extra parameters specific to the wazirx api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
@@ -653,6 +653,7 @@ class wazirx extends \ccxt\async\wazirx {
             'side' => $this->safe_string($order, 'o'),
             'price' => $this->safe_string($order, 'p'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $this->safe_string($order, 'V'),
             'filled' => null,
             'remaining' => $this->safe_string($order, 'q'),
@@ -788,10 +789,10 @@ class wazirx extends \ccxt\async\wazirx {
             $messageHash = 'authenticated';
             $now = $this->milliseconds();
             $subscription = $this->safe_value($client->subscriptions, $messageHash);
-            $expires = $this->safe_number($subscription, 'expires');
+            $expires = $this->safe_integer($subscription, 'expires');
             if ($subscription === null || $now > $expires) {
                 $subscription = Async\await($this->privatePostCreateAuthToken ());
-                $subscription['expires'] = $now . $this->safe_number($subscription, 'timeout_duration') * 1000;
+                $subscription['expires'] = $now . $this->safe_integer($subscription, 'timeout_duration') * 1000;
                 //
                 //     {
                 //         "auth_key" => "Xx***dM",

@@ -177,6 +177,13 @@ class bithumb(Exchange):
             },
         })
 
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+        # bithumb has a different type of conflict in markets, because
+        # their ids are the base currency(BTC for instance), so we can have
+        # multiple "BTC" ids representing the different markets(BTC/ETH, "BTC/DOGE", etc)
+        # since they're the same we just need to return one
+        return super(bithumb, self).safe_market(marketId, market, delimiter, 'spot')
+
     def amount_to_precision(self, symbol, amount):
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
@@ -377,7 +384,7 @@ class bithumb(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bithumb api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -488,7 +495,7 @@ class bithumb(Exchange):
         market = self.market(symbol)
         request = {
             'currency': market['base'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         response = self.publicGetCandlestickCurrencyInterval(self.extend(request, params))
         #
@@ -603,7 +610,7 @@ class bithumb(Exchange):
         request = {
             'currency': market['base'],
         }
-        if limit is None:
+        if limit is not None:
             request['count'] = limit  # default 20, max 100
         response = self.publicGetTransactionHistoryCurrency(self.extend(request, params))
         #
@@ -797,6 +804,7 @@ class bithumb(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': None,

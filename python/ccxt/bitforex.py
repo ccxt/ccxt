@@ -46,15 +46,14 @@ class bitforex(Exchange):
                 'fetchClosedOrders': True,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
-                'fetchMyTrades': None,
+                'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': None,
                 'fetchPositionMode': False,
                 'fetchTicker': True,
-                'fetchTickers': None,
+                'fetchTickers': False,
                 'fetchTrades': True,
                 'fetchTransactionFees': False,
                 'fetchTransfer': False,
@@ -441,7 +440,7 @@ class bitforex(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'ktype': self.timeframes[timeframe],
+            'ktype': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['size'] = limit  # default 1, max 600
@@ -531,6 +530,7 @@ class bitforex(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'average': average,
             'amount': amount,

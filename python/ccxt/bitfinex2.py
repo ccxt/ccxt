@@ -53,7 +53,7 @@ class bitfinex2(Exchange):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
-                'editOrder': None,
+                'editOrder': False,
                 'fetchBalance': True,
                 'fetchClosedOrder': True,
                 'fetchClosedOrders': True,
@@ -420,9 +420,11 @@ class bitfinex2(Exchange):
         # https://docs.bitfinex.com/docs/introduction#amount-precision
         # The amount field allows up to 8 decimals.
         # Anything exceeding self will be rounded to the 8th decimal.
+        symbol = self.safe_symbol(symbol)
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def price_to_precision(self, symbol, price):
+        symbol = self.safe_symbol(symbol)
         price = self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
         # https://docs.bitfinex.com/docs/introduction#price-precision
         # The precision level of all trading prices is based on significant figures.
@@ -1062,7 +1064,7 @@ class bitfinex2(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1115,11 +1117,10 @@ class bitfinex2(Exchange):
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            id = ticker[0]
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-                result[symbol] = self.parse_ticker(ticker, market)
+            marketId = self.safe_string(ticker, 0)
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
@@ -1136,23 +1137,6 @@ class bitfinex2(Exchange):
         }
         ticker = self.publicGetTickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker, market)
-
-    def parse_symbol(self, marketId):
-        if marketId is None:
-            return marketId
-        marketId = marketId.replace('t', '')
-        baseId = None
-        quoteId = None
-        if marketId.find(':') >= 0:
-            parts = marketId.split(':')
-            baseId = parts[0]
-            quoteId = parts[1]
-        else:
-            baseId = marketId[0:3]
-            quoteId = marketId[3:6]
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        return base + '/' + quote
 
     def parse_trade(self, trade, market=None):
         #
@@ -1204,11 +1188,7 @@ class bitfinex2(Exchange):
         timestamp = self.safe_integer(trade, timestampIndex)
         if isPrivate:
             marketId = trade[1]
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                symbol = self.parse_symbol(marketId)
+            symbol = self.safe_symbol(marketId)
             orderId = self.safe_string(trade, 3)
             maker = self.safe_integer(trade, 8)
             takerOrMaker = 'maker' if (maker == 1) else 'taker'
@@ -1222,9 +1202,6 @@ class bitfinex2(Exchange):
             }
             orderType = trade[6]
             type = self.safe_string(self.options['exchangeTypes'], orderType)
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
         return self.safe_trade({
             'id': id,
             'timestamp': timestamp,
@@ -1295,7 +1272,7 @@ class bitfinex2(Exchange):
             since = self.milliseconds() - duration * limit * 1000
         request = {
             'symbol': market['id'],
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
             'sort': 1,
             'start': since,
             'limit': limit,
@@ -1373,14 +1350,8 @@ class bitfinex2(Exchange):
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 0)
-        symbol = None
         marketId = self.safe_string(order, 3)
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        else:
-            symbol = self.parse_symbol(marketId)
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         # https://github.com/ccxt/ccxt/issues/6686
         # timestamp = self.safe_timestamp(order, 5)
         timestamp = self.safe_integer(order, 5)
@@ -1404,7 +1375,7 @@ class bitfinex2(Exchange):
             price = None
             stopPrice = self.safe_number(order, 16)
             if orderType == 'EXCHANGE STOP LIMIT':
-                price = self.safe_number(order, 19)
+                price = self.safe_string(order, 19)
         status = None
         statusString = self.safe_string(order, 13)
         if statusString is not None:
@@ -1426,6 +1397,7 @@ class bitfinex2(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': None,
             'average': average,
@@ -1461,7 +1433,11 @@ class bitfinex2(Exchange):
         # order types "limit" and "market" immediatley parsed "EXCHANGE LIMIT" and "EXCHANGE MARKET"
         # note: same order types exist for margin orders without the EXCHANGE prefix
         orderTypes = self.safe_value(self.options, 'orderTypes', {})
-        orderType = self.safe_string_upper(orderTypes, type, type)
+        orderType = type.upper()
+        if market['spot']:
+            # although they claim that type needs to be 'exchange limit' or 'exchange market'
+            # in fact that's not the case for swap markets
+            orderType = self.safe_string_upper(orderTypes, type, type)
         stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnlyParam = self.safe_value(params, 'postOnly', False)
@@ -1970,6 +1946,8 @@ class bitfinex2(Exchange):
         feeCost = None
         txid = None
         addressTo = None
+        network = None
+        comment = None
         if transactionLength == 8:
             data = self.safe_value(transaction, 4, [])
             timestamp = self.safe_integer(transaction, 0)
@@ -1977,7 +1955,7 @@ class bitfinex2(Exchange):
                 code = currency['code']
             feeCost = self.safe_string(data, 8)
             if feeCost is not None:
-                feeCost = Precise.string_neg(feeCost)
+                feeCost = Precise.string_abs(feeCost)
             amount = self.safe_number(data, 5)
             id = self.safe_value(data, 0)
             status = 'ok'
@@ -1990,38 +1968,43 @@ class bitfinex2(Exchange):
             id = self.safe_string(transaction, 0)
             currencyId = self.safe_string(transaction, 1)
             code = self.safe_currency_code(currencyId, currency)
+            networkId = self.safe_string(transaction, 2)
+            network = self.safe_network(networkId)
             timestamp = self.safe_integer(transaction, 5)
             updated = self.safe_integer(transaction, 6)
             status = self.parse_transaction_status(self.safe_string(transaction, 9))
-            amount = self.safe_string(transaction, 12)
-            if amount is not None:
-                if Precise.string_lt(amount, '0'):
+            signedAmount = self.safe_string(transaction, 12)
+            amount = Precise.string_abs(signedAmount)
+            if signedAmount is not None:
+                if Precise.string_lt(signedAmount, '0'):
                     type = 'withdrawal'
                 else:
                     type = 'deposit'
             feeCost = self.safe_string(transaction, 13)
             if feeCost is not None:
-                feeCost = Precise.string_neg(feeCost)
+                feeCost = Precise.string_abs(feeCost)
             addressTo = self.safe_string(transaction, 16)
             txid = self.safe_string(transaction, 20)
+            comment = self.safe_string(transaction, 21)
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': network,
+            'amount': self.parse_number(amount),
+            'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
-            'addressFrom': None,
             'address': addressTo,  # self is actually the tag for XRP transfers(the address is missing)
+            'addressFrom': None,
             'addressTo': addressTo,
-            'tagFrom': None,
             'tag': tag,  # refix it properly for the tag from description
+            'tagFrom': None,
             'tagTo': tag,
-            'type': type,
-            'amount': self.parse_number(amount),
-            'currency': code,
-            'status': status,
             'updated': updated,
+            'comment': comment,
             'fee': {
                 'currency': code,
                 'cost': self.parse_number(feeCost),

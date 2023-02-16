@@ -25,7 +25,9 @@ module.exports = async (exchange, symbol) => {
         'luno', // requires authentication for public trades
         'ripio',
         'zipmex',
-        'coinflex' // to illiquid
+        'coinflex', // to illiquid
+        'woo',
+        'independentreserve',
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

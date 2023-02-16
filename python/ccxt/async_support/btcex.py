@@ -29,7 +29,7 @@ class btcex(Exchange):
             'countries': ['CA'],  # Canada
             'version': 'v1',
             'certified': False,
-            'pro': False,
+            'pro': True,
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': True,
@@ -56,7 +56,16 @@ class btcex(Exchange):
                 'option': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'createLimitBuyOrder': True,
+                'createLimitSellOrder': True,
+                'createMarketBuyOrder': True,
+                'createMarketSellOrder': True,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
+                'createReduceOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -68,15 +77,20 @@ class btcex(Exchange):
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
-                'fetchFundingRate': False,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
+                'fetchLeverage': True,
+                'fetchLeverageTiers': True,
                 'fetchMarginMode': False,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -95,21 +109,27 @@ class btcex(Exchange):
                 'fetchTransactionFees': None,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
+                'setLeverage': True,
+                'setMarginMode': True,
                 'signIn': True,
+                'transfer': True,
                 'withdraw': False,
             },
             'timeframes': {
-                '15s': '15',
-                '1m': '60',
-                '5m': '300',
-                '15m': '900',
-                '1h': '3600',
-                '4h': '14400',
-                '1d': '86400',
-                '3d': '259200',
-                '1w': '604800',
-                '2w': '1209600',
-                '1M': '2592000',
+                '1m': '1',
+                '3m': '3',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '3h': '180',
+                '4h': '240',
+                '6h': '360',
+                '12h': '720',
+                '1d': '1D',
+                '3d': '3D',
+                '1M': '30D',
             },
             'api': {
                 'public': {
@@ -135,6 +155,8 @@ class btcex(Exchange):
                         'coin_gecko_market_trades',
                         'coin_gecko_contracts',
                         'coin_gecko_contract_orderbook',
+                        'get_perpetual_leverage_bracket',
+                        'get_perpetual_leverage_bracket_all',
                     ],
                     'post': [
                         'auth',
@@ -156,6 +178,7 @@ class btcex(Exchange):
                         'get_user_trades_by_currency',
                         'get_user_trades_by_instrument',
                         'get_user_trades_by_order',
+                        'get_perpetual_user_config',
                     ],
                     'post': [
                         # auth
@@ -170,6 +193,9 @@ class btcex(Exchange):
                         'cancel_all_by_currency',
                         'cancel_all_by_instrument',
                         'close_position',
+                        'adjust_perpetual_leverage',
+                        'adjust_perpetual_margin_type',
+                        'submit_transfer',
                     ],
                     'delete': [],
                 },
@@ -288,6 +314,7 @@ class btcex(Exchange):
                     '8105': BadRequest,  # GOOGLE_CODE_CHECK_FAIL 2FA Code error!
                     '8106': DDoSProtection,  # SMS_CODE_LIMIT Your message service is over limit today, please try tomorrow
                     '8107': ExchangeError,  # REQUEST_FAILED Request failed
+                    '10000': AuthenticationError,  # Authentication Failure
                     '11000': BadRequest,  # CHANNEL_REGEX_ERROR channel regex not match
                 },
                 'broad': {
@@ -304,6 +331,7 @@ class btcex(Exchange):
                     'BTC': 'BTC',
                     'ETH': 'ETH',
                 },
+                'createMarketBuyOrderRequiresPrice': True,
             },
             'commonCurrencies': {
             },
@@ -473,8 +501,10 @@ class btcex(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'instrument_name')
+        if marketId.find('PERPETUAL') < 0:
+            marketId = marketId + '-SPOT'
         market = self.safe_market(marketId, market)
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.safe_integer(ticker, 'timestamp')
         stats = self.safe_value(ticker, 'stats')
         return self.safe_ticker({
@@ -542,6 +572,8 @@ class btcex(Exchange):
         request = {
             'instrument_name': market['id'],
         }
+        if limit is not None:
+            request['depth'] = limit
         response = await self.publicGetGetOrderBook(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         #
@@ -560,7 +592,9 @@ class btcex(Exchange):
         #     }
         #
         timestamp = self.safe_integer(result, 'timestamp')
-        return self.parse_order_book(result, market['symbol'], timestamp)
+        orderBook = self.parse_order_book(result, market['symbol'], timestamp)
+        orderBook['nonce'] = self.safe_integer(result, 'version')
+        return orderBook
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -575,7 +609,7 @@ class btcex(Exchange):
         #     }
         #
         return [
-            self.safe_integer(ohlcv, 'tick'),
+            self.safe_timestamp(ohlcv, 'tick'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
@@ -589,7 +623,7 @@ class btcex(Exchange):
         if limit is None:
             limit = 10
         request = {
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'start_timestamp': 0,
             # 'end_timestamp': 0,
         }
@@ -1098,14 +1132,11 @@ class btcex(Exchange):
         lastUpdate = self.safe_integer(order, 'last_update_timestamp')
         id = self.safe_string(order, 'order_id')
         priceString = self.safe_string(order, 'price')
+        if priceString == '-1':
+            priceString = None
         averageString = self.safe_string(order, 'average_price')
         amountString = self.safe_string(order, 'amount')
         filledString = self.safe_string(order, 'filled_amount')
-        lastTradeTimestamp = None
-        if filledString is not None:
-            isFilledPositive = Precise.string_gt(filledString, '0')
-            if isFilledPositive:
-                lastTradeTimestamp = lastUpdate
         status = self.parse_order_status(self.safe_string(order, 'order_state'))
         marketId = self.safe_string(order, 'instrument_name')
         market = self.safe_market(marketId, market)
@@ -1118,26 +1149,26 @@ class btcex(Exchange):
                 'cost': feeCostString,
                 'currency': market['base'],
             }
-        type = self.safe_string(order, 'order_type')
         # injected in createOrder
         trades = self.safe_value(order, 'trades')
-        timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
-        stopPrice = self.safe_value(order, 'trigger_price')
-        postOnly = self.safe_value(order, 'post_only')
+        stopPrice = self.safe_number(order, 'trigger_price')
         return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': lastUpdate,
             'symbol': market['symbol'],
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
+            'type': self.safe_string(order, 'order_type'),
+            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'time_in_force')),
+            'postOnly': self.safe_value(order, 'post_only'),
             'side': side,
-            'price': priceString,
+            'price': self.parse_number(priceString),
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'stopLossPrice': self.safe_number(order, 'stop_loss_price'),
+            'takeProfitPrice': self.safe_number(order, 'take_profit_price'),
             'amount': amountString,
             'cost': None,
             'average': averageString,
@@ -1149,6 +1180,7 @@ class btcex(Exchange):
         }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        await self.sign_in()
         await self.load_markets()
         request = {
             'order_id': id,
@@ -1188,25 +1220,68 @@ class btcex(Exchange):
         return self.parse_order(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of the base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the btcex api endpoint
+         * ----------------- Exchange Specific Parameters -----------------
+        :param float|None params['cost']: amount in USDT to spend for market orders
+        :param float|None params['triggerPrice']: price to trigger stop orders
+        :param float|None params['stopPrice']: price to trigger stop orders
+        :param float|None params['stopLossPrice']: price to trigger stop-loss orders(only for perpetuals)
+        :param float|None params['takeProfitPrice']: price to trigger take-profit orders(only for perpetuals)
+        :param dict|None params['stopLoss']: for setting a stop-loss attached to an order, set the value of the stopLoss key 'price'(only for perpetuals)
+        :param dict|None params['takeProfit']: for setting a take-profit attached to an order, set the value of the takeProfit key 'price'(only for perpetuals)
+        :param int|None params['trigger_price_type']: 1: mark-price, 2: last-price.(only for perpetuals)
+        :param int|None params['stop_loss_type']: 1: mark-price, 2: last-price(only for perpetuals)
+        :param int|None params['take_profit_type']: 1: mark-price, 2: last-price(only for perpetuals)
+        :param bool|None params['market_amount_order']: if set to True，then the amount field means USDT value(only for perpetuals)
+        :param str|None params['condition_type']: 'NORMAL', 'STOP', 'TRAILING', 'IF_TOUCHED'
+        :param str|None params['position_side']: 'BOTH', for one-way mode 'LONG' or 'SHORT', for hedge-mode
+        :param str|None params['timeInForce']: 'GTC', 'IOC', 'FOK'
+        :param bool|None params.postOnly:
+        :param bool|None params.reduceOnly:
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.sign_in()
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
-            'amount': self.amount_to_precision(symbol, amount),
-            'type': type,  # limit, market, default is limit
-            # 'price': self.price_to_precision(symbol, 123.45),  # The order price for limit order. When adding options order with advanced=iv, the field price should be a value of implied volatility in percentages. For example, price=100, means implied volatility of 100%
-            # 'time_in_force' : 'good_til_cancelled',  # good_til_cancelled, good_til_date, fill_or_kill, immediate_or_cancel Specifies how long the order remains in effect, default: good_til_cancelled
-            # 'post_only': False,  # If True, the order is considered post-only, default: False
-            # 'reduce_only': False,  # If True, the order is considered reduce-only which is intended to only reduce a current position. default: False
-            # 'condition_type': '',  # NORMAL, STOP, TRAILING, IF_TOUCHED, Condition sheet policy, the default is NORMAL. Available when kind is future
-            # 'trigger_price': 'index_price',  # trigger price. Available when condition_type is STOP or IF_TOUCHED
-            # 'trail_price': False,  # trail price, Tracking price change Delta. Available when condition_type is TRAILING
-            # 'advanced': 'usd',  # Advanced option order type,(Only for options), default: usdt. If set to iv，then the price field means iv value
+            'type': type,
         }
+        if side == 'sell':
+            request['amount'] = self.amount_to_precision(symbol, amount)
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
-        if market['contract']:
+        else:
+            costParam = self.safe_number(params, 'cost')
+            amountString = self.number_to_string(amount)
+            priceString = self.number_to_string(price)
+            cost = self.parse_number(Precise.string_mul(amountString, priceString), costParam)
+            if market['swap']:
+                if cost is not None:
+                    request['amount'] = self.price_to_precision(symbol, cost)
+                    request['market_amount_order'] = True
+                else:
+                    request['market_amount_order'] = False
+                    request['amount'] = self.amount_to_precision(symbol, amount)
+            else:
+                if side == 'buy':
+                    createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
+                    if createMarketBuyOrderRequiresPrice:
+                        if cost is None:
+                            raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                        else:
+                            request['amount'] = self.price_to_precision(symbol, cost)
+                    else:
+                        request['amount'] = self.price_to_precision(symbol, amount)
+            params = self.omit(params, 'cost')
+        if market['swap']:
             timeInForce = self.safe_string_upper(params, 'timeInForce')
             if timeInForce == 'GTC':
                 request['time_in_force'] = 'good_till_cancelled'
@@ -1222,7 +1297,39 @@ class btcex(Exchange):
             reduceOnly = self.safe_value(params, 'reduceOnly', False)
             if reduceOnly:
                 request['reduce_only'] = True
-            params = self.omit(params, ['timeInForce', 'postOnly', 'reduceOnly'])
+            if side == 'buy':
+                requestType = 'SHORT' if (reduceOnly) else 'LONG'
+                request['position_side'] = requestType
+            else:
+                requestType = 'LONG' if (reduceOnly) else 'SHORT'
+                request['position_side'] = requestType
+            stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+            stopLossPrice = self.safe_number(params, 'stopLossPrice')
+            takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
+            isStopLoss = self.safe_value(params, 'stopLoss')
+            isTakeProfit = self.safe_value(params, 'takeProfit')
+            if stopPrice:
+                request['condition_type'] = 'STOP'
+                request['trigger_price'] = self.price_to_precision(symbol, stopPrice)
+                request['trigger_price_type'] = 1
+            elif stopLossPrice or takeProfitPrice:
+                request['condition_type'] = 'STOP'
+                if stopLossPrice:
+                    request['trigger_price'] = self.price_to_precision(symbol, stopLossPrice)
+                else:
+                    request['trigger_price'] = self.price_to_precision(symbol, takeProfitPrice)
+                request['reduce_only'] = True
+                request['trigger_price_type'] = 1
+            elif isStopLoss or isTakeProfit:
+                if isStopLoss:
+                    stopLossPrice = self.safe_number(isStopLoss, 'price')
+                    request['stop_loss_price'] = self.price_to_precision(symbol, stopLossPrice)
+                    request['stop_loss_type'] = 1
+                else:
+                    takeProfitPrice = self.safe_number(isTakeProfit, 'price')
+                    request['take_profit_price'] = self.price_to_precision(symbol, takeProfitPrice)
+                    request['take_profit_type'] = 1
+            params = self.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit'])
         method = 'privatePost' + self.capitalize(side)
         response = await getattr(self, method)(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
@@ -1808,6 +1915,556 @@ class btcex(Exchange):
         records = self.filter_by(result, 'id', id)
         record = self.safe_value(records, 0)
         return self.parse_transaction(record, currency)
+
+    async def fetch_leverage(self, symbol, params={}):
+        """
+        see https://docs.btcex.com/#get-perpetual-instrument-config
+        fetch the set leverage for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/en/latest/manual.html#leverage-structure>`
+        """
+        await self.sign_in()
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instrument_name': market['id'],
+        }
+        response = await self.privateGetGetPerpetualUserConfig(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674182494283,
+        #         "usOut": 1674182494294,
+        #         "usDiff": 11,
+        #         "result": {
+        #             "margin_type": "cross",
+        #             "leverage": "20",
+        #             "instrument_name": "BTC-USDT-PERPETUAL",
+        #             "time": "1674182494293"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'result', {})
+        return self.safe_number(data, 'leverage')
+
+    async def fetch_market_leverage_tiers(self, symbol, params={}):
+        """
+        see https://docs.btcex.com/#get-perpetual-instrument-leverage-config
+        retrieve information on the maximum leverage, for different trade sizes for a single market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports swap markets only')
+        request = {
+            'instrument_name': market['id'],
+        }
+        response = await self.publicGetGetPerpetualLeverageBracket(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674184074454,
+        #         "usOut": 1674184074457,
+        #         "usDiff": 3,
+        #         "result": [
+        #             {
+        #                 "bracket": 1,
+        #                 "initialLeverage": 125,
+        #                 "maintenanceMarginRate": "0.004",
+        #                 "notionalCap": "50000",
+        #                 "notionalFloor": "0",
+        #                 "cum": "0"
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'result', [])
+        return self.parse_market_leverage_tiers(data, market)
+
+    def parse_market_leverage_tiers(self, info, market):
+        #
+        #     [
+        #         {
+        #             "bracket": 1,
+        #             "initialLeverage": 125,
+        #             "maintenanceMarginRate": "0.004",
+        #             "notionalCap": "50000",
+        #             "notionalFloor": "0",
+        #             "cum": "0"
+        #         },
+        #         ...
+        #     ]
+        #
+        tiers = []
+        brackets = info
+        for i in range(0, len(brackets)):
+            tier = brackets[i]
+            tiers.append({
+                'tier': self.safe_integer(tier, 'bracket'),
+                'currency': market['settle'],
+                'minNotional': self.safe_number(tier, 'notionalFloor'),
+                'maxNotional': self.safe_number(tier, 'notionalCap'),
+                'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMarginRate'),
+                'maxLeverage': self.safe_number(tier, 'initialLeverage'),
+                'info': tier,
+            })
+        return tiers
+
+    async def fetch_leverage_tiers(self, symbols=None, params={}):
+        """
+        see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
+        retrieve information on the maximum leverage, for different trade sizes
+        :param [str]|None symbols: a list of unified market symbols
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`, indexed by market symbols
+        """
+        await self.load_markets()
+        response = await self.publicGetGetPerpetualLeverageBracketAll(params)
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674183578745,
+        #         "usOut": 1674183578752,
+        #         "usDiff": 7,
+        #         "result": {
+        #             "WAVES-USDT-PERPETUAL": [
+        #                 {
+        #                     "bracket": 1,
+        #                     "initialLeverage": 50,
+        #                     "maintenanceMarginRate": "0.01",
+        #                     "notionalCap": "50000",
+        #                     "notionalFloor": "0",
+        #                     "cum": "0"
+        #                 },
+        #                 ...
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'result', {})
+        symbols = self.market_symbols(symbols)
+        return self.parse_leverage_tiers(data, symbols, 'symbol')
+
+    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
+        #
+        #     {
+        #         "WAVES-USDT-PERPETUAL": [
+        #             {
+        #                 "bracket": 1,
+        #                 "initialLeverage": 50,
+        #                 "maintenanceMarginRate": "0.01",
+        #                 "notionalCap": "50000",
+        #                 "notionalFloor": "0",
+        #                 "cum": "0"
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        tiers = {}
+        result = {}
+        marketIds = list(response.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            entry = response[marketId]
+            market = self.safe_market(marketId)
+            symbol = self.safe_symbol(marketId, market)
+            symbolsLength = 0
+            tiers[symbol] = self.parse_market_leverage_tiers(entry, market)
+            if symbols is not None:
+                symbolsLength = len(symbols)
+                if self.in_array(symbol, symbols):
+                    result[symbol] = self.parse_market_leverage_tiers(entry, market)
+            if symbol is not None and (symbolsLength == 0 or self.in_array(symbol, symbols)):
+                result[symbol] = self.parse_market_leverage_tiers(entry, market)
+        return result
+
+    async def set_margin_mode(self, marginMode, symbol=None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+        see https://docs.btcex.com/#modify-perpetual-instrument-margin-type
+        :param str marginMode: 'cross' or 'isolated'
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict: response from the exchange
+        """
+        self.check_required_symbol('setMarginMode', symbol)
+        await self.sign_in()
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest(self.id + ' setMarginMode() supports swap contracts only')
+        if (marginMode != 'isolated') and (marginMode != 'isolate') and (marginMode != 'cross'):
+            raise BadRequest(self.id + ' marginMode must be either isolated or cross')
+        marginMode = 'isolate' if (marginMode == 'isolated') else 'cross'
+        request = {
+            'instrument_name': market['id'],
+            'margin_type': marginMode,
+        }
+        result = await self.privatePostAdjustPerpetualMarginType(self.extend(request, params))
+        #
+        #     {
+        #         "id": "1674857919",
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674857920070,
+        #         "usOut": 1674857920079,
+        #         "usDiff": 9,
+        #         "result": "ok"
+        #     }
+        #
+        return result
+
+    async def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the leverage amount for a market
+        see https://docs.btcex.com/#modify-perpetual-instrument-leverage
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict: response from the exchange
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        await self.sign_in()
+        await self.load_markets()
+        self.check_required_symbol('setLeverage', symbol)
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest(self.id + ' setLeverage() supports swap contracts only')
+        if (leverage < 1) or (leverage > 125):
+            raise BadRequest(self.id + ' leverage should be between 1 and 125')
+        request = {
+            'instrument_name': market['id'],
+            'leverage': leverage,
+        }
+        response = await self.privatePostAdjustPerpetualLeverage(self.extend(request, params))
+        #
+        #     {
+        #         "id": "1674856410",
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674856410930,
+        #         "usOut": 1674856410988,
+        #         "usDiff": 58,
+        #         "result": "ok"
+        #     }
+        #
+        return response
+
+    async def fetch_funding_rates(self, symbols=None, params={}):
+        """
+        fetch the current funding rates
+        see https://docs.btcex.com/#contracts
+        :param [str] symbols: unified market symbols
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = await self.publicGetCoinGeckoContracts(params)
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674803585896,
+        #         "usOut": 1674803585943,
+        #         "usDiff": 47,
+        #         "result": [
+        #             {
+        #                 "ticker_id": "BTC-USDT-PERPETUAL",
+        #                 "base_currency": "BTC",
+        #                 "target_currency": "USDT",
+        #                 "last_price": "23685",
+        #                 "base_volume": "167011.37199999999999989",
+        #                 "target_volume": "3837763191.33800288010388613",
+        #                 "bid": "23684.5",
+        #                 "ask": "23685",
+        #                 "high": "23971.5",
+        #                 "low": "23156",
+        #                 "product_type": "perpetual",
+        #                 "open_interest": "24242.36",
+        #                 "index_price": "23686.4",
+        #                 "index_name": "BTC-USDT",
+        #                 "index_currency": "BTC",
+        #                 "start_timestamp": 1631004005882,
+        #                 "funding_rate": "0.000187",
+        #                 "next_funding_rate_timestamp": 1675065600000,
+        #                 "contract_type": "Quanto",
+        #                 "contract_price": "23685",
+        #                 "contract_price_currency": "USDT"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'result', [])
+        result = {}
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'ticker_id')
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            if symbols is not None:
+                if self.in_array(symbol, symbols):
+                    result[symbol] = self.parse_funding_rate(entry, market)
+            else:
+                result[symbol] = self.parse_funding_rate(entry, market)
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        see https://docs.btcex.com/#contracts
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.publicGetCoinGeckoContracts(params)
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674803585896,
+        #         "usOut": 1674803585943,
+        #         "usDiff": 47,
+        #         "result": [
+        #             {
+        #                 "ticker_id": "BTC-USDT-PERPETUAL",
+        #                 "base_currency": "BTC",
+        #                 "target_currency": "USDT",
+        #                 "last_price": "23685",
+        #                 "base_volume": "167011.37199999999999989",
+        #                 "target_volume": "3837763191.33800288010388613",
+        #                 "bid": "23684.5",
+        #                 "ask": "23685",
+        #                 "high": "23971.5",
+        #                 "low": "23156",
+        #                 "product_type": "perpetual",
+        #                 "open_interest": "24242.36",
+        #                 "index_price": "23686.4",
+        #                 "index_name": "BTC-USDT",
+        #                 "index_currency": "BTC",
+        #                 "start_timestamp": 1631004005882,
+        #                 "funding_rate": "0.000187",
+        #                 "next_funding_rate_timestamp": 1675065600000,
+        #                 "contract_type": "Quanto",
+        #                 "contract_price": "23685",
+        #                 "contract_price_currency": "USDT"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'result', [])
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'ticker_id')
+            if marketId == market['id']:
+                return self.parse_funding_rate(entry, market)
+        return self.parse_funding_rate(data, market)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #     {
+        #         "ticker_id": "BTC-USDT-PERPETUAL",
+        #         "base_currency": "BTC",
+        #         "target_currency": "USDT",
+        #         "last_price": "23685",
+        #         "base_volume": "167011.37199999999999989",
+        #         "target_volume": "3837763191.33800288010388613",
+        #         "bid": "23684.5",
+        #         "ask": "23685",
+        #         "high": "23971.5",
+        #         "low": "23156",
+        #         "product_type": "perpetual",
+        #         "open_interest": "24242.36",
+        #         "index_price": "23686.4",
+        #         "index_name": "BTC-USDT",
+        #         "index_currency": "BTC",
+        #         "start_timestamp": 1631004005882,
+        #         "funding_rate": "0.000187",
+        #         "next_funding_rate_timestamp": 1675065600000,
+        #         "contract_type": "Quanto",
+        #         "contract_price": "23685",
+        #         "contract_price_currency": "USDT"
+        #     }
+        #
+        marketId = self.safe_string(contract, 'ticker_id')
+        fundingTimestamp = self.safe_integer(contract, 'next_funding_rate_timestamp')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(marketId, market),
+            'markPrice': None,
+            'indexPrice': self.safe_number(contract, 'index_price'),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': self.safe_number(contract, 'funding_rate'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        see https://docs.btcex.com/#asset-transfer
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        await self.sign_in()
+        await self.load_markets()
+        currency = self.currency(code)
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
+        request = {
+            'coin_type': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'from': fromId,  # WALLET, SPOT, PERPETUAL
+            'to': toId,  # WALLET, SPOT, PERPETUAL
+        }
+        response = await self.privatePostSubmitTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "id": "1674937273",
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674937274762,
+        #         "usOut": 1674937274774,
+        #         "usDiff": 12,
+        #         "result": "ok"
+        #     }
+        #
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "id": "1674937273",
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674937274762,
+        #         "usOut": 1674937274774,
+        #         "usDiff": 12,
+        #         "result": "ok"
+        #     }
+        #
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': None,
+            'datetime': None,
+            'currency': None,
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': None,
+        }
+
+    async def fetch_open_interest(self, symbol, params={}):
+        """
+        fetch the open interest of a market
+        see https://docs.btcex.com/#contracts
+        :param str symbol: unified CCXT market symbol
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        response = await self.publicGetCoinGeckoContracts(params)
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674803585896,
+        #         "usOut": 1674803585943,
+        #         "usDiff": 47,
+        #         "result": [
+        #             {
+        #                 "ticker_id": "BTC-USDT-PERPETUAL",
+        #                 "base_currency": "BTC",
+        #                 "target_currency": "USDT",
+        #                 "last_price": "23685",
+        #                 "base_volume": "167011.37199999999999989",
+        #                 "target_volume": "3837763191.33800288010388613",
+        #                 "bid": "23684.5",
+        #                 "ask": "23685",
+        #                 "high": "23971.5",
+        #                 "low": "23156",
+        #                 "product_type": "perpetual",
+        #                 "open_interest": "24242.36",
+        #                 "index_price": "23686.4",
+        #                 "index_name": "BTC-USDT",
+        #                 "index_currency": "BTC",
+        #                 "start_timestamp": 1631004005882,
+        #                 "funding_rate": "0.000187",
+        #                 "next_funding_rate_timestamp": 1675065600000,
+        #                 "contract_type": "Quanto",
+        #                 "contract_price": "23685",
+        #                 "contract_price_currency": "USDT"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'result', [])
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'ticker_id')
+            if marketId == market['id']:
+                return self.parse_open_interest(entry, market)
+        return self.parse_open_interest(data, market)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #     {
+        #         "ticker_id": "BTC-USDT-PERPETUAL",
+        #         "base_currency": "BTC",
+        #         "target_currency": "USDT",
+        #         "last_price": "23685",
+        #         "base_volume": "167011.37199999999999989",
+        #         "target_volume": "3837763191.33800288010388613",
+        #         "bid": "23684.5",
+        #         "ask": "23685",
+        #         "high": "23971.5",
+        #         "low": "23156",
+        #         "product_type": "perpetual",
+        #         "open_interest": "24242.36",
+        #         "index_price": "23686.4",
+        #         "index_name": "BTC-USDT",
+        #         "index_currency": "BTC",
+        #         "start_timestamp": 1631004005882,
+        #         "funding_rate": "0.000187",
+        #         "next_funding_rate_timestamp": 1675065600000,
+        #         "contract_type": "Quanto",
+        #         "contract_price": "23685",
+        #         "contract_price_currency": "USDT"
+        #     }
+        #
+        marketId = self.safe_string(interest, 'ticker_id')
+        market = self.safe_market(marketId, market)
+        openInterest = self.safe_number(interest, 'open_interest')
+        return {
+            'info': interest,
+            'symbol': market['symbol'],
+            'baseVolume': openInterest,
+            'quoteVolume': None,
+            'openInterestAmount': openInterest,  # in base currency
+            'openInterestValue': None,
+            'timestamp': None,
+            'datetime': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + 'api/' + self.version + '/' + api + '/' + path

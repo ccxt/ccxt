@@ -187,7 +187,11 @@ module.exports = class probit extends Exchange {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
-                    'TRX': 'TRON',
+                },
+                'networksById': {
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'TRON': 'TRC20',
                 },
             },
             'commonCurrencies': {
@@ -539,7 +543,7 @@ module.exports = class probit extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the probit api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -890,7 +894,7 @@ module.exports = class probit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         limit = (limit === undefined) ? 100 : limit;
         let requestLimit = this.sum (limit, 1);
         requestLimit = Math.min (1000, requestLimit); // max 1000
@@ -1117,6 +1121,7 @@ module.exports = class probit extends Exchange {
             'status': status,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -1439,6 +1444,142 @@ module.exports = class probit extends Exchange {
             'cancelling': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetCurrencyWithPlatform (params);
+        //
+        //  {
+        //     "data": [
+        //       {
+        //       "id": "AFX",
+        //       "display_name": {
+        //       "ko-kr": "아프릭스",
+        //       "en-us": "Afrix"
+        //       },
+        //       "show_in_ui": true,
+        //       "platform": [
+        //       {
+        //       "id": "ZYN",
+        //       "priority": 1,
+        //       "deposit": true,
+        //       "withdrawal": true,
+        //       "currency_id": "AFX",
+        //       "precision": 18,
+        //       "min_confirmation_count": 60,
+        //       "require_destination_tag": false,
+        //       "allow_withdrawal_destination_tag": false,
+        //       "display_name": {
+        //       "name": {
+        //       "ko-kr": "지네코인",
+        //       "en-us": "Wethio"
+        //       }
+        //       },
+        //       "min_deposit_amount": "0",
+        //       "min_withdrawal_amount": "0",
+        //       "withdrawal_fee": [
+        //       {
+        //       "currency_id": "ZYN",
+        //       "amount": "0.5",
+        //       "priority": 1
+        //       }
+        //       ],
+        //       "deposit_fee": {},
+        //       "suspended_reason": "",
+        //       "deposit_suspended": false,
+        //       "withdrawal_suspended": false,
+        //       "platform_currency_display_name": {}
+        //       }
+        //       ],
+        //       "internal_transfer": {
+        //       "suspended_reason": null,
+        //       "suspended": false
+        //       },
+        //       "stakeable": false,
+        //       "unstakeable": false,
+        //       "auto_stake": false,
+        //       "auto_stake_amount": "0"
+        //       },
+        //     ]
+        //  }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositWithdrawFees (data, codes, 'id');
+    }
+
+    parseDepositWithdrawFee (fee, currency) {
+        //
+        // {
+        //     id: 'USDT',
+        //     display_name: { 'ko-kr': '테더', 'en-us': 'Tether' },
+        //     show_in_ui: true,
+        //     platform: [
+        //       {
+        //         id: 'ETH',
+        //         priority: '1',
+        //         deposit: true,
+        //         withdrawal: true,
+        //         currency_id: 'USDT',
+        //         precision: '6',
+        //         min_confirmation_count: '15',
+        //         require_destination_tag: false,
+        //         allow_withdrawal_destination_tag: false,
+        //         display_name: [Object],
+        //         min_deposit_amount: '0',
+        //         min_withdrawal_amount: '1',
+        //         withdrawal_fee: [Array],
+        //         deposit_fee: {},
+        //         suspended_reason: '',
+        //         deposit_suspended: false,
+        //         withdrawal_suspended: false,
+        //         platform_currency_display_name: [Object]
+        //       },
+        //     ],
+        //     internal_transfer: { suspended_reason: null, suspended: false },
+        //     stakeable: false,
+        //     unstakeable: false,
+        //     auto_stake: false,
+        //     auto_stake_amount: '0'
+        //   }
+        //
+        const depositWithdrawFee = this.depositWithdrawFee ({});
+        const platforms = this.safeValue (fee, 'platform', []);
+        const depositResult = {
+            'fee': undefined,
+            'percentage': undefined,
+        };
+        for (let i = 0; i < platforms.length; i++) {
+            const network = platforms[i];
+            const networkId = this.safeString (network, 'id');
+            const networkCode = this.networkIdToCode (networkId, currency['code']);
+            const withdrawalFees = this.safeValue (network, 'withdrawal_fee', {});
+            const withdrawFee = this.safeNumber (withdrawalFees[0], 'amount');
+            if (withdrawalFees.length > 0) {
+                const withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': (withdrawFee !== undefined) ? false : undefined,
+                };
+                if (i === 0) {
+                    depositWithdrawFee['withdraw'] = withdrawResult;
+                }
+                depositWithdrawFee['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': depositResult,
+                };
+            }
+        }
+        depositWithdrawFee['info'] = fee;
+        return depositWithdrawFee;
     }
 
     nonce () {

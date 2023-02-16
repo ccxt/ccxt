@@ -278,7 +278,7 @@ module.exports = class wazirx extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -391,7 +391,7 @@ module.exports = class wazirx extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the wazirx api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const tickers = await this.publicGetTickers24hr ();
@@ -895,7 +895,7 @@ module.exports = class wazirx extends Exchange {
             data = this.keysort (data);
             const signature = this.hmac (this.encode (this.urlencode (data)), this.encode (this.secret), 'sha256');
             url += '?' + this.urlencode (data);
-            url += '&signature=' + signature;
+            url += '&' + 'signature=' + signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-Api-Key': this.apiKey,

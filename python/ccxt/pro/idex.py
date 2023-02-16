@@ -236,7 +236,7 @@ class idex(Exchange, ccxt.async_support.idex):
         market = self.market(symbol)
         symbol = market['symbol']
         name = 'candles'
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         subscribeObject = {
             'name': name,
             'markets': [market['id']],
@@ -579,6 +579,7 @@ class idex(Exchange, ccxt.async_support.idex):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': cost,
             'average': average,

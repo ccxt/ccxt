@@ -177,6 +177,8 @@ module.exports = class bitopro extends Exchange {
                     'ETH': 'ERC20',
                     'TRX': 'TRX',
                     'TRC20': 'TRX',
+                    'BEP20': 'BSC',
+                    'BSC': 'BSC',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -437,7 +439,7 @@ module.exports = class bitopro extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitopro api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetTickers ();
@@ -737,7 +739,7 @@ module.exports = class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const resolution = this.timeframes[timeframe];
+        const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const request = {
             'pair': market['id'],
             'resolution': resolution,
@@ -880,6 +882,7 @@ module.exports = class bitopro extends Exchange {
             '2': 'closed',
             '3': 'closed',
             '4': 'canceled',
+            '6': 'canceled',
         };
         return this.safeString (statuses, status, undefined);
     }
@@ -935,6 +938,10 @@ module.exports = class bitopro extends Exchange {
         const filled = this.safeString (order, 'executedAmount');
         const remaining = this.safeString (order, 'remainingAmount');
         const timeInForce = this.safeString (order, 'timeInForce');
+        let postOnly = undefined;
+        if (timeInForce === 'POST_ONLY') {
+            postOnly = true;
+        }
         let fee = undefined;
         const feeAmount = this.safeString (order, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (order, 'feeSymbol'));
@@ -953,10 +960,11 @@ module.exports = class bitopro extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': average,
@@ -1010,6 +1018,10 @@ module.exports = class bitopro extends Exchange {
             } else {
                 request['condition'] = condition;
             }
+        }
+        const postOnly = this.isPostOnly (orderType === 'MARKET', undefined, params);
+        if (postOnly) {
+            request['timeInForce'] = 'POST_ONLY';
         }
         const response = await this.privatePostOrdersPair (this.extend (request, params), params);
         //
@@ -1317,76 +1329,80 @@ module.exports = class bitopro extends Exchange {
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
-        //             {
-        //                 "serial":"20220214X766799",
-        //                 "timestamp":"1644833015053",
-        //                 "address":"bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
-        //                 "amount":"0.20000000",
-        //                 "fee":"0.00000000",
-        //                 "total":"0.20000000",
-        //                 "status":"COMPLETE",
-        //                 "txid":"A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
-        //                 "message":"778553959",
-        //                 "protocol":"MAIN",
-        //                 "id":"2905906537"
-        //             }
+        //
+        //    {
+        //        "serial": "20220214X766799",
+        //        "timestamp": "1644833015053",
+        //        "address": "bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
+        //        "amount": "0.20000000",
+        //        "fee": "0.00000000",
+        //        "total": "0.20000000",
+        //        "status": "COMPLETE",
+        //        "txid": "A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
+        //        "message": "778553959",
+        //        "protocol": "MAIN",
+        //        "id": "2905906537"
+        //    }
         //
         // fetchWithdrawals || fetchWithdraw
-        //             {
-        //                 "serial":"20220215BW14069838",
-        //                 "timestamp":"1644907716044",
-        //                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        //                 "amount":"8.00000000",
-        //                 "fee":"2.00000000",
-        //                 "total":"10.00000000",
-        //                 "status":"COMPLETE",
-        //                 "txid":"50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
-        //                 "protocol":"TRX",
-        //                 "id":"9925310345"
-        //             }
+        //
+        //    {
+        //        "serial": "20220215BW14069838",
+        //        "timestamp": "1644907716044",
+        //        "address": "TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        //        "amount": "8.00000000",
+        //        "fee": "2.00000000",
+        //        "total": "10.00000000",
+        //        "status": "COMPLETE",
+        //        "txid": "50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
+        //        "protocol": "TRX",
+        //        "id": "9925310345"
+        //    }
         //
         // withdraw
-        //             {
-        //                 "serial":"20220215BW14069838",
-        //                 "currency":"USDT",
-        //                 "protocol":"TRX",
-        //                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        //                 "amount":"8",
-        //                 "fee":"2",
-        //                 "total":"10"
-        //             }
+        //
+        //    {
+        //        "serial": "20220215BW14069838",
+        //        "currency": "USDT",
+        //        "protocol": "TRX",
+        //        "address": "TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        //        "amount": "8",
+        //        "fee": "2",
+        //        "total": "10"
+        //    }
         //
         const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const id = this.safeString (transaction, 'serial');
-        const txId = this.safeString (transaction, 'txid');
         const timestamp = this.safeInteger (transaction, 'timestamp');
-        const amount = this.safeNumber (transaction, 'total');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'message');
         const status = this.safeString (transaction, 'status');
-        const fee = this.safeNumber (transaction, 'fee');
+        let networkId = this.safeString (transaction, 'protocol');
+        if (networkId === 'MAIN') {
+            networkId = code;
+        }
         return {
             'info': transaction,
-            'id': id,
-            'txid': txId,
+            'id': this.safeString (transaction, 'serial'),
+            'txid': this.safeString (transaction, 'txid'),
+            'type': undefined,
+            'currency': code,
+            'network': this.networkIdToCode (networkId),
+            'amount': this.safeNumber (transaction, 'total'),
+            'status': this.parseTransactionStatus (status),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
-            'addressFrom': undefined,
             'address': address,
+            'addressFrom': undefined,
             'addressTo': address,
-            'tagFrom': undefined,
             'tag': tag,
+            'tagFrom': undefined,
             'tagTo': tag,
-            'type': undefined,
-            'amount': amount,
-            'currency': code,
-            'status': this.parseTransactionStatus (status),
             'updated': undefined,
+            'comment': undefined,
             'fee': {
                 'currency': code,
-                'cost': fee,
+                'cost': this.safeNumber (transaction, 'fee'),
                 'rate': undefined,
             },
         };

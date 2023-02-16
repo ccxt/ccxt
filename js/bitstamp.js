@@ -302,6 +302,10 @@ module.exports = class bitstamp extends Exchange {
                         'dot_address/': 1,
                         'near_withdrawal/': 1,
                         'near_address/': 1,
+                        'doge_withdrawal/': 1,
+                        'doge_address/': 1,
+                        'flr_withdrawal/': 1,
+                        'flr_address/': 1,
                     },
                 },
             },
@@ -767,11 +771,11 @@ module.exports = class bitstamp extends Exchange {
         if (numCurrencyIds === 2) {
             let marketId = currencyIds[0] + currencyIds[1];
             if (marketId in this.markets_by_id) {
-                return this.markets_by_id[marketId];
+                return this.safeMarket (marketId);
             }
             marketId = currencyIds[1] + currencyIds[0];
             if (marketId in this.markets_by_id) {
-                return this.markets_by_id[marketId];
+                return this.safeMarket (marketId);
             }
         }
         return undefined;
@@ -825,24 +829,14 @@ module.exports = class bitstamp extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const type = undefined;
         let costString = this.safeString (trade, 'cost');
-        let rawBaseId = undefined;
-        let rawQuoteId = undefined;
         let rawMarketId = undefined;
         if (market === undefined) {
             const keys = Object.keys (trade);
             for (let i = 0; i < keys.length; i++) {
                 const currentKey = keys[i];
                 if (currentKey !== 'order_id' && currentKey.indexOf ('_') >= 0) {
-                    const marketId = currentKey.replace ('_', '');
-                    if (marketId in this.markets_by_id) {
-                        market = this.markets_by_id[marketId];
-                    } else {
-                        rawMarketId = currentKey;
-                        const parts = currentKey.split ('_');
-                        rawBaseId = this.safeString (parts, 0);
-                        rawQuoteId = this.safeString (parts, 1);
-                        market = this.safeMarket (marketId);
-                    }
+                    rawMarketId = currentKey;
+                    market = this.safeMarket (rawMarketId, market, '_');
                 }
             }
         }
@@ -852,13 +846,10 @@ module.exports = class bitstamp extends Exchange {
             market = this.getMarketFromTrade (trade);
         }
         const feeCostString = this.safeString (trade, 'fee');
-        const feeCurrency = (market['quote'] !== undefined) ? market['quote'] : rawQuoteId;
-        const baseId = (market['baseId'] !== undefined) ? market['baseId'] : rawBaseId;
-        const quoteId = (market['quoteId'] !== undefined) ? market['quoteId'] : rawQuoteId;
-        const priceId = (rawMarketId !== undefined) ? rawMarketId : market['marketId'];
-        priceString = this.safeString (trade, priceId, priceString);
-        amountString = this.safeString (trade, baseId, amountString);
-        costString = this.safeString (trade, quoteId, costString);
+        const feeCurrency = market['quote'];
+        priceString = this.safeString (trade, rawMarketId, priceString);
+        amountString = this.safeString (trade, market['baseId'], amountString);
+        costString = this.safeString (trade, market['quoteId'], costString);
         symbol = market['symbol'];
         const datetimeString = this.safeString2 (trade, 'date', 'datetime');
         let timestamp = undefined;
@@ -996,7 +987,7 @@ module.exports = class bitstamp extends Exchange {
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
-            'step': this.timeframes[timeframe],
+            'step': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
         if (limit === undefined) {
@@ -1592,7 +1583,6 @@ module.exports = class bitstamp extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
-        const id = this.safeString (transaction, 'id');
         const currencyId = this.getCurrencyIdFromTransaction (transaction);
         const code = this.safeCurrencyCode (currencyId, currency);
         const feeCost = this.safeString (transaction, 'fee');
@@ -1628,7 +1618,6 @@ module.exports = class bitstamp extends Exchange {
             // from fetchWithdrawals
             type = 'withdrawal';
         }
-        const txid = this.safeString (transaction, 'transaction_id');
         let tag = undefined;
         let address = this.safeString (transaction, 'address');
         if (address !== undefined) {
@@ -1640,11 +1629,11 @@ module.exports = class bitstamp extends Exchange {
                 tag = addressParts[1];
             }
         }
-        const addressFrom = undefined;
-        const addressTo = address;
-        const tagFrom = undefined;
-        const tagTo = tag;
-        let fee = undefined;
+        let fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         if (feeCost !== undefined) {
             fee = {
                 'currency': feeCurrency,
@@ -1654,22 +1643,23 @@ module.exports = class bitstamp extends Exchange {
         }
         return {
             'info': transaction,
-            'id': id,
-            'txid': txid,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'transaction_id'),
+            'type': type,
+            'currency': code,
+            'network': undefined,
+            'amount': this.parseNumber (amount),
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
-            'addressFrom': addressFrom,
-            'addressTo': addressTo,
             'address': address,
-            'tagFrom': tagFrom,
-            'tagTo': tagTo,
+            'addressFrom': undefined,
+            'addressTo': address,
             'tag': tag,
-            'type': type,
-            'amount': this.parseNumber (amount),
-            'currency': code,
-            'status': status,
+            'tagFrom': undefined,
+            'tagTo': tag,
             'updated': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }
@@ -1757,6 +1747,7 @@ module.exports = class bitstamp extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'filled': undefined,
@@ -1813,9 +1804,7 @@ module.exports = class bitstamp extends Exchange {
             for (let i = 0; i < keys.length; i++) {
                 if (keys[i].indexOf ('_') >= 0) {
                     const marketId = keys[i].replace ('_', '');
-                    if (marketId in this.markets_by_id) {
-                        market = this.markets_by_id[marketId];
-                    }
+                    market = this.safeMarket (marketId, market);
                 }
             }
             // if the market is still not defined

@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import asyncio
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -13,6 +14,7 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -82,15 +84,18 @@ class gate(Exchange):
                 'swap': True,
                 'future': True,
                 'option': None,
+                'addMargin': True,
                 'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'createDepositAddress': True,
                 'createMarketOrder': False,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': False,
                 'createStopOrder': True,
+                'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -116,7 +121,8 @@ class gate(Exchange):
                 'fetchMyTrades': True,
                 'fetchNetworkDepositAddress': True,
                 'fetchOHLCV': True,
-                'fetchOpenInterestHistory': False,
+                'fetchOpenInterest': False,
+                'fetchOpenInterestHistory': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -131,6 +137,7 @@ class gate(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
                 'repayMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
@@ -273,6 +280,9 @@ class gate(Exchange):
                             'orders/{order_id}': 1,
                             'price_orders': 1,
                             'price_orders/{order_id}': 1,
+                        },
+                        'patch': {
+                            'orders/{order_id}': 1,
                         },
                     },
                     'margin': {
@@ -477,7 +487,7 @@ class gate(Exchange):
                 },
                 'future': {
                     'fetchMarkets': {
-                        'settlementCurrencies': ['usdt', 'btc'],
+                        'settlementCurrencies': ['usdt'],
                     },
                 },
             },
@@ -673,8 +683,8 @@ class gate(Exchange):
                     'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
                     'RISK_LIMIT_TOO_LOW': BadRequest,  # {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
                 },
+                'broad': {},
             },
-            'broad': {},
         })
 
     async def fetch_markets(self, params={}):
@@ -683,20 +693,19 @@ class gate(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        result = []
-        type, query = self.handle_market_type_and_params('fetchMarkets', None, params)
-        if type == 'spot' or type == 'margin':
-            result = await self.fetch_spot_markets(query)
-        if type == 'swap' or type == 'future':
-            result = await self.fetch_contract_markets(query)  # futures and swaps
-        if type == 'option':
-            result = await self.fetch_option_markets(query)
-        resultLength = len(result)
-        if resultLength == 0:
-            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap', 'future' or 'option'")  # eslint-disable-line quotes
-        return result
+        promises = [
+            self.fetch_spot_markets(params),
+            self.fetch_contract_markets(params),
+            self.fetch_option_markets(params),
+        ]
+        promises = await asyncio.gather(*promises)
+        spotMarkets = promises[0]
+        contractMarkets = promises[1]
+        optionMarkets = promises[2]
+        markets = self.array_concat(spotMarkets, contractMarkets)
+        return self.array_concat(markets, optionMarkets)
 
-    async def fetch_spot_markets(self, params):
+    async def fetch_spot_markets(self, params={}):
         marginResponse = await self.publicMarginGetCurrencyPairs(params)
         spotMarketsResponse = await self.publicSpotGetCurrencyPairs(params)
         marginMarkets = self.index_by(marginResponse, 'id')
@@ -801,23 +810,25 @@ class gate(Exchange):
             })
         return result
 
-    async def fetch_contract_markets(self, params):
+    async def fetch_contract_markets(self, params={}):
         result = []
         swapSettlementCurrencies = self.get_settlement_currencies('swap', 'fetchMarkets')
         futureSettlementCurrencies = self.get_settlement_currencies('future', 'fetchMarkets')
         for c in range(0, len(swapSettlementCurrencies)):
             settleId = swapSettlementCurrencies[c]
-            query = params
-            query['settle'] = settleId
-            response = await self.publicFuturesGetSettleContracts(query)
+            request = {
+                'settle': settleId,
+            }
+            response = await self.publicFuturesGetSettleContracts(self.extend(request, params))
             for i in range(0, len(response)):
                 parsedMarket = self.parse_contract_market(response[i], settleId)
                 result.append(parsedMarket)
         for c in range(0, len(futureSettlementCurrencies)):
             settleId = futureSettlementCurrencies[c]
-            query = params
-            query['settle'] = settleId
-            response = await self.publicDeliveryGetSettleContracts(query)
+            request = {
+                'settle': settleId,
+            }
+            response = await self.publicDeliveryGetSettleContracts(self.extend(request, params))
             for i in range(0, len(response)):
                 parsedMarket = self.parse_contract_market(response[i], settleId)
                 result.append(parsedMarket)
@@ -964,7 +975,7 @@ class gate(Exchange):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.parse_number('1'),
+                'amount': self.parse_number('1'),  # all contracts have self step size
                 'price': self.safe_number(market, 'order_price_round'),
             },
             'limits': {
@@ -1084,7 +1095,7 @@ class gate(Exchange):
                     'strike': strike,
                     'optionType': optionType,
                     'precision': {
-                        'amount': self.parse_number('1'),
+                        'amount': self.parse_number('1'),  # all options have self step size
                         'price': self.safe_number(market, 'order_price_round'),
                     },
                     'limits': {
@@ -1266,7 +1277,7 @@ class gate(Exchange):
                 'lowerCaseId': currencyIdLower,
                 'name': None,
                 'code': code,
-                'precision': self.parse_number('1e-6'),
+                'precision': self.parse_number('1e-4'),  # todo: as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix(self.value, 4);" function, so users cant set lower precision than 0.0001
                 'info': entry,
                 'active': active,
                 'deposit': depositEnabled,
@@ -1438,7 +1449,7 @@ class gate(Exchange):
         #    }
         #
         marketId = self.safe_string(contract, 'name')
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, '_', 'swap')
         markPrice = self.safe_number(contract, 'mark_price')
         indexPrice = self.safe_number(contract, 'index_price')
         interestRate = self.safe_number(contract, 'interest_rate')
@@ -1502,9 +1513,20 @@ class gate(Exchange):
             }
         return result
 
+    async def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the gate api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
+        return await self.fetch_deposit_address(code, params)
+
     async def fetch_deposit_address(self, code, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
         :param str code: unified currency code
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
@@ -1536,6 +1558,8 @@ class gate(Exchange):
         tag = None
         address = None
         if addressField is not None:
+            if addressField.find('New address is being generated for you, please wait') >= 0:
+                raise BadResponse(self.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.')
             if addressField.find(' ') >= 0:
                 splitted = addressField.split(' ')
                 address = splitted[0]
@@ -1829,7 +1853,7 @@ class gate(Exchange):
         #
         timestamp = self.safe_timestamp(info, 'time')
         marketId = self.safe_string(info, 'text')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, '_', 'swap')
         return {
             'info': info,
             'symbol': self.safe_string(market, 'symbol'),
@@ -2000,13 +2024,28 @@ class gate(Exchange):
         #         "index_price": "6531"
         #     }
         #
+        # bookTicker
+        #    {
+        #        t: 1671363004228,
+        #        u: 9793320464,
+        #        s: 'BTC_USDT',
+        #        b: '16716.8',  # best bid price
+        #        B: '0.0134',  # best bid size
+        #        a: '16716.9',  # best ask price
+        #        A: '0.0353'  # best ask size
+        #     }
+        #
         marketId = self.safe_string_2(ticker, 'currency_pair', 'contract')
-        symbol = self.safe_symbol(marketId, market)
+        marketType = 'contract' if ('contract' in ticker) else 'spot'
+        symbol = self.safe_symbol(marketId, market, '_', marketType)
         last = self.safe_string(ticker, 'last')
-        ask = self.safe_string(ticker, 'lowest_ask')
-        bid = self.safe_string(ticker, 'highest_bid')
+        ask = self.safe_string_2(ticker, 'lowest_ask', 'a')
+        bid = self.safe_string_2(ticker, 'highest_bid', 'b')
         high = self.safe_string(ticker, 'high_24h')
         low = self.safe_string(ticker, 'low_24h')
+        bidVolume = self.safe_string(ticker, 'B')
+        askVolume = self.safe_string(ticker, 'A')
+        timestamp = self.safe_integer(ticker, 't')
         baseVolume = self.safe_string_2(ticker, 'base_volume', 'volume_24h_base')
         if baseVolume == 'nan':
             baseVolume = '0'
@@ -2016,14 +2055,14 @@ class gate(Exchange):
         percentage = self.safe_string(ticker, 'change_percentage')
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': None,
+            'bidVolume': bidVolume,
             'ask': ask,
-            'askVolume': None,
+            'askVolume': askVolume,
             'vwap': None,
             'open': None,
             'close': last,
@@ -2045,7 +2084,7 @@ class gate(Exchange):
         see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the gate api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -2101,7 +2140,7 @@ class gate(Exchange):
             'future': 'privateDeliveryGetSettleAccounts',
         })
         response = await getattr(self, method)(self.extend(request, requestQuery))
-        contract = (type == 'swap' or type == 'future')
+        contract = ((type == 'swap') or (type == 'future'))
         if contract:
             response = [response]
         #
@@ -2234,7 +2273,7 @@ class gate(Exchange):
             entry = data[i]
             if isolated:
                 marketId = self.safe_string(entry, 'currency_pair')
-                symbol = self.safe_symbol(marketId, None, '_')
+                symbol = self.safe_symbol(marketId, None, '_', 'margin')
                 base = self.safe_value(entry, 'base', {})
                 quote = self.safe_value(entry, 'quote', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
@@ -2265,7 +2304,7 @@ class gate(Exchange):
         price = self.safe_string(params, 'price')
         request = {}
         request, params = self.prepare_request(market, None, params)
-        request['interval'] = self.timeframes[timeframe]
+        request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
         method = 'publicSpotGetCandlesticks'
         maxLimit = 1000
         if market['contract']:
@@ -2664,7 +2703,8 @@ class gate(Exchange):
         timestamp = self.safe_timestamp_2(trade, 'time', 'create_time')
         timestamp = self.safe_integer(trade, 'create_time_ms', timestamp)
         marketId = self.safe_string_2(trade, 'currency_pair', 'contract')
-        market = self.safe_market(marketId, market)
+        marketType = 'contract' if ('contract' in trade) else 'spot'
+        market = self.safe_market(marketId, market, '_', marketType)
         amountString = self.safe_string_2(trade, 'amount', 'size')
         priceString = self.safe_string(trade, 'price')
         contractSide = 'sell' if Precise.string_lt(amountString, '0') else 'buy'
@@ -2845,12 +2885,13 @@ class gate(Exchange):
         id = self.safe_string(transaction, 'id')
         type = None
         amount = self.safe_string(transaction, 'amount')
-        if id[0] == 'b':
-            # GateCode handling
-            type = 'deposit' if Precise.string_gt(amount, '0') else 'withdrawal'
-            amount = Precise.string_abs(amount)
-        elif id is not None:
-            type = self.parse_transaction_type(id[0])
+        if id is not None:
+            if id[0] == 'b':
+                # GateCode handling
+                type = 'deposit' if Precise.string_gt(amount, '0') else 'withdrawal'
+                amount = Precise.string_abs(amount)
+            else:
+                type = self.parse_transaction_type(id[0])
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         txid = self.safe_string(transaction, 'txid')
@@ -2901,6 +2942,7 @@ class gate(Exchange):
         :param bool|None params['reduceOnly']: *contract only* Indicates if self order is to reduce the size of a position
         :param bool|None params['close']: *contract only* Set as True to close the position, with size set to 0
         :param bool|None params['auto_size']: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+        :param int|None params['price_type']: *contract only* 0 latest deal price, 1 mark price, 2 index price
         :returns dict|None: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -2938,9 +2980,6 @@ class gate(Exchange):
                     raise ExchangeError(self.id + ' createOrder() timeInForce for market orders must be "IOC"')
                 timeInForce = 'ioc'
                 price = 0
-        elif not isLimitOrder:
-            # exchange doesn't have market orders for spot
-            raise InvalidOrder(self.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets')
         request = None
         if not isStopOrder and (trigger is None):
             if contract:
@@ -2949,7 +2988,6 @@ class gate(Exchange):
                     'contract': market['id'],  # filled in prepareRequest above
                     'size': amount,  # int64, positive = bid, negative = ask
                     # 'iceberg': 0,  # int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
-                    'price': self.price_to_precision(symbol, price),  # 0 for market order with tif set as ioc
                     # 'close': False,  # True to close the position, with size set to 0
                     # 'reduce_only': False,  # St as True to be reduce-only order
                     # 'tif': 'gtc',  # gtc, ioc, poc PendingOrCancelled == postOnly order
@@ -2957,6 +2995,10 @@ class gate(Exchange):
                     # 'auto_size': '',  # close_long, close_short, note size also needs to be set to 0
                     'settle': market['settleId'],  # filled in prepareRequest above
                 }
+                if isMarketOrder:
+                    request['price'] = price  # set to 0 for market orders
+                else:
+                    request['price'] = self.price_to_precision(symbol, price)
                 if reduceOnly is not None:
                     request['reduce_only'] = reduceOnly
                 if timeInForce is not None:
@@ -2971,13 +3013,31 @@ class gate(Exchange):
                     'type': type,
                     'account': marginMode,  # 'spot', 'margin', 'cross_margin'
                     'side': side,
-                    'amount': self.amount_to_precision(symbol, amount),
-                    'price': self.price_to_precision(symbol, price),
                     # 'time_in_force': 'gtc',  # gtc, ioc, poc PendingOrCancelled == postOnly order
                     # 'iceberg': 0,  # amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
                     # 'auto_borrow': False,  # used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
                     # 'auto_repay': False,  # automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
                 }
+                createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
+                if isMarketOrder and (side == 'buy'):
+                    if createMarketBuyOrderRequiresPrice:
+                        if price is None:
+                            raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                        else:
+                            amountString = self.number_to_string(amount)
+                            priceString = self.number_to_string(price)
+                            cost = self.parse_number(Precise.string_mul(amountString, priceString))
+                            request['amount'] = self.cost_to_precision(symbol, cost)
+                    else:
+                        cost = self.safe_number(params, 'cost', amount)
+                        params = self.omit(params, 'cost')
+                        request['amount'] = self.cost_to_precision(symbol, cost)
+                else:
+                    request['amount'] = self.amount_to_precision(symbol, amount)
+                if isLimitOrder:
+                    request['price'] = self.price_to_precision(symbol, price)
+                else:
+                    timeInForce = 'ioc'
                 if timeInForce is not None:
                     request['time_in_force'] = timeInForce
             clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
@@ -3018,9 +3078,13 @@ class gate(Exchange):
                     elif isTakeProfitOrder:
                         rule = 2 if (side == 'buy') else 1
                         triggerOrderPrice = self.price_to_precision(symbol, takeProfitPrice)
+                    priceType = self.safe_integer(params, 'price_type', 0)
+                    if priceType < 0 or priceType > 2:
+                        raise BadRequest(self.id + ' createOrder() price_type should be 0 latest deal price, 1 mark price, 2 index price')
+                    params = self.omit(params, ['price_type'])
                     request['trigger'] = {
                         # 'strategy_type': 0,  # 0 = by price, 1 = by price gap, only 0 is supported currently
-                        'price_type': 0,  # 0 latest deal price, 1 mark price, 2 index price
+                        'price_type': priceType,  # 0 latest deal price, 1 mark price, 2 index price
                         'price': self.price_to_precision(symbol, triggerOrderPrice),  # price or gap
                         'rule': rule,  # 1 means price_type >= price, 2 means price_type <= price
                         # 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
@@ -3138,8 +3202,76 @@ class gate(Exchange):
         #
         return self.parse_order(response, market)
 
+    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order, gate currently only supports the modification of the price or amount fields
+        see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict params: extra parameters specific to the gate api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise BadRequest(self.id + ' editOrder() supports only spot markets')
+        marketType, query = self.handle_market_type_and_params('editOrder', market, params)
+        account = self.convert_type_to_account(marketType)
+        isLimitOrder = (type == 'limit')
+        if account == 'spot':
+            if not isLimitOrder:
+                # exchange doesn't have market orders for spot
+                raise InvalidOrder(self.id + ' editOrder() does not support ' + type + ' orders for ' + marketType + ' markets')
+        request = {
+            'order_id': id,
+            'currency_pair': market['id'],
+            'account': account,
+        }
+        if amount is not None:
+            request['amount'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
+        response = await self.privateSpotPatchOrdersOrderId(self.extend(request, query))
+        #
+        #     {
+        #         "id": "243233276443",
+        #         "text": "apiv4",
+        #         "create_time": "1670908873",
+        #         "update_time": "1670914102",
+        #         "create_time_ms": 1670908873077,
+        #         "update_time_ms": 1670914102241,
+        #         "status": "open",
+        #         "currency_pair": "ADA_USDT",
+        #         "type": "limit",
+        #         "account": "spot",
+        #         "side": "sell",
+        #         "amount": "10",
+        #         "price": "0.6",
+        #         "time_in_force": "gtc",
+        #         "iceberg": "0",
+        #         "left": "10",
+        #         "fill_price": "0",
+        #         "filled_total": "0",
+        #         "fee": "0",
+        #         "fee_currency": "USDT",
+        #         "point_fee": "0",
+        #         "gt_fee": "0",
+        #         "gt_maker_fee": "0",
+        #         "gt_taker_fee": "0",
+        #         "gt_discount": False,
+        #         "rebated_fee": "0",
+        #         "rebated_fee_currency": "ADA"
+        #     }
+        #
+        return self.parse_order(response, market)
+
     def parse_order_status(self, status):
         statuses = {
+            'open': 'open',
             '_new': 'open',
             'filled': 'closed',
             'cancelled': 'canceled',
@@ -3155,7 +3287,7 @@ class gate(Exchange):
     def parse_order(self, order, market=None):
         #
         # SPOT
-        # createOrder/cancelOrder/fetchOrder
+        # createOrder/cancelOrder/fetchOrder/editOrder
         #
         #    {
         #        "id": "62364648575",
@@ -3304,21 +3436,20 @@ class gate(Exchange):
         amount = self.safe_string_2(order, 'amount', 'size', amount)
         side = self.safe_string(order, 'side', side)
         price = self.safe_string(order, 'price', price)
-        remaining = self.safe_string(order, 'left')
-        filled = Precise.string_sub(amount, remaining)
+        remainingString = self.safe_string(order, 'left')
+        filledString = Precise.string_sub(amount, remainingString)
         cost = self.safe_string(order, 'filled_total')
         rawStatus = None
-        average = None
+        average = self.safe_number(order, 'fill_price')
         if put:
-            remaining = amount
-            filled = '0'
+            remainingString = amount
+            filledString = '0'
             cost = '0'
         if contract:
             isMarketOrder = Precise.string_equals(price, '0') and (timeInForce == 'IOC')
             type = 'market' if isMarketOrder else 'limit'
             side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
             rawStatus = self.safe_string(order, 'finish_as', 'open')
-            average = self.safe_number(order, 'fill_price')
         else:
             rawStatus = self.safe_string(order, 'status')
         timestamp = self.safe_integer(order, 'create_time_ms')
@@ -3327,7 +3458,9 @@ class gate(Exchange):
         lastTradeTimestamp = self.safe_integer(order, 'update_time_ms')
         if lastTradeTimestamp is None:
             lastTradeTimestamp = self.safe_timestamp_2(order, 'update_time', 'finish_time')
+        marketType = 'spot' if ('currency_pair' in order) else 'contract'
         exchangeSymbol = self.safe_string_2(order, 'currency_pair', 'market', contract)
+        symbol = self.safe_symbol(exchangeSymbol, market, '_', marketType)
         # Everything below self(above return) is related to fees
         fees = []
         gtFee = self.safe_string(order, 'gt_fee')
@@ -3351,6 +3484,19 @@ class gate(Exchange):
         numFeeCurrencies = len(fees)
         multipleFeeCurrencies = numFeeCurrencies > 1
         status = self.parse_order_status(rawStatus)
+        filled = self.parse_number(Precise.string_abs(filledString))
+        remaining = self.parse_number(Precise.string_abs(remainingString))
+        # handle spot market buy
+        account = self.safe_string(order, 'account')  # using self instead of market type because of the conflicting ids
+        if account == 'spot':
+            averageString = self.safe_string(order, 'avg_deal_price')
+            average = self.parse_number(averageString)
+            if (type == 'market') and (side == 'buy'):
+                filled = Precise.string_div(filledString, averageString)
+                remaining = Precise.string_div(remainingString, averageString)
+                price = None  # arrives as 0
+                cost = amount
+                amount = Precise.string_div(amount, averageString)
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': self.safe_string(order, 'text'),
@@ -3358,7 +3504,7 @@ class gate(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
-            'symbol': self.safe_symbol(exchangeSymbol),
+            'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -3366,11 +3512,12 @@ class gate(Exchange):
             'side': side,
             'price': self.parse_number(price),
             'stopPrice': self.safe_number(trigger, 'price'),
+            'triggerPrice': self.safe_number(trigger, 'price'),
             'average': average,
             'amount': self.parse_number(Precise.string_abs(amount)),
             'cost': Precise.string_abs(cost),
-            'filled': self.parse_number(Precise.string_abs(filled)),
-            'remaining': self.parse_number(Precise.string_abs(remaining)),
+            'filled': filled,
+            'remaining': remaining,
             'fee': None if multipleFeeCurrencies else self.safe_value(fees, 0),
             'fees': fees if multipleFeeCurrencies else [],
             'trades': None,
@@ -3809,12 +3956,7 @@ class gate(Exchange):
         #        "currency_pair": "BTC_USDT"
         #    }
         #
-        transfer = self.parse_transfer(response, currency)
-        return self.extend(transfer, {
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'amount': self.parse_number(truncated),
-        })
+        return self.parse_transfer(response, currency)
 
     def parse_transfer(self, transfer, currency=None):
         timestamp = self.milliseconds()
@@ -3921,7 +4063,7 @@ class gate(Exchange):
         #     }
         #
         contract = self.safe_string(position, 'contract')
-        market = self.safe_market(contract, market)
+        market = self.safe_market(contract, market, '_', 'contract')
         size = self.safe_string(position, 'size')
         side = None
         if Precise.string_gt(size, '0'):
@@ -4459,7 +4601,7 @@ class gate(Exchange):
             'id': self.safe_integer(info, 'id'),
             'currency': self.safe_currency_code(currencyId, currency),
             'amount': self.safe_number(info, 'amount'),
-            'symbol': self.safe_symbol(marketId, None),
+            'symbol': self.safe_symbol(marketId, None, '_', 'margin'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
@@ -4485,14 +4627,16 @@ class gate(Exchange):
             self.check_required_credentials()
             queryString = ''
             requiresURLEncoding = False
-            if type == 'futures' and method == 'POST':
+            if ((type == 'futures') or (type == 'delivery')) and method == 'POST':
                 pathParts = path.split('/')
                 secondPart = self.safe_string(pathParts, 1, '')
                 requiresURLEncoding = (secondPart.find('dual') >= 0) or (secondPart.find('positions') >= 0)
-            if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding:
+            if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding or (method == 'PATCH'):
                 if query:
                     queryString = self.urlencode(query)
                     url += '?' + queryString
+                if method == 'PATCH':
+                    body = self.json(query)
             else:
                 urlQueryParams = self.safe_value(query, 'query', {})
                 if urlQueryParams:
@@ -4516,6 +4660,155 @@ class gate(Exchange):
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def modify_margin_helper(self, symbol, amount, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request, query = self.prepare_request(market, None, params)
+        request['change'] = self.number_to_string(amount)
+        method = self.get_supported_mapping(market['type'], {
+            'swap': 'privateFuturesPostSettlePositionsContractMargin',
+            'future': 'privateDeliveryPostSettlePositionsContractMargin',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        return self.parse_margin_modification(response, market)
+
+    def parse_margin_modification(self, data, market=None):
+        #
+        #     {
+        #         "value": "11.9257",
+        #         "leverage": "5",
+        #         "mode": "single",
+        #         "realised_point": "0",
+        #         "contract": "ETH_USDT",
+        #         "entry_price": "1203.45",
+        #         "mark_price": "1192.57",
+        #         "history_point": "0",
+        #         "realised_pnl": "-0.00577656",
+        #         "close_order": null,
+        #         "size": "1",
+        #         "cross_leverage_limit": "0",
+        #         "pending_orders": "0",
+        #         "adl_ranking": "5",
+        #         "maintenance_rate": "0.005",
+        #         "unrealised_pnl": "-0.1088",
+        #         "user": "1486602",
+        #         "leverage_max": "100",
+        #         "history_pnl": "0",
+        #         "risk_limit": "1000000",
+        #         "margin": "5.415925875",
+        #         "last_close_pnl": "0",
+        #         "liq_price": "665.69"
+        #     }
+        #
+        contract = self.safe_string(data, 'contract')
+        market = self.safe_market(contract, market, '_', 'contract')
+        total = self.safe_number(data, 'margin')
+        return {
+            'info': data,
+            'amount': None,
+            'code': self.safe_value(market, 'quote'),
+            'symbol': market['symbol'],
+            'total': total,
+            'status': 'ok',
+        }
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        """
+        remove margin from a position
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        """
+        return await self.modify_margin_helper(symbol, -amount, params)
+
+    async def add_margin(self, symbol, amount, params={}):
+        """
+        add margin
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        """
+        return await self.modify_margin_helper(symbol, amount, params)
+
+    async def fetch_open_interest_history(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+        """
+        Retrieves the open interest of a currency
+        see https://www.gate.io/docs/developers/apiv4/en/#futures-stats
+        :param str symbol: Unified CCXT market symbol
+        :param str timeframe: "5m", "15m", "30m", "1h", "4h", "1d"
+        :param int|None since: the time(ms) of the earliest record to retrieve as a unix timestamp
+        :param int|None limit: default 30
+        :param dict params: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        request = {
+            'contract': market['id'],
+            'settle': market['settleId'],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
+        }
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['from'] = since
+        response = await self.publicFuturesGetSettleContractStats(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            long_liq_size: '0',
+        #            short_liq_size: '0',
+        #            short_liq_usd: '0',
+        #            lsr_account: '3.2808988764045',
+        #            mark_price: '0.34619',
+        #            top_lsr_size: '0',
+        #            time: '1674057000',
+        #            short_liq_amount: '0',
+        #            long_liq_amount: '0',
+        #            open_interest_usd: '9872386.7775',
+        #            top_lsr_account: '0',
+        #            open_interest: '2851725',
+        #            long_liq_usd: '0',
+        #            lsr_taker: '9.3765153315902'
+        #        },
+        #        ...
+        #    ]
+        #
+        return self.parse_open_interests(response, market, since, limit)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #    {
+        #        long_liq_size: '0',
+        #        short_liq_size: '0',
+        #        short_liq_usd: '0',
+        #        lsr_account: '3.2808988764045',
+        #        mark_price: '0.34619',
+        #        top_lsr_size: '0',
+        #        time: '1674057000',
+        #        short_liq_amount: '0',
+        #        long_liq_amount: '0',
+        #        open_interest_usd: '9872386.7775',
+        #        top_lsr_account: '0',
+        #        open_interest: '2851725',
+        #        long_liq_usd: '0',
+        #        lsr_taker: '9.3765153315902'
+        #    }
+        #
+        timestamp = self.safe_integer_product(interest, 'time', 1000)
+        return {
+            'symbol': self.safe_string(market, 'symbol'),
+            'openInterestAmount': self.safe_number(interest, 'open_interest'),
+            'openInterestValue': self.safe_number(interest, 'open_interest_usd'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

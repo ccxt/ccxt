@@ -451,11 +451,10 @@ declare module 'ccxt' {
     
     /* tslint:disable */
 
-    export class aax extends Exchange {}
+    export class ace extends Exchange {}
     export class alpaca extends Exchange {}
     export class ascendex extends Exchange {}
     export class bequant extends hitbtc {}
-    export class bibox extends Exchange {}
     export class bigone extends Exchange {}
     export class binance extends Exchange {}
     export class binancecoinm extends binance {}
@@ -493,7 +492,6 @@ declare module 'ccxt' {
     export class btcturk extends Exchange {}
     export class buda extends Exchange {}
     export class bybit extends Exchange {}
-    export class bytetrade extends Exchange {}
     export class cex extends Exchange {}
     export class coinbase extends Exchange {}
     export class coinbaseprime extends coinbasepro {}
@@ -504,7 +502,6 @@ declare module 'ccxt' {
     export class coinmate extends Exchange {}
     export class coinone extends Exchange {}
     export class coinspot extends Exchange {}
-    export class crex24 extends Exchange {}
     export class cryptocom extends Exchange {}
     export class currencycom extends Exchange {}
     export class delta extends Exchange {}
@@ -533,7 +530,6 @@ declare module 'ccxt' {
     export class latoken extends Exchange {}
     export class lbank extends Exchange {}
     export class lbank2 extends Exchange {}
-    export class liquid extends Exchange {}
     export class luno extends Exchange {}
     export class lykke extends Exchange {}
     export class mercado extends Exchange {}
@@ -549,8 +545,8 @@ declare module 'ccxt' {
     export class paymium extends Exchange {}
     export class phemex extends Exchange {}
     export class poloniex extends Exchange {}
+    export class poloniexfutures extends Exchange {}
     export class probit extends Exchange {}
-    export class qtrade extends Exchange {}
     export class ripio extends Exchange {}
     export class stex extends Exchange {}
     export class therock extends Exchange {}
@@ -565,18 +561,16 @@ declare module 'ccxt' {
     export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
-    export class zipmex extends ndax {}
     export class zonda extends Exchange {}
 
     
     /* tslint:enable */
 
     export type ExchangeId =
-        | 'aax'
+        | 'ace'
         | 'alpaca'
         | 'ascendex'
         | 'bequant'
-        | 'bibox'
         | 'bigone'
         | 'binance'
         | 'binancecoinm'
@@ -614,7 +608,6 @@ declare module 'ccxt' {
         | 'btcturk'
         | 'buda'
         | 'bybit'
-        | 'bytetrade'
         | 'cex'
         | 'coinbase'
         | 'coinbaseprime'
@@ -625,7 +618,6 @@ declare module 'ccxt' {
         | 'coinmate'
         | 'coinone'
         | 'coinspot'
-        | 'crex24'
         | 'cryptocom'
         | 'currencycom'
         | 'delta'
@@ -654,7 +646,6 @@ declare module 'ccxt' {
         | 'latoken'
         | 'lbank'
         | 'lbank2'
-        | 'liquid'
         | 'luno'
         | 'lykke'
         | 'mercado'
@@ -670,8 +661,8 @@ declare module 'ccxt' {
         | 'paymium'
         | 'phemex'
         | 'poloniex'
+        | 'poloniexfutures'
         | 'probit'
-        | 'qtrade'
         | 'ripio'
         | 'stex'
         | 'therock'
@@ -686,7 +677,6 @@ declare module 'ccxt' {
         | 'yobit'
         | 'zaif'
         | 'zb'
-        | 'zipmex'
         | 'zonda'
         
 
@@ -708,7 +698,7 @@ declare module 'ccxt' {
     export namespace pro {
         export const exchanges: string[]
         class Exchange  extends ExchangePro {}
-        class aax extends Exchange {}
+        class alpaca extends Exchange {}
         class ascendex extends Exchange {}
         class bequant extends Exchange {}
         class binance extends Exchange {}
@@ -718,12 +708,15 @@ declare module 'ccxt' {
         class bitcoincom extends Exchange {}
         class bitfinex extends Exchange {}
         class bitfinex2 extends Exchange {}
+        class bitget extends Exchange {}
         class bitmart extends Exchange {}
         class bitmex extends Exchange {}
         class bitopro extends Exchange {}
+        class bitrue extends Exchange {}
         class bitstamp extends Exchange {}
         class bittrex extends Exchange {}
         class bitvavo extends Exchange {}
+        class btcex extends Exchange {}
         class bybit extends Exchange {}
         class cex extends Exchange {}
         class coinbaseprime extends Exchange {}
@@ -735,14 +728,17 @@ declare module 'ccxt' {
         class exmo extends Exchange {}
         class gate extends Exchange {}
         class gateio extends Exchange {}
+        class gemini extends Exchange {}
         class hitbtc extends Exchange {}
         class hollaex extends Exchange {}
         class huobi extends Exchange {}
         class huobijp extends Exchange {}
         class huobipro extends Exchange {}
         class idex extends Exchange {}
+        class independentreserve extends Exchange {}
         class kraken extends Exchange {}
         class kucoin extends Exchange {}
+        class kucoinfutures extends Exchange {}
         class luno extends Exchange {}
         class mexc extends Exchange {}
         class ndax extends Exchange {}
@@ -754,7 +750,7 @@ declare module 'ccxt' {
         class upbit extends Exchange {}
         class wazirx extends Exchange {}
         class whitebit extends Exchange {}
+        class woo extends Exchange {}
         class zb extends Exchange {}
-        class zipmex extends Exchange {}
     }
 }

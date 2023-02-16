@@ -740,40 +740,55 @@ class wavesexchange extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
-        //     {
-        //         "__type":"pair",
-        //         "data":array(
-        //             "firstPrice":0.00012512,
-        //             "lastPrice":0.00012441,
-        //             "low":0.00012167,
-        //             "high":0.00012768,
-        //             "weightedAveragePrice":0.000124710697407246,
-        //             "volume":209554.26356614,
-        //             "quoteVolume":26.1336583539951,
-        //             "volumeWaves":209554.26356614,
-        //             "txsCount":6655
-        //         ),
-        //         "amountAsset":"WAVES",
-        //         "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
-        //     }
+        //       {
+        //           "symbol" => "WAVES/BTC",
+        //           "amountAssetID" => "WAVES",
+        //           "amountAssetName" => "Waves",
+        //           "amountAssetDecimals" => 8,
+        //           "amountAssetTotalSupply" => "106908766.00000000",
+        //           "amountAssetMaxSupply" => "106908766.00000000",
+        //           "amountAssetCirculatingSupply" => "106908766.00000000",
+        //           "priceAssetID" => "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //           "priceAssetName" => "WBTC",
+        //           "priceAssetDecimals" => 8,
+        //           "priceAssetTotalSupply" => "20999999.96007507",
+        //           "priceAssetMaxSupply" => "20999999.96007507",
+        //           "priceAssetCirculatingSupply" => "20999999.66019601",
+        //           "24h_open" => "0.00032688",
+        //           "24h_high" => "0.00033508",
+        //           "24h_low" => "0.00032443",
+        //           "24h_close" => "0.00032806",
+        //           "24h_vwap" => "0.00032988",
+        //           "24h_volume" => "42349.69440104",
+        //           "24h_priceVolume" => "13.97037207",
+        //           "timestamp":1640232379124
+        //       }
         //
-        $timestamp = null;
-        $baseId = $this->safe_string($ticker, 'amountAsset');
-        $quoteId = $this->safe_string($ticker, 'priceAsset');
-        $symbol = null;
-        if (($baseId !== null) && ($quoteId !== null)) {
-            $marketId = $baseId . '/' . $quoteId;
-            $market = $this->safe_market($marketId, $market, '/');
-            $symbol = $market['symbol'];
-        }
-        $data = $this->safe_value($ticker, 'data', array());
-        $last = $this->safe_string($data, 'lastPrice');
-        $low = $this->safe_string($data, 'low');
-        $high = $this->safe_string($data, 'high');
-        $vwap = $this->safe_string($data, 'weightedAveragePrice');
-        $baseVolume = $this->safe_string($data, 'volume');
-        $quoteVolume = $this->safe_string($data, 'quoteVolume');
-        $open = $this->safe_string($data, 'firstPrice');
+        //  fetch $ticker
+        //
+        //       {
+        //           firstPrice => '21749',
+        //           lastPrice => '22000',
+        //           volume => '0.73747149',
+        //           $quoteVolume => '16409.44564928645471',
+        //           $high => '23589.999941',
+        //           $low => '21010.000845',
+        //           weightedAveragePrice => '22250.955964',
+        //           txsCount => '148',
+        //           volumeWaves => '0.0000000000680511203072'
+        //       }
+        //
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $market = $this->safe_market($marketId, $market, '/');
+        $symbol = $market['symbol'];
+        $last = $this->safe_string_2($ticker, '24h_close', 'lastPrice');
+        $low = $this->safe_string_2($ticker, '24h_low', 'low');
+        $high = $this->safe_string_2($ticker, '24h_high', 'high');
+        $vwap = $this->safe_string_2($ticker, '24h_vwap', 'weightedAveragePrice');
+        $baseVolume = $this->safe_string_2($ticker, '24h_volume', 'volume');
+        $quoteVolume = $this->safe_string_2($ticker, '24h_priceVolume', 'quoteVolume');
+        $open = $this->safe_string_2($ticker, '24h_open', 'firstPrice');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -836,7 +851,8 @@ class wavesexchange extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $ticker = $this->safe_value($data, 0, array());
-        return $this->parse_ticker($ticker, $market);
+        $dataTicker = $this->safe_value($ticker, 'data', array());
+        return $this->parse_ticker($dataTicker, $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -844,35 +860,39 @@ class wavesexchange extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the aax api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
-        $response = $this->publicGetPairs ($params);
+        $response = $this->marketGetTickers ($params);
         //
-        //     {
-        //         "__type":"list",
-        //         "data":array(
-        //             {
-        //                 "__type":"pair",
-        //                 "data":array(
-        //                     "firstPrice":0.00012512,
-        //                     "lastPrice":0.00012441,
-        //                     "low":0.00012167,
-        //                     "high":0.00012768,
-        //                     "weightedAveragePrice":0.000124710697407246,
-        //                     "volume":209554.26356614,
-        //                     "quoteVolume":26.1336583539951,
-        //                     "volumeWaves":209554.26356614,
-        //                     "txsCount":6655
-        //                 ),
-        //                 "amountAsset":"WAVES",
-        //                 "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
-        //             }
-        //         )
-        //     }
+        //   array(
+        //       {
+        //           "symbol" => "WAVES/BTC",
+        //           "amountAssetID" => "WAVES",
+        //           "amountAssetName" => "Waves",
+        //           "amountAssetDecimals" => 8,
+        //           "amountAssetTotalSupply" => "106908766.00000000",
+        //           "amountAssetMaxSupply" => "106908766.00000000",
+        //           "amountAssetCirculatingSupply" => "106908766.00000000",
+        //           "priceAssetID" => "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //           "priceAssetName" => "WBTC",
+        //           "priceAssetDecimals" => 8,
+        //           "priceAssetTotalSupply" => "20999999.96007507",
+        //           "priceAssetMaxSupply" => "20999999.96007507",
+        //           "priceAssetCirculatingSupply" => "20999999.66019601",
+        //           "24h_open" => "0.00032688",
+        //           "24h_high" => "0.00033508",
+        //           "24h_low" => "0.00032443",
+        //           "24h_close" => "0.00032806",
+        //           "24h_vwap" => "0.00032988",
+        //           "24h_volume" => "42349.69440104",
+        //           "24h_priceVolume" => "13.97037207",
+        //           "timestamp":1640232379124
+        //       }
+        //       ...
+        //   )
         //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_tickers($data, $symbols);
+        return $this->parse_tickers($response, $symbols);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -890,7 +910,7 @@ class wavesexchange extends Exchange {
         $request = array(
             'baseId' => $market['baseId'],
             'quoteId' => $market['quoteId'],
-            'interval' => $this->timeframes[$timeframe],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $allowedCandles = $this->safe_integer($this->options, 'allowedCandles', 1440);
         if ($limit === null) {
@@ -1701,6 +1721,7 @@ class wavesexchange extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'average' => $average,

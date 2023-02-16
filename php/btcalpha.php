@@ -60,7 +60,8 @@ class btcalpha extends Exchange {
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
-                'fetchTicker' => null,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
@@ -101,6 +102,7 @@ class btcalpha extends Exchange {
                         'orderbook/{pair_name}',
                         'exchanges/',
                         'charts/{pair}/{type}/chart/',
+                        'ticker/',
                     ),
                 ),
                 'private' => array(
@@ -223,6 +225,107 @@ class btcalpha extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * @see https://btc-alpha.github.io/api-docs/#tickers
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the btcalpha api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
+        $this->load_markets();
+        $response = $this->publicGetTicker ($params);
+        //
+        //    array(
+        //        array(
+        //            timestamp => '1674658.445272',
+        //            pair => 'BTC_USDT',
+        //            last => '22476.85',
+        //            diff => '458.96',
+        //            vol => '6660.847784',
+        //            high => '23106.08',
+        //            low => '22348.29',
+        //            buy => '22508.46',
+        //            sell => '22521.11'
+        //        ),
+        //        ...
+        //    )
+        //
+        return $this->parse_tickers($response, $symbols);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * @see https://btc-alpha.github.io/api-docs/#tickers
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} $params extra parameters specific to the btcalpha api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'pair' => $market['id'],
+        );
+        $response = $this->publicGetTicker (array_merge($request, $params));
+        //
+        //    {
+        //        timestamp => '1674658.445272',
+        //        pair => 'BTC_USDT',
+        //        last => '22476.85',
+        //        diff => '458.96',
+        //        vol => '6660.847784',
+        //        high => '23106.08',
+        //        low => '22348.29',
+        //        buy => '22508.46',
+        //        sell => '22521.11'
+        //    }
+        //
+        return $this->parse_ticker($response, $market);
+    }
+
+    public function parse_ticker($ticker, $market = null) {
+        //
+        //    {
+        //        $timestamp => '1674658.445272',
+        //        pair => 'BTC_USDT',
+        //        $last => '22476.85',
+        //        diff => '458.96',
+        //        vol => '6660.847784',
+        //        high => '23106.08',
+        //        low => '22348.29',
+        //        buy => '22508.46',
+        //        sell => '22521.11'
+        //    }
+        //
+        $timestamp = $this->safe_integer_product($ticker, 'timestamp', 1000000);
+        $marketId = $this->safe_string($ticker, 'pair');
+        $market = $this->safe_market($marketId, $market, '_');
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
+            'info' => $ticker,
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
+            'bidVolume' => null,
+            'ask' => $this->safe_string($ticker, 'sell'),
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => null,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => $this->safe_string($ticker, 'diff'),
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => $this->safe_string($ticker, 'vol'),
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -480,7 +583,7 @@ class btcalpha extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
-            'type' => $this->timeframes[$timeframe],
+            'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -593,6 +696,7 @@ class btcalpha extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'amount' => $amount,
             'filled' => $filled,

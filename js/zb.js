@@ -36,7 +36,7 @@ module.exports = class zb extends Exchange {
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -1332,21 +1332,23 @@ module.exports = class zb extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.spotV1PublicGetAllTicker (params);
         const result = {};
         const marketsByIdWithoutUnderscore = {};
-        const marketIds = Object.keys (this.markets_by_id);
+        const marketIds = this.ids;
         for (let i = 0; i < marketIds.length; i++) {
-            const tickerId = marketIds[i].replace ('_', '');
-            marketsByIdWithoutUnderscore[tickerId] = this.markets_by_id[marketIds[i]];
+            const marketId = marketIds[i];
+            const tickerId = marketId.replace ('_', '');
+            marketsByIdWithoutUnderscore[tickerId] = marketId;
         }
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
-            const market = this.safeValue (marketsByIdWithoutUnderscore, ids[i]);
+            const marketId = this.safeValue (marketsByIdWithoutUnderscore, ids[i]);
+            const market = this.safeMarket (marketId, undefined, '_');
             if (market !== undefined) {
                 const symbol = market['symbol'];
                 const ticker = this.safeValue (response, ids[i]);
@@ -1800,7 +1802,7 @@ module.exports = class zb extends Exchange {
          * @name zb#createOrder
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -2953,6 +2955,7 @@ module.exports = class zb extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': this.safeNumber (order, 'triggerPrice'),
+            'triggerPrice': this.safeNumber (order, 'triggerPrice'),
             'average': this.safeString (order, 'avgPrice'),
             'cost': cost,
             'amount': amount,

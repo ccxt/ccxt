@@ -36,7 +36,7 @@ class bitmex(Exchange):
             'pro': True,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': True,
@@ -50,7 +50,9 @@ class bitmex(Exchange):
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchDepositAddress': False,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
@@ -228,6 +230,33 @@ class bitmex(Exchange):
                 # https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5,  # in seconds
                 'fetchOHLCVOpenTimestamp': True,
+                'networks': {
+                    'BTC': 'btc',
+                    'ETH': 'eth',
+                    'BSC': 'bsc',
+                    'BNB': 'bsc',
+                    'TRON': 'tron',
+                    'ERC20': 'eth',
+                    'BEP20': 'bsc',
+                    'TRC20': 'tron',
+                    'TRX': 'tron',
+                    'AVAX': 'avax',
+                    'NEAR': 'near',
+                    'XTZ': 'xtz',
+                    'DOT': 'dot',
+                    'SOL': 'sol',
+                },
+                'networksById': {
+                    'btc': 'BTC',
+                    'eth': 'ERC20',
+                    'bsc': 'BSC',
+                    'tron': 'TRX',
+                    'avax': 'AVAX',
+                    'near': 'NEAR',
+                    'xtz': 'XTZ',
+                    'dot': 'DOT',
+                    'sol': 'SOL',
+                },
             },
             'commonCurrencies': {
                 'USDt': 'USDT',
@@ -235,6 +264,8 @@ class bitmex(Exchange):
                 'XBT': 'BTC',
                 'Gwei': 'ETH',
                 'GWEI': 'ETH',
+                'LAMP': 'SOL',
+                'LAMp': 'SOL',
             },
         })
 
@@ -514,8 +545,18 @@ class bitmex(Exchange):
             free = self.safe_string(balance, 'availableMargin')
             total = self.safe_string(balance, 'marginBalance')
             if code != 'USDT':
-                free = Precise.string_div(free, '1e8')
-                total = Precise.string_div(total, '1e8')
+                # tmp fix until self PR gets merged
+                # https://github.com/ccxt/ccxt/pull/15311
+                symbol = code + '_USDT'
+                market = self.safe_market(symbol)
+                info = self.safe_value(market, 'info', {})
+                multiplier = self.safe_string(info, 'underlyingToPositionMultiplier')
+                if multiplier is not None:
+                    free = Precise.string_div(free, multiplier)
+                    total = Precise.string_div(total, multiplier)
+                else:
+                    free = Precise.string_div(free, '1e8')
+                    total = Precise.string_div(total, '1e8')
             else:
                 free = Precise.string_div(free, '1e6')
                 total = Precise.string_div(total, '1e6')
@@ -967,24 +1008,24 @@ class bitmex(Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         #
-        #   {
-        #      'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
-        #      'account': 123456,
-        #      'currency': 'XBt',
-        #      'transactType': 'Withdrawal',
-        #      'amount': -100100000,
-        #      'fee': 100000,
-        #      'transactStatus': 'Completed',
-        #      'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
-        #      'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
-        #      'text': '',
-        #      'transactTime': '2019-01-02T01:00:00.000Z',
-        #      'walletBalance': 99900000,
-        #      'marginBalance': None,
-        #      'timestamp': '2019-01-02T13:00:00.000Z'
-        #   }
+        #    {
+        #        'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
+        #        'account': 123456,
+        #        'currency': 'XBt',
+        #        'network':'',
+        #        'transactType': 'Withdrawal',
+        #        'amount': -100100000,
+        #        'fee': 100000,
+        #        'transactStatus': 'Completed',
+        #        'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
+        #        'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
+        #        'text': '',
+        #        'transactTime': '2019-01-02T01:00:00.000Z',
+        #        'walletBalance': 99900000,
+        #        'marginBalance': None,
+        #        'timestamp': '2019-01-02T13:00:00.000Z'
+        #    }
         #
-        id = self.safe_string(transaction, 'transactID')
         currencyId = self.safe_string(transaction, 'currency')
         currency = self.safe_currency(currencyId, currency)
         # For deposits, transactTime == timestamp
@@ -1005,33 +1046,33 @@ class bitmex(Exchange):
         amountString = Precise.string_div(Precise.string_abs(amountString), scale)
         feeCostString = self.safe_string(transaction, 'fee')
         feeCostString = Precise.string_div(feeCostString, scale)
-        fee = {
-            'cost': self.parse_number(feeCostString),
-            'currency': currency['code'],
-        }
         status = self.safe_string(transaction, 'transactStatus')
         if status is not None:
             status = self.parse_transaction_status(status)
         return {
             'info': transaction,
-            'id': id,
-            'txid': None,
+            'id': self.safe_string(transaction, 'transactID'),
+            'txid': self.safe_string(transaction, 'tx'),
+            'type': type,
+            'currency': currency['code'],
+            'network': self.safe_string(transaction, 'status'),
+            'amount': self.parse_number(amountString),
+            'status': status,
             'timestamp': transactTime,
             'datetime': self.iso8601(transactTime),
-            'network': None,
-            'addressFrom': addressFrom,
             'address': address,
+            'addressFrom': addressFrom,
             'addressTo': addressTo,
-            'tagFrom': None,
             'tag': None,
+            'tagFrom': None,
             'tagTo': None,
-            'type': type,
-            'amount': self.parse_number(amountString),
-            'currency': currency['code'],
-            'status': status,
             'updated': timestamp,
             'comment': None,
-            'fee': fee,
+            'fee': {
+                'currency': currency['code'],
+                'cost': self.parse_number(feeCostString),
+                'rate': None,
+            },
         }
 
     def fetch_ticker(self, symbol, params={}):
@@ -1054,7 +1095,7 @@ class bitmex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1360,7 +1401,7 @@ class bitmex(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'binSize': self.timeframes[timeframe],
+            'binSize': self.safe_string(self.timeframes, timeframe, timeframe),
             'partial': True,     # True == include yet-incomplete current bins
             # 'filter': filter,  # filter by individual fields and do advanced queries
             # 'columns': [],    # will return all columns if omitted
@@ -1608,6 +1649,7 @@ class bitmex(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': None,
             'average': average,
@@ -1688,14 +1730,14 @@ class bitmex(Exchange):
         if reduceOnly is not None:
             if (market['type'] != 'swap') and (market['type'] != 'future'):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only')
+        brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
             'orderQty': float(self.amount_to_precision(symbol, amount)),  # lot size multiplied by the number of contracts
             'ordType': orderType,
+            'text': brokerId,
         }
-        if reduceOnly:
-            request['execInst'] = 'ReduceOnly'
         if (orderType == 'Stop') or (orderType == 'StopLimit') or (orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'):
             stopPrice = self.safe_number_2(params, 'stopPx', 'stopPrice')
             if stopPrice is None:
@@ -1728,6 +1770,8 @@ class bitmex(Exchange):
             request['orderQty'] = amount
         if price is not None:
             request['price'] = price
+        brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
+        request['text'] = brokerId
         response = self.privatePutOrder(self.extend(request, params))
         return self.parse_order(response)
 
@@ -2509,6 +2553,41 @@ class bitmex(Exchange):
             'enabled': enabled,
         }
         return self.privatePostPositionIsolate(self.extend(request, params))
+
+    def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        see https://www.bitmex.com/api/explorer/#not /User/User_getDepositAddress
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :param str params['network']: deposit chain, can view all chains via self.publicGetWalletAssets, default is eth, unless the currency has a default chain within self.options['networks']
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
+        self.load_markets()
+        networkCode = self.safe_string_upper(params, 'network')
+        if networkCode is None:
+            raise ArgumentsRequired(self.id + ' fetchDepositAddress requires params["network"]')
+        currency = self.currency(code)
+        currencyId = currency['id']
+        networkId = self.network_code_to_id(networkCode, currency['code'])
+        idLength = len(currencyId)
+        currencyId = currencyId[0:idLength - 1] + currencyId[idLength - 1:idLength].lower()  # make the last letter lowercase
+        params = self.omit(params, 'network')
+        request = {
+            'currency': currencyId,
+            'network': networkId,
+        }
+        response = self.privateGetUserDepositAddress(self.extend(request, params))
+        #
+        #    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
+        #
+        return {
+            'currency': code,
+            'address': response.replace('"', '').replace('"', ''),  # Done twice because some languages only replace the first instance
+            'tag': None,
+            'network': self.network_id_to_code(networkId).upper(),
+            'info': response,
+        }
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
         isAuthenticated = self.check_required_credentials(False)

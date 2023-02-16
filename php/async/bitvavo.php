@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\Precise;
 use React\Async;
 
 class bitvavo extends Exchange {
@@ -562,7 +563,7 @@ class bitvavo extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bitvavo api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTicker24h ($params));
@@ -840,7 +841,7 @@ class bitvavo extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
-                'interval' => $this->timeframes[$timeframe],
+                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 // 'limit' => 1440, // default 1440, max 1440
                 // 'start' => $since,
                 // 'end' => $this->milliseconds(),
@@ -946,23 +947,24 @@ class bitvavo extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the bitvavo api endpoint
-             * @param {string} $params->timeInForce "GTC", "IOC", or "PO"
-             * @param {float} $params->stopPrice The $price at which a trigger order is triggered at
-             * @param {float} $params->triggerPrice The $price at which a trigger order is triggered at
-             * @param {bool} $params->postOnly If true, the order will only be posted to the order book and not executed immediately
-             * @param {float} $params->stopLossPrice The $price at which a stop loss order is triggered at
-             * @param {float} $params->takeProfitPrice The $price at which a take profit order is triggered at
-             * @param {string} $params->triggerType "price"
-             * @param {string} $params->triggerReference "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders => Use this to determine which parameter will trigger the order
-             * @param {string} $params->selfTradePrevention "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
-             * @param {bool} $params->disableMarketProtection don't cancel if the next fill $price is 10% worse than the best fill $price
-             * @param {bool} $params->responseRequired Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
+             * @param {string|null} $params->timeInForce "GTC", "IOC", or "PO"
+             * @param {float|null} $params->stopPrice The $price at which a trigger order is triggered at
+             * @param {float|null} $params->triggerPrice The $price at which a trigger order is triggered at
+             * @param {bool|null} $params->postOnly If true, the order will only be posted to the order book and not executed immediately
+             * @param {float|null} $params->stopLossPrice The $price at which a stop loss order is triggered at
+             * @param {float|null} $params->takeProfitPrice The $price at which a take profit order is triggered at
+             * @param {string|null} $params->triggerType "price"
+             * @param {string|null} $params->triggerReference "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders => Use this to determine which parameter will trigger the order
+             * @param {string|null} $params->selfTradePrevention "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+             * @param {bool|null} $params->disableMarketProtection don't cancel if the next fill $price is 10% worse than the best fill $price
+             * @param {bool|null} $params->responseRequired Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
             Async\await($this->load_markets());
@@ -983,17 +985,20 @@ class bitvavo extends Exchange {
             if ($isMarketOrder) {
                 $cost = null;
                 if ($price !== null) {
-                    $cost = $amount * $price;
+                    $priceString = $this->number_to_string($price);
+                    $amountString = $this->number_to_string($amount);
+                    $quoteAmount = Precise::string_mul($amountString, $priceString);
+                    $cost = $this->parse_number($quoteAmount);
                 } else {
-                    $cost = $this->safe_number_2($params, 'cost', 'amountQuote');
+                    $cost = $this->safe_number($params, 'cost');
                 }
                 if ($cost !== null) {
-                    $precision = $market['precision']['price'];
+                    $precision = $this->currency($market['quote'])['precision'];
                     $request['amountQuote'] = $this->decimal_to_precision($cost, TRUNCATE, $precision, $this->precisionMode);
                 } else {
                     $request['amount'] = $this->amount_to_precision($symbol, $amount);
                 }
-                $params = $this->omit($params, array( 'cost', 'amountQuote' ));
+                $params = $this->omit($params, array( 'cost' ));
             } elseif ($isLimitOrder) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
@@ -1414,6 +1419,11 @@ class bitvavo extends Exchange {
         $remaining = $this->safe_string($order, 'amountRemaining');
         $filled = $this->safe_string($order, 'filledAmount');
         $cost = $this->safe_string($order, 'filledAmountQuote');
+        if ($cost === null) {
+            $amountQuote = $this->safe_string($order, 'amountQuote');
+            $amountQuoteRemaining = $this->safe_string($order, 'amountQuoteRemaining');
+            $cost = Precise::string_sub($amountQuote, $amountQuoteRemaining);
+        }
         $fee = null;
         $feeCost = $this->safe_number($order, 'feePaid');
         if ($feeCost !== null) {
@@ -1443,6 +1453,7 @@ class bitvavo extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,

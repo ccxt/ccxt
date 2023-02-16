@@ -22,6 +22,7 @@ from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
+from ccxt.base.precise import Precise
 
 
 class bitvavo(Exchange):
@@ -552,7 +553,7 @@ class bitvavo(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitvavo api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetTicker24h(params)
@@ -810,7 +811,7 @@ class bitvavo(Exchange):
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'limit': 1440,  # default 1440, max 1440
             # 'start': since,
             # 'end': self.milliseconds(),
@@ -902,23 +903,24 @@ class bitvavo(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
         create a trade order
+        see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitvavo api endpoint
-        :param str params['timeInForce']: "GTC", "IOC", or "PO"
-        :param float params['stopPrice']: The price at which a trigger order is triggered at
-        :param float params['triggerPrice']: The price at which a trigger order is triggered at
-        :param bool params['postOnly']: If True, the order will only be posted to the order book and not executed immediately
-        :param float params['stopLossPrice']: The price at which a stop loss order is triggered at
-        :param float params['takeProfitPrice']: The price at which a take profit order is triggered at
-        :param str params['triggerType']: "price"
-        :param str params['triggerReference']: "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use self to determine which parameter will trigger the order
-        :param str params['selfTradePrevention']: "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
-        :param bool params['disableMarketProtection']: don't cancel if the next fill price is 10% worse than the best fill price
-        :param bool params['responseRequired']: Set self to 'false' when only an acknowledgement of success or failure is required, self is faster.
+        :param str|None params['timeInForce']: "GTC", "IOC", or "PO"
+        :param float|None params['stopPrice']: The price at which a trigger order is triggered at
+        :param float|None params['triggerPrice']: The price at which a trigger order is triggered at
+        :param bool|None params['postOnly']: If True, the order will only be posted to the order book and not executed immediately
+        :param float|None params['stopLossPrice']: The price at which a stop loss order is triggered at
+        :param float|None params['takeProfitPrice']: The price at which a take profit order is triggered at
+        :param str|None params['triggerType']: "price"
+        :param str|None params['triggerReference']: "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use self to determine which parameter will trigger the order
+        :param str|None params['selfTradePrevention']: "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+        :param bool|None params['disableMarketProtection']: don't cancel if the next fill price is 10% worse than the best fill price
+        :param bool|None params['responseRequired']: Set self to 'false' when only an acknowledgement of success or failure is required, self is faster.
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -939,15 +941,18 @@ class bitvavo(Exchange):
         if isMarketOrder:
             cost = None
             if price is not None:
-                cost = amount * price
+                priceString = self.number_to_string(price)
+                amountString = self.number_to_string(amount)
+                quoteAmount = Precise.string_mul(amountString, priceString)
+                cost = self.parse_number(quoteAmount)
             else:
-                cost = self.safe_number_2(params, 'cost', 'amountQuote')
+                cost = self.safe_number(params, 'cost')
             if cost is not None:
-                precision = market['precision']['price']
+                precision = self.currency(market['quote'])['precision']
                 request['amountQuote'] = self.decimal_to_precision(cost, TRUNCATE, precision, self.precisionMode)
             else:
                 request['amount'] = self.amount_to_precision(symbol, amount)
-            params = self.omit(params, ['cost', 'amountQuote'])
+            params = self.omit(params, ['cost'])
         elif isLimitOrder:
             request['price'] = self.price_to_precision(symbol, price)
             request['amount'] = self.amount_to_precision(symbol, amount)
@@ -1329,6 +1334,10 @@ class bitvavo(Exchange):
         remaining = self.safe_string(order, 'amountRemaining')
         filled = self.safe_string(order, 'filledAmount')
         cost = self.safe_string(order, 'filledAmountQuote')
+        if cost is None:
+            amountQuote = self.safe_string(order, 'amountQuote')
+            amountQuoteRemaining = self.safe_string(order, 'amountQuoteRemaining')
+            cost = Precise.string_sub(amountQuote, amountQuoteRemaining)
         fee = None
         feeCost = self.safe_number(order, 'feePaid')
         if feeCost is not None:
@@ -1357,6 +1366,7 @@ class bitvavo(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': None,

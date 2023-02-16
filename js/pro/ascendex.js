@@ -92,7 +92,7 @@ module.exports = class ascendex extends ascendexRest {
         if ((limit === undefined) || (limit > 1440)) {
             limit = 100;
         }
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const channel = 'bar' + ':' + interval + ':' + market['id'];
         params = {
             'ch': channel,
@@ -672,6 +672,7 @@ module.exports = class ascendex extends ascendexRest {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,
@@ -702,32 +703,31 @@ module.exports = class ascendex extends ascendexRest {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 }
             }
+            return false;
         } catch (e) {
             if (e instanceof AuthenticationError) {
-                client.reject (e, 'authenticated');
-                const method = 'auth';
-                if (method in client.subscriptions) {
-                    delete client.subscriptions[method];
+                const messageHash = 'authenticated';
+                client.reject (e, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
                 }
-                return false;
             } else {
                 client.reject (e);
             }
+            return true;
         }
-        return message;
     }
 
     handleAuthenticate (client, message) {
         //
         //     { m: 'auth', id: '1647605234', code: 0 }
         //
-        const future = client.futures['authenticated'];
-        future.resolve (1);
-        return message;
+        const messageHash = 'authenticated';
+        client.resolve (message, messageHash);
     }
 
     handleMessage (client, message) {
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message)) {
             return;
         }
         //
@@ -938,14 +938,12 @@ module.exports = class ascendex extends ascendexRest {
         this.spawn (this.pong, client, message);
     }
 
-    async authenticate (url, params = {}) {
+    authenticate (url, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
         let future = this.safeValue (client.futures, messageHash);
         if (future === undefined) {
-            future = client.future ('authenticated');
-            client.future (messageHash);
             const timestamp = this.milliseconds ().toString ();
             const urlParts = url.split ('/');
             const partsLength = urlParts.length;
@@ -961,8 +959,9 @@ module.exports = class ascendex extends ascendexRest {
                 'key': this.apiKey,
                 'sig': signature,
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params));
+            future = this.watch (url, messageHash, this.extend (request, params));
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 };

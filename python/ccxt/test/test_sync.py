@@ -29,6 +29,9 @@ from test_transaction import test_transaction  # noqa: E402
 
 class Argv(object):
 
+    sandbox = False
+    privateOnly = False
+    private = False
     verbose = False
     nonce = None
     exchange = None
@@ -40,6 +43,9 @@ argv = Argv()
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode')
+parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
+parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
@@ -249,20 +255,16 @@ def test_trades(exchange, symbol):
 def test_orders(exchange, symbol):
     method = 'fetchOrders'
     if exchange.has[method]:
-        skipped_exchanges = [
-            'bitmart',
-            'rightbtc',
-        ]
-        if exchange.id in skipped_exchanges:
-            dump(green(exchange.id), green(symbol), method + '() skipped')
-            return
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching orders...')
-        orders = exchange.fetch_orders(symbol)
-        for order in orders:
-            test_order(exchange, order, symbol, int(time.time() * 1000))
-        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
+        try:
+            orders = exchange.fetch_orders(symbol)
+            for order in orders:
+                test_order(exchange, order, symbol, int(time.time() * 1000))
+            dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
+        except Exception as e:
+            dump_error(green(exchange.id), green(symbol), method + '() failed with:', str(e))
     else:
         dump(green(exchange.id), green(symbol), method + '() is not supported')
 
@@ -363,6 +365,19 @@ def test_balance(exchange):
 
 
 def test_symbol(exchange, symbol, code):
+    if not argv.privateOnly:
+        run_public_tests(exchange, symbol, code)
+
+    if argv.privateOnly or argv.private:
+        if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
+            dump(yellow(exchange.id), 'keys not found, skipping private API tests')
+            return
+        run_private_tests(exchange, symbol, code)
+
+# ------------------------------------------------------------------------------
+
+
+def run_public_tests(exchange, symbol, code):
     dump(green('SYMBOL: ' + symbol))
     dump(green('CODE: ' + code))
     dump('Testing fetch_ticker:' + symbol)
@@ -371,33 +386,31 @@ def test_symbol(exchange, symbol, code):
     test_tickers(exchange, symbol)
     dump('Testing fetch_ohlcv:' + symbol)
     test_ohlcvs(exchange, symbol)
+    dump('Testing fetch_order_book:' + symbol)
+    test_order_book(exchange, symbol)
+    dump('Testing fetch_trades:' + symbol)
+    test_trades(exchange, symbol)
 
-    if exchange.id == 'coinmarketcap':
-        response = exchange.fetchGlobal()
-        dump(green(response))
-    else:
-        dump('Testing fetch_order_book:' + symbol)
-        test_order_book(exchange, symbol)
-        dump('Testing fetch_trades:' + symbol)
-        test_trades(exchange, symbol)
-        if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
-            return
-        method = 'signIn'
-        if exchange.has[method]:
-            dump('Testing ' + method + '()')
-            getattr(exchange, method)()
-        dump('Testing fetch_orders:' + symbol)
-        test_orders(exchange, symbol)
-        dump('Testing fetch_open_orders:' + symbol)
-        test_open_orders(exchange, symbol)
-        dump('Testing fetch_closed_orders:' + symbol)
-        test_closed_orders(exchange, symbol)
-        dump('Testing fetch_transactions:' + code)
-        test_transactions(exchange, code)
-        dump('Testing fetch_balance')
-        test_balance(exchange)
-        dump('Testing fetch_positions:' + symbol)
-        test_positions(exchange, symbol)
+# ------------------------------------------------------------------------------
+
+
+def run_private_tests(exchange, symbol, code):
+    method = 'signIn'
+    if exchange.has[method]:
+        dump('Testing ' + method + '()')
+        getattr(exchange, method)()
+    dump('Testing fetch_orders:' + symbol)
+    test_orders(exchange, symbol)
+    dump('Testing fetch_open_orders:' + symbol)
+    test_open_orders(exchange, symbol)
+    dump('Testing fetch_closed_orders:' + symbol)
+    test_closed_orders(exchange, symbol)
+    dump('Testing fetch_transactions:' + code)
+    test_transactions(exchange, code)
+    dump('Testing fetch_balance')
+    test_balance(exchange)
+    dump('Testing fetch_positions:' + symbol)
+    test_positions(exchange, symbol)
 
 # ------------------------------------------------------------------------------
 
@@ -418,6 +431,16 @@ def get_test_symbol(exchange, symbols):
     return symbol
 
 
+def get_exchange_code(exchange, codes=None):
+    if codes is None:
+        codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT']
+    code = codes[0]
+    for i in range(0, len(codes)):
+        if codes[i] in exchange.currencies:
+            code = codes[i]
+    return code
+
+
 def test_exchange(exchange, symbol=None):
 
     dump(green('EXCHANGE: ' + exchange.id))
@@ -425,7 +448,6 @@ def test_exchange(exchange, symbol=None):
 
     # ..........................................................................
     # public API
-
     codes = [
         'BTC',
         'ETH',
@@ -459,10 +481,7 @@ def test_exchange(exchange, symbol=None):
         'ZRX',
     ]
 
-    code = codes[0]
-    for i in range(0, len(codes)):
-        if codes[i] in exchange.currencies:
-            code = codes[i]
+    code = get_exchange_code(exchange, codes)
 
     if not symbol:
         symbol = get_test_symbol(exchange, [
@@ -549,9 +568,11 @@ def try_all_proxies(exchange, proxies=['']):
         current_proxy = proxies.index(exchange.proxy)
     for num_retries in range(0, max_retries):
         try:
-            exchange.proxy = proxies[current_proxy]
-            dump(green(exchange.id), 'using proxy', '`' + exchange.proxy + '`')
-            current_proxy = (current_proxy + 1) % len(proxies)
+            # do not use cors proxy when using a http proxy
+            if not hasattr(exchange, "httpProxy"):
+                exchange.proxy = proxies[current_proxy]
+                dump(green(exchange.id), 'using proxy', '`' + exchange.proxy + '`')
+                current_proxy = (current_proxy + 1) % len(proxies)
             load_exchange(exchange)
             test_exchange(exchange)
         except (ccxt.RequestTimeout, ccxt.AuthenticationError, ccxt.NotSupported, ccxt.DDoSProtection, ccxt.ExchangeNotAvailable, ccxt.ExchangeError) as e:
@@ -563,6 +584,18 @@ def try_all_proxies(exchange, proxies=['']):
             return True
     # exception
     return False
+
+
+# ------------------------------------------------------------------------------
+
+def read_credentials_from_env(exchange):
+    requiredCredentials = exchange.requiredCredentials
+    for credential, isRequired in requiredCredentials.items():
+        if isRequired and credential and not getattr(exchange, credential, None):
+            credentialEnvName = (exchange.id + '_' + credential).upper()  # example: KRAKEN_APIKEY
+            if credentialEnvName in os.environ:
+                credentialValue = os.environ[credentialEnvName]
+                setattr(exchange, credential, credentialValue)
 
 
 # ------------------------------------------------------------------------------
@@ -584,8 +617,6 @@ with open(keys_file, encoding='utf8') as file:
 
 # instantiate all exchanges
 for id in ccxt.exchanges:
-    if id == 'theocean':
-        continue
     exchange = getattr(ccxt, id)
     exchange_config = {'verbose': argv.verbose}
     if sys.version_info[0] < 3:
@@ -594,6 +625,9 @@ for id in ccxt.exchanges:
         exchange_config = ccxt.Exchange.deep_extend(exchange_config, config[id])
     exchanges[id] = exchange(exchange_config)
 
+    # check auth keys in env var
+    read_credentials_from_env(exchanges[id])
+
 # ------------------------------------------------------------------------------
 
 
@@ -601,21 +635,26 @@ def main():
 
     if argv.exchange:
 
-        if argv.exchange != 'theocean':
+        exchange = exchanges[argv.exchange]
+        symbol = argv.symbol
+        if hasattr(exchange, 'skip') and exchange.skip:
+            dump(green(exchange.id), 'skipped')
+        elif hasattr(exchange, 'alias') and exchange.alias:
+            dump(green(exchange.id), 'Skipped alias')
+        else:
+            # add http proxy if any
+            if hasattr(exchange, 'httpProxy'):
+                exchange.aiohttp_proxy = exchange.httpProxy
 
-            exchange = exchanges[argv.exchange]
-            symbol = argv.symbol
+            if argv.sandbox or getattr(exchange, 'sandbox', None):
+                exchange.set_sandbox_mode(True)
 
-            if hasattr(exchange, 'skip') and exchange.skip:
-                dump(green(exchange.id), 'skipped')
-            elif hasattr(exchange, 'alias') and exchange.alias:
-                dump(green(exchange.id), 'Skipped alias')
+            if symbol:
+                code = get_exchange_code(exchange)
+                load_exchange(exchange)
+                test_symbol(exchange, symbol, code)
             else:
-                if symbol:
-                    load_exchange(exchange)
-                    test_symbol(exchange, symbol)
-                else:
-                    try_all_proxies(exchange, proxies)
+                try_all_proxies(exchange, proxies)
 
     else:
         for exchange in sorted(exchanges.values(), key=lambda x: x.id):
