@@ -7,6 +7,7 @@ const fs = require ('fs')
 
 const [processPath, , exchangeId, exchangeSymbol] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
+const HttpsProxyAgent = require ('https-proxy-agent')
 
 // ----------------------------------------------------------------------------
 

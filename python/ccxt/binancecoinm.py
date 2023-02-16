@@ -29,7 +29,8 @@ class binancecoinm(binance):
                 'createStopMarketOrder': True,
             },
             'options': {
-                'defaultType': 'delivery',
+                'fetchMarkets': ['inverse'],
+                'defaultSubType': 'inverse',
                 'leverageBrackets': None,
             },
         })

@@ -634,7 +634,7 @@ class mexc3 extends Exchange {
                     'active' => $active,
                     'deposit' => $isDepositEnabled,
                     'withdraw' => $isWithdrawEnabled,
-                    'fee' => $this->safe_number($chain, 'fee'),
+                    'fee' => $fee,
                     'precision' => null,
                     'limits' => array(
                         'withdraw' => array(
@@ -1485,7 +1485,7 @@ class mexc3 extends Exchange {
             $ticker = $this->safe_value($response, 'data', array());
         }
         // when it's single $symbol $request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-        return $this->parse_ticker($ticker, $symbol);
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -4768,6 +4768,7 @@ class mexc3 extends Exchange {
                     'ApiKey' => $this->apiKey,
                     'Request-Time' => $timestamp,
                     'Content-Type' => 'application/json',
+                    'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
                 );
                 if ($method === 'POST') {
                     $auth = $this->json($params);

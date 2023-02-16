@@ -33,7 +33,7 @@ class gemini(Exchange):
             # 120 requests a minute = 2 requests per second =>( 1000ms / rateLimit ) / 2 = 5(public endpoints)
             'rateLimit': 100,
             'version': 'v1',
-            'pro': False,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -131,6 +131,7 @@ class gemini(Exchange):
                     'get': {
                         'v1/symbols': 5,
                         'v1/symbols/details/{symbol}': 5,
+                        'v1/staking/rates': 5,
                         'v1/pubticker/{symbol}': 5,
                         'v2/ticker/{symbol}': 5,
                         'v2/candles/{symbol}/{timeframe}': 5,
@@ -144,6 +145,10 @@ class gemini(Exchange):
                 },
                 'private': {
                     'post': {
+                        'v1/staking/unstake': 1,
+                        'v1/staking/stake': 1,
+                        'v1/staking/rewards': 1,
+                        'v1/staking/history': 1,
                         'v1/order/new': 1,
                         'v1/order/cancel': 1,
                         'v1/wrap/{symbol}': 1,
@@ -159,6 +164,7 @@ class gemini(Exchange):
                         'v1/clearing/cancel': 1,
                         'v1/clearing/confirm': 1,
                         'v1/balances': 1,
+                        'v1/balances/staking': 1,
                         'v1/notionalbalances/{currency}': 1,
                         'v1/transfers': 1,
                         'v1/addresses/{network}': 1,
@@ -171,6 +177,7 @@ class gemini(Exchange):
                         'v1/payments/sen/withdraw': 1,
                         'v1/balances/earn': 1,
                         'v1/earn/interest': 1,
+                        'v1/earn/history': 1,
                         'v1/approvedAddresses/{network}/request': 1,
                         'v1/approvedAddresses/account/{network}': 1,
                         'v1/approvedAddresses/{network}/remove': 1,
@@ -252,6 +259,7 @@ class gemini(Exchange):
                     'fetchDetailsForAllSymbols': False,
                     'fetchDetailsForMarketIds': [],
                 },
+                'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],  # keep self list updated(not available trough web api)
                 'fetchTickerMethod': 'fetchTickerV1',  # fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networkIds': {
                     'bitcoin': 'BTC',
@@ -273,6 +281,7 @@ class gemini(Exchange):
                     'DOGE': 'dogecoin',
                     'XTZ': 'tezos',
                 },
+                'nonce': 'milliseconds',  # if getting a Network 400 error change to seconds
             },
         })
 
@@ -283,7 +292,11 @@ class gemini(Exchange):
         :returns [dict]: an array of objects representing market data
         """
         method = self.safe_value(self.options, 'fetchMarketsMethod', 'fetch_markets_from_api')
-        return getattr(self, method)(params)
+        if method == 'fetch_markets_from_web':
+            usdMarkets = self.fetch_markets_from_web(params)  # get usd markets
+            usdtMarkets = self.fetch_usdt_markets(params)  # get usdt markets
+            return self.array_concat(usdMarkets, usdtMarkets)
+        return self.fetch_markets_from_api(params)
 
     def fetch_markets_from_web(self, params={}):
         # This endpoint so we retry
@@ -401,6 +414,21 @@ class gemini(Exchange):
         }
         return self.safe_value(statuses, status, True)
 
+    def fetch_usdt_markets(self, params={}):
+        # these markets can't be scrapped and fetchMarketsFrom api does an extra call
+        # to load market ids which we don't need here
+        fetchUsdtMarkets = self.safe_value(self.options, 'fetchUsdtMarkets', [])
+        result = []
+        for i in range(0, len(fetchUsdtMarkets)):
+            marketId = fetchUsdtMarkets[i]
+            request = {
+                'symbol': marketId,
+            }
+            # don't use Promise.all here, for some reason the exchange can't handle it and crashes
+            rawResponse = self.publicGetV1SymbolsDetailsSymbol(self.extend(request, params))
+            result.append(self.parse_market(rawResponse))
+        return result
+
     def fetch_markets_from_api(self, params={}):
         response = self.publicGetV1Symbols(params)
         #
@@ -413,42 +441,10 @@ class gemini(Exchange):
         result = {}
         for i in range(0, len(response)):
             marketId = response[i]
-            idLength = len(marketId) - 0
-            baseId = marketId[0:idLength - 3]  # Not True for all markets
-            quoteId = marketId[idLength - 3:idLength]
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            result[marketId] = {
-                'id': marketId,
-                'symbol': base + '/' + quote,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': None,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'price': None,
-                    'amount': None,
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'max': None,
-                    },
-                },
-                'info': marketId,
+            market = {
+                'symbol': marketId,
             }
+            result[marketId] = self.parse_market(market)
         options = self.safe_value(self.options, 'fetchMarketsFromAPI', {})
         fetchDetailsForAllSymbols = self.safe_value(options, 'fetchDetailsForAllSymbols', False)
         fetchDetailsForMarketIds = self.safe_value(options, 'fetchDetailsForMarketIds', [])
@@ -480,60 +476,70 @@ class gemini(Exchange):
         for i in range(0, len(promises)):
             response = promises[i]
             marketId = self.safe_string_lower(response, 'symbol')
-            baseId = self.safe_string(response, 'base_currency')
-            base = self.safe_currency_code(baseId)
-            quoteId = self.safe_string(response, 'quote_currency')
-            quote = self.safe_currency_code(quoteId)
-            status = self.safe_string(response, 'status')
-            result[marketId] = ({
-                'id': marketId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': self.parse_market_active(status),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'price': self.safe_number(response, 'quote_increment'),
-                    'amount': self.safe_number(response, 'tick_size'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(response, 'min_order_size'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'info': response,
-            })
+            result[marketId] = self.parse_market(response)
         return self.to_array(result)
+
+    def parse_market(self, response):
+        marketId = self.safe_string_lower(response, 'symbol')
+        baseId = self.safe_string(response, 'base_currency')
+        quoteId = self.safe_string(response, 'quote_currency')
+        if baseId is None:
+            idLength = len(marketId) - 0
+            isUSDT = marketId.find('usdt') != -1
+            quoteSize = 4 if isUSDT else 3
+            baseId = marketId[0:idLength - quoteSize]  # Not True for all markets
+            quoteId = marketId[idLength - quoteSize:idLength]
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        status = self.safe_string(response, 'status')
+        return {
+            'id': marketId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': self.parse_market_active(status),
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'price': self.safe_number(response, 'quote_increment'),
+                'amount': self.safe_number(response, 'tick_size'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': self.safe_number(response, 'min_order_size'),
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': response,
+        }
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         """
@@ -1343,7 +1349,10 @@ class gemini(Exchange):
         return self.parse_transaction(response, currency)
 
     def nonce(self):
-        return self.milliseconds()
+        nonceMethod = self.safe_string(self.options, 'nonce', 'milliseconds')
+        if nonceMethod == 'milliseconds':
+            return self.milliseconds()
+        return self.seconds()
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         """
@@ -1546,8 +1555,9 @@ class gemini(Exchange):
         """
         self.load_markets()
         market = self.market(symbol)
+        timeframeId = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': timeframeId,
             'symbol': market['id'],
         }
         response = self.publicGetV2CandlesSymbolTimeframe(self.extend(request, params))

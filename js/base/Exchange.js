@@ -2195,8 +2195,8 @@ module.exports = class Exchange {
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 const markets = this.markets_by_id[marketId];
-                const length = markets.length;
-                if (length === 1) {
+                const numMarkets = markets.length;
+                if (numMarkets === 1) {
                     return markets[0];
                 } else {
                     if (marketType === undefined) {
@@ -2344,7 +2344,7 @@ module.exports = class Exchange {
         // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
         // check if params contain the key
-        let value = this.safeString2 (params, optionName, defaultOptionName);
+        let value = this.safeValue2 (params, optionName, defaultOptionName);
         if (value !== undefined) {
             params = this.omit (params, [ optionName, defaultOptionName ]);
         } else {
@@ -2352,16 +2352,22 @@ module.exports = class Exchange {
             const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
             if (exchangeWideMethodOptions !== undefined) {
                 // check if the option is defined in this method's props
-                value = this.safeString2 (exchangeWideMethodOptions, optionName, defaultOptionName);
+                value = this.safeValue2 (exchangeWideMethodOptions, optionName, defaultOptionName);
             }
             if (value === undefined) {
                 // if it's still undefined, check if global exchange-wide option exists
-                value = this.safeString2 (this.options, optionName, defaultOptionName);
+                value = this.safeValue2 (this.options, optionName, defaultOptionName);
             }
             // if it's still undefined, use the default value
             value = (value !== undefined) ? value : defaultValue;
         }
         return [ value, params ];
+    }
+
+    handleOption (methodName, optionName, defaultValue = undefined) {
+        // eslint-disable-next-line no-unused-vars
+        const [ result, empty ] = this.handleOptionAndParams ({}, methodName, optionName, defaultValue);
+        return result;
     }
 
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
