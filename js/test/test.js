@@ -288,7 +288,7 @@ module.exports = class testMainClass extends emptyClass {
                 resultMsg = resultSymbols.join (', ');
             }
         }
-        dump (exchangeSymbolsLength, 'symbols', resultMsg);
+        dump ('Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg);
     }
 
     getTestSymbol (exchange, symbols) {
@@ -439,10 +439,10 @@ module.exports = class testMainClass extends emptyClass {
             swapSymbol = this.getValidSymbol (exchange, false);
         }
         if (spotSymbol !== undefined) {
-            dump ('SPOT SYMBOL:', spotSymbol);
+            dump ('Selected SPOT SYMBOL:', spotSymbol);
         }
         if (swapSymbol !== undefined) {
-            dump ('SWAP SYMBOL:', swapSymbol);
+            dump ('Selected SWAP SYMBOL:', swapSymbol);
         }
         if (!privateOnly) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {

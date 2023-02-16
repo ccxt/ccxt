@@ -306,7 +306,7 @@ class testMainClass extends emptyClass {
                     $resultMsg = implode(', ', $resultSymbols);
                 }
             }
-            dump ($exchangeSymbolsLength, 'symbols', $resultMsg);
+            dump ('Exchange loaded', $exchangeSymbolsLength, 'symbols', $resultMsg);
         }) ();
     }
 
@@ -459,10 +459,10 @@ class testMainClass extends emptyClass {
                 $swapSymbol = $this->get_valid_symbol($exchange, false);
             }
             if ($spotSymbol !== null) {
-                dump ('SPOT SYMBOL:', $spotSymbol);
+                dump ('Selected SPOT SYMBOL:', $spotSymbol);
             }
             if ($swapSymbol !== null) {
-                dump ('SWAP SYMBOL:', $swapSymbol);
+                dump ('Selected SWAP SYMBOL:', $swapSymbol);
             }
             if (!privateOnly) {
                 if ($exchange->has['spot'] && $spotSymbol !== null) {

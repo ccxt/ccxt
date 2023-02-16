@@ -294,7 +294,7 @@ class testMainClass(emptyClass):
                 resultMsg = ', '.join(resultSymbols) + ' + more...'
             else:
                 resultMsg = ', '.join(resultSymbols)
-        dump(exchangeSymbolsLength, 'symbols', resultMsg)
+        dump('Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg)
 
     def get_test_symbol(self, exchange, symbols):
         symbol = None
@@ -424,9 +424,9 @@ class testMainClass(emptyClass):
             spotSymbol = self.get_valid_symbol(exchange, True)
             swapSymbol = self.get_valid_symbol(exchange, False)
         if spotSymbol is not None:
-            dump('SPOT SYMBOL:', spotSymbol)
+            dump('Selected SPOT SYMBOL:', spotSymbol)
         if swapSymbol is not None:
-            dump('SWAP SYMBOL:', swapSymbol)
+            dump('Selected SWAP SYMBOL:', swapSymbol)
         if not privateOnly:
             if exchange.has['spot'] and spotSymbol is not None:
                 exchange.options['type'] = 'spot'
