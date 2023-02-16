@@ -356,20 +356,7 @@ module.exports = class bitmex extends Exchange {
                 'fee': undefined,
                 'fees': undefined,
                 'networks': networks,
-                'address': undefined,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'deposit': {
                         'min': this.parseNumber (Precise.stringMul (minDepositAmount, precision)),
                         'max': undefined,
