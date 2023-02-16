@@ -2586,10 +2586,7 @@ module.exports = class Exchange {
             }
         }
         let symbolValue = symbol;
-        if (symbolValue === undefined) {
-            symbolValue = '';
-        }
-        else if (this.isObject (symbolValue) || Array.isArray(symbolValue)) {
+        if (this.isObject (symbolValue) || Array.isArray(symbolValue)) {
             symbolValue = this.json (symbolValue);
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbolValue);
