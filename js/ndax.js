@@ -2054,11 +2054,10 @@ module.exports = class ndax extends Exchange {
         //        ...
         //    ]"
         //
+        if (typeof response === 'string') {
+            return this.parseTransactions (JSON.parse (response), currency, since, limit);
+        }
         return this.parseTransactions (response, currency, since, limit);
-    }
-
-    onJsonResponse (jsonString) {
-        return jsonString;
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2225,7 +2224,7 @@ module.exports = class ndax extends Exchange {
             id = this.safeString (transaction, 'WithdrawId');
             type = 'withdrawal';
         }
-        const templateForm = this.safeValue2 (transaction, 'TemplateForm', 'DepositInfo');
+        const templateForm = this.parseJson (this.safeValue2 (transaction, 'TemplateForm', 'DepositInfo'));
         let updated = this.safeInteger (transaction, 'LastUpdateTimeStamp');
         if (templateForm !== undefined) {
             updated = this.safeInteger (templateForm, 'LastUpdated', updated);
