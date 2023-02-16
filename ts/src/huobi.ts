@@ -5800,6 +5800,9 @@ export default class huobi extends Exchange {
          * @method
          * @name huobi#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   // linear swaps
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          // coin-m futures
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          // coin-m swaps
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch funding history for
          * @param {int|undefined} limit the maximum number of funding history structures to retrieve
@@ -5816,41 +5819,42 @@ export default class huobi extends Exchange {
         if (since !== undefined) {
             request['start_date'] = since;
         }
-        if (market['linear']) {
-            method = 'contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact';
-            //
-            // {
-            //   status: 'ok',
-            //   data: {
-            //     financial_record: [
-            //       {
-            //         id: '1320088022',
-            //         type: '30',
-            //         amount: '0.004732510000000000',
-            //         ts: '1641168019321',
-            //         contract_code: 'BTC-USDT',
-            //         asset: 'USDT',
-            //         margin_account: 'BTC-USDT',
-            //         face_margin_account: ''
-            //       },
-            //     ],
-            //     remain_size: '0',
-            //     next_id: null
-            //   },
-            //   ts: '1641189898425'
-            // }
-            let marginMode = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchFundingHistory', params);
-            marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-            if (marginMode === 'isolated') {
-                request['mar_acct'] = market['id'];
+        if (marketType === 'swap') {
+            request['contract'] = market['id'];
+            if (market['linear']) {
+                method = 'contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact';
+                //
+                //    {
+                //        status: 'ok',
+                //        data: {
+                //           financial_record: [
+                //               {
+                //                   id: '1320088022',
+                //                   type: '30',
+                //                   amount: '0.004732510000000000',
+                //                   ts: '1641168019321',
+                //                   contract_code: 'BTC-USDT',
+                //                   asset: 'USDT',
+                //                   margin_account: 'BTC-USDT',
+                //                   face_margin_account: ''
+                //               },
+                //           ],
+                //           remain_size: '0',
+                //           next_id: null
+                //        },
+                //        ts: '1641189898425'
+                //    }
+                //
+                let marginMode = undefined;
+                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchFundingHistory', params);
+                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
+                if (marginMode === 'isolated') {
+                    request['mar_acct'] = market['id'];
+                } else {
+                    request['mar_acct'] = market['quoteId'];
+                }
             } else {
-                request['mar_acct'] = market['quoteId'];
-            }
-        } else {
-            if (marketType === 'swap') {
                 method = 'contractPrivatePostSwapApiV3SwapFinancialRecordExact';
-                request['contract'] = market['id'];
                 //
                 //     {
                 //         "code": 200,
@@ -5871,10 +5875,10 @@ export default class huobi extends Exchange {
                 //         "ts": 1604312615051
                 //     }
                 //
-            } else {
-                method = 'contractPrivatePostApiV3ContractFinancialRecordExact';
-                request['symbol'] = market['id'];
             }
+        } else {
+            method = 'contractPrivatePostApiV3ContractFinancialRecordExact';
+            request['symbol'] = market['id'];
         }
         const response = await this[method] (this.extend (request, query));
         const data = this.safeValue (response, 'data', []);
