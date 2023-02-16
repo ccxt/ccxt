@@ -6701,10 +6701,7 @@ class bybit(Exchange):
                     authFull = auth_base + body
                 else:
                     authFull = auth_base + queryEncoded
-                    if path == 'unified/v3/private/order/list':
-                        url += '?' + self.rawencode(query)
-                    else:
-                        url += '?' + self.urlencode(query)
+                    url += '?' + self.rawencode(query)
                 headers['X-BAPI-SIGN'] = self.hmac(self.encode(authFull), self.encode(self.secret))
             else:
                 query = self.extend(params, {
@@ -6731,10 +6728,7 @@ class bybit(Exchange):
                             'Content-Type': 'application/json',
                         }
                 else:
-                    if path == 'contract/v3/private/order/list':
-                        url += '?' + self.rawencode(sortedQuery)
-                    else:
-                        url += '?' + self.urlencode(sortedQuery)
+                    url += '?' + self.rawencode(sortedQuery)
                     url += '&sign=' + signature
         if method == 'POST':
             brokerId = self.safe_string(self.options, 'brokerId')

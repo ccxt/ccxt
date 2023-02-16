@@ -14,6 +14,7 @@ export default class independentreserve extends Exchange {
             'name': 'Independent Reserve',
             'countries': [ 'AU', 'NZ' ], // Australia, New Zealand
             'rateLimit': 1000,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -585,7 +586,7 @@ export default class independentreserve extends Exchange {
                 side = 'sell';
             }
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -599,7 +600,7 @@ export default class independentreserve extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

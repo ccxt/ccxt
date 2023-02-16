@@ -453,6 +453,7 @@ export default class Exchange {
                 'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': undefined,
                 'fetchL2OrderBook': true,
+                'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': undefined,
@@ -3441,6 +3442,45 @@ export default class Exchange {
         return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
     }
 
+    parseLastPrices (pricesData, symbols = undefined, params = {}) {
+        //
+        // the value of tickers is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'marketId1': { ... },
+        //         'marketId2': { ... },
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     [
+        //         { 'market': 'marketId1', ... },
+        //         { 'market': 'marketId2', ... },
+        //         ...
+        //     ]
+        //
+        const results = [];
+        if (Array.isArray (pricesData)) {
+            for (let i = 0; i < pricesData.length; i++) {
+                const priceData = this.extend (this.parseLastPrice (pricesData[i]), params);
+                results.push (priceData);
+            }
+        } else {
+            const marketIds = Object.keys (pricesData);
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const market = this.safeMarket (marketId);
+                const priceData = this.extend (this.parseLastPrice (pricesData[marketId], market), params);
+                results.push (priceData);
+            }
+        }
+        symbols = this.marketSymbols (symbols);
+        return this.filterByArray (results, 'symbol', symbols);
+    }
+
     parseTickers (tickers, symbols = undefined, params = {}) {
         //
         // the value of tickers is either a dict or a list
@@ -3568,6 +3608,10 @@ export default class Exchange {
         } else {
             return false;
         }
+    }
+
+    async fetchLastPrices (params = {}) {
+        throw new NotSupported (this.id + ' fetchLastPrices() is not supported yet');
     }
 
     async fetchTradingFees (params = {}): Promise<any> {
@@ -3860,6 +3904,15 @@ export default class Exchange {
         }
         const sorted = this.sortBy (result, 'timestamp');
         return this.filterBySinceLimit (sorted, since, limit);
+    }
+
+    getMarketFromSymbols (symbols = undefined) {
+        if (symbols === undefined) {
+            return undefined;
+        }
+        const firstMarket = this.safeString (symbols, 0);
+        const market = this.market (firstMarket);
+        return market;
     }
 }
 

@@ -304,6 +304,9 @@ export default class okx extends okxRest {
         // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
         //
         const depth = this.safeString (options, 'depth', 'books');
+        if ((depth === 'books-l2-tbt') || (depth === 'books50-l2-tbt')) {
+            await this.authenticate ({ 'access': 'public' });
+        }
         const orderbook = await this.subscribe ('public', depth, symbol, params);
         return orderbook.limit ();
     }
@@ -519,7 +522,9 @@ export default class okx extends okxRest {
 
     authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws']['private'];
+        const access = this.safeString (params, 'access', 'private');
+        params = this.omit (params, [ 'access' ]);
+        const url = this.urls['api']['ws'][access];
         const messageHash = 'authenticated';
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);

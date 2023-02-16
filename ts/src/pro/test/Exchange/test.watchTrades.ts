@@ -27,7 +27,8 @@ export default async (exchange, symbol) => {
         'ripio',
         'zipmex',
         'coinflex', // to illiquid
-        'woo'
+        'woo',
+        'independentreserve',
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.7.94'
+__version__ = '2.7.104'
 
 # -----------------------------------------------------------------------------
 
@@ -2106,6 +2106,41 @@ class Exchange(BaseExchange):
     def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None, tail=False):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
 
+    def parse_last_prices(self, pricesData, symbols=None, params={}):
+        #
+        # the value of tickers is either a dict or a list
+        #
+        # dict
+        #
+        #     {
+        #         'marketId1': {...},
+        #         'marketId2': {...},
+        #         ...
+        #     }
+        #
+        # list
+        #
+        #     [
+        #         {'market': 'marketId1', ...},
+        #         {'market': 'marketId2', ...},
+        #         ...
+        #     ]
+        #
+        results = []
+        if isinstance(pricesData, list):
+            for i in range(0, len(pricesData)):
+                priceData = self.extend(self.parseLastPrice(pricesData[i]), params)
+                results.append(priceData)
+        else:
+            marketIds = list(pricesData.keys())
+            for i in range(0, len(marketIds)):
+                marketId = marketIds[i]
+                market = self.safe_market(marketId)
+                priceData = self.extend(self.parseLastPrice(pricesData[marketId], market), params)
+                results.append(priceData)
+        symbols = self.market_symbols(symbols)
+        return self.filter_by_array(results, 'symbol', symbols)
+
     def parse_tickers(self, tickers, symbols=None, params={}):
         #
         # the value of tickers is either a dict or a list
@@ -2213,6 +2248,9 @@ class Exchange(BaseExchange):
                 return True
         else:
             return False
+
+    async def fetch_last_prices(self, params={}):
+        raise NotSupported(self.id + ' fetchLastPrices() is not supported yet')
 
     async def fetch_trading_fees(self, params={}):
         raise NotSupported(self.id + ' fetchTradingFees() is not supported yet')
@@ -2449,3 +2487,10 @@ class Exchange(BaseExchange):
             result.append(parsed)
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_since_limit(sorted, since, limit)
+
+    def get_market_from_symbols(self, symbols=None):
+        if symbols is None:
+            return None
+        firstMarket = self.safe_string(symbols, 0)
+        market = self.market(firstMarket)
+        return market

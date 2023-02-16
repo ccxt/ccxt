@@ -311,6 +311,9 @@ class okx extends \ccxt\async\okx {
             // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
             //
             $depth = $this->safe_string($options, 'depth', 'books');
+            if (($depth === 'books-l2-tbt') || ($depth === 'books50-l2-tbt')) {
+                Async\await($this->authenticate(array( 'access' => 'public' )));
+            }
             $orderbook = Async\await($this->subscribe('public', $depth, $symbol, $params));
             return $orderbook->limit ();
         }) ();
@@ -527,7 +530,9 @@ class okx extends \ccxt\async\okx {
 
     public function authenticate($params = array ()) {
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'];
+        $access = $this->safe_string($params, 'access', 'private');
+        $params = $this->omit($params, array( 'access' ));
+        $url = $this->urls['api']['ws'][$access];
         $messageHash = 'authenticated';
         $client = $this->client($url);
         $future = $this->safe_value($client->subscriptions, $messageHash);
