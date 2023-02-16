@@ -1,14 +1,12 @@
-'use strict';
+//  ---------------------------------------------------------------------------
+
+import independentreserveRest from '../independentreserve.js';
+import { NotSupported, InvalidNonce } from '../base/errors.js';
+import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-const independentreserveRest = require ('../independentreserve.js');
-const { NotSupported, InvalidNonce } = require ('../base/errors');
-const { ArrayCache } = require ('./base/Cache');
-
-//  ---------------------------------------------------------------------------
-
-module.exports = class independentreserve extends independentreserveRest {
+export default class independentreserve extends independentreserveRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -289,4 +287,4 @@ module.exports = class independentreserve extends independentreserveRest {
         }
         throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
     }
-};
+}
