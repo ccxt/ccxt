@@ -1858,8 +1858,8 @@ class Transpiler {
 
         this.transpileMainTest ({
             'jsFile': './js/test/test.js',
-            'pyFile': './python/ccxt/test/test_async_transpiled.py',
-            'phpFile': './php/test/test_async_transpiled.php',
+            'pyFile': './python/ccxt/test/transpiled_test_async.py',
+            'phpFile': './php/test/transpiled_test_async.php',
         });
     }
 
@@ -1918,11 +1918,12 @@ class Transpiler {
         phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
         const existinPhpBody = fs.readFileSync (test.phpFile).toString ();
         const newPhp = existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + phpAsync + '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1];
-        overwriteFile (test.phpFile, newPhp)
+        overwriteFile (test.phpFile, newPhp);
 
+        python3 = python3.replace (/from ccxt\.async_support(.*)/g, '');
         const existinPythonBody = fs.readFileSync (test.pyFile).toString ();
-        const newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
-        overwriteFile (test.pyFile, newPython)
+        let newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
+        overwriteFile (test.pyFile, newPython);
     }
 
     // ============================================================================

@@ -57,7 +57,9 @@ global $testMethodsArray;
 $testMethodsArray = [];
 
 foreach (glob(__DIR__ . '/transpiled_test_*.php') as $filename) {
-    include_once $filename;
+    if (strpos($filename, 'transpiled_test_async') === false) {
+        include_once $filename;
+    }
 }
 
 define('testFiles', $testMethodsArray);
@@ -126,7 +128,8 @@ class testMainClass extends emptyClass {
         $exchangeId = $exchange->id;
         $keysGlobal = targetDir . 'keys.json';
         $keysLocal = targetDir . 'keys.local.json';
-        $keysFile = io_file_exists ($keysLocal) ? $keysLocal : $keysGlobal;
+        $fileExists = io_file_exists ($keysLocal);
+        $keysFile = $fileExists ? $keysLocal : $keysGlobal;
         $allSettings = io_file_read ($keysFile);
         $exchangeSettings = $allSettings[$exchangeId];
         if ($exchangeSettings) {

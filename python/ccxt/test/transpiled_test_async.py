@@ -12,21 +12,13 @@ from traceback import format_tb
 # ------------------------------------------------------------------------------
 # logging.basicConfig(level=logging.INFO)
 # ------------------------------------------------------------------------------
-
-root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root = os.path.dirname(os.path.dirname(current_dir))
 sys.path.append(root)
 
-# ------------------------------------------------------------------------------
-
 import ccxt.async_support as ccxt  # noqa: E402
-from test_trade import test_trade  # noqa: E402
-from test_order import test_order  # noqa: E402
-from test_ohlcv import test_ohlcv  # noqa: E402
-from test_position import test_position  # noqa: E402
-from test_transaction import test_transaction  # noqa: E402
 
 # ------------------------------------------------------------------------------
-
 
 class Argv(object):
     token_bucket = False
@@ -39,9 +31,7 @@ class Argv(object):
     symbol = None
     pass
 
-
 argv = Argv()
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--token_bucket', action='store_true', help='enable token bucket experimental test')
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode')
@@ -51,10 +41,19 @@ parser.add_argument('--verbose', action='store_true', help='enable verbose outpu
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
-
 parser.parse_args(namespace=argv)
 
-exchanges = {}
+token_bucket = argv.token_bucket
+sandbox = argv.sandbox
+privateOnly = argv.privateOnly
+privateTest = argv.private
+verbose = argv.verbose
+nonce = argv.nonce
+exchangeName = argv.exchange
+exchangeSymbol = argv.symbol
+
+
+exchange = getattr(ccxt, exchangeName) ({'verbose': verbose})
 
 # ------------------------------------------------------------------------------
 
@@ -65,40 +64,15 @@ if 'site-packages' in os.path.dirname(ccxt.__file__):
     raise Exception("You are running test_async.py/test.py against a globally-installed version of the library! It was previously installed into your site-packages folder by pip or pip3. To ensure testing against the local folder uninstall it first with pip uninstall ccxt or pip3 uninstall ccxt")
 
 # ------------------------------------------------------------------------------
-# string coloring functions
 
-
-def style(s, style):
-    return str(s)  # style + str (s) + '\033[0m'
-
-
-def green(s):
-    return style(s, '\033[92m')
-
-
-def blue(s):
-    return style(s, '\033[94m')
-
-
-def yellow(s):
-    return style(s, '\033[93m')
-
-
-def red(s):
-    return style(s, '\033[91m')
-
-
-def pink(s):
-    return style(s, '\033[95m')
-
-
-def bold(s):
-    return style(s, '\033[1m')
-
-
-def underline(s):
-    return style(s, '\033[4m')
-
+import importlib  # noqa: E402
+import glob  # noqa: E402
+testFiles = {}
+for file_path in glob.glob(current_dir + '/transpiled_*.py'):
+    name = os.path.basename(file_path)[:-3]
+    if (name != 'transpiled_test_async.py'):
+        print(name)
+        testFiles = importlib.import_module(name)
 
 # print a colored string
 def dump(*args):
@@ -112,12 +86,12 @@ def dump_error(*args):
     sys.stderr.write(string + "\n")
     sys.stderr.flush()
 
-
+Error = Exception
 # ------------------------------------------------------------------------------
 
 
 def handle_all_unhandled_exceptions(type, value, traceback):
-    dump_error(yellow(type), yellow(value), '\n\n' + yellow('\n'.join(format_tb(traceback))))
+    dump_error((type), (value), '\n\n' + ('\n'.join(format_tb(traceback))))
     exit(1)  # unrecoverable crash
 
 
@@ -125,6 +99,40 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 # ------------------------------------------------------------------------------
 
+# non-transpiled commons
+targetDir = current_dir + '/../../'
+envVars = {}
+class emptyClass():
+    pass
+
+def io_file_exists(path):
+    return os.path.isfile(path)
+
+def io_file_read(path, decode = True):
+    fs = open(path, "r")
+    content = fs.read()
+    if decode:
+        return json.loads(content)
+    else:
+        return content
+
+def exception_message (exc):
+    return '[' + type(exc).__name__ + '] ' + str(exc)[0:200]
+
+async def call_method(methodName, exchange, args):
+    return await getattr(testFiles,methodName)(exchange, *args)
+
+def add_proxy_agent (exchange, settings):
+    pass
+
+def exit_script():
+    exit()
+
+def get_exchange_prop (exchange, prop, defaultValue = None):
+    return getattr(exchange,prop) if prop in exchange else defaultValue
+
+def set_exchange_prop (exchange, prop, value):
+    setattr(exchange, prop, value)
 
 
 ### AUTO-TRANSPILER-START ###
@@ -133,7 +141,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 # PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
-from ccxt.async_support.emptyClass import emptyClass
+
 import asyncio
 from ccxt.base.errors import NotSupported
 
@@ -148,7 +156,8 @@ class testMainClass(emptyClass):
         exchangeId = exchange.id
         keysGlobal = targetDir + 'keys.json'
         keysLocal = targetDir + 'keys.local.json'
-        keysFile = io_file_exists keysLocal if (keysLocal) else keysGlobal
+        fileExists = io_file_exists(keysLocal)
+        keysFile = keysLocal if fileExists else keysGlobal
         allSettings = io_file_read(keysFile)
         exchangeSettings = allSettings[exchangeId]
         if exchangeSettings:
@@ -534,4 +543,4 @@ class testMainClass(emptyClass):
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    asyncio.run(testMainClass().init(exchange, exchangeSymbol))

@@ -75,10 +75,10 @@ Object.keys (errors)
     });
 
 // non-transpiled commons
-class emptyClass {}
-
 const targetDir = __dirname + '/../../';
 const envVars = process.env;
+
+class emptyClass {}
 
 function io_file_exists(path) {
     return fs.existsSync(path);
@@ -130,7 +130,8 @@ module.exports = class testMainClass extends emptyClass {
         const exchangeId = exchange.id;
         const keysGlobal = targetDir + 'keys.json';
         const keysLocal = targetDir + 'keys.local.json';
-        const keysFile = io_file_exists (keysLocal) ? keysLocal : keysGlobal;
+        const fileExists = io_file_exists (keysLocal);
+        const keysFile = fileExists ? keysLocal : keysGlobal;
         const allSettings = io_file_read (keysFile);
         const exchangeSettings = allSettings[exchangeId];
         if (exchangeSettings) {
