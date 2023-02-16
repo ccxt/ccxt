@@ -3220,12 +3220,12 @@ module.exports = class binance extends Exchange {
         };
         let method = this.safeString (this.options, 'fetchTradesMethod');
         if (method === undefined) {
-            if (market['linear']) {
+            if (market['option']) {
+                method = 'eapiPublicGetTrades';
+            } else if (market['linear']) {
                 method = 'fapiPublicGetAggTrades';
             } else if (market['inverse']) {
                 method = 'dapiPublicGetAggTrades';
-            } else if (market['option']) {
-                method = 'eapiPublicGetTrades';
             } else {
                 method = 'publicGetAggTrades';
             }
