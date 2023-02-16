@@ -885,7 +885,12 @@ module.exports = class binance extends Exchange {
             // exchange-specific options
             'options': {
                 'sandboxMode': false,
-                'fetchMarkets': [ 'spot', 'linear', 'inverse', 'option' ],
+                'fetchMarkets': [
+                    'spot', // allows CORS in browsers
+                    'linear', // allows CORS in browsers
+                    'inverse', // allows CORS in browsers
+                    // 'option', // does not allow CORS, enable outside of the browser only
+                ],
                 'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
