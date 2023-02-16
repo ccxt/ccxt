@@ -64,7 +64,7 @@ global $testMethodsArray;
 $testMethodsArray = [];
 
 foreach (glob(__DIR__ . '/transpiled_test_*.php') as $filename) {
-    if (strpos($filename, 'transpiled_test_async') === false) {
+    if (strpos($filename, 'transpiled_test_async') === false && strpos($filename, 'transpiled_test_sync') === false) {
         include_once $filename;
     }
 }

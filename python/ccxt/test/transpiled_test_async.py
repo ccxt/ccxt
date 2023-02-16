@@ -70,8 +70,7 @@ import glob  # noqa: E402
 testFiles = {}
 for file_path in glob.glob(current_dir + '/transpiled_*.py'):
     name = os.path.basename(file_path)[:-3]
-    if (name != 'transpiled_test_async.py'):
-        print(name)
+    if (name != 'transpiled_test_async') and (name != 'transpiled_test_sync'):
         testFiles = importlib.import_module(name)
 
 # print a colored string
