@@ -822,6 +822,15 @@ module.exports = class bitget extends Exchange {
                     'USD_MIX': 'swap',
                 },
                 'sandboxMode': false,
+                'networks': {
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                    'BSC': 'BEP20',
+                },
+                'networksById': {
+                    'TRC20': 'TRX',
+                    'BSC': 'BEP20',
+                },
             },
         });
     }
@@ -1465,10 +1474,15 @@ module.exports = class bitget extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
+        const networkCode = this.safeString (params, 'network');
+        const networkId = this.networkCodeToId (networkCode, code);
         const currency = this.currency (code);
         const request = {
             'coin': currency['code'],
         };
+        if (networkId !== undefined) {
+            request['chain'] = networkId;
+        }
         const response = await this.privateSpotGetWalletDepositAddress (this.extend (request, params));
         //
         //     {
@@ -1499,11 +1513,12 @@ module.exports = class bitget extends Exchange {
         //
         const currencyId = this.safeString (depositAddress, 'coin');
         const networkId = this.safeString (depositAddress, 'chain');
+        const parsedCurrency = this.safeCurrencyCode (currencyId, currency);
         return {
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': parsedCurrency,
             'address': this.safeString (depositAddress, 'address'),
             'tag': this.safeString (depositAddress, 'tag'),
-            'network': networkId,
+            'network': this.networkIdToCode (networkId, parsedCurrency),
             'info': depositAddress,
         };
     }

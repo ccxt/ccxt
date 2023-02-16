@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.7.95';
+$version = '2.7.104';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.7.95';
+    const VERSION = '2.7.104';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -678,6 +678,7 @@ class Exchange {
         'safeCurrencyCode' => 'safe_currency_code',
         'filterBySymbolSinceLimit' => 'filter_by_symbol_since_limit',
         'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
+        'parseLastPrices' => 'parse_last_prices',
         'parseTickers' => 'parse_tickers',
         'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseBorrowInterests' => 'parse_borrow_interests',
@@ -687,6 +688,7 @@ class Exchange {
         'parseFundingRates' => 'parse_funding_rates',
         'isTriggerOrder' => 'is_trigger_order',
         'isPostOnly' => 'is_post_only',
+        'fetchLastPrices' => 'fetch_last_prices',
         'fetchTradingFees' => 'fetch_trading_fees',
         'fetchTradingFee' => 'fetch_trading_fee',
         'parseOpenInterest' => 'parse_open_interest',
@@ -704,6 +706,7 @@ class Exchange {
         'depositWithdrawFee' => 'deposit_withdraw_fee',
         'assignDefaultDepositWithdrawFees' => 'assign_default_deposit_withdraw_fees',
         'parseIncomes' => 'parse_incomes',
+        'getMarketFromSymbols' => 'get_market_from_symbols',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -4456,6 +4459,45 @@ class Exchange {
         return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
     }
 
+    public function parse_last_prices($pricesData, $symbols = null, $params = array ()) {
+        //
+        // the value of tickers is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'marketId1' => array( ... ),
+        //         'marketId2' => array( ... ),
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     array(
+        //         array( 'market' => 'marketId1', ... ),
+        //         array( 'market' => 'marketId2', ... ),
+        //         ...
+        //     )
+        //
+        $results = array();
+        if (gettype($pricesData) === 'array' && array_keys($pricesData) === array_keys(array_keys($pricesData))) {
+            for ($i = 0; $i < count($pricesData); $i++) {
+                $priceData = array_merge($this->parseLastPrice ($pricesData[$i]), $params);
+                $results[] = $priceData;
+            }
+        } else {
+            $marketIds = is_array($pricesData) ? array_keys($pricesData) : array();
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $market = $this->safe_market($marketId);
+                $priceData = array_merge($this->parseLastPrice ($pricesData[$marketId], $market), $params);
+                $results[] = $priceData;
+            }
+        }
+        $symbols = $this->market_symbols($symbols);
+        return $this->filter_by_array($results, 'symbol', $symbols);
+    }
+
     public function parse_tickers($tickers, $symbols = null, $params = array ()) {
         //
         // the value of $tickers is either a dict or a list
@@ -4582,6 +4624,10 @@ class Exchange {
         } else {
             return false;
         }
+    }
+
+    public function fetch_last_prices($params = array ()) {
+        throw new NotSupported($this->id . ' fetchLastPrices() is not supported yet');
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -4856,5 +4902,14 @@ class Exchange {
         }
         $sorted = $this->sort_by($result, 'timestamp');
         return $this->filter_by_since_limit($sorted, $since, $limit);
+    }
+
+    public function get_market_from_symbols($symbols = null) {
+        if ($symbols === null) {
+            return null;
+        }
+        $firstMarket = $this->safe_string($symbols, 0);
+        $market = $this->market ($firstMarket);
+        return $market;
     }
 }

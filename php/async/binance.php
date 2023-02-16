@@ -75,7 +75,8 @@ class binance extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
-                'fetchL3OrderBook' => false,
+                'fetchL3OrderBook' => null,
+                'fetchLastPrices' => true,
                 'fetchLedger' => null,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
@@ -157,6 +158,7 @@ class binance extends Exchange {
                     'sapi' => 'https://api.binance.com/sapi/v1',
                     'sapiV2' => 'https://api.binance.com/sapi/v2',
                     'sapiV3' => 'https://api.binance.com/sapi/v3',
+                    'sapiV4' => 'https://api.binance.com/sapi/v4',
                     'dapiPublic' => 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate' => 'https://dapi.binance.com/dapi/v1',
                     'eapiPublic' => 'https://eapi.binance.com/eapi/v1',
@@ -505,6 +507,11 @@ class binance extends Exchange {
                     ),
                     'post' => array(
                         'asset/getUserAsset' => 0.5,
+                    ),
+                ),
+                'sapiV4' => array(
+                    'get' => array(
+                        'sub-account/assets' => 1,
                     ),
                 ),
                 // deprecated
@@ -2743,6 +2750,105 @@ class binance extends Exchange {
         }) ();
     }
 
+    public function fetch_last_prices($symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the last price for multiple markets
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the last prices
+             * @param {array} $params extra parameters specific to the binance api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            $market = $this->get_market_from_symbols($symbols);
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
+            $method = null;
+            if ($marketType === 'future') {
+                $method = 'fapiPublicGetTickerPrice';
+                //
+                //     array(
+                //         array(
+                //             "symbol" => "LTCBTC",
+                //             "price" => "4.00000200"
+                //             "time" => 1589437530011
+                //         ),
+                //         ...
+                //     )
+                //
+            } elseif ($marketType === 'delivery') {
+                $method = 'dapiPublicGetTickerPrice';
+                //
+                //     array(
+                //         {
+                //             "symbol" => "BTCUSD_200626",
+                //             "ps" => "9647.8",
+                //             "price" => "9647.8",
+                //             "time" => 1591257246176
+                //         }
+                //     )
+                //
+            } elseif ($marketType === 'spot') {
+                $method = 'publicGetTickerPrice';
+                //
+                //     array(
+                //         array(
+                //             "symbol" => "LTCBTC",
+                //             "price" => "4.00000200"
+                //         ),
+                //         ...
+                //     )
+                //
+            } else {
+                throw new NotSupported($this->id . ' fetchLastPrices() does not support ' . $marketType . ' markets yet');
+            }
+            $response = Async\await($this->$method ($query));
+            return $this->parse_last_prices($response, $symbols);
+        }) ();
+    }
+
+    public function parse_last_price($info, $market = null) {
+        //
+        // spot
+        //
+        //     {
+        //         "symbol" => "LTCBTC",
+        //         "price" => "4.00000200"
+        //     }
+        //
+        // usdm (swap/future)
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "price" => "6000.01",
+        //         "time" => 1589437530011   // Transaction time
+        //     }
+        //
+        //
+        // coinm (swap/future)
+        //
+        //     {
+        //         "symbol" => "BTCUSD_200626", // symbol ("BTCUSD_200626", "BTCUSD_PERP", etc..)
+        //         "ps" => "BTCUSD", // pair
+        //         "price" => "9647.8",
+        //         "time" => 1591257246176
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
+        $timestamp = $this->safe_integer($info, 'time');
+        $price = $this->safe_number($info, 'price');
+        return array(
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'price' => $price,
+            'side' => null,
+            'baseVolume' => null,
+            'quoteVolume' => null,
+            'info' => $info,
+        );
+    }
+
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
@@ -3307,8 +3413,10 @@ class binance extends Exchange {
         $statuses = array(
             'NEW' => 'open',
             'PARTIALLY_FILLED' => 'open',
+            'ACCEPTED' => 'open',
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
+            'CANCELLED' => 'canceled',
             'PENDING_CANCEL' => 'canceling', // currently unused
             'REJECTED' => 'rejected',
             'EXPIRED' => 'expired',
@@ -3431,6 +3539,34 @@ class binance extends Exchange {
         //       "updateTime" => "1636061952660"
         //     }
         //
+        // option => createOrder, fetchOrder, fetchOpenOrders, fetchOrders
+        //
+        //     {
+        //         "orderId" => 4728833085436977152,
+        //         "symbol" => "ETH-230211-1500-C",
+        //         "price" => "10.0",
+        //         "quantity" => "1.00",
+        //         "executedQty" => "0.00",
+        //         "fee" => "0",
+        //         "side" => "BUY",
+        //         "type" => "LIMIT",
+        //         "timeInForce" => "GTC",
+        //         "reduceOnly" => false,
+        //         "postOnly" => false,
+        //         "createTime" => 1676083034462,
+        //         "updateTime" => 1676083034462,
+        //         "status" => "ACCEPTED",
+        //         "avgPrice" => "0",
+        //         "source" => "API",
+        //         "clientOrderId" => "",
+        //         "priceScale" => 1,
+        //         "quantityScale" => 2,
+        //         "optionSide" => "CALL",
+        //         "quoteAsset" => "USDT",
+        //         "lastTrade" => array("id":"69","time":"1676084430567","price":"24.9","qty":"1.00"),
+        //         "mmp" => false
+        //     }
+        //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $marketType = (is_array($order) && array_key_exists('closePosition', $order)) ? 'contract' : 'spot';
@@ -3446,6 +3582,9 @@ class binance extends Exchange {
         } elseif (is_array($order) && array_key_exists('transactTime', $order)) {
             $lastTradeTimestamp = $this->safe_integer($order, 'transactTime');
             $timestamp = $this->safe_integer($order, 'transactTime');
+        } elseif (is_array($order) && array_key_exists('createTime', $order)) {
+            $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
+            $timestamp = $this->safe_integer($order, 'createTime');
         } elseif (is_array($order) && array_key_exists('updateTime', $order)) {
             if ($status === 'open') {
                 if (Precise::string_gt($filled, '0')) {
@@ -3457,7 +3596,7 @@ class binance extends Exchange {
         }
         $average = $this->safe_string($order, 'avgPrice');
         $price = $this->safe_string($order, 'price');
-        $amount = $this->safe_string($order, 'origQty');
+        $amount = $this->safe_string_2($order, 'origQty', 'quantity');
         // - Spot/Margin $market => cummulativeQuoteQty
         // - Futures $market => cumQuote.
         //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
@@ -3466,7 +3605,7 @@ class binance extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
-        $fills = $this->safe_value($order, 'fills', array());
+        $fills = $this->safe_value_2($order, 'fills', 'lastTrade', array());
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         if ($timeInForce === 'GTX') {
@@ -3500,7 +3639,11 @@ class binance extends Exchange {
             'filled' => $filled,
             'remaining' => null,
             'status' => $status,
-            'fee' => null,
+            'fee' => array(
+                'currency' => $this->safe_string($order, 'quoteAsset'),
+                'cost' => $this->safe_number($order, 'fee'),
+                'rate' => null,
+            ),
             'trades' => $fills,
         ), $market);
     }
@@ -3580,14 +3723,6 @@ class binance extends Exchange {
                     $uppercaseType = $market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
                 }
             }
-            $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
-            if (!$this->in_array($uppercaseType, $validOrderTypes)) {
-                if ($initialUppercaseType !== $uppercaseType) {
-                    throw new InvalidOrder($this->id . ' $stopPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
-                } else {
-                    throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
-                }
-            }
             if ($marginMode === 'isolated') {
                 $request['isIsolated'] = true;
             }
@@ -3605,8 +3740,23 @@ class binance extends Exchange {
             if (($marketType === 'spot') || ($marketType === 'margin')) {
                 $request['newOrderRespType'] = $this->safe_value($this->options['newOrderRespType'], $type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
             } else {
-                // delivery and future
+                // swap, futures and options
                 $request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
+            }
+            if ($market['option']) {
+                if ($type === 'market') {
+                    throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
+                }
+                $method = 'eapiPrivatePostOrder';
+            } else {
+                $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
+                if (!$this->in_array($uppercaseType, $validOrderTypes)) {
+                    if ($initialUppercaseType !== $uppercaseType) {
+                        throw new InvalidOrder($this->id . ' $stopPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
+                    } else {
+                        throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
+                    }
+                }
             }
             $request['type'] = $uppercaseType;
             // additional required fields depending on the order $type
@@ -3737,9 +3887,7 @@ class binance extends Exchange {
              * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
              * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', 'spot');
@@ -3749,7 +3897,9 @@ class binance extends Exchange {
                 'symbol' => $market['id'],
             );
             $method = 'privateGetOrder';
-            if ($market['linear']) {
+            if ($market['option']) {
+                $method = 'eapiPrivateGetOrder';
+            } elseif ($market['linear']) {
                 $method = 'fapiPrivateGetOrder';
             } elseif ($market['inverse']) {
                 $method = 'dapiPrivateGetOrder';
@@ -3761,7 +3911,11 @@ class binance extends Exchange {
             }
             $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
             if ($clientOrderId !== null) {
-                $request['origClientOrderId'] = $clientOrderId;
+                if ($market['option']) {
+                    $request['clientOrderId'] = $clientOrderId;
+                } else {
+                    $request['origClientOrderId'] = $clientOrderId;
+                }
             } else {
                 $request['orderId'] = $id;
             }
@@ -3782,9 +3936,7 @@ class binance extends Exchange {
              * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $defaultType = $this->safe_string_2($this->options, 'fetchOrders', 'defaultType', 'spot');
@@ -3794,7 +3946,9 @@ class binance extends Exchange {
                 'symbol' => $market['id'],
             );
             $method = 'privateGetAllOrders';
-            if ($market['linear']) {
+            if ($market['option']) {
+                $method = 'eapiPrivateGetHistoryOrders';
+            } elseif ($market['linear']) {
                 $method = 'fapiPrivateGetAllOrders';
             } elseif ($market['inverse']) {
                 $method = 'dapiPrivateGetAllOrders';
@@ -3855,6 +4009,36 @@ class binance extends Exchange {
             //         }
             //     )
             //
+            // options
+            //
+            //     array(
+            //         {
+            //             "orderId" => 4728833085436977152,
+            //             "symbol" => "ETH-230211-1500-C",
+            //             "price" => "10.0",
+            //             "quantity" => "1.00",
+            //             "executedQty" => "0.00",
+            //             "fee" => "0",
+            //             "side" => "BUY",
+            //             "type" => "LIMIT",
+            //             "timeInForce" => "GTC",
+            //             "reduceOnly" => false,
+            //             "postOnly" => false,
+            //             "createTime" => 1676083034462,
+            //             "updateTime" => 1676083034462,
+            //             "status" => "ACCEPTED",
+            //             "avgPrice" => "0",
+            //             "source" => "API",
+            //             "clientOrderId" => "",
+            //             "priceScale" => 1,
+            //             "quantityScale" => 2,
+            //             "optionSide" => "CALL",
+            //             "quoteAsset" => "USDT",
+            //             "lastTrade" => array("id":"69","time":"1676084430567","price":"24.9","qty":"1.00"),
+            //             "mmp" => false
+            //         }
+            //     )
+            //
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
@@ -3896,7 +4080,15 @@ class binance extends Exchange {
             list($subType, $query) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params);
             $requestParams = $this->omit($query, 'type');
             $method = 'privateGetOpenOrders';
-            if ($this->is_linear($type, $subType)) {
+            if ($type === 'option') {
+                $method = 'eapiPrivateGetOpenOrders';
+                if ($since !== null) {
+                    $request['startTime'] = $since;
+                }
+                if ($limit !== null) {
+                    $request['limit'] = $limit;
+                }
+            } elseif ($this->is_linear($type, $subType)) {
                 $method = 'fapiPrivateGetOpenOrders';
             } elseif ($this->is_inverse($type, $subType)) {
                 $method = 'dapiPrivateGetOpenOrders';
@@ -3938,28 +4130,31 @@ class binance extends Exchange {
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
+            $this->check_required_symbol('cancelOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $defaultType);
-            // https://github.com/ccxt/ccxt/issues/6507
-            $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
             list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrder', $params);
             $request = array(
                 'symbol' => $market['id'],
                 // 'orderId' => $id,
                 // 'origClientOrderId' => $id,
             );
-            if ($origClientOrderId === null) {
-                $request['orderId'] = $id;
+            $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
+            if ($clientOrderId !== null) {
+                if ($market['option']) {
+                    $request['clientOrderId'] = $clientOrderId;
+                } else {
+                    $request['origClientOrderId'] = $clientOrderId;
+                }
             } else {
-                $request['origClientOrderId'] = $origClientOrderId;
+                $request['orderId'] = $id;
             }
             $method = 'privateDeleteOrder';
-            if ($market['linear']) {
+            if ($market['option']) {
+                $method = 'eapiPrivateDeleteOrder';
+            } elseif ($market['linear']) {
                 $method = 'fapiPrivateDeleteOrder';
             } elseif ($market['inverse']) {
                 $method = 'dapiPrivateDeleteOrder';
@@ -3984,9 +4179,7 @@ class binance extends Exchange {
              * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $symbol argument');
-            }
+            $this->check_required_symbol('cancelAllOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -3996,7 +4189,9 @@ class binance extends Exchange {
             $params = $this->omit($params, array( 'type' ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
             $method = 'privateDeleteOpenOrders';
-            if ($market['linear']) {
+            if ($market['option']) {
+                $method = 'eapiPrivateDeleteAllOpenOrders';
+            } elseif ($market['linear']) {
                 $method = 'fapiPrivateDeleteAllOpenOrders';
             } elseif ($market['inverse']) {
                 $method = 'dapiPrivateDeleteAllOpenOrders';
@@ -6614,7 +6809,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
+        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();
             $query = null;
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
