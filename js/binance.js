@@ -3218,31 +3218,17 @@ module.exports = class binance extends Exchange {
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit': 500,     // default = 500, maximum = 1000
         };
-        let defaultMethod = undefined;
-        if (market['linear']) {
-            defaultMethod = 'fapiPublicGetAggTrades';
-        } else if (market['inverse']) {
-            defaultMethod = 'dapiPublicGetAggTrades';
-        } else if (market['option']) {
-            defaultMethod = 'eapiPublicGetTrades';
-        } else {
-            defaultMethod = 'publicGetAggTrades';
-        }
-        let method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
-        if (method === 'publicGetAggTrades') {
+        let method = this.safeString (this.options, 'fetchTradesMethod');
+        if (method === undefined) {
             if (market['linear']) {
                 method = 'fapiPublicGetAggTrades';
             } else if (market['inverse']) {
                 method = 'dapiPublicGetAggTrades';
+            } else if (market['option']) {
+                method = 'eapiPublicGetTrades';
+            } else {
+                method = 'publicGetAggTrades';
             }
-        } else if (method === 'publicGetHistoricalTrades') {
-            if (market['linear']) {
-                method = 'fapiPublicGetHistoricalTrades';
-            } else if (market['inverse']) {
-                method = 'dapiPublicGetHistoricalTrades';
-            }
-        } else {
-            method = 'eapiPublicGetTrades';
         }
         if (!market['option']) {
             if (since !== undefined) {
