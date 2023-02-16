@@ -1803,6 +1803,59 @@ class Transpiler {
     // ============================================================================
 
     transpileExchangeTests () {
+        const tests = [
+            {
+                'jsFile': './js/test/Exchange/test.market.js',
+                'pyFile': './python/ccxt/test/test_market.py',
+                'phpFile': './php/test/test_market.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.trade.js',
+                'pyFile': './python/ccxt/test/test_trade.py',
+                'phpFile': './php/test/test_trade.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.order.js',
+                'pyFile': './python/ccxt/test/test_order.py',
+                'phpFile': './php/test/test_order.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.position.js',
+                'pyFile': './python/ccxt/test/test_position.py',
+                'phpFile': './php/test/test_position.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.transaction.js',
+                'pyFile': './python/ccxt/test/test_transaction.py',
+                'phpFile': './php/test/test_transaction.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.ohlcv.js',
+                'pyFile': './python/ccxt/test/test_ohlcv.py',
+                'phpFile': './php/test/test_ohlcv.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.leverageTier.js',
+                'pyFile': './python/ccxt/test/test_leverage_tier.py',
+                'phpFile': './php/test/test_leverage_tier.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.account.js',
+                'pyFile': './python/ccxt/test/test_account.py',
+                'phpFile': './php/test/test_account.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.marginModification.js',
+                'pyFile': './python/ccxt/test/test_margin_modification.py',
+                'phpFile': './php/test/test_margin_modification.php',
+            },
+        ]
+        for (const test of tests) {
+            this.transpileTest (test)
+        }
+    }
+
+    transpileExchangeTestsAuto () {
         const baseFolders = {
             js: './js/test/Exchange/',
             py: './python/ccxt/test/',
@@ -1830,18 +1883,19 @@ class Transpiler {
         // transpile all collected files
         for (const originalJsFileName of JsFilesToTranspile) {
             const unCamelCasedFileName = unCamelCase (originalJsFileName).replace (/\./g, '_');
+            const prefix = 'transpiled_';
             const test = {
-                jsFile: baseFolders.js + originalJsFileName + '.js',
-                pyFile: baseFolders.py + unCamelCasedFileName + '.py',
-                phpFile: baseFolders.php + unCamelCasedFileName + '.php',
+                jsFile: baseFolders.js + prefix + originalJsFileName + '.js',
+                pyFile: baseFolders.py + prefix + unCamelCasedFileName + '.py',
+                phpFile: baseFolders.php + prefix + unCamelCasedFileName + '.php',
             };
-            this.transpileTest (test);
+            this.transpileTest (test, true);
         }
     }
 
     // ============================================================================
 
-    transpileTest (test) {
+    transpileTest (test, autoVersion = false) {
         log.magenta ('Transpiling from', test.jsFile.yellow)
         let js = fs.readFileSync (test.jsFile).toString ()
 
@@ -1868,15 +1922,17 @@ class Transpiler {
             pythonHeader.push ('import numbers  # noqa E402')
         }
 
-        if (containsCommonItems) {
-            pythonHeader.push ('import test_common_items  # noqa E402')
-            python3Body = commonTestMethodsUnCamelCase(python3Body, true)
-        }
+        if (autoVersion) {
+            if (containsCommonItems) {
+                pythonHeader.push ('import test_common_items  # noqa E402')
+                python3Body = commonTestMethodsUnCamelCase(python3Body, true)
+            }
 
-        if (containsPrecise) {
-            pythonHeader.push ('from ccxt.base.precise import Precise  # noqa E402')
+            if (containsPrecise) {
+                pythonHeader.push ('from ccxt.base.precise import Precise  # noqa E402')
+            }
         }
-    
+        
         if (pythonHeader.length > 0) {
             pythonHeader.unshift ('')
             pythonHeader.push ('', '')
@@ -1887,12 +1943,14 @@ class Transpiler {
         const python = pythonHeader + python3Body
 
         // php
-        let phpPreamble = this.getPHPPreamble (false)
-        if (containsPrecise) {
-            phpPreamble = phpPreamble.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;')
-        }
-        if (containsCommonItems) {
-            phpBody = commonTestMethodsUnCamelCase(phpBody, false)
+        if (autoVersion) {
+            let phpPreamble = this.getPHPPreamble (false)
+            if (containsPrecise) {
+                phpPreamble = phpPreamble.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;')
+            }
+            if (containsCommonItems) {
+                phpBody = commonTestMethodsUnCamelCase(phpBody, false)
+            }
         }
         const php = phpPreamble + phpBody
         log.magenta ('→', test.pyFile.yellow)
@@ -1911,6 +1969,7 @@ class Transpiler {
         this.transpileCryptoTests ()
 
         this.transpileExchangeTests ()
+        this.transpileExchangeTestsAuto ()
     }
 
     // ============================================================================
