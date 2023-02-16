@@ -27,13 +27,6 @@ process.on ('unhandledRejection', (e) => { console.log (e, e.stack); process.exi
 
 console.log ('\nTESTING', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' }, '\n');
 
-// ----------------------------------------------------------------------------
-
-const proxies = [
-    '',
-    'https://cors-anywhere.herokuapp.com/'
-];
-
 //-----------------------------------------------------------------------------
 
 const enableRateLimit = true;
@@ -80,11 +73,14 @@ const envVars = process.env;
 
 class emptyClass {}
 
-function io_file_exists(path) {
+function dump (...args) {
+    console.log (...args);
+}
+function io_file_exists (path) {
     return fs.existsSync(path);
 }
 
-function io_file_read(path, decode = true) {
+function io_file_read (path, decode = true) {
     const content = fs.readFileSync(path);
     return decode ? JSON.parse(content) : content;
 }
@@ -93,7 +89,7 @@ function exception_message (exc) {
     return '[' + exc.constructor.name + '] ' + exc.message.slice (0, 200);
 }
 
-async function call_method(methodName, exchange, args) {
+async function call_method (methodName, exchange, args) {
     return await testFiles[methodName](exchange, ... args);
 }
 
@@ -121,9 +117,9 @@ function set_exchange_prop (exchange, prop, value) {
 
 module.exports = class testMainClass extends emptyClass {
 
-    init (exchange, symbol) {
+    async init (exchange, symbol) {
         this.expandSettings(exchange, symbol);
-        this.startTest (exchange, symbol);
+        await this.startTest (exchange, symbol);
     }
 
     expandSettings (exchange, symbol) {
@@ -133,7 +129,7 @@ module.exports = class testMainClass extends emptyClass {
         const fileExists = io_file_exists (keysLocal);
         const keysFile = fileExists ? keysLocal : keysGlobal;
         const allSettings = io_file_read (keysFile);
-        const exchangeSettings = allSettings[exchangeId];
+        const exchangeSettings = exchange.safeValue (allSettings, exchangeId, {});
         if (exchangeSettings) {
             const settingKeys = Object.keys (exchangeSettings);
             for (let i = 0; i < settingKeys.length; i++) {
@@ -161,11 +157,11 @@ module.exports = class testMainClass extends emptyClass {
         }
         // others
         if (exchangeSettings && exchange.safeValue (exchangeSettings, 'skip')) {
-            console.log ('[Skipped]', 'exchange', exchangeId, 'symbol', symbol);
+            dump ('[Skipped]', 'exchange', exchangeId, 'symbol', symbol);
             exit_script();
         }
         if (exchange.alias) {
-            console.log ('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
+            dump ('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
             exit_script();
         }
         add_proxy_agent (exchange, exchangeSettings);
@@ -179,17 +175,17 @@ module.exports = class testMainClass extends emptyClass {
             skipMessage = 'test not available';
         }
         if (skipMessage) {
-            console.log ('[Skipping]', exchange.id, methodName, ' - ' + skipMessage);
+            dump ('[Skipping]', exchange.id, methodName, ' - ' + skipMessage);
             return;
         }
-        console.log ('Testing', exchange.id, methodName, '(', args, ')');
+        dump ('Testing', exchange.id, methodName, '(', args, ')');
         try {
             return await call_method (methodName, exchange, args);
         } catch (e) {
             if (e instanceof ccxt.NotSupported) {
-                console.log ('Not supported', exchange.id, methodName, '(', args, ')');
+                dump ('Not supported', exchange.id, methodName, '(', args, ')');
             } else {
-                console.log (exception_message(e));
+                dump (exception_message(e));
                 throw e;
             }
         }
@@ -292,7 +288,7 @@ module.exports = class testMainClass extends emptyClass {
                 resultMsg = resultSymbols.join (', ');
             }
         }
-        console.log (exchangeSymbolsLength, 'symbols', resultMsg);
+        dump (exchangeSymbolsLength, 'symbols', resultMsg);
     }
 
     getTestSymbol (exchange, symbols) {
@@ -443,10 +439,10 @@ module.exports = class testMainClass extends emptyClass {
             swapSymbol = this.getValidSymbol (exchange, false);
         }
         if (spotSymbol !== undefined) {
-            console.log ('SPOT SYMBOL:', spotSymbol);
+            dump ('SPOT SYMBOL:', spotSymbol);
         }
         if (swapSymbol !== undefined) {
-            console.log ('SWAP SYMBOL:', swapSymbol);
+            dump ('SWAP SYMBOL:', swapSymbol);
         }
         if (!privateOnly) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
@@ -472,7 +468,7 @@ module.exports = class testMainClass extends emptyClass {
 
     async runPrivateTests (exchange, symbol) {
         if (!exchange.checkRequiredCredentials (false)) {
-            console.log ('[Skipped]', 'Keys not found, skipping private tests');
+            dump ('[Skipped]', 'Keys not found, skipping private tests');
             return;
         }
         const code = this.getExchangeCode (exchange);

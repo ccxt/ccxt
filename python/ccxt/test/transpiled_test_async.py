@@ -129,7 +129,7 @@ def exit_script():
     exit()
 
 def get_exchange_prop (exchange, prop, defaultValue = None):
-    return getattr(exchange,prop) if prop in exchange else defaultValue
+    return getattr(exchange,prop) if hasattr(exchange,prop) else defaultValue
 
 def set_exchange_prop (exchange, prop, value):
     setattr(exchange, prop, value)
@@ -148,9 +148,9 @@ from ccxt.base.errors import NotSupported
 
 class testMainClass(emptyClass):
 
-    def init(self, exchange, symbol):
+    async def init(self, exchange, symbol):
         self.expand_settings(exchange, symbol)
-        self.start_test(exchange, symbol)
+        await self.start_test(exchange, symbol)
 
     def expand_settings(self, exchange, symbol):
         exchangeId = exchange.id
@@ -159,7 +159,7 @@ class testMainClass(emptyClass):
         fileExists = io_file_exists(keysLocal)
         keysFile = keysLocal if fileExists else keysGlobal
         allSettings = io_file_read(keysFile)
-        exchangeSettings = allSettings[exchangeId]
+        exchangeSettings = exchange.safe_value(allSettings, exchangeId, {})
         if exchangeSettings:
             settingKeys = list(exchangeSettings.keys())
             for i in range(0, len(settingKeys)):
@@ -181,10 +181,10 @@ class testMainClass(emptyClass):
                     set_exchange_prop(exchange, credential, credentialValue)
         # others
         if exchangeSettings and exchange.safe_value(exchangeSettings, 'skip'):
-            print('[Skipped]', 'exchange', exchangeId, 'symbol', symbol)
+            dump('[Skipped]', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
         if exchange.alias:
-            print('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
+            dump('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
         add_proxy_agent(exchange, exchangeSettings)
 
@@ -195,16 +195,16 @@ class testMainClass(emptyClass):
         elif not (methodName in testFiles):
             skipMessage = 'test not available'
         if skipMessage:
-            print('[Skipping]', exchange.id, methodName, ' - ' + skipMessage)
+            dump('[Skipping]', exchange.id, methodName, ' - ' + skipMessage)
             return
-        print('Testing', exchange.id, methodName, '(', args, ')')
+        dump('Testing', exchange.id, methodName, '(', args, ')')
         try:
             return await call_method(methodName, exchange, args)
         except Exception as e:
             if isinstance(e, ccxt.NotSupported):
-                print('Not supported', exchange.id, methodName, '(', args, ')')
+                dump('Not supported', exchange.id, methodName, '(', args, ')')
             else:
-                print(exception_message(e))
+                dump(exception_message(e))
                 raise e
 
     async def test_safe(self, methodName, exchange, args):
@@ -295,7 +295,7 @@ class testMainClass(emptyClass):
                 resultMsg = ', '.join(resultSymbols) + ' + more...'
             else:
                 resultMsg = ', '.join(resultSymbols)
-        print(exchangeSymbolsLength, 'symbols', resultMsg)
+        dump(exchangeSymbolsLength, 'symbols', resultMsg)
 
     def get_test_symbol(self, exchange, symbols):
         symbol = None
@@ -425,9 +425,9 @@ class testMainClass(emptyClass):
             spotSymbol = self.get_valid_symbol(exchange, True)
             swapSymbol = self.get_valid_symbol(exchange, False)
         if spotSymbol is not None:
-            print('SPOT SYMBOL:', spotSymbol)
+            dump('SPOT SYMBOL:', spotSymbol)
         if swapSymbol is not None:
-            print('SWAP SYMBOL:', swapSymbol)
+            dump('SWAP SYMBOL:', swapSymbol)
         if not privateOnly:
             if exchange.has['spot'] and spotSymbol is not None:
                 exchange.options['type'] = 'spot'
@@ -445,7 +445,7 @@ class testMainClass(emptyClass):
 
     async def run_private_tests(self, exchange, symbol):
         if not exchange.check_required_credentials(False):
-            print('[Skipped]', 'Keys not found, skipping private tests')
+            dump('[Skipped]', 'Keys not found, skipping private tests')
             return
         code = self.get_exchange_code(exchange)
         # if exchange.extendedTest:

@@ -6,8 +6,15 @@ date_default_timezone_set('UTC');
 
 include_once 'vendor/autoload.php';
 
-function dump($s) {
-    echo implode(' ', func_get_args()) . "\n";
+function dump(...$s) {
+    $args = array_map(function ($arg) {
+        if (is_array($arg) || is_object($arg)) {
+            return json_encode($arg);
+        } else {
+            return $arg;
+        }
+    }, func_get_args());
+    echo implode(' ', $args) . "\n";
 }
 
 ini_set('memory_limit', '512M');
@@ -120,8 +127,10 @@ use React\Promise;
 class testMainClass extends emptyClass {
 
     public function init($exchange, $symbol) {
-        $this->expand_settings($exchange, $symbol);
-        $this->start_test($exchange, $symbol);
+        return Async\async(function () use ($exchange, $symbol) {
+            $this->expand_settings($exchange, $symbol);
+            Async\await($this->start_test($exchange, $symbol));
+        }) ();
     }
 
     public function expand_settings($exchange, $symbol) {
@@ -131,7 +140,7 @@ class testMainClass extends emptyClass {
         $fileExists = io_file_exists ($keysLocal);
         $keysFile = $fileExists ? $keysLocal : $keysGlobal;
         $allSettings = io_file_read ($keysFile);
-        $exchangeSettings = $allSettings[$exchangeId];
+        $exchangeSettings = $exchange->safe_value($allSettings, $exchangeId, array());
         if ($exchangeSettings) {
             $settingKeys = is_array($exchangeSettings) ? array_keys($exchangeSettings) : array();
             for ($i = 0; $i < count($settingKeys); $i++) {
@@ -159,11 +168,11 @@ class testMainClass extends emptyClass {
         }
         // others
         if ($exchangeSettings && $exchange->safe_value($exchangeSettings, 'skip')) {
-            var_dump ('[Skipped]', 'exchange', $exchangeId, 'symbol', $symbol);
+            dump ('[Skipped]', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script();
         }
         if ($exchange->alias) {
-            var_dump ('[Skipped] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
+            dump ('[Skipped] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script();
         }
         add_proxy_agent ($exchange, $exchangeSettings);
@@ -178,17 +187,17 @@ class testMainClass extends emptyClass {
                 $skipMessage = 'test not available';
             }
             if ($skipMessage) {
-                var_dump ('[Skipping]', $exchange->id, $methodName, ' - ' . $skipMessage);
+                dump ('[Skipping]', $exchange->id, $methodName, ' - ' . $skipMessage);
                 return;
             }
-            var_dump ('Testing', $exchange->id, $methodName, '(', $args, ')');
+            dump ('Testing', $exchange->id, $methodName, '(', $args, ')');
             try {
                 return Async\await(call_method ($methodName, $exchange, $args));
             } catch (Exception $e) {
                 if ($e instanceof ccxt.NotSupported) {
-                    var_dump ('Not supported', $exchange->id, $methodName, '(', $args, ')');
+                    dump ('Not supported', $exchange->id, $methodName, '(', $args, ')');
                 } else {
-                    var_dump (exception_message($e));
+                    dump (exception_message($e));
                     throw $e;
                 }
             }
@@ -297,7 +306,7 @@ class testMainClass extends emptyClass {
                     $resultMsg = implode(', ', $resultSymbols);
                 }
             }
-            var_dump ($exchangeSymbolsLength, 'symbols', $resultMsg);
+            dump ($exchangeSymbolsLength, 'symbols', $resultMsg);
         }) ();
     }
 
@@ -450,10 +459,10 @@ class testMainClass extends emptyClass {
                 $swapSymbol = $this->get_valid_symbol($exchange, false);
             }
             if ($spotSymbol !== null) {
-                var_dump ('SPOT SYMBOL:', $spotSymbol);
+                dump ('SPOT SYMBOL:', $spotSymbol);
             }
             if ($swapSymbol !== null) {
-                var_dump ('SWAP SYMBOL:', $swapSymbol);
+                dump ('SWAP SYMBOL:', $swapSymbol);
             }
             if (!privateOnly) {
                 if ($exchange->has['spot'] && $spotSymbol !== null) {
@@ -481,7 +490,7 @@ class testMainClass extends emptyClass {
     public function run_private_tests($exchange, $symbol) {
         return Async\async(function () use ($exchange, $symbol) {
             if (!$exchange->check_required_credentials(false)) {
-                var_dump ('[Skipped]', 'Keys not found, skipping private tests');
+                dump ('[Skipped]', 'Keys not found, skipping private tests');
                 return;
             }
             $code = $this->get_exchange_code($exchange);
