@@ -2585,7 +2585,14 @@ module.exports = class Exchange {
                 throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
             }
         }
-        throw new BadSymbol (this.id + ' does not have market symbol ' + this.json (symbol));
+        let symbolValue = symbol;
+        if (symbolValue === undefined) {
+            symbolValue = '';
+        }
+        else if (this.isObject (symbolValue) || Array.isArray(symbolValue)) {
+            symbolValue = this.json (symbolValue);
+        }
+        throw new BadSymbol (this.id + ' does not have market symbol ' + symbolValue);
     }
 
     handleWithdrawTagAndParams (tag, params) {
