@@ -1464,6 +1464,7 @@ module.exports = class binance extends Exchange {
                     return this.markets[futuresSymbol];
                 }
             }
+            throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + this.json (symbol));
     }
