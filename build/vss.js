@@ -18,7 +18,7 @@ function vss (filename, template, version) {
     log.bright.cyan ('Single-sourcing version', version, './package.json → ' + filename.yellow)
     const content = fs.readFileSync (filename, 'utf8')
     const regexp  = new RegExp (template.replace (/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') // escape string for use in regexp
-                                        .replace ('\\{version\\}', '\\d+\\.\\d+\\.\\d+'), 'g')
+                                        .replace ('\\{version\\}', '\\d+\\.\\d+\\.\\d+'))
     fs.truncateSync  (filename)
     fs.writeFileSync (filename, content.replace (regexp, template.replace ('{version}', version)))
 }
