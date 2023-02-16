@@ -889,7 +889,7 @@ module.exports = class binance extends Exchange {
                 'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
+                'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
@@ -3089,15 +3089,38 @@ module.exports = class binance extends Exchange {
         //       "tradeId": "1234",
         //     }
         //
+        // options: fetchMyTrades
+        //
+        //     {
+        //         "id": 1125899906844226012,
+        //         "tradeId": 73,
+        //         "orderId": 4638761100843040768,
+        //         "symbol": "ETH-230211-1500-C",
+        //         "price": "18.70000000",
+        //         "quantity": "-0.57000000",
+        //         "fee": "0.17305890",
+        //         "realizedProfit": "-3.53400000",
+        //         "side": "SELL",
+        //         "type": "LIMIT",
+        //         "volatility": "0.30000000",
+        //         "liquidity": "MAKER",
+        //         "time": 1676085216845,
+        //         "priceScale": 1,
+        //         "quantityScale": 2,
+        //         "optionSide": "CALL",
+        //         "quoteAsset": "USDT"
+        //     }
+        //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
         const price = this.safeString2 (trade, 'p', 'price');
-        const amount = this.safeString2 (trade, 'q', 'qty');
+        let amount = this.safeString2 (trade, 'q', 'qty');
+        amount = this.safeString (trade, 'quantity', amount);
         const cost = this.safeString2 (trade, 'quoteQty', 'baseQty');  // inverse futures
         const marketId = this.safeString (trade, 'symbol');
         const marketType = ('M' in trade) || ('orderListId' in trade) ? 'spot' : 'contract';
-        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
+        let symbol = this.safeSymbol (marketId, market, undefined, marketType);
         let id = this.safeString2 (trade, 't', 'a');
-        id = this.safeString2 (trade, 'id', 'tradeId', id);
+        id = this.safeString2 (trade, 'tradeId', 'id', id);
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
         const buyerMaker = this.safeValue2 (trade, 'm', 'isBuyerMaker');
@@ -3124,6 +3147,25 @@ module.exports = class binance extends Exchange {
         if ('maker' in trade) {
             takerOrMaker = trade['maker'] ? 'maker' : 'taker';
         }
+        const settle = this.safeCurrencyCode (this.safeString (trade, 'quoteAsset'));
+        if (('optionSide' in trade)) {
+            const optionId = this.safeString (trade, 'symbol');
+            const optionParts = optionId.split ('-');
+            symbol = this.safeString (optionParts, 0) + '/' + settle + ':' + settle + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + this.safeString (optionParts, 3);
+            takerOrMaker = this.safeStringLower (trade, 'liquidity');
+            if ('fee' in trade) {
+                fee = {
+                    'cost': this.safeString (trade, 'fee'),
+                    'currency': settle,
+                };
+            }
+            if ((side !== 'buy') && (side !== 'sell')) {
+                side = (side === '1') ? 'buy' : 'sell';
+            }
+            if (side !== 'buy') {
+                amount = Precise.stringMul ('-1', amount);
+            }
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -3131,7 +3173,7 @@ module.exports = class binance extends Exchange {
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': undefined,
+            'type': this.safeStringLower (trade, 'type'),
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
@@ -4230,31 +4272,39 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const type = this.safeString (params, 'type', market['type']);
-        params = this.omit (params, 'type');
+        const request = {};
+        let market = undefined;
+        let type = undefined;
         let method = undefined;
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-        if (type === 'spot' || type === 'margin') {
-            method = 'privateGetMyTrades';
-            if ((type === 'margin') || (marginMode !== undefined)) {
-                method = 'sapiGetMarginMyTrades';
-                if (marginMode === 'isolated') {
-                    request['isIsolated'] = true;
-                }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
+        if (type === 'option') {
+            if (symbol !== undefined) {
+                const optionSeparateBase = symbol.split ('/');
+                const optionParts = symbol.split ('-');
+                symbol = this.safeString (optionSeparateBase, 0) + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + this.safeString (optionParts, 3);
+                request['symbol'] = symbol;
             }
-        } else if (market['linear']) {
-            method = 'fapiPrivateGetUserTrades';
-        } else if (market['inverse']) {
-            method = 'dapiPrivateGetUserTrades';
+            method = 'eapiPrivateGetUserTrades';
+        } else {
+            this.checkRequiredSymbol ('fetchMyTrades', symbol);
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+            if (type === 'spot' || type === 'margin') {
+                method = 'privateGetMyTrades';
+                if ((type === 'margin') || (marginMode !== undefined)) {
+                    method = 'sapiGetMarginMyTrades';
+                    if (marginMode === 'isolated') {
+                        request['isIsolated'] = true;
+                    }
+                }
+            } else if (market['linear']) {
+                method = 'fapiPrivateGetUserTrades';
+            } else if (market['inverse']) {
+                method = 'dapiPrivateGetUserTrades';
+            }
         }
         let endTime = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
@@ -4322,6 +4372,30 @@ module.exports = class binance extends Exchange {
         //             "side": "SELL",
         //             "symbol": "BTCUSDT",
         //             "time": 1569514978020
+        //         }
+        //     ]
+        //
+        // options (eapi)
+        //
+        //     [
+        //         {
+        //             "id": 1125899906844226012,
+        //             "tradeId": 73,
+        //             "orderId": 4638761100843040768,
+        //             "symbol": "ETH-230211-1500-C",
+        //             "price": "18.70000000",
+        //             "quantity": "-0.57000000",
+        //             "fee": "0.17305890",
+        //             "realizedProfit": "-3.53400000",
+        //             "side": "SELL",
+        //             "type": "LIMIT",
+        //             "volatility": "0.30000000",
+        //             "liquidity": "MAKER",
+        //             "time": 1676085216845,
+        //             "priceScale": 1,
+        //             "quantityScale": 2,
+        //             "optionSide": "CALL",
+        //             "quoteAsset": "USDT"
         //         }
         //     ]
         //
