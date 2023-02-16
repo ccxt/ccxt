@@ -2581,6 +2581,8 @@ module.exports = class Exchange {
                     }
                 }
                 return markets[0];
+            } else {
+                throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + this.json (symbol));
