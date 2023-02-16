@@ -3162,9 +3162,11 @@ module.exports = class binance extends Exchange {
         }
         if (('optionSide' in trade) || market['option']) {
             const settle = this.safeCurrencyCode (this.safeString (trade, 'quoteAsset', 'USDT'));
-            const optionParts = marketId.split ('-');
-            const optionType = this.safeString (optionParts, 3);
-            symbol = this.safeString (optionParts, 0) + '/' + settle + ':' + settle + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + optionType;
+            if (symbol === undefined) {
+                const optionParts = marketId.split ('-');
+                const optionType = this.safeString (optionParts, 3);
+                symbol = this.safeString (optionParts, 0) + '/' + settle + ':' + settle + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + optionType;
+            }
             takerOrMaker = this.safeStringLower (trade, 'liquidity');
             if ('fee' in trade) {
                 fee = {
