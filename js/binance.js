@@ -3148,7 +3148,7 @@ module.exports = class binance extends Exchange {
         //         }
         //     ]
         //
-        // options (eapi)
+        // options: fetchTrades
         //
         //     [
         //         {
