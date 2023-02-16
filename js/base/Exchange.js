@@ -877,20 +877,7 @@ module.exports = class Exchange {
             'fee': undefined,
             'fees': undefined,
             'networks': undefined,
-            'address': undefined,
             'limits': {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
                 'deposit': {
                     'min': undefined,
                     'max': undefined,
