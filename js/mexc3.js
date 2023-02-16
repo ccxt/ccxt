@@ -19,10 +19,10 @@ module.exports = class mexc3 extends Exchange {
             'version': 'v3',
             'has': {
                 'CORS': undefined,
-                'spot': undefined,
+                'spot': true,
                 'margin': true,
-                'swap': undefined,
-                'future': undefined,
+                'swap': true,
+                'future': true,
                 'option': undefined,
                 'addMargin': true,
                 'borrowMargin': true,
@@ -96,8 +96,6 @@ module.exports = class mexc3 extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
-                'privateAPI': true,
-                'publicAPI': true,
                 'reduceMargin': true,
                 'repayMargin': true,
                 'setLeverage': true,
@@ -1353,7 +1351,7 @@ module.exports = class mexc3 extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1528,35 +1526,35 @@ module.exports = class mexc3 extends Exchange {
         if (isSwap || ('timestamp' in ticker)) {
             //
             //     {
-            //         "symbol":"ETH_USDT",
-            //         "lastPrice":3581.3,
-            //         "bid1":3581.25,
-            //         "ask1":3581.5,
-            //         "volume24":4045530,
-            //         "amount24":141331823.5755,
-            //         "holdVol":5832946,
-            //         "lower24Price":3413.4,
-            //         "high24Price":3588.7,
-            //         "riseFallRate":0.0275,
-            //         "riseFallValue":95.95,
-            //         "indexPrice":3580.7852,
-            //         "fairPrice":3581.08,
-            //         "fundingRate":0.000063,
-            //         "maxBidPrice":3938.85,
-            //         "minAskPrice":3222.7,
-            //         "timestamp":1634162885016
+            //         "symbol": "ETH_USDT",
+            //         "lastPrice": 3581.3,
+            //         "bid1": 3581.25,
+            //         "ask1": 3581.5,
+            //         "volume24": 4045530,
+            //         "amount24": 141331823.5755,
+            //         "holdVol": 5832946,
+            //         "lower24Price": 3413.4,
+            //         "high24Price": 3588.7,
+            //         "riseFallRate": 0.0275,
+            //         "riseFallValue": 95.95,
+            //         "indexPrice": 3580.7852,
+            //         "fairPrice": 3581.08,
+            //         "fundingRate": 0.000063,
+            //         "maxBidPrice": 3938.85,
+            //         "minAskPrice": 3222.7,
+            //         "timestamp": 1634162885016
             //     }
             //
             timestamp = this.safeInteger (ticker, 'timestamp');
-            bid = this.safeNumber (ticker, 'bid1');
-            ask = this.safeNumber (ticker, 'ask1');
+            bid = this.safeString (ticker, 'bid1');
+            ask = this.safeString (ticker, 'ask1');
             baseVolume = this.safeString (ticker, 'volume24');
             quoteVolume = this.safeString (ticker, 'amount24');
-            high = this.safeNumber (ticker, 'high24Price');
-            low = this.safeNumber (ticker, 'lower24Price');
+            high = this.safeString (ticker, 'high24Price');
+            low = this.safeString (ticker, 'lower24Price');
             changeValue = this.safeString (ticker, 'riseFallValue');
             changePcnt = this.safeString (ticker, 'riseFallRate');
-            changePcnt = this.parseNumber (Precise.stringMul (changePcnt, '100'));
+            changePcnt = Precise.stringMul (changePcnt, '100');
         } else {
             //
             //     {
@@ -1581,25 +1579,25 @@ module.exports = class mexc3 extends Exchange {
             //     }
             //
             timestamp = this.safeInteger (ticker, 'closeTime');
-            bid = this.safeNumber (ticker, 'bidPrice');
-            ask = this.safeNumber (ticker, 'askPrice');
-            bidVolume = this.safeNumber (ticker, 'bidQty');
-            askVolume = this.safeNumber (ticker, 'askQty');
-            if (bidVolume === 0) {
+            bid = this.safeString (ticker, 'bidPrice');
+            ask = this.safeString (ticker, 'askPrice');
+            bidVolume = this.safeString (ticker, 'bidQty');
+            askVolume = this.safeString (ticker, 'askQty');
+            if (Precise.stringEq (bidVolume, '0')) {
                 bidVolume = undefined;
             }
-            if (askVolume === 0) {
+            if (Precise.stringEq (askVolume, '0')) {
                 askVolume = undefined;
             }
             baseVolume = this.safeString (ticker, 'volume');
             quoteVolume = this.safeString (ticker, 'quoteVolume');
             open = this.safeString (ticker, 'openPrice');
-            high = this.safeNumber (ticker, 'highPrice');
-            low = this.safeNumber (ticker, 'lowPrice');
+            high = this.safeString (ticker, 'highPrice');
+            low = this.safeString (ticker, 'lowPrice');
             prevClose = this.safeString (ticker, 'prevClosePrice');
             changeValue = this.safeString (ticker, 'priceChange');
             changePcnt = this.safeString (ticker, 'priceChangePercent');
-            changePcnt = this.parseNumber (Precise.stringMul (changePcnt, '100'));
+            changePcnt = Precise.stringMul (changePcnt, '100');
         }
         return this.safeTicker ({
             'symbol': market['symbol'],
@@ -1631,7 +1629,7 @@ module.exports = class mexc3 extends Exchange {
          * @description fetches the bid and ask price and volume for multiple markets
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         let market = undefined;

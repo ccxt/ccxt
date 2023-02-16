@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.6.47';
+$version = '2.7.104';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,13 +55,284 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.6.47';
+    const VERSION = '2.7.104';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
     private static $base58_decoder = null;
 
+    public $defined_rest_api = array();
+
+    public $curl = null;
+    public $curl_options = array(); // overrideable by user, empty by default
+    public $curl_reset = true;
+    public $curl_close = false;
+
+    public $id = null;
+
+    public $validateServerSsl = true;
+    public $validateClientSsl = false;
+    public $curlopt_interface = null;
+    public $timeout = 10000; // in milliseconds
+    public $proxy = '';
+    public $origin = '*'; // CORS origin
+    public $headers = array();
+    public $hostname = null; // in case of inaccessibility of the "main" domain
+
+    public $options = array(); // exchange-specific options if any
+
+    public $skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
+    public $quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
+
+    public $name = null;
+    public $countries = null;
+    public $version = null;
+    public $certified = false; // if certified by the CCXT dev team
+    public $pro = false; // if it is integrated with CCXT Pro for WebSocket support
+    public $alias = false; // whether this exchange is an alias to another exchange
+
+    public $urls = array();
+    public $api = array();
+    public $comment = null;
+
+    public $markets = null;
+    public $symbols = null;
+    public $codes = null;
+    public $ids = null;
+    public $currencies = array();
+    public $base_currencies = null;
+    public $quote_currencies = null;
+    public $balance = array();
+    public $orderbooks = array();
+    public $tickers = array();
+    public $fees = array('trading' => array(), 'funding' => array());
+    public $precision = array();
+    public $orders = null;
+    public $myTrades = null;
+    public $trades = array();
+    public $transactions = array();
+    public $positions = array();
+    public $ohlcvs = array();
+    public $exceptions = array();
+    public $accounts = array();
+    public $status = array('status' => 'ok', 'updated' => null, 'eta' => null, 'url' => null);
+    public $limits = array(
+        'cost' => array(
+            'min' => null,
+            'max' => null,
+        ),
+        'price' => array(
+            'min' => null,
+            'max' => null,
+        ),
+        'amount' => array(
+            'min' => null,
+            'max' => null,
+        ),
+        'leverage' => array(
+            'min' => null,
+            'max' => null,
+        ),
+    );
+    public $httpExceptions = array(
+        '422' => 'ExchangeError',
+        '418' => 'DDoSProtection',
+        '429' => 'RateLimitExceeded',
+        '404' => 'ExchangeNotAvailable',
+        '409' => 'ExchangeNotAvailable',
+        '410' => 'ExchangeNotAvailable',
+        '451' => 'ExchangeNotAvailable',
+        '500' => 'ExchangeNotAvailable',
+        '501' => 'ExchangeNotAvailable',
+        '502' => 'ExchangeNotAvailable',
+        '520' => 'ExchangeNotAvailable',
+        '521' => 'ExchangeNotAvailable',
+        '522' => 'ExchangeNotAvailable',
+        '525' => 'ExchangeNotAvailable',
+        '526' => 'ExchangeNotAvailable',
+        '400' => 'ExchangeNotAvailable',
+        '403' => 'ExchangeNotAvailable',
+        '405' => 'ExchangeNotAvailable',
+        '503' => 'ExchangeNotAvailable',
+        '530' => 'ExchangeNotAvailable',
+        '408' => 'RequestTimeout',
+        '504' => 'RequestTimeout',
+        '401' => 'AuthenticationError',
+        '407' => 'AuthenticationError',
+        '511' => 'AuthenticationError',
+    );
+    public $verbose = false;
+    public $apiKey = '';
+    public $secret = '';
+    public $password = '';
+    public $login = '';
+    public $uid = '';
+    public $privateKey = '';
+    public $walletAddress = '';
+    public $token = ''; // reserved for HTTP auth in some cases
+
+    public $twofa = null;
+    public $markets_by_id = null;
+    public $currencies_by_id = null;
+    public $userAgent = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
+    public $userAgents = array(
+        'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+        'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+        'chrome100' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
+    );
+    public $minFundingAddressLength = 1; // used in check_address
+    public $substituteCommonCurrencyCodes = true;
+
+    // whether fees should be summed by currency code
+    public $reduceFees = true;
+
+    public $timeframes = null;
+
+    public $requiredCredentials = array(
+        'apiKey' => true,
+        'secret' => true,
+        'uid' => false,
+        'login' => false,
+        'password' => false,
+        'twofa' => false, // 2-factor authentication (one-time password key)
+        'privateKey' => false,
+        'walletAddress' => false,
+        'token' => false, // reserved for HTTP auth in some cases
+    );
+
+    // API methods metainfo
+    public $has = array(
+        'publicAPI' => true,
+        'privateAPI' => true,
+        'CORS' => null,
+        'spot' => null,
+        'margin' => null,
+        'swap' => null,
+        'future' => null,
+        'option' => null,
+        'addMargin' => null,
+        'cancelAllOrders' => null,
+        'cancelOrder' => true,
+        'cancelOrders' => null,
+        'createDepositAddress' => null,
+        'createLimitOrder' => true,
+        'createMarketOrder' => true,
+        'createOrder' => true,
+        'createPostOnlyOrder' => null,
+        'createReduceOnlyOrder' => null,
+        'createStopOrder' => null,
+        'editOrder' => 'emulated',
+        'fetchAccounts' => null,
+        'fetchBalance' => true,
+        'fetchBidsAsks' => null,
+        'fetchBorrowInterest' => null,
+        'fetchBorrowRate' => null,
+        'fetchBorrowRateHistory' => null,
+        'fetchBorrowRatesPerSymbol' => null,
+        'fetchBorrowRates' => null,
+        'fetchCanceledOrders' => null,
+        'fetchClosedOrder' => null,
+        'fetchClosedOrders' => null,
+        'fetchCurrencies' => 'emulated',
+        'fetchDeposit' => null,
+        'fetchDepositAddress' => null,
+        'fetchDepositAddresses' => null,
+        'fetchDepositAddressesByNetwork' => null,
+        'fetchDeposits' => null,
+        'fetchFundingFee' => null,
+        'fetchFundingFees' => null,
+        'fetchFundingHistory' => null,
+        'fetchFundingRate' => null,
+        'fetchFundingRateHistory' => null,
+        'fetchFundingRates' => null,
+        'fetchIndexOHLCV' => null,
+        'fetchL2OrderBook' => true,
+        'fetchLedger' => null,
+        'fetchLedgerEntry' => null,
+        'fetchLeverageTiers' => null,
+        'fetchMarketLeverageTiers' => null,
+        'fetchMarkets' => true,
+        'fetchMarkOHLCV' => null,
+        'fetchMyTrades' => null,
+        'fetchOHLCV' => 'emulated',
+        'fetchOpenOrder' => null,
+        'fetchOpenOrders' => null,
+        'fetchOrder' => null,
+        'fetchOrderBook' => true,
+        'fetchOrderBooks' => null,
+        'fetchOrders' => null,
+        'fetchOrderTrades' => null,
+        'fetchPermissions' => null,
+        'fetchPosition' => null,
+        'fetchPositions' => null,
+        'fetchPositionsRisk' => null,
+        'fetchPremiumIndexOHLCV' => null,
+        'fetchStatus' => 'emulated',
+        'fetchTicker' => true,
+        'fetchTickers' => null,
+        'fetchTime' => null,
+        'fetchTrades' => true,
+        'fetchTradingFee' => null,
+        'fetchTradingFees' => null,
+        'fetchTradingLimits' => null,
+        'fetchTransactions' => null,
+        'fetchTransfers' => null,
+        'fetchWithdrawal' => null,
+        'fetchWithdrawals' => null,
+        'reduceMargin' => null,
+        'setLeverage' => null,
+        'setMargin' => null,
+        'setMarginMode' => null,
+        'setPositionMode' => null,
+        'signIn' => null,
+        'transfer' => null,
+        'withdraw' => null,
+    );
+
+    public $precisionMode = DECIMAL_PLACES;
+    public $paddingMode = NO_PADDING;
+    public $number = 'floatval';
+    public $handleContentTypeApplicationZip = false;
+
+    public $lastRestRequestTimestamp = 0;
+    public $lastRestPollTimestamp = 0;
+    public $restRequestQueue = null;
+    public $restPollerLoopIsRunning = false;
+    public $enableRateLimit = true;
+    public $enableLastJsonResponse = true;
+    public $enableLastHttpResponse = true;
+    public $enableLastResponseHeaders = true;
+    public $last_http_response = null;
+    public $last_json_response = null;
+    public $last_response_headers = null;
+
+    public $requiresWeb3 = false;
+    public $requiresEddsa = false;
+    public $rateLimit = 2000;
+
+    public $commonCurrencies = array(
+        'XBT' => 'BTC',
+        'BCC' => 'BCH',
+        'BCHABC' => 'BCH',
+        'BCHSV' => 'BSV',
+    );
+
+    public $urlencode_glue = '&'; // ini_get('arg_separator.output'); // can be overrided by exchange constructor params
+    public $urlencode_glue_warning = true;
+
+    public $tokenBucket = null; /* array(
+        'delay' => 0.001,
+        'capacity' => 1.0,
+        'cost' => 1.0,
+        'maxCapacity' => 1000,
+        'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
+    ); */
+
+    public $baseCurrencies = null;
+    public $quoteCurrencies = null;
+
     public static $exchanges = array(
+        'ace',
         'alpaca',
         'ascendex',
         'bequant',
@@ -171,7 +442,6 @@ class Exchange {
         'yobit',
         'zaif',
         'zb',
-        'zipmex',
         'zonda',
     );
 
@@ -408,6 +678,7 @@ class Exchange {
         'safeCurrencyCode' => 'safe_currency_code',
         'filterBySymbolSinceLimit' => 'filter_by_symbol_since_limit',
         'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
+        'parseLastPrices' => 'parse_last_prices',
         'parseTickers' => 'parse_tickers',
         'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseBorrowInterests' => 'parse_borrow_interests',
@@ -417,6 +688,7 @@ class Exchange {
         'parseFundingRates' => 'parse_funding_rates',
         'isTriggerOrder' => 'is_trigger_order',
         'isPostOnly' => 'is_post_only',
+        'fetchLastPrices' => 'fetch_last_prices',
         'fetchTradingFees' => 'fetch_trading_fees',
         'fetchTradingFee' => 'fetch_trading_fee',
         'parseOpenInterest' => 'parse_open_interest',
@@ -433,6 +705,8 @@ class Exchange {
         'parseDepositWithdrawFees' => 'parse_deposit_withdraw_fees',
         'depositWithdrawFee' => 'deposit_withdraw_fee',
         'assignDefaultDepositWithdrawFees' => 'assign_default_deposit_withdraw_fees',
+        'parseIncomes' => 'parse_incomes',
+        'getMarketFromSymbols' => 'get_market_from_symbols',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -1157,263 +1431,7 @@ class Exchange {
         //     }
         // }
 
-        $this->defined_rest_api = array();
-        $this->curl = null;
-        $this->curl_options = array(); // overrideable by user, empty by default
-        $this->curl_reset = true;
-        $this->curl_close = false;
-
-        $this->id = null;
-
-        $this->validateServerSsl = true;
-        $this->validateClientSsl = false;
-        $this->curlopt_interface = null;
-        $this->timeout = 10000; // in milliseconds
-        $this->proxy = '';
-        $this->origin = '*'; // CORS origin
-        $this->headers = array();
-        $this->hostname = null; // in case of inaccessibility of the "main" domain
-
-        $this->options = $this->get_default_options(); // exchange-specific options if any
-
-        $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
-        $this->quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
-
-        $this->name = null;
-        $this->countries = null;
-        $this->version = null;
-        $this->certified = false; // if certified by the CCXT dev team
-        $this->pro = false; // if it is integrated with CCXT Pro for WebSocket support
-        $this->alias = false; // whether this exchange is an alias to another exchange
-
-        $this->urls = array();
-        $this->api = array();
-        $this->comment = null;
-
-        $this->markets = null;
-        $this->symbols = null;
-        $this->codes = null;
-        $this->ids = null;
-        $this->currencies = array();
-        $this->base_currencies = null;
-        $this->quote_currencies = null;
-        $this->balance = array();
-        $this->orderbooks = array();
-        $this->tickers = array();
-        $this->fees = array('trading' => array(), 'funding' => array());
-        $this->precision = array();
-        $this->orders = null;
-        $this->myTrades = null;
-        $this->trades = array();
-        $this->transactions = array();
-        $this->positions = array();
-        $this->ohlcvs = array();
-        $this->exceptions = array();
-        $this->accounts = array();
-        $this->status = array('status' => 'ok', 'updated' => null, 'eta' => null, 'url' => null);
-        $this->limits = array(
-            'cost' => array(
-                'min' => null,
-                'max' => null,
-            ),
-            'price' => array(
-                'min' => null,
-                'max' => null,
-            ),
-            'amount' => array(
-                'min' => null,
-                'max' => null,
-            ),
-            'leverage' => array(
-                'min' => null,
-                'max' => null,
-            ),
-        );
-        $this->httpExceptions = array(
-            '422' => 'ExchangeError',
-            '418' => 'DDoSProtection',
-            '429' => 'RateLimitExceeded',
-            '404' => 'ExchangeNotAvailable',
-            '409' => 'ExchangeNotAvailable',
-            '410' => 'ExchangeNotAvailable',
-            '451' => 'ExchangeNotAvailable',
-            '500' => 'ExchangeNotAvailable',
-            '501' => 'ExchangeNotAvailable',
-            '502' => 'ExchangeNotAvailable',
-            '520' => 'ExchangeNotAvailable',
-            '521' => 'ExchangeNotAvailable',
-            '522' => 'ExchangeNotAvailable',
-            '525' => 'ExchangeNotAvailable',
-            '526' => 'ExchangeNotAvailable',
-            '400' => 'ExchangeNotAvailable',
-            '403' => 'ExchangeNotAvailable',
-            '405' => 'ExchangeNotAvailable',
-            '503' => 'ExchangeNotAvailable',
-            '530' => 'ExchangeNotAvailable',
-            '408' => 'RequestTimeout',
-            '504' => 'RequestTimeout',
-            '401' => 'AuthenticationError',
-            '407' => 'AuthenticationError',
-            '511' => 'AuthenticationError',
-        );
-        $this->verbose = false;
-        $this->apiKey = '';
-        $this->secret = '';
-        $this->password = '';
-        $this->login = '';
-        $this->uid = '';
-        $this->privateKey = '';
-        $this->walletAddress = '';
-        $this->token = ''; // reserved for HTTP auth in some cases
-
-        $this->twofa = null;
-        $this->markets_by_id = null;
-        $this->currencies_by_id = null;
-        $this->userAgent = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
-        $this->userAgents = array(
-            'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-            'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
-            'chrome100' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
-        );
-        $this->minFundingAddressLength = 1; // used in check_address
-        $this->substituteCommonCurrencyCodes = true;
-
-        // whether fees should be summed by currency code
-        $this->reduceFees = true;
-
-        $this->timeframes = null;
-
-        $this->requiredCredentials = array(
-            'apiKey' => true,
-            'secret' => true,
-            'uid' => false,
-            'login' => false,
-            'password' => false,
-            'twofa' => false, // 2-factor authentication (one-time password key)
-            'privateKey' => false,
-            'walletAddress' => false,
-            'token' => false, // reserved for HTTP auth in some cases
-        );
-
-        // API methods metainfo
-        $this->has = array(
-            'publicAPI' => true,
-            'privateAPI' => true,
-            'CORS' => null,
-            'spot' => null,
-            'margin' => null,
-            'swap' => null,
-            'future' => null,
-            'option' => null,
-            'addMargin' => null,
-            'cancelAllOrders' => null,
-            'cancelOrder' => true,
-            'cancelOrders' => null,
-            'createDepositAddress' => null,
-            'createLimitOrder' => true,
-            'createMarketOrder' => true,
-            'createOrder' => true,
-            'createPostOnlyOrder' => null,
-            'createReduceOnlyOrder' => null,
-            'createStopOrder' => null,
-            'editOrder' => 'emulated',
-            'fetchAccounts' => null,
-            'fetchBalance' => true,
-            'fetchBidsAsks' => null,
-            'fetchBorrowInterest' => null,
-            'fetchBorrowRate' => null,
-            'fetchBorrowRateHistory' => null,
-            'fetchBorrowRatesPerSymbol' => null,
-            'fetchBorrowRates' => null,
-            'fetchCanceledOrders' => null,
-            'fetchClosedOrder' => null,
-            'fetchClosedOrders' => null,
-            'fetchCurrencies' => 'emulated',
-            'fetchDeposit' => null,
-            'fetchDepositAddress' => null,
-            'fetchDepositAddresses' => null,
-            'fetchDepositAddressesByNetwork' => null,
-            'fetchDeposits' => null,
-            'fetchFundingFee' => null,
-            'fetchFundingFees' => null,
-            'fetchFundingHistory' => null,
-            'fetchFundingRate' => null,
-            'fetchFundingRateHistory' => null,
-            'fetchFundingRates' => null,
-            'fetchIndexOHLCV' => null,
-            'fetchL2OrderBook' => true,
-            'fetchLedger' => null,
-            'fetchLedgerEntry' => null,
-            'fetchLeverageTiers' => null,
-            'fetchMarketLeverageTiers' => null,
-            'fetchMarkets' => true,
-            'fetchMarkOHLCV' => null,
-            'fetchMyTrades' => null,
-            'fetchOHLCV' => 'emulated',
-            'fetchOpenOrder' => null,
-            'fetchOpenOrders' => null,
-            'fetchOrder' => null,
-            'fetchOrderBook' => true,
-            'fetchOrderBooks' => null,
-            'fetchOrders' => null,
-            'fetchOrderTrades' => null,
-            'fetchPermissions' => null,
-            'fetchPosition' => null,
-            'fetchPositions' => null,
-            'fetchPositionsRisk' => null,
-            'fetchPremiumIndexOHLCV' => null,
-            'fetchStatus' => 'emulated',
-            'fetchTicker' => true,
-            'fetchTickers' => null,
-            'fetchTime' => null,
-            'fetchTrades' => true,
-            'fetchTradingFee' => null,
-            'fetchTradingFees' => null,
-            'fetchTradingLimits' => null,
-            'fetchTransactions' => null,
-            'fetchTransfers' => null,
-            'fetchWithdrawal' => null,
-            'fetchWithdrawals' => null,
-            'reduceMargin' => null,
-            'setLeverage' => null,
-            'setMargin' => null,
-            'setMarginMode' => null,
-            'setPositionMode' => null,
-            'signIn' => null,
-            'transfer' => null,
-            'withdraw' => null,
-        );
-
-        $this->precisionMode = DECIMAL_PLACES;
-        $this->paddingMode = NO_PADDING;
-        $this->number = 'floatval';
-        $this->handleContentTypeApplicationZip = false;
-
-        $this->lastRestRequestTimestamp = 0;
-        $this->lastRestPollTimestamp = 0;
-        $this->restRequestQueue = null;
-        $this->restPollerLoopIsRunning = false;
-        $this->enableRateLimit = true;
-        $this->enableLastJsonResponse = true;
-        $this->enableLastHttpResponse = true;
-        $this->enableLastResponseHeaders = true;
-        $this->last_http_response = null;
-        $this->last_json_response = null;
-        $this->last_response_headers = null;
-
-        $this->requiresWeb3 = false;
-        $this->requiresEddsa = false;
-        $this->rateLimit = 2000;
-
-        $this->commonCurrencies = array(
-            'XBT' => 'BTC',
-            'BCC' => 'BCH',
-            'BCHABC' => 'BCH',
-            'BCHSV' => 'BSV',
-        );
-
         $this->urlencode_glue = ini_get('arg_separator.output'); // can be overrided by exchange constructor params
-        $this->urlencode_glue_warning = true;
 
         $options = array_replace_recursive($this->describe(), $options);
         if ($options) {
@@ -2890,8 +2908,8 @@ class Exchange {
         return array_merge($order, array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
-            'timestamp' => $datetime,
-            'datetime' => $timestamp,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
             'symbol' => $symbol,
             'type' => $this->safe_string($order, 'type'),
             'side' => $side,
@@ -4441,6 +4459,45 @@ class Exchange {
         return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
     }
 
+    public function parse_last_prices($pricesData, $symbols = null, $params = array ()) {
+        //
+        // the value of tickers is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'marketId1' => array( ... ),
+        //         'marketId2' => array( ... ),
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     array(
+        //         array( 'market' => 'marketId1', ... ),
+        //         array( 'market' => 'marketId2', ... ),
+        //         ...
+        //     )
+        //
+        $results = array();
+        if (gettype($pricesData) === 'array' && array_keys($pricesData) === array_keys(array_keys($pricesData))) {
+            for ($i = 0; $i < count($pricesData); $i++) {
+                $priceData = array_merge($this->parseLastPrice ($pricesData[$i]), $params);
+                $results[] = $priceData;
+            }
+        } else {
+            $marketIds = is_array($pricesData) ? array_keys($pricesData) : array();
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $market = $this->safe_market($marketId);
+                $priceData = array_merge($this->parseLastPrice ($pricesData[$marketId], $market), $params);
+                $results[] = $priceData;
+            }
+        }
+        $symbols = $this->market_symbols($symbols);
+        return $this->filter_by_array($results, 'symbol', $symbols);
+    }
+
     public function parse_tickers($tickers, $symbols = null, $params = array ()) {
         //
         // the value of $tickers is either a dict or a list
@@ -4567,6 +4624,10 @@ class Exchange {
         } else {
             return false;
         }
+    }
+
+    public function fetch_last_prices($params = array ()) {
+        throw new NotSupported($this->id . ' fetchLastPrices() is not supported yet');
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -4720,7 +4781,8 @@ class Exchange {
          * @param {[string]} $options a list of $options that the $argument can be
          * @return {null}
          */
-        if (($argument === null) || ((strlen($options) > 0) && (!($this->in_array($argument, $options))))) {
+        $optionsLength = count($options);
+        if (($argument === null) || (($optionsLength > 0) && (!($this->in_array($argument, $options))))) {
             $messageOptions = implode(', ', $options);
             $message = $this->id . ' ' . $methodName . '() requires a ' . $argumentName . ' argument';
             if ($messageOptions !== '') {
@@ -4820,5 +4882,34 @@ class Exchange {
             }
         }
         return $fee;
+    }
+
+    public function parse_incomes($incomes, $market = null, $since = null, $limit = null) {
+        /**
+         * @ignore
+         * parses funding fee info from exchange response
+         * @param {[array]} $incomes each item describes once instance of currency being received or paid
+         * @param {array|null} $market ccxt $market
+         * @param {int|null} $since when defined, the response items are filtered to only include items after this timestamp
+         * @param {int|null} $limit limits the number of items in the response
+         * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structures}
+         */
+        $result = array();
+        for ($i = 0; $i < count($incomes); $i++) {
+            $entry = $incomes[$i];
+            $parsed = $this->parse_income($entry, $market);
+            $result[] = $parsed;
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_since_limit($sorted, $since, $limit);
+    }
+
+    public function get_market_from_symbols($symbols = null) {
+        if ($symbols === null) {
+            return null;
+        }
+        $firstMarket = $this->safe_string($symbols, 0);
+        $market = $this->market ($firstMarket);
+        return $market;
     }
 }

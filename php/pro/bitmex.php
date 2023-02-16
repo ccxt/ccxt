@@ -35,9 +35,9 @@ class bitmex extends \ccxt\async\bitmex {
                     'ws' => 'wss://ws.bitmex.com/realtime',
                 ),
             ),
-            'versions' => array(
-                'ws' => '0.2.0',
-            ),
+            // 'versions' => array(
+            //     'ws' => '0.2.0',
+            // ),
             'options' => array(
                 'watchOrderBookLevel' => 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
                 'tradesLimit' => 1000,
@@ -996,7 +996,7 @@ class bitmex extends \ccxt\async\bitmex {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $table = 'tradeBin' . $this->timeframes[$timeframe];
+            $table = 'tradeBin' . $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageHash = $table . ':' . $market['id'];
             $url = $this->urls['api']['ws'];
             $request = array(

@@ -248,7 +248,7 @@ class cex(Exchange, ccxt.async_support.cex):
         watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the cex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -792,7 +792,8 @@ class cex(Exchange, ccxt.async_support.cex):
             myOrders.append(order)
         self.orders = myOrders
         messageHash = 'orders:' + symbol
-        if len(myOrders) > 0:
+        ordersLength = len(myOrders)
+        if ordersLength > 0:
             client.resolve(myOrders, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
@@ -1047,7 +1048,8 @@ class cex(Exchange, ccxt.async_support.cex):
                 self.safe_number(data[i], 5),
             ]
             stored.append(ohlcv)
-        if len(data) > 0:
+        dataLength = len(data)
+        if dataLength > 0:
             client.resolve(stored, messageHash)
 
     def handle_connected(self, client, message):

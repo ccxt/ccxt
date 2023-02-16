@@ -60,6 +60,7 @@ module.exports = class gate extends gateRest {
                 'watchOrderBook': {
                     'interval': '100ms',
                     'snapshotDelay': 10, // how many deltas to cache before fetching a snapshot
+                    'maxRetries': 3,
                 },
                 'watchBalance': {
                     'settle': 'usdt', // or btc
@@ -188,12 +189,15 @@ module.exports = class gate extends gateRest {
         const storedOrderBook = this.safeValue (this.orderbooks, symbol);
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            let cacheLength = 0;
+            if (storedOrderBook !== undefined) {
+                cacheLength = storedOrderBook.cache.length;
+            }
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
             const waitAmount = isSpot ? snapshotDelay : 0;
             if (cacheLength === waitAmount) {
                 // max limit is 100
-                const subscription = client.subscriptions[channel];
+                const subscription = client.subscriptions[messageHash];
                 const limit = this.safeInteger (subscription, 'limit');
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
@@ -281,7 +285,7 @@ module.exports = class gate extends gateRest {
          * @method
          * @name gate#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {Array} symbols unified symbol of the market to fetch the ticker for
+         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -442,7 +446,7 @@ module.exports = class gate extends gateRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.candlesticks';
         const messageHash = 'candles:' + interval + ':' + market['symbol'];
@@ -870,7 +874,7 @@ module.exports = class gate extends gateRest {
         }
     }
 
-    handleBalanceSubscription (client, message) {
+    handleBalanceSubscription (client, message, subscription = undefined) {
         this.balance = {};
     }
 
@@ -880,7 +884,7 @@ module.exports = class gate extends gateRest {
             'balance': this.handleBalanceSubscription,
             'order_book': this.handleOrderBookSubscription,
         };
-        const id = this.safeString (message, 'id');
+        const id = this.safeInteger (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, id);
         if (subscription !== undefined) {

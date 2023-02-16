@@ -248,7 +248,7 @@ class okcoin(Exchange, ccxt.async_support.okcoin):
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candle' + interval + 's'
         ohlcv = await self.subscribe(name, symbol, params)
         if self.newUpdates:

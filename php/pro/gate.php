@@ -66,6 +66,7 @@ class gate extends \ccxt\async\gate {
                 'watchOrderBook' => array(
                     'interval' => '100ms',
                     'snapshotDelay' => 10, // how many deltas to cache before fetching a snapshot
+                    'maxRetries' => 3,
                 ),
                 'watchBalance' => array(
                     'settle' => 'usdt', // or btc
@@ -194,12 +195,15 @@ class gate extends \ccxt\async\gate {
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
-            $cacheLength = count($storedOrderBook->cache);
+            $cacheLength = 0;
+            if ($storedOrderBook !== null) {
+                $cacheLength = count($storedOrderBook->cache);
+            }
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 10);
             $waitAmount = $isSpot ? $snapshotDelay : 0;
             if ($cacheLength === $waitAmount) {
                 // max $limit is 100
-                $subscription = $client->subscriptions[$channel];
+                $subscription = $client->subscriptions[$messageHash];
                 $limit = $this->safe_integer($subscription, 'limit');
                 $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit);
             }
@@ -286,7 +290,7 @@ class gate extends \ccxt\async\gate {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {Array} $symbols unified symbol of the $market to fetch the $ticker for
+             * @param {[string]} $symbols unified symbol of the $market to fetch the $ticker for
              * @param {array} $params extra parameters specific to the gate api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
              */
@@ -447,7 +451,7 @@ class gate extends \ccxt\async\gate {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $marketId = $market['id'];
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageType = $this->get_type_by_market($market);
             $channel = $messageType . '.candlesticks';
             $messageHash = 'candles:' . $interval . ':' . $market['symbol'];
@@ -876,7 +880,7 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function handle_balance_subscription($client, $message) {
+    public function handle_balance_subscription($client, $message, $subscription = null) {
         $this->balance = array();
     }
 
@@ -886,7 +890,7 @@ class gate extends \ccxt\async\gate {
             'balance' => array($this, 'handle_balance_subscription'),
             'order_book' => array($this, 'handle_order_book_subscription'),
         );
-        $id = $this->safe_string($message, 'id');
+        $id = $this->safe_integer($message, 'id');
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_value($subscriptionsById, $id);
         if ($subscription !== null) {

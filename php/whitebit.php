@@ -27,16 +27,12 @@ class whitebit extends Exchange {
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
-                'createDepositAddress' => null,
-                'createLimitOrder' => null,
-                'createMarketOrder' => null,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
-                'editOrder' => null,
+                'editOrder' => false,
                 'fetchBalance' => true,
-                'fetchBidsAsks' => null,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -768,7 +764,7 @@ class whitebit extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the whitebit api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1033,7 +1029,7 @@ class whitebit extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
-            'interval' => $this->timeframes[$timeframe],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($since !== null) {
             $maxLimit = 1440;
@@ -1640,14 +1636,14 @@ class whitebit extends Exchange {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
-         * $transfer $currency internally between wallets on the same account
-         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#$transfer-between-main-and-trade-balances
+         * transfer $currency internally between wallets on the same account
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#transfer-between-main-and-trade-balances
          * @param {string} $code unified $currency $code
-         * @param {float} $amount amount to $transfer
-         * @param {string} $fromAccount account to $transfer from - main, spot, collateral
-         * @param {string} $toAccount account to $transfer to - main, spot, collateral
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from - main, spot, collateral
+         * @param {string} $toAccount account to transfer to - main, spot, collateral
          * @param {array} $params extra parameters specific to the whitebit api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1665,12 +1661,7 @@ class whitebit extends Exchange {
         //
         //    array()
         //
-        $transfer = $this->parse_transfer($response, $currency);
-        return array_merge($transfer, array(
-            'amount' => $amount,
-            'fromAccount' => $fromAccount,
-            'toAccount' => $toAccount,
-        ));
+        return $this->parse_transfer($response, $currency);
     }
 
     public function parse_transfer($transfer, $currency) {

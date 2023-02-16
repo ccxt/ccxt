@@ -37,13 +37,14 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '2.6.47'
+const version = '2.7.104'
 
 Exchange.ccxtVersion = version
 
 //-----------------------------------------------------------------------------
 
 const exchanges = {
+    'ace':                     require ('./js/ace.js'),
     'alpaca':                  require ('./js/alpaca.js'),
     'ascendex':                require ('./js/ascendex.js'),
     'bequant':                 require ('./js/bequant.js'),
@@ -153,7 +154,6 @@ const exchanges = {
     'yobit':                   require ('./js/yobit.js'),
     'zaif':                    require ('./js/zaif.js'),
     'zb':                      require ('./js/zb.js'),
-    'zipmex':                  require ('./js/zipmex.js'),
     'zonda':                   require ('./js/zonda.js'),
 }
 
@@ -195,6 +195,7 @@ const pro = {
     'huobijp':                 require ('./js/pro/huobijp.js'),
     'huobipro':                require ('./js/pro/huobipro.js'),
     'idex':                    require ('./js/pro/idex.js'),
+    'independentreserve':      require ('./js/pro/independentreserve.js'),
     'kraken':                  require ('./js/pro/kraken.js'),
     'kucoin':                  require ('./js/pro/kucoin.js'),
     'kucoinfutures':           require ('./js/pro/kucoinfutures.js'),
@@ -211,7 +212,6 @@ const pro = {
     'whitebit':                require ('./js/pro/whitebit.js'),
     'woo':                     require ('./js/pro/woo.js'),
     'zb':                      require ('./js/pro/zb.js'),
-    'zipmex':                  require ('./js/pro/zipmex.js'),
 }
 
 for (const exchange in pro) {

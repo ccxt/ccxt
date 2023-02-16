@@ -67,6 +67,7 @@ class gate(Exchange, ccxt.async_support.gate):
                 'watchOrderBook': {
                     'interval': '100ms',
                     'snapshotDelay': 10,  # how many deltas to cache before fetching a snapshot
+                    'maxRetries': 3,
                 },
                 'watchBalance': {
                     'settle': 'usdt',  # or btc
@@ -188,12 +189,14 @@ class gate(Exchange, ccxt.async_support.gate):
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
-            cacheLength = len(storedOrderBook.cache)
+            cacheLength = 0
+            if storedOrderBook is not None:
+                cacheLength = len(storedOrderBook.cache)
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 10)
             waitAmount = snapshotDelay if isSpot else 0
             if cacheLength == waitAmount:
                 # max limit is 100
-                subscription = client.subscriptions[channel]
+                subscription = client.subscriptions[messageHash]
                 limit = self.safe_integer(subscription, 'limit')
                 self.spawn(self.load_order_book, client, messageHash, symbol, limit)
             storedOrderBook.cache.append(delta)
@@ -265,7 +268,7 @@ class gate(Exchange, ccxt.async_support.gate):
     async def watch_tickers(self, symbols=None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :param Array symbols: unified symbol of the market to fetch the ticker for
+        :param [str] symbols: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
@@ -410,7 +413,7 @@ class gate(Exchange, ccxt.async_support.gate):
         market = self.market(symbol)
         symbol = market['symbol']
         marketId = market['id']
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageType = self.get_type_by_market(market)
         channel = messageType + '.candlesticks'
         messageHash = 'candles:' + interval + ':' + market['symbol']
@@ -799,7 +802,7 @@ class gate(Exchange, ccxt.async_support.gate):
                     if id in client.subscriptions:
                         del client.subscriptions[id]
 
-    def handle_balance_subscription(self, client, message):
+    def handle_balance_subscription(self, client, message, subscription=None):
         self.balance = {}
 
     def handle_subscription_status(self, client, message):
@@ -808,7 +811,7 @@ class gate(Exchange, ccxt.async_support.gate):
             'balance': self.handle_balance_subscription,
             'order_book': self.handle_order_book_subscription,
         }
-        id = self.safe_string(message, 'id')
+        id = self.safe_integer(message, 'id')
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_value(subscriptionsById, id)
         if subscription is not None:

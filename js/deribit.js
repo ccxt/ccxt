@@ -58,7 +58,7 @@ module.exports = class deribit extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': undefined,
+                'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionMode': false,
@@ -71,7 +71,7 @@ module.exports = class deribit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
@@ -1016,7 +1016,7 @@ module.exports = class deribit extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -1082,7 +1082,7 @@ module.exports = class deribit extends Exchange {
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.milliseconds ();
@@ -1517,7 +1517,10 @@ module.exports = class deribit extends Exchange {
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         const lastUpdate = this.safeInteger (order, 'last_update_timestamp');
         const id = this.safeString (order, 'order_id');
-        const priceString = this.safeString (order, 'price');
+        let priceString = this.safeString (order, 'price');
+        if (priceString === 'market_price') {
+            priceString = undefined;
+        }
         const averageString = this.safeString (order, 'average_price');
         // Inverse contracts amount is in USD which in ccxt is the cost
         // For options and Linear contracts amount is in corresponding cryptocurrency, e.g., BTC or ETH
@@ -1693,7 +1696,7 @@ module.exports = class deribit extends Exchange {
             request['type'] = 'market';
         }
         if (isStopOrder) {
-            const triggerPrice = stopLossPrice !== undefined ? stopLossPrice : takeProfitPrice;
+            const triggerPrice = (stopLossPrice !== undefined) ? stopLossPrice : takeProfitPrice;
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['trigger'] = 'last_price'; // required
             if (isStopLossOrder) {

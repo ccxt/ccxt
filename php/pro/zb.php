@@ -199,7 +199,7 @@ class zb extends \ccxt\async\zb {
             if (($limit === null) || ($limit > 1440)) {
                 $limit = 100;
             }
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageHash = $market['id'] . '.KLine' . '_' . $interval;
             $url = $this->implode_hostname($this->urls['api']['ws']['contract']);
             $ohlcv = Async\await($this->watch_public($url, $messageHash, $symbol, array($this, 'handle_ohlcv'), $limit, $params));

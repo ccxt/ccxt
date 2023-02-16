@@ -51,7 +51,7 @@ class bitfinex(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
-                'fetchDeposits': None,
+                'fetchDeposits': False,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchIndexOHLCV': False,
@@ -75,7 +75,7 @@ class bitfinex(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
                 'fetchTransactions': True,
-                'fetchWithdrawals': None,
+                'fetchWithdrawals': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -824,7 +824,7 @@ class bitfinex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitfinex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1239,7 +1239,7 @@ class bitfinex(Exchange):
         v2id = 't' + market['id']
         request = {
             'symbol': v2id,
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
             'sort': 1,
             'limit': limit,
         }

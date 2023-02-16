@@ -661,7 +661,7 @@ module.exports = class zonda extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.v1_01PublicGetTradingStats (params);
@@ -1005,7 +1005,7 @@ module.exports = class zonda extends Exchange {
             'referenceAccount': undefined,
             'type': this.parseLedgerEntryType (this.safeString (item, 'type')),
             'currency': this.safeCurrencyCode (currencyId),
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'before': this.safeNumber (fundsBefore, 'total'),
             'after': this.safeNumber (fundsAfter, 'total'),
             'status': 'ok',
@@ -1077,7 +1077,7 @@ module.exports = class zonda extends Exchange {
         const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         const request = {
             'symbol': tradingSymbol,
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             // 'from': 1574709092000, // unix timestamp in milliseconds, required
             // 'to': 1574709092000, // unix timestamp in milliseconds, required
         };

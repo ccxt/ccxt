@@ -650,7 +650,7 @@ module.exports = class bitso extends Exchange {
         const market = this.market (symbol);
         const request = {
             'book': market['id'],
-            'time_bucket': this.timeframes[timeframe],
+            'time_bucket': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['start'] = since;

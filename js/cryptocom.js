@@ -584,7 +584,7 @@ module.exports = class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -837,7 +837,7 @@ module.exports = class cryptocom extends Exchange {
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
-            'timeframe': this.timeframes[timeframe],
+            'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
         const method = this.getSupportedMapping (marketType, {
@@ -1512,11 +1512,12 @@ module.exports = class cryptocom extends Exchange {
         // }
         const data = this.safeValue (response, 'result', {});
         const addresses = this.safeValue (data, 'deposit_address_list', []);
-        if (addresses.length === 0) {
+        const addressesLength = addresses.length;
+        if (addressesLength === 0) {
             throw new ExchangeError (this.id + ' fetchDepositAddressesByNetwork() generating address...');
         }
         const result = {};
-        for (let i = 0; i < addresses.length; i++) {
+        for (let i = 0; i < addressesLength; i++) {
             const value = this.safeValue (addresses, i);
             const addressString = this.safeString (value, 'address');
             const currencyId = this.safeString (value, 'currency');

@@ -420,7 +420,7 @@ class alpaca(Exchange):
         market = self.market(symbol)
         request = {
             'symbols': market['id'],
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.6.47'
+__version__ = '2.7.104'
 
 # -----------------------------------------------------------------------------
 
@@ -53,6 +53,7 @@ from ccxt.base.errors import RequestTimeout                           # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
+from ccxt.async_support.ace import ace                                          # noqa: F401
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.ascendex import ascendex                                # noqa: F401
 from ccxt.async_support.bequant import bequant                                  # noqa: F401
@@ -162,10 +163,10 @@ from ccxt.async_support.woo import woo                                          
 from ccxt.async_support.yobit import yobit                                      # noqa: F401
 from ccxt.async_support.zaif import zaif                                        # noqa: F401
 from ccxt.async_support.zb import zb                                            # noqa: F401
-from ccxt.async_support.zipmex import zipmex                                    # noqa: F401
 from ccxt.async_support.zonda import zonda                                      # noqa: F401
 
 exchanges = [
+    'ace',
     'alpaca',
     'ascendex',
     'bequant',
@@ -275,7 +276,6 @@ exchanges = [
     'yobit',
     'zaif',
     'zb',
-    'zipmex',
     'zonda',
 ]
 

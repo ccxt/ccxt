@@ -429,7 +429,7 @@ module.exports = class alpaca extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbols': market['id'],
-            'timeframe': this.timeframes[timeframe],
+            'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;

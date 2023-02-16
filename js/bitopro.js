@@ -440,7 +440,7 @@ module.exports = class bitopro extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitopro api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetTickers ();
@@ -740,7 +740,7 @@ module.exports = class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const resolution = this.timeframes[timeframe];
+        const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const request = {
             'pair': market['id'],
             'resolution': resolution,
@@ -883,6 +883,7 @@ module.exports = class bitopro extends Exchange {
             '2': 'closed',
             '3': 'closed',
             '4': 'canceled',
+            '6': 'canceled',
         };
         return this.safeString (statuses, status, undefined);
     }
@@ -938,6 +939,10 @@ module.exports = class bitopro extends Exchange {
         const filled = this.safeString (order, 'executedAmount');
         const remaining = this.safeString (order, 'remainingAmount');
         const timeInForce = this.safeString (order, 'timeInForce');
+        let postOnly = undefined;
+        if (timeInForce === 'POST_ONLY') {
+            postOnly = true;
+        }
         let fee = undefined;
         const feeAmount = this.safeString (order, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (order, 'feeSymbol'));
@@ -956,7 +961,7 @@ module.exports = class bitopro extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': undefined,
@@ -1014,6 +1019,10 @@ module.exports = class bitopro extends Exchange {
             } else {
                 request['condition'] = condition;
             }
+        }
+        const postOnly = this.isPostOnly (orderType === 'MARKET', undefined, params);
+        if (postOnly) {
+            request['timeInForce'] = 'POST_ONLY';
         }
         const response = await this.privatePostOrdersPair (this.extend (request, params), params);
         //

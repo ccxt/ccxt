@@ -199,7 +199,7 @@ class ndax(Exchange, ccxt.async_support.ndax):
         payload = {
             'OMSId': omsId,
             'InstrumentId': int(market['id']),  # conditionally optional
-            'Interval': int(self.timeframes[timeframe]),
+            'Interval': int(self.safe_string(self.timeframes, timeframe, timeframe)),
             'IncludeLastCount': 100,  # the number of previous candles to retrieve in the immediate snapshot, 100 by default
         }
         request = {
@@ -251,7 +251,7 @@ class ndax(Exchange, ccxt.async_support.ndax):
             keys = list(self.timeframes.keys())
             for j in range(0, len(keys)):
                 timeframe = keys[j]
-                interval = self.timeframes[timeframe]
+                interval = self.safe_string(self.timeframes, timeframe, timeframe)
                 duration = int(interval) * 1000
                 timestamp = self.safe_integer(ohlcv, 0)
                 parsed = [
