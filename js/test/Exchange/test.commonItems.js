@@ -81,7 +81,7 @@ function testCyrrencyCode (exchange, method, entry, code) {
     }
 }
 
-function testGt (exchange, method, entry, key, compareTo) {
+function Gt (exchange, method, entry, key, compareTo) {
     const logText = logTemplate(exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
@@ -89,11 +89,27 @@ function testGt (exchange, method, entry, key, compareTo) {
     }
 }
 
-function testGe (exchange, method, entry, key, compareTo) {
+function Ge (exchange, method, entry, key, compareTo) {
     const logText = logTemplate(exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
         assert (Precise.stringGe (value, compareTo), key + ' is expected to be >= ' + compareTo + logText);
+    }
+}
+
+function Lt (exchange, method, entry, key, compareTo) {
+    const logText = logTemplate(exchange, method, entry);
+    const value = exchange.safeString (entry, key);
+    if (value !== undefined) {
+        assert (Precise.stringLt (value, compareTo), key + ' is expected to be < ' + compareTo + logText);
+    }
+}
+
+function Le (exchange, method, entry, key, compareTo) {
+    const logText = logTemplate(exchange, method, entry);
+    const value = exchange.safeString (entry, key);
+    if (value !== undefined) {
+        assert (Precise.stringLe (value, compareTo), key + ' is expected to be <= ' + compareTo + logText);
     }
 }
 
@@ -102,6 +118,8 @@ module.exports = {
     testStructureKeys,
     testSymbol,
     testCyrrencyCode,
-    testGt,
-    testGe,
+    Gt,
+    Ge,
+    Lt,
+    Le,
 };

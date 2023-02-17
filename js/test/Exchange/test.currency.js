@@ -31,13 +31,15 @@ function testCurrency (exchange, currency, method) {
     const forceValues = [ 'id', 'code', 'info' ];
     testCommonItems.testStructureKeys (exchange, method, currency, format, forceValues);
     //
+    testCommonItems.Gt (exchange, method, currency, 'precision', '0');
+    testCommonItems.Ge (exchange, method, currency, 'fee', '0')
     const limits = exchange.safeValue (currency, 'limits', {});
     const withdrawLimits = exchange.safeValue (limits, 'withdraw', {});
     const depositLimits = exchange.safeValue (limits, 'deposit', {});
-    testCommonItems.testGe (exchange, method, withdrawLimits, 'min', '0');
-    testCommonItems.testGe (exchange, method, withdrawLimits, 'max', '0');
-    testCommonItems.testGe (exchange, method, depositLimits, 'min', '0');
-    testCommonItems.testGe (exchange, method, depositLimits, 'max', '0');
+    testCommonItems.Ge (exchange, method, withdrawLimits, 'min', '0');
+    testCommonItems.Ge (exchange, method, withdrawLimits, 'max', '0');
+    testCommonItems.Ge (exchange, method, depositLimits, 'min', '0');
+    testCommonItems.Ge (exchange, method, depositLimits, 'max', '0');;
 }
 
 module.exports = testCurrency;

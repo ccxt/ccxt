@@ -30,9 +30,10 @@ function testLedgerItem (exchange, item, code, now) {
     assert (exchange.inArray (item['direction'], [ 'in', 'out' ]), 'direction is expected to be either "in" or "out"' + logText);
     // expect (item.type).to.be.oneOf (['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee',  ]) // TODO: add more types here
     testCommonItems.testCyrrencyCode (exchange, method, item, item['currency']);
+    testCommonItems.Ge (exchange, method, item, 'amount', '0');
     if (item['fee'] !== undefined) {
         assert ('cost' in item['fee'], '"fee" should contain a "cost" key' + logText); 
-        assert ((item['fee']['cost'] === undefined) || (typeof item['fee']['cost'] === 'number'), '"fee[cost]" should be either undefined or number' + logText);
+        testCommonItems.Ge (exchange, method, item['fee'], 'cost', '0');
         assert ('currency' in item['fee'], '"fee" should contain a "currency" key' + logText);
         testCommonItems.testCyrrencyCode (exchange, method, item, item['fee']['currency']);
     }

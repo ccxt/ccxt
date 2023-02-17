@@ -18,7 +18,7 @@ function testBorrowRate (exchange, borrowRate, method, code) {
     const logText = testCommonItems.logTemplate (exchange, method, borrowRate);
     //
     // assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) // Milliseconds in an hour or a day
-    testCommonItems.testGt (exchange, method, borrowRate, 'rate', '0');
+    testCommonItems.Gt (exchange, method, borrowRate, 'rate', '0');
 }
 
 module.exports = testBorrowRate;
