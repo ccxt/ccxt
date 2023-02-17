@@ -82,7 +82,7 @@ module.exports = class binance extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
-                'fetchPosition': undefined,
+                'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -6682,6 +6682,109 @@ module.exports = class binance extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    async fetchPosition (symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchPosition
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
+         * @description fetch data on a single open contract trade position
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['option']) {
+            throw new BadRequest (this.id + ' fetchPosition() only supports option markets');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.eapiPrivateGetPosition (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "entryPrice": "34.20000000",
+        //             "symbol": "ETH-230218-1650-C",
+        //             "side": "LONG",
+        //             "quantity": "0.50000000",
+        //             "reducibleQty": "0.50000000",
+        //             "markValue": "16.150000000",
+        //             "ror": "-0.0555",
+        //             "unrealizedPNL": "-0.950000000",
+        //             "markPrice": "32.3",
+        //             "strikePrice": "1650.00000000",
+        //             "positionCost": "17.10000000",
+        //             "expiryDate": 1676707200000,
+        //             "priceScale": 1,
+        //             "quantityScale": 2,
+        //             "optionSide": "CALL",
+        //             "quoteAsset": "USDT",
+        //             "time": 1676619656396
+        //         }
+        //     ]
+        //
+        return this.parsePosition (response[0], market);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "entryPrice": "34.20000000",
+        //         "symbol": "ETH-230218-1650-C",
+        //         "side": "LONG",
+        //         "quantity": "0.50000000",
+        //         "reducibleQty": "0.50000000",
+        //         "markValue": "16.150000000",
+        //         "ror": "-0.0555",
+        //         "unrealizedPNL": "-0.950000000",
+        //         "markPrice": "32.3",
+        //         "strikePrice": "1650.00000000",
+        //         "positionCost": "17.10000000",
+        //         "expiryDate": 1676707200000,
+        //         "priceScale": 1,
+        //         "quantityScale": 2,
+        //         "optionSide": "CALL",
+        //         "quoteAsset": "USDT",
+        //         "time": 1676619656396
+        //     }
+        //
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const side = this.safeStringLower (position, 'side');
+        let quantity = this.safeString (position, 'quantity');
+        if (side !== 'long') {
+            quantity = Precise.stringMul ('-1', quantity);
+        }
+        const timestamp = this.safeInteger (position, 'time');
+        return {
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'entryPrice': this.safeNumber (position, 'entryPrice'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'notional': this.safeNumber (position, 'markValue'),
+            'collateral': this.safeNumber (position, 'positionCost'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPNL'),
+            'side': side,
+            'contracts': this.parseNumber (quantity),
+            'contractSize': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'hedged': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'liquidationPrice': undefined,
+            'marginRatio': undefined,
+            'marginMode': undefined,
+            'percentage': undefined,
+        };
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
