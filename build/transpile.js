@@ -1873,6 +1873,8 @@ class Transpiler {
                 (filenameWithoutExt === 'test.throttle') || 
                 // .fetchXyz methods (for now)
                 (filenameWithoutExt.indexOf ('.fetch') >= 0) ||
+                // .fetchXyz methods (for now)
+                (filenameWithoutExt.indexOf ('.signIn') >= 0) ||
                 // test.loadMarkets  (for now)
                 (filenameWithoutExt === 'test.loadMarkets')
             ) {
@@ -1885,7 +1887,7 @@ class Transpiler {
             const unCamelCasedFileName = unCamelCase (originalJsFileName).replace (/\./g, '_');
             const prefix = 'transpiled_';
             const test = {
-                jsFile: baseFolders.js + prefix + originalJsFileName + '.js',
+                jsFile: baseFolders.js + originalJsFileName + '.js',
                 pyFile: baseFolders.py + prefix + unCamelCasedFileName + '.py',
                 phpFile: baseFolders.php + prefix + unCamelCasedFileName + '.php',
             };
