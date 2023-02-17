@@ -3981,7 +3981,7 @@ module.exports = class bitget extends Exchange {
         };
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            request['productType'] = (sandboxMode ? 'S' : '') + (subType === 'linear' ? 'UMCBL' : 'DMCBL');
+            request['productType'] = (sandboxMode ? 'S' : '') + (market['linear'] ? 'UMCBL' : 'DMCBL');
         }
         const response = await this.privateMixPostAccountSetPositionMode (this.extend (request, params));
         //
