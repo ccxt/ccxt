@@ -1710,7 +1710,11 @@ module.exports = class bitget extends Exchange {
         const request = {};
         if (method === 'publicMixGetMarketTickers') {
             const defaultSubType = this.safeString (this.options, 'defaultSubType');
-            request['productType'] = (sandboxMode ? 'S' : '') + (defaultSubType === 'linear' ? 'UMCBL' : 'DMCBL');
+            let productType = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+            if (sandboxMode) {
+                productType = 'S' + productType;
+            }
+            request['productType'] = productType;
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -2684,7 +2688,10 @@ module.exports = class bitget extends Exchange {
             market = this.market (symbol);
             defaultSubType = (market['linear']) ? 'linear' : 'inverse';
         }
-        const productType = (sandboxMode ? 'S' : '') + (defaultSubType === 'linear' ? 'UMCBL' : 'DMCBL');
+        let productType = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+        if (sandboxMode) {
+            productType = 'S' + productType;
+        }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' cancelAllOrders () does not support spot markets');
@@ -3425,7 +3432,10 @@ module.exports = class bitget extends Exchange {
         }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
-        const productType = (sandboxMode ? 'S' : '') + (subType === 'linear' ? 'UMCBL' : 'DMCBL');
+        let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
+        if (sandboxMode) {
+            productType = 'S' + productType;
+        }
         const request = {
             'productType': productType,
         };
@@ -3969,20 +3979,23 @@ module.exports = class bitget extends Exchange {
          * @returns {object} response from the exchange
          *
          */
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
-        const productType = this.safeString (params, 'productType');
-        if ((productType === undefined) && (symbol === undefined)) {
-            throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol or the productType parameter');
-        }
         await this.loadMarkets ();
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         const holdMode = hedged ? 'double_hold' : 'single_hold';
         const request = {
             'holdMode': holdMode,
         };
+        let subType = undefined;
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            request['productType'] = (sandboxMode ? 'S' : '') + (subType === 'linear' ? 'UMCBL' : 'DMCBL');
+            market = this.market (symbol);
         }
+        [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
+        let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
+        if (sandboxMode) {
+            productType = 'S' + productType;
+        }
+        request['productType'] = productType;
         const response = await this.privateMixPostAccountSetPositionMode (this.extend (request, params));
         //
         //    {
