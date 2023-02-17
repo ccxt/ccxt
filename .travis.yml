@@ -22,7 +22,6 @@ before_install:
 - pip install --ignore-installed six
 - pip install tox twine
 - pip install aiohttp cryptography
-- npm install auto-changelog@
 - php -i | grep php.ini
 - php --version
 - composer install
