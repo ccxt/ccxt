@@ -30,22 +30,14 @@ function testCurrency (exchange, currency, method) {
     };
     const forceValues = [ 'id', 'code', 'info' ];
     testCommonItems.testStructureKeys (exchange, method, currency, format, forceValues);
-    const logText = testCommonItems.logTemplate (exchange, method, currency);
     //
     const limits = exchange.safeValue (currency, 'limits', {});
     const withdrawLimits = exchange.safeValue (limits, 'withdraw', {});
     const depositLimits = exchange.safeValue (limits, 'deposit', {});
-    const wMin = exchange.safeString (withdrawLimits, 'min');
-    const wMax = exchange.safeString (withdrawLimits, 'max');
-    const dMin = exchange.safeString (depositLimits, 'min');
-    const dMax = exchange.safeString (depositLimits, 'max');
-    assert ((wMin === undefined) || Precise.stringGe (wMin, '0'), 'defined withdraw min is excepted to be above zero' + logText);
-    assert ((wMax === undefined) || Precise.stringGe (wMax, '0'), 'defined withdraw max is excepted to be above zero' + logText);
-    assert ((dMin === undefined) || Precise.stringGe (dMin, '0'), 'defined deposit min is excepted to be above zero' + logText);
-    assert ((dMax === undefined) || Precise.stringGe (dMax, '0'), 'defined deposit max is excepted to be above zero' + logText);
-    // max should above min
-    assert ((wMin === undefined) || (wMax === undefined) || Precise.stringLe (wMin, wMax), 'defined withdraw min is excepted to be below max' + logText);
-    assert ((dMin === undefined) || (dMax === undefined) || Precise.stringLe (dMin, dMax), 'defined deposit min is excepted to be below max' + logText);
+    testCommonItems.testGe (exchange, method, withdrawLimits, 'min', '0');
+    testCommonItems.testGe (exchange, method, withdrawLimits, 'max', '0');
+    testCommonItems.testGe (exchange, method, depositLimits, 'min', '0');
+    testCommonItems.testGe (exchange, method, depositLimits, 'max', '0');
 }
 
 module.exports = testCurrency;

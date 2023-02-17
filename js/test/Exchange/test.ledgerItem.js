@@ -27,15 +27,14 @@ function testLedgerItem (exchange, item, code, now) {
     testCommonItems.testCommonTimestamp (exchange, method, item, now);
     const logText = testCommonItems.logTemplate (exchange, method, item);
     //
-    assert (exchange.inArray (item['direction'], ['in', 'out']), 'direction is expected to be either "in" or "out"' + logText);
-    // expect (item.type).to.be.oneOf (['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee',  ]) //TODO: add more types here 
-    assert ((item['currency'] === undefined) || (item['currency'] in exchange.currencies));
+    assert (exchange.inArray (item['direction'], [ 'in', 'out' ]), 'direction is expected to be either "in" or "out"' + logText);
+    // expect (item.type).to.be.oneOf (['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee',  ]) // TODO: add more types here
+    testCommonItems.testCyrrencyCode (exchange, method, item, item['currency']);
     if (item['fee'] !== undefined) {
-        assert ('cost' in item['fee']);
-        assert ('currency' in item['fee']);
-        assert ((item['fee']['cost'] === undefined) || (typeof item['fee']['cost'] === 'number'));
-        assert ((item['fee']['currency'] === undefined) || (typeof item['fee']['currency'] === 'text'));
-        assert ((item['fee']['currency'] === undefined) || (item['fee']['currency'] in exchange.currencies));
+        assert ('cost' in item['fee'], '"fee" should contain a "cost" key' + logText); 
+        assert ((item['fee']['cost'] === undefined) || (typeof item['fee']['cost'] === 'number'), '"fee[cost]" should be either undefined or number' + logText);
+        assert ('currency' in item['fee'], '"fee" should contain a "currency" key' + logText);
+        testCommonItems.testCyrrencyCode (exchange, method, item, item['fee']['currency']);
     }
 }
 

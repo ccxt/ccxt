@@ -1,6 +1,7 @@
 'use strict'
 
 const assert = require ('assert');
+const Precise = require ('../../base/Precise');
 
 function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
@@ -73,9 +74,34 @@ function testSymbol (exchange, method, entry, expectedSymbol) {
     assert (expectedSymbol === entry['symbol'], 'symbol is not equal to requested symbol; returned: ' + entry['symbol'] + ' requested: ' + expectedSymbol + logText);
 }
 
+function testCyrrencyCode (exchange, method, entry, code) {
+    const logText = logTemplate(exchange, method, entry);
+    if (code !== undefined) {
+        assert ((typeof code === 'string') || (code in exchange.currencies), 'currency code should be either undefined or be a string and present in exchange.currencies' + logText);
+    }
+}
+
+function testGt (exchange, method, entry, key, compareTo) {
+    const logText = logTemplate(exchange, method, entry);
+    const value = exchange.safeString (entry, key);
+    if (value !== undefined) {
+        assert (Precise.stringGt (value, compareTo), key + ' is expected to be > ' + compareTo + logText);
+    }
+}
+
+function testGe (exchange, method, entry, key, compareTo) {
+    const logText = logTemplate(exchange, method, entry);
+    const value = exchange.safeString (entry, key);
+    if (value !== undefined) {
+        assert (Precise.stringGe (value, compareTo), key + ' is expected to be >= ' + compareTo + logText);
+    }
+}
+
 module.exports = {
     testCommonTimestamp,
     testStructureKeys,
-    testId,
     testSymbol,
+    testCyrrencyCode,
+    testGt,
+    testGe,
 };

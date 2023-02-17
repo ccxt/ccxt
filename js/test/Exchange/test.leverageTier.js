@@ -2,23 +2,21 @@
 
 const assert = require ('assert');
 const testCommonItems = require ('./test.commonItems.js');
+const Precise = require ('../../base/Precise');
 
 function testLeverageTier (exchange, method, tier) {
-
     const format = {
-        'tier': 1,
+        'tier': exchange.parseNumber ('1'),
         'minNotional': exchange.parseNumber ('0'),
         'maxNotional': exchange.parseNumber ('5000'),
         'maintenanceMarginRate': exchange.parseNumber ('0.01'),
-        'maxLeverage': 25,
+        'maxLeverage': exchange.parseNumber ('25'),
         'info': {},
     };
     testCommonItems.testStructureKeys (exchange, method, tier, format);
-
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (tier) + ' >>> ';
-
+    const logText = testCommonItems.logTemplate (exchange, method, borrowRate);
+    //
     if (tier['tier'] !== undefined) {
-        assert (typeof tier['tier'] === 'number');
         assert (tier['tier'] >= 0, 'tier is expected to be >= 0' + logText);
     }
     if (tier['minNotional'] !== undefined) {
