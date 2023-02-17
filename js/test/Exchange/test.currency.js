@@ -2,44 +2,50 @@
 
 const assert = require ('assert');
 const testCommonItems = require ('./test.commonItems.js');
+const Precise = require ('../../base/Precise');
 
 function testCurrency (exchange, currency, method) {
     const format = {
+        'info': {},
         'id': 'btc', // string literal for referencing within an exchange
         'code': 'BTC', // uppercase string literal of a pair of currencies
         //----------------------------------------------------------------------
-        // commented temporarily to bring currencies to consistency first
-        // 'name': 'Bitcoin', // uppercase string, base currency, 3 or more letters
-        // 'quote': 'USD', // uppercase string, quote currency, 3 or more letters
-        // 'withdraw': true, // can withdraw
-        // 'deposit': true, // can deposit
+        'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
+        'withdraw': true, // can withdraw
+        'deposit': true, // can deposit
         // 'active': true, // can both withdraw & deposit
-        // 'precision': 8, // number of decimal digits "after the dot"
-        // 'limits': { // value limits when placing orders on this market
-        //     'amount': {
-        //         'min': 0.01, // order amount should be > min
-        //         'max': 1000, // order amount should be < max
-        //     },
-        //     'price': {
-        //         'min': 0.01, // order price should be > min
-        //         'max': 1000, // order price should be < max
-        //     },
-        //     'cost': { // order cost = price * amount
-        //         'min': 0.01, // order cost should be > min
-        //         'max': 1000, // order cost should be < max
-        //     },
-        // },
-        // 'info': {}, // the original unparsed market info from the exchange
+        'precision': exchange.parseNumber ('0.0001'), // in case of SIGNIFICANT_DIGITS it will be 8 - number of digits "after the dot"
+        'fee': exchange.parseNumber ('0.001'), //
+        'limits': { // value limits when placing orders on this market
+            'withdraw':  {
+                'min': exchange.parseNumber ('0.01'),
+                'max': exchange.parseNumber ('1000'),
+            },
+            'deposit':  {
+                'min': exchange.parseNumber ('0.01'),
+                'max': exchange.parseNumber ('1000'),
+            },
+        },
         //----------------------------------------------------------------------
     };
-    testCommonItems.testStructureKeys (exchange, method, currency, format);
-
-    // expect (currency['precision']).to.not.be.undefined
-    // expect (currency['limits']['amount']['min']).to.not.be.undefined
-    // expect (currency['limits']['price']['min']).to.not.be.undefined
-    // expect (market['limits']['cost']['min']).to.not.be.undefined
-
-    return currency;
+    const forceValues = [ 'id', 'code', 'info' ];
+    testCommonItems.testStructureKeys (exchange, method, currency, format, forceValues);
+    const logText = testCommonItems.logTemplate (exchange, method, currency);
+    //
+    const limits = exchange.safeValue (currency, 'limits', {});
+    const withdrawLimits = exchange.safeValue (limits, 'withdraw', {});
+    const depositLimits = exchange.safeValue (limits, 'deposit', {});
+    const wMin = exchange.safeString (withdrawLimits, 'min');
+    const wMax = exchange.safeString (withdrawLimits, 'max');
+    const dMin = exchange.safeString (depositLimits, 'min');
+    const dMax = exchange.safeString (depositLimits, 'max');
+    assert ((wMin === undefined) || Precise.stringGe (wMin, '0'), 'defined withdraw min is excepted to be above zero' + logText);
+    assert ((wMax === undefined) || Precise.stringGe (wMax, '0'), 'defined withdraw max is excepted to be above zero' + logText);
+    assert ((dMin === undefined) || Precise.stringGe (dMin, '0'), 'defined deposit min is excepted to be above zero' + logText);
+    assert ((dMax === undefined) || Precise.stringGe (dMax, '0'), 'defined deposit max is excepted to be above zero' + logText);
+    // max should above min
+    assert ((wMin === undefined) || (wMax === undefined) || Precise.stringLe (wMin, wMax), 'defined withdraw min is excepted to be below max' + logText);
+    assert ((dMin === undefined) || (dMax === undefined) || Precise.stringLe (dMin, dMax), 'defined deposit min is excepted to be below max' + logText);
 }
 
 module.exports = testCurrency;

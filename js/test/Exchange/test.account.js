@@ -10,8 +10,8 @@ function testAccount (exchange, account, method) {
         'type': 'spot', // 'spot', 'margin', 'futures', 'swap'
         'id': '12345',
     };
-    const neededValues = [ 'code', 'type', 'info' ];
-    testCommonItems.testStructureKeys (exchange, method, account, format, neededValues);
+    const forceValues = [ 'code', 'type', 'info' ];
+    testCommonItems.testStructureKeys (exchange, method, account, format, forceValues);
 }
 
 module.exports = testAccount;

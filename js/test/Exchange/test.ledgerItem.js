@@ -6,52 +6,36 @@ const testCommonItems = require ('./test.commonItems.js');
 function testLedgerItem (exchange, item, code, now) {
     const method = 'ledgerItem';
     const format = {
-        'id': '',
-        'currency': '',
-        'account': '',
-        // 'referenceAccount': '',
-        // 'referenceId': '',
+        'id': 'x1234',
+        'currency': 'BTC',
+        'account': 'spot',
+        'referenceId': '',
+        'referenceAccount': '',
         'status': 'ok',
-        'amount': exchange.parseNumber ('12'),
+        'amount': exchange.parseNumber ('22'),
         'before': exchange.parseNumber ('111'),
         'after': exchange.parseNumber ('133'),
         'fee': {},
-        'direction': 'in/out',
+        'direction': 'in',
         'timestamp': 1638230400000,
         'datetime': '2021-11-30T00:00:00.000Z',
-        'type': '',
+        'type': 'deposit',
         'info': {}, // or []
     };
-    testCommonItems.testStructureKeys (exchange, method, item, format);
-    testCommonItems.testId (exchange, method, item);
-    testCommonItems.testCommonTimestamp (exchange, method, item);
-
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (item) + ' >>> ';
-
-    assert (('direction' in item), 'direction is missing' + logText);
-    assert ((item['direction'] === 'in') || (item['direction'] === 'out'));
-    assert (('account' in item));
-    assert ((item['account'] === undefined) || (typeof item['account'] === 'string'));
-    assert (('referenceId' in item));
-    assert ((item['referenceId'] === undefined) || (typeof item['referenceId'] === 'string'));
-    assert ('referenceAccount' in item);
-    assert ((item['referenceAccount'] === undefined) || (typeof item['referenceAccount'] === 'string'));
-    assert (('type' in item), 'type is missing' + logText);
-    // expect (item.type).to.be.oneOf (['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee', /* TODO: add more types here */ ])
-    assert (('currency' in item));
+    const forceValues = [ 'id', 'currency', 'account', 'status', 'direction', 'info' ];
+    testCommonItems.testStructureKeys (exchange, method, item, format, forceValues);
+    testCommonItems.testCommonTimestamp (exchange, method, item, now);
+    const logText = testCommonItems.logTemplate (exchange, method, item);
+    //
+    assert (exchange.inArray (item['direction'], ['in', 'out']), 'direction is expected to be either "in" or "out"' + logText);
+    // expect (item.type).to.be.oneOf (['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee',  ]) //TODO: add more types here 
     assert ((item['currency'] === undefined) || (item['currency'] in exchange.currencies));
-    assert (('amount' in item));
-    assert ((item['amount'] === undefined) || (typeof item['amount'] === 'number'));
-    assert (('before' in item));
-    assert ((item['before'] === undefined) || (typeof item['before'] === 'number'));
-    assert (('after' in item));
-    assert ((item['after'] === undefined) || (typeof item['after'] === 'number'));
-    assert (('fee' in item));
     if (item['fee'] !== undefined) {
-        assert (typeof item['fee'] === 'object');
-        assert (('cost' in item['fee']));
+        assert ('cost' in item['fee']);
+        assert ('currency' in item['fee']);
         assert ((item['fee']['cost'] === undefined) || (typeof item['fee']['cost'] === 'number'));
-        assert (('currency' in item['fee']));
+        assert ((item['fee']['currency'] === undefined) || (typeof item['fee']['currency'] === 'text'));
+        assert ((item['fee']['currency'] === undefined) || (item['fee']['currency'] in exchange.currencies));
     }
 }
 

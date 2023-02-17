@@ -11,8 +11,8 @@ function testBalance (exchange, balance, method) {
         'total': {},
         'info': {},
     };
-    const neededValues = [ 'free', 'used', 'total', 'info' ];
-    testCommonItems.testStructureKeys (exchange, method, balance, format, neededValues);
+    const forceValues = [ 'free', 'used', 'total', 'info' ];
+    testCommonItems.testStructureKeys (exchange, method, balance, format, forceValues);
     const logText = testCommonItems.logTemplate (exchange, method, balance);
     //
     const codes = Object.keys (balance['total']);
