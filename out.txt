@@ -1,0 +1,3 @@
+Python v3.10.9
+CCXT v2.7.84
+independentreserve.watchTrades(BTC/USD)
