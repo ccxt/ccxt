@@ -8170,6 +8170,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
@@ -8182,7 +8183,7 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.privateGetContractV3PrivateAccountFeeRate (this.extend (request, params));
+        const response = await this.privateGetV5AccountFeeRate (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -8197,7 +8198,7 @@ module.exports = class bybit extends Exchange {
         //             ]
         //         },
         //         "retExtInfo": {},
-        //         "time": 1658739027301
+        //         "time": 1676360412576
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -8211,6 +8212,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
@@ -8220,7 +8222,7 @@ module.exports = class bybit extends Exchange {
         if (type === 'spot') {
             throw new NotSupported (this.id + ' fetchTradingFees() is not supported for spot market');
         }
-        const response = await this.privateGetContractV3PrivateAccountFeeRate (params);
+        const response = await this.privateGetV5AccountFeeRate (params);
         //
         //     {
         //         "retCode": 0,
@@ -8235,7 +8237,7 @@ module.exports = class bybit extends Exchange {
         //             ]
         //         },
         //         "retExtInfo": {},
-        //         "time": 1658739027301
+        //         "time": 1676360412576
         //     }
         //
         let fees = this.safeValue (response, 'result', {});
