@@ -2689,12 +2689,12 @@ module.exports = class bitget extends Exchange {
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
         let market = undefined;
-        let defaultSubType = this.safeString (this.options, 'defaultSubType');
         if (symbol !== undefined) {
             market = this.market (symbol);
-            defaultSubType = (market['linear']) ? 'linear' : 'inverse';
         }
-        let productType = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
+        let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
         if (sandboxMode) {
             productType = 'S' + productType;
         }
