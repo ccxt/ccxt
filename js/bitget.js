@@ -1694,6 +1694,7 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
         let type = undefined;
         let market = undefined;
@@ -2104,6 +2105,7 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const method = this.getSupportedMapping (marketType, {
@@ -2674,6 +2676,7 @@ module.exports = class bitget extends Exchange {
          * @param {string} params.code marginCoin unified currency code
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
         let market = undefined;
         let defaultSubType = this.safeString (this.options, 'defaultSubType');
@@ -3413,13 +3416,13 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
         let market = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
             market = this.market (first);
         }
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
         const productType = (sandboxMode ? 'S' : '') + (subType === 'linear' ? 'UMCBL' : 'DMCBL');
@@ -3966,6 +3969,7 @@ module.exports = class bitget extends Exchange {
          * @returns {object} response from the exchange
          *
          */
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         const productType = this.safeString (params, 'productType');
         if ((productType === undefined) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol or the productType parameter');
