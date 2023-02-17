@@ -11,30 +11,10 @@ function testBalance (exchange, balance, method) {
         'total': {},
         'info': {},
     };
-    testCommonItems.testStructureKeys (exchange, method, balance, format);
-
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (balance) + ' >>> ';
-
-    const currencies = [
-        'USD',
-        'USDT',
-        'CNY',
-        'EUR',
-        'BTC',
-        'ETH',
-        'JPY',
-        'LTC',
-        'DASH',
-        'DOGE',
-        'UAH',
-        'RUB',
-        'XRP',
-    ];
-
-    assert (typeof balance['total'] === 'object');
-    assert (typeof balance['free'] === 'object');
-    assert (typeof balance['used'] === 'object');
-
+    const neededValues = [ 'free', 'used', 'total', 'info' ];
+    testCommonItems.testStructureKeys (exchange, method, balance, format, neededValues);
+    const logText = testCommonItems.logTemplate (exchange, method, balance);
+    //
     const codes = Object.keys (balance['total']);
     for (let i = 0; i < codes.length; i++) {
         const code = codes[i];

@@ -10,19 +10,22 @@ function testTradingFee (exchange, symbol, fee) {
         'symbol': 'ETH/BTC',
         'maker': exchange.parseNumber ('0.002'),
         'taker': exchange.parseNumber ('0.003'),
+        'percentage': false,
+        'tierBased': false,
     };
     testCommonItems.testStructureKeys (exchange, method, fee, format);
-
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (fee) + ' >>> ';
-
-    assert (fee['symbol'] === symbol, 'symbol is not equal to requested symbol; returned: ' + fee['symbol'] + ' requested: ' + symbol + logText);
+    testCommonItems.testSymbol (exchange, method, fee, symbol);
+    const logText = testCommonItems.logTemplate (exchange, method, transaction);
+    //
     assert (typeof fee['maker'] === 'number', 'maker fee is not a number' + logText);
     assert (typeof fee['taker'] === 'number', 'taker fee is not a number' + logText);
-    if ('percentage' in fee) {
-        assert ((fee['percentage'] === true || fee['percentage'] === false), 'percentage is not a boolean' + logText);
+    const percentageValue = exchange.safeValue (fee, 'percentage');
+    if (percentageValue !== undefined) {
+        assert ((percentageValue === true || percentageValue === false), 'percentage is not a boolean' + logText);
     }
-    if ('tierBased' in fee) {
-        assert ((fee['tierBased'] === true || fee['tierBased'] === false), 'tierBased is not a boolean' + logText);
+    const tierBasedValue = exchange.safeValue (fee, 'tierBased');
+    if (tierBasedValue !== undefined) {
+        assert ((tierBasedValue === true || tierBasedValue === false), 'tierBased is not a boolean' + logText);
     }
     return fee;
 }

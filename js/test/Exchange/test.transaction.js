@@ -27,16 +27,9 @@ function testTransaction (exchange, transaction, code, now) {
     };
     testCommonItems.testStructureKeys (exchange, method, transaction, format);
     testCommonItems.testId (exchange, method, transaction);
-    testCommonItems.testCommonTimestamp (exchange, method, transaction);
-
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (transaction) + ' >>> ';
-
-    assert (transaction['timestamp'] < now, 'timestamp must be less than current time' + logText);
-
-    assert (('updated' in transaction));
-    assert (('address' in transaction));
-    assert (('tag' in transaction));
-    assert (('txid' in transaction));
+    testCommonItems.testCommonTimestamp (exchange, method, transaction, now);
+    const logText = testCommonItems.logTemplate (exchange, method, transaction);
+    //
     const statuses = [
         'ok',
         'pending',
@@ -44,17 +37,15 @@ function testTransaction (exchange, transaction, code, now) {
         'rejected',
         'canceled',
     ];
-    const transactionStatusIsValid = exchange.inArray (transaction['status'], statuses);
-    assert (transactionStatusIsValid);
-    assert (transaction['currency'] === code);
-    assert (typeof transaction['type'] === 'string');
-    assert ((transaction['type'] === 'deposit') || (transaction['type'] === 'withdrawal'));
-    assert (typeof transaction['amount'] === 'number');
-    assert (transaction['amount'] >= 0);
+    assert (exchange.inArray (transaction['status'], statuses), 'status ' + transaction['status'] + ' not in expected list: ' + exchange.json (statuses) + logText);
+    assert (transaction['currency'] === code, 'currency ' + transaction['currency'] + ' not equal to expected ' + code + logText);
+    assert ((typeof transaction['type'] === 'string') && exchange.inArray (transaction['type'], ['deposit', 'withdrawal']), 'type ' + transaction['type'] + ' not in expected list: deposit, withdrawal' + logText);
+    assert (typeof transaction['amount'] === 'number', 'amount ' + transaction['amount'] + ' is not a number' + logText);
+    assert (transaction['amount'] >= 0, 'amount ' + transaction['amount'] + ' is negative' + logText);
     if (transaction['fee']) {
-        assert (typeof transaction['fee']['cost'] === 'number');
+        assert (typeof transaction['fee']['cost'] === 'number', 'fee["cost"] ' + transaction['fee']['cost'] + ' is not a number' + logText);
         if (transaction['fee']['cost'] !== 0) {
-            assert (typeof transaction['fee']['currency'] === 'string');
+            assert (typeof transaction['fee']['currency'] === 'string', 'fee["currency"] ' + transaction['fee']['currency'] + ' is not a string' + logText);
         }
     }
 }

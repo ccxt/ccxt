@@ -2,49 +2,42 @@
 
 const assert = require ('assert');
 
-function logTemplate (exchange, method, container) {
-    return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (container) + ' >>> ';
+function logTemplate (exchange, method, entry) {
+    return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
 }
 
-function testCommonTimestamp (exchange, method, container) {
+function testStructureKeys (exchange, method, entry, format, requiredValueKeys = []) {
     // define common log text
-    const logText = logTemplate(exchange, method, container);
-    // ensure timestamp exists in object
-    assert (('timestamp' in container), 'timestamp is missing from structure' + logText);
-    const ts = container['timestamp'];
-    if (ts !== undefined) {
-        assert (typeof ts === 'number', 'timestamp is not a number' + logText);
-        assert (ts > 1230940800000, 'timestamp is impossible to be before 1230940800000 / 03.01.2009' + logText); // 03 Jan 2009 - first block
-        assert (ts < 2147483648000, 'timestamp more than 2147483648000 / 19.01.2038' + logText); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
-        // check it's integer
-    }
-    // we also test 'datetime' here because it's certain sibling of 'timestamp'
-    assert (('datetime' in container), 'datetime is missing from structure' + logText);
-    const dt = container['datetime'];
-    if (dt !== undefined) {
-        assert (typeof dt === 'string', 'datetime is not a string' + logText);
-        assert (dt === exchange.iso8601 (container['timestamp']), 'datetime is not iso8601 of timestamp' + logText);
-    }
-}
-
-function testStructureKeys (exchange, method, container, format) {
-    // define common log text
-    const logText = logTemplate(exchange, method, container);
+    const logText = logTemplate(exchange, method, entry);
     // ensure item is not null/undefined/unset
-    assert (container, 'item is null/undefined' + logText);
+    assert (entry, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
     if (typeof format === 'object') {
+        assert (typeof entry === 'object', 'entry is not an object' + logText);
         const keys = Object.keys (format);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const isPresent = (key in container);
-            assert (isPresent, key.toString () + ' key is missing from structure' + logText);
+            assert (key in entry, key.toString () + ' key is missing from structure' + logText);
+            const valueType = typeof entry[key];
+            const expectedType = typeof format[key];
+            if (exchange.inArray (key, requiredValueKeys)) {
+                // if it was in required keys, then it should have value, not undefined
+                assert (entry[key] !== undefined, key + ' key is undefined, but is required' + logText);
+            } else {
+                // if it was not in required keys, then tolerate undefined
+                assert ((entry[key] === undefined) || (valueType === expectedType), key+ ' key is neither undefined, neither of expected type ' + expectedType + logText);
+            }
         }
     } else {
+        assert (Array.isArray (entry), 'entry is not an array' + logText);
+        const actualLength = entry.length;
+        const expectedLength = format.length;
+        assert (actualLength === expectedLength, 'entry length is not equal to expected length of ' + expectedLength.toString () + logText);
         for (let i = 0; i < format.length; i++) {
-            // because of other langs, this is needed for arrays 
+            const expectedType = typeof format[i];
+            // because of other langs, this is needed for arrays
             try {
-                assert (format[i], i.toString () + ' index is missing from structure' + logText);
+                assert (typeof entry[i] === expectedType, i.toString () + ' index does not have an expected type ' + expectedType + logText);
             } catch (ex) {
                 assert (false, i.toString () + ' index is missing from structure' + logText);
             }
@@ -52,13 +45,37 @@ function testStructureKeys (exchange, method, container, format) {
     }
 }
 
-function testId (exchange, method, container) {
-    const logText = logTemplate(exchange, method, container);
-    assert ((container['id'] === undefined) || (typeof container['id'] === 'string'), 'id is not correctly set' + logText);
+function testCommonTimestamp (exchange, method, entry, nowToCheck = undefined) {
+    // define common log text
+    const logText = logTemplate(exchange, method, entry);
+    // ensure timestamp exists in object
+    assert ('timestamp' in entry, 'timestamp is missing from structure' + logText);
+    const ts = entry['timestamp'];
+    if (ts !== undefined) {
+        assert (typeof ts === 'number', 'timestamp is not a number' + logText);
+        assert (ts > 1230940800000, 'timestamp is impossible to be before 1230940800000 / 03.01.2009' + logText); // 03 Jan 2009 - first block
+        assert (ts < 2147483648000, 'timestamp more than 2147483648000 / 19.01.2038' + logText); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
+        if (nowToCheck !== undefined) {
+            assert (timestamp < nowToCheck + 60000, 'trade timestamp is not below current time. Returned datetime: ' + exchange.iso8601 (timestamp) + ', now: ' + exchange.iso8601 (nowToCheck) + logText);
+        }
+    }
+    // we also test 'datetime' here because it's certain sibling of 'timestamp'
+    assert ('datetime' in entry, 'datetime is missing from structure' + logText);
+    const dt = entry['datetime'];
+    if (dt !== undefined) {
+        assert (typeof dt === 'string', 'datetime is not a string' + logText);
+        assert (dt === exchange.iso8601 (entry['timestamp']), 'datetime is not iso8601 of timestamp' + logText);
+    }
+}
+
+function testSymbol (exchange, method, entry, expectedSymbol) {
+    const logText = logTemplate(exchange, method, entry);
+    assert (expectedSymbol === entry['symbol'], 'symbol is not equal to requested symbol; returned: ' + entry['symbol'] + ' requested: ' + expectedSymbol + logText);
 }
 
 module.exports = {
     testCommonTimestamp,
     testStructureKeys,
     testId,
+    testSymbol,
 };

@@ -20,14 +20,9 @@ function testTrade (exchange, trade, symbol, now) {
     };
     testCommonItems.testStructureKeys (exchange, method, trade, format);
     testCommonItems.testId (exchange, method, trade);
-    testCommonItems.testCommonTimestamp (exchange, method, trade);
+    testCommonItems.testCommonTimestamp (exchange, method, trade, now);
     const logText = testCommonItems.logTemplate (exchange, method, trade);
     //
-    const timestamp = trade['timestamp'];
-    if (timestamp) {
-        const adjustedNow = now + 60000;
-        assert (timestamp < adjustedNow, 'trade timestamp is not below current time. trade: ' + exchange.iso8601 (timestamp) + ' now: ' + exchange.iso8601 (now) + logText);
-    }
     const fee = exchange.safeValue (trade, 'fee');
     const fees = exchange.safeValue (trade, 'fees');
     // logical XOR
@@ -48,15 +43,15 @@ function testTrade (exchange, trade, symbol, now) {
         }
     }
     assert (trade['symbol'] === symbol, 'trade symbol: ' + trade['symbol'] + ' is not requested symbol: ' + symbol + logText);
-    assert (trade['side'] === undefined || exchange.inArray(typeof trade['side'], [ 'buy', 'sell' ]), 'trade side: ' + trade['side'] + ' is not undefined, buy or sell' + logText);
-    assert (exchange.inArray(typeof trade['order'], [ 'undefined', 'string' ]), 'trade order: ' + trade['order'] + ' is not undefined or string' + logText);
+    assert ((trade['side'] === undefined) || exchange.inArray (trade['side'], [ 'buy', 'sell' ]), 'trade side: ' + trade['side'] + ' is not undefined, buy or sell' + logText);
+    assert ((typeof trade['order'] === 'undefined') || (typeof trade['order'] === 'string'), 'trade order: ' + trade['order'] + ' is not undefined or string' + logText);
     assert (typeof trade['price'] === 'number', 'trade price: ' + trade['price'] + ' is not a number' + logText);
     assert (trade['price'] > 0, 'trade price: ' + trade['price'] + ' is not greater than zero' + logText);
     assert (typeof trade['amount'] === 'number', 'trade amount: ' + trade['amount'] + ' is not a number' + logText);
     assert (trade['amount'] >= 0, 'trade amount: ' + trade['amount'] + ' is not >= zero' + logText);
-    assert (exchange.inArray(typeof trade['cost'], [ 'undefined', 'number' ]), 'trade cost: ' + trade['cost'] + ' is not undefined or number' + logText);
-    assert (trade['cost'] === undefined || trade['cost'] >= 0, 'trade cost: ' + trade['cost'] + ' is neither undefined, nor >= zero' + logText);
-    assert (trade['takerOrMaker'] === undefined || exchange.inArray(typeof trade['takerOrMaker'], [ 'taker', 'maker' ]), 'trade takerOrMaker: ' + trade['takerOrMaker'] + ' is not undefined, taker or maker' + logText);
+    assert ((typeof trade['cost'] === 'undefined') || (typeof trade['cost'] === 'number'), 'trade cost: ' + trade['cost'] + ' is not undefined or number' + logText);
+    assert ((trade['cost'] === undefined) || (trade['cost'] >= 0), 'trade cost: ' + trade['cost'] + ' is neither undefined, nor >= zero' + logText);
+    assert ((trade['takerOrMaker'] === undefined) || exchange.inArray (trade['takerOrMaker'], [ 'taker', 'maker' ]), 'trade takerOrMaker: ' + trade['takerOrMaker'] + ' is not undefined, taker or maker' + logText);
 }
 
 module.exports = testTrade;
