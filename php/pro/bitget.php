@@ -994,18 +994,26 @@ class bitget extends \ccxt\async\bitget {
              */
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', null, $params);
-            $instType = ($type === 'spot') ? 'spbl' : 'umcbl';
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $instType = 'spbl';
+            if ($type === 'swap') {
+                $instType = 'UMCBL';
+                if ($sandboxMode) {
+                    $instType = 'S' . $instType;
+                }
+            }
             $args = array(
                 'instType' => $instType,
                 'channel' => 'account',
                 'instId' => 'default',
             );
-            $messageHash = 'balance:' . $instType;
+            $messageHash = 'balance:' . strtolower($instType);
             return Async\await($this->watch_private($messageHash, $messageHash, $args, $params));
         }) ();
     }
 
     public function handle_balance($client, $message) {
+        // spot
         //
         //    {
         //        action => 'snapshot',
@@ -1016,13 +1024,35 @@ class bitget extends \ccxt\async\bitget {
         //        )
         //    }
         //
+        // swap
+        //    {
+        //      "action" => "snapshot",
+        //      "arg" => array(
+        //        "instType" => "umcbl",
+        //        "channel" => "account",
+        //        "instId" => "default"
+        //      ),
+        //      "data" => array(
+        //        {
+        //          "marginCoin" => "USDT",
+        //          "locked" => "0.00000000",
+        //          "available" => "3384.58046492",
+        //          "maxOpenPosAvailable" => "3384.58046492",
+        //          "maxTransferOut" => "3384.58046492",
+        //          "equity" => "3384.58046492",
+        //          "usdtEquity" => "3384.580464925690"
+        //        }
+        //      )
+        //    }
+        //
         $data = $this->safe_value($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $rawBalance = $data[$i];
-            $currencyId = $this->safe_string($rawBalance, 'coinName');
+            $currencyId = $this->safe_string_2($rawBalance, 'coinName', 'marginCoin');
             $code = $this->safe_currency_code($currencyId);
             $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
             $account['free'] = $this->safe_string($rawBalance, 'available');
+            $account['total'] = $this->safe_string($rawBalance, 'equity');
             $this->balance[$code] = $account;
         }
         $this->balance = $this->safe_balance($this->balance);
