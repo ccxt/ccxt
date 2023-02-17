@@ -22,12 +22,13 @@ before_install:
 - pip install --ignore-installed six
 - pip install tox twine
 - pip install aiohttp cryptography
-- pip install auto-changelog===0.6.0
+- npm install auto-changelog@
 - php -i | grep php.ini
 - php --version
 - composer install
 script:
-- auto-changelog # DEBUG ONLY don't create changelog since the beginning
+- npm list -g standard-version --depth=0 || npm install -g standard-version@9.5.0
+- standard-version --skip.bump --skip.commit --skip.tag
 - npm run force-build
 - npm run test-base
 - npm run test-base-ws
