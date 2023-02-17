@@ -9,7 +9,7 @@ function logTemplate (exchange, method, entry) {
 
 function testStructureKeys (exchange, method, entry, format, requiredValueKeys = []) {
     // define common log text
-    const logText = logTemplate(exchange, method, entry);
+    const logText = logTemplate (exchange, method, entry);
     // ensure item is not null/undefined/unset
     assert (entry, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -48,7 +48,7 @@ function testStructureKeys (exchange, method, entry, format, requiredValueKeys =
 
 function testCommonTimestamp (exchange, method, entry, nowToCheck = undefined) {
     // define common log text
-    const logText = logTemplate(exchange, method, entry);
+    const logText = logTemplate (exchange, method, entry);
     // ensure timestamp exists in object
     assert ('timestamp' in entry, 'timestamp is missing from structure' + logText);
     const ts = entry['timestamp'];
@@ -70,19 +70,19 @@ function testCommonTimestamp (exchange, method, entry, nowToCheck = undefined) {
 }
 
 function testSymbol (exchange, method, entry, expectedSymbol) {
-    const logText = logTemplate(exchange, method, entry);
+    const logText = logTemplate (exchange, method, entry);
     assert (expectedSymbol === entry['symbol'], 'symbol is not equal to requested symbol; returned: ' + entry['symbol'] + ' requested: ' + expectedSymbol + logText);
 }
 
 function testCyrrencyCode (exchange, method, entry, code) {
-    const logText = logTemplate(exchange, method, entry);
+    const logText = logTemplate (exchange, method, entry);
     if (code !== undefined) {
         assert ((typeof code === 'string') || (code in exchange.currencies), 'currency code should be either undefined or be a string and present in exchange.currencies' + logText);
     }
 }
 
 function Gt (exchange, method, entry, key, compareTo) {
-    const logText = logTemplate(exchange, method, entry);
+    const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
         assert (Precise.stringGt (value, compareTo), key + ' is expected to be > ' + compareTo + logText);
@@ -90,7 +90,7 @@ function Gt (exchange, method, entry, key, compareTo) {
 }
 
 function Ge (exchange, method, entry, key, compareTo) {
-    const logText = logTemplate(exchange, method, entry);
+    const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
         assert (Precise.stringGe (value, compareTo), key + ' is expected to be >= ' + compareTo + logText);
@@ -98,7 +98,7 @@ function Ge (exchange, method, entry, key, compareTo) {
 }
 
 function Lt (exchange, method, entry, key, compareTo) {
-    const logText = logTemplate(exchange, method, entry);
+    const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
         assert (Precise.stringLt (value, compareTo), key + ' is expected to be < ' + compareTo + logText);
@@ -106,7 +106,7 @@ function Lt (exchange, method, entry, key, compareTo) {
 }
 
 function Le (exchange, method, entry, key, compareTo) {
-    const logText = logTemplate(exchange, method, entry);
+    const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
         assert (Precise.stringLe (value, compareTo), key + ' is expected to be <= ' + compareTo + logText);

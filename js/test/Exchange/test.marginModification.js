@@ -3,10 +3,8 @@
 const assert = require('assert');
 const testCommonItems = require ('./test.commonItems.js');
 
-function testMarginModification (exchange, marginModification) {
-
+function testMarginModification (exchange, item) {
     const method = 'marginModification';
-
     const format = {
         'info': {}, // or []
         'type': 'add',
@@ -16,27 +14,15 @@ function testMarginModification (exchange, marginModification) {
         'symbol': 'ADA/USDT:USDT',
         'status': 'ok',
     };
-    testCommonItems.testStructureKeys (exchange, method, marginModification, format);
+    const forceValues = [ 'type', 'status' ];
+    testCommonItems.testStructureKeys (exchange, method, item, format, forceValues);
+    const logText = testCommonItems.logTemplate (exchange, method, item);
 
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (marginModification) + ' >>> ';
-
-    if (marginModification['type'] !== undefined) {
-        assert ((marginModification['type'] === 'add') || (marginModification['type'] === 'reduce') || (marginModification['type'] === 'set'), 'type must be `add`, `reduce` or `set`' + logText);
+    if (item['type'] !== undefined) {
+        assert ((item['type'] === 'add') || (item['type'] === 'reduce') || (item['type'] === 'set'), '"type" must be `add`, `reduce` or `set`' + logText);
     }
-    if (marginModification['amount'] !== undefined) {
-        assert (typeof marginModification['amount'] === 'number');
-    }
-    if (marginModification['total'] !== undefined) {
-        assert (typeof marginModification['total'] === 'number');
-    }
-    if (marginModification['code'] !== undefined) {
-        assert (typeof marginModification['code'] === 'string');
-    }
-    if (marginModification['symbol'] !== undefined) {
-        assert (typeof marginModification['symbol'] === 'string');
-    }
-    if (marginModification['status'] !== undefined) {
-        assert (exchange.inArray (marginModification['status'], [ 'ok', 'pending', 'canceled', 'failed' ]));
+    if (item['status'] !== undefined) {
+        assert (exchange.inArray (item['status'], [ 'ok', 'pending', 'canceled', 'failed' ]));
     }
 }
 
