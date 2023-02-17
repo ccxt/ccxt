@@ -999,7 +999,7 @@ module.exports = class bitget extends bitgetRest {
     }
 
     handleBalance (client, message) {
-        //
+        // spot
         //    {
         //        action: 'snapshot',
         //        arg: { instType: 'spbl', channel: 'account', instId: 'default' },
@@ -1008,7 +1008,26 @@ module.exports = class bitget extends bitgetRest {
         //          { coinId: '2', coinName: 'USDT', available: '13.4498240000000000' }
         //        ]
         //    }
-        //
+        // contract
+        //    {
+        //      "action": "snapshot",
+        //      "arg": {
+        //        "instType": "umcbl",
+        //        "channel": "account",
+        //        "instId": "default"
+        //      },
+        //      "data": [
+        //        {
+        //          "marginCoin": "USDT",
+        //          "locked": "0.00000000",
+        //          "available": "3384.58046492",
+        //          "maxOpenPosAvailable": "3384.58046492",
+        //          "maxTransferOut": "3384.58046492",
+        //          "equity": "3384.58046492",
+        //          "usdtEquity": "3384.580464925690"
+        //        }
+        //      ]
+        //    }
         const data = this.safeValue (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rawBalance = data[i];
