@@ -352,9 +352,11 @@ module.exports = class bybit extends Exchange {
                         'v5/account/wallet-balance': 2.5,
                         'v5/account/borrow-history': 2.5,
                         'v5/account/collateral-info': 2.5,
+                        'v5/account/mmp-state': 2.5,
                         'v5/asset/coin-greeks': 2.5,
                         'v5/account/info': 2.5,
                         'v5/account/transaction-log': 2.5,
+                        'v5/account/fee-rate': 1,
                         'v5/asset/exchange/order-record': 2.5,
                         'v5/asset/delivery-record': 2.5,
                         'v5/asset/settlement-record': 2.5,
@@ -371,6 +373,7 @@ module.exports = class bybit extends Exchange {
                         'v5/asset/deposit/query-sub-member-address': 2.5,
                         'v5/asset/coin/query-info': 2.5,
                         'v5/asset/withdraw/query-record': 2.5,
+                        'v5/asset/transfer/query-account-coins-balance': 2.5,
                     },
                     'post': {
                         // inverse swap
@@ -531,6 +534,7 @@ module.exports = class bybit extends Exchange {
                         'v5/order/create-batch': 2.5,
                         'v5/order/amend-batch': 2.5,
                         'v5/order/cancel-batch': 2.5,
+                        'v5/order/disconnected-cancel-all': 2.5,
                         'v5/position/set-leverage': 2.5,
                         'v5/position/set-tpsl-mode': 2.5,
                         'v5/position/set-risk-limit': 2.5,
