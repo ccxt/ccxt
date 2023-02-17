@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -176,6 +177,8 @@ class mexc3(Exchange):
                             'capital/deposit/address': 1,
                             'capital/transfer': 1,
                             'capital/sub-account/universalTransfer': 1,
+                            'capital/convert': 1,
+                            'capital/convert/list': 1,
                             'margin/loan': 1,
                             'margin/allOrders': 1,
                             'margin/myTrades': 1,
@@ -208,6 +211,7 @@ class mexc3(Exchange):
                             'capital/transfer': 1,
                             'capital/deposit/address': 1,
                             'capital/sub-account/universalTransfer': 1,
+                            'capital/convert': 1,
                             'margin/tradeMode': 1,
                             'margin/order': 1,
                             'margin/loan': 1,
@@ -471,6 +475,81 @@ class mexc3(Exchange):
                     '88013': InvalidOrder,  # {"msg":"最小交易额不能小于：5USDT","code":88013}
                     '88015': InsufficientFunds,  # {"msg":"持仓不足","code":88015}
                     '700003': InvalidNonce,  # {"code":700003,"msg":"Timestamp for self request is outside of the recvWindow."}
+                    '26': ExchangeError,  # operation not allowed
+                    '602': AuthenticationError,  # Signature verification failed
+                    '10001': AuthenticationError,  # user does not exist
+                    '10007': BadRequest,  # bad symbol
+                    '10015': BadRequest,  # user id cannot be null
+                    '10072': BadRequest,  # invalid access key
+                    '10073': BadRequest,  # invalid Request-Time
+                    '10095': InvalidOrder,  # amount cannot be null
+                    '10096': InvalidOrder,  # amount decimal places is too long
+                    '10097': InvalidOrder,  # amount is error
+                    '10098': InvalidOrder,  # risk control system detected abnormal
+                    '10099': BadRequest,  # user sub account does not open
+                    '10100': BadRequest,  # self currency transfer is not supported
+                    '10102': InvalidOrder,  # amount cannot be zero or negative
+                    '10103': ExchangeError,  # self account transfer is not supported
+                    '10200': BadRequest,  # transfer operation processing
+                    '10201': BadRequest,  # transfer in failed
+                    '10202': BadRequest,  # transfer out failed
+                    '10206': BadRequest,  # transfer is disabled
+                    '10211': BadRequest,  # transfer is forbidden
+                    '10212': BadRequest,  # This withdrawal address is not on the commonly used address list or has been invalidated
+                    '10216': ExchangeError,  # no address available. Please try again later
+                    '10219': ExchangeError,  # asset flow writing failed please try again
+                    '10222': BadRequest,  # currency cannot be null
+                    '10232': BadRequest,  # currency does not exist
+                    '10259': ExchangeError,  # Intermediate account does not configured in redisredis
+                    '10265': ExchangeError,  # Due to risk control, withdrawal is unavailable, please try again later
+                    '10268': BadRequest,  # remark length is too long
+                    '20001': ExchangeError,  # subsystem is not supported
+                    '20002': ExchangeError,  # Internal system error please contact support
+                    '22222': BadRequest,  # record does not exist
+                    '30000': ExchangeError,  # suspended transaction for the symbol
+                    '30001': InvalidOrder,  # The current transaction direction is not allowed to place an order
+                    '30002': InvalidOrder,  # The minimum transaction volume cannot be less than :
+                    '30003': InvalidOrder,  # The maximum transaction volume cannot be greater than :
+                    '30010': InvalidOrder,  # no valid trade price
+                    '30014': InvalidOrder,  # invalid symbol
+                    '30016': InvalidOrder,  # trading disabled
+                    '30018': InvalidOrder,  # market order is disabled
+                    '30020': AuthenticationError,  # no permission for the symbol
+                    '30021': BadRequest,  # invalid symbol
+                    '30025': InvalidOrder,  # no exist opponent order
+                    '30026': BadRequest,  # invalid order ids
+                    '30027': InvalidOrder,  # The currency has reached the maximum position limit, the buying is suspended
+                    '30028': InvalidOrder,  # The currency triggered the platform risk control, the selling is suspended
+                    '30029': InvalidOrder,  # Cannot exceed the maximum order limit
+                    '30032': InvalidOrder,  # Cannot exceed the maximum position
+                    '30041': InvalidOrder,  # current order type can not place order
+                    '60005': ExchangeError,  # your account is abnormal
+                    '700001': BadRequest,  # API-key format invalid
+                    '700002': AuthenticationError,  # Signature for self request is not valid
+                    '700004': BadRequest,  # Param 'origClientOrderId' or 'orderId' must be sent, but both were empty/null
+                    '700005': InvalidNonce,  # recvWindow must less than 60000
+                    '700006': BadRequest,  # IP non white list
+                    '700007': AuthenticationError,  # No permission to access the endpoint
+                    '700008': BadRequest,  # Illegal characters found in parameter
+                    '730001': BadRequest,  # Pair not found
+                    '730002': BadRequest,  # Your input param is invalid
+                    '730000': ExchangeError,  # Request failed, please contact the customer service
+                    '730003': ExchangeError,  # Unsupported operation, please contact the customer service
+                    '730100': ExchangeError,  # Unusual user status
+                    '730600': BadRequest,  # Sub-account Name cannot be null
+                    '730601': BadRequest,  # Sub-account Name must be a combination of 8-32 letters and numbers
+                    '730602': BadRequest,  # Sub-account remarks cannot be null
+                    '730700': BadRequest,  # API KEY remarks cannot be null
+                    '730701': BadRequest,  # API KEY permission cannot be null
+                    '730702': BadRequest,  # API KEY permission does not exist
+                    '730703': BadRequest,  # The IP information is incorrect, and a maximum of 10 IPs are allowed to be bound only
+                    '730704': BadRequest,  # The bound IP format is incorrect, please refill
+                    '730705': BadRequest,  # At most 30 groups of Api Keys are allowed to be created only
+                    '730706': BadRequest,  # API KEY information does not exist
+                    '730707': BadRequest,  # accessKey cannot be null
+                    '730101': BadRequest,  # The user Name already exists
+                    '140001': BadRequest,  # sub account does not exist
+                    '140002': AuthenticationError,  # sub account is forbidden
                 },
                 'broad': {
                     'Order quantity error, please try to modify.': BadRequest,  # code:2011
