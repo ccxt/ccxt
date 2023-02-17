@@ -36,18 +36,25 @@ module.exports = class coinbase extends coinbaseRest {
         });
     }
 
-    authenticate () {
-        this.checkRequiredCredentials ();
-        const path = '/users/self/verify';
-        const nonce = this.nonce ();
-        const payload = nonce.toString () + 'GET' + path;
-        const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), 'sha256', 'base64');
-        return {
-            'timestamp': nonce,
-            'key': this.apiKey,
-            'signature': signature,
-            'passphrase': this.password,
-        };
+    // authenticate () {
+    //     this.checkRequiredCredentials ();
+    //     const path = '/users/self/verify';
+    //     const nonce = this.nonce ();
+    //     const payload = nonce.toString () + 'GET' + path;
+    //     const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), 'sha256', 'base64');
+    //     return {
+    //         'timestamp': nonce,
+    //         'key': this.apiKey,
+    //         'signature': signature,
+    //         'passphrase': this.password,
+    //     };
+    // }
+
+    timestampAndSign (message, channel, products = []) {
+        const timestamp = Math.floor(Date.now() / 1000).toString();
+        const auth = `${timestamp}${channel}${products.join(',')}`;
+        const sig = this.hmac (this.encode (auth), this.encode (this.secret));
+        return { ...message, signature: sig, timestamp: timestamp };
     }
 
     async subscribe (name, symbol, messageHashStart, params = {}) {
@@ -65,6 +72,7 @@ module.exports = class coinbase extends coinbaseRest {
                 market['id'],
             ],
             'channel': name,
+            'api_key': this.apiKey,
         };
         const request = this.extend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash);
