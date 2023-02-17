@@ -6697,7 +6697,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['option']) {
-            throw new BadRequest (this.id + ' fetchPosition() only supports option markets');
+            throw new NotSupported (this.id + ' fetchPosition() supports option markets only');
         }
         const request = {
             'symbol': market['id'],
