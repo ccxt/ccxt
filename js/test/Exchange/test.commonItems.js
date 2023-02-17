@@ -2,11 +2,13 @@
 
 const assert = require ('assert');
 
+function logTemplate (exchange, method, container) {
+    return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (container) + ' >>> ';
+}
+
 function testCommonTimestamp (exchange, method, container) {
-
     // define common log text
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (container) + ' >>> ';
-
+    const logText = logTemplate(exchange, method, container);
     // ensure timestamp exists in object
     assert (('timestamp' in container), 'timestamp is missing from structure' + logText);
     const ts = container['timestamp'];
@@ -16,7 +18,6 @@ function testCommonTimestamp (exchange, method, container) {
         assert (ts < 2147483648000, 'timestamp more than 2147483648000 / 19.01.2038' + logText); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         // check it's integer
     }
-
     // we also test 'datetime' here because it's certain sibling of 'timestamp'
     assert (('datetime' in container), 'datetime is missing from structure' + logText);
     const dt = container['datetime'];
@@ -27,13 +28,10 @@ function testCommonTimestamp (exchange, method, container) {
 }
 
 function testStructureKeys (exchange, method, container, format) {
-
     // define common log text
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (container) + ' >>> ';
-
+    const logText = logTemplate(exchange, method, container);
     // ensure item is not null/undefined/unset
     assert (container, 'item is null/undefined' + logText);
-
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
     if (typeof format === 'object') {
         const keys = Object.keys (format);
@@ -55,10 +53,7 @@ function testStructureKeys (exchange, method, container, format) {
 }
 
 function testId (exchange, method, container) {
-
-    // define common log text
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (container) + ' >>> ';
-
+    const logText = logTemplate(exchange, method, container);
     assert ((container['id'] === undefined) || (typeof container['id'] === 'string'), 'id is not correctly set' + logText);
 }
 
