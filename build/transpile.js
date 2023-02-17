@@ -1943,8 +1943,8 @@ class Transpiler {
         const python = pythonHeader + python3Body
 
         // php
+        let phpPreamble = this.getPHPPreamble (false)
         if (autoVersion) {
-            let phpPreamble = this.getPHPPreamble (false)
             if (containsPrecise) {
                 phpPreamble = phpPreamble.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;')
             }
