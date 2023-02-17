@@ -1709,8 +1709,9 @@ module.exports = class bitget extends Exchange {
         });
         const request = {};
         if (method === 'publicMixGetMarketTickers') {
-            const defaultSubType = this.safeString (this.options, 'defaultSubType');
-            let productType = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+            let subType = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', undefined, params);
+            let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
             if (sandboxMode) {
                 productType = 'S' + productType;
             }
@@ -2118,8 +2119,13 @@ module.exports = class bitget extends Exchange {
         });
         const request = {};
         if (marketType === 'swap') {
-            const defaultSubType = this.safeString (this.options, 'defaultSubType');
-            request['productType'] = (sandboxMode ? 'S' : '') + (defaultSubType === 'linear' ? 'UMCBL' : 'DMCBL');
+            let subType = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
+            let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
+            if (sandboxMode) {
+                productType = 'S' + productType;
+            }
+            request['productType'] = productType;
         }
         const response = await this[method] (this.extend (request, query));
         // spot
