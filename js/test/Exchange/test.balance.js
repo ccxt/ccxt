@@ -18,9 +18,9 @@ function testBalance (exchange, balance, method) {
     const codes = Object.keys (balance['total']);
     for (let i = 0; i < codes.length; i++) {
         const code = codes[i];
-        const total = exchange.safe_string (balance['total'], code);
-        const free = exchange.safe_string (balance['free'], code);
-        const used = exchange.safe_string (balance['used'], code);
+        const total = exchange.safeString (balance['total'], code);
+        const free = exchange.safeString (balance['free'], code);
+        const used = exchange.safeString (balance['used'], code);
         const totalDefined = total !== undefined;
         const freeDefined = free !== undefined;
         const usedDefined = used !== undefined;

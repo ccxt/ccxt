@@ -2,6 +2,7 @@
 
 const assert = require ('assert');
 const testCommonItems = require ('./test.commonItems.js');
+const Precise = require ('../../base/Precise');
 
 function testBorrowRate (exchange, borrowRate, method, code) {
     const format = {
@@ -12,15 +13,14 @@ function testBorrowRate (exchange, borrowRate, method, code) {
         'rate': exchange.parseNumber ('0.0006'), // Interest rate
         // 'period': 86400000, // Amount of time the interest rate is based on in milliseconds
     };
-    testCommonItems.testStructureKeys (exchange, method, borrowRate, format);
+    const neededValues = [ 'currency', 'info', 'rate' ];
+    testCommonItems.testStructureKeys (exchange, method, balance, format, neededValues);
     testCommonItems.testCommonTimestamp (exchange, method, borrowRate);
-
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (borrowRate) + ' >>> ';
-
+    const logText = testCommonItems.logTemplate (exchange, method, borrowRate);
+    //
     // assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) // Milliseconds in an hour or a day
-    assert (borrowRate['rate'] > 0, 'rate is excepted to be above zero' + logText);
-
-    return borrowRate;
+    const rate = exchange.safeString (borrowRate, 'rate');
+    assert (Precise.stringGt (rate, '0'), 'rate is excepted to be above zero' + logText);
 }
 
 module.exports = testBorrowRate;
