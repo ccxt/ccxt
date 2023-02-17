@@ -293,8 +293,9 @@ module.exports = class binance extends binanceRest {
         //         ]
         //     }
         //
-        const index = client.url.indexOf ('/stream');
-        const marketType = (index >= 0) ? 'spot' : 'contract';
+        const testnetSpot = client.url.indexOf ('testnet') > 0;
+        const isSpot = client.url.indexOf ('/stream.binance') > 0;
+        const marketType = (testnetSpot || isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -763,7 +764,7 @@ module.exports = class binance extends binanceRest {
          * @method
          * @name binance#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {Array} symbols unified symbol of the market to fetch the ticker for
+         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */

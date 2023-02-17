@@ -272,8 +272,9 @@ class binance(Exchange, ccxt.async_support.binance):
         #         ]
         #     }
         #
-        index = client.url.find('/stream')
-        marketType = 'spot' if (index >= 0) else 'contract'
+        testnetSpot = client.url.find('testnet') > 0
+        isSpot = client.url.find('/stream.binance') > 0
+        marketType = 'spot' if (testnetSpot or isSpot) else 'contract'
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
@@ -698,7 +699,7 @@ class binance(Exchange, ccxt.async_support.binance):
     async def watch_tickers(self, symbols=None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :param Array symbols: unified symbol of the market to fetch the ticker for
+        :param [str] symbols: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """

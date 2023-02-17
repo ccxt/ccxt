@@ -842,6 +842,15 @@ class bitget(Exchange):
                     'USD_MIX': 'swap',
                 },
                 'sandboxMode': False,
+                'networks': {
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                    'BSC': 'BEP20',
+                },
+                'networksById': {
+                    'TRC20': 'TRX',
+                    'BSC': 'BEP20',
+                },
             },
         })
 
@@ -1435,10 +1444,14 @@ class bitget(Exchange):
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
         self.load_markets()
+        networkCode = self.safe_string(params, 'network')
+        networkId = self.network_code_to_id(networkCode, code)
         currency = self.currency(code)
         request = {
             'coin': currency['code'],
         }
+        if networkId is not None:
+            request['chain'] = networkId
         response = self.privateSpotGetWalletDepositAddress(self.extend(request, params))
         #
         #     {
@@ -1468,11 +1481,12 @@ class bitget(Exchange):
         #
         currencyId = self.safe_string(depositAddress, 'coin')
         networkId = self.safe_string(depositAddress, 'chain')
+        parsedCurrency = self.safe_currency_code(currencyId, currency)
         return {
-            'currency': self.safe_currency_code(currencyId, currency),
+            'currency': parsedCurrency,
             'address': self.safe_string(depositAddress, 'address'),
             'tag': self.safe_string(depositAddress, 'tag'),
-            'network': networkId,
+            'network': self.network_id_to_code(networkId, parsedCurrency),
             'info': depositAddress,
         }
 
@@ -1634,8 +1648,9 @@ class bitget(Exchange):
         see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-symbol-ticker
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitget api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         self.load_markets()
         type = None
         market = None
@@ -1649,8 +1664,12 @@ class bitget(Exchange):
         })
         request = {}
         if method == 'publicMixGetMarketTickers':
-            defaultSubType = self.safe_string(self.options, 'defaultSubType')
-            request['productType'] = 'UMCBL' if (defaultSubType == 'linear') else 'DMCBL'
+            subType = None
+            subType, params = self.handle_sub_type_and_params('fetchTickers', None, params)
+            productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
+            if sandboxMode:
+                productType = 'S' + productType
+            request['productType'] = productType
         response = getattr(self, method)(self.extend(request, params))
         #
         # spot
@@ -2016,6 +2035,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.get_supported_mapping(marketType, {
@@ -2024,8 +2044,12 @@ class bitget(Exchange):
         })
         request = {}
         if marketType == 'swap':
-            defaultSubType = self.safe_string(self.options, 'defaultSubType')
-            request['productType'] = 'UMCBL' if (defaultSubType == 'linear') else 'DMCBL'
+            subType = None
+            subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
+            productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
+            if sandboxMode:
+                productType = 'S' + productType
+            request['productType'] = productType
         response = getattr(self, method)(self.extend(request, query))
         # spot
         #     {
@@ -2531,13 +2555,16 @@ class bitget(Exchange):
         :param str params['code']: marginCoin unified currency code
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         self.load_markets()
         market = None
-        defaultSubType = self.safe_string(self.options, 'defaultSubType')
         if symbol is not None:
             market = self.market(symbol)
-            defaultSubType = 'linear' if (market['linear']) else 'inverse'
-        productType = 'UMCBL' if (defaultSubType == 'linear') else 'DMCBL'
+        subType = None
+        subType, params = self.handle_sub_type_and_params('cancelAllOrders', market, params)
+        productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
+        if sandboxMode:
+            productType = 'S' + productType
         marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if marketType == 'spot':
             raise NotSupported(self.id + ' cancelAllOrders() does not support spot markets')
@@ -3219,19 +3246,15 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         self.load_markets()
         market = None
         if symbols is not None:
             first = self.safe_string(symbols, 0)
             market = self.market(first)
-        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchPositions', market, params)
-        productType = None
-        if subType == 'linear':
-            productType = 'UMCBL'
-        else:
-            productType = 'DMCBL'
+        productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
         if sandboxMode:
             productType = 'S' + productType
         request = {
@@ -3725,17 +3748,21 @@ class bitget(Exchange):
         :returns dict: response from the exchange
          *
         """
-        productType = self.safe_string(params, 'productType')
-        if (productType is None) and (symbol is None):
-            raise ArgumentsRequired(self.id + ' setPositionMode() requires a symbol or the productType parameter')
         self.load_markets()
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         holdMode = 'double_hold' if hedged else 'single_hold'
         request = {
             'holdMode': holdMode,
         }
+        subType = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['productType'] = 'umcbl' if market['linear'] else 'dmcbl'
+        subType, params = self.handle_sub_type_and_params('setPositionMode', market, params)
+        productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
+        if sandboxMode:
+            productType = 'S' + productType
+        request['productType'] = productType
         response = self.privateMixPostAccountSetPositionMode(self.extend(request, params))
         #
         #    {

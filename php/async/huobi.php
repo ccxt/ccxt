@@ -1944,7 +1944,7 @@ class huobi extends Exchange {
              * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-$market-data-overview-v2
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -5836,6 +5836,9 @@ class huobi extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the history of funding payments paid and received on this account
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-$query-account-financial-records-via-multiple-fields-new   // linear swaps
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#$query-financial-records-via-multiple-fields-new                          // coin-m futures
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#$query-financial-records-via-multiple-fields-new          // coin-m swaps
              * @param {string|null} $symbol unified $market $symbol
              * @param {int|null} $since the earliest time in ms to fetch funding history for
              * @param {int|null} $limit the maximum number of funding history structures to retrieve
@@ -5852,41 +5855,42 @@ class huobi extends Exchange {
             if ($since !== null) {
                 $request['start_date'] = $since;
             }
-            if ($market['linear']) {
-                $method = 'contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact';
-                //
-                // {
-                //   status => 'ok',
-                //   $data => array(
-                //     financial_record => array(
-                //       array(
-                //         id => '1320088022',
-                //         type => '30',
-                //         amount => '0.004732510000000000',
-                //         ts => '1641168019321',
-                //         contract_code => 'BTC-USDT',
-                //         asset => 'USDT',
-                //         margin_account => 'BTC-USDT',
-                //         face_margin_account => ''
-                //       ),
-                //     ),
-                //     remain_size => '0',
-                //     next_id => null
-                //   ),
-                //   ts => '1641189898425'
-                // }
-                $marginMode = null;
-                list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchFundingHistory', $params);
-                $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-                if ($marginMode === 'isolated') {
-                    $request['mar_acct'] = $market['id'];
+            if ($marketType === 'swap') {
+                $request['contract'] = $market['id'];
+                if ($market['linear']) {
+                    $method = 'contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact';
+                    //
+                    //    {
+                    //        status => 'ok',
+                    //        $data => array(
+                    //           financial_record => array(
+                    //               array(
+                    //                   id => '1320088022',
+                    //                   type => '30',
+                    //                   amount => '0.004732510000000000',
+                    //                   ts => '1641168019321',
+                    //                   contract_code => 'BTC-USDT',
+                    //                   asset => 'USDT',
+                    //                   margin_account => 'BTC-USDT',
+                    //                   face_margin_account => ''
+                    //               ),
+                    //           ),
+                    //           remain_size => '0',
+                    //           next_id => null
+                    //        ),
+                    //        ts => '1641189898425'
+                    //    }
+                    //
+                    $marginMode = null;
+                    list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchFundingHistory', $params);
+                    $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
+                    if ($marginMode === 'isolated') {
+                        $request['mar_acct'] = $market['id'];
+                    } else {
+                        $request['mar_acct'] = $market['quoteId'];
+                    }
                 } else {
-                    $request['mar_acct'] = $market['quoteId'];
-                }
-            } else {
-                if ($marketType === 'swap') {
                     $method = 'contractPrivatePostSwapApiV3SwapFinancialRecordExact';
-                    $request['contract'] = $market['id'];
                     //
                     //     {
                     //         "code" => 200,
@@ -5907,10 +5911,10 @@ class huobi extends Exchange {
                     //         "ts" => 1604312615051
                     //     }
                     //
-                } else {
-                    $method = 'contractPrivatePostApiV3ContractFinancialRecordExact';
-                    $request['symbol'] = $market['id'];
                 }
+            } else {
+                $method = 'contractPrivatePostApiV3ContractFinancialRecordExact';
+                $request['symbol'] = $market['id'];
             }
             $response = Async\await($this->$method (array_merge($request, $query)));
             $data = $this->safe_value($response, 'data', array());
@@ -6108,23 +6112,29 @@ class huobi extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
-             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {[string]|null} $symbols list of unified $market $symbols
              * @param {array} $params extra parameters specific to the huobi api endpoint
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
+            $market = null;
+            if ($symbols !== null) {
+                $first = $this->safe_string($symbols, 0);
+                $market = $this->market($first);
+            }
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositions', $params);
             $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-            $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params, 'linear');
             $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
             if ($marketType === 'spot') {
                 $marketType = 'future';
             }
             $method = null;
-            if ($defaultSubType === 'linear') {
+            if ($subType === 'linear') {
                 $method = $this->get_supported_mapping($marginMode, array(
                     'isolated' => 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
                     'cross' => 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',

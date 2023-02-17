@@ -300,8 +300,9 @@ class binance extends \ccxt\async\binance {
         //         )
         //     }
         //
-        $index = mb_strpos($client->url, '/stream');
-        $marketType = ($index >= 0) ? 'spot' : 'contract';
+        $testnetSpot = mb_strpos($client->url, 'testnet') > 0;
+        $isSpot = mb_strpos($client->url, '/stream.binance') > 0;
+        $marketType = ($testnetSpot || $isSpot) ? 'spot' : 'contract';
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
@@ -769,7 +770,7 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {Array} $symbols unified symbol of the $market to fetch the $ticker for
+             * @param {[string]} $symbols unified symbol of the $market to fetch the $ticker for
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
              */

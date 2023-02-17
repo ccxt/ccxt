@@ -268,7 +268,7 @@ class gate(Exchange, ccxt.async_support.gate):
     async def watch_tickers(self, symbols=None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :param Array symbols: unified symbol of the market to fetch the ticker for
+        :param [str] symbols: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """

@@ -830,6 +830,15 @@ class bitget extends Exchange {
                     'USD_MIX' => 'swap',
                 ),
                 'sandboxMode' => false,
+                'networks' => array(
+                    'TRX' => 'TRC20',
+                    'ETH' => 'ERC20',
+                    'BSC' => 'BEP20',
+                ),
+                'networksById' => array(
+                    'TRC20' => 'TRX',
+                    'BSC' => 'BEP20',
+                ),
             ),
         ));
     }
@@ -1474,10 +1483,15 @@ class bitget extends Exchange {
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
              */
             Async\await($this->load_markets());
+            $networkCode = $this->safe_string($params, 'network');
+            $networkId = $this->network_code_to_id($networkCode, $code);
             $currency = $this->currency($code);
             $request = array(
                 'coin' => $currency['code'],
             );
+            if ($networkId !== null) {
+                $request['chain'] = $networkId;
+            }
             $response = Async\await($this->privateSpotGetWalletDepositAddress (array_merge($request, $params)));
             //
             //     {
@@ -1509,11 +1523,12 @@ class bitget extends Exchange {
         //
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $networkId = $this->safe_string($depositAddress, 'chain');
+        $parsedCurrency = $this->safe_currency_code($currencyId, $currency);
         return array(
-            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $parsedCurrency,
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => $this->safe_string($depositAddress, 'tag'),
-            'network' => $networkId,
+            'network' => $this->network_id_to_code($networkId, $parsedCurrency),
             'info' => $depositAddress,
         );
     }
@@ -1686,8 +1701,9 @@ class bitget extends Exchange {
              * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-$symbol-ticker
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bitget api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             Async\await($this->load_markets());
             $type = null;
             $market = null;
@@ -1702,8 +1718,13 @@ class bitget extends Exchange {
             ));
             $request = array();
             if ($method === 'publicMixGetMarketTickers') {
-                $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
-                $request['productType'] = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+                $subType = null;
+                list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', null, $params);
+                $productType = ($subType === 'linear') ? 'UMCBL' : 'DMCBL';
+                if ($sandboxMode) {
+                    $productType = 'S' . $productType;
+                }
+                $request['productType'] = $productType;
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
@@ -2098,6 +2119,7 @@ class bitget extends Exchange {
              * @param {array} $params extra parameters specific to the bitget api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             Async\await($this->load_markets());
             list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
             $method = $this->get_supported_mapping($marketType, array(
@@ -2106,8 +2128,13 @@ class bitget extends Exchange {
             ));
             $request = array();
             if ($marketType === 'swap') {
-                $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
-                $request['productType'] = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+                $subType = null;
+                list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
+                $productType = ($subType === 'linear') ? 'UMCBL' : 'DMCBL';
+                if ($sandboxMode) {
+                    $productType = 'S' . $productType;
+                }
+                $request['productType'] = $productType;
             }
             $response = Async\await($this->$method (array_merge($request, $query)));
             // spot
@@ -2668,14 +2695,18 @@ class bitget extends Exchange {
              * @param {string} $params->code marginCoin unified $currency $code
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             Async\await($this->load_markets());
             $market = null;
-            $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
             if ($symbol !== null) {
                 $market = $this->market($symbol);
-                $defaultSubType = ($market['linear']) ? 'linear' : 'inverse';
             }
-            $productType = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('cancelAllOrders', $market, $params);
+            $productType = ($subType === 'linear') ? 'UMCBL' : 'DMCBL';
+            if ($sandboxMode) {
+                $productType = 'S' . $productType;
+            }
             list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
             if ($marketType === 'spot') {
                 throw new NotSupported($this->id . ' cancelAllOrders () does not support spot markets');
@@ -3409,21 +3440,16 @@ class bitget extends Exchange {
              * @param {array} $params extra parameters specific to the bitget api endpoint
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
              */
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             Async\await($this->load_markets());
             $market = null;
             if ($symbols !== null) {
                 $first = $this->safe_string($symbols, 0);
                 $market = $this->market($first);
             }
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params);
-            $productType = null;
-            if ($subType === 'linear') {
-                $productType = 'UMCBL';
-            } else {
-                $productType = 'DMCBL';
-            }
+            $productType = ($subType === 'linear') ? 'UMCBL' : 'DMCBL';
             if ($sandboxMode) {
                 $productType = 'S' . $productType;
             }
@@ -3972,19 +3998,23 @@ class bitget extends Exchange {
              * @return {array} $response from the exchange
              *
              */
-            $productType = $this->safe_string($params, 'productType');
-            if (($productType === null) && ($symbol === null)) {
-                throw new ArgumentsRequired($this->id . ' setPositionMode() requires a $symbol or the $productType parameter');
-            }
             Async\await($this->load_markets());
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             $holdMode = $hedged ? 'double_hold' : 'single_hold';
             $request = array(
                 'holdMode' => $holdMode,
             );
+            $subType = null;
+            $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
-                $request['productType'] = $market['linear'] ? 'umcbl' : 'dmcbl';
             }
+            list($subType, $params) = $this->handle_sub_type_and_params('setPositionMode', $market, $params);
+            $productType = ($subType === 'linear') ? 'UMCBL' : 'DMCBL';
+            if ($sandboxMode) {
+                $productType = 'S' . $productType;
+            }
+            $request['productType'] = $productType;
             $response = Async\await($this->privateMixPostAccountSetPositionMode (array_merge($request, $params)));
             //
             //    {

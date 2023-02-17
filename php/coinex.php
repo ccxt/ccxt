@@ -731,7 +731,7 @@ class coinex extends Exchange {
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the coinex api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -984,7 +984,7 @@ class coinex extends Exchange {
         $marketId = $this->safe_string($trade, 'market');
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, null, $defaultType);
         $costString = $this->safe_string($trade, 'deal_money');
         $fee = null;
         $feeCostString = $this->safe_string_2($trade, 'fee', 'deal_fee');
@@ -3484,9 +3484,9 @@ class coinex extends Exchange {
         /**
          *  @method
          * fetch the current funding rates
-         * @param {array} $symbols unified $market $symbols
+         * @param {[string]} $symbols unified $market $symbols
          * @param {array} $params extra parameters specific to the coinex api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
+         * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);

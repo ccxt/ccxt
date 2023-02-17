@@ -735,6 +735,7 @@ declare module 'ccxt' {
         class huobijp extends Exchange {}
         class huobipro extends Exchange {}
         class idex extends Exchange {}
+        class independentreserve extends Exchange {}
         class kraken extends Exchange {}
         class kucoin extends Exchange {}
         class kucoinfutures extends Exchange {}
