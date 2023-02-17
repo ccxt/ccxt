@@ -374,6 +374,9 @@ module.exports = class bybit extends Exchange {
                         'v5/asset/coin/query-info': 2.5,
                         'v5/asset/withdraw/query-record': 2.5,
                         'v5/asset/transfer/query-account-coins-balance': 2.5,
+                        // user
+                        'v5/user/query-sub-members': 10,
+                        'v5/user/query-api': 10,
                     },
                     'post': {
                         // inverse swap
@@ -551,6 +554,14 @@ module.exports = class bybit extends Exchange {
                         'v5/spot-lever-token/order-record': 2.5,
                         'v5/spot-margin-trade/switch-mode': 2.5,
                         'v5/spot-margin-trade/set-leverage': 2.5,
+                        // user
+                        'v5/user/create-sub-member': 10,
+                        'v5/user/create-sub-api': 10,
+                        'v5/user/frozen-sub-member': 10,
+                        'v5/user/update-api': 10,
+                        'v5/user/update-sub-api': 10,
+                        'v5/user/delete-api': 10,
+                        'v5/user/delete-sub-api': 10,
                     },
                     'delete': {
                         // spot
