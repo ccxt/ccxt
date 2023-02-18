@@ -8,6 +8,7 @@
     "mexc":          { "skip": true, "//": "Reason: 403 Forbidden <HTML><HEAD><TITLE>Access Denied</TITLE></HEAD"},
     "gemini":        { "skip": true, "//": "Reason: Markets api is too unreliable"},
     "coinex":        { "skip": true, "//": "Reason: 13/01 API is down"},
+    "therock":       { "skip": true, "//": "API is down"},
     "bitcoincom":    { "skipWs": true },
     "bithumb":       { "skip": true },
     "bitmart":       { "skipWs": true },
