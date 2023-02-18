@@ -3238,11 +3238,13 @@ class binance(Exchange):
         request = {
             'symbol': market['id'],
             'side': side.upper(),
-            'cancelOrderId': id,
             'cancelReplaceMode': 'STOP_ON_FAILURE',
             # STOP_ON_FAILURE - If the cancel request fails, the new order placement will not be attempted.
             # ALLOW_FAILURE - new order placement will be attempted even if cancel request fails.
         }
+        cancelId = self.safe_string_2(params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId')
+        if cancelId is None:
+            request['cancelOrderId'] = id  # user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
         initialUppercaseType = type.upper()
         uppercaseType = initialUppercaseType

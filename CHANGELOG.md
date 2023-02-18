@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.15 (2023-02-18)
+
+
+### Features
+
+* **Binance:** support different ids in editOrder ([f0ee83b](https://github.com/ccxt/ccxt/commit/f0ee83bead5ac41e1231b528bab94afe0f0d32f8))
+
 ### 2.8.14 (2023-02-18)
 
 
