@@ -988,17 +988,25 @@ module.exports = class bitget extends bitgetRest {
          */
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);
-        const instType = (type === 'spot') ? 'spbl' : 'umcbl';
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        let instType = 'spbl';
+        if (type === 'swap') {
+            instType = 'UMCBL';
+            if (sandboxMode) {
+                instType = 'S' + instType;
+            }
+        }
         const args = {
             'instType': instType,
             'channel': 'account',
             'instId': 'default',
         };
-        const messageHash = 'balance:' + instType;
+        const messageHash = 'balance:' + instType.toLowerCase ();
         return await this.watchPrivate (messageHash, messageHash, args, params);
     }
 
     handleBalance (client, message) {
+        // spot
         //
         //    {
         //        action: 'snapshot',
@@ -1009,13 +1017,35 @@ module.exports = class bitget extends bitgetRest {
         //        ]
         //    }
         //
+        // swap
+        //    {
+        //      "action": "snapshot",
+        //      "arg": {
+        //        "instType": "umcbl",
+        //        "channel": "account",
+        //        "instId": "default"
+        //      },
+        //      "data": [
+        //        {
+        //          "marginCoin": "USDT",
+        //          "locked": "0.00000000",
+        //          "available": "3384.58046492",
+        //          "maxOpenPosAvailable": "3384.58046492",
+        //          "maxTransferOut": "3384.58046492",
+        //          "equity": "3384.58046492",
+        //          "usdtEquity": "3384.580464925690"
+        //        }
+        //      ]
+        //    }
+        //
         const data = this.safeValue (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rawBalance = data[i];
-            const currencyId = this.safeString (rawBalance, 'coinName');
+            const currencyId = this.safeString2 (rawBalance, 'coinName', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = (code in this.balance) ? this.balance[code] : this.account ();
             account['free'] = this.safeString (rawBalance, 'available');
+            account['total'] = this.safeString (rawBalance, 'equity');
             this.balance[code] = account;
         }
         this.balance = this.safeBalance (this.balance);
