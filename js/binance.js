@@ -3197,7 +3197,7 @@ module.exports = class binance extends Exchange {
         }
         if (('optionSide' in trade) || market['option']) {
             const settle = this.safeCurrencyCode (this.safeString (trade, 'quoteAsset', 'USDT'));
-            if (symbol === undefined) {
+            if (symbol === marketId) {
                 const optionParts = marketId.split ('-');
                 const optionType = this.safeString (optionParts, 3);
                 symbol = this.safeString (optionParts, 0) + '/' + settle + ':' + settle + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + optionType;
