@@ -4347,9 +4347,10 @@ module.exports = class binance extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
         if (type === 'option') {
             if (symbol !== undefined) {
-                const optionSeparateBase = symbol.split ('/');
                 const optionParts = symbol.split ('-');
-                symbol = this.safeString (optionSeparateBase, 0) + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + this.safeString (optionParts, 3);
+                const symbolBase = symbol.split ('/');
+                const base = (symbol.indexOf ('/') > -1) ? this.safeString (symbolBase, 0) : this.safeString (optionParts, 0);
+                symbol = base + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + this.safeString (optionParts, 3);
                 request['symbol'] = symbol;
             }
             method = 'eapiPrivateGetUserTrades';
