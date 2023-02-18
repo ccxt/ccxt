@@ -3910,17 +3910,32 @@ module.exports = class bitget extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            'marginCoin': market['settleId'],
         };
-        const response = await this.publicMixGetMarketSymbolLeverage (this.extend (request, params));
+        const response = await this.privateMixGetAccountAccount (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1652347673483,
+        //         "requestTime": 0,
         //         "data": {
-        //             "symbol": "BTCUSDT_UMCBL",
-        //             "minLeverage": "1",
-        //             "maxLeverage": "125"
+        //             "marginCoin": "SUSDT",
+        //             "locked": "0",
+        //             "available": "3000",
+        //             "crossMaxAvailable": "3000",
+        //             "fixedMaxAvailable": "3000",
+        //             "maxTransferOut": "3000",
+        //             "equity": "3000",
+        //             "usdtEquity": "3000",
+        //             "btcEquity": "0.12217217236",
+        //             "crossRiskRate": "0",
+        //             "crossMarginLeverage": 20,
+        //             "fixedLongLeverage": 40,
+        //             "fixedShortLeverage": 10,
+        //             "marginMode": "fixed",
+        //             "holdMode": "double_hold",
+        //             "unrealizedPL": null,
+        //             "bonus": "0"
         //         }
         //     }
         //
