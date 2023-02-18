@@ -3896,6 +3896,7 @@ module.exports = class bitget extends Exchange {
         }
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
+
     async fetchLeverage (symbol, params = {}) {
         /**
          * @method
@@ -3908,8 +3909,8 @@ module.exports = class bitget extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            symbol: market['id'],
-            marginCoin: market['settleId'],
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
         };
         const response = await this.privateMixGetAccountAccount (this.extend (request, params));
         //
