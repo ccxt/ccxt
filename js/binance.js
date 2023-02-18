@@ -3357,11 +3357,14 @@ module.exports = class binance extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
-            'cancelOrderId': id,
             'cancelReplaceMode': 'STOP_ON_FAILURE',
             // STOP_ON_FAILURE - If the cancel request fails, the new order placement will not be attempted.
             // ALLOW_FAILURE - new order placement will be attempted even if cancel request fails.
         };
+        const cancelId = this.safeString2 (params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId');
+        if (cancelId === undefined) {
+            request['cancelOrderId'] = id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
+        }
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         const initialUppercaseType = type.toUpperCase ();
         let uppercaseType = initialUppercaseType;
