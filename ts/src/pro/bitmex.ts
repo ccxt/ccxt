@@ -584,15 +584,14 @@ export default class bitmex extends bitmexRest {
                 }
             }
         }
-        return await future;
+        return future;
     }
 
     handleAuthenticationMessage (client, message) {
         const authenticated = this.safeValue (message, 'success', false);
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
-            const future = this.safeValue (client.futures, 'authenticated');
-            future.resolve (true);
+            client.resolve (message, 'authenticated');
         } else {
             const error = new AuthenticationError (this.json (message));
             client.reject (error, 'authenticated');

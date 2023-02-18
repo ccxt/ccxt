@@ -38,6 +38,8 @@ script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
     npm config set git-tag-version=false && NPM_VERSION=$(npm version patch);
     npm run vss && npm run copy-python-files;
+    npm list -g standard-version --depth=0 || npm install -g standard-version@9.5.0;
+    standard-version --skip.bump --skip.commit --skip.tag;
     env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
   fi
