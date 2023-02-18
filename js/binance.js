@@ -4349,7 +4349,12 @@ module.exports = class binance extends Exchange {
             if (symbol !== undefined) {
                 const optionParts = symbol.split ('-');
                 const symbolBase = symbol.split ('/');
-                const base = (symbol.indexOf ('/') > -1) ? this.safeString (symbolBase, 0) : this.safeString (optionParts, 0);
+                let base = undefined;
+                if (symbol.indexOf ('/') > -1) {
+                    base = this.safeString (symbolBase, 0);
+                } else {
+                    base = this.safeString (optionParts, 0);
+                }
                 symbol = base + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + this.safeString (optionParts, 3);
                 request['symbol'] = symbol;
             }
