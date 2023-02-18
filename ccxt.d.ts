@@ -199,8 +199,26 @@ declare module 'ccxt' {
     export interface PartialBalances extends Dictionary<number> {
     }
 
-    export interface Balances extends Dictionary<Balance> {
+    export interface Balances {
         info: any;
+        timestamp: number;
+        datetime: string;
+
+        free: {
+            [key: string]: number;
+        };
+        used: {
+            [key: string]: number;
+        };
+        total: {
+            [key: string]: number;
+        };
+
+        [key: string]: {
+            free: number;
+            used: number;
+            total: number;
+        };
     }
 
     export interface DepositAddress {
@@ -323,7 +341,7 @@ declare module 'ccxt' {
         substituteCommonCurrencyCodes: boolean;
         timeframes: Dictionary<number | string>;
         has: Dictionary<boolean | 'emulated'>; // https://github.com/ccxt/ccxt/pull/1984
-        balance: object;
+        balance: Balances;
         orderbooks: object;
         orders: object;
         trades: object;
