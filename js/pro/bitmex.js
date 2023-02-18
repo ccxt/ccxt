@@ -585,7 +585,7 @@ module.exports = class bitmex extends bitmexRest {
                 }
             }
         }
-        return await future;
+        return future;
     }
 
     handleAuthenticationMessage (client, message) {
