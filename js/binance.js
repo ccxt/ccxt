@@ -2540,7 +2540,9 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let method = 'publicGetDepth';
-        if (market['linear']) {
+        if (market['option']) {
+            method = 'eapiPublicGetDepth';
+        } else if (market['linear']) {
             method = 'fapiPublicGetDepth';
         } else if (market['inverse']) {
             method = 'dapiPublicGetDepth';
@@ -2564,9 +2566,27 @@ module.exports = class binance extends Exchange {
         //             ["2493.71","12.054"],
         //         ]
         //     }
+        //
+        // options (eapi)
+        //
+        //     {
+        //         "bids": [
+        //             ["108.7","16.08"],
+        //             ["106","21.29"],
+        //             ["82.4","0.02"]
+        //         ],
+        //         "asks": [
+        //             ["111.4","19.52"],
+        //             ["119.9","17.6"],
+        //             ["141.2","31"]
+        //         ],
+        //         "T": 1676771382078,
+        //         "u": 1015939
+        //     }
+        //
         const timestamp = this.safeInteger (response, 'T');
         const orderbook = this.parseOrderBook (response, symbol, timestamp);
-        orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
+        orderbook['nonce'] = this.safeInteger2 (response, 'lastUpdateId', 'u');
         return orderbook;
     }
 
