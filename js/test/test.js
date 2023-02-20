@@ -155,7 +155,7 @@ async function testMethod (methodName, exchange, ... args) {
         skipMessage = 'test not available';
     }
     if (skipMessage) {
-        console.log ('[Skipping]', exchange.id, methodName, ' - ' + skipMessage);
+        // console.log ('[Skipping]', exchange.id, methodName, ' - ' + skipMessage);
         return;
     }
     console.log ('Testing', exchange.id, methodName, '(', ... args, ')');
