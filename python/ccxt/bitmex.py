@@ -691,7 +691,6 @@ class bitmex(Exchange):
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
-        self.load_markets()
         market = None
         request = {}
         if symbol is not None:
