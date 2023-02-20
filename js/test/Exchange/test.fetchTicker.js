@@ -24,7 +24,7 @@ module.exports = async (exchange, symbol) => {
 
         const ticker = await exchange[method] (symbol)
 
-        testTicker (exchange, ticker, method, symbol)
+        testTicker (exchange, method, ticker, symbol)
 
         console.log (symbol, method, ticker['datetime'], 'bid:', ticker['bid'], 'ask:', ticker['ask'])
 

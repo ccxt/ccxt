@@ -4,8 +4,7 @@ const assert = require ('assert');
 const sharedMethods = require ('./test.commonItems.js');
 const Precise = require ('../../base/Precise');
 
-function testTicker (exchange, ticker, method, symbol) {
-
+function testTicker (exchange, method, ticker, symbol) {
     const format = {
         'symbol': 'ETH/BTC',
         'info': {},

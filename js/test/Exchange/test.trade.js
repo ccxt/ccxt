@@ -26,13 +26,7 @@ function testTrade (exchange, method, entry, symbol, now) {
     sharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
     sharedMethods.reviseAgainstArray (exchange, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);
     sharedMethods.reviseFeeObject (exchange, method, entry['fee']);
-    const fees = exchange.safeValue (entry, 'fees');
-    if (fees) {
-        assert (Array.isArray (fees), '"fees" is not an array' +  logText);
-        for (let i = 0; i < fees.length; i++) {
-            sharedMethods.reviseFeeObject (exchange, method, fees[i]);
-        }
-    }
+    sharedMethods.reviseFeesObject (exchange, method, entry['fees']);
 }
 
 module.exports = testTrade;

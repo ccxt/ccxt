@@ -133,13 +133,23 @@ function reviseAgainstArray (exchange, method, entry, key, expectedArray) {
 }
 
 
-function reviseFeeObject (exchange, method, feeEntry) {
+function reviseFeeObject (exchange, method, entry) {
     const logText = logTemplate (exchange, method, entry);
     if (feeEntry !== undefined) {
         assert ('cost' in feeEntry, '"fee" should contain a "cost" key' + logText); 
         Ge (exchange, method, feeEntry, 'cost', '0');
         assert ('currency' in feeEntry, '"fee" should contain a "currency" key' + logText);
         reviseCurrencyCode (exchange, method, entry, feeEntry['currency']);
+    }
+}
+
+function reviseFeesObject (exchange, method, entry) {
+    const logText = logTemplate (exchange, method, entry);
+    if (entry !== undefined) {
+        assert (Array.isArray (entry), '"fees" is not an array' +  logText);
+        for (let i = 0; i < entry.length; i++) {
+            reviseFeeObject (exchange, method, entry[i]);
+        }
     }
 }
 
@@ -154,4 +164,5 @@ module.exports = {
     Le,
     reviseAgainstArray,
     reviseFeeObject,
+    reviseFeesObject,
 };
