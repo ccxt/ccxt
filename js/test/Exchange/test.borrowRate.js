@@ -3,7 +3,7 @@
 const assert = require ('assert');
 const testCommonItems = require ('./test.commonItems.js');
 
-function testBorrowRate (exchange, borrowRate, method, code) {
+function testBorrowRate (exchange, entry, method, requestedCode) {
     const format = {
         'info': {}, // Or []
         'currency': 'USDT',
@@ -12,13 +12,13 @@ function testBorrowRate (exchange, borrowRate, method, code) {
         'rate': exchange.parseNumber ('0.0006'), // Interest rate
         // 'period': 86400000, // Amount of time the interest rate is based on in milliseconds
     };
-    const forceValues = [ 'currency', 'info', 'rate' ];
-    testCommonItems.testStructureKeys (exchange, method, balance, format, forceValues);
-    testCommonItems.testCommonTimestamp (exchange, method, borrowRate);
-    const logText = testCommonItems.logTemplate (exchange, method, borrowRate);
+    const emptyNotAllowedFor = [ 'currency', 'info', 'rate' ];
+    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testCommonItems.testCommonTimestamp (exchange, method, entry);
+    testCommonItems.testCyrrencyCode (exchange, method, entry, entry['currency'], requestedCode);
     //
     // assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) // Milliseconds in an hour or a day
-    testCommonItems.Gt (exchange, method, borrowRate, 'rate', '0');
+    testCommonItems.Gt (exchange, method, entry, 'rate', '0');
 }
 
 module.exports = testBorrowRate;

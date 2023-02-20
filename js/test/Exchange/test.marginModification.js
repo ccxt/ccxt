@@ -1,10 +1,8 @@
 'use strict';
 
-const assert = require('assert');
 const testCommonItems = require ('./test.commonItems.js');
 
-function testMarginModification (exchange, item) {
-    const method = 'marginModification';
+function testMarginModification (exchange, method, entry) {
     const format = {
         'info': {}, // or []
         'type': 'add',
@@ -15,15 +13,13 @@ function testMarginModification (exchange, item) {
         'status': 'ok',
     };
     const forceValues = [ 'type', 'status' ];
-    testCommonItems.testStructureKeys (exchange, method, item, format, forceValues);
-    const logText = testCommonItems.logTemplate (exchange, method, item);
-
-    if (item['type'] !== undefined) {
-        assert ((item['type'] === 'add') || (item['type'] === 'reduce') || (item['type'] === 'set'), '"type" must be `add`, `reduce` or `set`' + logText);
-    }
-    if (item['status'] !== undefined) {
-        assert (exchange.inArray (item['status'], [ 'ok', 'pending', 'canceled', 'failed' ]));
-    }
+    testCommonItems.testStructureKeys (exchange, method, entry, format, forceValues);
+    testCommonItems.testCyrrencyCode (exchange, method, entry, entry['code']);
+    //
+    testCommonItems.Ge (exchange, method, entry, 'amount', '0');
+    testCommonItems.Ge (exchange, method, entry, 'total', '0');
+    testCommonItems.checkAgainstArray (exchange, method, entry, 'type', [ 'add', 'reduce', 'set' ]);
+    testCommonItems.checkAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'canceled', 'failed' ]);
 }
 
 module.exports = testMarginModification;

@@ -4,23 +4,24 @@ const assert = require ('assert');
 const testCommonItems = require ('./test.commonItems.js');
 const Precise = require ('../../base/Precise');
 
-function testBalance (exchange, balance, method) {
+function testBalance (exchange, entry, method) {
     const format = {
         'free': {},
         'used': {},
         'total': {},
         'info': {},
     };
-    const forceValues = [ 'free', 'used', 'total', 'info' ];
-    testCommonItems.testStructureKeys (exchange, method, balance, format, forceValues);
-    const logText = testCommonItems.logTemplate (exchange, method, balance);
+    const emptyNotAllowedFor = [ 'free', 'used', 'total', 'info' ];
+    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    const logText = testCommonItems.logTemplate (exchange, method, entry);
     //
-    const codes = Object.keys (balance['total']);
+    const codes = Object.keys (entry['total']);
     for (let i = 0; i < codes.length; i++) {
         const code = codes[i];
-        const total = exchange.safeString (balance['total'], code);
-        const free = exchange.safeString (balance['free'], code);
-        const used = exchange.safeString (balance['used'], code);
+        testCommonItems.testCyrrencyCode (exchange, method, entry, code);
+        const total = exchange.safeString (entry['total'], code);
+        const free = exchange.safeString (entry['free'], code);
+        const used = exchange.safeString (entry['used'], code);
         const totalDefined = total !== undefined;
         const freeDefined = free !== undefined;
         const usedDefined = used !== undefined;

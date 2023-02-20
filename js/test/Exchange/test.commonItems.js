@@ -74,10 +74,14 @@ function testSymbol (exchange, method, entry, expectedSymbol) {
     assert (expectedSymbol === entry['symbol'], 'symbol is not equal to requested symbol; returned: ' + entry['symbol'] + ' requested: ' + expectedSymbol + logText);
 }
 
-function testCyrrencyCode (exchange, method, entry, code) {
+function testCyrrencyCode (exchange, method, entry, actualCode, expectedCode = undefined) {
     const logText = logTemplate (exchange, method, entry);
-    if (code !== undefined) {
-        assert ((typeof code === 'string') || (code in exchange.currencies), 'currency code should be either undefined or be a string and present in exchange.currencies' + logText);
+    if (actualCode !== undefined) {
+        assert (typeof code === 'string', 'currency code should be either undefined or be a string' + logText);
+        assert (actualCode in exchange.currencies, 'currency code should be present in exchange.currencies' + logText);
+        if (expectedCode !== undefined) {
+            assert (actualCode === expectedCode, 'currency code in response (' + actualCode + ') should be equal to expected code (' + expectedCode + ')' + logText);
+        }
     }
 }
 
@@ -113,6 +117,25 @@ function Le (exchange, method, entry, key, compareTo) {
     }
 }
 
+function checkAgainstArray (exchange, method, entry, key, expectedArray) {
+    const logText = logTemplate (exchange, method, entry);
+    const value = exchange.safeString (entry, key);
+    if (value !== undefined) {
+        assert (exchange.inArray (value, expectedArray), key + ' is expected to be in ' + expectedArray.join (',') + logText);
+    }
+}
+
+
+function checkFeeObject (exchange, method, feeEntry) {
+    const logText = logTemplate (exchange, method, entry);
+    if (feeEntry !== undefined) {
+        assert ('cost' in feeEntry, '"fee" should contain a "cost" key' + logText); 
+        Ge (exchange, method, feeEntry, 'cost', '0');
+        assert ('currency' in feeEntry, '"fee" should contain a "currency" key' + logText);
+        testCyrrencyCode (exchange, method, entry, feeEntry['currency']);
+    }
+}
+
 module.exports = {
     testCommonTimestamp,
     testStructureKeys,
@@ -122,4 +145,6 @@ module.exports = {
     Ge,
     Lt,
     Le,
+    checkAgainstArray,
+    checkFeeObject,
 };

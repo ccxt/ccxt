@@ -2,7 +2,7 @@
 
 const testCommonItems = require ('./test.commonItems.js');
 
-function testAccount (exchange, account, method) {
+function testAccount (exchange, entry, method) {
     const format = {
         'info': {},
         'code': 'BTC',
@@ -10,8 +10,9 @@ function testAccount (exchange, account, method) {
         'type': 'spot', // 'spot', 'margin', 'futures', 'swap'
         'id': '12345',
     };
-    const forceValues = [ 'code', 'type', 'info' ];
-    testCommonItems.testStructureKeys (exchange, method, account, format, forceValues);
+    const emptyNotAllowedFor = [ 'type', 'info' ];
+    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testCommonItems.testCyrrencyCode (exchange, method, entry, entry['code']);
 }
 
 module.exports = testAccount;

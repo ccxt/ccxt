@@ -22,7 +22,7 @@ module.exports = async (exchange, code) => {
         const now = Date.now ()
 
         for (let i = 0; i < items.length; i++) {
-            testLedgerItem (exchange, items[i], code, now)
+            testLedgerItem (exchange, method, items[i], code, now)
             if (i > 0) {
                 assert (items[i].timestamp >= items[i - 1].timestamp)
             }

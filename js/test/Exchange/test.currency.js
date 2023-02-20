@@ -1,10 +1,8 @@
 'use strict'
 
-const assert = require ('assert');
 const testCommonItems = require ('./test.commonItems.js');
-const Precise = require ('../../base/Precise');
 
-function testCurrency (exchange, currency, method) {
+function testCurrency (exchange, entry, method) {
     const format = {
         'info': {},
         'id': 'btc', // string literal for referencing within an exchange
@@ -28,18 +26,19 @@ function testCurrency (exchange, currency, method) {
         },
         //----------------------------------------------------------------------
     };
-    const forceValues = [ 'id', 'code', 'info' ];
-    testCommonItems.testStructureKeys (exchange, method, currency, format, forceValues);
+    const forceValues = [ 'id', 'code', 'info', 'precision' ];
+    testCommonItems.testStructureKeys (exchange, method, entry, format, forceValues);
+    testCommonItems.testCyrrencyCode (exchange, method, entry, entry['code']);
     //
-    testCommonItems.Gt (exchange, method, currency, 'precision', '0');
-    testCommonItems.Ge (exchange, method, currency, 'fee', '0')
-    const limits = exchange.safeValue (currency, 'limits', {});
+    testCommonItems.Gt (exchange, method, entry, 'precision', '0');
+    testCommonItems.Ge (exchange, method, entry, 'fee', '0')
+    const limits = exchange.safeValue (entry, 'limits', {});
     const withdrawLimits = exchange.safeValue (limits, 'withdraw', {});
     const depositLimits = exchange.safeValue (limits, 'deposit', {});
     testCommonItems.Ge (exchange, method, withdrawLimits, 'min', '0');
     testCommonItems.Ge (exchange, method, withdrawLimits, 'max', '0');
     testCommonItems.Ge (exchange, method, depositLimits, 'min', '0');
-    testCommonItems.Ge (exchange, method, depositLimits, 'max', '0');;
+    testCommonItems.Ge (exchange, method, depositLimits, 'max', '0');
 }
 
 module.exports = testCurrency;
