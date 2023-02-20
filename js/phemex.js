@@ -1419,6 +1419,27 @@ module.exports = class phemex extends Exchange {
         //         "execStatus": "MakerFill"
         //     }
         //
+        // swap - USDT
+        //
+        //     {
+        //         "createdAt": 1666226932259,
+        //         "symbol": "ETHUSDT",
+        //         "currency": "USDT",
+        //         "action": 1,
+        //         "tradeType": 1,
+        //         "execQtyRq": "0.01",
+        //         "execPriceRp": "1271.9",
+        //         "side": 1,
+        //         "orderQtyRq": "0.78",
+        //         "priceRp": "1271.9",
+        //         "execValueRv": "12.719",
+        //         "feeRateRr": "0.0001",
+        //         "execFeeRv": "0.0012719",
+        //         "ordType": 2,
+        //         "execId": "8718cae",
+        //         "execStatus": 6
+        //     }
+        //
         let priceString = undefined;
         let amountString = undefined;
         let timestamp = undefined;
@@ -1452,34 +1473,38 @@ module.exports = class phemex extends Exchange {
             }
             id = this.safeString2 (trade, 'execId', 'execID');
             orderId = this.safeString (trade, 'orderID');
-            side = this.safeStringLower (trade, 'side');
-            type = this.parseOrderType (this.safeString (trade, 'ordType'));
-            const execStatus = this.safeString (trade, 'execStatus');
-            if (execStatus === 'MakerFill') {
-                takerOrMaker = 'maker';
-            }
-            priceString = this.fromEp (this.safeString (trade, 'execPriceEp'), market);
-            amountString = this.fromEv (this.safeString (trade, 'execBaseQtyEv'), market);
-            amountString = this.safeString (trade, 'execQty', amountString);
-            costString = this.fromEv (this.safeString2 (trade, 'execQuoteQtyEv', 'execValueEv'), market);
-            const feeCostString = this.fromEv (this.safeString (trade, 'execFeeEv'), market);
-            if (feeCostString !== undefined) {
-                const feeRateString = this.fromEr (this.safeString (trade, 'feeRateEr'), market);
-                let feeCurrencyCode = undefined;
-                if (market['spot']) {
-                    feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
-                } else {
-                    const info = this.safeValue (market, 'info');
-                    if (info !== undefined) {
-                        const settlementCurrencyId = this.safeString (info, 'settlementCurrency');
-                        feeCurrencyCode = this.safeCurrencyCode (settlementCurrencyId);
-                    }
+            if (market['settle'] === 'USDT') {
+                console.log (trade);
+            } else {
+                side = this.safeStringLower (trade, 'side');
+                type = this.parseOrderType (this.safeString (trade, 'ordType'));
+                const execStatus = this.safeString (trade, 'execStatus');
+                if (execStatus === 'MakerFill') {
+                    takerOrMaker = 'maker';
                 }
-                fee = {
-                    'cost': feeCostString,
-                    'rate': feeRateString,
-                    'currency': feeCurrencyCode,
-                };
+                priceString = this.fromEp (this.safeString (trade, 'execPriceEp'), market);
+                amountString = this.fromEv (this.safeString (trade, 'execBaseQtyEv'), market);
+                amountString = this.safeString (trade, 'execQty', amountString);
+                costString = this.fromEv (this.safeString2 (trade, 'execQuoteQtyEv', 'execValueEv'), market);
+                const feeCostString = this.fromEv (this.safeString (trade, 'execFeeEv'), market);
+                if (feeCostString !== undefined) {
+                    const feeRateString = this.fromEr (this.safeString (trade, 'feeRateEr'), market);
+                    let feeCurrencyCode = undefined;
+                    if (market['spot']) {
+                        feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+                    } else {
+                        const info = this.safeValue (market, 'info');
+                        if (info !== undefined) {
+                            const settlementCurrencyId = this.safeString (info, 'settlementCurrency');
+                            feeCurrencyCode = this.safeCurrencyCode (settlementCurrencyId);
+                        }
+                    }
+                    fee = {
+                        'cost': feeCostString,
+                        'rate': feeRateString,
+                        'currency': feeCurrencyCode,
+                    };
+                }
             }
         }
         return this.safeTrade ({
@@ -2595,6 +2620,8 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-user-trade
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-trade
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
@@ -2610,12 +2637,21 @@ module.exports = class phemex extends Exchange {
         if (market['swap']) {
             method = 'privateGetExchangeOrderTrade';
             if (market['settle'] === 'USDT') {
-                method = 'privateGetExchangeOrderV2TradingList';
+                method = 'privateGetExchangeOrderV2TradingList'; // FIXME: {"code":39999,"msg":"Please try again.","data":null}
             }
         }
         const request = {
             'symbol': market['id'],
         };
+        if (market['settle'] === 'USDT') {
+            request['currency'] = market['baseId'];
+            request['offset'] = 0;
+            limit = 200;
+            if (limit !== undefined) {
+                limit = Math.min (200, limit);
+            }
+            request['limit'] = limit;
+        }
         if (since !== undefined) {
             request['start'] = since;
         }
@@ -2696,6 +2732,36 @@ module.exports = class phemex extends Exchange {
         //             ]
         //         }
         //     }
+        //
+        // swap - usdt
+        //
+        // {
+        //     "code": 0,
+        //     "msg": "OK",
+        //     "data": {
+        //         "total": 4,
+        //         "rows": [
+        //             {
+        //                 "createdAt": 1666226932259,
+        //                 "symbol": "ETHUSDT",
+        //                 "currency": "USDT",
+        //                 "action": 1,
+        //                 "tradeType": 1,
+        //                 "execQtyRq": "0.01",
+        //                 "execPriceRp": "1271.9",
+        //                 "side": 1,
+        //                 "orderQtyRq": "0.78",
+        //                 "priceRp": "1271.9",
+        //                 "execValueRv": "12.719",
+        //                 "feeRateRr": "0.0001",
+        //                 "execFeeRv": "0.0012719",
+        //                 "ordType": 2,
+        //                 "execId": "8718cae",
+        //                 "execStatus": 6
+        //             },
+        //         ]
+        //     }
+        // }
         //
         const data = this.safeValue (response, 'data', {});
         const rows = this.safeValue (data, 'rows', []);
@@ -2923,6 +2989,8 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchPositions
          * @description fetch all open positions
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-positions
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
