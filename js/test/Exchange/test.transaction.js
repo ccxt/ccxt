@@ -29,14 +29,7 @@ function testTransaction (exchange, method, entry, requestedCode, now) {
     testCommonItems.testCommonTimestamp (exchange, method, entry, now);
     testCommonItems.testCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
     //
-    const statuses = [
-        'ok',
-        'pending',
-        'failed',
-        'rejected',
-        'canceled',
-    ];
-    testCommonItems.checkAgainstArray (exchange, method, entry, 'status', statuses);
+    testCommonItems.checkAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'failed', 'rejected', 'canceled' ]);
     testCommonItems.checkAgainstArray (exchange, method, entry, 'type', ['deposit', 'withdrawal']);
     testCommonItems.Ge (exchange, method, entry, 'amount', '0');
     testCommonItems.checkFeeObject (exchange, method, entry['fee']);

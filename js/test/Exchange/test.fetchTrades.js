@@ -25,7 +25,7 @@ module.exports = async (exchange, symbol) => {
         console.log (symbol, 'fetched', Object.values (trades).length, 'trades')
         const now = Date.now ()
         for (let i = 0; i < trades.length; i++) {
-            testTrade (exchange, trades[i], symbol, now)
+            testTrade (exchange, method, trades[i], symbol, now)
             if (i > 0) {
                 if (trades[i].timestamp && trades[i - 1].timestamp) {
                     assert (trades[i].timestamp >= trades[i - 1].timestamp)
