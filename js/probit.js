@@ -1341,7 +1341,7 @@ module.exports = class probit extends Exchange {
         }
         const response = await this.privateGetDepositAddress (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
-        return this.parseDepositAddresses (data);
+        return this.parseDepositAddresses (data, codes);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

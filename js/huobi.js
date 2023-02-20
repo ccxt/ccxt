@@ -4759,7 +4759,7 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
-        const indexedAddresses = await this.fetchDepositAddressesByNetwork (currency['code'], paramsOmited);
+        const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
         return indexedAddresses[selectedNetworkCode];
     }

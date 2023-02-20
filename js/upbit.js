@@ -1614,7 +1614,7 @@ module.exports = class upbit extends Exchange {
         //         }
         //     ]
         //
-        return this.parseDepositAddresses (response);
+        return this.parseDepositAddresses (response, codes);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
