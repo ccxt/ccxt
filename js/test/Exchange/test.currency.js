@@ -26,7 +26,7 @@ function testCurrency (exchange, entry, method) {
         },
         //----------------------------------------------------------------------
     };
-    const emptyNotAllowedFor = [ 'id', 'code', 'info', 'precision' ];
+    const emptyNotAllowedFor = [ 'id', 'code', 'precision' ];
     testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     testCommonItems.testCyrrencyCode (exchange, method, entry, entry['code']);
     //

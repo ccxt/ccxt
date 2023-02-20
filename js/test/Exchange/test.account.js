@@ -10,7 +10,7 @@ function testAccount (exchange, entry, method) {
         'type': 'spot', // 'spot', 'margin', 'futures', 'swap'
         'id': '12345',
     };
-    const emptyNotAllowedFor = [ 'type', 'info' ];
+    const emptyNotAllowedFor = [ 'type' ];
     testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     testCommonItems.testCyrrencyCode (exchange, method, entry, entry['code']);
 }

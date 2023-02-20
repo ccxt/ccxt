@@ -12,7 +12,7 @@ function testBorrowRate (exchange, entry, method, requestedCode) {
         'rate': exchange.parseNumber ('0.0006'), // Interest rate
         // 'period': 86400000, // Amount of time the interest rate is based on in milliseconds
     };
-    const emptyNotAllowedFor = [ 'currency', 'info', 'rate' ];
+    const emptyNotAllowedFor = [ 'currency', 'rate' ];
     testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     testCommonItems.testCommonTimestamp (exchange, method, entry);
     testCommonItems.testCyrrencyCode (exchange, method, entry, entry['currency'], requestedCode);

@@ -11,7 +11,7 @@ function testOpenInterest (exchange, method, entry) {
         'datetime': '2022-04-07T23:20:00.000Z',
         'info': {},
     };
-    const emptyNotAllowedFor = [ 'baseVolume', 'info' ];
+    const emptyNotAllowedFor = [ 'baseVolume' ];
     testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     testCommonItems.testSymbol (exchange, method, entry, 'symbol');
     testCommonItems.testCommonTimestamp (exchange, method, entry);

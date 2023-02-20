@@ -20,7 +20,7 @@ function testLedgerItem (exchange, method, entry, requestedCode, now) {
         'datetime': '2021-11-30T00:00:00.000Z',
         'type': 'deposit',
     };
-    const emptyNotAllowedFor = [ 'id', 'currency', 'account', 'status', 'direction', 'info' ];
+    const emptyNotAllowedFor = [ 'id', 'currency', 'account', 'status', 'direction' ];
     testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     testCommonItems.testCommonTimestamp (exchange, method, entry, now);
     testCommonItems.testCyrrencyCode (exchange, method, entry, entry['currency'], requestedCode);

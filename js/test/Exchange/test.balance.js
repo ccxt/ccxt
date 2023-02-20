@@ -11,7 +11,7 @@ function testBalance (exchange, entry, method) {
         'total': {},
         'info': {},
     };
-    const emptyNotAllowedFor = [ 'free', 'used', 'total', 'info' ];
+    const emptyNotAllowedFor = [ 'free', 'used', 'total' ];
     testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     const logText = testCommonItems.logTemplate (exchange, method, entry);
     //

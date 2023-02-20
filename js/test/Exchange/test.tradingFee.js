@@ -3,8 +3,7 @@
 const assert = require ('assert');
 const testCommonItems = require ('./test.commonItems.js');
 
-function testTradingFee (exchange, symbol, fee) {
-    const method = 'tradingFee';
+function testTradingFee (exchange, method, symbol, entry) {
     const format = {
         'info': { 'a': 1, 'b': 2, 'c': 3 },
         'symbol': 'ETH/BTC',
@@ -13,21 +12,21 @@ function testTradingFee (exchange, symbol, fee) {
         'percentage': false,
         'tierBased': false,
     };
-    testCommonItems.testStructureKeys (exchange, method, fee, format);
-    testCommonItems.testSymbol (exchange, method, fee, symbol);
+    const emptyNotAllowedFor = [ 'maker', 'taker' ];
+    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testCommonItems.testSymbol (exchange, method, entry, symbol);
     const logText = testCommonItems.logTemplate (exchange, method, transaction);
     //
-    assert (typeof fee['maker'] === 'number', 'maker fee is not a number' + logText);
-    assert (typeof fee['taker'] === 'number', 'taker fee is not a number' + logText);
-    const percentageValue = exchange.safeValue (fee, 'percentage');
+    assert (typeof entry['maker'] === 'number', 'maker fee is not a number' + logText);
+    assert (typeof entry['taker'] === 'number', 'taker fee is not a number' + logText);
+    const percentageValue = exchange.safeValue (entry, 'percentage');
     if (percentageValue !== undefined) {
         assert ((percentageValue === true || percentageValue === false), 'percentage is not a boolean' + logText);
     }
-    const tierBasedValue = exchange.safeValue (fee, 'tierBased');
+    const tierBasedValue = exchange.safeValue (entry, 'tierBased');
     if (tierBasedValue !== undefined) {
         assert ((tierBasedValue === true || tierBasedValue === false), 'tierBased is not a boolean' + logText);
     }
-    return fee;
 }
 
 module.exports = testTradingFee;

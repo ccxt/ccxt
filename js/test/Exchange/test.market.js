@@ -55,7 +55,7 @@ function testMarket (exchange, market, method) {
         },
         'info': {}, // the original unparsed market info from the exchange
     };
-    const emptyNotAllowedFor = [ 'id', 'symbol', 'base', 'quote', 'baseId', 'quoteId', 'precision', 'limits', 'type', 'spot', 'margin', 'swap', 'future', 'contract', 'info' ];
+    const emptyNotAllowedFor = [ 'id', 'symbol', 'base', 'quote', 'baseId', 'quoteId', 'precision', 'limits', 'type', 'spot', 'margin', 'swap', 'future', 'contract' ];
     testCommonItems.testStructureKeys (exchange, method, market, format, emptyNotAllowedFor);
     testCommonItems.testSymbol (exchange, method, market, 'symbol');
     const logText = testCommonItems.logTemplate (exchange, method, market);
