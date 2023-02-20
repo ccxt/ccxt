@@ -1227,7 +1227,7 @@ module.exports = class bitfinex2 extends Exchange {
         let takerOrMaker = undefined;
         let type = undefined;
         let fee = undefined;
-        let symbol = undefined;
+        let symbol = this.safeSymbol (undefined, market);
         const timestampIndex = isPrivate ? 2 : 1;
         const timestamp = this.safeInteger (trade, timestampIndex);
         if (isPrivate) {
