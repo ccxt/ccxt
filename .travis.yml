@@ -40,12 +40,9 @@ script:
     npm run vss && npm run copy-python-files;
     npm list -g standard-version --depth=0 || npm install -g standard-version@9.5.0;
     standard-version --skip.bump --skip.commit --skip.tag;
-    # push all built files back to GitHub master
     env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
-    # check if enough time has passed since last deploy/publish
     env DEPLOY_CACHE=.cache/deploy;
-    env SECONDS_BEFORE_NEXT_DEPLOY=43200; # 12 hours
-    # env SECONDS_BEFORE_DEPLOY=86400; # 24 hours
+    env SECONDS_BEFORE_NEXT_DEPLOY=43200;
     if [ ! -f "${DEPLOY_CACHE}" ]; then
       echo "${DEPLOY_CACHE} does not exist";
       echo "Writing ${NPM_VERSION} to ${DEPLOY_CACHE}";
@@ -64,7 +61,7 @@ script:
       echo "Not publishing to PyPI until ${NEXT_DEPLOY_DATETIME}";
       exit 0;
     fi
-  fi
+- fi
 after_failure:
 - dmesg | grep -i kill
 before_deploy:
