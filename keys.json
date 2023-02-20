@@ -7,6 +7,7 @@
     "binancecoinm":  { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
     "mexc":          { "skip": true, "//": "Reason: 403 Forbidden <HTML><HEAD><TITLE>Access Denied</TITLE></HEAD"},
     "gemini":        { "skip": true, "//": "Reason: Markets api is too unreliable"},
+    "gate":          { "skip": true, "//": "Reason: Failing on Travis CI as of 2023 Feb 20 to be fixed shortly"},
     "coinex":        { "skip": true, "//": "Reason: 13/01 API is down"},
     "therock":       { "skip": true, "//": "API is down"},
     "bitcoincom":    { "skipWs": true },
