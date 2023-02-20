@@ -1677,23 +1677,31 @@ module.exports = class phemex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'defaultType', 'fetchBalance', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        let query = undefined;
+        let type = undefined;
+        let subType = undefined;
+        [ type, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        [ subType, query ] = this.handleSubTypeAndParams ('fetchBalance', undefined, query);
         let method = 'privateGetSpotWallets';
         const request = {};
         if (type === 'swap') {
-            const code = this.safeString (params, 'code');
+            const code = this.safeString (query, 'code');
             if (code !== undefined) {
                 const currency = this.currency (code);
                 request['currency'] = currency['id'];
-                params = this.omit (params, 'code');
+                query = this.omit (query, 'code');
             } else {
-                const currency = this.safeString (params, 'currency');
+                const currency = this.safeString (query, 'currency');
                 if (currency === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchBalance() requires a code parameter or a currency parameter for ' + type + ' type');
                 }
             }
-            method = 'privateGetAccountsAccountPositions'; // privateGetGAccountsAccountPositions
+            method = 'privateGetAccountsAccountPositions';
+            const settle = this.safeValue ('settle', query);
+            query = this.omit (query, 'settle');
+            if (subType === 'linear' && settle === 'USDT') {
+                method = 'privateGetGAccountsAccountPositions';
+            }
         }
         params = this.omit (params, 'type');
         const response = await this[method] (this.extend (request, params));
