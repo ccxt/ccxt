@@ -62,9 +62,6 @@ function testMarket (exchange, market, method) {
     testCommonItems.Gt (exchange, method, market, 'contractSize', '0');
     testCommonItems.Ge (exchange, method, market, 'expiry', '0');
     testCommonItems.Ge (exchange, method, market, 'strike', '0');
-    if (market['expiry'] !== undefined) {
-        assert (market['expiryDatetime'] === exchange.iso8601 (market['expiry']), 'expiryDatetime must be equal to expiry in iso8601 format' + logText);
-    }
     testCommonItems.checkAgainstArray (exchange, method, market, 'optionType', [ 'put', 'call' ]);
     // todo: handle str/num types later
     // assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'));
@@ -84,25 +81,25 @@ function testMarket (exchange, market, method) {
     for (let i = 0; i < types.length; i++) {
         testCommonItems.checkAgainstArray (exchange, method, market, types[i], [ true, false, undefined ]);
     }
-    //
-    // todo fix binance
-    //
-    // if (market['future']) {
-    //     assert ((market['swap'] === false) && (market['option'] === false));
-    // } else if (market['swap']) {
-    //     assert ((market['future'] === false) && (market['option'] === false));
-    // } else if (market['option']) {
-    //     assert ((market['future'] === false) && (market['swap'] === false));
-    // }
-    // if (market['linear']) {
-    //     assert (market['inverse'] === false);
-    // } else if (market['inverse']) {
-    //     assert (market['linear'] === false);
-    // }
-    // if (market['future']) {
-    //     assert (market['expiry'] !== undefined);
-    //     assert (market['expiryDatetime'] !== undefined);
-    // }
+    if (market['future']) {
+        assert ((market['swap'] === false) && (market['option'] === false), 'market swap and option must be false when "future" is true' + logText);
+    } else if (market['swap']) {
+        assert ((market['future'] === false) && (market['option'] === false), 'market future and option must be false when "swap" is true' + logText);
+    } else if (market['option']) {
+        assert ((market['future'] === false) && (market['swap'] === false), 'market future and swap must be false when "option" is true' + logText);
+    }
+    if (market['linear']) {
+        assert (market['inverse'] === false, 'market inverse must be false when "linear" is true' + logText);
+    } else if (market['inverse']) {
+        assert (market['linear'] === false, 'market linear must be false when "inverse" is true' + logText);
+    }
+    if (market['future']) {
+        assert (market['expiry'] !== undefined, '"expiry" must be defined when "future" is true' + logText);
+        assert (market['expiryDatetime'] !== undefined, '"expiryDatetime" must be defined when "future" is true' + logText);
+    }
+    if (market['expiry'] !== undefined) {
+        assert (market['expiryDatetime'] === exchange.iso8601 (market['expiry']), 'expiryDatetime must be equal to expiry in iso8601 format' + logText);
+    }
 }
 
 module.exports = testMarket;
