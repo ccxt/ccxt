@@ -160,6 +160,7 @@ module.exports = class phemex extends Exchange {
                         'exchange/spot/order', // ?symbol=<symbol>&ordStatus=<ordStatus1,orderStatus2>ordType=<ordType1,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'exchange/spot/order/trades', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'exchange/order/v2/orderList', // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
+                        'exchange/order/v2/tradingList', // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         // swap
                         'accounts/accountPositions', // ?currency=<currency>
                         'g-accounts/accountPositions', // ?currency=<currency>
@@ -1112,7 +1113,7 @@ module.exports = class phemex extends Exchange {
         const market = this.market (symbol);
         request['symbol'] = market['id'];
         let method = 'publicGetMdKline';
-        if (market['settle'] === 'USDT') {
+        if (market['linear'] || market['settle'] === 'USDT') {
             method = 'publicGetMdV2KlineLast';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1446,6 +1447,9 @@ module.exports = class phemex extends Exchange {
             }
         } else {
             timestamp = this.safeIntegerProduct (trade, 'transactTimeNs', 0.000001);
+            if (timestamp === undefined) {
+                timestamp = this.safeInteger (trade, 'createdAt');
+            }
             id = this.safeString2 (trade, 'execId', 'execID');
             orderId = this.safeString (trade, 'orderID');
             side = this.safeStringLower (trade, 'side');
@@ -2061,6 +2065,7 @@ module.exports = class phemex extends Exchange {
             // 'pegOffsetValueEp': integer, // Trailing offset from current price. Negative value when position is long, positive when position is short
             // 'pegPriceType': 'TrailingStopPeg', // TrailingTakeProfitPeg
             // 'text': 'comment',
+            // 'posSide': Position direction - "Merged" for oneway mode , "Long" / "Short" for hedge mode
         };
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId === undefined) {
@@ -2074,7 +2079,11 @@ module.exports = class phemex extends Exchange {
         }
         const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
         if (stopPrice !== undefined) {
-            request['stopPxEp'] = this.toEp (stopPrice, market);
+            if (market['settle'] === 'USDT') {
+                request['stopPxRp'] = this.priceToPrecision (symbol, stopPrice);
+            } else {
+                request['stopPxEp'] = this.toEp (stopPrice, market);
+            }
         }
         params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
         if (market['spot']) {
@@ -2106,27 +2115,49 @@ module.exports = class phemex extends Exchange {
                 request['baseQtyEv'] = this.toEv (amountString, market);
             }
         } else if (market['swap']) {
+            let posSide = this.safeStringLower (params, 'posSide');
+            if (posSide === undefined) {
+                posSide = 'Merged';
+            }
+            posSide = this.capitalize (posSide);
+            request['posSide'] = posSide;
             if (reduceOnly !== undefined) {
                 request['reduceOnly'] = reduceOnly;
             }
-            request['orderQty'] = parseInt (amount);
+            if (market['settle'] === 'USDT') {
+                request['orderQtyRq'] = amount;
+            } else {
+                request['orderQty'] = parseInt (amount);
+            }
             if (stopPrice !== undefined) {
                 const triggerType = this.safeString (params, 'triggerType', 'ByMarkPrice');
                 request['triggerType'] = triggerType;
             }
         }
         if ((type === 'Limit') || (type === 'StopLimit') || (type === 'LimitIfTouched')) {
-            const priceString = price.toString ();
-            request['priceEp'] = this.toEp (priceString, market);
+            if (market['settle'] === 'USDT') {
+                request['priceRp'] = this.priceToPrecision (symbol, price);
+            } else {
+                const priceString = price.toString ();
+                request['priceEp'] = this.toEp (priceString, market);
+            }
         }
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         if (takeProfitPrice !== undefined) {
-            request['takeProfitEp'] = this.toEp (takeProfitPrice, market);
+            if (market['settle'] === 'USDT') {
+                request['takeProfitRp'] = this.priceToPrecision (symbol, takeProfitPrice);
+            } else {
+                request['takeProfitEp'] = this.toEp (takeProfitPrice, market);
+            }
             params = this.omit (params, 'takeProfitPrice');
         }
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         if (stopLossPrice !== undefined) {
-            request['stopLossEp'] = this.toEp (stopLossPrice, market);
+            if (market['settle'] === 'USDT') {
+                request['stopLossRp'] = this.priceToPrecision (symbol, stopLossPrice);
+            } else {
+                request['stopLossEp'] = this.toEp (stopLossPrice, market);
+            }
             params = this.omit (params, 'stopLossPrice');
         }
         let method = 'privatePostSpotOrders';
@@ -2567,7 +2598,13 @@ module.exports = class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = market['spot'] ? 'privateGetExchangeSpotOrderTrades' : 'privateGetExchangeOrderTrade';
+        let method = 'privateGetExchangeSpotOrderTrades';
+        if (market['swap']) {
+            method = 'privateGetExchangeOrderTrade';
+            if (market['settle'] === 'USDT') {
+                method = 'privateGetExchangeOrderV2TradingList';
+            }
+        }
         const request = {
             'symbol': market['id'],
         };
