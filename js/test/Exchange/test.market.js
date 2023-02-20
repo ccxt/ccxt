@@ -100,6 +100,20 @@ function testMarket (exchange, market, method) {
     if (market['expiry'] !== undefined) {
         assert (market['expiryDatetime'] === exchange.iso8601 (market['expiry']), 'expiryDatetime must be equal to expiry in iso8601 format' + logText);
     }
+    const targetKeys = [ 'cost', 'amount', 'price' ];
+    // check precisions
+    for (let i = 0; i < targetKeys.length; i++) {
+        const key = targetKeys[i];
+        // todo: should be migrated into Gt after TickSize handling is implemented
+        testCommonItems.Ge (exchange, method, market['precision'], key, '0');
+    }
+    // check limits
+    for (let i = 0; i < targetKeys.length; i++) {
+        const key = targetKeys[i];
+        const limitEntry = market['limits'][key];
+        testCommonItems.Ge (exchange, method, limitEntry, 'min', '0');
+        testCommonItems.Ge (exchange, method, limitEntry, 'max', '0');
+    }
 }
 
 module.exports = testMarket;

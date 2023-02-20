@@ -46,12 +46,12 @@ function testStructureKeys (exchange, method, entry, format, requiredValueKeys =
     }
 }
 
-function testCommonTimestamp (exchange, method, entry, nowToCheck = undefined) {
+function testCommonTimestamp (exchange, method, entry, nowToCheck = undefined, keyName = 'timestamp') {
     // define common log text
     const logText = logTemplate (exchange, method, entry);
     // ensure timestamp exists in object
-    assert ('timestamp' in entry, 'timestamp is missing from structure' + logText);
-    const ts = entry['timestamp'];
+    assert (keyName in entry, keyName +' is missing from structure' + logText);
+    const ts = entry[keyName];
     if (ts !== undefined) {
         assert (typeof ts === 'number', 'timestamp is not a number' + logText);
         assert (ts > 1230940800000, 'timestamp is impossible to be before 1230940800000 / 03.01.2009' + logText); // 03 Jan 2009 - first block

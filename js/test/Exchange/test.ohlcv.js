@@ -3,8 +3,7 @@
 const assert = require ('assert');
 const testCommonItems = require ('./test.commonItems.js');
 
-function testOHLCV (exchange, ohlcv, symbol, now) {
-    const method = 'ohlcv';
+function testOHLCV (exchange, method, entry, symbol, now) {
     const format = [
         1638230400000,
         exchange.parseNumber ('0.123'),
@@ -13,24 +12,19 @@ function testOHLCV (exchange, ohlcv, symbol, now) {
         exchange.parseNumber ('0.122'),
         exchange.parseNumber ('123.456'),
     ];
-    testCommonItems.testStructureKeys (exchange, method, ohlcv, format);
-
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (ohlcv) + ' >>> ';
-
+    const logText = testCommonItems.logTemplate (exchange, method, market);
     assert (Array.isArray (ohlcv), 'ohlcv is not array;' + logText);
+    const emptyNotAllowedFor = [ 0, 1, 2, 3, 4, 5 ];
+    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testCommonItems.testCommonTimestamp (exchange, method, entry, format, now, 0);
+    //
     const length = ohlcv.length;
-    assert (length >= 6);
-
-    assert (ohlcv[0] > 1230940800000, 'timestamp is impossible to be before date 03.01.2009;' + logText); // 03 Jan 2009 - first block
-    assert (ohlcv[0] < 2147483648000, 'timestamp more than 19.01.2038;' + logText); // 19 Jan 2038 - int32 overflows
-
+    assert (length >= 6, 'ohlcv array length should be >= 6;' + logText);
     const skippedExchanges = [
         'bitmex', // BitMEX API docs: also note the open price is equal to the close price of the previous timeframe bucket.
-        'vcc', // same as BitMEX, the open price is equal to the close price of the previous timeframe bucket.
         'delta',
         'cryptocom',
     ];
-
     if (!exchange.inArray (exchange.id, skippedExchanges)) {
         assert ((ohlcv[1] === undefined) || (ohlcv[2] === undefined) || (ohlcv[1] <= ohlcv[2]), 'open > high, ' + exchange.safeString (ohlcv, 1, 'undefined') + ' > ' + exchange.safeString (ohlcv, 2, 'undefined')); // open <= high
         assert ((ohlcv[3] === undefined) || (ohlcv[2] === undefined) || (ohlcv[3] <= ohlcv[2]), 'low > high, ' + exchange.safeString (ohlcv, 2, 'undefined') + ' > ' + exchange.safeString (ohlcv, 3, 'undefined')); // low <= high

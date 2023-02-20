@@ -35,7 +35,7 @@ module.exports = async (exchange, symbol) => {
 
         for (let i = 0; i < ohlcvs.length; i++) {
             const ohlcv = ohlcvs[i]
-            testOHLCV (exchange, ohlcv, symbol, now)
+            testOHLCV (exchange, method, ohlcv, symbol, now)
         }
 
         console.log (symbol, 'fetched', Object.keys (ohlcvs).length, 'OHLCVs')
