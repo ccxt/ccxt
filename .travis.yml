@@ -58,7 +58,6 @@ script:
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
     if [ ${SECONDS_SINCE_LAST_DEPLOY} -lt ${SECONDS_BEFORE_NEXT_DEPLOY} ]; then
       echo "Not publishing to PyPI until ${NEXT_DEPLOY_DATETIME}";
-      # exit 0;
     fi
 - fi
 after_failure:
@@ -66,7 +65,6 @@ after_failure:
 before_deploy:
   if [ ${SECONDS_SINCE_LAST_DEPLOY} -lt ${SECONDS_BEFORE_NEXT_DEPLOY} ]; then
     echo "Not publishing to NPM until ${NEXT_DEPLOY_DATETIME}";
-    # exit 0;
   fi
 deploy:
 - provider: npm
