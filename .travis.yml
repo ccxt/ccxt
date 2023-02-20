@@ -51,13 +51,13 @@ script:
       echo "Writing ${NPM_VERSION} to ${DEPLOY_CACHE}";
       echo "${NPM_VERSION}" > ${DEPLOY_CACHE};
     fi
-    env DEPLOY_CACHE_MTIME=$(date -r ${DEPLOY_CACHE} "+%s")
-    env LAST_DEPLOYED_VERSION=$(<${DEPLOY_CACHE})
-    env CURRENT_TIME=$(date +%s)
-    env SECONDS_SINCE_LAST_DEPLOY=$((${CURRENT_TIME} - ${DEPLOY_CACHE_MTIME}))
-    env NEXT_DEPLOY_TIME=$((${DEPLOY_CACHE_MTIME} + ${SECONDS_BEFORE_NEXT_DEPLOY}))
-    env NEXT_DEPLOY_DATETIME=$(date -r ${NEXT_DEPLOY_TIME} '+%c')
-    echo "${DEPLOY_CACHE_MTIME} ${LAST_DEPLOYED_VERSION} as of $(date -r ${DEPLOY_CACHE} "+%F %T"), ${SECONDS_SINCE_LAST_DEPLOY} seconds ago"
+    env DEPLOY_CACHE_MTIME=$(date -r ${DEPLOY_CACHE} "+%s");
+    env LAST_DEPLOYED_VERSION=$(<${DEPLOY_CACHE});
+    env CURRENT_TIME=$(date +%s);
+    env SECONDS_SINCE_LAST_DEPLOY=$((${CURRENT_TIME} - ${DEPLOY_CACHE_MTIME}));
+    env NEXT_DEPLOY_TIME=$((${DEPLOY_CACHE_MTIME} + ${SECONDS_BEFORE_NEXT_DEPLOY}));
+    env NEXT_DEPLOY_DATETIME=$(date -r ${NEXT_DEPLOY_TIME} '+%c');
+    echo "${DEPLOY_CACHE_MTIME} ${LAST_DEPLOYED_VERSION} as of $(date -r ${DEPLOY_CACHE} "+%F %T"), ${SECONDS_SINCE_LAST_DEPLOY} seconds ago";
     if [ ${SECONDS_SINCE_LAST_DEPLOY} -gt ${SECONDS_BEFORE_NEXT_DEPLOY} ]; then
       cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
     else
