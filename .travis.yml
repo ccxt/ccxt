@@ -56,11 +56,10 @@ script:
     env NEXT_DEPLOY_DATETIME=$(date -r ${NEXT_DEPLOY_TIME} '+%c');
     echo "${DEPLOY_CACHE_MTIME} ${LAST_DEPLOYED_VERSION} as of $(date -r ${DEPLOY_CACHE} "+%F %T"), ${SECONDS_SINCE_LAST_DEPLOY} seconds ago";
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
-    # if [ ${SECONDS_SINCE_LAST_DEPLOY} -gt ${SECONDS_BEFORE_NEXT_DEPLOY} ]; then
-    # else
-    #   echo "Not publishing to PyPI until ${NEXT_DEPLOY_DATETIME}";
-    #   # exit 0;
-    # fi
+    if [ ${SECONDS_SINCE_LAST_DEPLOY} -lt ${SECONDS_BEFORE_NEXT_DEPLOY} ]; then
+      echo "Not publishing to PyPI until ${NEXT_DEPLOY_DATETIME}";
+      # exit 0;
+    fi
 - fi
 after_failure:
 - dmesg | grep -i kill
