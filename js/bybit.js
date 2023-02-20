@@ -5369,7 +5369,7 @@ module.exports = class bybit extends Exchange {
         const chains = this.safeValue (result, 'chains', []);
         const coin = this.safeString (result, 'coin');
         currency = this.currency (coin);
-        const parsed = this.parseDepositAddresses (chains, [ code ], false, {
+        const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
             'currency': currency['id'],
         });
         return this.indexBy (parsed, 'network');
