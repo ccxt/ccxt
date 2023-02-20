@@ -21,7 +21,7 @@ function testMarginModification (exchange, method, entry) {
     testCommonItems.Ge (exchange, method, entry, 'total', '0');
     testCommonItems.checkAgainstArray (exchange, method, entry, 'type', [ 'add', 'reduce', 'set' ]);
     testCommonItems.checkAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'canceled', 'failed' ]);
-    assert ((entry['symbol'] === undefined) || (typeof entry['symbol'] === 'string'), 'symbol is incorrect' + logText);
+    testCommonItems.testSymbol (exchange, method, entry, 'symbol');
 }
 
 module.exports = testMarginModification;

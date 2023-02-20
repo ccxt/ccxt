@@ -57,6 +57,7 @@ function testMarket (exchange, market, method) {
     };
     const emptyNotAllowedFor = [ 'id', 'symbol', 'base', 'quote', 'baseId', 'quoteId', 'precision', 'limits', 'type', 'spot', 'margin', 'swap', 'future', 'contract', 'info' ];
     testCommonItems.testStructureKeys (exchange, method, market, format, emptyNotAllowedFor);
+    testCommonItems.testSymbol (exchange, method, market, 'symbol');
     const logText = testCommonItems.logTemplate (exchange, method, market);
     //
     testCommonItems.Gt (exchange, method, market, 'contractSize', '0');
@@ -114,7 +115,6 @@ function testMarket (exchange, market, method) {
         testCommonItems.Ge (exchange, method, limitEntry, 'min', '0');
         testCommonItems.Ge (exchange, method, limitEntry, 'max', '0');
     }
-    assert ((market['symbol'] === undefined) || (typeof market['symbol'] === 'string'), 'symbol is incorrect' + logText);
 }
 
 module.exports = testMarket;

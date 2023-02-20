@@ -1,6 +1,5 @@
 'use strict'
 
-const assert = require ('assert');
 const testCommonItems = require ('./test.commonItems.js')
 
 function testOpenInterest (exchange, method, entry) {
@@ -14,12 +13,11 @@ function testOpenInterest (exchange, method, entry) {
     };
     const emptyNotAllowedFor = [ 'baseVolume', 'info' ];
     testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testCommonItems.testSymbol (exchange, method, entry, 'symbol');
     testCommonItems.testCommonTimestamp (exchange, method, entry);
-    const logText = testCommonItems.logTemplate (exchange, method, entry);
     //
     testCommonItems.Gt (exchange, method, entry, 'quoteVolume', '0');
     testCommonItems.Gt (exchange, method, entry, 'baseVolume', '0');
-    assert ((entry['symbol'] === undefined) || (typeof entry['symbol'] === 'string'), 'symbol is incorrect' + logText);
 }
 
 module.exports = testOpenInterest;

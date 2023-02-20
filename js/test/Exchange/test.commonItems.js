@@ -85,6 +85,17 @@ function testCyrrencyCode (exchange, method, entry, actualCode, expectedCode = u
     }
 }
 
+function testSymbol (exchange, method, entry, actualSymbol, expectedSymbol = undefined) {
+    const logText = logTemplate (exchange, method, entry);
+    if (actualSymbol !== undefined) {
+        assert (typeof actualSymbol === 'string', 'symbol should be either undefined or be a string' + logText);
+        assert (actualSymbol in exchange.symbols, 'symbol should be present in exchange.currencies' + logText);
+        if (expectedSymbol !== undefined) {
+            assert (actualSymbol === expectedSymbol, 'symbol in response (' + actualSymbol + ') should be equal to expected symbol (' + expectedSymbol + ')' + logText);
+        }
+    }
+}
+
 function Gt (exchange, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
