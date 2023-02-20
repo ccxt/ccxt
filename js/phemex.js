@@ -2285,7 +2285,11 @@ module.exports = class phemex extends Exchange {
             request['orderID'] = id;
         }
         if (price !== undefined) {
-            request['priceEp'] = this.toEp (price, market);
+            if (market['settle'] === 'USDT') {
+                request['priceRp'] = this.priceToPrecision (symbol, price);
+            } else {
+                request['priceEp'] = this.toEp (price, market);
+            }
         }
         // Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at this moment. However, to avoid mistakes from user side, let's support lowercased 'baseQtyEv' too
         const finalQty = this.safeString (params, 'baseQtyEv');
@@ -2297,7 +2301,11 @@ module.exports = class phemex extends Exchange {
         }
         const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
         if (stopPrice !== undefined) {
-            request['stopPxEp'] = this.toEp (stopPrice, market);
+            if (market['settle'] === 'USDT') {
+                request['stopPxRp'] = this.priceToPrecision (symbol, stopPrice);
+            } else {
+                request['stopPxEp'] = this.toEp (stopPrice, market);
+            }
         }
         params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
         let method = 'privatePutSpotOrders';
