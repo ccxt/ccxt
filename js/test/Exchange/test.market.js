@@ -55,7 +55,7 @@ function testMarket (exchange, market, method) {
         },
         'info': {}, // the original unparsed market info from the exchange
     };
-    const emptyNotAllowedFor = [ 'id', 'symbol', 'base', 'quote', 'baseId', 'quoteId', 'type', 'spot', 'swap', 'future', 'contract', 'precision', 'limits', 'info' ];
+    const emptyNotAllowedFor = [ 'id', 'symbol', 'base', 'quote', 'baseId', 'quoteId', 'precision', 'limits', 'type', 'spot', 'margin', 'swap', 'future', 'contract', 'info' ];
     testCommonItems.testStructureKeys (exchange, method, market, format, emptyNotAllowedFor);
     const logText = testCommonItems.logTemplate (exchange, method, market);
     //
@@ -65,7 +65,6 @@ function testMarket (exchange, market, method) {
     if (market['expiry'] !== undefined) {
         assert (market['expiryDatetime'] === exchange.iso8601 (market['expiry']), 'expiryDatetime must be equal to expiry in iso8601 format' + logText);
     }
-    testCommonItems.checkAgainstArray (exchange, method, market, 'type', [ 'spot', 'margin', 'swap', 'future', 'option' ]);
     testCommonItems.checkAgainstArray (exchange, method, market, 'optionType', [ 'put', 'call' ]);
     // todo: handle str/num types later
     // assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'));
@@ -79,13 +78,11 @@ function testMarket (exchange, market, method) {
         assert (market['strike'] !== undefined, '"strike" must be defined when "option" is true' + logText);
         assert (market['optionType'] !== undefined, '"optionType" must be defined when "option" is true' + logText);
     }
-    const types = Object.keys (validTypes);
+    const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option' ];
+    testCommonItems.checkAgainstArray (exchange, method, market, 'type', validTypes);
+    const types = validTypes;
     for (let i = 0; i < types.length; i++) {
-        const entry = types[i];
-        if (entry in market) {
-            const value = market[entry];
-            assert ((value === undefined) || value || !value);
-        }
+        testCommonItems.checkAgainstArray (exchange, method, market, types[i], [ true, false, undefined ]);
     }
     //
     // todo fix binance
