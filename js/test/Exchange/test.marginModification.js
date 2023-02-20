@@ -12,8 +12,8 @@ function testMarginModification (exchange, method, entry) {
         'symbol': 'ADA/USDT:USDT',
         'status': 'ok',
     };
-    const forceValues = [ 'type', 'status' ];
-    testCommonItems.testStructureKeys (exchange, method, entry, format, forceValues);
+    const emptyNotAllowedFor = [ 'type', 'status' ];
+    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     testCommonItems.testCyrrencyCode (exchange, method, entry, entry['code']);
     //
     testCommonItems.Ge (exchange, method, entry, 'amount', '0');

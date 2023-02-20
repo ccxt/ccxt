@@ -4,7 +4,7 @@ const assert = require ('assert');
 const testCommonItems = require ('./test.commonItems.js');
 
 function testMarket (exchange, market, method) {
-
+    const method = 'testMarket';
     const format = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
@@ -32,9 +32,10 @@ function testMarket (exchange, market, method) {
         'settle': undefined,
         'settleId': undefined,
         'precision': {
-            'price': 8, // integer or fraction
-            'amount': 8, // integer or fraction
-            'cost': 8, // integer or fraction
+            // todo : handle precision types after another PR is merged
+            'price': exchange.parseNumber ('8'), // integer or fraction
+            'amount': exchange.parseNumber ('8'), // integer or fraction
+            'cost': exchange.parseNumber ('8'), // integer or fraction
         },
         // value limits when placing orders on this market
         'limits': {
@@ -54,49 +55,30 @@ function testMarket (exchange, market, method) {
         },
         'info': {}, // the original unparsed market info from the exchange
     };
-    testCommonItems.testStructureKeys (exchange, method, market, format);
-
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (market) + ' >>> ';
-
-    const keys = [
-        'id',
-        'symbol',
-        'baseId',
-        'quoteId',
-        'base',
-        'quote',
-        'precision',
-        'limits',
-    ];
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        assert (market[key] !== undefined, key + 'is undefined' + logText);
+    const emptyNotAllowedFor = [ 'id', 'symbol', 'base', 'quote', 'baseId', 'quoteId', 'type', 'spot', 'swap', 'future', 'contract', 'precision', 'limits', 'info' ];
+    testCommonItems.testStructureKeys (exchange, method, market, format, emptyNotAllowedFor);
+    const logText = testCommonItems.logTemplate (exchange, method, market);
+    //
+    testCommonItems.Gt (exchange, method, market, 'contractSize', '0');
+    testCommonItems.Ge (exchange, method, market, 'expiry', '0');
+    testCommonItems.Ge (exchange, method, market, 'strike', '0');
+    if (market['expiry'] !== undefined) {
+        assert (market['expiryDatetime'] === exchange.iso8601 (market['expiry']), 'expiryDatetime must be equal to expiry in iso8601 format' + logText);
     }
-    assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'));
-    assert ((market['maker'] === undefined) || (typeof market['maker'] === 'number'));
+    testCommonItems.checkAgainstArray (exchange, method, market, 'type', [ 'spot', 'margin', 'swap', 'future', 'option' ]);
+    testCommonItems.checkAgainstArray (exchange, method, market, 'optionType', [ 'put', 'call' ]);
+    // todo: handle str/num types later
+    // assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'));
+    // assert ((market['maker'] === undefined) || (typeof market['maker'] === 'number'));
     if (market['contract']) {
-        assert (market['linear'] !== market['inverse']);
+        assert (market['linear'] !== market['inverse'], 'market linear and inverse must not be the same' + logText);
     } else {
-        assert ((market['linear'] === undefined) && (market['inverse'] === undefined));
+        assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is true' + logText);
     }
     if (market['option']) {
-        assert (market['strike'] !== undefined);
-        assert (market['optionType'] !== undefined);
+        assert (market['strike'] !== undefined, '"strike" must be defined when "option" is true' + logText);
+        assert (market['optionType'] !== undefined, '"optionType" must be defined when "option" is true' + logText);
     }
-    const validTypes = {
-        'spot': true,
-        'margin': true,
-        'swap': true,
-        'future': true,
-        'option': true,
-    };
-    const type = market['type'];
-    //
-    // binance has type = 'delivery'
-    // https://github.com/ccxt/ccxt/issues/11121
-    //
-    // assert (type in validTypes);
-    //
     const types = Object.keys (validTypes);
     for (let i = 0; i < types.length; i++) {
         const entry = types[i];

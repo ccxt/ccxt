@@ -11,7 +11,8 @@ function testLeverageTier (exchange, method, entry) {
         'maxLeverage': exchange.parseNumber ('25'),
         'info': {},
     };
-    testCommonItems.testStructureKeys (exchange, method, tier, format);
+    const emptyNotAllowedFor = [ 'maxLeverage', ' info' ];
+    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     //
     testCommonItems.Ge (exchange, method, entry, 'tier', '0');
     testCommonItems.Ge (exchange, method, entry, 'minNotional', '0');
