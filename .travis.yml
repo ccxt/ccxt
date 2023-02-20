@@ -43,9 +43,9 @@ script:
     # push all built files back to GitHub master
     env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
     # check if enough time has passed since last deploy/publish
-    env DEPLOY_CACHE=.cache/deploy
-    env SECONDS_BEFORE_NEXT_DEPLOY=43200 # 12 hours
-    # env SECONDS_BEFORE_DEPLOY=86400 # 24 hours
+    env DEPLOY_CACHE=.cache/deploy;
+    env SECONDS_BEFORE_NEXT_DEPLOY=43200; # 12 hours
+    # env SECONDS_BEFORE_DEPLOY=86400; # 24 hours
     if [ ! -f "${DEPLOY_CACHE}" ]; then
       echo "${DEPLOY_CACHE} does not exist";
       echo "Writing ${NPM_VERSION} to ${DEPLOY_CACHE}";
