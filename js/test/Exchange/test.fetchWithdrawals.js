@@ -23,7 +23,7 @@ module.exports = async (exchange, code) => {
 
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i]
-            testTransaction (exchange, transaction, code, now)
+            testTransaction (exchange, method, transaction, code, now)
         }
 
     } else {

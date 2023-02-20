@@ -23,7 +23,7 @@ function testLedgerItem (exchange, method, entry, requestedCode, now) {
     const emptyNotAllowedFor = [ 'id', 'currency', 'account', 'status', 'direction' ];
     testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     testCommonItems.testCommonTimestamp (exchange, method, entry, now);
-    testCommonItems.testCyrrencyCode (exchange, method, entry, entry['currency'], requestedCode);
+    testCommonItems.testCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
     //
     testCommonItems.checkAgainstArray (exchange, method, entry, 'direction', [ 'in', 'out' ]);
     // testCommonItems.checkAgainstArray (exchange, method, entry, 'type', ['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee',  ]);

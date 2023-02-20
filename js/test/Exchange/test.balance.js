@@ -18,7 +18,7 @@ function testBalance (exchange, entry, method) {
     const codes = Object.keys (entry['total']);
     for (let i = 0; i < codes.length; i++) {
         const code = codes[i];
-        testCommonItems.testCyrrencyCode (exchange, method, entry, code);
+        testCommonItems.testCurrencyCode (exchange, method, entry, code);
         const total = exchange.safeString (entry['total'], code);
         const free = exchange.safeString (entry['free'], code);
         const used = exchange.safeString (entry['used'], code);

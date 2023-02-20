@@ -70,7 +70,7 @@ function testCommonTimestamp (exchange, method, entry, nowToCheck = undefined, k
 }
 
 
-function testCyrrencyCode (exchange, method, entry, actualCode, expectedCode = undefined) {
+function testCurrencyCode (exchange, method, entry, actualCode, expectedCode = undefined) {
     const logText = logTemplate (exchange, method, entry);
     if (actualCode !== undefined) {
         assert (typeof code === 'string', 'currency code should be either undefined or be a string' + logText);
@@ -139,7 +139,7 @@ function checkFeeObject (exchange, method, feeEntry) {
         assert ('cost' in feeEntry, '"fee" should contain a "cost" key' + logText); 
         Ge (exchange, method, feeEntry, 'cost', '0');
         assert ('currency' in feeEntry, '"fee" should contain a "currency" key' + logText);
-        testCyrrencyCode (exchange, method, entry, feeEntry['currency']);
+        testCurrencyCode (exchange, method, entry, feeEntry['currency']);
     }
 }
 
@@ -147,7 +147,7 @@ module.exports = {
     testCommonTimestamp,
     testStructureKeys,
     testSymbol,
-    testCyrrencyCode,
+    testCurrencyCode,
     Gt,
     Ge,
     Lt,

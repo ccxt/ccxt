@@ -14,7 +14,7 @@ function testMarginModification (exchange, method, entry) {
     };
     const emptyNotAllowedFor = [ 'type', 'status' ];
     testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testCommonItems.testCyrrencyCode (exchange, method, entry, entry['code']);
+    testCommonItems.testCurrencyCode (exchange, method, entry, entry['code']);
     const logText = testCommonItems.logTemplate (exchange, method, market);
     //
     testCommonItems.Ge (exchange, method, entry, 'amount', '0');

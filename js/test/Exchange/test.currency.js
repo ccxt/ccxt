@@ -28,7 +28,7 @@ function testCurrency (exchange, entry, method) {
     };
     const emptyNotAllowedFor = [ 'id', 'code', 'precision' ];
     testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testCommonItems.testCyrrencyCode (exchange, method, entry, entry['code']);
+    testCommonItems.testCurrencyCode (exchange, method, entry, entry['code']);
     //
     testCommonItems.Gt (exchange, method, entry, 'precision', '0');
     testCommonItems.Ge (exchange, method, entry, 'fee', '0')

@@ -12,7 +12,7 @@ function testAccount (exchange, entry, method) {
     };
     const emptyNotAllowedFor = [ 'type' ];
     testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testCommonItems.testCyrrencyCode (exchange, method, entry, entry['code']);
+    testCommonItems.testCurrencyCode (exchange, method, entry, entry['code']);
 }
 
 module.exports = testAccount;

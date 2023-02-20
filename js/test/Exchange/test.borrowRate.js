@@ -15,7 +15,7 @@ function testBorrowRate (exchange, entry, method, requestedCode) {
     const emptyNotAllowedFor = [ 'currency', 'rate' ];
     testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     testCommonItems.testCommonTimestamp (exchange, method, entry);
-    testCommonItems.testCyrrencyCode (exchange, method, entry, entry['currency'], requestedCode);
+    testCommonItems.testCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
     //
     // assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) // Milliseconds in an hour or a day
     testCommonItems.Gt (exchange, method, entry, 'rate', '0');

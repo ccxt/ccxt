@@ -3,8 +3,7 @@
 const assert = require ('assert');
 const testCommonItems = require ('./test.commonItems.js');
 
-function testTransaction (exchange, transaction, code, now) {
-    const method = 'transaction';
+function testTransaction (exchange, method, entry, requestedCode, now) {
     const format = {
         'info': {}, // or []
         'id': '1234',
@@ -25,10 +24,10 @@ function testTransaction (exchange, transaction, code, now) {
         'updated': 1502962946233,
         'fee': {},
     };
-    testCommonItems.testStructureKeys (exchange, method, transaction, format);
-    testCommonItems.testId (exchange, method, transaction);
-    testCommonItems.testCommonTimestamp (exchange, method, transaction, now);
-    const logText = testCommonItems.logTemplate (exchange, method, transaction);
+    const emptyNotAllowedFor = [ 'type', 'amount', 'currency' ];
+    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testCommonItems.testCommonTimestamp (exchange, method, entry, now);
+    testCommonItems.testCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
     //
     const statuses = [
         'ok',
@@ -37,17 +36,10 @@ function testTransaction (exchange, transaction, code, now) {
         'rejected',
         'canceled',
     ];
-    assert (exchange.inArray (transaction['status'], statuses), 'status ' + transaction['status'] + ' not in expected list: ' + exchange.json (statuses) + logText);
-    assert (transaction['currency'] === code, 'currency ' + transaction['currency'] + ' not equal to expected ' + code + logText);
-    assert ((typeof transaction['type'] === 'string') && exchange.inArray (transaction['type'], ['deposit', 'withdrawal']), 'type ' + transaction['type'] + ' not in expected list: deposit, withdrawal' + logText);
-    assert (typeof transaction['amount'] === 'number', 'amount ' + transaction['amount'] + ' is not a number' + logText);
-    assert (transaction['amount'] >= 0, 'amount ' + transaction['amount'] + ' is negative' + logText);
-    if (transaction['fee']) {
-        assert (typeof transaction['fee']['cost'] === 'number', 'fee["cost"] ' + transaction['fee']['cost'] + ' is not a number' + logText);
-        if (transaction['fee']['cost'] !== 0) {
-            assert (typeof transaction['fee']['currency'] === 'string', 'fee["currency"] ' + transaction['fee']['currency'] + ' is not a string' + logText);
-        }
-    }
+    testCommonItems.checkAgainstArray (exchange, method, entry, 'status', statuses);
+    testCommonItems.checkAgainstArray (exchange, method, entry, 'type', ['deposit', 'withdrawal']);
+    testCommonItems.Ge (exchange, method, entry, 'amount', '0');
+    testCommonItems.checkFeeObject (exchange, method, entry['fee']);
 }
 
 module.exports = testTransaction;
