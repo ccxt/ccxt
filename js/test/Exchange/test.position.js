@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require ('assert');
-const testCommonItems = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.commonItems.js');
 
 function testPosition (exchange, position, symbol, now) {
     const method = 'position';
@@ -28,9 +28,9 @@ function testPosition (exchange, position, symbol, now) {
         'side': 'long',
         'percentage': exchange.parseNumber ('1.234'),
     };
-    testCommonItems.testStructureKeys (exchange, method, position, format);
-    testCommonItems.testId (exchange, method, position);
-    testCommonItems.testCommonTimestamp (exchange, method, position);
+    sharedMethods.reviseStructureKeys (exchange, method, position, format);
+    sharedMethods.testId (exchange, method, position);
+    sharedMethods.reviseCommonTimestamp (exchange, method, position);
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (position) + ' >>> ';
 

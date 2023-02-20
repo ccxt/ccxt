@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require ('assert');
-const testCommonItems = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.commonItems.js');
 
 function testBorrowRate (exchange, entry, method, requestedCode) {
     const format = {
@@ -13,12 +13,12 @@ function testBorrowRate (exchange, entry, method, requestedCode) {
         // 'period': 86400000, // Amount of time the interest rate is based on in milliseconds
     };
     const emptyNotAllowedFor = [ 'currency', 'rate' ];
-    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testCommonItems.testCommonTimestamp (exchange, method, entry);
-    testCommonItems.testCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
+    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    sharedMethods.reviseCommonTimestamp (exchange, method, entry);
+    sharedMethods.reviseCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
     //
     // assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) // Milliseconds in an hour or a day
-    testCommonItems.Gt (exchange, method, entry, 'rate', '0');
+    sharedMethods.Gt (exchange, method, entry, 'rate', '0');
 }
 
 module.exports = testBorrowRate;

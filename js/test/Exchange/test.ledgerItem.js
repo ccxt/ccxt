@@ -1,6 +1,6 @@
 'use strict'
 
-const testCommonItems = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.commonItems.js');
 
 function testLedgerItem (exchange, method, entry, requestedCode, now) {
     const format = {
@@ -21,17 +21,17 @@ function testLedgerItem (exchange, method, entry, requestedCode, now) {
         'type': 'deposit',
     };
     const emptyNotAllowedFor = [ 'id', 'currency', 'account', 'status', 'direction' ];
-    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testCommonItems.testCommonTimestamp (exchange, method, entry, now);
-    testCommonItems.testCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
+    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    sharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
+    sharedMethods.reviseCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
     //
-    testCommonItems.checkAgainstArray (exchange, method, entry, 'direction', [ 'in', 'out' ]);
-    // testCommonItems.checkAgainstArray (exchange, method, entry, 'type', ['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee',  ]);
-    // testCommonItems.checkAgainstArray (exchange, method, entry, 'account', ['spot', 'swap', .. ]);
-    testCommonItems.Ge (exchange, method, entry, 'amount', '0');
-    testCommonItems.Ge (exchange, method, entry, 'before', '0');
-    testCommonItems.Ge (exchange, method, entry, 'after', '0');
-    testCommonItems.checkFeeObject (exchange, method, entry['fee']);
+    sharedMethods.reviseAgainstArray (exchange, method, entry, 'direction', [ 'in', 'out' ]);
+    // sharedMethods.reviseAgainstArray (exchange, method, entry, 'type', ['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee',  ]);
+    // sharedMethods.reviseAgainstArray (exchange, method, entry, 'account', ['spot', 'swap', .. ]);
+    sharedMethods.Ge (exchange, method, entry, 'amount', '0');
+    sharedMethods.Ge (exchange, method, entry, 'before', '0');
+    sharedMethods.Ge (exchange, method, entry, 'after', '0');
+    sharedMethods.reviseFeeObject (exchange, method, entry['fee']);
 }
 
 module.exports = testLedgerItem;

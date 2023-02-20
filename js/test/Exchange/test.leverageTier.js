@@ -1,6 +1,6 @@
 'use strict';
 
-const testCommonItems = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.commonItems.js');
 
 function testLeverageTier (exchange, method, entry) {
     const format = {
@@ -12,13 +12,13 @@ function testLeverageTier (exchange, method, entry) {
         'info': {},
     };
     const emptyNotAllowedFor = [ 'maxLeverage', ' info' ];
-    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     //
-    testCommonItems.Ge (exchange, method, entry, 'tier', '0');
-    testCommonItems.Ge (exchange, method, entry, 'minNotional', '0');
-    testCommonItems.Ge (exchange, method, entry, 'maxNotional', '0');
-    testCommonItems.Ge (exchange, method, entry, 'maxLeverage', '1');
-    testCommonItems.Le (exchange, method, entry, 'maintenanceMarginRate', '1');
+    sharedMethods.Ge (exchange, method, entry, 'tier', '0');
+    sharedMethods.Ge (exchange, method, entry, 'minNotional', '0');
+    sharedMethods.Ge (exchange, method, entry, 'maxNotional', '0');
+    sharedMethods.Ge (exchange, method, entry, 'maxLeverage', '1');
+    sharedMethods.Le (exchange, method, entry, 'maintenanceMarginRate', '1');
 }
 
 module.exports = testLeverageTier;

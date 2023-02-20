@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require ('assert');
-const testCommonItems = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.commonItems.js');
 const Precise = require ('../../base/Precise');
 
 function testBalance (exchange, entry, method) {
@@ -12,13 +12,13 @@ function testBalance (exchange, entry, method) {
         'info': {},
     };
     const emptyNotAllowedFor = [ 'free', 'used', 'total' ];
-    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    const logText = testCommonItems.logTemplate (exchange, method, entry);
+    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    const logText = sharedMethods.logTemplate (exchange, method, entry);
     //
     const codes = Object.keys (entry['total']);
     for (let i = 0; i < codes.length; i++) {
         const code = codes[i];
-        testCommonItems.testCurrencyCode (exchange, method, entry, code);
+        sharedMethods.reviseCurrencyCode (exchange, method, entry, code);
         const total = exchange.safeString (entry['total'], code);
         const free = exchange.safeString (entry['free'], code);
         const used = exchange.safeString (entry['used'], code);

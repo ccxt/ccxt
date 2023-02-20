@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require ('assert');
-const testCommonItems = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.commonItems.js');
 
 function testOrderBook (exchange, orderbook, method, symbol) {
 
@@ -20,8 +20,8 @@ function testOrderBook (exchange, orderbook, method, symbol) {
         'nonce': 134234234,
         // 'info': {},
     };
-    testCommonItems.testStructureKeys (exchange, method, orderbook, format);
-    testCommonItems.testCommonTimestamp (exchange, method, orderbook);
+    sharedMethods.reviseStructureKeys (exchange, method, orderbook, format);
+    sharedMethods.reviseCommonTimestamp (exchange, method, orderbook);
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (orderbook) + ' >>> ';
 

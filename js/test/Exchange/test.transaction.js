@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require ('assert');
-const testCommonItems = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.commonItems.js');
 
 function testTransaction (exchange, method, entry, requestedCode, now) {
     const format = {
@@ -25,14 +25,14 @@ function testTransaction (exchange, method, entry, requestedCode, now) {
         'fee': {},
     };
     const emptyNotAllowedFor = [ 'type', 'amount', 'currency' ];
-    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testCommonItems.testCommonTimestamp (exchange, method, entry, now);
-    testCommonItems.testCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
+    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    sharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
+    sharedMethods.reviseCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
     //
-    testCommonItems.checkAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'failed', 'rejected', 'canceled' ]);
-    testCommonItems.checkAgainstArray (exchange, method, entry, 'type', ['deposit', 'withdrawal']);
-    testCommonItems.Ge (exchange, method, entry, 'amount', '0');
-    testCommonItems.checkFeeObject (exchange, method, entry['fee']);
+    sharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'failed', 'rejected', 'canceled' ]);
+    sharedMethods.reviseAgainstArray (exchange, method, entry, 'type', ['deposit', 'withdrawal']);
+    sharedMethods.Ge (exchange, method, entry, 'amount', '0');
+    sharedMethods.reviseFeeObject (exchange, method, entry['fee']);
 }
 
 module.exports = testTransaction;

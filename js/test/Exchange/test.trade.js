@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require ('assert');
-const testCommonItems = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.commonItems.js');
 
 function testTrade (exchange, method, entry, symbol, now) {
     const format = {
@@ -18,19 +18,19 @@ function testTrade (exchange, method, entry, symbol, now) {
         'cost': exchange.parseNumber ('0.10376526'), // total cost (including fees), `price * amount`
     };
     const emptyNotAllowedFor = [ 'side', 'takerOrMaker', 'price', 'amount', 'cost' ];
-    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testCommonItems.testCommonTimestamp (exchange, method, entry, now);
-    testCommonItems.testSymbol (exchange, method, entry, entry['symbol'], symbol);
-    const logText = testCommonItems.logTemplate (exchange, method, entry);
+    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    sharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
+    sharedMethods.reviseSymbol (exchange, method, entry, entry['symbol'], symbol);
+    const logText = sharedMethods.logTemplate (exchange, method, entry);
     //
-    testCommonItems.checkAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
-    testCommonItems.checkAgainstArray (exchange, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);
-    testCommonItems.checkFeeObject (exchange, method, entry['fee']);
+    sharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
+    sharedMethods.reviseAgainstArray (exchange, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);
+    sharedMethods.reviseFeeObject (exchange, method, entry['fee']);
     const fees = exchange.safeValue (entry, 'fees');
     if (fees) {
         assert (Array.isArray (fees), '"fees" is not an array' +  logText);
         for (let i = 0; i < fees.length; i++) {
-            testCommonItems.checkFeeObject (exchange, method, fees[i]);
+            sharedMethods.reviseFeeObject (exchange, method, fees[i]);
         }
     }
 }

@@ -7,7 +7,7 @@ function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
 }
 
-function testStructureKeys (exchange, method, entry, format, requiredValueKeys = []) {
+function reviseStructureKeys (exchange, method, entry, format, requiredValueKeys = []) {
     // define common log text
     const logText = logTemplate (exchange, method, entry);
     // ensure item is not null/undefined/unset
@@ -46,7 +46,7 @@ function testStructureKeys (exchange, method, entry, format, requiredValueKeys =
     }
 }
 
-function testCommonTimestamp (exchange, method, entry, nowToCheck = undefined, keyName = 'timestamp') {
+function reviseCommonTimestamp (exchange, method, entry, nowToCheck = undefined, keyName = 'timestamp') {
     // define common log text
     const logText = logTemplate (exchange, method, entry);
     // ensure timestamp exists in object
@@ -70,7 +70,7 @@ function testCommonTimestamp (exchange, method, entry, nowToCheck = undefined, k
 }
 
 
-function testCurrencyCode (exchange, method, entry, actualCode, expectedCode = undefined) {
+function reviseCurrencyCode (exchange, method, entry, actualCode, expectedCode = undefined) {
     const logText = logTemplate (exchange, method, entry);
     if (actualCode !== undefined) {
         assert (typeof code === 'string', 'currency code should be either undefined or be a string' + logText);
@@ -81,7 +81,7 @@ function testCurrencyCode (exchange, method, entry, actualCode, expectedCode = u
     }
 }
 
-function testSymbol (exchange, method, entry, actualSymbol, expectedSymbol = undefined) {
+function reviseSymbol (exchange, method, entry, actualSymbol, expectedSymbol = undefined) {
     const logText = logTemplate (exchange, method, entry);
     if (actualSymbol !== undefined) {
         assert (typeof actualSymbol === 'string', 'symbol should be either undefined or be a string' + logText);
@@ -124,7 +124,7 @@ function Le (exchange, method, entry, key, compareTo) {
     }
 }
 
-function checkAgainstArray (exchange, method, entry, key, expectedArray) {
+function reviseAgainstArray (exchange, method, entry, key, expectedArray) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
@@ -133,25 +133,25 @@ function checkAgainstArray (exchange, method, entry, key, expectedArray) {
 }
 
 
-function checkFeeObject (exchange, method, feeEntry) {
+function reviseFeeObject (exchange, method, feeEntry) {
     const logText = logTemplate (exchange, method, entry);
     if (feeEntry !== undefined) {
         assert ('cost' in feeEntry, '"fee" should contain a "cost" key' + logText); 
         Ge (exchange, method, feeEntry, 'cost', '0');
         assert ('currency' in feeEntry, '"fee" should contain a "currency" key' + logText);
-        testCurrencyCode (exchange, method, entry, feeEntry['currency']);
+        reviseCurrencyCode (exchange, method, entry, feeEntry['currency']);
     }
 }
 
 module.exports = {
-    testCommonTimestamp,
-    testStructureKeys,
-    testSymbol,
-    testCurrencyCode,
+    reviseCommonTimestamp,
+    reviseStructureKeys,
+    reviseSymbol,
+    reviseCurrencyCode,
     Gt,
     Ge,
     Lt,
     Le,
-    checkAgainstArray,
-    checkFeeObject,
+    reviseAgainstArray,
+    reviseFeeObject,
 };

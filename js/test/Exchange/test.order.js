@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require ('assert');
-const testCommonItems = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.commonItems.js');
 
 function testOrder (exchange, order, symbol, now) {
     const method = 'order';
@@ -28,9 +28,9 @@ function testOrder (exchange, order, symbol, now) {
         'fee': {},
         'trades': [],
     };
-    testCommonItems.testStructureKeys (exchange, method, order, format);
-    testCommonItems.testId (exchange, method, order);
-    testCommonItems.testCommonTimestamp (exchange, method, order);
+    sharedMethods.reviseStructureKeys (exchange, method, order, format);
+    sharedMethods.testId (exchange, method, order);
+    sharedMethods.reviseCommonTimestamp (exchange, method, order);
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (order) + ' >>> ';
 

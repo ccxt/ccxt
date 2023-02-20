@@ -1,6 +1,6 @@
 'use strict'
 
-const testCommonItems = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.commonItems.js');
 
 function testCurrency (exchange, entry, method) {
     const format = {
@@ -27,18 +27,18 @@ function testCurrency (exchange, entry, method) {
         //----------------------------------------------------------------------
     };
     const emptyNotAllowedFor = [ 'id', 'code', 'precision' ];
-    testCommonItems.testStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testCommonItems.testCurrencyCode (exchange, method, entry, entry['code']);
+    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    sharedMethods.reviseCurrencyCode (exchange, method, entry, entry['code']);
     //
-    testCommonItems.Gt (exchange, method, entry, 'precision', '0');
-    testCommonItems.Ge (exchange, method, entry, 'fee', '0')
+    sharedMethods.Gt (exchange, method, entry, 'precision', '0');
+    sharedMethods.Ge (exchange, method, entry, 'fee', '0')
     const limits = exchange.safeValue (entry, 'limits', {});
     const withdrawLimits = exchange.safeValue (limits, 'withdraw', {});
     const depositLimits = exchange.safeValue (limits, 'deposit', {});
-    testCommonItems.Ge (exchange, method, withdrawLimits, 'min', '0');
-    testCommonItems.Ge (exchange, method, withdrawLimits, 'max', '0');
-    testCommonItems.Ge (exchange, method, depositLimits, 'min', '0');
-    testCommonItems.Ge (exchange, method, depositLimits, 'max', '0');
+    sharedMethods.Ge (exchange, method, withdrawLimits, 'min', '0');
+    sharedMethods.Ge (exchange, method, withdrawLimits, 'max', '0');
+    sharedMethods.Ge (exchange, method, depositLimits, 'min', '0');
+    sharedMethods.Ge (exchange, method, depositLimits, 'max', '0');
 }
 
 module.exports = testCurrency;

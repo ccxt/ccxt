@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require ('assert');
-const testCommonItems = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.commonItems.js');
 const Precise = require ('../../base/Precise');
 
 function testTicker (exchange, ticker, method, symbol) {
@@ -28,8 +28,8 @@ function testTicker (exchange, ticker, method, symbol) {
         'baseVolume': exchange.parseNumber ('1.234'), // volume of base currency
         'quoteVolume': exchange.parseNumber ('1.234'), // volume of quote currency
     };
-    testCommonItems.testStructureKeys (exchange, method, ticker, format);
-    testCommonItems.testCommonTimestamp (exchange, method, ticker);
+    sharedMethods.reviseStructureKeys (exchange, method, ticker, format);
+    sharedMethods.reviseCommonTimestamp (exchange, method, ticker);
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (ticker) + ' >>> ';
 
