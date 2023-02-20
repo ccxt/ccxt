@@ -5516,7 +5516,7 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['startTime'] = this.yyyymmdd (since);
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
