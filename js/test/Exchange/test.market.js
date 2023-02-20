@@ -60,8 +60,8 @@ function testMarket (exchange, market, method) {
     const logText = testCommonItems.logTemplate (exchange, method, market);
     //
     testCommonItems.Gt (exchange, method, market, 'contractSize', '0');
-    testCommonItems.Ge (exchange, method, market, 'expiry', '0');
-    testCommonItems.Ge (exchange, method, market, 'strike', '0');
+    testCommonItems.Gt (exchange, method, market, 'expiry', '0');
+    testCommonItems.Gt (exchange, method, market, 'strike', '0');
     testCommonItems.checkAgainstArray (exchange, method, market, 'optionType', [ 'put', 'call' ]);
     // todo: handle str/num types later
     // assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'));
@@ -114,6 +114,7 @@ function testMarket (exchange, market, method) {
         testCommonItems.Ge (exchange, method, limitEntry, 'min', '0');
         testCommonItems.Ge (exchange, method, limitEntry, 'max', '0');
     }
+    assert ((market['symbol'] === undefined) || (typeof market['symbol'] === 'string'), 'symbol is incorrect' + logText);
 }
 
 module.exports = testMarket;
