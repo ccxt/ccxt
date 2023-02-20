@@ -69,10 +69,6 @@ function testCommonTimestamp (exchange, method, entry, nowToCheck = undefined, k
     }
 }
 
-function testSymbol (exchange, method, entry, expectedSymbol) {
-    const logText = logTemplate (exchange, method, entry);
-    assert (expectedSymbol === entry['symbol'], 'symbol is not equal to requested symbol; returned: ' + entry['symbol'] + ' requested: ' + expectedSymbol + logText);
-}
 
 function testCyrrencyCode (exchange, method, entry, actualCode, expectedCode = undefined) {
     const logText = logTemplate (exchange, method, entry);
