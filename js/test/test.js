@@ -183,12 +183,8 @@ module.exports = class testMainClass extends emptyClass {
         try {
             return await call_method (methodName, exchange, args);
         } catch (e) {
-            if (e instanceof ccxt.NotSupported) {
-                dump ('Not supported', exchange.id, methodName, '(', args, ')');
-            } else {
-                dump (exception_message(e));
-                throw e;
-            }
+            dump (exception_message(e), ' | ', exchange.id, methodName, '(', args, ')');
+            throw e;
         }
     }
 

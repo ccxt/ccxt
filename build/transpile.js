@@ -1804,6 +1804,7 @@ class Transpiler {
     // ============================================================================
 
     transpileExchangeTests () {
+
         const tests = [
             {
                 'jsFile': './js/test/Exchange/test.market.js',
@@ -1887,6 +1888,8 @@ class Transpiler {
         let newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
         overwriteFile (test.pyFile, newPython);
     }
+
+    // ============================================================================
 
     transpileExchangeTestsAuto () {
         const baseFolders = {

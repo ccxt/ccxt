@@ -32,7 +32,7 @@ function testOrderBook (exchange, entry, method, symbol) {
         const currentBidString = exchange.safeString (bids[i], 0);
         if (bidsLength > (i + 1)) {
             const nextBidString = exchange.safeString (bids[i + 1], 0);
-            assert (Precise.Gt (currentBidString, nextBidString), 'current bid should be > than the next one' + logText);
+            assert (Precise.stringGt (currentBidString, nextBidString), 'current bid should be > than the next one' + logText);
         }
         sharedMethods.Gt (exchange, method, bids[i], '0', '0');
         sharedMethods.Gt (exchange, method, bids[i], '1', '0');

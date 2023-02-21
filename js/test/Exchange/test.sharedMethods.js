@@ -154,6 +154,7 @@ function reviseFeesObject (exchange, method, entry) {
 }
 
 module.exports = {
+    logTemplate,
     reviseCommonTimestamp,
     reviseStructureKeys,
     reviseSymbol,
