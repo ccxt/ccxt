@@ -5671,76 +5671,71 @@ module.exports = class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyContractTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
         const request = {
-            'symbol': market['id'],
-            // 'order_id': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
-            // 'start_time': parseInt (since / 1000),
-            // 'page': 1,
-            // 'limit' 20, // max 50
+            // 'symbol': market['id'],
+            // 'category': '', // Product type. spot,linear,option
+            // 'orderId': '', // Order ID
+            // 'orderLinkId': '', // User customised order ID
+            // 'baseCoin': '', // Base coin
+            // 'startTime': 0, // The start timestamp (ms)
+            // 'endTime': 0, // The end timestamp (ms)
+            // 'execType': '', // Execution type
+            // 'limit': 0, // Limit for data size per page. [1, 100]. Default: 50
+            // 'cursor': '', // Cursor. Used for pagination
         };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
+        request['category'] = subType;
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 20, max 50
+            request['limit'] = limit; // default 50, max 100
         }
-        const response = await this.privateGetContractV3PrivateExecutionList (this.extend (request, params));
-        //
-        // contract v3
+        const response = await this.privateGetV5ExecutionList (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "OK",
         //         "result": {
+        //             "nextPageCursor": "132766%3A2%2C132766%3A2",
+        //             "category": "linear",
         //             "list": [
         //                 {
-        //                     "symbol": "BITUSDT",
-        //                     "execFee": "0.001356",
-        //                     "execId": "499e1a2a-c664-55db-bbf0-78ad31b7b033",
-        //                     "execPrice": "0.452",
-        //                     "execQty": "5.0",
-        //                     "execType": "Trade",
-        //                     "execValue": "2.26",
-        //                     "feeRate": "0.0006",
-        //                     "lastLiquidityInd": "RemovedLiquidity",
-        //                     "leavesQty": "0.0",
-        //                     "orderId": "1d40db82-b1f6-4340-9190-650eeddd440b",
-        //                     "orderLinkId": "",
-        //                     "orderPrice": "0.430",
-        //                     "orderQty": "5.0",
+        //                     "symbol": "ETHPERP",
         //                     "orderType": "Market",
-        //                     "stopOrderType": "UNKNOWN",
-        //                     "side": "Sell",
-        //                     "execTime": "1657269236943",
-        //                     "closedSize": "5.0"
-        //                 },
-        //                 {
-        //                     "symbol": "BITUSDT",
-        //                     "execFee": "0.004068",
-        //                     "execId": "ed090e6a-afc0-5cb5-b51d-039592a44ec5",
-        //                     "execPrice": "0.452",
-        //                     "execQty": "15.0",
-        //                     "execType": "Trade",
-        //                     "execValue": "6.78",
-        //                     "feeRate": "0.0006",
-        //                     "lastLiquidityInd": "RemovedLiquidity",
-        //                     "leavesQty": "0.0",
-        //                     "orderId": "d34d40a1-2475-4552-9e54-347a27282ec0",
+        //                     "underlyingPrice": "",
         //                     "orderLinkId": "",
-        //                     "orderPrice": "0.429",
-        //                     "orderQty": "15.0",
-        //                     "orderType": "Market",
+        //                     "side": "Buy",
+        //                     "indexPrice": "",
+        //                     "orderId": "8c065341-7b52-4ca9-ac2c-37e31ac55c94",
         //                     "stopOrderType": "UNKNOWN",
-        //                     "side": "Sell",
-        //                     "execTime": "1657268340170",
-        //                     "closedSize": "15.0"
+        //                     "leavesQty": "0",
+        //                     "execTime": "1672282722429",
+        //                     "isMaker": false,
+        //                     "execFee": "0.071409",
+        //                     "feeRate": "0.0006",
+        //                     "execId": "e0cbe81d-0f18-5866-9415-cf319b5dab3b",
+        //                     "tradeIv": "",
+        //                     "blockTradeId": "",
+        //                     "markPrice": "1183.54",
+        //                     "execPrice": "1190.15",
+        //                     "markIv": "",
+        //                     "orderQty": "0.1",
+        //                     "orderPrice": "1236.9",
+        //                     "execValue": "119.015",
+        //                     "execType": "Trade",
+        //                     "execQty": "0.1"
         //                 }
-        //             ],
-        //             "nextPageCursor": ""
+        //             ]
         //         },
-        //         "retExtInfo": null,
-        //         "time": 1658911518442
+        //         "retExtInfo": {},
+        //         "time": 1672283754510
         //     }
         //
         const result = this.safeValue (response, 'result', {});
