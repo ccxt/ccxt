@@ -1,10 +1,9 @@
 'use strict';
 
-const assert = require ('assert');
 const sharedMethods = require ('./test.commonItems.js');
+const testTrade = require ('./test.trade.js');
 
-function testOrder (exchange, order, symbol, now) {
-    const method = 'order';
+function testOrder (exchange, method, entry, symbol, now) {
     const format = {
         'info': {},
         'id': '123',
@@ -13,7 +12,7 @@ function testOrder (exchange, order, symbol, now) {
         'datetime': '2022-04-07T23:20:00.000Z',
         'lastTradeTimestamp': 1649373610000,
         'symbol': 'XYZ/USDT',
-        'type': 'xyz',
+        'type': 'limit',
         'timeInForce': 'GTC',
         'postOnly': true,
         'side': 'sell',
@@ -28,57 +27,33 @@ function testOrder (exchange, order, symbol, now) {
         'fee': {},
         'trades': [],
     };
-    sharedMethods.reviseStructureKeys (exchange, method, order, format);
-    sharedMethods.testId (exchange, method, order);
-    sharedMethods.reviseCommonTimestamp (exchange, method, order);
-
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (order) + ' >>> ';
-
-    assert (order['timestamp'] < now, 'timestamp must be less than current time' + logText);
-
-    assert (('clientOrderId' in order));
-    assert ((order['clientOrderId'] === undefined) || (typeof order['clientOrderId'] === 'string'));
-    assert (('status' in order));
-    assert ((order['status'] === 'open') || (order['status'] === 'closed') || (order['status'] === 'canceled'));
-    assert ('symbol' in order);
-    assert (order['symbol'] === symbol);
-    assert (('type' in order));
-    assert ((order['type'] === undefined) || (typeof order['type'] === 'string'));
-    assert (('timeInForce' in order));
-    assert ((order['timeInForce'] === undefined) || (typeof order['timeInForce'] === 'string'));
-    assert (('side' in order));
-    assert ((order['side'] === 'buy') || (order['side'] === 'sell'));
-    assert (('price' in order));
-    assert ((order['price'] === undefined) || (typeof order['price'] === 'number'));
-    if (order['price'] !== undefined) {
-        assert (order['price'] > 0);
-    }
-    assert (('amount' in order));
-    assert (typeof order['amount'] === 'number');
-    assert (order['amount'] >= 0);
-    assert (('filled' in order));
-    if (order['filled'] !== undefined) {
-        assert (typeof order['filled'] === 'number');
-        assert ((order['filled'] >= 0) && (order['filled'] <= order['amount']));
-    }
-    assert (('remaining' in order));
-    if (order['remaining'] !== undefined) {
-        assert (typeof order['remaining'] === 'number');
-        assert ((order['remaining'] >= 0) && (order['remaining'] <= order['amount']));
-    }
-    assert (('trades' in order));
-    if (order['trades']) {
-        assert (Array.isArray (order['trades']));
-    }
-    assert (('fee' in order));
-    const fee = order['fee'];
-    if (fee) {
-        assert (typeof fee['cost'] === 'number');
-        if (fee['cost'] !== 0) {
-            assert (typeof fee['currency'] === 'string');
+    const emptyNotAllowedFor = [ 'id' ];
+    // todo: skip some exchanges
+    // const emptyNotAllowedFor = [ 'id', 'timestamp', 'symbol', 'type', 'side', 'price' ];
+    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    sharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
+    //
+    sharedMethods.reviseAgainstArray (exchange, method, entry, 'timeInForce', [ 'GTC', 'GTK', 'IOC', 'FOK' ]);
+    sharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'open', 'closed', 'canceled' ]);
+    sharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
+    sharedMethods.reviseAgainstArray (exchange, method, entry, 'postOnly', [ true, false ]);
+    sharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
+    sharedMethods.Gt (exchange, method, entry, 'price', '0');
+    sharedMethods.Gt (exchange, method, entry, 'stopPrice', '0');
+    sharedMethods.Gt (exchange, method, entry, 'cost', '0');
+    sharedMethods.Gt (exchange, method, entry, 'average', '0');
+    sharedMethods.Gt (exchange, method, entry, 'average', '0');
+    sharedMethods.Ge (exchange, method, entry, 'filled', '0');
+    sharedMethods.Ge (exchange, method, entry, 'remaining', '0');
+    sharedMethods.Ge (exchange, method, entry, 'amount', '0');
+    sharedMethods.Ge (exchange, method, entry, 'amount', exchange.safeString (entry, 'remaining'));
+    sharedMethods.Ge (exchange, method, entry, 'amount', exchange.safeString (entry, 'filled'));
+    if (entry['trades'] !== undefined) {
+        for (let i = 0; i < entry['trades'].length; i++) {
+            testTrade (exchange, method, entry['trades'][i], symbol, now);
         }
     }
-    assert (('lastTradeTimestamp' in order));
+    sharedMethods.reviseFeeObject (exchange, method, entry['fee']);
 }
 
 module.exports = testOrder;

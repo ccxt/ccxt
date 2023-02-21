@@ -21,9 +21,10 @@ function testOrderBook (exchange, entry, method, symbol) {
         'nonce': 134234234,
         // 'info': {},
     };
-    sharedMethods.reviseStructureKeys (exchange, method, entry, format);
+    const emptyNotAllowedFor = [ 'bids', 'asks' ];
+    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     sharedMethods.reviseCommonTimestamp (exchange, method, entry);
-    const logText = sharedMethods.logTemplate (exchange, method, market);
+    const logText = sharedMethods.logTemplate (exchange, method, entry);
     //
     const bids = entry['bids'];
     const bidsLength = bids.length;
@@ -47,17 +48,8 @@ function testOrderBook (exchange, entry, method, symbol) {
         sharedMethods.Gt (exchange, method, asks[i], '0', '0');
         sharedMethods.Gt (exchange, method, asks[i], '1', '0');
     }
-    const skippedExchanges = [
-        'bitrue',
-        'bkex',
-        'blockchaincom',
-        'btcalpha',
-        'btcbox',
-        'ftxus',
-        'mexc',
-        'xbtce',
-        'upbit', // an entry might have a 0-price ask occasionally
-    ];
+    // others
+    const skippedExchanges = [];
     if (exchange.inArray (exchange.id, skippedExchanges)) {
         return;
     }

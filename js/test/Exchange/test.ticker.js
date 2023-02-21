@@ -52,28 +52,7 @@ function testTicker (exchange, method, entry, symbol) {
     // if (quoteVolume && vwap) {
     //     assert (baseVolume)
     // }
-    const skippedExchanges = [
-        'bigone',
-        'bitmart',
-        'bitrue',
-        'btcbox',
-        'btcturk',
-        'bybit',
-        'coss',
-        'cryptocom',
-        'ftx',
-        'ftxus',
-        'gateio', // some entry bids are greaters than asks
-        'idex',
-        'mercado',
-        'mexc',
-        'okex',
-        'poloniex',
-        'qtrade',
-        'southxchange', // https://user-images.githubusercontent.com/1294454/59953532-314bea80-9489-11e9-85b3-2a711ca49aa7.png
-        'timex',
-        'xbtce',
-    ];
+    const skippedExchanges = [];
     if (exchange.inArray (exchange.id, skippedExchanges)) { 
         return;
     }

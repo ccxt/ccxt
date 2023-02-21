@@ -15,7 +15,7 @@ function testMarginModification (exchange, method, entry) {
     const emptyNotAllowedFor = [ 'type', 'status' ];
     sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     sharedMethods.reviseCurrencyCode (exchange, method, entry, entry['code']);
-    const logText = sharedMethods.logTemplate (exchange, method, market);
+    const logText = sharedMethods.logTemplate (exchange, method, entry);
     //
     sharedMethods.Ge (exchange, method, entry, 'amount', '0');
     sharedMethods.Ge (exchange, method, entry, 'total', '0');

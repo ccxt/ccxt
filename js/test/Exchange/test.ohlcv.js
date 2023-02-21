@@ -12,7 +12,7 @@ function testOHLCV (exchange, method, entry, symbol, now) {
         exchange.parseNumber ('0.122'),
         exchange.parseNumber ('123.456'),
     ];
-    const logText = sharedMethods.logTemplate (exchange, method, market);
+    const logText = sharedMethods.logTemplate (exchange, method, entry);
     assert (Array.isArray (ohlcv), 'ohlcv is not array;' + logText);
     const emptyNotAllowedFor = [ 0, 1, 2, 3, 4, 5 ];
     sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
@@ -21,9 +21,7 @@ function testOHLCV (exchange, method, entry, symbol, now) {
     const length = ohlcv.length;
     assert (length >= 6, 'ohlcv array length should be >= 6;' + logText);
     const skippedExchanges = [
-        'bitmex', // BitMEX API docs: also note the open price is equal to the close price of the previous timeframe bucket.
-        'delta',
-        'cryptocom',
+        // 'bitmex', // BitMEX API docs: also note the open price is equal to the close price of the previous timeframe bucket.
     ];
     if (!exchange.inArray (exchange.id, skippedExchanges)) {
         assert ((ohlcv[1] === undefined) || (ohlcv[2] === undefined) || (ohlcv[1] <= ohlcv[2]), 'open > high, ' + exchange.safeString (ohlcv, 1, 'undefined') + ' > ' + exchange.safeString (ohlcv, 2, 'undefined')); // open <= high

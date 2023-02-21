@@ -1,6 +1,5 @@
 'use strict';
 
-const assert = require ('assert');
 const sharedMethods = require ('./test.commonItems.js');
 
 function testTrade (exchange, method, entry, symbol, now) {

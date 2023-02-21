@@ -23,7 +23,7 @@ module.exports = async (exchange, symbol) => {
 
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i]
-            testOrder (exchange, order, symbol, now)
+            testOrder (exchange, method, order, symbol, now)
             assert (order.status === 'closed' || order.status === 'canceled')
         }
 
