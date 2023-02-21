@@ -17,7 +17,11 @@ before_install:
 - npm install
 - git checkout package.json package-lock.json
 - git config pull.rebase false
-- git fetch --depth=1 --tags --verbose --progress
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+    git fetch --depth=1 --tags --verbose --progress;
+  else
+    git fetch --depth=50 --tags --verbose --progress; # we need some history to create changelog
+  fi
 - pip install requests pyopenssl
 - pip install --ignore-installed six
 - pip install tox twine
