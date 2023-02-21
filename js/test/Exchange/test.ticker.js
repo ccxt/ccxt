@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require ('assert');
-const sharedMethods = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.sharedMethods.js');
 const Precise = require ('../../base/Precise');
 
 function testTicker (exchange, method, entry, symbol) {

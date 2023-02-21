@@ -1,10 +1,9 @@
 'use strict'
 
 const assert = require ('assert');
-const sharedMethods = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.sharedMethods.js');
 
 function testMarket (exchange, market, method) {
-    const method = 'testMarket';
     const format = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies

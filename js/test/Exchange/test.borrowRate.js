@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require ('assert');
-const sharedMethods = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.sharedMethods.js');
 
 function testBorrowRate (exchange, entry, method, requestedCode) {
     const format = {

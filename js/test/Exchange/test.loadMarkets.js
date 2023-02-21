@@ -23,7 +23,7 @@ module.exports = async (exchange) => {
     const values = Object.values (markets)
     for (let i = 0; i < values.length; i++) {
         const market = values[i]
-        testMarket (exchange, market, method)
+        testMarket (exchange, method, market)
     }
     return markets
 }

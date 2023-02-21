@@ -1,6 +1,6 @@
 'use strict';
 
-const sharedMethods = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.sharedMethods.js');
 const testTrade = require ('./test.trade.js');
 
 function testOrder (exchange, method, entry, symbol, now) {

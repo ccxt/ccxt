@@ -1902,9 +1902,9 @@ class Transpiler {
         let js = fs.readFileSync (test.jsFile).toString ()
 
         const containsPrecise = js.match (/[\s(]Precise/);
-        const containsCommonItems = js.match (/[\s(]testCommonItems/);
+        const containsCommonItems = js.match (/[\s(]sharedMethods/);
         const commonTestMethodsUnCamelCase = function (content, isWholeMatch ) {
-            return content.replace (/testCommonItems\.(\w+)/g,  function (wholeMatch, exactMatch) {
+            return content.replace (/sharedMethods\.(\w+)/g,  function (wholeMatch, exactMatch) {
                 return (isWholeMatch ? unCamelCase (wholeMatch) : unCamelCase (exactMatch) );
             });
         };

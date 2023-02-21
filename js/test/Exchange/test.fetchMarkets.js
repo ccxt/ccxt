@@ -23,7 +23,7 @@ module.exports = async (exchange) => {
 
         // log ('fetching markets...')
         const markets = await exchange[method] ()
-        Object.values (markets).forEach ((market) => testMarket (exchange, market, method))
+        Object.values (markets).forEach ((market) => testMarket (exchange, method, market))
         return markets
 
     } else {

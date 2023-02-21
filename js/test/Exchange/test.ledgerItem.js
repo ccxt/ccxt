@@ -1,6 +1,6 @@
 'use strict'
 
-const sharedMethods = require ('./test.commonItems.js');
+const sharedMethods = require ('./test.sharedMethods.js');
 
 function testLedgerItem (exchange, method, entry, requestedCode, now) {
     const format = {
