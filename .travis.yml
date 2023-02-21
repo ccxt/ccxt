@@ -48,7 +48,6 @@ script:
       echo "Writing ${NPM_VERSION} to ${DEPLOY_CACHE}";
     fi
     export CURRENT_TIME=$(date +%s);
-    export LAST_DEPLOYED_VERSION=$(<${DEPLOY_CACHE});
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
   fi
 after_failure:
