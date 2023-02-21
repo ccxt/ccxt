@@ -517,9 +517,9 @@ class bit2c(Exchange):
             isNewOrder = True
         else:
             orderUnified = order
-        id = self.safe_string(order, 'id')
+        id = self.safe_string(orderUnified, 'id')
         symbol = self.safe_symbol(None, market)
-        timestamp = self.safe_integer_product(order, 'created', 1000)
+        timestamp = self.safe_integer_product(orderUnified, 'created', 1000)
         # status field vary between responses
         # bit2c status type:
         # 0 = New
@@ -533,7 +533,7 @@ class bit2c(Exchange):
             elif tempStatus == 5:
                 status = 'closed'
         else:
-            tempStatus = self.safe_string(order, 'status')
+            tempStatus = self.safe_string(orderUnified, 'status')
             if tempStatus == 'New' or tempStatus == 'Open':
                 status = 'open'
             elif tempStatus == 'Completed':
@@ -552,15 +552,15 @@ class bit2c(Exchange):
             side = 'buy'
         elif side == 1:
             side = 'sell'
-        price = self.safe_string(order, 'price')
+        price = self.safe_string(orderUnified, 'price')
         amount = None
         remaining = None
         if isNewOrder:
             amount = self.safe_string(orderUnified, 'amount')  # NOTE:'initialAmount' is currently not set on new order
             remaining = self.safe_string(orderUnified, 'amount')
         else:
-            amount = self.safe_string(order, 'initialAmount')
-            remaining = self.safe_string(order, 'amount')
+            amount = self.safe_string(orderUnified, 'initialAmount')
+            remaining = self.safe_string(orderUnified, 'amount')
         return self.safe_order({
             'id': id,
             'clientOrderId': None,

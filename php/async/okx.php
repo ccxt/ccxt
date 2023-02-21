@@ -627,6 +627,8 @@ class okx extends Exchange {
                     '58117' => '\\ccxt\\ExchangeError', // Account assets are abnormal, please deal with negative assets before transferring
                     '58125' => '\\ccxt\\BadRequest', // Non-tradable assets can only be transferred from sub-accounts to main accounts
                     '58126' => '\\ccxt\\BadRequest', // Non-tradable assets can only be transferred between funding accounts
+                    '58127' => '\\ccxt\\BadRequest', // Main account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
+                    '58128' => '\\ccxt\\BadRequest', // Sub-account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
                     '58200' => '\\ccxt\\ExchangeError', // Withdrawal from {0} to {1} is unavailable for this currency
                     '58201' => '\\ccxt\\ExchangeError', // Withdrawal amount exceeds the daily limit
                     '58202' => '\\ccxt\\ExchangeError', // The minimum withdrawal amount for NEO is 1, and the amount must be an integer
@@ -1552,7 +1554,7 @@ class okx extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the okx api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1722,7 +1724,7 @@ class okx extends Exchange {
                 $limit = 100; // default 100, max 100
             }
             $duration = $this->parse_timeframe($timeframe);
-            $bar = $this->timeframes[$timeframe];
+            $bar = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             if (($timezone === 'UTC') && ($duration >= 21600)) { // if utc and $timeframe >= 6h
                 $bar .= strtolower($timezone);
             }
@@ -4176,7 +4178,7 @@ class okx extends Exchange {
             if ($type !== null) {
                 $request['instType'] = $this->convert_to_instrument_type($type);
             }
-            $response = Async\await($this->privateGetAccountPositions ($query));
+            $response = Async\await($this->privateGetAccountPositions (array_merge($request, $query)));
             //
             //     {
             //         "code" => "0",
@@ -4388,7 +4390,7 @@ class okx extends Exchange {
                 }
             }
         }
-        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSize = $this->safe_number($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPx');
         $notionalString = $this->safe_string($position, 'notionalUsd');
@@ -4915,8 +4917,8 @@ class okx extends Exchange {
                 if ($posSide === null) {
                     throw new ArgumentsRequired($this->id . ' setLeverage() requires a $posSide argument for isolated margin');
                 }
-                if ($posSide !== 'long' && $posSide !== 'short') {
-                    throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long" or "short"');
+                if ($posSide !== 'long' && $posSide !== 'short' && $posSide !== 'net') {
+                    throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long", "short" or "net"');
                 }
             }
             $response = Async\await($this->privatePostAccountSetLeverage (array_merge($request, $params)));

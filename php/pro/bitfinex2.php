@@ -65,10 +65,10 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             $checksum = $this->safe_value($this->options, 'checksum', true);
             if ($checksum && !$client->subscriptions[$messageHash]['checksum'] && ($channel === 'book')) {
                 $client->subscriptions[$messageHash]['checksum'] = true;
-                $client->send (array(
+                Async\await($client->send (array(
                     'event' => 'conf',
                     'flags' => 131072,
-                ));
+                )));
             }
             return $result;
         }) ();
@@ -97,7 +97,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $channel = 'candles';
             $key = 'trade:' . $interval . ':' . $market['id'];
             $messageHash = $channel . ':' . $interval . ':' . $market['id'];

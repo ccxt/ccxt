@@ -93,8 +93,6 @@ module.exports = class bkex extends Exchange {
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
-                'privateAPI': true,
-                'publicAPI': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
                 'setMarginMode': undefined,
@@ -527,14 +525,14 @@ module.exports = class bkex extends Exchange {
         if (swap) {
             const swapTimeframes = this.safeValue (timeframes, 'swap');
             method = 'publicSwapGetMarketCandle';
-            request['period'] = swapTimeframes[timeframe];
+            request['period'] = this.safeString (swapTimeframes, timeframe, timeframe);
             if (limit !== undefined) {
                 request['count'] = limit;
             }
         } else {
             const spotTimeframes = this.safeValue (timeframes, 'spot');
             request['symbol'] = market['id'];
-            request['period'] = spotTimeframes[timeframe];
+            request['period'] = this.safeString (spotTimeframes, timeframe, timeframe);
         }
         if (limit !== undefined) {
             const limitRequest = swap ? 'count' : 'size';
@@ -687,7 +685,7 @@ module.exports = class bkex extends Exchange {
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-ticker-data
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bkex api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const request = {};

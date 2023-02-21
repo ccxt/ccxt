@@ -185,8 +185,8 @@ class coinbasepro(Exchange):
                 'trading': {
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
-                    'maker': 0.4 / 100,  # highest fee of all tiers
-                    'taker': 0.6 / 100,  # highest fee of all tiers
+                    'maker': self.parse_number('0.004'),  # highest fee of all tiers
+                    'taker': self.parse_number('0.006'),  # highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': False,
@@ -607,7 +607,7 @@ class coinbasepro(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -856,7 +856,7 @@ class coinbasepro(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
-        granularity = self.timeframes[timeframe]
+        granularity = self.safe_integer(self.timeframes, timeframe, timeframe)
         request = {
             'id': market['id'],
             'granularity': granularity,

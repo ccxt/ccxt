@@ -355,7 +355,6 @@ module.exports = class currencycom extends Exchange {
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': this.safeString (currency, 'baseAddress'),
                 'type': this.safeStringLower (currency, 'type'),
                 'name': this.safeString (currency, 'name'),
                 'active': undefined,
@@ -912,7 +911,7 @@ module.exports = class currencycom extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetV2Ticker24hr (params);
@@ -974,7 +973,7 @@ module.exports = class currencycom extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['startTime'] = since;

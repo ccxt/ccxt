@@ -26,7 +26,7 @@ class gemini extends \ccxt\async\gemini {
                 'watchOrderBook' => true,
                 'watchOHLCV' => true,
             ),
-            'hostname:' => 'api.gemini.com',
+            'hostname' => 'api.gemini.com',
             'urls' => array(
                 'api' => array(
                     'ws' => 'wss://api.gemini.com',

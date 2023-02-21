@@ -358,7 +358,6 @@ class currencycom(Exchange):
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': self.safe_string(currency, 'baseAddress'),
                 'type': self.safe_string_lower(currency, 'type'),
                 'name': self.safe_string(currency, 'name'),
                 'active': None,
@@ -879,7 +878,7 @@ class currencycom(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the currencycom api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetV2Ticker24hr(params)
@@ -937,7 +936,7 @@ class currencycom(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             request['startTime'] = since

@@ -974,7 +974,7 @@ class bitstamp extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
-            'step' => $this->timeframes[$timeframe],
+            'step' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe);
         if ($limit === null) {

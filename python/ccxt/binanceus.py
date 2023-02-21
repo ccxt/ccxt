@@ -33,8 +33,8 @@ class binanceus(binance):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': self.parse_number('0.001'),  # 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker': self.parse_number('0.001'),  # 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'taker': self.parse_number('0.001'),  # 0.1% trading fee, zero fees for all trading pairs before November 1.
+                    'maker': self.parse_number('0.001'),  # 0.1% trading fee, zero fees for all trading pairs before November 1.
                 },
             },
             'options': {

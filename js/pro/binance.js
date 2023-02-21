@@ -293,8 +293,9 @@ module.exports = class binance extends binanceRest {
         //         ]
         //     }
         //
-        const index = client.url.indexOf ('/stream');
-        const marketType = (index >= 0) ? 'spot' : 'contract';
+        const testnetSpot = client.url.indexOf ('testnet') > 0;
+        const isSpot = client.url.indexOf ('/stream.binance') > 0;
+        const marketType = (testnetSpot || isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -550,15 +551,15 @@ module.exports = class binance extends binanceRest {
         }
         const id = this.safeString2 (trade, 't', 'a');
         const timestamp = this.safeInteger (trade, 'T');
-        const price = this.safeFloat2 (trade, 'L', 'p');
-        let amount = this.safeFloat (trade, 'q');
+        const price = this.safeString2 (trade, 'L', 'p');
+        let amount = this.safeString (trade, 'q');
         if (isTradeExecution) {
-            amount = this.safeFloat (trade, 'l', amount);
+            amount = this.safeString (trade, 'l', amount);
         }
-        let cost = this.safeFloat (trade, 'Y');
+        let cost = this.safeString (trade, 'Y');
         if (cost === undefined) {
             if ((price !== undefined) && (amount !== undefined)) {
-                cost = price * amount;
+                cost = Precise.stringMul (price, amount);
             }
         }
         const marketId = this.safeString (trade, 's');
@@ -574,7 +575,7 @@ module.exports = class binance extends binanceRest {
             takerOrMaker = trade['m'] ? 'maker' : 'taker';
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'n');
+        const feeCost = this.safeString (trade, 'n');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'N');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -584,7 +585,7 @@ module.exports = class binance extends binanceRest {
             };
         }
         const type = this.safeStringLower (trade, 'o');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -598,7 +599,7 @@ module.exports = class binance extends binanceRest {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        };
+        });
     }
 
     handleTrade (client, message) {
@@ -638,7 +639,7 @@ module.exports = class binance extends binanceRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['lowercaseId'];
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'kline';
         const messageHash = marketId + '@' + name + '_' + interval;
         let type = market['type'];
@@ -763,7 +764,7 @@ module.exports = class binance extends binanceRest {
          * @method
          * @name binance#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {Array} symbols unified symbol of the market to fetch the ticker for
+         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */

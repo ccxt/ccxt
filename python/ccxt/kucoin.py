@@ -1009,7 +1009,7 @@ class kucoin(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the kucoin api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1128,7 +1128,7 @@ class kucoin(Exchange):
         marketId = market['id']
         request = {
             'symbol': marketId,
-            'type': self.timeframes[timeframe],
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe) * 1000
         endAt = self.milliseconds()  # required param
@@ -3293,6 +3293,8 @@ class kucoin(Exchange):
         version = self.safe_string(params, 'version', defaultVersion)
         params = self.omit(params, 'version')
         endpoint = '/api/' + version + '/' + self.implode_params(path, params)
+        if api == 'webFront':
+            endpoint = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         endpart = ''
         headers = headers if (headers is not None) else {}

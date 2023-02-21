@@ -300,8 +300,9 @@ class binance extends \ccxt\async\binance {
         //         )
         //     }
         //
-        $index = mb_strpos($client->url, '/stream');
-        $marketType = ($index >= 0) ? 'spot' : 'contract';
+        $testnetSpot = mb_strpos($client->url, 'testnet') > 0;
+        $isSpot = mb_strpos($client->url, '/stream.binance') > 0;
+        $marketType = ($testnetSpot || $isSpot) ? 'spot' : 'contract';
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
@@ -557,15 +558,15 @@ class binance extends \ccxt\async\binance {
         }
         $id = $this->safe_string_2($trade, 't', 'a');
         $timestamp = $this->safe_integer($trade, 'T');
-        $price = $this->safe_float_2($trade, 'L', 'p');
-        $amount = $this->safe_float($trade, 'q');
+        $price = $this->safe_string_2($trade, 'L', 'p');
+        $amount = $this->safe_string($trade, 'q');
         if ($isTradeExecution) {
-            $amount = $this->safe_float($trade, 'l', $amount);
+            $amount = $this->safe_string($trade, 'l', $amount);
         }
-        $cost = $this->safe_float($trade, 'Y');
+        $cost = $this->safe_string($trade, 'Y');
         if ($cost === null) {
             if (($price !== null) && ($amount !== null)) {
-                $cost = $price * $amount;
+                $cost = Precise::string_mul($price, $amount);
             }
         }
         $marketId = $this->safe_string($trade, 's');
@@ -581,7 +582,7 @@ class binance extends \ccxt\async\binance {
             $takerOrMaker = $trade['m'] ? 'maker' : 'taker';
         }
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'n');
+        $feeCost = $this->safe_string($trade, 'n');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'N');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
@@ -591,7 +592,7 @@ class binance extends \ccxt\async\binance {
             );
         }
         $type = $this->safe_string_lower($trade, 'o');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -605,7 +606,7 @@ class binance extends \ccxt\async\binance {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        );
+        ));
     }
 
     public function handle_trade($client, $message) {
@@ -644,7 +645,7 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $marketId = $market['lowercaseId'];
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $name = 'kline';
             $messageHash = $marketId . '@' . $name . '_' . $interval;
             $type = $market['type'];
@@ -769,7 +770,7 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {Array} $symbols unified symbol of the $market to fetch the $ticker for
+             * @param {[string]} $symbols unified symbol of the $market to fetch the $ticker for
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
              */

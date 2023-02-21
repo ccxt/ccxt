@@ -1064,7 +1064,7 @@ class bitfinex2(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1183,7 +1183,7 @@ class bitfinex2(Exchange):
         takerOrMaker = None
         type = None
         fee = None
-        symbol = None
+        symbol = self.safe_symbol(None, market)
         timestampIndex = 2 if isPrivate else 1
         timestamp = self.safe_integer(trade, timestampIndex)
         if isPrivate:
@@ -1272,7 +1272,7 @@ class bitfinex2(Exchange):
             since = self.milliseconds() - duration * limit * 1000
         request = {
             'symbol': market['id'],
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
             'sort': 1,
             'start': since,
             'limit': limit,

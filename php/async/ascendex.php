@@ -1004,7 +1004,7 @@ class ascendex extends Exchange {
              * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the ascendex api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1091,7 +1091,7 @@ class ascendex extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
-                'interval' => $this->timeframes[$timeframe],
+                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             // if $since and $limit are not specified
             // the exchange will return just 1 last candle by default

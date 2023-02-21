@@ -30,6 +30,7 @@ module.exports = class btcex extends btcexRest {
             'options': {
                 'watchOrderBook': {
                     'snapshotDelay': 0,
+                    'maxRetries': 3,
                 },
             },
             'streaming': {

@@ -272,8 +272,9 @@ class binance(Exchange, ccxt.async_support.binance):
         #         ]
         #     }
         #
-        index = client.url.find('/stream')
-        marketType = 'spot' if (index >= 0) else 'contract'
+        testnetSpot = client.url.find('testnet') > 0
+        isSpot = client.url.find('/stream.binance') > 0
+        marketType = 'spot' if (testnetSpot or isSpot) else 'contract'
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
@@ -507,14 +508,14 @@ class binance(Exchange, ccxt.async_support.binance):
             return super(binance, self).parse_trade(trade, market)
         id = self.safe_string_2(trade, 't', 'a')
         timestamp = self.safe_integer(trade, 'T')
-        price = self.safe_float_2(trade, 'L', 'p')
-        amount = self.safe_float(trade, 'q')
+        price = self.safe_string_2(trade, 'L', 'p')
+        amount = self.safe_string(trade, 'q')
         if isTradeExecution:
-            amount = self.safe_float(trade, 'l', amount)
-        cost = self.safe_float(trade, 'Y')
+            amount = self.safe_string(trade, 'l', amount)
+        cost = self.safe_string(trade, 'Y')
         if cost is None:
             if (price is not None) and (amount is not None):
-                cost = price * amount
+                cost = Precise.string_mul(price, amount)
         marketId = self.safe_string(trade, 's')
         marketType = 'contract' if ('ps' in trade) else 'spot'
         symbol = self.safe_symbol(marketId, None, None, marketType)
@@ -526,7 +527,7 @@ class binance(Exchange, ccxt.async_support.binance):
                 side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
             takerOrMaker = 'maker' if trade['m'] else 'taker'
         fee = None
-        feeCost = self.safe_float(trade, 'n')
+        feeCost = self.safe_string(trade, 'n')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'N')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -535,7 +536,7 @@ class binance(Exchange, ccxt.async_support.binance):
                 'currency': feeCurrencyCode,
             }
         type = self.safe_string_lower(trade, 'o')
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -549,7 +550,7 @@ class binance(Exchange, ccxt.async_support.binance):
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }
+        })
 
     def handle_trade(self, client, message):
         # the trade streams push raw trade information in real-time
@@ -584,7 +585,7 @@ class binance(Exchange, ccxt.async_support.binance):
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['lowercaseId']
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'kline'
         messageHash = marketId + '@' + name + '_' + interval
         type = market['type']
@@ -698,7 +699,7 @@ class binance(Exchange, ccxt.async_support.binance):
     async def watch_tickers(self, symbols=None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :param Array symbols: unified symbol of the market to fetch the ticker for
+        :param [str] symbols: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """

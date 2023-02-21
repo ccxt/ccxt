@@ -870,7 +870,7 @@ module.exports = class wavesexchange extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the aax api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.marketGetTickers (params);
@@ -922,7 +922,7 @@ module.exports = class wavesexchange extends Exchange {
         const request = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const allowedCandles = this.safeInteger (this.options, 'allowedCandles', 1440);
         if (limit === undefined) {

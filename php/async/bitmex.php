@@ -1161,7 +1161,7 @@ class bitmex extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bitmex api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1474,7 +1474,7 @@ class bitmex extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
-                'binSize' => $this->timeframes[$timeframe],
+                'binSize' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'partial' => true,     // true == include yet-incomplete current bins
                 // 'filter' => $filter, // $filter by individual fields and do advanced queries
                 // 'columns' => array(),    // will return all columns if omitted
@@ -1825,15 +1825,14 @@ class bitmex extends Exchange {
                     throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for swap and future markets only');
                 }
             }
+            $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
             $request = array(
                 'symbol' => $market['id'],
                 'side' => $this->capitalize($side),
                 'orderQty' => floatval($this->amount_to_precision($symbol, $amount)), // lot size multiplied by the number of contracts
                 'ordType' => $orderType,
+                'text' => $brokerId,
             );
-            if ($reduceOnly) {
-                $request['execInst'] = 'ReduceOnly';
-            }
             if (($orderType === 'Stop') || ($orderType === 'StopLimit') || ($orderType === 'MarketIfTouched') || ($orderType === 'LimitIfTouched')) {
                 $stopPrice = $this->safe_number_2($params, 'stopPx', 'stopPrice');
                 if ($stopPrice === null) {
@@ -1877,6 +1876,8 @@ class bitmex extends Exchange {
             if ($price !== null) {
                 $request['price'] = $price;
             }
+            $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
+            $request['text'] = $brokerId;
             $response = Async\await($this->privatePutOrder (array_merge($request, $params)));
             return $this->parse_order($response);
         }) ();

@@ -619,6 +619,8 @@ module.exports = class okx extends Exchange {
                     '58117': ExchangeError, // Account assets are abnormal, please deal with negative assets before transferring
                     '58125': BadRequest, // Non-tradable assets can only be transferred from sub-accounts to main accounts
                     '58126': BadRequest, // Non-tradable assets can only be transferred between funding accounts
+                    '58127': BadRequest, // Main account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
+                    '58128': BadRequest, // Sub-account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
                     '58200': ExchangeError, // Withdrawal from {0} to {1} is unavailable for this currency
                     '58201': ExchangeError, // Withdrawal amount exceeds the daily limit
                     '58202': ExchangeError, // The minimum withdrawal amount for NEO is 1, and the amount must be an integer
@@ -1541,7 +1543,7 @@ module.exports = class okx extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the okx api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -1711,7 +1713,7 @@ module.exports = class okx extends Exchange {
             limit = 100; // default 100, max 100
         }
         const duration = this.parseTimeframe (timeframe);
-        let bar = this.timeframes[timeframe];
+        let bar = this.safeString (this.timeframes, timeframe, timeframe);
         if ((timezone === 'UTC') && (duration >= 21600)) { // if utc and timeframe >= 6h
             bar += timezone.toLowerCase ();
         }
@@ -4167,7 +4169,7 @@ module.exports = class okx extends Exchange {
         if (type !== undefined) {
             request['instType'] = this.convertToInstrumentType (type);
         }
-        const response = await this.privateGetAccountPositions (query);
+        const response = await this.privateGetAccountPositions (this.extend (request, query));
         //
         //     {
         //         "code": "0",
@@ -4378,7 +4380,7 @@ module.exports = class okx extends Exchange {
                 }
             }
         }
-        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSize = this.safeNumber (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
         const markPriceString = this.safeString (position, 'markPx');
         let notionalString = this.safeString (position, 'notionalUsd');
@@ -4904,8 +4906,8 @@ module.exports = class okx extends Exchange {
             if (posSide === undefined) {
                 throw new ArgumentsRequired (this.id + ' setLeverage() requires a posSide argument for isolated margin');
             }
-            if (posSide !== 'long' && posSide !== 'short') {
-                throw new BadRequest (this.id + ' setLeverage() requires the posSide argument to be either "long" or "short"');
+            if (posSide !== 'long' && posSide !== 'short' && posSide !== 'net') {
+                throw new BadRequest (this.id + ' setLeverage() requires the posSide argument to be either "long", "short" or "net"');
             }
         }
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));

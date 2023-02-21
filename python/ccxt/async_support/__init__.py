@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.7.14'
+__version__ = '2.8.21'
 
 # -----------------------------------------------------------------------------
 
@@ -53,6 +53,7 @@ from ccxt.base.errors import RequestTimeout                           # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
+from ccxt.async_support.ace import ace                                          # noqa: F401
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.ascendex import ascendex                                # noqa: F401
 from ccxt.async_support.bequant import bequant                                  # noqa: F401
@@ -150,7 +151,6 @@ from ccxt.async_support.poloniexfutures import poloniexfutures                  
 from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.ripio import ripio                                      # noqa: F401
 from ccxt.async_support.stex import stex                                        # noqa: F401
-from ccxt.async_support.therock import therock                                  # noqa: F401
 from ccxt.async_support.tidex import tidex                                      # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
@@ -165,6 +165,7 @@ from ccxt.async_support.zb import zb                                            
 from ccxt.async_support.zonda import zonda                                      # noqa: F401
 
 exchanges = [
+    'ace',
     'alpaca',
     'ascendex',
     'bequant',
@@ -262,7 +263,6 @@ exchanges = [
     'probit',
     'ripio',
     'stex',
-    'therock',
     'tidex',
     'timex',
     'tokocrypto',

@@ -1154,7 +1154,7 @@ module.exports = class bitmex extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitmex api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -1467,7 +1467,7 @@ module.exports = class bitmex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'binSize': this.timeframes[timeframe],
+            'binSize': this.safeString (this.timeframes, timeframe, timeframe),
             'partial': true,     // true == include yet-incomplete current bins
             // 'filter': filter, // filter by individual fields and do advanced queries
             // 'columns': [],    // will return all columns if omitted
@@ -1818,15 +1818,14 @@ module.exports = class bitmex extends Exchange {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
             }
         }
+        const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
             'orderQty': parseFloat (this.amountToPrecision (symbol, amount)), // lot size multiplied by the number of contracts
             'ordType': orderType,
+            'text': brokerId,
         };
-        if (reduceOnly) {
-            request['execInst'] = 'ReduceOnly';
-        }
         if ((orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched')) {
             const stopPrice = this.safeNumber2 (params, 'stopPx', 'stopPrice');
             if (stopPrice === undefined) {
@@ -1868,6 +1867,8 @@ module.exports = class bitmex extends Exchange {
         if (price !== undefined) {
             request['price'] = price;
         }
+        const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
+        request['text'] = brokerId;
         const response = await this.privatePutOrder (this.extend (request, params));
         return this.parseOrder (response);
     }

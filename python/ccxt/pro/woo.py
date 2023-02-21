@@ -259,7 +259,7 @@ class woo(Exchange, ccxt.async_support.woo):
         if (timeframe != '1m') and (timeframe != '5m') and (timeframe != '15m') and (timeframe != '30m') and (timeframe != '1h') and (timeframe != '1d') and (timeframe != '1w') and (timeframe != '1M'):
             raise ExchangeError(self.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M')
         market = self.market(symbol)
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'kline'
         topic = market['id'] + '@' + name + '_' + interval
         request = {

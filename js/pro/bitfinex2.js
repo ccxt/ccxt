@@ -58,7 +58,7 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
         const checksum = this.safeValue (this.options, 'checksum', true);
         if (checksum && !client.subscriptions[messageHash]['checksum'] && (channel === 'book')) {
             client.subscriptions[messageHash]['checksum'] = true;
-            client.send ({
+            await client.send ({
                 'event': 'conf',
                 'flags': 131072,
             });
@@ -88,7 +88,7 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const channel = 'candles';
         const key = 'trade:' + interval + ':' + market['id'];
         const messageHash = channel + ':' + interval + ':' + market['id'];

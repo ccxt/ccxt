@@ -232,7 +232,6 @@ module.exports = class hitbtc extends Exchange {
                 'BCC': 'BCC', // initial symbol for Bitcoin Cash, now inactive
                 'BDP': 'BidiPass',
                 'BET': 'DAO.Casino',
-                'BIT': 'BitRewards',
                 'BOX': 'BOX Token',
                 'CPT': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'GET': 'Themis',
@@ -403,12 +402,7 @@ module.exports = class hitbtc extends Exchange {
         //         'id': '2db6ebab-fb26-4537-9ef8-1a689472d236'
         //     }
         //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'amount': this.parseNumber (requestAmount),
-        });
+        return this.parseTransfer (response, currency);
     }
 
     parseTransfer (transfer, currency = undefined) {
@@ -637,7 +631,7 @@ module.exports = class hitbtc extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'period': this.timeframes[timeframe],
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
@@ -716,7 +710,7 @@ module.exports = class hitbtc extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the hitbtc api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);

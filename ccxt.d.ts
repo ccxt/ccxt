@@ -451,6 +451,7 @@ declare module 'ccxt' {
     
     /* tslint:disable */
 
+    export class ace extends Exchange {}
     export class alpaca extends Exchange {}
     export class ascendex extends Exchange {}
     export class bequant extends hitbtc {}
@@ -548,7 +549,6 @@ declare module 'ccxt' {
     export class probit extends Exchange {}
     export class ripio extends Exchange {}
     export class stex extends Exchange {}
-    export class therock extends Exchange {}
     export class tidex extends Exchange {}
     export class timex extends Exchange {}
     export class tokocrypto extends Exchange {}
@@ -566,6 +566,7 @@ declare module 'ccxt' {
     /* tslint:enable */
 
     export type ExchangeId =
+        | 'ace'
         | 'alpaca'
         | 'ascendex'
         | 'bequant'
@@ -663,7 +664,6 @@ declare module 'ccxt' {
         | 'probit'
         | 'ripio'
         | 'stex'
-        | 'therock'
         | 'tidex'
         | 'timex'
         | 'tokocrypto'
@@ -733,6 +733,7 @@ declare module 'ccxt' {
         class huobijp extends Exchange {}
         class huobipro extends Exchange {}
         class idex extends Exchange {}
+        class independentreserve extends Exchange {}
         class kraken extends Exchange {}
         class kucoin extends Exchange {}
         class kucoinfutures extends Exchange {}

@@ -173,8 +173,8 @@ module.exports = class coinbasepro extends Exchange {
                 'trading': {
                     'tierBased': true, // complicated tier system per coin
                     'percentage': true,
-                    'maker': 0.4 / 100, // highest fee of all tiers
-                    'taker': 0.6 / 100, // highest fee of all tiers
+                    'maker': this.parseNumber ('0.004'), // highest fee of all tiers
+                    'taker': this.parseNumber ('0.006'), // highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': false,
@@ -620,7 +620,7 @@ module.exports = class coinbasepro extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -894,7 +894,7 @@ module.exports = class coinbasepro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const granularity = this.timeframes[timeframe];
+        const granularity = this.safeInteger (this.timeframes, timeframe, timeframe);
         const request = {
             'id': market['id'],
             'granularity': granularity,

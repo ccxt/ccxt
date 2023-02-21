@@ -34,6 +34,7 @@ class btcex(Exchange, ccxt.async_support.btcex):
             'options': {
                 'watchOrderBook': {
                     'snapshotDelay': 0,
+                    'maxRetries': 3,
                 },
             },
             'streaming': {

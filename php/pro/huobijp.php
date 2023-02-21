@@ -208,7 +208,7 @@ class huobijp extends \ccxt\async\huobijp {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
             $api = $this->safe_string($this->options, 'api', 'api');
             $hostname = array( 'hostname' => $this->hostname );
