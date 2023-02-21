@@ -5246,13 +5246,37 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let settle = undefined;
-        const request = {};
+        const request = {
+            // 'symbol': market['id'],
+            // 'category': string, Type of derivatives product: linear or option.
+            // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            // 'settleCoin': string, Settle coin. For linear, either symbol or settleCoin is required
+            // 'orderId': string, Order ID
+            // 'orderLinkId': string, Unique user-set order ID
+            // 'orderFilter': string, Conditional order or active order
+            // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
+            // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            // 'openOnly': 0,
+        };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            settle = market['settle'];
             request['symbol'] = market['id'];
+            if (market['linear']) {
+                request['category'] = 'linear';
+            } else {
+                request['category'] = 'inverse';
+            }
+        } else {
+            let type = undefined;
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+            let subType = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params, 'linear');
+            request['category'] = type;
+            if (type === 'swap') {
+                request['category'] = subType;
+            }
         }
-        [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
+        [ settle, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'settle', settle);
         if (settle !== undefined) {
             request['settleCoin'] = settle;
         }
@@ -5261,47 +5285,57 @@ module.exports = class bybit extends Exchange {
         if (isStop) {
             request['orderFilter'] = 'StopOrder';
         }
-        const response = await this.privateGetContractV3PrivateOrderUnfilledOrders (this.extend (request, params));
-        //
-        // contract v3
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetV5OrderRealtime (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "OK",
         //         "result": {
+        //             "nextPageCursor": "1321052653536515584%3A1672217748287%2C1321052653536515584%3A1672217748287",
+        //             "category": "spot",
         //             "list": [
         //                 {
-        //                     "symbol": "XRPUSDT",
-        //                     "orderId": "db8b74b3-72d3-4264-bf3f-52d39b41956e",
-        //                     "side": "Sell",
+        //                     "symbol": "ETHUSDT",
         //                     "orderType": "Limit",
-        //                     "stopOrderType": "Stop",
-        //                     "price": "0.4000",
-        //                     "qty": "15",
-        //                     "timeInForce": "GoodTillCancel",
-        //                     "orderStatus": "UnTriggered",
-        //                     "triggerPrice": "0.1000",
-        //                     "orderLinkId": "x002",
-        //                     "createdTime": "1658901865082",
-        //                     "updatedTime": "1658902610748",
-        //                     "takeProfit": "0.2000",
-        //                     "stopLoss": "1.6000",
-        //                     "tpTriggerBy": "UNKNOWN",
-        //                     "slTriggerBy": "UNKNOWN",
-        //                     "triggerBy": "MarkPrice",
-        //                     "reduceOnly": false,
-        //                     "leavesQty": "15",
-        //                     "leavesValue": "6",
-        //                     "cumExecQty": "0",
+        //                     "orderLinkId": "1672217748277652",
+        //                     "orderId": "1321052653536515584",
+        //                     "cancelType": "UNKNOWN",
+        //                     "avgPrice": "",
+        //                     "stopOrderType": "tpslOrder",
+        //                     "lastPriceOnCreated": "",
+        //                     "orderStatus": "Cancelled",
+        //                     "takeProfit": "",
         //                     "cumExecValue": "0",
+        //                     "triggerDirection": 0,
+        //                     "isLeverage": "0",
+        //                     "rejectReason": "",
+        //                     "price": "1000",
+        //                     "orderIv": "",
+        //                     "createdTime": "1672217748287",
+        //                     "tpTriggerBy": "",
+        //                     "positionIdx": 0,
+        //                     "timeInForce": "GTC",
+        //                     "leavesValue": "500",
+        //                     "updatedTime": "1672217748287",
+        //                     "side": "Buy",
+        //                     "triggerPrice": "1500",
         //                     "cumExecFee": "0",
-        //                     "triggerDirection": 2
+        //                     "leavesQty": "0",
+        //                     "slTriggerBy": "",
+        //                     "closeOnTrigger": false,
+        //                     "cumExecQty": "0",
+        //                     "reduceOnly": false,
+        //                     "qty": "0.5",
+        //                     "stopLoss": "",
+        //                     "triggerBy": "1192.5"
         //                 }
-        //             ],
-        //             "nextPageCursor": ""
+        //             ]
         //         },
         //         "retExtInfo": {},
-        //         "time": 1658902847238
+        //         "time": 1672219526294
         //     }
         //
         const result = this.safeValue (response, 'result', {});
