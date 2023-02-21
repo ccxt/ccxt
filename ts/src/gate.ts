@@ -3645,7 +3645,7 @@ export default class gate extends Exchange {
         let filledString = Precise.stringSub (amount, remainingString);
         let cost = this.safeString (order, 'filled_total');
         let rawStatus = undefined;
-        let average = this.safeNumber (order, 'fill_price');
+        let average = this.safeNumber2 (order, 'avg_deal_price', 'fill_price');
         if (put) {
             remainingString = amount;
             filledString = '0';

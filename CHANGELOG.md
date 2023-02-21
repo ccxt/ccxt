@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.24 (2023-02-21)
+
+
+### Bug Fixes
+
+* **Gate:** average price inside parseOrder ([e7e0b25](https://github.com/ccxt/ccxt/commit/e7e0b251bd6e55f4a81ad92e65e11581feb35234))
+
+### 2.8.23 (2023-02-21)
+
+### 2.8.22 (2023-02-21)
+
 ### 2.8.21 (2023-02-21)
 
 ### 2.8.17 (2023-02-20)

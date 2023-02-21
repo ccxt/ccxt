@@ -66,6 +66,9 @@ export default class binance extends binanceRest {
                 'watchTickers': {
                     'name': 'ticker', // ticker or miniTicker or bookTicker
                 },
+                'watchOHLCV': {
+                    'name': 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
+                },
                 'watchBalance': {
                     'fetchBalanceSnapshot': false, // or true
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
@@ -636,9 +639,16 @@ export default class binance extends binanceRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['lowercaseId'];
+        let marketId = market['lowercaseId'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const name = 'kline';
+        const options = this.safeValue (this.options, 'watchOHLCV', {});
+        const nameOption = this.safeString (options, 'name', 'kline');
+        const name = this.safeString (params, 'name', nameOption);
+        if (name === 'indexPriceKline') {
+            // weird behavior for index price kline we can't use the perp suffix
+            marketId = marketId.replace ('_perp', '');
+        }
+        params = this.omit (params, 'name');
         const messageHash = marketId + '@' + name + '_' + interval;
         let type = market['type'];
         if (market['contract']) {
@@ -690,10 +700,19 @@ export default class binance extends binanceRest {
         //         }
         //     }
         //
-        const marketId = this.safeString (message, 's');
-        const lowercaseMarketId = this.safeStringLower (message, 's');
-        const event = this.safeString (message, 'e');
+        let event = this.safeString (message, 'e');
+        const eventMap = {
+            'indexPrice_kline': 'indexPriceKline',
+            'markPrice_kline': 'markPriceKline',
+        };
+        event = this.safeString (eventMap, event, event);
         const kline = this.safeValue (message, 'k');
+        let marketId = this.safeString2 (kline, 's', 'ps');
+        if (event === 'indexPriceKline') {
+            // indexPriceKline doesn't have the _PERP suffix
+            marketId = this.safeString (message, 'ps');
+        }
+        const lowercaseMarketId = marketId.toLowerCase ();
         const interval = this.safeString (kline, 'i');
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
@@ -1684,6 +1703,8 @@ export default class binance extends binanceRest {
             'trade': this.handleTrade,
             'aggTrade': this.handleTrade,
             'kline': this.handleOHLCV,
+            'markPrice_kline': this.handleOHLCV,
+            'indexPrice_kline': this.handleOHLCV,
             '24hrTicker@arr': this.handleTickers,
             '24hrMiniTicker@arr': this.handleTickers,
             '24hrTicker': this.handleTicker,
