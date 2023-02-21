@@ -45,15 +45,7 @@ script:
     if [ ! -f "${DEPLOY_CACHE}" ]; then
       echo "${DEPLOY_CACHE} does not exist";
       echo "Writing ${NPM_VERSION} to ${DEPLOY_CACHE}";
-      echo "${NPM_VERSION}" > ${DEPLOY_CACHE};
     fi
-    export DEPLOY_CACHE_MTIME=$(date -r ${DEPLOY_CACHE} "+%s");
-    export LAST_DEPLOYED_VERSION=$(<${DEPLOY_CACHE});
-    export CURRENT_TIME=$(date +%s);
-    export SECONDS_SINCE_LAST_DEPLOY=$((${CURRENT_TIME} - ${DEPLOY_CACHE_MTIME}));
-    export NEXT_DEPLOY_TIME=$((${DEPLOY_CACHE_MTIME} + ${SECONDS_BEFORE_NEXT_DEPLOY}));
-    export NEXT_DEPLOY_DATETIME=$(date -r ${NEXT_DEPLOY_TIME} '+%c');
-    echo "${DEPLOY_CACHE_MTIME} ${LAST_DEPLOYED_VERSION} as of $(date -r ${DEPLOY_CACHE} "+%F %T"), ${SECONDS_SINCE_LAST_DEPLOY} seconds ago";
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
   fi
 after_failure:
