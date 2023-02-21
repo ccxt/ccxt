@@ -178,7 +178,7 @@ class bitrue extends \ccxt\async\bitrue {
             /**
              * watches information on user $orders
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-             * @param {Array} symbols unified symbols of the $market to watch the $orders for
+             * @param {[string]} symbols unified symbols of the $market to watch the $orders for
              * @param {int|null} $since timestamp in ms of the earliest order
              * @param {int|null} $limit the maximum amount of $orders to return
              * @param {array} $params extra parameters specific to the bitrue api endpoint

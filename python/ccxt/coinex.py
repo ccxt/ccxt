@@ -732,7 +732,7 @@ class coinex(Exchange):
         see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -977,7 +977,7 @@ class coinex(Exchange):
         marketId = self.safe_string(trade, 'market')
         defaultType = self.safe_string(self.options, 'defaultType')
         market = self.safe_market(marketId, market, None, defaultType)
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, None, defaultType)
         costString = self.safe_string(trade, 'deal_money')
         fee = None
         feeCostString = self.safe_string_2(trade, 'fee', 'deal_fee')
@@ -3335,9 +3335,9 @@ class coinex(Exchange):
         """
          *  @method
         fetch the current funding rates
-        :param array symbols: unified market symbols
+        :param [str] symbols: unified market symbols
         :param dict params: extra parameters specific to the coinex api endpoint
-        :returns array: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)

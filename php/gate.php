@@ -664,24 +664,27 @@ class gate extends Exchange {
                     'CROSS_ACCOUNT_NOT_FOUND' => '\\ccxt\\ExchangeError',
                     'RISK_LIMIT_TOO_LOW' => '\\ccxt\\BadRequest', // array("label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000")
                 ),
+                'broad' => array(),
             ),
-            'broad' => array(),
         ));
     }
 
     public function fetch_markets($params = array ()) {
         /**
-         * retrieves data on all markets for gate
+         * retrieves data on all $markets for gate
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing market data
          */
         $promises = array(
             $this->fetch_spot_markets($params),
             $this->fetch_contract_markets($params),
+            $this->fetch_option_markets($params),
         );
         $spotMarkets = $promises[0];
         $contractMarkets = $promises[1];
-        return $this->array_concat($spotMarkets, $contractMarkets);
+        $optionMarkets = $promises[2];
+        $markets = $this->array_concat($spotMarkets, $contractMarkets);
+        return $this->array_concat($markets, $optionMarkets);
     }
 
     public function fetch_spot_markets($params = array ()) {
@@ -2137,7 +2140,7 @@ class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the gate api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -3053,6 +3056,7 @@ class gate extends Exchange {
          * @param {bool|null} $params->reduceOnly *$contract only* Indicates if this order is to reduce the size of a position
          * @param {bool|null} $params->close *$contract only* Set as true to close the position, with size set to 0
          * @param {bool|null} $params->auto_size *$contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
+         * @param {int|null} $params->price_type *$contract only* 0 latest deal $price, 1 mark $price, 2 index $price
          * @return {array|null} {@link https://docs.ccxt.com/en/latest/manual.html#order-structure An order structure}
          */
         $this->load_markets();
@@ -3207,9 +3211,14 @@ class gate extends Exchange {
                         $rule = ($side === 'buy') ? 2 : 1;
                         $triggerOrderPrice = $this->price_to_precision($symbol, $takeProfitPrice);
                     }
+                    $priceType = $this->safe_integer($params, 'price_type', 0);
+                    if ($priceType < 0 || $priceType > 2) {
+                        throw new BadRequest($this->id . ' createOrder () price_type should be 0 latest deal $price, 1 mark $price, 2 index price');
+                    }
+                    $params = $this->omit($params, array( 'price_type' ));
                     $request['trigger'] = array(
                         // 'strategy_type' => 0, // 0 = by $price, 1 = by $price gap, only 0 is supported currently
-                        'price_type' => 0, // 0 latest deal $price, 1 mark $price, 2 index $price
+                        'price_type' => $priceType, // 0 latest deal $price, 1 mark $price, 2 index $price
                         'price' => $this->price_to_precision($symbol, $triggerOrderPrice), // $price or gap
                         'rule' => $rule, // 1 means price_type >= $price, 2 means price_type <= $price
                         // 'expiration' => $expiration, how many seconds to wait for the condition to be triggered before cancelling the order
@@ -3637,14 +3646,16 @@ class gate extends Exchange {
         $remaining = $this->parse_number(Precise::string_abs($remainingString));
         // handle spot $market buy
         $account = $this->safe_string($order, 'account'); // using this instead of $market $type because of the conflicting ids
-        if (($account === 'spot') && ($type === 'market') && ($side === 'buy')) {
+        if ($account === 'spot') {
             $averageString = $this->safe_string($order, 'avg_deal_price');
             $average = $this->parse_number($averageString);
-            $filled = Precise::string_div($filledString, $averageString);
-            $remaining = Precise::string_div($remainingString, $averageString);
-            $price = null; // arrives as 0
-            $cost = $amount;
-            $amount = Precise::string_div($amount, $averageString);
+            if (($type === 'market') && ($side === 'buy')) {
+                $filled = Precise::string_div($filledString, $averageString);
+                $remaining = Precise::string_div($remainingString, $averageString);
+                $price = null; // arrives as 0
+                $cost = $amount;
+                $amount = Precise::string_div($amount, $averageString);
+            }
         }
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
@@ -4072,14 +4083,14 @@ class gate extends Exchange {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
-         * $transfer $currency internally between wallets on the same account
+         * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code for $currency being transferred
-         * @param {float} $amount the $amount of $currency to $transfer
-         * @param {string} $fromAccount the account to $transfer $currency from
-         * @param {string} $toAccount the account to $transfer $currency to
+         * @param {float} $amount the $amount of $currency to transfer
+         * @param {string} $fromAccount the account to transfer $currency from
+         * @param {string} $toAccount the account to transfer $currency to
          * @param {array} $params extra parameters specific to the gate api endpoint
          * @param {string|null} $params->symbol Unified $market $symbol *required for type == margin*
-         * @return A {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         * @return A {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -4105,7 +4116,7 @@ class gate extends Exchange {
         if ($fromId === 'margin' || $toId === 'margin') {
             $symbol = $this->safe_string_2($params, 'symbol', 'currency_pair');
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' $transfer requires $params["symbol"] for isolated margin transfers');
+                throw new ArgumentsRequired($this->id . ' transfer requires $params["symbol"] for isolated margin transfers');
             }
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
@@ -4126,12 +4137,7 @@ class gate extends Exchange {
         //        "currency_pair" => "BTC_USDT"
         //    }
         //
-        $transfer = $this->parse_transfer($response, $currency);
-        return array_merge($transfer, array(
-            'fromAccount' => $fromAccount,
-            'toAccount' => $toAccount,
-            'amount' => $this->parse_number($truncated),
-        ));
+        return $this->parse_transfer($response, $currency);
     }
 
     public function parse_transfer($transfer, $currency = null) {

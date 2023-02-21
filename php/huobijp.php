@@ -18,8 +18,6 @@ class huobijp extends Exchange {
             'userAgent' => $this->userAgents['chrome39'],
             'certified' => false,
             'version' => 'v1',
-            'accounts' => null,
-            'accountsById' => null,
             'hostname' => 'api-cloud.huobi.co.jp',
             'pro' => true,
             'has' => array(
@@ -700,7 +698,7 @@ class huobijp extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the huobijp api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);

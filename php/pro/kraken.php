@@ -40,9 +40,9 @@ class kraken extends \ccxt\async\kraken {
                     ),
                 ),
             ),
-            'versions' => array(
-                'ws' => '0.2.0',
-            ),
+            // 'versions' => array(
+            //     'ws' => '0.2.0',
+            // ),
             'options' => array(
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,

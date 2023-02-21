@@ -34,9 +34,9 @@ module.exports = class kraken extends krakenRest {
                     },
                 },
             },
-            'versions': {
-                'ws': '0.2.0',
-            },
+            // 'versions': {
+            //     'ws': '0.2.0',
+            // },
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,

@@ -663,8 +663,8 @@ module.exports = class gate extends Exchange {
                     'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
                     'RISK_LIMIT_TOO_LOW': BadRequest, // {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
                 },
+                'broad': {},
             },
-            'broad': {},
         });
     }
 
@@ -679,11 +679,14 @@ module.exports = class gate extends Exchange {
         let promises = [
             this.fetchSpotMarkets (params),
             this.fetchContractMarkets (params),
+            this.fetchOptionMarkets (params),
         ];
         promises = await Promise.all (promises);
         const spotMarkets = promises[0];
         const contractMarkets = promises[1];
-        return this.arrayConcat (spotMarkets, contractMarkets);
+        const optionMarkets = promises[2];
+        const markets = this.arrayConcat (spotMarkets, contractMarkets);
+        return this.arrayConcat (markets, optionMarkets);
     }
 
     async fetchSpotMarkets (params = {}) {
@@ -2173,7 +2176,7 @@ module.exports = class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -3107,6 +3110,7 @@ module.exports = class gate extends Exchange {
          * @param {bool|undefined} params.reduceOnly *contract only* Indicates if this order is to reduce the size of a position
          * @param {bool|undefined} params.close *contract only* Set as true to close the position, with size set to 0
          * @param {bool|undefined} params.auto_size *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+         * @param {int|undefined} params.price_type *contract only* 0 latest deal price, 1 mark price, 2 index price
          * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -3261,9 +3265,14 @@ module.exports = class gate extends Exchange {
                         rule = (side === 'buy') ? 2 : 1;
                         triggerOrderPrice = this.priceToPrecision (symbol, takeProfitPrice);
                     }
+                    const priceType = this.safeInteger (params, 'price_type', 0);
+                    if (priceType < 0 || priceType > 2) {
+                        throw new BadRequest (this.id + ' createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price');
+                    }
+                    params = this.omit (params, [ 'price_type' ]);
                     request['trigger'] = {
                         // 'strategy_type': 0, // 0 = by price, 1 = by price gap, only 0 is supported currently
-                        'price_type': 0, // 0 latest deal price, 1 mark price, 2 index price
+                        'price_type': priceType, // 0 latest deal price, 1 mark price, 2 index price
                         'price': this.priceToPrecision (symbol, triggerOrderPrice), // price or gap
                         'rule': rule, // 1 means price_type >= price, 2 means price_type <= price
                         // 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
@@ -3693,14 +3702,16 @@ module.exports = class gate extends Exchange {
         let remaining = this.parseNumber (Precise.stringAbs (remainingString));
         // handle spot market buy
         const account = this.safeString (order, 'account'); // using this instead of market type because of the conflicting ids
-        if ((account === 'spot') && (type === 'market') && (side === 'buy')) {
+        if (account === 'spot') {
             const averageString = this.safeString (order, 'avg_deal_price');
             average = this.parseNumber (averageString);
-            filled = Precise.stringDiv (filledString, averageString);
-            remaining = Precise.stringDiv (remainingString, averageString);
-            price = undefined; // arrives as 0
-            cost = amount;
-            amount = Precise.stringDiv (amount, averageString);
+            if ((type === 'market') && (side === 'buy')) {
+                filled = Precise.stringDiv (filledString, averageString);
+                remaining = Precise.stringDiv (remainingString, averageString);
+                price = undefined; // arrives as 0
+                cost = amount;
+                amount = Precise.stringDiv (amount, averageString);
+            }
         }
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
@@ -4194,12 +4205,7 @@ module.exports = class gate extends Exchange {
         //        "currency_pair": "BTC_USDT"
         //    }
         //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'amount': this.parseNumber (truncated),
-        });
+        return this.parseTransfer (response, currency);
     }
 
     parseTransfer (transfer, currency = undefined) {

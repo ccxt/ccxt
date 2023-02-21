@@ -641,6 +641,8 @@ class okx(Exchange):
                     '58117': ExchangeError,  # Account assets are abnormal, please deal with negative assets before transferring
                     '58125': BadRequest,  # Non-tradable assets can only be transferred from sub-accounts to main accounts
                     '58126': BadRequest,  # Non-tradable assets can only be transferred between funding accounts
+                    '58127': BadRequest,  # Main account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
+                    '58128': BadRequest,  # Sub-account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
                     '58200': ExchangeError,  # Withdrawal from {0} to {1} is unavailable for self currency
                     '58201': ExchangeError,  # Withdrawal amount exceeds the daily limit
                     '58202': ExchangeError,  # The minimum withdrawal amount for NEO is 1, and the amount must be an integer
@@ -1508,7 +1510,7 @@ class okx(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)

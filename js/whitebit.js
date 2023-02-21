@@ -779,7 +779,7 @@ module.exports = class whitebit extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -1706,12 +1706,7 @@ module.exports = class whitebit extends Exchange {
         //
         //    []
         //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        });
+        return this.parseTransfer (response, currency);
     }
 
     parseTransfer (transfer, currency) {

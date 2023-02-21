@@ -822,6 +822,15 @@ module.exports = class bitget extends Exchange {
                     'USD_MIX': 'swap',
                 },
                 'sandboxMode': false,
+                'networks': {
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                    'BSC': 'BEP20',
+                },
+                'networksById': {
+                    'TRC20': 'TRX',
+                    'BSC': 'BEP20',
+                },
             },
         });
     }
@@ -1465,10 +1474,15 @@ module.exports = class bitget extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
+        const networkCode = this.safeString (params, 'network');
+        const networkId = this.networkCodeToId (networkCode, code);
         const currency = this.currency (code);
         const request = {
             'coin': currency['code'],
         };
+        if (networkId !== undefined) {
+            request['chain'] = networkId;
+        }
         const response = await this.privateSpotGetWalletDepositAddress (this.extend (request, params));
         //
         //     {
@@ -1499,11 +1513,12 @@ module.exports = class bitget extends Exchange {
         //
         const currencyId = this.safeString (depositAddress, 'coin');
         const networkId = this.safeString (depositAddress, 'chain');
+        const parsedCurrency = this.safeCurrencyCode (currencyId, currency);
         return {
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': parsedCurrency,
             'address': this.safeString (depositAddress, 'address'),
             'tag': this.safeString (depositAddress, 'tag'),
-            'network': networkId,
+            'network': this.networkIdToCode (networkId, parsedCurrency),
             'info': depositAddress,
         };
     }
@@ -1677,8 +1692,9 @@ module.exports = class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-symbol-ticker
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitget api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
         let type = undefined;
         let market = undefined;
@@ -1693,8 +1709,13 @@ module.exports = class bitget extends Exchange {
         });
         const request = {};
         if (method === 'publicMixGetMarketTickers') {
-            const defaultSubType = this.safeString (this.options, 'defaultSubType');
-            request['productType'] = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+            let subType = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', undefined, params);
+            let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
+            if (sandboxMode) {
+                productType = 'S' + productType;
+            }
+            request['productType'] = productType;
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -2089,6 +2110,7 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const method = this.getSupportedMapping (marketType, {
@@ -2097,8 +2119,13 @@ module.exports = class bitget extends Exchange {
         });
         const request = {};
         if (marketType === 'swap') {
-            const defaultSubType = this.safeString (this.options, 'defaultSubType');
-            request['productType'] = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+            let subType = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
+            let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
+            if (sandboxMode) {
+                productType = 'S' + productType;
+            }
+            request['productType'] = productType;
         }
         const response = await this[method] (this.extend (request, query));
         // spot
@@ -2659,14 +2686,18 @@ module.exports = class bitget extends Exchange {
          * @param {string} params.code marginCoin unified currency code
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
         let market = undefined;
-        let defaultSubType = this.safeString (this.options, 'defaultSubType');
         if (symbol !== undefined) {
             market = this.market (symbol);
-            defaultSubType = (market['linear']) ? 'linear' : 'inverse';
         }
-        const productType = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
+        let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
+        if (sandboxMode) {
+            productType = 'S' + productType;
+        }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' cancelAllOrders () does not support spot markets');
@@ -3398,21 +3429,16 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
         let market = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
             market = this.market (first);
         }
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
-        let productType = undefined;
-        if (subType === 'linear') {
-            productType = 'UMCBL';
-        } else {
-            productType = 'DMCBL';
-        }
+        let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
         if (sandboxMode) {
             productType = 'S' + productType;
         }
@@ -3884,17 +3910,32 @@ module.exports = class bitget extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            'marginCoin': market['settleId'],
         };
-        const response = await this.publicMixGetMarketSymbolLeverage (this.extend (request, params));
+        const response = await this.privateMixGetAccountAccount (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1652347673483,
+        //         "requestTime": 0,
         //         "data": {
-        //             "symbol": "BTCUSDT_UMCBL",
-        //             "minLeverage": "1",
-        //             "maxLeverage": "125"
+        //             "marginCoin": "SUSDT",
+        //             "locked": "0",
+        //             "available": "3000",
+        //             "crossMaxAvailable": "3000",
+        //             "fixedMaxAvailable": "3000",
+        //             "maxTransferOut": "3000",
+        //             "equity": "3000",
+        //             "usdtEquity": "3000",
+        //             "btcEquity": "0.12217217236",
+        //             "crossRiskRate": "0",
+        //             "crossMarginLeverage": 20,
+        //             "fixedLongLeverage": 40,
+        //             "fixedShortLeverage": 10,
+        //             "marginMode": "fixed",
+        //             "holdMode": "double_hold",
+        //             "unrealizedPL": null,
+        //             "bonus": "0"
         //         }
         //     }
         //
@@ -3959,19 +4000,23 @@ module.exports = class bitget extends Exchange {
          * @returns {object} response from the exchange
          *
          */
-        const productType = this.safeString (params, 'productType');
-        if ((productType === undefined) && (symbol === undefined)) {
-            throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol or the productType parameter');
-        }
         await this.loadMarkets ();
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         const holdMode = hedged ? 'double_hold' : 'single_hold';
         const request = {
             'holdMode': holdMode,
         };
+        let subType = undefined;
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            request['productType'] = market['linear'] ? 'umcbl' : 'dmcbl';
+            market = this.market (symbol);
         }
+        [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
+        let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
+        if (sandboxMode) {
+            productType = 'S' + productType;
+        }
+        request['productType'] = productType;
         const response = await this.privateMixPostAccountSetPositionMode (this.extend (request, params));
         //
         //    {

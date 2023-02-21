@@ -60,6 +60,7 @@ module.exports = class gate extends gateRest {
                 'watchOrderBook': {
                     'interval': '100ms',
                     'snapshotDelay': 10, // how many deltas to cache before fetching a snapshot
+                    'maxRetries': 3,
                 },
                 'watchBalance': {
                     'settle': 'usdt', // or btc
@@ -284,7 +285,7 @@ module.exports = class gate extends gateRest {
          * @method
          * @name gate#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {Array} symbols unified symbol of the market to fetch the ticker for
+         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */

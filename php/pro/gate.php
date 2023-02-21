@@ -66,6 +66,7 @@ class gate extends \ccxt\async\gate {
                 'watchOrderBook' => array(
                     'interval' => '100ms',
                     'snapshotDelay' => 10, // how many deltas to cache before fetching a snapshot
+                    'maxRetries' => 3,
                 ),
                 'watchBalance' => array(
                     'settle' => 'usdt', // or btc
@@ -289,7 +290,7 @@ class gate extends \ccxt\async\gate {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {Array} $symbols unified symbol of the $market to fetch the $ticker for
+             * @param {[string]} $symbols unified symbol of the $market to fetch the $ticker for
              * @param {array} $params extra parameters specific to the gate api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
              */

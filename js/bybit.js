@@ -1785,7 +1785,8 @@ module.exports = class bybit extends Exchange {
             // 'baseCoin': '', Base coin. For option only
             // 'expDate': '', Expiry date. e.g., 25DEC22. For option only
         };
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         if (type === 'spot') {
             request['category'] = 'spot';
         } else if (type === 'swap') {
@@ -1795,7 +1796,7 @@ module.exports = class bybit extends Exchange {
         } else if (type === 'option') {
             request['category'] = 'option';
         }
-        const response = await this.publicGetV5MarketTickers (this.extend (request, query));
+        const response = await this.publicGetV5MarketTickers (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -6041,7 +6042,7 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['startTime'] = this.yyyymmdd (since);
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -7921,11 +7922,7 @@ module.exports = class bybit extends Exchange {
                     authFull = auth_base + body;
                 } else {
                     authFull = auth_base + queryEncoded;
-                    if (path === 'unified/v3/private/order/list') {
-                        url += '?' + this.rawencode (query);
-                    } else {
-                        url += '?' + this.urlencode (query);
-                    }
+                    url += '?' + this.rawencode (query);
                 }
                 headers['X-BAPI-SIGN'] = this.hmac (this.encode (authFull), this.encode (this.secret));
             } else {
@@ -7954,11 +7951,7 @@ module.exports = class bybit extends Exchange {
                         };
                     }
                 } else {
-                    if (path === 'contract/v3/private/order/list') {
-                        url += '?' + this.rawencode (sortedQuery);
-                    } else {
-                        url += '?' + this.urlencode (sortedQuery);
-                    }
+                    url += '?' + this.rawencode (sortedQuery);
                     url += '&sign=' + signature;
                 }
             }

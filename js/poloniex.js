@@ -82,8 +82,12 @@ module.exports = class poloniex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
-                'api': 'https://api.poloniex.com',
-                'test': 'https://sand-spot-api-gateway.poloniex.com',
+                'api': {
+                    'rest': 'https://api.poloniex.com',
+                },
+                'test': {
+                    'rest': 'https://sand-spot-api-gateway.poloniex.com',
+                },
                 'www': 'https://www.poloniex.com',
                 'doc': 'https://docs.poloniex.com',
                 'fees': 'https://poloniex.com/fees',
@@ -523,7 +527,7 @@ module.exports = class poloniex extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the poloniex api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -2026,7 +2030,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'];
+        let url = this.urls['api']['rest'];
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
         if (api === 'public') {

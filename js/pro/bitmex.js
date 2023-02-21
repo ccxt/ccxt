@@ -30,9 +30,9 @@ module.exports = class bitmex extends bitmexRest {
                     'ws': 'wss://ws.bitmex.com/realtime',
                 },
             },
-            'versions': {
-                'ws': '0.2.0',
-            },
+            // 'versions': {
+            //     'ws': '0.2.0',
+            // },
             'options': {
                 'watchOrderBookLevel': 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
                 'tradesLimit': 1000,
@@ -585,15 +585,14 @@ module.exports = class bitmex extends bitmexRest {
                 }
             }
         }
-        return await future;
+        return future;
     }
 
     handleAuthenticationMessage (client, message) {
         const authenticated = this.safeValue (message, 'success', false);
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
-            const future = this.safeValue (client.futures, 'authenticated');
-            future.resolve (true);
+            client.resolve (message, 'authenticated');
         } else {
             const error = new AuthenticationError (this.json (message));
             client.reject (error, 'authenticated');

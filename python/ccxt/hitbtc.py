@@ -242,7 +242,6 @@ class hitbtc(Exchange):
                 'BCC': 'BCC',  # initial symbol for Bitcoin Cash, now inactive
                 'BDP': 'BidiPass',
                 'BET': 'DAO.Casino',
-                'BIT': 'BitRewards',
                 'BOX': 'BOX Token',
                 'CPT': 'Cryptaur',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'GET': 'Themis',
@@ -402,12 +401,7 @@ class hitbtc(Exchange):
         #         'id': '2db6ebab-fb26-4537-9ef8-1a689472d236'
         #     }
         #
-        transfer = self.parse_transfer(response, currency)
-        return self.extend(transfer, {
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'amount': self.parse_number(requestAmount),
-        })
+        return self.parse_transfer(response, currency)
 
     def parse_transfer(self, transfer, currency=None):
         #
@@ -683,7 +677,7 @@ class hitbtc(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the hitbtc api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
