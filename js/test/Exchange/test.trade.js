@@ -21,7 +21,6 @@ function testTrade (exchange, method, entry, symbol, now) {
     sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     sharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
     sharedMethods.reviseSymbol (exchange, method, entry, entry['symbol'], symbol);
-    const logText = sharedMethods.logTemplate (exchange, method, entry);
     //
     sharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
     sharedMethods.reviseAgainstArray (exchange, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);

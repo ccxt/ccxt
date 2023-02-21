@@ -4,10 +4,10 @@ const assert = require ('assert');
 const sharedMethods = require ('./test.commonItems.js');
 const Precise = require ('../../base/Precise');
 
-function testTicker (exchange, method, ticker, symbol) {
+function testTicker (exchange, method, entry, symbol) {
     const format = {
-        'symbol': 'ETH/BTC',
         'info': {},
+        'symbol': 'ETH/BTC',
         'timestamp': 1502962946216,
         'datetime': '2017-09-01T00:00:00',
         'high': exchange.parseNumber ('1.234'), // highest price
@@ -27,17 +27,17 @@ function testTicker (exchange, method, ticker, symbol) {
         'baseVolume': exchange.parseNumber ('1.234'), // volume of base currency
         'quoteVolume': exchange.parseNumber ('1.234'), // volume of quote currency
     };
-    sharedMethods.reviseStructureKeys (exchange, method, ticker, format);
-    sharedMethods.reviseCommonTimestamp (exchange, method, ticker);
-
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (ticker) + ' >>> ';
-
-    assert (!('first' in ticker), '`first` field leftover' + logText);
-    const lastString = exchange.safeString (ticker, 'last');
-    const closeString = exchange.safeString (ticker, 'close');
-    assert ( (closeString === undefined && lastString === undefined) || Precise.stringEq (lastString, closeString), '`last` != `close`' + logText);
-
-    // const { high, low, vwap, baseVolume, quoteVolume } = ticker
+    const emptyNotAllowedFor = [ 'close', 'amount', 'currency' ];
+    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    sharedMethods.reviseCommonTimestamp (exchange, method, entry);
+    const logText = sharedMethods.logTemplate (exchange, method, entry);
+    //
+    assert (!('first' in entry), '`first` field leftover' + logText);
+    const lastString = exchange.safeString (entry, 'last');
+    const closeString = exchange.safeString (entry, 'close');
+    assert ((closeString === undefined && lastString === undefined) || Precise.stringEq (lastString, closeString), '`last` != `close`' + logText);
+    //
+    // const { high, low, vwap, baseVolume, quoteVolume } = entry
     // this assert breaks QuadrigaCX sometimes... still investigating
     // if (vwap) {
     //     assert (vwap >= low && vwap <= high)
@@ -52,7 +52,6 @@ function testTicker (exchange, method, ticker, symbol) {
     // if (quoteVolume && vwap) {
     //     assert (baseVolume)
     // }
-
     const skippedExchanges = [
         'bigone',
         'bitmart',
@@ -64,7 +63,7 @@ function testTicker (exchange, method, ticker, symbol) {
         'cryptocom',
         'ftx',
         'ftxus',
-        'gateio', // some ticker bids are greaters than asks
+        'gateio', // some entry bids are greaters than asks
         'idex',
         'mercado',
         'mexc',
@@ -75,19 +74,14 @@ function testTicker (exchange, method, ticker, symbol) {
         'timex',
         'xbtce',
     ];
-
     if (exchange.inArray (exchange.id, skippedExchanges)) { 
         return;
     }
-
-    if (ticker['baseVolume'] || ticker['quoteVolume']) {
-        if (ticker['bid'] && ticker['ask']) {
-            const symbolName = ticker['symbol'] ? (ticker['symbol'] + ' ') : '';
-            assert (ticker['bid'] <= ticker['ask'], symbolName + ' ticker bid is greater than ticker ask!' + logText);
-        }
+    if (entry['bid'] && entry['ask']) {
+        const symbolName = entry['symbol'] ? (entry['symbol'] + ' ') : '';
+        assert (entry['bid'] <= entry['ask'], symbolName + ' bid is greater than ask!' + logText);
     }
-
-    return ticker;
+    sharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
 }
 
 module.exports = testTicker;

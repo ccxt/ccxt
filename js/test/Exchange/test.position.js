@@ -1,10 +1,8 @@
 'use strict';
 
-const assert = require ('assert');
 const sharedMethods = require ('./test.commonItems.js');
 
-function testPosition (exchange, position, symbol, now) {
-    const method = 'position';
+function testPosition (exchange, method, entry, symbol, now) {
     const format = {
         'info': {}, // or []
         'symbol': 'XYZ/USDT',
@@ -28,14 +26,27 @@ function testPosition (exchange, position, symbol, now) {
         'side': 'long',
         'percentage': exchange.parseNumber ('1.234'),
     };
-    sharedMethods.reviseStructureKeys (exchange, method, position, format);
-    sharedMethods.testId (exchange, method, position);
-    sharedMethods.reviseCommonTimestamp (exchange, method, position);
-
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (position) + ' >>> ';
-
-    assert (('symbol' in position), 'symbol is missing' + logText);
-    assert ((symbol === undefined) || (position['symbol'] === symbol), 'symbol does not match; expected ' + symbol + ', got ' + position['symbol'] + logText);
+    const emptyNotAllowedFor = [ 'symbol', 'entryPrice', 'side', 'markPrice', 'contracts', 'contractSize', 'marginMode' ];
+    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    sharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
+    sharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
+    sharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'long', 'short' ]);
+    sharedMethods.reviseAgainstArray (exchange, method, entry, 'marginMode', [ 'cross', 'isolated' ]);
+    sharedMethods.Gt (exchange, method, entry, 'leverage', '0');
+    sharedMethods.Le (exchange, method, entry, 'leverage', '200');
+    sharedMethods.Gt (exchange, method, entry, 'initialMargin', '0');
+    sharedMethods.Gt (exchange, method, entry, 'initialMarginPercentage', '0');
+    sharedMethods.Gt (exchange, method, entry, 'maintenanceMargin', '0');
+    sharedMethods.Gt (exchange, method, entry, 'maintenanceMarginPercentage', '0');
+    sharedMethods.Gt (exchange, method, entry, 'entryPrice', '0');
+    sharedMethods.Gt (exchange, method, entry, 'notional', '0');
+    sharedMethods.Gt (exchange, method, entry, 'contracts', '0');
+    sharedMethods.Gt (exchange, method, entry, 'contractSize', '0');
+    sharedMethods.Gt (exchange, method, entry, 'marginRatio', '0');
+    sharedMethods.Gt (exchange, method, entry, 'liquidationPrice', '0');
+    sharedMethods.Gt (exchange, method, entry, 'markPrice', '0');
+    sharedMethods.Gt (exchange, method, entry, 'collateral', '0');
+    sharedMethods.Ge (exchange, method, entry, 'percentage', '0');
 }
 
 module.exports = testPosition;

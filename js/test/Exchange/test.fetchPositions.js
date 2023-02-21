@@ -30,7 +30,7 @@ module.exports = async (exchange, symbol) => {
         assert (positions instanceof Array)
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i]
-            testPosition (exchange, position, undefined, now)
+            testPosition (exchange, method, position, undefined, now)
         }
         
         // with symbol
@@ -39,7 +39,7 @@ module.exports = async (exchange, symbol) => {
         assert (positionsForSymbol instanceof Array)
         for (let i = 0; i < positionsForSymbol.length; i++) {
             const position = positionsForSymbol[i]
-            testPosition (exchange, position, symbol, now)
+            testPosition (exchange, method, position, symbol, now)
         }
 
     } else {
