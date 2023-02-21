@@ -422,6 +422,7 @@ module.exports = class poloniex extends poloniexRest {
     }
 
     parseWsOrderStatus (status) {
+        // TODO
         const statuses = {
             'filled': 'closed',
             'canceled': 'canceled',
@@ -430,6 +431,7 @@ module.exports = class poloniex extends poloniexRest {
     }
 
     handleOrder (client, message) {
+        // TODO
         //
         // Order is created
         //
@@ -547,6 +549,7 @@ module.exports = class poloniex extends poloniexRest {
     }
 
     parseWsOrder (order) {
+        // TODO
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_oid');
         const marketId = this.safeString (order, 'product_id');
@@ -601,6 +604,7 @@ module.exports = class poloniex extends poloniexRest {
     }
 
     handleTicker (client, message) {
+        // TODO
         //
         //    {
         //        "symbol": "ETH_USDT",
@@ -631,6 +635,7 @@ module.exports = class poloniex extends poloniexRest {
     }
 
     parseTicker (ticker, market = undefined) {
+        // TODO
         //
         //     {
         //         type: 'ticker',
@@ -697,6 +702,7 @@ module.exports = class poloniex extends poloniexRest {
     }
 
     handleOrderBook (client, message) {
+        // TODO
         //
         //    snapshot
         //
@@ -804,6 +810,7 @@ module.exports = class poloniex extends poloniexRest {
     }
 
     handleBalance (client, message) {
+        // TODO
         //
         //    {
         //        "changeTime": 1657312008411,
