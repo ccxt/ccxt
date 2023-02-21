@@ -35,8 +35,25 @@ module.exports = class poloniex extends poloniexRest {
                 // 'tradesLimit': 1000,
                 // 'ordersLimit': 1000,
                 // 'myTradesLimit': 1000,
+                'OHLCVLimit': 1000,
                 'connectionsLimit': 2000, // 2000 public, 2000 private, 4000 total, only for subscribe events, unsubscribe not restricted
                 'requestsLimit': 500, // per second, only for subscribe events, unsubscribe not restricted
+                'channelToTimeframe': {
+                    'candles_minute_1': '1m',
+                    'candles_minute_5': '5m',
+                    'candles_minute_10': '10m',
+                    'candles_minute_15': '15m',
+                    'candles_minute_30': '30m',
+                    'candles_hour_1': '1h',
+                    'candles_hour_2': '2h',
+                    'candles_hour_4': '4h',
+                    'candles_hour_6': '6h',
+                    'candles_hour_12': '12h',
+                    'candles_day_1': '1d',
+                    'candles_day_3': '3d',
+                    'candles_week_1': '1w',
+                    'candles_month_1': '1m',
+                },
             },
         });
     }
@@ -134,7 +151,7 @@ module.exports = class poloniex extends poloniexRest {
             '6h': 'candles_hour_6',
             '12h': 'candles_hour_12',
             '1d': 'candles_day_1',
-            '3c': 'candles_day_3',
+            '3d': 'candles_day_3',
             '1w': 'candles_week_1',
             '1M': 'candles_month_1',
         };
@@ -142,7 +159,7 @@ module.exports = class poloniex extends poloniexRest {
         if (channel === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
         }
-        const ohlcv = await this.subscribe (channel, [ symbol ], 'public', params);
+        const ohlcv = await this.subscribe (channel, 'public', [ symbol ], params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -160,7 +177,7 @@ module.exports = class poloniex extends poloniexRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const name = 'ticker';
-        return await this.subscribe (name, [ symbol ], 'public', params);
+        return await this.subscribe (name, 'public', [ symbol ], params);
     }
 
     async watchTickers (symbols, params = {}) {
@@ -177,7 +194,7 @@ module.exports = class poloniex extends poloniexRest {
         if (symbols === undefined) {
             symbols = [ 'all' ];
         }
-        return await this.subscribe (name, symbols, 'public', params);
+        return await this.subscribe (name, 'public', symbols, params);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -194,7 +211,7 @@ module.exports = class poloniex extends poloniexRest {
          */
         await this.loadMarkets ();
         const name = 'trades';
-        const trades = await this.subscribe (name, symbol, 'public', params);
+        const trades = await this.subscribe (name, 'public', [ symbol ], params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -213,7 +230,7 @@ module.exports = class poloniex extends poloniexRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         const name = 'book_lv2';
-        const orderbook = await this.subscribe (name, 'public', symbol, params);
+        const orderbook = await this.subscribe (name, 'public', [ symbol ], params);
         return orderbook.limit ();
     }
 
@@ -232,7 +249,7 @@ module.exports = class poloniex extends poloniexRest {
         await this.loadMarkets ();
         const name = 'orders';
         const authentication = this.authenticate ();
-        const orders = await this.subscribe (name, 'private', symbol, this.extend (params, authentication));
+        const orders = await this.subscribe (name, 'private', [ symbol ], this.extend (params, authentication));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -260,37 +277,65 @@ module.exports = class poloniex extends poloniexRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
+    parseSocketOHLCV (ohlcv, market = undefined) {
+        //
+        //    {
+        //        symbol: 'BTC_USDT',
+        //        amount: '840.7240416',
+        //        high: '24832.35',
+        //        quantity: '0.033856',
+        //        tradeCount: 1,
+        //        low: '24832.35',
+        //        closeTime: 1676942519999,
+        //        startTime: 1676942460000,
+        //        close: '24832.35',
+        //        open: '24832.35',
+        //        ts: 1676942492072
+        //    }
+        //
+        return [
+            this.safeInteger (ohlcv, 'startTime'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'amount'),
+        ];
+    }
+
     handleOHLCV (client, message) {
         //
-        //    [
-        //        {
-        //            "symbol": "BTC_USDT",
-        //            "amount": "0",
-        //            "high": "9999.07",
-        //            "quantity": "0",
-        //            "tradeCount": 0,
-        //            "low": "9999.07",
-        //            "closeTime": 1648057199999,
-        //            "startTime": 1648057140000,
-        //            "close": "9999.07",
-        //            "open": "9999.07",
-        //            "ts": 1648057141081
-        //        }
-        //    ]
+        //    {
+        //        channel: 'candles_minute_1',
+        //        data: [
+        //            {
+        //                symbol: 'BTC_USDT',
+        //                amount: '840.7240416',
+        //                high: '24832.35',
+        //                quantity: '0.033856',
+        //                tradeCount: 1,
+        //                low: '24832.35',
+        //                closeTime: 1676942519999,
+        //                startTime: 1676942460000,
+        //                close: '24832.35',
+        //                open: '24832.35',
+        //                ts: 1676942492072
+        //            }
+        //        ]
+        //    }
         //
-        const marketId = this.safeString (message, 's');
+        const data = this.safeValue (message, 'data');
+        const channel = this.safeString (message, 'channel');
+        const marketId = this.safeString (data, 'symbol');
         const symbol = this.safeSymbol (marketId);
-        const channel = this.safeString (message, 'm');
-        const data = this.safeValue (message, 'data', {});
-        const interval = this.safeString (data, 'i');
-        const messageHash = channel + ':' + interval + ':' + marketId;
-        const timeframe = this.findTimeframe (interval);
-        const market = this.market (symbol);
-        const parsed = this.parseOHLCV (message, market);
+        const market = this.safeMarket (symbol);
+        const timeframe = this.options['channelToTimeframe'][channel];
+        const messageHash = channel + ':' + timeframe + ':' + marketId;
+        const parsed = this.parseSocketOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            const limit = this.safeInteger (this.options, 'OHLCVLimit');
             stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
@@ -837,8 +882,7 @@ module.exports = class poloniex extends poloniexRest {
             'balances': this.handleBalance,
         };
         const method = this.safeValue (methods, type);
-        const data = this.safeValue (message, 'data');
-        return method.call (this, client, data);
+        return method.call (this, client, message);
     }
 };
 
