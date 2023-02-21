@@ -713,7 +713,6 @@ module.exports = class binance extends binanceRest {
         if (event === 'indexPriceKline') {
             // indexPriceKline doesn't have the _PERP suffix
             marketId = this.safeString (message, 'ps');
-            marketId = marketId + '_PERP';
         }
         const lowercaseMarketId = marketId.toLowerCase ();
         const interval = this.safeString (kline, 'i');
