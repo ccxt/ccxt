@@ -6547,7 +6547,14 @@ module.exports = class bybit extends Exchange {
                 request['category'] = 'PERPETUAL';
             }
         } else {
-            method = 'privateGetContractV3PrivatePositionList';
+            if (market['linear']) {
+                request['category'] = 'linear';
+            } else if (market['inverse']) {
+                request['category'] = 'inverse';
+            } else {
+                throw new NotSupported (this.id + ' fetchPosition() does not allow option market orders for ' + symbol + ' markets');
+            }
+            method = 'privateGetV5PositionList';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -6860,85 +6867,65 @@ module.exports = class bybit extends Exchange {
     async fetchDerivativesPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
+        let market = undefined;
+        let settle = undefined;
         if (Array.isArray (symbols)) {
             const symbolsLength = symbols.length;
             if (symbolsLength > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
             if (symbolsLength === 1) {
-                request['symbol'] = this.marketId (symbols[0]);
+                market = this.market (symbols[0]);
+                settle = market['settle'];
+                request['symbol'] = market['id'];
             }
-        } else if (symbols !== undefined) {
-            request['symbol'] = this.marketId (symbols);
-        } else {
-            request['dataFilter'] = 'valid';
         }
-        let settle = undefined;
         [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
         if (settle !== undefined) {
             request['settleCoin'] = settle;
         }
-        const response = await this.privateGetContractV3PrivatePositionList (this.extend (request, params));
-        //
-        // contract v3
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params, 'linear');
+        request['category'] = subType;
+        const response = await this.privateGetV5PositionList (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "OK",
         //         "result": {
+        //             "nextPageCursor": "updateAt%3D1672279322668",
+        //             "category": "linear",
         //             "list": [
         //                 {
-        //                     "positionIdx": 1,
-        //                     "riskId": "41",
         //                     "symbol": "XRPUSDT",
+        //                     "leverage": "10",
+        //                     "avgPrice": "0.3615",
+        //                     "liqPrice": "0.0001",
+        //                     "riskLimitValue": "200000",
+        //                     "takeProfit": "",
+        //                     "positionValue": "36.15",
+        //                     "tpslMode": "Full",
+        //                     "riskId": 41,
+        //                     "trailingStop": "0",
+        //                     "unrealisedPnl": "-1.83",
+        //                     "markPrice": "0.3432",
+        //                     "cumRealisedPnl": "0.48805876",
+        //                     "positionMM": "0.381021",
+        //                     "createdTime": "1672121182216",
+        //                     "positionIdx": 0,
+        //                     "positionIM": "3.634521",
+        //                     "updatedTime": "1672279322668",
         //                     "side": "Buy",
-        //                     "size": "0",
-        //                     "positionValue": "0",
-        //                     "entryPrice": "0",
-        //                     "tradeMode": 0,
-        //                     "autoAddMargin": 0,
-        //                     "leverage": "10",
-        //                     "positionBalance": "0",
-        //                     "liqPrice": "0.0000",
-        //                     "bustPrice": "0.0000",
-        //                     "takeProfit": "0.0000",
-        //                     "stopLoss": "0.0000",
-        //                     "trailingStop": "0.0000",
-        //                     "unrealisedPnl": "0",
-        //                     "createdTime": "1658827444328",
-        //                     "updatedTime": "1658904863412",
-        //                     "tpSlMode": "Full",
-        //                     "riskLimitValue": "200000",
-        //                     "activePrice": "0.0000"
-        //                 },
-        //                 {
-        //                     "positionIdx": 2,
-        //                     "riskId": "41",
-        //                     "symbol": "XRPUSDT",
-        //                     "side": "Sell",
-        //                     "size": "50",
-        //                     "positionValue": "16.68",
-        //                     "entryPrice": "0.3336",
-        //                     "tradeMode": 0,
-        //                     "autoAddMargin": 0,
-        //                     "leverage": "10",
-        //                     "positionBalance": "1.6790088",
-        //                     "liqPrice": "12.4835",
-        //                     "bustPrice": "12.4869",
-        //                     "takeProfit": "0.0000",
-        //                     "stopLoss": "0.0000",
-        //                     "trailingStop": "0.0000",
-        //                     "unrealisedPnl": "0",
-        //                     "createdTime": "1658827444328",
-        //                     "updatedTime": "1658904863412",
-        //                     "tpSlMode": "Full",
-        //                     "riskLimitValue": "200000",
-        //                     "activePrice": "0.0000"
+        //                     "bustPrice": "",
+        //                     "size": "100",
+        //                     "positionStatus": "Normal",
+        //                     "stopLoss": "",
+        //                     "tradeMode": 0
         //                 }
         //             ]
         //         },
-        //         "retExtInfo": null,
-        //         "time": 1658904877942
+        //         "retExtInfo": {},
+        //         "time": 1672280219169
         //     }
         //
         const result = this.safeValue (response, 'result', {});
