@@ -2053,7 +2053,8 @@ module.exports = class bybit extends Exchange {
             symbols = this.marketSymbols (symbols);
             market = this.market (symbols[0]);
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchFundingRates', market, params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchFundingRates', market, params);
         const request = {};
         if (type !== 'swap') {
             throw new NotSupported (this.id + ' fetchFundingRates() does not support ' + type + ' markets');
@@ -2062,7 +2063,7 @@ module.exports = class bybit extends Exchange {
             [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', market, params, 'linear');
             request['category'] = subType;
         }
-        const response = await this.publicGetV5MarketTickers (this.extend (request, query));
+        const response = await this.publicGetV5MarketTickers (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -5478,13 +5479,13 @@ module.exports = class bybit extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        let subQuery = query;
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         if (type === 'spot') {
             request['category'] = 'spot';
         } else {
             let subType = undefined;
-            [ subType, subQuery ] = this.handleSubTypeAndParams ('fetchMyTrades', market, subQuery);
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
             if (subType === 'inverse') {
                 throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + subType + ' markets.');
             }
@@ -5496,7 +5497,7 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 50
         }
-        const response = await this.privateGetV5ExecutionList (this.extend (request, subQuery));
+        const response = await this.privateGetV5ExecutionList (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
