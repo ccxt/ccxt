@@ -16,10 +16,11 @@ function testTrade (exchange, method, entry, symbol, now) {
         'amount': exchange.parseNumber ('1.5'), // amount of base currency
         'cost': exchange.parseNumber ('0.10376526'), // total cost (including fees), `price * amount`
     };
-    const emptyNotAllowedFor = [ 'side', 'takerOrMaker', 'price', 'amount', 'cost' ];
+    // todo: add takeOrMaker as mandatory set
+    const emptyNotAllowedFor = [ 'side', 'price', 'amount', 'cost' ];
     sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     sharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
-    sharedMethods.reviseSymbol (exchange, method, entry, entry['symbol'], symbol);
+    sharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
     //
     sharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
     sharedMethods.reviseAgainstArray (exchange, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);

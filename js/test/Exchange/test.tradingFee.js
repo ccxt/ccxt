@@ -13,7 +13,7 @@ function testTradingFee (exchange, method, symbol, entry) {
     };
     const emptyNotAllowedFor = [ 'maker', 'taker', 'percentage', 'tierBased' ];
     sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    sharedMethods.reviseSymbol (exchange, method, entry, entry['symbol'], symbol);
+    sharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
 }
 
 module.exports = testTradingFee;

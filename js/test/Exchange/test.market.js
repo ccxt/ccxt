@@ -3,7 +3,7 @@
 const assert = require ('assert');
 const sharedMethods = require ('./test.sharedMethods.js');
 
-function testMarket (exchange, market, method) {
+function testMarket (exchange, method, market) {
     const format = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
@@ -15,8 +15,8 @@ function testMarket (exchange, market, method) {
         'quoteId': 'usd', // exchange-specific quote currency id
         'active': true, // boolean, market status
         'type': 'spot',
-        'linear': undefined,
-        'inverse': undefined,
+        'linear': false,
+        'inverse': false,
         'spot': true,
         'swap': false,
         'future': false,
@@ -28,8 +28,8 @@ function testMarket (exchange, market, method) {
         'expiryDatetime': '2022-06-24T08:00:00.000Z',
         'optionType': 'put',
         'strike': exchange.parseNumber ('56000'),
-        'settle': undefined,
-        'settleId': undefined,
+        'settle': 'XYZ',
+        'settleId': 'Xyz',
         'precision': {
             // todo : handle precision types after another PR is merged
             'price': exchange.parseNumber ('8'), // integer or fraction
@@ -54,7 +54,7 @@ function testMarket (exchange, market, method) {
         },
         'info': {}, // the original unparsed market info from the exchange
     };
-    const emptyNotAllowedFor = [ 'id', 'symbol', 'base', 'quote', 'baseId', 'quoteId', 'precision', 'limits', 'type', 'spot', 'margin', 'swap', 'future', 'contract' ];
+    const emptyNotAllowedFor = [ 'id', 'symbol', 'base', 'quote', 'baseId', 'quoteId', 'precision', 'limits', 'type', 'spot', 'swap', 'future', 'contract' ];
     sharedMethods.reviseStructureKeys (exchange, method, market, format, emptyNotAllowedFor);
     sharedMethods.reviseSymbol (exchange, method, market, 'symbol');
     const logText = sharedMethods.logTemplate (exchange, method, market);

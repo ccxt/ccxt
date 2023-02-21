@@ -25,6 +25,7 @@ module.exports = async (exchange, symbol) => {
 
         // log ('fetching all tickers at once...')
         let tickers = undefined
+        let checkedSymbol = undefined;
 
         try {
 
@@ -35,10 +36,11 @@ module.exports = async (exchange, symbol) => {
 
             console.log ('failed to fetch all tickers, fetching multiple tickers at once...')
             tickers = await exchange[method] ([ symbol ])
+            checkedSymbol = symbol;
             console.log ('fetched', Object.keys (tickers).length, 'tickers')
         }
 
-        Object.values (tickers).forEach ((ticker) => testTicker (exchange, method, ticker, symbol))
+        Object.values (tickers).forEach ((ticker) => testTicker (exchange, method, ticker, checkedSymbol))
         return tickers
 
     } else {

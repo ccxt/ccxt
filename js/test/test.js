@@ -170,7 +170,7 @@ module.exports = class testMainClass extends emptyClass {
 
     async testMethod (methodName, exchange, args) {
         let skipMessage = undefined;
-        if (!(methodName in exchange.has) || !exchange.has[methodName]) {
+        if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName])) {
             skipMessage = 'not supported';
         } else if (!(methodName in testFiles)) {
             skipMessage = 'test not available';
@@ -179,11 +179,12 @@ module.exports = class testMainClass extends emptyClass {
             dump ('[Skipping]', exchange.id, methodName, ' - ' + skipMessage);
             return;
         }
-        dump ('Testing', exchange.id, methodName, '(', args, ')');
+        const argsStringified = '(' + args.join (',') + ')';
+        dump ('Testing', exchange.id, methodName, argsStringified);
         try {
             return await call_method (methodName, exchange, args);
         } catch (e) {
-            dump (exception_message(e), ' | ', exchange.id, methodName, '(', args, ')');
+            dump (exception_message(e), ' | ', exchange.id, methodName, argsStringified);
             throw e;
         }
     }
@@ -215,7 +216,7 @@ module.exports = class testMainClass extends emptyClass {
         const market = exchange.market (symbol);
         const isSpot = market['spot'];
         if (isSpot) {
-            tests['fetchCurrencies'] = [symbol];
+            tests['fetchCurrencies'] = [];
         } else {
             tests['fetchFundingRates'] = [symbol];
             tests['fetchFundingRate'] = [symbol];
