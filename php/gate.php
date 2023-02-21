@@ -3591,7 +3591,7 @@ class gate extends Exchange {
         $filledString = Precise::string_sub($amount, $remainingString);
         $cost = $this->safe_string($order, 'filled_total');
         $rawStatus = null;
-        $average = $this->safe_number($order, 'fill_price');
+        $average = $this->safe_number($order, 'avg_deal_price');
         if ($put) {
             $remainingString = $amount;
             $filledString = '0';

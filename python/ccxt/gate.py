@@ -3438,7 +3438,7 @@ class gate(Exchange):
         filledString = Precise.string_sub(amount, remainingString)
         cost = self.safe_string(order, 'filled_total')
         rawStatus = None
-        average = self.safe_number(order, 'fill_price')
+        average = self.safe_number(order, 'avg_deal_price')
         if put:
             remainingString = amount
             filledString = '0'
