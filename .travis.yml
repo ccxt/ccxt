@@ -3,12 +3,7 @@ dist: jammy
 python:
 - 3.8.3
 git:
-  depth:
-    - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-        2;
-      else
-        50;
-    - fi
+  depth: if [[ "$TRAVIS_PULL_REQUEST" = "false" ]]; then 2; else 50; fi
 cache:
   directories:
   - ".cache"
