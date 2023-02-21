@@ -5183,7 +5183,7 @@ class bybit(Exchange):
             currency = self.currency(code)
             request['coin'] = currency['id']
         if since is not None:
-            request['startTime'] = self.yyyymmdd(since)
+            request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetAssetV3PrivateWithdrawRecordQuery(self.extend(request, params))

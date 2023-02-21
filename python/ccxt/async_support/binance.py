@@ -3973,7 +3973,7 @@ class binance(Exchange):
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
             type = self.safe_string(query, 'type', defaultType)
         subType = None
-        subType, query = self.handle_sub_type_and_params('fetchOpenOrders', market, params)
+        subType, query = self.handle_sub_type_and_params('fetchOpenOrders', market, query)
         requestParams = self.omit(query, 'type')
         method = 'privateGetOpenOrders'
         if type == 'option':
@@ -6041,7 +6041,7 @@ class binance(Exchange):
         await self.load_markets()
         type, query = self.handle_market_type_and_params('fetchLeverageTiers', None, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchLeverageTiers', None, params, 'linear')
+        subType, params = self.handle_sub_type_and_params('fetchLeverageTiers', None, query, 'linear')
         method = None
         if self.is_linear(type, subType):
             method = 'fapiPrivateGetLeverageBracket'
