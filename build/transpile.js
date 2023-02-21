@@ -13,6 +13,7 @@ const fs = require ('fs')
     , { fork } = require ('child_process')
     , os = require ('os')
     , {
+        capitalize,
         unCamelCase,
         precisionConstants,
         safeString,
@@ -1060,7 +1061,7 @@ class Transpiler {
         let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
         // indent async php
         if (async && js.indexOf (' await ') > -1) {
-            const closure = variables.length ? 'use (' + variables.map (x => '$' + x).join (', ') + ')': '';
+            const closure = variables && variables.length ? 'use (' + variables.map (x => '$' + x).join (', ') + ')': '';
             phpBody = '        return Async\\async(function () ' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        }) ();'
         }
 
@@ -1802,65 +1803,47 @@ class Transpiler {
     }
 
     // ============================================================================
-
-    transpileExchangeTests () {
-
-        const tests = [
-            {
-                'jsFile': './js/test/Exchange/test.market.js',
-                'pyFile': './python/ccxt/test/test_market.py',
-                'phpFile': './php/test/test_market.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.trade.js',
-                'pyFile': './python/ccxt/test/test_trade.py',
-                'phpFile': './php/test/test_trade.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.order.js',
-                'pyFile': './python/ccxt/test/test_order.py',
-                'phpFile': './php/test/test_order.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.position.js',
-                'pyFile': './python/ccxt/test/test_position.py',
-                'phpFile': './php/test/test_position.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.transaction.js',
-                'pyFile': './python/ccxt/test/test_transaction.py',
-                'phpFile': './php/test/test_transaction.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.ohlcv.js',
-                'pyFile': './python/ccxt/test/test_ohlcv.py',
-                'phpFile': './php/test/test_ohlcv.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.leverageTier.js',
-                'pyFile': './python/ccxt/test/test_leverage_tier.py',
-                'phpFile': './php/test/test_leverage_tier.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.account.js',
-                'pyFile': './python/ccxt/test/test_account.py',
-                'phpFile': './php/test/test_account.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.marginModification.js',
-                'pyFile': './python/ccxt/test/test_margin_modification.py',
-                'phpFile': './php/test/test_margin_modification.php',
-            },
-        ]
-        for (const test of tests) {
-            this.transpileTest (test)
-        }
+ 
+    transpileExchangeTestsAuto () {
 
         this.transpileMainTest ({
             'jsFile': './js/test/test.js',
             'pyFile': './python/ccxt/test/transpiled_test_async.py',
             'phpFile': './php/test/transpiled_test_async.php',
         });
+
+        const baseFolders = {
+            js: './js/test/Exchange/',
+            py: './python/ccxt/test/',
+            php: './php/test/',
+        };
+
+        const JsFilesToTranspile = [];
+        // iterate through all test files
+        const allJsExamplesFiles = fs.readdirSync (baseFolders.js);
+        for (const filenameWithExt of allJsExamplesFiles) {
+            // remove `.js` extension
+            const filenameWithoutExt = filenameWithExt.substring (0, filenameWithExt.length - 3);
+            // skiped files
+            if (
+                // test.throttle (for now)
+                (filenameWithoutExt === 'test.throttle')
+            ) {
+                continue;
+            }
+            JsFilesToTranspile.push (filenameWithoutExt);
+        }
+        // transpile all collected files
+        for (const originalJsFileName of JsFilesToTranspile) {
+            const unCamelCasedFileName = unCamelCase (originalJsFileName).replace (/\./g, '_');
+            const prefix = ''; //'transpiled_';
+            const test = {
+                jsFile: baseFolders.js + originalJsFileName + '.js',
+                pyFile: baseFolders.py + prefix + unCamelCasedFileName + '.py',
+                phpFile: baseFolders.php + prefix + unCamelCasedFileName + '.php',
+            };
+            this.transpileTest (test);
+        }
     }
 
     transpileMainTest (test) {
@@ -1891,60 +1874,13 @@ class Transpiler {
 
     // ============================================================================
 
-    transpileExchangeTestsAuto () {
-        const baseFolders = {
-            js: './js/test/Exchange/',
-            py: './python/ccxt/test/',
-            php: './php/test/',
-        };
-        const JsFilesToTranspile = [];
-        // iterate through all test files
-        const allJsExamplesFiles = fs.readdirSync (baseFolders.js);
-        for (const filenameWithExt of allJsExamplesFiles) {
-            // remove `.js` extension
-            const filenameWithoutExt = filenameWithExt.substring (0, filenameWithExt.length - 3);
-            // skiped files
-            if (
-                // test.throttle (for now)
-                (filenameWithoutExt === 'test.throttle') || 
-                // .fetchXyz methods (for now)
-                (filenameWithoutExt.indexOf ('.fetch') >= 0) ||
-                // .fetchXyz methods (for now)
-                (filenameWithoutExt.indexOf ('.signIn') >= 0) ||
-                // test.loadMarkets  (for now)
-                (filenameWithoutExt === 'test.loadMarkets')
-            ) {
-                continue;
-            }
-            JsFilesToTranspile.push (filenameWithoutExt);
-        }
-        // transpile all collected files
-        for (const originalJsFileName of JsFilesToTranspile) {
-            const unCamelCasedFileName = unCamelCase (originalJsFileName).replace (/\./g, '_');
-            const prefix = 'transpiled_';
-            const test = {
-                jsFile: baseFolders.js + originalJsFileName + '.js',
-                pyFile: baseFolders.py + prefix + unCamelCasedFileName + '.py',
-                phpFile: baseFolders.php + prefix + unCamelCasedFileName + '.php',
-            };
-            this.transpileTest (test, true);
-        }
-    }
-
-    // ============================================================================
-
-    transpileTest (test, autoVersion = false) {
+    transpileTest (test) {
         log.magenta ('Transpiling from', test.jsFile.yellow)
         let js = fs.readFileSync (test.jsFile).toString ()
 
         const containsPrecise = js.match (/[\s(]Precise/);
-        const containsCommonItems = js.match (/[\s(]sharedMethods/);
-        const commonTestMethodsUnCamelCase = function (content, isWholeMatch ) {
-            return content.replace (/sharedMethods\.(\w+)/g,  function (wholeMatch, exactMatch) {
-                return (isWholeMatch ? unCamelCase (wholeMatch) : unCamelCase (exactMatch) );
-            });
-        };
-    
+        const requiredSubTests = [...js.matchAll (/require \('\.\/test\.(.*?)\.js'\)/g)].map(m => m[1]);
+
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
             [ /[^\n]+require[^\n]+\n/g, '' ],
@@ -1955,19 +1891,29 @@ class Transpiler {
 
         // py
         let pythonHeader = []
+        let phpPreamble = this.getPHPPreamble (false)
 
         if (python3Body.indexOf ('numbers.') >= 0) {
             pythonHeader.push ('import numbers  # noqa E402')
         }
 
-        if (autoVersion) {
-            if (containsCommonItems) {
-                pythonHeader.push ('import test_common_items  # noqa E402')
-                python3Body = commonTestMethodsUnCamelCase(python3Body, true)
-            }
+        if (containsPrecise) {
+            pythonHeader.push ('from ccxt.base.precise import Precise  # noqa E402')
+            phpPreamble = phpPreamble.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;')
+        }
 
-            if (containsPrecise) {
-                pythonHeader.push ('from ccxt.base.precise import Precise  # noqa E402')
+        if (requiredSubTests.length > 0) {
+            const subTestNameUnCamelCase = function (content, testName) {
+                const pattern = new RegExp ('\\b' + testName + '\\(', 'g');
+                content = content.replace (pattern, unCamelCase (testName) + '(');
+                return content;
+            };
+            for (const subTestName of requiredSubTests) {
+                const capitalizedName = 'test' + capitalize(subTestName);
+                python3Body = subTestNameUnCamelCase(python3Body, capitalizedName)
+                phpBody = subTestNameUnCamelCase(phpBody, subTestName)
+                const importName = 'test_' + unCamelCase(subTestName)
+                pythonHeader.push (`import ${importName}  # noqa E402`)
             }
         }
         
@@ -1980,16 +1926,6 @@ class Transpiler {
 
         const python = pythonHeader + python3Body
 
-        // php
-        let phpPreamble = this.getPHPPreamble (false)
-        if (autoVersion) {
-            if (containsPrecise) {
-                phpPreamble = phpPreamble.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;')
-            }
-            if (containsCommonItems) {
-                phpBody = commonTestMethodsUnCamelCase(phpBody, false)
-            }
-        }
         const php = phpPreamble + phpBody
         log.magenta ('→', test.pyFile.yellow)
         log.magenta ('→', test.phpFile.yellow)
@@ -2006,7 +1942,6 @@ class Transpiler {
         this.transpileDateTimeTests ()
         this.transpileCryptoTests ()
 
-        this.transpileExchangeTests ()
         this.transpileExchangeTestsAuto ()
     }
 
