@@ -2031,10 +2031,10 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        params['symbol'] = market['id'];
-        const symbols = [ market['symbol'] ];
+        symbol = market['symbol'];
+        const symbols = [ symbol ];
         const fr = await this.fetchFundingRates (symbols, params);
-        return this.safeValue (fr, market['symbol']);
+        return this.safeValue (fr, symbol);
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {
@@ -2049,13 +2049,16 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
+        const request = {};
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
             market = this.market (symbols[0]);
+            if (symbols.length === 1) {
+                request['symbol'] = market['id'];
+            }
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchFundingRates', market, params);
-        const request = {};
         if (type !== 'swap') {
             throw new NotSupported (this.id + ' fetchFundingRates() does not support ' + type + ' markets');
         } else {
@@ -2187,27 +2190,6 @@ module.exports = class bybit extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'index',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
-    }
-
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'mark',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
-    }
-
-    async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'premiumIndex',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {
@@ -3406,7 +3388,7 @@ module.exports = class bybit extends Exchange {
         symbol = market['symbol'];
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUSDCSettled = market['settle'] === 'USDC';
-        if (enableUnifiedAccount) {
+        if (enableUnifiedAccount && !market['inverse']) {
             return await this.createUnifiedAccountOrder (symbol, type, side, amount, price, params);
         } else if (market['spot']) {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
@@ -3576,7 +3558,7 @@ module.exports = class bybit extends Exchange {
         }
         const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         if (triggerPrice !== undefined) {
-            params['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         params = this.omit (params, 'stopPrice');
         const response = await this.privatePostSpotV3PrivateOrder (this.extend (request, params));
