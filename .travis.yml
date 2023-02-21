@@ -46,7 +46,7 @@ script:
     standard-version --skip.bump --skip.commit --skip.tag;
     env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
-- fi
+  fi
 after_failure:
 - dmesg | grep -i kill
 deploy:
