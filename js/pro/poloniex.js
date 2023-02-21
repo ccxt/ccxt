@@ -109,8 +109,8 @@ module.exports = class poloniex extends poloniexRest {
                 name,
             ],
         };
+        const marketIds = [ ];
         if (symbols !== undefined) {
-            const marketIds = [ ];
             if (symbols !== [ 'all' ]) {
                 for (let i = 0; i < symbols.length; i++) {
                     const symbol = symbols[i];
@@ -120,10 +120,12 @@ module.exports = class poloniex extends poloniexRest {
                 marketIds.push ('all');
             }
             subscribe['symbols'] = marketIds;
+        } else {
+            marketIds.push ('all');
         }
-        // const messageHash = name + ':' + marketId;
+        const messageHash = name + ':' + marketIds.join (',');
         const request = this.extend (subscribe, params);
-        return await this.watch (url, name, request, name);
+        return await this.watch (url, messageHash, request, name);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -324,7 +326,8 @@ module.exports = class poloniex extends poloniexRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data');
+        let data = this.safeValue (message, 'data');
+        data = this.safeValue (data, 0);
         const channel = this.safeString (message, 'channel');
         const marketId = this.safeString (data, 'symbol');
         const symbol = this.safeSymbol (marketId);
@@ -334,13 +337,15 @@ module.exports = class poloniex extends poloniexRest {
         const parsed = this.parseWsOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'OHLCVLimit');
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+        if (symbol !== undefined) {
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit');
+                stored = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
+            stored.append (parsed);
+            client.resolve (stored, messageHash);
         }
-        stored.append (parsed);
-        client.resolve (stored, messageHash);
         return message;
     }
 
@@ -362,24 +367,24 @@ module.exports = class poloniex extends poloniexRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data');
-        const marketId = this.safeString (data, 'symbol');
-        if (marketId !== undefined) {
-            const trade = this.parseWsTrade (message);
-            const symbol = trade['symbol'];
-            // the exchange sends type = 'match'
-            // but requires 'matches' upon subscribing
-            // therefore we resolve 'matches' here instead of 'match'
-            const type = 'matches';
-            const messageHash = type + ':' + marketId;
-            let tradesArray = this.safeValue (this.trades, symbol);
-            if (tradesArray === undefined) {
-                const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                tradesArray = new ArrayCache (tradesLimit);
-                this.trades[symbol] = tradesArray;
+        const data = this.safeValue (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            const marketId = this.safeString (item, 'symbol');
+            if (marketId !== undefined) {
+                const trade = this.parseWsTrade (item);
+                const symbol = trade['symbol'];
+                const type = 'trades';
+                const messageHash = type + ':' + marketId;
+                let tradesArray = this.safeValue (this.trades, symbol);
+                if (tradesArray === undefined) {
+                    const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                    tradesArray = new ArrayCache (tradesLimit);
+                    this.trades[symbol] = tradesArray;
+                }
+                tradesArray.append (trade);
+                client.resolve (tradesArray, messageHash);
             }
-            tradesArray.append (trade);
-            client.resolve (tradesArray, messageHash);
         }
         return message;
     }
