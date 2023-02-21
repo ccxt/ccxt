@@ -21,7 +21,7 @@ before_install:
     git fetch --depth=1 --tags --verbose --progress;
   else
     git fetch --depth=50 --tags --verbose --progress; # we need some history to create changelog
-  fi
+- fi
 - pip install requests pyopenssl
 - pip install --ignore-installed six
 - pip install tox twine
