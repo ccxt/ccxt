@@ -641,11 +641,15 @@ module.exports = class binance extends binanceRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['lowercaseId'];
+        let marketId = market['lowercaseId'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const options = this.safeValue (this.options, 'watchOHLCV', {});
         const nameOption = this.safeString (options, 'name', 'kline');
         const name = this.safeString (params, 'name', nameOption);
+        if (name === 'indexPriceKline') {
+            // weird behavior for index price kline we can't use the perp suffix
+            marketId = marketId.replace ('_perp', '');
+        }
         params = this.omit (params, 'name');
         const messageHash = marketId + '@' + name + '_' + interval;
         let type = market['type'];
@@ -699,17 +703,22 @@ module.exports = class binance extends binanceRest {
         //     }
         //
         let event = this.safeString (message, 'e');
-        const kline = this.safeValue (message, 'k');
-        const marketId = this.safeString2 (kline, 's', 'ps');
-        const lowercaseMarketId = marketId.toLowerCase ();
-        const interval = this.safeString (kline, 'i');
-        // use a reverse lookup in a static map instead
-        const timeframe = this.findTimeframe (interval);
         const eventMap = {
             'indexPrice_kline': 'indexPriceKline',
             'markPrice_kline': 'markPriceKline',
         };
         event = this.safeString (eventMap, event, event);
+        const kline = this.safeValue (message, 'k');
+        let marketId = this.safeString2 (kline, 's', 'ps');
+        if (event === 'indexPriceKline') {
+            // indexPriceKline doesn't have the _PERP suffix
+            marketId = this.safeString (message, 'ps');
+            marketId = marketId + '_PERP';
+        }
+        const lowercaseMarketId = marketId.toLowerCase ();
+        const interval = this.safeString (kline, 'i');
+        // use a reverse lookup in a static map instead
+        const timeframe = this.findTimeframe (interval);
         const messageHash = lowercaseMarketId + '@' + event + '_' + interval;
         const parsed = [
             this.safeInteger (kline, 't'),
