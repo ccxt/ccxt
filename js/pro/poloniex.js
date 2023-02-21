@@ -277,7 +277,7 @@ module.exports = class poloniex extends poloniexRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    parseSocketOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market = undefined) {
         //
         //    {
         //        symbol: 'BTC_USDT',
@@ -331,7 +331,7 @@ module.exports = class poloniex extends poloniexRest {
         const market = this.safeMarket (symbol);
         const timeframe = this.options['channelToTimeframe'][channel];
         const messageHash = channel + ':' + timeframe + ':' + marketId;
-        const parsed = this.parseSocketOHLCV (data, market);
+        const parsed = this.parseWsOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
@@ -346,20 +346,24 @@ module.exports = class poloniex extends poloniexRest {
 
     handleTrade (client, message) {
         //
-        //    [
-        //        {
-        //            "symbol": "BTC_USDT",
-        //            "amount": "70",
-        //            "takerSide": "buy",
-        //            "quantity": "4",
-        //            "createTime": 1648059516810,
-        //            "price": "104",
-        //            "id": 1648059516810,
-        //            "ts": 1648059516832
-        //        }
-        //    ]
+        //    {
+        //        channel: 'trades',
+        //        data: [
+        //            {
+        //                symbol: 'BTC_USDT',
+        //                amount: '13.41634893',
+        //                quantity: '0.000537',
+        //                takerSide: 'buy',
+        //                createTime: 1676950548834,
+        //                price: '24983.89',
+        //                id: '62486976',
+        //                ts: 1676950548839
+        //            }
+        //        ]
+        //    }
         //
-        const marketId = this.safeString (message, 'product_id');
+        const data = this.safeValue (message, 'data');
+        const marketId = this.safeString (data, 'symbol');
         if (marketId !== undefined) {
             const trade = this.parseWsTrade (message);
             const symbol = trade['symbol'];
@@ -380,78 +384,41 @@ module.exports = class poloniex extends poloniexRest {
         return message;
     }
 
-    parseWsTrade (trade) {
+    parseWsTrade (trade, market = undefined) {
         //
-        // private trades
-        // {
-        //     "type": "match",
-        //     "trade_id": 10,
-        //     "sequence": 50,
-        //     "maker_order_id": "ac928c66-ca53-498f-9c13-a110027a60e8",
-        //     "taker_order_id": "132fb6ae-456b-4654-b4e0-d681ac05cea1",
-        //     "time": "2014-11-07T08:19:27.028459Z",
-        //     "product_id": "BTC-USD",
-        //     "size": "5.23512",
-        //     "price": "400.23",
-        //     "side": "sell",
-        //     "taker_user_id: "5844eceecf7e803e259d0365",
-        //     "user_id": "5844eceecf7e803e259d0365",
-        //     "taker_profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
-        //     "profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
-        //     "taker_fee_rate": "0.005"
-        // }
+        //    {
+        //        symbol: 'BTC_USDT',
+        //        amount: '13.41634893',
+        //        quantity: '0.000537',
+        //        takerSide: 'buy',
+        //        createTime: 1676950548834,
+        //        price: '24983.89',
+        //        id: '62486976',
+        //        ts: 1676950548839
+        //    }
         //
-        // {
-        //     "type": "match",
-        //     "trade_id": 10,
-        //     "sequence": 50,
-        //     "maker_order_id": "ac928c66-ca53-498f-9c13-a110027a60e8",
-        //     "taker_order_id": "132fb6ae-456b-4654-b4e0-d681ac05cea1",
-        //     "time": "2014-11-07T08:19:27.028459Z",
-        //     "product_id": "BTC-USD",
-        //     "size": "5.23512",
-        //     "price": "400.23",
-        //     "side": "sell",
-        //     "maker_user_id: "5844eceecf7e803e259d0365",
-        //     "maker_id": "5844eceecf7e803e259d0365",
-        //     "maker_profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
-        //     "profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
-        //     "maker_fee_rate": "0.001"
-        // }
-        //
-        // public trades
-        // {
-        //     "type": "received",
-        //     "time": "2014-11-07T08:19:27.028459Z",
-        //     "product_id": "BTC-USD",
-        //     "sequence": 10,
-        //     "order_id": "d50ec984-77a8-460a-b958-66f114b0de9b",
-        //     "size": "1.34",
-        //     "price": "502.1",
-        //     "side": "buy",
-        //     "order_type": "limit"
-        // }
-        const parsed = super.parseTrade (trade);
-        let feeRate = undefined;
-        if ('maker_fee_rate' in trade) {
-            parsed['takerOrMaker'] = 'maker';
-            feeRate = this.safeNumber (trade, 'maker_fee_rate');
-        } else {
-            parsed['takerOrMaker'] = 'taker';
-            feeRate = this.safeNumber (trade, 'taker_fee_rate');
-        }
-        const market = this.market (parsed['symbol']);
-        const feeCurrency = market['quote'];
-        let feeCost = undefined;
-        if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
-            feeCost = parsed['cost'] * feeRate;
-        }
-        parsed['fee'] = {
-            'rate': feeRate,
-            'cost': feeCost,
-            'currency': feeCurrency,
-        };
-        return parsed;
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'id'),
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'order': undefined,
+            'type': this.safeStringLower (trade, 'type'),
+            'side': this.safeString (trade, 'takerSide'),
+            'takerOrMaker': 'taker',
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'quantity'),
+            'cost': this.safeString (trade, 'amount'),
+            'fee': {
+                'rate': undefined,
+                'cost': undefined,
+                'currency': undefined,
+            },
+        }, market);
     }
 
     parseWsOrderStatus (status) {
