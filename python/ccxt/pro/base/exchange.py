@@ -59,6 +59,7 @@ class Exchange(BaseExchange):
         return CountedOrderBook(snapshot, depth)
 
     def client(self, url):
+        self.open()
         self.clients = self.clients or {}
         if url not in self.clients:
             on_message = self.handle_message
