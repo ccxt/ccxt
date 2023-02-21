@@ -62,7 +62,7 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
         checksum = self.safe_value(self.options, 'checksum', True)
         if checksum and not client.subscriptions[messageHash]['checksum'] and (channel == 'book'):
             client.subscriptions[messageHash]['checksum'] = True
-            client.send({
+            await client.send({
                 'event': 'conf',
                 'flags': 131072,
             })

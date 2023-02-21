@@ -4134,7 +4134,7 @@ class binance extends Exchange {
             $type = $this->safe_string($query, 'type', $defaultType);
         }
         $subType = null;
-        list($subType, $query) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params);
+        list($subType, $query) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $query);
         $requestParams = $this->omit($query, 'type');
         $method = 'privateGetOpenOrders';
         if ($type === 'option') {
@@ -6367,7 +6367,7 @@ class binance extends Exchange {
         $this->load_markets();
         list($type, $query) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverageTiers', null, $params, 'linear');
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverageTiers', null, $query, 'linear');
         $method = null;
         if ($this->is_linear($type, $subType)) {
             $method = 'fapiPrivateGetLeverageBracket';
