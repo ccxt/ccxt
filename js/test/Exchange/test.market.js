@@ -112,7 +112,7 @@ function testMarket (exchange, market, method) {
         const key = targetKeys[i];
         const limitEntry = market['limits'][key];
         sharedMethods.Ge (exchange, method, limitEntry, 'min', '0');
-        sharedMethods.Ge (exchange, method, limitEntry, 'max', '0');
+        sharedMethods.Gt (exchange, method, limitEntry, 'max', '0');
     }
 }
 

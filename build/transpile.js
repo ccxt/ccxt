@@ -267,6 +267,7 @@ class Transpiler {
             [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
             [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
             [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
+            // [ /\(((.*?), |)\.\.\. (.*?)\)/g, '($1*$3)' ], // this line transpiles variable arguments lile ` myMethod (arg1, arg2, ... arg3) ` to `def methodName(arg1, arg2, *arg3)`
             //
             // too broad, have to rewrite these cause they don't work
             //
@@ -1853,6 +1854,38 @@ class Transpiler {
         for (const test of tests) {
             this.transpileTest (test)
         }
+
+        this.transpileMainTest ({
+            'jsFile': './js/test/test.js',
+            'pyFile': './python/ccxt/test/transpiled_test_async.py',
+            'phpFile': './php/test/transpiled_test_async.php',
+        });
+    }
+
+    transpileMainTest (test) {
+        log.magenta ('Transpiling from', test.jsFile.yellow)
+        let js = fs.readFileSync (test.jsFile).toString ()
+
+        js = this.regexAll (js, [
+            [ /\'use strict\';?\s+/g, '' ],
+            [ /[^\n]+require[^\n]+\n/g, '' ],
+           // [ /module.exports\s+=\s+[^;]+;/g, '' ],
+        ])
+
+        const commentStartLine = '### AUTO-TRANSPILER-START ###';
+        const commentEndLine = '### AUTO-TRANSPILER-END ###';
+
+        const mainContent = js.split (commentStartLine)[1].split (commentEndLine)[0];
+        let { python2, python3, phpSync, phpAsync, className, baseClass } = this.transpileClass (mainContent);
+        phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
+        const existinPhpBody = fs.readFileSync (test.phpFile).toString ();
+        const newPhp = existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + phpAsync + '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1];
+        overwriteFile (test.phpFile, newPhp);
+
+        python3 = python3.replace (/from ccxt\.async_support(.*)/g, '');
+        const existinPythonBody = fs.readFileSync (test.pyFile).toString ();
+        let newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
+        overwriteFile (test.pyFile, newPython);
     }
 
     transpileExchangeTestsAuto () {
