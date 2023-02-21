@@ -1,14 +1,14 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
-
 async function testSignIn(exchange) {
     const method = 'signIn';
-    if (exchange.has[method]) {
-        await exchange[method] ();
-        console.log (exchange.id + ' ' + method + ' successful');
+    const skippedExchanges = [];
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
+        return;
     }
-    // we don't print "else" message, because if signIn is not supported by exchange, that doesn't need to be printed, because it is not lack/missing method, but because it is not needed
+    await exchange[method] ();
+    console.log (exchange.id, method, 'successful');
 }
 
 module.exports = testSignIn;

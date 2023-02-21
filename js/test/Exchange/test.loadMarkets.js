@@ -1,16 +1,12 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
-
 const testMarket = require ('./test.market.js')
-
-// ----------------------------------------------------------------------------
 
 async function testLoadMarkets (exchange) {
     const method = 'loadMarkets';
-    const skippedExchanges = [ ];
+    const skippedExchanges = [];
     if (exchange.inArray(exchange.id, skippedExchanges)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...');
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
         return;
     }
     const markets = await exchange[method] ();
