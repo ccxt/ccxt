@@ -4715,7 +4715,7 @@ module.exports = class bybit extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = symbol;
+            request['symbol'] = market['id'];
         }
         if (limit !== undefined) {
             request['limit'] = limit;
