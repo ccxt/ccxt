@@ -81,7 +81,7 @@ function reviseCommonTimestamp (exchange, method, entry, nowToCheck = undefined,
 function reviseCurrencyCode (exchange, method, entry, actualCode, expectedCode = undefined) {
     const logText = logTemplate (exchange, method, entry);
     if (actualCode !== undefined) {
-        assert (typeof code === 'string', 'currency code should be either undefined or a string' + logText);
+        assert (typeof actualCode === 'string', 'currency code should be either undefined or a string' + logText);
         assert (actualCode in exchange.currencies, 'currency code should be present in exchange.currencies' + logText);
         if (expectedCode !== undefined) {
             assert (actualCode === expectedCode, 'currency code in response (' + actualCode + ') should be equal to expected code (' + expectedCode + ')' + logText);

@@ -2,7 +2,7 @@
 
 const sharedMethods = require ('./test.sharedMethods.js');
 
-function testCurrency (exchange, entry, method) {
+function testCurrency (exchange, method, entry) {
     const format = {
         'info': {},
         'id': 'btc', // string literal for referencing within an exchange

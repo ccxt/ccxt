@@ -24,7 +24,7 @@ module.exports = async (exchange) => {
             const values = Object.values (currencies)
             for (let i = 0; i < values.length; i++) {
                 const currency = values[i]
-                testCurrency (exchange, currency, method)
+                testCurrency (exchange, method, currency)
             }
         }
         return currencies
