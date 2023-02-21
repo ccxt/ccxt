@@ -5465,7 +5465,7 @@ class bybit extends Exchange {
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['startTime'] = $this->yyyymmdd($since);
+            $request['startTime'] = $since;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
