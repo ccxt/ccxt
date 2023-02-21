@@ -68,7 +68,7 @@ module.exports = class binance extends binanceRest {
                     'name': 'ticker', // ticker or miniTicker or bookTicker
                 },
                 'watchOHLCV': {
-                    'name': 'kline', // or indexPriceKline or markPriceKline
+                    'name': 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': false, // or true
