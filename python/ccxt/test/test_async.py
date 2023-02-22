@@ -196,11 +196,11 @@ class testMainClass(emptyClass):
             dump('[Skipping]', exchange.id, methodName, ' - ' + skipMessage)
             return
         argsStringified = '(' + ','.join(args) + ')'
-        dump('Testing', exchange.id, methodName, argsStringified)
+        dump('[Testing]', exchange.id, methodName, argsStringified)
         try:
             return await call_method(methodName, exchange, args)
         except Exception as e:
-            dump(exception_message(e), ' | ', exchange.id, methodName, argsStringified)
+            dump(exception_message(e), ' | Exception from: ', exchange.id, methodName, argsStringified)
             raise e
 
     async def test_safe(self, methodName, exchange, args):
