@@ -47,7 +47,7 @@ script:
       echo "${DEPLOY_CACHE} does not exist";
       echo "Writing ${NPM_VERSION} to ${DEPLOY_CACHE}";
     fi
-    export CURRENT_TIME=$(date +%s);
+    export CURRENT_TIME="$(date +%s)"";
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
   fi
 after_failure:
