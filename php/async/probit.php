@@ -1347,7 +1347,7 @@ class probit extends Exchange {
             }
             $response = Async\await($this->privateGetDepositAddress (array_merge($request, $params)));
             $data = $this->safe_value($response, 'data', array());
-            return $this->parse_deposit_addresses($data);
+            return $this->parse_deposit_addresses($data, $codes);
         }) ();
     }
 

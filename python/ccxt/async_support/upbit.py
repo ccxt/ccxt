@@ -1516,7 +1516,7 @@ class upbit(Exchange):
         #         }
         #     ]
         #
-        return self.parse_deposit_addresses(response)
+        return self.parse_deposit_addresses(response, codes)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #

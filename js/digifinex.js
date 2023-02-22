@@ -2508,7 +2508,7 @@ module.exports = class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const addresses = this.parseDepositAddresses (data);
+        const addresses = this.parseDepositAddresses (data, [ currency['code'] ]);
         const address = this.safeValue (addresses, code);
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.');

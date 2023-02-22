@@ -43,11 +43,8 @@ script:
     env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
     export DEPLOY_CACHE=.cache/deploy;
     export SECONDS_BEFORE_NEXT_DEPLOY=43200;
-    if [ ! -f "${DEPLOY_CACHE}" ]; then
-      echo "${DEPLOY_CACHE} does not exist";
-      echo "Writing ${NPM_VERSION} to ${DEPLOY_CACHE}";
-    fi
-    export CURRENT_TIME="$(date +%s)";
+    date -h
+    export LAST_DEPLOYED_VERSION=$(<${DEPLOY_CACHE});
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
   fi
 after_failure:
