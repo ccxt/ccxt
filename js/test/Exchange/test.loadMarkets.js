@@ -13,8 +13,7 @@ async function testLoadMarkets (exchange) {
     const marketValues = exchange.values (markets);
     console.log (exchange.id, method, 'fetched', marketValues.length, 'markets, asserting each ...');
     for (let i = 0; i < marketValues.length; i++) {
-        const market = marketValues[i];
-        testMarket (exchange, method, market);
+        testMarket (exchange, method, marketValues[i]);
     }
 }
 

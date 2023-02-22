@@ -1,36 +1,21 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
+const testOrderBook = require ('./test.orderBook.js');
 
-const testOrderBook = require ('./test.orderBook.js')
-
-// ----------------------------------------------------------------------------
-
-module.exports = async (exchange) => {
-
-    const method = 'fetchOrderBooks'
-
-    const randomSymbols = exchange.symbols.slice ().sort (() => 0.5 - Math.random ()).slice (0, 2)
-    const customExchangeParams = ([
-        'yobit',
-        'tidex',
-        'ccex',
-        'liqui',
-        'dsx',
-    ]).reduce ((params, id) => ({ ... params, [id]: [randomSymbols], }), {})
-
-    const args = (exchange.id in customExchangeParams) ? customExchangeParams[exchange.id] : []
-
-    if (exchange.has[method]) {
-
-        const orderbooks = await exchange[method] (... args)
-
-        Object.entries (orderbooks).forEach (([symbol, orderbook]) => {
-            testOrderBook (exchange, orderbook, method, symbol)
-        })
-
-    } else {
-
-        console.log (method + '() is not supported')
+async function testFetchOrderBook (exchange) {
+    const method = 'fetchOrderBooks';
+    const skippedExchanges = [];
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
+        return;
+    }
+    const orderBooks = await exchange[method] (... args);
+    assert (typeof orderBooks === 'object', exchange.id + ' ' + method + ' must return an indexed structure by key, returned ' + exchange.json (orderBooks));
+    const orderBookKeys = Object.keys (orderBooks);
+    assert (orderBookKeys.length > 0, exchange.id + ' ' + method + ' returned 0 length data');
+    console.log (exchange.id, method, 'fetched', orderBookKeys.length, 'order books, asserting each...');
+    for (let i = 0; i < orderBookKeys.length; i++) {
+        const symbol = orderBookKeys[i];
+        testOrderBook (exchange, method, orderBooks[symbol], symbol);
     }
 }

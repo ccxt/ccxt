@@ -1,49 +1,27 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
+const testOHLCV = require ('./test.ohlcv.js');
 
-const testOHLCV = require ('./test.ohlcv.js')
-
-// ----------------------------------------------------------------------------
-
-module.exports = async (exchange, symbol) => {
-
-    const method = 'fetchOHLCV'
-
-    const skippedExchanges = [
-        'btcalpha', // issue with 404 on a documented endpoint https://travis-ci.org/ccxt/ccxt/builds/643930431#L2213
-        'bitmex', // an issue with null values,to be resolved later
-        'cex',
-    ]
-
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
-        return
+async function testFetchOHLCV (exchange, symbol) {
+    const method = 'fetchOHLCV';
+    const skippedExchanges = [];
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
+        return;
     }
-
-    if (exchange.has[method]) {
-
-        const exchangeHasOneMinuteTimeframe = exchange.timeframes && ('1m' in exchange.timeframes)
-        const timeframe = exchangeHasOneMinuteTimeframe ? '1m' : Object.keys (exchange.timeframes || { '1d': '1d' })[0]
-        const limit = 10
-        const duration = exchange.parseTimeframe (timeframe)
-        const since = exchange.milliseconds () - duration * limit * 1000 - 1000
-
-        const ohlcvs = await exchange[method] (symbol, timeframe, since, limit)
-
-        const now = exchange.milliseconds ()
-
-        for (let i = 0; i < ohlcvs.length; i++) {
-            const ohlcv = ohlcvs[i]
-            testOHLCV (exchange, method, ohlcv, symbol, now)
-        }
-
-        console.log (symbol, 'fetched', Object.keys (ohlcvs).length, 'OHLCVs')
-
-        return ohlcvs
-
-    } else {
-
-        console.log (method + '() is not supported')
+    const exchangeTimeframes = exchange.safeValue (exchange, 'timeframes', { '1d': '1d' });
+    const exchangeTimeframeKeys = Object.keys (exchangeTimeframes);
+    const timeframe = exchangeTimeframeKeys[0];
+    const limit = 10;
+    const duration = exchange.parseTimeframe (timeframe);
+    const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
+    const ohlcvs = await exchange[method] (symbol, timeframe, since, limit);
+    assert (exchange.isArray (ohlcvs), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (ohlcvs));
+    console.log (exchange.id, method, 'fetched', ohlcvs.length, 'orders for symbol, asserting each...');
+    const now = exchange.milliseconds ();
+    for (let i = 0; i < ohlcvs.length; i++) {
+        testOHLCV (exchange, method, ohlcvs[i], symbol, now);
     }
 }
+
+module.exports = testFetchOHLCV;

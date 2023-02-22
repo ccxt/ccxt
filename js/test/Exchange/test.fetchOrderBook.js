@@ -1,25 +1,12 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
+const testOrderBook = require ('./test.orderBook.js');
 
-const testOrderBook = require ('./test.orderBook.js')
-
-// ----------------------------------------------------------------------------
-
-module.exports = async (exchange, symbol) => {
-
-    const method = 'fetchOrderBook'
-
-    if (exchange.has[method]) {
-
-        const orderbook = await exchange[method] (symbol)
-
-        testOrderBook (exchange, orderbook, method, symbol)
-
-        return orderbook
-
-    } else {
-
-        console.log (method + '() is not supported')
-    }
+async function testFetchOrderBook (exchange, symbol) {
+    const method = 'fetchOrderBook';
+    const orderbook = await exchange[method] (symbol);
+    console.log (exchange.id, method, 'fetched succesfully, asserting now.');
+    testOrderBook (exchange, method, orderbook, symbol);
 }
+
+module.exports = testFetchOrderBook;

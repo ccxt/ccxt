@@ -4,7 +4,7 @@ const assert = require ('assert');
 const sharedMethods = require ('./test.sharedMethods.js');
 const Precise = require ('../../base/Precise');
 
-function testOrderBook (exchange, entry, method, symbol) {
+function testOrderBook (exchange, method, entry, symbol) {
 
     const format = {
         // 'symbol': 'ETH/BTC', // reserved
@@ -24,6 +24,7 @@ function testOrderBook (exchange, entry, method, symbol) {
     const emptyNotAllowedFor = [ 'bids', 'asks' ];
     sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     sharedMethods.reviseCommonTimestamp (exchange, method, entry);
+    sharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
     const logText = sharedMethods.logTemplate (exchange, method, entry);
     //
     const bids = entry['bids'];

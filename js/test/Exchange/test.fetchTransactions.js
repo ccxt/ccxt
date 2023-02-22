@@ -15,8 +15,7 @@ async function testFetchTransactions (exchange, code) {
     assert (Array.isArray (transactions), exchange.id + ' ' + method + ' must return an array of transactions');
     const now = exchange.milliseconds ();
     for (let i = 0; i < transactions.length; i++) {
-        const transaction = transactions[i];
-        testTransaction (exchange, method, transaction, code, now);
+        testTransaction (exchange, method, transactions[i], code, now);
     }
 }
 

@@ -1,22 +1,20 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
-
 const testOpenInterest = require('./test.openInterest.js');
 
-// ----------------------------------------------------------------------------
-
-module.exports = async (exchange, symbol) => {
+async function testFetchOpenInterestHistory (exchange, symbol) {
     const method = 'fetchOpenInterestHistory';
-    if (exchange.has[method]) {
-        const openInterestHistory = await exchange[method] (symbol);
-        console.log ('fetched ', openInterestHistory.length, ' records of open interest');
-        for (let i = 0; i < openInterestHistory.length; i++) {
-            const openInterest = openInterestHistory[i];
-            testOpenInterest (exchange, method, openInterest)
-        }
-        return openInterestHistory;
-    } else {
-        console.log ('fetching open interest history not supported');
+    const skippedExchanges = [];
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
+        return;
+    }
+    const openInterestHistory = await exchange[method] (symbol);
+    assert (exchange.isArray (openInterestHistory), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (openInterestHistory));
+    console.log (exchange.id, method, 'fetched', openInterestHistory.length, 'entries for symbol, asserting each...');
+    for (let i = 0; i < openInterestHistory.length; i++) {
+        testOpenInterest (exchange, method, openInterestHistory[i]);
     }
 }
+
+module.exports = testFetchOpenInterestHistory;
