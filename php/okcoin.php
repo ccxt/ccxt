@@ -2543,7 +2543,7 @@ class okcoin extends Exchange {
         //         }
         //     )
         //
-        $addressesByCode = $this->parse_deposit_addresses($response);
+        $addressesByCode = $this->parse_deposit_addresses($response, [ $currency['code'] ]);
         $address = $this->safe_value($addressesByCode, $code);
         if ($address === null) {
             throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');

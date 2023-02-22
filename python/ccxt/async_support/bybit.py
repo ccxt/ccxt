@@ -4446,7 +4446,7 @@ class bybit(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = symbol
+            request['symbol'] = market['id']
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetSpotV3PrivateOpenOrders(self.extend(request, params))
@@ -5051,7 +5051,7 @@ class bybit(Exchange):
         chains = self.safe_value(result, 'chains', [])
         coin = self.safe_string(result, 'coin')
         currency = self.currency(coin)
-        parsed = self.parse_deposit_addresses(chains, [code], False, {
+        parsed = self.parse_deposit_addresses(chains, [currency['code']], False, {
             'currency': currency['id'],
         })
         return self.index_by(parsed, 'network')

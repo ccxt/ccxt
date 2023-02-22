@@ -1457,6 +1457,7 @@ class gemini(Exchange):
 
     async def fetch_deposit_addresses_by_network(self, code, params={}):
         await self.load_markets()
+        currency = self.currency(code)
         network = self.safe_string(params, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddressesByNetwork() requires a network parameter')
@@ -1469,7 +1470,7 @@ class gemini(Exchange):
             'network': networkId,
         }
         response = await self.privatePostV1AddressesNetwork(self.extend(request, params))
-        results = self.parse_deposit_addresses(response, [code], False, {'network': networkCode, 'currency': code})
+        results = self.parse_deposit_addresses(response, [currency['code']], False, {'network': networkCode, 'currency': code})
         return self.group_by(results, 'network')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

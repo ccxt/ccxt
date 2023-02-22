@@ -2463,7 +2463,7 @@ class okcoin(Exchange):
         #         }
         #     ]
         #
-        addressesByCode = self.parse_deposit_addresses(response)
+        addressesByCode = self.parse_deposit_addresses(response, [currency['code']])
         address = self.safe_value(addressesByCode, code)
         if address is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')
