@@ -746,7 +746,7 @@ module.exports = class okx extends Exchange {
                     'timezone': 'UTC', // UTC, HK
                 },
                 'fetchPositions': {
-                    'method': 'privateGetAccountPositionsHistory', // privateGetAccountPositions or privateGetAccountPositionsHistory
+                    'method': 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
