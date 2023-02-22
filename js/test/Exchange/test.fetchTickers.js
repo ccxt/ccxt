@@ -6,46 +6,30 @@ const testTicker = require ('./test.ticker.js')
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange, symbol) => {
-
-    const method = 'fetchTickers'
-
-    const skippedExchanges = [
-        'binance',
-        'digifinex',
-        'currencycom',
-    ]
-
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
-        return
+async function testFetchTickers (exchange, symbol) {
+    const method = 'fetchTickers';
+    const skippedExchanges = [];
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
+        return;
     }
-
-    if (exchange.has[method]) {
-
-        // log ('fetching all tickers at once...')
-        let tickers = undefined
-        let checkedSymbol = undefined;
-
-        try {
-
-            tickers = await exchange[method] ()
-            console.log ('fetched all', Object.keys (tickers).length, 'tickers')
-
-        } catch (e) {
-
-            console.log ('failed to fetch all tickers, fetching multiple tickers at once...')
-            tickers = await exchange[method] ([ symbol ])
-            checkedSymbol = symbol;
-            console.log ('fetched', Object.keys (tickers).length, 'tickers')
-        }
-
-        Object.values (tickers).forEach ((ticker) => testTicker (exchange, method, ticker, checkedSymbol))
-        return tickers
-
-    } else {
-
-        console.log (method + '() is not supported')
+    // log ('fetching all tickers at once...')
+    let tickers = undefined;
+    let checkedSymbol = undefined;
+    try {
+        tickers = await exchange[method] ();
+    } catch (e) {
+        console.log (exchange.id, symbol, 'failed to fetch all tickers, fetching multiple tickers at once...');
+        tickers = await exchange[method] ([ symbol ]);
+        checkedSymbol = symbol;
+    }
+    assert (typeof tickers === 'object', exchange.id + ' ' + checkedSymbol + ' tickers must be an array ' + exchange.json(tickers));
+    const values = exchange.values (tickers);
+    console.log (exchange.id, symbol, 'fetched', values.length, 'tickers');
+    for (let i = 0; i < values.length; i++) {
+        const ticker = values[i];
+        testTicker (exchange, method, ticker, checkedSymbol);
     }
 }
 
+module.exports = testFetchTickers;

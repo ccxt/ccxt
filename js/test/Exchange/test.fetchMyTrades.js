@@ -28,7 +28,7 @@ module.exports = async (exchange, symbol) => {
 
         console.log ('fetched', trades.length, 'trades')
 
-        const now = Date.now ()
+        const now = exchange.milliseconds ()
 
         for (let i = 0; i < trades.length; i++) {
             testTrade (exchange, method, trades[i], symbol, now)

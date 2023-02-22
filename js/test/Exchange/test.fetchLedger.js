@@ -19,7 +19,7 @@ module.exports = async (exchange, code) => {
 
         console.log ('Fetched', items.length, 'ledger items')
 
-        const now = Date.now ()
+        const now = exchange.milliseconds ()
 
         for (let i = 0; i < items.length; i++) {
             testLedgerItem (exchange, method, items[i], code, now)

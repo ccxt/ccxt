@@ -1,21 +1,18 @@
 'use strict'
 
-const testTradingFee = require ('./test.tradingFee.js')
+const testTradingFee = require ('./test.tradingFee.js');
 
-module.exports = async (exchange, symbol) => {
-
-    const method = 'fetchTradingFee'
-
-    const skippedExchanges = []
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
-        return
+async function testFetchTradingFee (exchange, symbol) {
+    const method = 'fetchTradingFee';
+    const skippedExchanges = [];
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
+        return;
     }
-    if (exchange.has[method]) {
-        const fee = await exchange[method] (symbol)
-        testTradingFee (exchange, method, symbol, fee)
-        return fee
-    } else {
-        console.log (method + '() is not supported')
-    }
+    const fee = await exchange[method] (symbol);
+    assert (typeof fee === 'object', exchange.id + ' ' + method + ' must return an object, returned ' + exchange.json (fee));
+    console.log (exchange.id, method, 'fetched succesfully, asserting now.');
+    testTradingFee (exchange, method, symbol, fee);
 }
+
+module.exports = testFetchTradingFee;

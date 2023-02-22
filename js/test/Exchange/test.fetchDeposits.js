@@ -19,7 +19,7 @@ module.exports = async (exchange, code) => {
 
         assert (transactions instanceof Array)
 
-        const now = Date.now ()
+        const now = exchange.milliseconds ()
 
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i]

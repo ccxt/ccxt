@@ -10,13 +10,12 @@ async function testLoadMarkets (exchange) {
         return;
     }
     const markets = await exchange[method] ();
-    const keys = Object.keys (markets);
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        const market = markets[key];
+    const marketValues = exchange.values (markets);
+    console.log (exchange.id, method, 'fetched', marketValues.length, 'markets, asserting each ...');
+    for (let i = 0; i < marketValues.length; i++) {
+        const market = marketValues[i];
         testMarket (exchange, method, market);
     }
-    return markets;
 }
 
 module.exports = testLoadMarkets;

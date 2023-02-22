@@ -22,7 +22,7 @@ module.exports = async (exchange, symbol) => {
     }
 
     if (exchange.has[method]) {
-        const now = Date.now ()
+        const now = exchange.milliseconds ()
 
         // without symbol
         const positions = await exchange[method] ()

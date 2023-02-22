@@ -19,7 +19,7 @@ module.exports = async (exchange, symbol) => {
 
         assert (orders instanceof Array)
 
-        const now = Date.now ()
+        const now = exchange.milliseconds ()
 
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i]

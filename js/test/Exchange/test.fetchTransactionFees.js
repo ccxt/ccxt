@@ -15,10 +15,8 @@ async function testFetchTransactionFees (exchange) {
     }
     const fees = await exchange[method] ();
     const withdrawKeys = Object.keys (fees['withdraw']);
-    const length = withdrawKeys.length;
-    console.log (exchange.id, method, 'fetched', length, 'entries');
+    console.log (exchange.id, method, 'fetched', withdrawKeys.length, 'entries');
     // todo : assert each entry
-    return fees;
 }
 
 module.exports = testFetchTransactionFees;

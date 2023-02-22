@@ -1,41 +1,28 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
+const assert = require ('assert');
+const testTrade = require ('./test.trade.js');
 
-const assert = require ('assert')
-    , testTrade = require ('./test.trade.js')
-
-// ----------------------------------------------------------------------------
-
-module.exports = async (exchange, symbol) => {
-
-    const method = 'fetchTrades'
-
-    const skippedExchanges = []
-
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
-        return
+async function testFetchTrades (exchange, symbol) {
+    const method = 'fetchTrades';
+    const skippedExchanges = [];
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
+        return;
     }
-
-    if (exchange.has[method]) {
-
-        const trades = await exchange[method] (symbol)
-        assert (trades instanceof Array)
-        console.log (symbol, 'fetched', Object.values (trades).length, 'trades')
-        const now = Date.now ()
-        for (let i = 0; i < trades.length; i++) {
-            testTrade (exchange, method, trades[i], symbol, now)
-            if (i > 0) {
-                if (trades[i].timestamp && trades[i - 1].timestamp) {
-                    assert (trades[i].timestamp >= trades[i - 1].timestamp)
-                }
+    const trades = await exchange[method] (symbol);
+    assert (Array.isArray (trades), exchange.id + ' ' + symbol + ' trades must be an array ' + exchange.json(trades));
+    const length = trades.length;
+    console.log (exchange.id, symbol, 'fetched', length, 'trades');
+    const now = exchange.milliseconds ();
+    for (let i = 0; i < trades.length; i++) {
+        testTrade (exchange, method, trades[i], symbol, now);
+        if (i > 0) {
+            if (trades[i].timestamp && trades[i - 1].timestamp) {
+                assert (trades[i].timestamp >= trades[i - 1].timestamp, exchange.id + ' ' + symbol + ' trade[' + i + '] timestamp is less than the previous trade timestamp ' + exchange.iso8601(trades[i].timestamp) + ' ' + exchange.iso8601(trades[i - 1].timestamp));
             }
-
         }
-
-    } else {
-
-        console.log (symbol, method + '() is not supported')
     }
 }
+
+module.exports = testFetchTrades;

@@ -1,38 +1,17 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
+const testTicker = require ('./test.ticker.js');
 
-const testTicker = require ('./test.ticker.js')
-
-// ----------------------------------------------------------------------------
-
-module.exports = async (exchange, symbol) => {
-
-    const method = 'fetchTicker'
-
-    const skippedExchanges = [
-        'digifinex',
-        'currencycom'
-    ]
-
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
-        return
+async function testFetchTicker (exchange, symbol) {
+    const method = 'fetchTicker';
+    const skippedExchanges = [];
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
+        return;
     }
-
-    if (exchange.has[method]) {
-
-        const ticker = await exchange[method] (symbol)
-
-        testTicker (exchange, method, ticker, symbol)
-
-        console.log (symbol, method, ticker['datetime'], 'bid:', ticker['bid'], 'ask:', ticker['ask'])
-
-        return ticker
-
-    } else {
-
-        console.log (symbol, method + '() is not supported')
-    }
+    const ticker = await exchange[method] (symbol);
+    console.log (exchange.id, method, 'fetched succesfully, asserting now.');
+    testTicker (exchange, method, ticker, symbol);
 }
 
+module.exports = testFetchTicker;

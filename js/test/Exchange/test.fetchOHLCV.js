@@ -31,7 +31,7 @@ module.exports = async (exchange, symbol) => {
 
         const ohlcvs = await exchange[method] (symbol, timeframe, since, limit)
 
-        const now = Date.now ()
+        const now = exchange.milliseconds ()
 
         for (let i = 0; i < ohlcvs.length; i++) {
             const ohlcv = ohlcvs[i]
