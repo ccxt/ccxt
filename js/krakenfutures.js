@@ -778,7 +778,7 @@ module.exports = class krakenfutures extends Exchange {
          * @method
          * @name krakenfutures#createOrder
          * @description Create an order on the exchange
-         * @param {string} symbol CCXT market symbol
+         * @param {string} symbol market symbol
          * @param {string} type One of 'limit', 'market', 'take_profit'
          * @param {string} side buy or sell
          * @param {int} amount Contract quantity
@@ -850,9 +850,7 @@ module.exports = class krakenfutures extends Exchange {
         //
         const sendStatus = this.safeValue (response, 'sendStatus');
         const status = this.safeString (sendStatus, 'status');
-        this.verifyOrderActionSuccess (status, 'placed', [ 'filled' ]);
-        // const id = this.safeString (order, 'id');
-        // this.orders[id] = order;
+        this.verifyOrderActionSuccess (status, 'createOrder', [ 'filled' ]);
         return this.parseOrder (sendStatus);
     }
 
@@ -882,9 +880,8 @@ module.exports = class krakenfutures extends Exchange {
         }
         const response = await this.privatePostEditorder (this.extend (request, params));
         const status = this.safeString (response['editStatus'], 'status');
-        this.verifyOrderActionSuccess (status, 'edited', [ 'filled' ]);
+        this.verifyOrderActionSuccess (status, 'editOrder', [ 'filled' ]);
         const order = this.parseOrder (response['editStatus']);
-        // this.orders[order['id']] = order;
         return this.extend ({ 'info': response }, order);
     }
 
@@ -898,11 +895,10 @@ module.exports = class krakenfutures extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostCancelorder (this.extend ({ 'order_id': id }, params));
         const status = this.safeString (this.safeValue (response, 'cancelStatus', {}), 'status');
-        this.verifyOrderActionSuccess (status, 'canceled');
+        this.verifyOrderActionSuccess (status, 'cancelOrder');
         let order = {};
         if ('cancelStatus' in response) {
             order = this.parseOrder (response['cancelStatus']);
-            // this.orders[order['id']] = order;
         }
         return this.extend ({ 'info': response }, order);
     }
@@ -941,7 +937,8 @@ module.exports = class krakenfutures extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetOpenorders (params);
-        return this.parseOrders (response['openOrders'], market, since, limit);
+        const orders = this.safeValue (response, 'openOrders', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     parseOrderType (orderType) {
@@ -954,7 +951,7 @@ module.exports = class krakenfutures extends Exchange {
         return this.safeString (map, orderType, orderType);
     }
 
-    verifyOrderActionSuccess (status, action = 'placed/edited/canceled', omit = []) {
+    verifyOrderActionSuccess (status, method, omit = []) {
         const errors = {
             'invalidOrderType': InvalidOrder,
             'invalidSide': InvalidOrder,
@@ -978,7 +975,7 @@ module.exports = class krakenfutures extends Exchange {
             'notFound': OrderNotFound,
         };
         if ((status in errors) && !this.inArray (status, omit)) {
-            throw new errors[status] (this.id + ' order cannot be ' + action + ': ' + status);
+            throw new errors[status] (this.id + ': ' + method + ' failed due to ' + status);
         }
     }
 
@@ -1281,7 +1278,6 @@ module.exports = class krakenfutures extends Exchange {
                 } else {
                     cost = Precise.stringDiv (filled, whichPrice); // in base
                 }
-                // cost = Precise.stringMul (cost, market['lotSize']); // TODO: What is lotSize supposed to be
             }
         }
         let id = this.safeString2 (order, 'order_id', 'orderId');
@@ -1305,13 +1301,14 @@ module.exports = class krakenfutures extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': type === 'post',
             'side': this.safeString (details, 'side'),
-            'price': this.parseNumber (price),
-            'stopPrice': this.safeNumber (details, 'triggerPrice'),
+            'price': price,
+            'stopPrice': this.safeString (details, 'triggerPrice'),
+            'triggerPrice': this.safeString (details, 'triggerPrice'),
             'amount': amount,
-            'cost': this.parseNumber (cost),
-            'average': this.parseNumber (average),
-            'filled': this.parseNumber (filled),
-            'remaining': this.parseNumber (remaining),
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
             'status': status,
             'fee': undefined,
             'fees': undefined,
@@ -1698,7 +1695,7 @@ module.exports = class krakenfutures extends Exchange {
             'notional': undefined,
             'leverage': leverage,
             'unrealizedPnl': this.safeNumber (position, 'unrealizedFunding'),
-            'contracts': this.safeString (position, 'size'),
+            'contracts': this.safeNumber (position, 'size'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': undefined,
