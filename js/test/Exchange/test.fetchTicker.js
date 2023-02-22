@@ -10,7 +10,7 @@ async function testFetchTicker (exchange, symbol) {
         return;
     }
     const ticker = await exchange[method] (symbol);
-    console.log (exchange.id, method, 'fetched succesfully, asserting now.');
+    console.log (exchange.id, method, 'fetched succesfully, asserting now ...');
     testTicker (exchange, method, ticker, symbol);
 }
 

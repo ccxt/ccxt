@@ -1,5 +1,6 @@
 'use strict'
 
+const assert = require ('assert');
 const testOHLCV = require ('./test.ohlcv.js');
 
 async function testFetchOHLCV (exchange, symbol) {

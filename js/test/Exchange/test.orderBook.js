@@ -5,7 +5,6 @@ const sharedMethods = require ('./test.sharedMethods.js');
 const Precise = require ('../../base/Precise');
 
 function testOrderBook (exchange, method, entry, symbol) {
-
     const format = {
         // 'symbol': 'ETH/BTC', // reserved
         'bids': [

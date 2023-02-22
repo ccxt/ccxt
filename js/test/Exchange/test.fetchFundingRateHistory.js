@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require ('assert');
-const testFundingRateHistory = require ('./test.testFundingRateHistory.js');
+const testFundingRateHistory = require ('./test.fundingRateHistory.js');
 const sharedMethods = require ('./test.sharedMethods.js');
 
 async function testFetchFundingRateHistory (exchange, symbol) {

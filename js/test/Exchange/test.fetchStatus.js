@@ -11,7 +11,7 @@ async function testFetchStatus (exchange) {
         return;
     }
     const status = await exchange[method] ();
-    console.log (exchange.id, method, 'fetched succesfully, asserting now.');
+    console.log (exchange.id, method, 'fetched succesfully, asserting now ...');
     testStatus (exchange, method, status, exchange.milliseconds ());
 }
 

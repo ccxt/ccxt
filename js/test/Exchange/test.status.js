@@ -18,4 +18,4 @@ function testStatus (exchange, method, entry, now) {
     sharedMethods.Gt (exchange, method, entry, 'eta', '0');
 }
 
-module.exports = testTrade;
+module.exports = testStatus;

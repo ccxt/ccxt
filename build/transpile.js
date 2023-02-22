@@ -1125,7 +1125,9 @@ class Transpiler {
         newContents = deleteFunction ('test_tickers_async', newContents)
         newContents = deleteFunction ('test_l2_order_books_async', newContents)
 
-        fs.truncateSync (sync)
+        if (fs.existsSync (sync)) {
+            fs.truncateSync (sync)
+        }
         fs.writeFileSync (sync, newContents)
     }
 
@@ -1808,8 +1810,8 @@ class Transpiler {
 
         this.transpileMainTest ({
             'jsFile': './js/test/test.js',
-            'pyFile': './python/ccxt/test/transpiled_test_async.py',
-            'phpFile': './php/test/transpiled_test_async.php',
+            'pyFile': './python/ccxt/test/test_async.py',
+            'phpFile': './php/test/test_async.php',
         });
 
         const baseFolders = {

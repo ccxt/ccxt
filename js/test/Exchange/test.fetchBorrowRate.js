@@ -21,7 +21,7 @@ async function testFetchBorrowRate (exchange, code) {
         // console.log (method + '() : ' + code + ' is not borrowable for this exchange. Skipping the test method.');
         return;
     }
-    console.log (exchange.id, method, 'fetched succesfully, asserting now.');
+    console.log (exchange.id, method, 'fetched succesfully, asserting now ...');
     testBorrowRate (exchange, method, borrowRate, code);
 }
 

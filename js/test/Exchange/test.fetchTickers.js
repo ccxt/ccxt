@@ -1,5 +1,6 @@
 'use strict'
 
+const assert = require ('assert');
 const testTicker = require ('./test.ticker.js');
 
 async function testFetchTickers (exchange, symbol) {

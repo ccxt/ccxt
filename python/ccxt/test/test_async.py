@@ -142,7 +142,6 @@ def set_exchange_prop (exchange, prop, value):
 
 
 import asyncio
-from ccxt.base.errors import NotSupported
 
 
 class testMainClass(emptyClass):
@@ -189,22 +188,20 @@ class testMainClass(emptyClass):
 
     async def test_method(self, methodName, exchange, args):
         skipMessage = None
-        if not (methodName in exchange.has) or not exchange.has[methodName]:
+        if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]):
             skipMessage = 'not supported'
         elif not (methodName in testFiles):
             skipMessage = 'test not available'
         if skipMessage:
             dump('[Skipping]', exchange.id, methodName, ' - ' + skipMessage)
             return
-        dump('Testing', exchange.id, methodName, '(', args, ')')
+        argsStringified = '(' + ','.join(args) + ')'
+        dump('Testing', exchange.id, methodName, argsStringified)
         try:
             return await call_method(methodName, exchange, args)
         except Exception as e:
-            if isinstance(e, ccxt.NotSupported):
-                dump('Not supported', exchange.id, methodName, '(', args, ')')
-            else:
-                dump(exception_message(e))
-                raise e
+            dump(exception_message(e), ' | ', exchange.id, methodName, argsStringified)
+            raise e
 
     async def test_safe(self, methodName, exchange, args):
         try:
@@ -231,7 +228,7 @@ class testMainClass(emptyClass):
         market = exchange.market(symbol)
         isSpot = market['spot']
         if isSpot:
-            tests['fetchCurrencies'] = [symbol]
+            tests['fetchCurrencies'] = []
         else:
             tests['fetchFundingRates'] = [symbol]
             tests['fetchFundingRate'] = [symbol]

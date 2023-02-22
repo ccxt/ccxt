@@ -180,11 +180,11 @@ module.exports = class testMainClass extends emptyClass {
             return;
         }
         const argsStringified = '(' + args.join (',') + ')';
-        dump ('Testing', exchange.id, methodName, argsStringified);
+        dump ('[Testing]', exchange.id, methodName, argsStringified);
         try {
             return await call_method (methodName, exchange, args);
         } catch (e) {
-            dump (exception_message(e), ' | ', exchange.id, methodName, argsStringified);
+            dump (exception_message(e), ' | Exception from: ', exchange.id, methodName, argsStringified);
             throw e;
         }
     }
