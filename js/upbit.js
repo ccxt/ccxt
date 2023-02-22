@@ -44,14 +44,14 @@ module.exports = class upbit extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': undefined,
+                'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
-                'fetchOrders': undefined,
+                'fetchOrders': false,
                 'fetchPositionMode': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -59,7 +59,7 @@ module.exports = class upbit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
                 'fetchWithdrawals': true,
                 'transfer': false,
                 'withdraw': true,
@@ -366,8 +366,8 @@ module.exports = class upbit extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber ('0.00000001'),
-                'price': this.parseNumber ('0.00000001'),
+                'amount': this.parseNumber ('1e-8'),
+                'price': this.parseNumber ('1e-8'),
             },
             'limits': {
                 'leverage': {
@@ -444,8 +444,8 @@ module.exports = class upbit extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parseNumber ('0.00000001'),
-                    'amount': this.parseNumber ('0.00000001'),
+                    'price': this.parseNumber ('1e-8'),
+                    'amount': this.parseNumber ('1e-8'),
                 },
                 'limits': {
                     'leverage': {
@@ -665,7 +665,7 @@ module.exports = class upbit extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the upbit api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -959,7 +959,7 @@ module.exports = class upbit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timeframePeriod = this.parseTimeframe (timeframe);
-        const timeframeValue = this.timeframes[timeframe];
+        const timeframeValue = this.safeString (this.timeframes, timeframe, timeframe);
         if (limit === undefined) {
             limit = 200;
         }
@@ -1431,6 +1431,7 @@ module.exports = class upbit extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': cost,
             'average': average,
             'amount': amount,

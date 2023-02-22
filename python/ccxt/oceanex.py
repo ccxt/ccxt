@@ -65,7 +65,6 @@ class oceanex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
-                'fetchTradingLimits': None,
                 'fetchTransactionFees': None,
             },
             'timeframes': {
@@ -271,7 +270,7 @@ class oceanex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the oceanex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -725,7 +724,7 @@ class oceanex(Exchange):
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'period': self.timeframes[timeframe],
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             request['timestamp'] = since
@@ -778,6 +777,7 @@ class oceanex(Exchange):
             'side': self.safe_value(order, 'side'),
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': average,
             'amount': amount,
             'remaining': remaining,

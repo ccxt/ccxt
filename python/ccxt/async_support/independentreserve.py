@@ -16,6 +16,7 @@ class independentreserve(Exchange):
             'name': 'Independent Reserve',
             'countries': ['AU', 'NZ'],  # Australia, New Zealand
             'rateLimit': 1000,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -385,26 +386,14 @@ class independentreserve(Exchange):
             elif orderType.find('Limit') >= 0:
                 orderType = 'limit'
         timestamp = self.parse8601(self.safe_string(order, 'CreatedTimestampUtc'))
-        amount = self.safe_string_2(order, 'VolumeOrdered', 'Volume')
-        filled = self.safe_number(order, 'VolumeFilled')
-        remaining = self.safe_string(order, 'Outstanding')
-        feeRate = self.safe_number(order, 'FeePercent')
+        filled = self.safe_string(order, 'VolumeFilled')
+        feeRate = self.safe_string(order, 'FeePercent')
         feeCost = None
         if feeRate is not None and filled is not None:
-            feeCost = feeRate * filled
-        fee = {
-            'rate': feeRate,
-            'cost': feeCost,
-            'currency': base,
-        }
-        id = self.safe_string(order, 'OrderGuid')
-        status = self.parse_order_status(self.safe_string(order, 'Status'))
-        cost = self.safe_string(order, 'Value')
-        average = self.safe_string(order, 'AvgPrice')
-        price = self.safe_string(order, 'Price')
+            feeCost = Precise.string_mul(feeRate, filled)
         return self.safe_order({
             'info': order,
-            'id': id,
+            'id': self.safe_string(order, 'OrderGuid'),
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -414,15 +403,20 @@ class independentreserve(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': price,
+            'price': self.safe_string(order, 'Price'),
             'stopPrice': None,
-            'cost': cost,
-            'average': average,
-            'amount': amount,
+            'triggerPrice': None,
+            'cost': self.safe_string(order, 'Value'),
+            'average': self.safe_string(order, 'AvgPrice'),
+            'amount': self.safe_string_2(order, 'VolumeOrdered', 'Volume'),
             'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
+            'remaining': self.safe_string(order, 'Outstanding'),
+            'status': self.parse_order_status(self.safe_string(order, 'Status')),
+            'fee': {
+                'rate': feeRate,
+                'cost': feeCost,
+                'currency': base,
+            },
             'trades': None,
         }, market)
 
@@ -546,7 +540,7 @@ class independentreserve(Exchange):
                 side = 'buy'
             elif side.find('Offer') >= 0:
                 side = 'sell'
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -560,7 +554,7 @@ class independentreserve(Exchange):
             'amount': amount,
             'cost': cost,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """

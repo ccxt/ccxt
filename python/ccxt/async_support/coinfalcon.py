@@ -129,10 +129,6 @@ class coinfalcon(Exchange):
                     'taker': 0.002,  # tiered fee starts at 0.2%
                 },
             },
-            'precision': {
-                'amount': self.parse_number('0.00000001'),
-                'price': self.parse_number('0.00000001'),
-            },
             'precisionMode': TICK_SIZE,
         })
 
@@ -279,7 +275,7 @@ class coinfalcon(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -617,6 +613,7 @@ class coinfalcon(Exchange):
             'side': side,
             'price': priceString,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amountString,
             'filled': filledString,

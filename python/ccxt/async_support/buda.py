@@ -55,7 +55,7 @@ class buda(Exchange):
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyTrades': None,
+                'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
@@ -613,7 +613,7 @@ class buda(Exchange):
             since = self.milliseconds() - 86400000
         request = {
             'symbol': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'from': since / 1000,
             'to': self.seconds(),
         }
@@ -826,6 +826,7 @@ class buda(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': None,
             'cost': cost,
             'amount': amount,

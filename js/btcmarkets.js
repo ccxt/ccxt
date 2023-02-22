@@ -338,9 +338,11 @@ module.exports = class btcmarkets extends Exchange {
             'currency': code,
             'status': status,
             'updated': lastUpdate,
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': fee,
+                'rate': undefined,
             },
             'info': transaction,
         };
@@ -520,7 +522,7 @@ module.exports = class btcmarkets extends Exchange {
         const market = this.market (symbol);
         const request = {
             'marketId': market['id'],
-            'timeWindow': this.timeframes[timeframe],
+            'timeWindow': this.safeString (this.timeframes, timeframe, timeframe),
             // 'from': this.iso8601 (since),
             // 'to': this.iso8601 (this.milliseconds ()),
             // 'before': 1234567890123,
@@ -996,6 +998,7 @@ module.exports = class btcmarkets extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': undefined,
             'amount': amount,
             'filled': undefined,

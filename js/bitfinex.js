@@ -35,7 +35,9 @@ module.exports = class bitfinex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': undefined,
+                'fetchDeposits': false,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -57,7 +59,7 @@ module.exports = class bitfinex extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
                 'fetchTransactions': true,
-                'fetchWithdrawals': undefined,
+                'fetchWithdrawals': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -393,25 +395,78 @@ module.exports = class bitfinex extends Exchange {
         /**
          * @method
          * @name bitfinex#fetchTransactionFees
-         * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by bitfinex2 fetchTransactionFees ()
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitfinex api endpoint
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const result = {};
+        const response = await this.privatePostAccountFees (params);
+        //
+        // {
+        //     'withdraw': {
+        //         'BTC': '0.0004',
+        //     }
+        // }
+        //
+        const fees = this.safeValue (response, 'withdraw');
+        const ids = Object.keys (fees);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const code = this.safeCurrencyCode (id);
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
+                continue;
+            }
+            result[code] = {
+                'withdraw': this.safeNumber (fees, id),
+                'deposit': {},
+                'info': this.safeNumber (fees, id),
+            };
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitfinex api endpoint
          * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.privatePostAccountFees (params);
-        const fees = response['withdraw'];
-        const withdraw = {};
-        const ids = Object.keys (fees);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const code = this.safeCurrencyCode (id);
-            withdraw[code] = this.safeNumber (fees, id);
-        }
+        //
+        //    {
+        //        'withdraw': {
+        //            'BTC': '0.0004',
+        //            ...
+        //        }
+        //    }
+        //
+        const withdraw = this.safeValue (response, 'withdraw');
+        return this.parseDepositWithdrawFees (withdraw, codes);
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    '0.0004'
+        //
         return {
-            'info': response,
-            'withdraw': withdraw,
-            'deposit': withdraw,  // only for deposits of less than $1000
+            'withdraw': {
+                'fee': this.parseNumber (fee),
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+            'info': fee,
         };
     }
 
@@ -543,23 +598,28 @@ module.exports = class bitfinex extends Exchange {
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            let type = 'spot';
+            if (id.indexOf ('F0') > -1) {
+                type = 'swap';
+            }
             result.push ({
                 'id': id,
-                'symbol': base + '/' + quote,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
+                'type': type,
+                'spot': (type === 'spot'),
                 'margin': this.safeValue (market, 'margin'),
-                'swap': false,
+                'swap': (type === 'swap'),
                 'future': false,
                 'option': false,
                 'active': true,
-                'contract': false,
+                'contract': (type === 'swap'),
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
@@ -602,10 +662,12 @@ module.exports = class bitfinex extends Exchange {
         // https://docs.bitfinex.com/docs/introduction#amount-precision
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
+        symbol = this.safeSymbol (symbol);
         return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     priceToPrecision (symbol, price) {
+        symbol = this.safeSymbol (symbol);
         price = this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
@@ -791,7 +853,7 @@ module.exports = class bitfinex extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -825,24 +887,9 @@ module.exports = class bitfinex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else if ('pair' in ticker) {
-            const marketId = this.safeString (ticker, 'pair');
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                    symbol = market['symbol'];
-                } else {
-                    const baseId = marketId.slice (0, 3);
-                    const quoteId = marketId.slice (3, 6);
-                    const base = this.safeCurrencyCode (baseId);
-                    const quote = this.safeCurrencyCode (quoteId);
-                    symbol = base + '/' + quote;
-                }
-            }
-        }
+        const marketId = this.safeString (market, 'pair');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last_price');
         return this.safeTicker ({
             'symbol': symbol,
@@ -1016,17 +1063,23 @@ module.exports = class bitfinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const postOnly = this.safeValue (params, 'postOnly', false);
+        type = type.toLowerCase ();
         params = this.omit (params, [ 'postOnly' ]);
+        if (market['spot']) {
+            // although they claim that type needs to be 'exchange limit' or 'exchange market'
+            // in fact that's not the case for swap markets
+            type = this.safeStringLower (this.options['orderTypes'], type, type);
+        }
         const request = {
             'symbol': market['id'],
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
-            'type': this.safeString (this.options['orderTypes'], type, type),
+            'type': type,
             'ocoorder': false,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
         };
-        if (type === 'market') {
+        if (type.indexOf ('market') > -1) {
             request['price'] = this.nonce ().toString ();
         } else {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1151,6 +1204,7 @@ module.exports = class bitfinex extends Exchange {
             'side': side,
             'price': this.safeString (order, 'price'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': this.safeString (order, 'avg_execution_price'),
             'amount': this.safeString (order, 'original_amount'),
             'remaining': this.safeString (order, 'remaining_amount'),
@@ -1271,7 +1325,7 @@ module.exports = class bitfinex extends Exchange {
         const v2id = 't' + market['id'];
         const request = {
             'symbol': v2id,
-            'timeframe': this.timeframes[timeframe],
+            'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
             'sort': 1,
             'limit': limit,
         };
@@ -1441,34 +1495,31 @@ module.exports = class bitfinex extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp (transaction, 'timestamp_created');
-        const updated = this.safeTimestamp (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const type = this.safeStringLower (transaction, 'type'); // DEPOSIT or WITHDRAWAL
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         let feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
             feeCost = Precise.stringAbs (feeCost);
         }
-        const tag = this.safeString (transaction, 'description');
         return {
             'info': transaction,
             'id': this.safeString2 (transaction, 'id', 'withdrawal_id'),
             'txid': this.safeString (transaction, 'txid'),
+            'type': this.safeStringLower (transaction, 'type'), // DEPOSIT or WITHDRAWAL,
+            'currency': code,
+            'network': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
             'address': this.safeString (transaction, 'address'), // todo: this is actually the tag for XRP transfers (the address is missing)
-            'addressTo': undefined,
             'addressFrom': undefined,
-            'tag': tag,
-            'tagTo': undefined,
+            'addressTo': undefined,
+            'tag': this.safeString (transaction, 'description'),
             'tagFrom': undefined,
-            'type': type,
-            'amount': this.safeNumber (transaction, 'amount'),
-            'currency': code,
-            'status': status,
-            'updated': updated,
+            'tagTo': undefined,
+            'updated': this.safeTimestamp (transaction, 'timestamp'),
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCost),
@@ -1614,8 +1665,7 @@ module.exports = class bitfinex extends Exchange {
         }
         let throwError = false;
         if (code >= 400) {
-            const firstChar = this.safeString (body, 0);
-            if (firstChar === '{') {
+            if (body[0] === '{') {
                 throwError = true;
             }
         } else {

@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use strict'
 
 const zero = BigInt (0)
@@ -148,7 +149,7 @@ class Precise {
             sign = ''
             abs = this.integer
         }
-        const integerArray = Array.from (abs.toString (this.base).padStart (this.decimals, '0'))
+        const integerArray = Array.from (abs.toString (Number(base)).padStart (this.decimals, '0'))
         const index = integerArray.length - this.decimals
         let item
         if (index === 0) {

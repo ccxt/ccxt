@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
 
 class lbank extends Exchange {
 
@@ -49,7 +48,7 @@ class lbank extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
-                'fetchOpenOrders' => null, // status 0 API doesn't work
+                'fetchOpenOrders' => false, // status 0 API doesn't work
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -130,6 +129,7 @@ class lbank extends Exchange {
             'commonCurrencies' => array(
                 'GMT' => 'GMT Token',
                 'PNT' => 'Penta',
+                'SHINJA' => 'SHINJA(1M)',
                 'VET_ERC20' => 'VEN',
             ),
             'options' => array(
@@ -307,7 +307,7 @@ class lbank extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the lbank api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -357,7 +357,9 @@ class lbank extends Exchange {
         $id = $this->safe_string($trade, 'tid');
         $type = null;
         $side = $this->safe_string($trade, 'type');
-        $side = str_replace('_market', '', $side);
+        // remove $type additions from i.e. buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
+        $splited = explode('_', $side);
+        $side = $splited[0];
         return array(
             'id' => $id,
             'info' => $this->safe_value($trade, 'info', $trade),
@@ -421,7 +423,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = 1000, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -433,15 +435,16 @@ class lbank extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($since === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a `$since` argument');
-        }
         if ($limit === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a `$limit` argument');
+            $limit = 100; // as it's defined in lbank2
+        }
+        if ($since === null) {
+            $duration = $this->parse_timeframe($timeframe);
+            $since = $this->milliseconds() - $duration * 1000 * $limit;
         }
         $request = array(
             'symbol' => $market['id'],
-            'type' => $this->timeframes[$timeframe],
+            'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'size' => $limit,
             'time' => intval($since / 1000),
         );
@@ -564,6 +567,7 @@ class lbank extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'amount' => $amount,
             'filled' => $filled,
@@ -805,8 +809,7 @@ class lbank extends Exchange {
             } else {
                 $pem = $this->convert_secret_to_pem($this->secret);
             }
-            $sign = $this->binary_to_base64($this->rsa($message, $this->encode($pem), 'RS256'));
-            $query['sign'] = $sign;
+            $query['sign'] = $this->rsa($message, $pem, 'RS256');
             $body = $this->urlencode($query);
             $headers = array( 'Content-Type' => 'application/x-www-form-urlencoded' );
         }

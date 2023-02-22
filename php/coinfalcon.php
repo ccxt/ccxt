@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
 
 class coinfalcon extends Exchange {
 
@@ -124,10 +123,6 @@ class coinfalcon extends Exchange {
                     'maker' => 0.0,
                     'taker' => 0.002, // tiered fee starts at 0.2%
                 ),
-            ),
-            'precision' => array(
-                'amount' => $this->parse_number('0.00000001'),
-                'price' => $this->parse_number('0.00000001'),
             ),
             'precisionMode' => TICK_SIZE,
         ));
@@ -280,7 +275,7 @@ class coinfalcon extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the coinfalcon api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -638,6 +633,7 @@ class coinfalcon extends Exchange {
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'amount' => $amountString,
             'filled' => $filledString,

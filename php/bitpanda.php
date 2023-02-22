@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class bitpanda extends Exchange {
 
@@ -82,8 +80,6 @@ class bitpanda extends Exchange {
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
-                'privateAPI' => true,
-                'publicAPI' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
@@ -336,6 +332,8 @@ class bitpanda extends Exchange {
                 'active' => null,
                 'fee' => null,
                 'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
+                'withdraw' => null,
+                'deposit' => null,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
@@ -642,7 +640,7 @@ class bitpanda extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bitpanda api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1452,6 +1450,7 @@ class bitpanda extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => null,
             'average' => null,

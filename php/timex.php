@@ -6,9 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
 
 class timex extends Exchange {
 
@@ -459,7 +456,7 @@ class timex extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $period = $this->safe_string($this->options['fetchTickers'], 'period', '1d');
@@ -628,21 +625,20 @@ class timex extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
-            'period' => $this->timeframes[$timeframe],
+            'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         // if $since and $limit are not specified
         $duration = $this->parse_timeframe($timeframe);
+        if ($limit === null) {
+            $limit = 1000; // exchange provides tens of thousands of data, but we set generous default value
+        }
         if ($since !== null) {
             $request['from'] = $this->iso8601($since);
-            if ($limit !== null) {
-                $request['till'] = $this->iso8601($this->sum($since, $this->sum($limit, 1) * $duration * 1000));
-            }
-        } elseif ($limit !== null) {
+            $request['till'] = $this->iso8601($this->sum($since, $this->sum($limit, 1) * $duration * 1000));
+        } else {
             $now = $this->milliseconds();
             $request['till'] = $this->iso8601($now);
             $request['from'] = $this->iso8601($now - $limit * $duration * 1000 - 1);
-        } else {
-            $request['till'] = $this->iso8601($this->milliseconds());
         }
         $response = $this->publicGetCandles (array_merge($request, $params));
         //
@@ -1496,6 +1492,7 @@ class timex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'average' => null,

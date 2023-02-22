@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -53,6 +54,7 @@ class bit2c(Exchange):
                 'fetchMyTrades': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
@@ -98,6 +100,7 @@ class bit2c(Exchange):
                         'Funds/AddCoinFundsRequest',
                         'Order/AddFund',
                         'Order/AddOrder',
+                        'Order/GetById',
                         'Order/AddOrderMarketPriceBuy',
                         'Order/AddOrderMarketPriceSell',
                         'Order/CancelOrder',
@@ -125,8 +128,40 @@ class bit2c(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': self.parse_number('0.005'),
-                    'taker': self.parse_number('0.005'),
+                    'tierBased': True,
+                    'percentage': True,
+                    'maker': self.parse_number('0.025'),
+                    'taker': self.parse_number('0.03'),
+                    'tiers': {
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.03')],
+                            [self.parse_number('20000'), self.parse_number('0.0275')],
+                            [self.parse_number('50000'), self.parse_number('0.025')],
+                            [self.parse_number('75000'), self.parse_number('0.0225')],
+                            [self.parse_number('100000'), self.parse_number('0.02')],
+                            [self.parse_number('250000'), self.parse_number('0.015')],
+                            [self.parse_number('500000'), self.parse_number('0.0125')],
+                            [self.parse_number('750000'), self.parse_number('0.01')],
+                            [self.parse_number('1000000'), self.parse_number('0.008')],
+                            [self.parse_number('2000000'), self.parse_number('0.006')],
+                            [self.parse_number('3000000'), self.parse_number('0.004')],
+                            [self.parse_number('4000000'), self.parse_number('0.002')],
+                        ],
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.025')],
+                            [self.parse_number('20000'), self.parse_number('0.0225')],
+                            [self.parse_number('50000'), self.parse_number('0.02')],
+                            [self.parse_number('75000'), self.parse_number('0.0175')],
+                            [self.parse_number('100000'), self.parse_number('0.015')],
+                            [self.parse_number('250000'), self.parse_number('0.01')],
+                            [self.parse_number('500000'), self.parse_number('0.0075')],
+                            [self.parse_number('750000'), self.parse_number('0.005')],
+                            [self.parse_number('1000000'), self.parse_number('0.004')],
+                            [self.parse_number('2000000'), self.parse_number('0.003')],
+                            [self.parse_number('3000000'), self.parse_number('0.002')],
+                            [self.parse_number('4000000'), self.parse_number('0.001')],
+                        ],
+                    },
                 },
             },
             'options': {
@@ -136,6 +171,7 @@ class bit2c(Exchange):
             'exceptions': {
                 'exact': {
                     'Please provide valid APIkey': AuthenticationError,  # {"error" : "Please provide valid APIkey"}
+                    'No order found.': OrderNotFound,  # {"Error" : "No order found."}
                 },
                 'broad': {
                     # {"error": "Please provide valid nonce in Request Nonce(1598218490) is not bigger than last nonce(1598218490)."}
@@ -348,7 +384,7 @@ class bit2c(Exchange):
                 'taker': taker,
                 'maker': maker,
                 'percentage': True,
-                'tierBased': False,
+                'tierBased': True,
             }
         return result
 
@@ -377,10 +413,7 @@ class bit2c(Exchange):
             request['Total'] = amount * price
             request['IsBid'] = (side == 'buy')
         response = getattr(self, method)(self.extend(request, params))
-        return {
-            'info': response,
-            'id': response['NewOrder']['id'],
-        }
+        return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         """
@@ -417,18 +450,117 @@ class bit2c(Exchange):
         bids = self.safe_value(orders, 'bid', [])
         return self.parse_orders(self.array_concat(asks, bids), market, since, limit)
 
+    def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bit2c api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': id,
+        }
+        response = self.privateGetOrderGetById(self.extend(request, params))
+        #
+        #         {
+        #             "pair": "BtcNis",
+        #             "status": "Completed",
+        #             "created": 1666689837,
+        #             "type": 0,
+        #             "order_type": 0,
+        #             "amount": 0.00000000,
+        #             "price": 50000.00000000,
+        #             "stop": 0,
+        #             "id": 10951473,
+        #             "initialAmount": 2.00000000
+        #         }
+        #
+        return self.parse_order(response, market)
+
     def parse_order(self, order, market=None):
-        timestamp = self.safe_integer(order, 'created')
-        price = self.safe_string(order, 'price')
-        amount = self.safe_string(order, 'amount')
-        market = self.safe_market(None, market)
-        side = self.safe_value(order, 'type')
+        #
+        #      createOrder
+        #      {
+        #          "OrderResponse": {"pair": "BtcNis", "HasError": False, "Error": "", "Message": ""},
+        #          "NewOrder": {
+        #              "created": 1505531577,
+        #              "type": 0,
+        #              "order_type": 0,
+        #              "status_type": 0,
+        #              "amount": 0.01,
+        #              "price": 10000,
+        #              "stop": 0,
+        #              "id": 9244416,
+        #              "initialAmount": None,
+        #          },
+        #      }
+        #      fetchOrder, fetchOpenOrders
+        #      {
+        #          "pair": "BtcNis",
+        #          "status": "Completed",
+        #          "created": 1535555837,
+        #          "type": 0,
+        #          "order_type": 0,
+        #          "amount": 0.00000000,
+        #          "price": 120000.00000000,
+        #          "stop": 0,
+        #          "id": 10555173,
+        #          "initialAmount": 2.00000000
+        #      }
+        #
+        orderUnified = None
+        isNewOrder = False
+        if 'NewOrder' in order:
+            orderUnified = order['NewOrder']
+            isNewOrder = True
+        else:
+            orderUnified = order
+        id = self.safe_string(orderUnified, 'id')
+        symbol = self.safe_symbol(None, market)
+        timestamp = self.safe_integer_product(orderUnified, 'created', 1000)
+        # status field vary between responses
+        # bit2c status type:
+        # 0 = New
+        # 1 = Open
+        # 5 = Completed
+        status = None
+        if isNewOrder:
+            tempStatus = self.safe_integer(orderUnified, 'status_type')
+            if tempStatus == 0 or tempStatus == 1:
+                status = 'open'
+            elif tempStatus == 5:
+                status = 'closed'
+        else:
+            tempStatus = self.safe_string(orderUnified, 'status')
+            if tempStatus == 'New' or tempStatus == 'Open':
+                status = 'open'
+            elif tempStatus == 'Completed':
+                status = 'closed'
+        # bit2c order type:
+        # 0 = LMT,  1 = MKT
+        type = self.safe_integer(orderUnified, 'order_type')
+        if type == 0:
+            type = 'limit'
+        elif type == 1:
+            type = 'market'
+        # bit2c side:
+        # 0 = buy, 1 = sell
+        side = self.safe_integer(orderUnified, 'type')
         if side == 0:
             side = 'buy'
         elif side == 1:
             side = 'sell'
-        id = self.safe_string(order, 'id')
-        status = self.safe_string(order, 'status')
+        price = self.safe_string(orderUnified, 'price')
+        amount = None
+        remaining = None
+        if isNewOrder:
+            amount = self.safe_string(orderUnified, 'amount')  # NOTE:'initialAmount' is currently not set on new order
+            remaining = self.safe_string(orderUnified, 'amount')
+        else:
+            amount = self.safe_string(orderUnified, 'initialAmount')
+            remaining = self.safe_string(orderUnified, 'amount')
         return self.safe_order({
             'id': id,
             'clientOrderId': None,
@@ -436,16 +568,17 @@ class bit2c(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': market['symbol'],
-            'type': None,
+            'symbol': symbol,
+            'type': type,
             'timeInForce': None,
             'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'filled': None,
-            'remaining': None,
+            'remaining': remaining,
             'cost': None,
             'trades': None,
             'fee': None,
@@ -515,6 +648,13 @@ class bit2c(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def remove_comma_from_value(self, str):
+        newString = ''
+        strParts = str.split(',')
+        for i in range(0, len(strParts)):
+            newString += strParts[i]
+        return newString
+
     def parse_trade(self, trade, market=None):
         #
         # public fetchTrades
@@ -533,7 +673,7 @@ class bit2c(Exchange):
         #         "ticks":1574767951,
         #         "created":"26/11/19 13:32",
         #         "action":1,
-        #         "price":"1000",
+        #         "price":"1,000",
         #         "pair":"EthNis",
         #         "reference":"EthNis|10867390|10867377",
         #         "fee":"0.5",
@@ -545,6 +685,7 @@ class bit2c(Exchange):
         #         "secondAmountBalance":"130,233.28",
         #         "firstCoin":"ETH",
         #         "secondCoin":"₪"
+        #         "isMaker": True,
         #     }
         #
         timestamp = None
@@ -554,17 +695,21 @@ class bit2c(Exchange):
         orderId = None
         fee = None
         side = None
+        makerOrTaker = None
         reference = self.safe_string(trade, 'reference')
         if reference is not None:
+            id = reference
             timestamp = self.safe_timestamp(trade, 'ticks')
             price = self.safe_string(trade, 'price')
+            price = self.remove_comma_from_value(price)
             amount = self.safe_string(trade, 'firstAmount')
-            reference_parts = reference.split('|')  # reference contains 'pair|orderId|tradeId'
+            reference_parts = reference.split('|')  # reference contains 'pair|orderId_by_taker|orderId_by_maker'
             marketId = self.safe_string(trade, 'pair')
             market = self.safe_market(marketId, market)
             market = self.safe_market(reference_parts[0], market)
-            orderId = reference_parts[1]
-            id = reference_parts[2]
+            isMaker = self.safe_value(trade, 'isMaker')
+            makerOrTaker = 'maker' if isMaker else 'taker'
+            orderId = reference_parts[2] if isMaker else reference_parts[1]
             side = self.safe_integer(trade, 'action')
             if side == 0:
                 side = 'buy'
@@ -597,7 +742,7 @@ class bit2c(Exchange):
             'order': orderId,
             'type': None,
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': makerOrTaker,
             'price': price,
             'amount': amount,
             'cost': None,
@@ -681,8 +826,11 @@ class bit2c(Exchange):
         #
         #     {"error" : "please approve new terms of use on site."}
         #     {"error": "Please provide valid nonce in Request Nonce(1598218490) is not bigger than last nonce(1598218490)."}
+        #     {"Error" : "No order found."}
         #
         error = self.safe_string(response, 'error')
+        if error is None:
+            error = self.safe_string(response, 'Error')
         if error is not None:
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)

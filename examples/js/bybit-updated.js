@@ -12,6 +12,7 @@ const exchange = new ccxt.bybit ({
 // Example 1: Spot : fetch balance, create order, cancel it and check canceled orders
 async function example1 () {
     exchange['options']['defaultType'] = 'spot'; // very important set spot as default type
+
     await exchange.loadMarkets ();
 
     // fetch spot balance

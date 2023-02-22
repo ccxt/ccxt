@@ -44,6 +44,7 @@ module.exports = class btcalpha extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchL2OrderBook': true,
                 'fetchLeverage': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -60,7 +61,8 @@ module.exports = class btcalpha extends Exchange {
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchTicker': undefined,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -76,7 +78,6 @@ module.exports = class btcalpha extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1',
                 '5m': '5',
                 '15m': '15',
                 '30m': '30',
@@ -99,9 +100,10 @@ module.exports = class btcalpha extends Exchange {
                     'get': [
                         'currencies/',
                         'pairs/',
-                        'orderbook/{pair_name}/',
+                        'orderbook/{pair_name}',
                         'exchanges/',
                         'charts/{pair}/{type}/chart/',
+                        'ticker/',
                     ],
                 },
                 'private': {
@@ -228,6 +230,111 @@ module.exports = class btcalpha extends Exchange {
         return result;
     }
 
+    async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcalpha#fetchTickers
+         * @see https://btc-alpha.github.io/api-docs/#tickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetTicker (params);
+        //
+        //    [
+        //        {
+        //            timestamp: '1674658.445272',
+        //            pair: 'BTC_USDT',
+        //            last: '22476.85',
+        //            diff: '458.96',
+        //            vol: '6660.847784',
+        //            high: '23106.08',
+        //            low: '22348.29',
+        //            buy: '22508.46',
+        //            sell: '22521.11'
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseTickers (response, symbols);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name btcalpha#fetchTicker
+         * @see https://btc-alpha.github.io/api-docs/#tickers
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        //
+        //    {
+        //        timestamp: '1674658.445272',
+        //        pair: 'BTC_USDT',
+        //        last: '22476.85',
+        //        diff: '458.96',
+        //        vol: '6660.847784',
+        //        high: '23106.08',
+        //        low: '22348.29',
+        //        buy: '22508.46',
+        //        sell: '22521.11'
+        //    }
+        //
+        return this.parseTicker (response, market);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //    {
+        //        timestamp: '1674658.445272',
+        //        pair: 'BTC_USDT',
+        //        last: '22476.85',
+        //        diff: '458.96',
+        //        vol: '6660.847784',
+        //        high: '23106.08',
+        //        low: '22348.29',
+        //        buy: '22508.46',
+        //        sell: '22521.11'
+        //    }
+        //
+        const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 1000000);
+        const marketId = this.safeString (ticker, 'pair');
+        market = this.safeMarket (marketId, market, '_');
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'info': ticker,
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'sell'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'diff'),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': this.safeString (ticker, 'vol'),
+        }, market);
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         /**
          * @method
@@ -289,7 +396,8 @@ module.exports = class btcalpha extends Exchange {
         //
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market, '_');
-        const timestamp = this.safeTimestamp (trade, 'timestamp');
+        const timestampRaw = this.safeString (trade, 'timestamp');
+        const timestamp = this.parseNumber (Precise.stringMul (timestampRaw, '1000000'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const id = this.safeString (trade, 'id');
@@ -492,7 +600,7 @@ module.exports = class btcalpha extends Exchange {
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
-            'type': this.timeframes[timeframe],
+            'type': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -607,6 +715,7 @@ module.exports = class btcalpha extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'filled': filled,
@@ -645,9 +754,10 @@ module.exports = class btcalpha extends Exchange {
             throw new InvalidOrder (this.id + ' ' + this.json (response));
         }
         const order = this.parseOrder (response, market);
-        amount = (order['amount'] > 0) ? order['amount'] : amount;
+        const orderAmount = order['amount'].toString ();
+        amount = Precise.stringGt (orderAmount, '0') ? order['amount'] : amount;
         return this.extend (order, {
-            'amount': amount,
+            'amount': this.parseNumber (amount),
         });
     }
 

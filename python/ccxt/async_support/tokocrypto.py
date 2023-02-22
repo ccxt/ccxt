@@ -1114,7 +1114,7 @@ class tokocrypto(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the tokocrypto api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         defaultMethod = 'binanceGetTicker24hr'
@@ -1145,7 +1145,7 @@ class tokocrypto(Exchange):
         fetches the bid and ask price and volume for multiple markets
         :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict params: extra parameters specific to the tokocrypto api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         response = await self.binanceGetTickerBookTicker(params)
@@ -1218,7 +1218,7 @@ class tokocrypto(Exchange):
         params = self.omit(params, ['price', 'until'])
         limit = defaultLimit if (limit is None) else min(limit, maxLimit)
         request = {
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limit,
         }
         if price == 'index':
@@ -1465,6 +1465,7 @@ class tokocrypto(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -2033,36 +2034,35 @@ class tokocrypto(Exchange):
         # fetchDeposits
         #
         #     {
-        #         "id":5167969,
-        #         "asset":"BIDR",
-        #         "network":"BSC",
-        #         "address":"0x101a925704f6ff13295ab8dd7a60988d116aaedf",
-        #         "addressTag":"",
-        #         "txId":"113409337867",
-        #         "amount":"15000",
-        #         "transferType":1,
-        #         "status":1,
-        #         "insertTime":"1659429390000"
+        #         "id": 5167969,
+        #         "asset": "BIDR",
+        #         "network": "BSC",
+        #         "address": "0x101a925704f6ff13295ab8dd7a60988d116aaedf",
+        #         "addressTag": "",
+        #         "txId": "113409337867",
+        #         "amount": "15000",
+        #         "transferType": 1,
+        #         "status": 1,
+        #         "insertTime": "1659429390000"
         #     }
         #
         # fetchWithdrawals
         #
         #     {
-        #         "id":4245859,
-        #         "clientId":"198",
-        #         "asset":"BIDR",
-        #         "network":"BSC",
-        #         "address":"0xff1c75149cc492e7d5566145b859fcafc900b6e9",
-        #         "addressTag":"",
-        #         "amount":"10000",
-        #         "fee":"0",
-        #         "txId":"113501794501",
-        #         "transferType":1,
-        #         "status":10,
-        #         "createTime":1659521314413
+        #         "id": 4245859,
+        #         "clientId": "198",
+        #         "asset": "BIDR",
+        #         "network": "BSC",
+        #         "address": "0xff1c75149cc492e7d5566145b859fcafc900b6e9",
+        #         "addressTag": "",
+        #         "amount": "10000",
+        #         "fee": "0",
+        #         "txId": "113501794501",
+        #         "transferType": 1,
+        #         "status": 10,
+        #         "createTime": 1659521314413
         #     }
         #
-        id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')  # set but unused
         if tag is not None:
@@ -2084,35 +2084,37 @@ class tokocrypto(Exchange):
             elif (insertTime is None) and (createTime is not None):
                 type = 'withdrawal'
                 timestamp = createTime
-        status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
-        amount = self.safe_number(transaction, 'amount')
         feeCost = self.safe_number_2(transaction, 'transactionFee', 'totalFee')
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         if feeCost is not None:
-            fee = {'currency': code, 'cost': feeCost}
-        updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
+            fee['currency'] = code
+            fee['cost'] = feeCost
         internal = self.safe_integer(transaction, 'transferType')
         if internal is not None:
             internal = True if internal else False
-        network = self.safe_string(transaction, 'network')
         return {
             'info': transaction,
-            'id': id,
+            'id': self.safe_string(transaction, 'id'),
             'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': self.safe_string(transaction, 'network'),
+            'amount': self.safe_number(transaction, 'amount'),
+            'status': self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': network,
             'address': address,
-            'addressTo': address,
             'addressFrom': None,
+            'addressTo': address,
             'tag': tag,
-            'tagTo': tag,
             'tagFrom': None,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
-            'updated': updated,
+            'tagTo': tag,
+            'updated': self.safe_integer_2(transaction, 'successTime', 'updateTime'),
+            'comment': None,
             'internal': internal,
             'fee': fee,
         }

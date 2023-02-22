@@ -257,11 +257,10 @@ module.exports = class mexc extends Exchange {
                 },
                 'defaultType': 'spot', // spot, swap
                 'networks': {
-                    'TRX': 'TRC-20',
-                    'TRC20': 'TRC-20',
-                    'ETH': 'ERC-20',
-                    'ERC20': 'ERC-20',
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
                     'BEP20': 'BEP20(BSC)',
+                    'BSC': 'BEP20(BSC)',
                 },
                 'accountsByType': {
                     'spot': 'MAIN',
@@ -284,6 +283,7 @@ module.exports = class mexc extends Exchange {
                 'cancelOrder': {
                     'method': 'spotPrivateDeleteOrderCancel', // contractPrivatePostOrderCancel contractPrivatePostPlanorderCancel
                 },
+                'broker': 'CCXT',
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -297,11 +297,13 @@ module.exports = class mexc extends Exchange {
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
                 'FREE': 'FreeRossDAO', // conflict with FREE Coin
+                'GAS': 'GASDAO',
                 'GMT': 'GMT Token',
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance', // conflict with Prosper
                 'SIN': 'Sin City Token',
+                'SOUL': 'Soul Swap',
                 'STEPN': 'GMT',
             },
             'exceptions': {
@@ -437,7 +439,7 @@ module.exports = class mexc extends Exchange {
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'full_name');
             let currencyActive = false;
-            let currencyPrecision = undefined;
+            let minPrecision = undefined;
             let currencyFee = undefined;
             let currencyWithdrawMin = undefined;
             let currencyWithdrawMax = undefined;
@@ -469,6 +471,10 @@ module.exports = class mexc extends Exchange {
                 if (isWithdrawEnabled) {
                     withdrawEnabled = true;
                 }
+                const precision = this.parsePrecision (this.safeString (chain, 'precision'));
+                if (precision !== undefined) {
+                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
+                }
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -477,7 +483,7 @@ module.exports = class mexc extends Exchange {
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': this.safeNumber (chain, 'fee'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'precision'))),
+                    'precision': this.parseNumber (minPrecision),
                     'limits': {
                         'withdraw': {
                             'min': withdrawMin,
@@ -492,7 +498,6 @@ module.exports = class mexc extends Exchange {
                 const defaultNetwork = this.safeValue2 (networks, 'NONE', networkKeysLength - 1);
                 if (defaultNetwork !== undefined) {
                     currencyFee = defaultNetwork['fee'];
-                    currencyPrecision = defaultNetwork['precision'];
                 }
             }
             result[code] = {
@@ -504,7 +509,7 @@ module.exports = class mexc extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': currencyFee,
-                'precision': currencyPrecision,
+                'precision': this.parseNumber (minPrecision),
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -773,10 +778,16 @@ module.exports = class mexc extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the mexc api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        symbols = this.marketSymbols (symbols);
+        const first = this.safeString (symbols, 0);
+        let market = undefined;
+        if (first !== undefined) {
+            market = this.market (first);
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetMarketTicker',
             'swap': 'contractPublicGetTicker',
@@ -2354,6 +2365,7 @@ module.exports = class mexc extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': this.safeString (order, 'triggerPrice'),
+            'triggerPrice': this.safeString (order, 'triggerPrice'),
             'average': this.safeString (order, 'dealAvgPrice'),
             'amount': amount,
             'cost': cost,
@@ -3079,7 +3091,7 @@ module.exports = class mexc extends Exchange {
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeString2 (params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeStringUpper2 (params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -3128,6 +3140,7 @@ module.exports = class mexc extends Exchange {
                 'ApiKey': this.apiKey,
                 'Request-Time': timestamp,
                 'Content-Type': 'application/json',
+                'source': this.safeString (this.options, 'broker', 'CCXT'),
             };
             if (method === 'POST') {
                 auth = this.json (params);

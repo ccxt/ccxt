@@ -448,6 +448,7 @@ class zonda(Exchange):
             'side': self.safe_string_lower(order, 'offerType'),
             'price': self.safe_string(order, 'rate'),
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'filled': None,
@@ -641,7 +642,7 @@ class zonda(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         response = await self.v1_01PublicGetTradingStats(params)
@@ -977,7 +978,7 @@ class zonda(Exchange):
             'referenceAccount': None,
             'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
             'currency': self.safe_currency_code(currencyId),
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'before': self.safe_number(fundsBefore, 'total'),
             'after': self.safe_number(fundsAfter, 'total'),
             'status': 'ok',
@@ -1044,7 +1045,7 @@ class zonda(Exchange):
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
         request = {
             'symbol': tradingSymbol,
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': 1574709092000,  # unix timestamp in milliseconds, required
             # 'to': 1574709092000,  # unix timestamp in milliseconds, required
         }
