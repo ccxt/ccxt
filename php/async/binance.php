@@ -3367,11 +3367,14 @@ class binance extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
                 'side' => strtoupper($side),
-                'cancelOrderId' => $id,
                 'cancelReplaceMode' => 'STOP_ON_FAILURE',
                 // STOP_ON_FAILURE - If the cancel $request fails, the new order placement will not be attempted.
                 // ALLOW_FAILURE - new order placement will be attempted even if cancel $request fails.
             );
+            $cancelId = $this->safe_string_2($params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId');
+            if ($cancelId === null) {
+                $request['cancelOrderId'] = $id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
+            }
             $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
             $initialUppercaseType = strtoupper($type);
             $uppercaseType = $initialUppercaseType;
@@ -4177,7 +4180,7 @@ class binance extends Exchange {
                 $type = $this->safe_string($query, 'type', $defaultType);
             }
             $subType = null;
-            list($subType, $query) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params);
+            list($subType, $query) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $query);
             $requestParams = $this->omit($query, 'type');
             $method = 'privateGetOpenOrders';
             if ($type === 'option') {
@@ -6454,7 +6457,7 @@ class binance extends Exchange {
             Async\await($this->load_markets());
             list($type, $query) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
             $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverageTiers', null, $params, 'linear');
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverageTiers', null, $query, 'linear');
             $method = null;
             if ($this->is_linear($type, $subType)) {
                 $method = 'fapiPrivateGetLeverageBracket';

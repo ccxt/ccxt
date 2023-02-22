@@ -3240,11 +3240,13 @@ class binance(Exchange):
         request = {
             'symbol': market['id'],
             'side': side.upper(),
-            'cancelOrderId': id,
             'cancelReplaceMode': 'STOP_ON_FAILURE',
             # STOP_ON_FAILURE - If the cancel request fails, the new order placement will not be attempted.
             # ALLOW_FAILURE - new order placement will be attempted even if cancel request fails.
         }
+        cancelId = self.safe_string_2(params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId')
+        if cancelId is None:
+            request['cancelOrderId'] = id  # user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
         initialUppercaseType = type.upper()
         uppercaseType = initialUppercaseType
@@ -3971,7 +3973,7 @@ class binance(Exchange):
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
             type = self.safe_string(query, 'type', defaultType)
         subType = None
-        subType, query = self.handle_sub_type_and_params('fetchOpenOrders', market, params)
+        subType, query = self.handle_sub_type_and_params('fetchOpenOrders', market, query)
         requestParams = self.omit(query, 'type')
         method = 'privateGetOpenOrders'
         if type == 'option':
@@ -6039,7 +6041,7 @@ class binance(Exchange):
         await self.load_markets()
         type, query = self.handle_market_type_and_params('fetchLeverageTiers', None, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchLeverageTiers', None, params, 'linear')
+        subType, params = self.handle_sub_type_and_params('fetchLeverageTiers', None, query, 'linear')
         method = None
         if self.is_linear(type, subType):
             method = 'fapiPrivateGetLeverageBracket'

@@ -3357,11 +3357,14 @@ module.exports = class binance extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
-            'cancelOrderId': id,
             'cancelReplaceMode': 'STOP_ON_FAILURE',
             // STOP_ON_FAILURE - If the cancel request fails, the new order placement will not be attempted.
             // ALLOW_FAILURE - new order placement will be attempted even if cancel request fails.
         };
+        const cancelId = this.safeString2 (params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId');
+        if (cancelId === undefined) {
+            request['cancelOrderId'] = id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
+        }
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         const initialUppercaseType = type.toUpperCase ();
         let uppercaseType = initialUppercaseType;
@@ -4167,7 +4170,7 @@ module.exports = class binance extends Exchange {
             type = this.safeString (query, 'type', defaultType);
         }
         let subType = undefined;
-        [ subType, query ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
+        [ subType, query ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, query);
         const requestParams = this.omit (query, 'type');
         let method = 'privateGetOpenOrders';
         if (type === 'option') {
@@ -6442,7 +6445,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params, 'linear');
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, query, 'linear');
         let method = undefined;
         if (this.isLinear (type, subType)) {
             method = 'fapiPrivateGetLeverageBracket';

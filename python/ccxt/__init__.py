@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.8.5'
+__version__ = '2.8.24'
 
 # ----------------------------------------------------------------------------
 
@@ -171,7 +171,6 @@ from ccxt.poloniexfutures import poloniexfutures                      # noqa: F4
 from ccxt.probit import probit                                        # noqa: F401
 from ccxt.ripio import ripio                                          # noqa: F401
 from ccxt.stex import stex                                            # noqa: F401
-from ccxt.therock import therock                                      # noqa: F401
 from ccxt.tidex import tidex                                          # noqa: F401
 from ccxt.timex import timex                                          # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
@@ -284,7 +283,6 @@ exchanges = [
     'probit',
     'ripio',
     'stex',
-    'therock',
     'tidex',
     'timex',
     'tokocrypto',

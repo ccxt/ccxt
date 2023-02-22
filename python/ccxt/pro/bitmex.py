@@ -568,14 +568,13 @@ class bitmex(Exchange, ccxt.async_support.bitmex):
                 client.reject(e, 'authenticated')
                 if action in client.subscriptions:
                     del client.subscriptions[action]
-        return await future
+        return future
 
     def handle_authentication_message(self, client, message):
         authenticated = self.safe_value(message, 'success', False)
         if authenticated:
             # we resolve the future here permanently so authentication only happens once
-            future = self.safe_value(client.futures, 'authenticated')
-            future.resolve(True)
+            client.resolve(message, 'authenticated')
         else:
             error = AuthenticationError(self.json(message))
             client.reject(error, 'authenticated')
