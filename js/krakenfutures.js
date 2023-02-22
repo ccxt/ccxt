@@ -338,7 +338,7 @@ module.exports = class krakenfutures extends Exchange {
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'contractSize': this.safeFloat (market, 'contractSize'),
+                'contractSize': this.safeNumber (market, 'contractSize'),
                 'maintenanceMarginRate': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
@@ -346,7 +346,7 @@ module.exports = class krakenfutures extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': index ? undefined : this.parseNumber ('1'),
-                    'price': this.safeFloat (market, 'tickSize'),
+                    'price': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
