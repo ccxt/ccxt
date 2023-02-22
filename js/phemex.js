@@ -1449,6 +1449,9 @@ module.exports = class phemex extends Exchange {
         let costString = undefined;
         let type = undefined;
         let fee = undefined;
+        let feeCostString = undefined;
+        let feeRateString = undefined;
+        let feeCurrencyCode = undefined;
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -1475,7 +1478,21 @@ module.exports = class phemex extends Exchange {
             id = this.safeString2 (trade, 'execId', 'execID');
             orderId = this.safeString (trade, 'orderID');
             if (market['settle'] === 'USDT') {
-                console.log (trade);
+                const sideId = this.safeString (trade, 'side');
+                side = (sideId === '1') ? 'buy' : 'sell';
+                const ordType = this.safeString (trade, 'ordType');
+                if (ordType === '1') {
+                    type = 'market';
+                } else if (ordType === '2') {
+                    type = 'limit';
+                }
+                priceString = this.safeString (trade, 'priceRp');
+                amountString = this.safeString (trade, 'execQtyRq');
+                costString = this.safeString (trade, 'execValueRv');
+                feeCostString = this.safeString (trade, 'execFeeRv');
+                feeRateString = this.safeString (trade, 'feeRateRr');
+                const currencyId = this.safeString (trade, 'currency');
+                feeCurrencyCode = this.safeCurrencyCode (currencyId);
             } else {
                 side = this.safeStringLower (trade, 'side');
                 type = this.parseOrderType (this.safeString (trade, 'ordType'));
@@ -1487,10 +1504,9 @@ module.exports = class phemex extends Exchange {
                 amountString = this.fromEv (this.safeString (trade, 'execBaseQtyEv'), market);
                 amountString = this.safeString (trade, 'execQty', amountString);
                 costString = this.fromEv (this.safeString2 (trade, 'execQuoteQtyEv', 'execValueEv'), market);
-                const feeCostString = this.fromEv (this.safeString (trade, 'execFeeEv'), market);
+                feeCostString = this.fromEv (this.safeString (trade, 'execFeeEv'), market);
                 if (feeCostString !== undefined) {
-                    const feeRateString = this.fromEr (this.safeString (trade, 'feeRateEr'), market);
-                    let feeCurrencyCode = undefined;
+                    feeRateString = this.fromEr (this.safeString (trade, 'feeRateEr'), market);
                     if (market['spot']) {
                         feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
                     } else {
@@ -1500,13 +1516,13 @@ module.exports = class phemex extends Exchange {
                             feeCurrencyCode = this.safeCurrencyCode (settlementCurrencyId);
                         }
                     }
-                    fee = {
-                        'cost': feeCostString,
-                        'rate': feeRateString,
-                        'currency': feeCurrencyCode,
-                    };
                 }
             }
+            fee = {
+                'cost': feeCostString,
+                'rate': feeRateString,
+                'currency': feeCurrencyCode,
+            };
         }
         return this.safeTrade ({
             'info': trade,
@@ -1674,15 +1690,14 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         let query = undefined;
         let type = undefined;
-        let subType = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        [ subType, query ] = this.handleSubTypeAndParams ('fetchBalance', undefined, query);
         let method = 'privateGetSpotWallets';
         const request = {};
         if (type === 'swap') {
@@ -1698,9 +1713,10 @@ module.exports = class phemex extends Exchange {
                 }
             }
             method = 'privateGetAccountsAccountPositions';
-            const settle = this.safeValue ('settle', query);
-            query = this.omit (query, 'settle');
-            if (subType === 'linear' && settle === 'USDT') {
+            const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USD');
+            const settle = this.safeString2 (params, 'settle', defaultSettle);
+            query = this.omit (query, [ 'settle', 'defaultSettle' ]);
+            if (settle === 'USDT') {
                 method = 'privateGetGAccountsAccountPositions';
             }
         }
@@ -2646,20 +2662,20 @@ module.exports = class phemex extends Exchange {
         if (market['swap']) {
             method = 'privateGetExchangeOrderTrade';
             if (market['settle'] === 'USDT') {
-                method = 'privateGetExchangeOrderV2TradingList'; // FIXME: {"code":39999,"msg":"Please try again.","data":null}
+                method = 'privateGetExchangeOrderV2TradingList';
             }
         }
-        const request = {
-            'symbol': market['id'],
-        };
+        const request = {};
         if (market['settle'] === 'USDT') {
-            request['currency'] = market['baseId'];
+            request['currency'] = 'USDT';
             request['offset'] = 0;
             limit = 200;
             if (limit !== undefined) {
                 limit = Math.min (200, limit);
             }
             request['limit'] = limit;
+        } else {
+            request['symbol'] = market['id'];
         }
         if (since !== undefined) {
             request['start'] = since;
@@ -2773,8 +2789,11 @@ module.exports = class phemex extends Exchange {
         // }
         //
         const data = this.safeValue (response, 'data', {});
-        const rows = this.safeValue (data, 'rows', []);
-        return this.parseTrades (rows, market, since, limit);
+        if (method !== 'privateGetExchangeOrderV2TradingList') {
+            const rows = this.safeValue (data, 'rows', []);
+            return this.parseTrades (rows, market, since, limit);
+        }
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -3006,10 +3025,26 @@ module.exports = class phemex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
+        let query = undefined;
+        let subType = undefined;
+        [ subType, query ] = this.handleSubTypeAndParams ('fetchPositions', undefined, query);
+        let method = 'privateGetAccountsAccountPositions';
         let code = this.safeString (params, 'code');
-        if (code === undefined) {
-            code = (defaultSubType === 'linear') ? 'USD' : 'BTC';
+        let settle = undefined;
+        const firstSymbol = this.safeString (symbols, 0, undefined);
+        if (firstSymbol !== undefined && firstSymbol.indexOf (':') >= 0) {
+            settle = firstSymbol.split (':')[-1];
+        }
+        if (settle === undefined) {
+            const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USD');
+            settle = this.safeString2 (params, 'settle', defaultSettle);
+            query = this.omit (query, [ 'settle', 'defaultSettle' ]);
+        }
+        if (settle === 'USDT') {
+            code = 'USDT';
+            method = 'privateGetGAccountsAccountPositions';
+        } else if (code === undefined) {
+            code = (subType === 'linear') ? 'USD' : 'BTC';
         } else {
             params = this.omit (params, 'code');
         }
@@ -3017,7 +3052,7 @@ module.exports = class phemex extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateGetAccountsAccountPositions (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code":0,"msg":"",
@@ -3179,19 +3214,19 @@ module.exports = class phemex extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const collateral = this.safeString (position, 'positionMargin');
-        const notionalString = this.safeString (position, 'value');
-        const maintenanceMarginPercentageString = this.safeString (position, 'maintMarginReq');
+        const collateral = this.safeString2 (position, 'positionMargin', 'positionMarginRv');
+        const notionalString = this.safeString2 (position, 'value', 'valueRv');
+        const maintenanceMarginPercentageString = this.safeString2 (position, 'maintMarginReq', 'maintMarginReqRr');
         const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
-        const initialMarginString = this.safeString (position, 'assignedPosBalance');
+        const initialMarginString = this.safeString2 (position, 'assignedPosBalance', 'assignedPosBalanceRv');
         const initialMarginPercentageString = Precise.stringDiv (initialMarginString, notionalString);
-        const liquidationPrice = this.safeNumber (position, 'liquidationPrice');
-        const markPriceString = this.safeString (position, 'markPrice');
+        const liquidationPrice = this.safeNumber2 (position, 'liquidationPrice', 'liquidationPriceRp');
+        const markPriceString = this.safeString2 (position, 'markPrice', 'markPriceRp');
         const contracts = this.safeString (position, 'size');
         const contractSize = this.safeValue (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
-        const leverage = this.safeNumber (position, 'leverage');
-        const entryPriceString = this.safeString (position, 'avgEntryPrice');
+        const leverage = this.safeNumber2 (position, 'leverage', 'leverageRr');
+        const entryPriceString = this.safeString2 (position, 'avgEntryPrice', 'avgEntryPriceRp');
         const rawSide = this.safeString (position, 'side');
         let side = undefined;
         if (rawSide !== undefined) {
