@@ -537,6 +537,5 @@ class testMainClass(emptyClass):
 
 ### AUTO-TRANSPILER-END ###
 
-
 if __name__ == '__main__':
     asyncio.run(testMainClass().init(exchange, exchangeSymbol))

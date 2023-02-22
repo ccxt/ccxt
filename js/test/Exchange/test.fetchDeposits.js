@@ -17,7 +17,7 @@ async function testFetchDeposits (exchange, code) {
     for (let i = 0; i < transactions.length; i++) {
         testTransaction (exchange, method, transactions[i], code, now);
     }
-    sharedMethods.reviseSortedTimestamps (exchange, method, transactions);
+    testSharedMethods.reviseSortedTimestamps (exchange, method, transactions);
 }
 
 module.exports = testFetchDeposits;

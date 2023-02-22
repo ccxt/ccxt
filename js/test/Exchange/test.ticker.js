@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require ('assert');
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 const Precise = require ('../../base/Precise');
 
 function testTicker (exchange, method, entry, symbol) {
@@ -28,9 +28,9 @@ function testTicker (exchange, method, entry, symbol) {
         'quoteVolume': exchange.parseNumber ('1.234'), // volume of quote currency
     };
     const emptyNotAllowedFor = [ 'close', 'amount', 'currency' ];
-    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    sharedMethods.reviseCommonTimestamp (exchange, method, entry);
-    const logText = sharedMethods.logTemplate (exchange, method, entry);
+    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.reviseCommonTimestamp (exchange, method, entry);
+    const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
     assert (!('first' in entry), '`first` field leftover' + logText);
     const lastString = exchange.safeString (entry, 'last');
@@ -60,7 +60,7 @@ function testTicker (exchange, method, entry, symbol) {
         const symbolName = entry['symbol'] ? (entry['symbol'] + ' ') : '';
         assert (entry['bid'] <= entry['ask'], symbolName + ' bid is greater than ask!' + logText);
     }
-    sharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
+    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
 }
 
 module.exports = testTicker;

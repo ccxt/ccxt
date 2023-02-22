@@ -2,7 +2,7 @@
 
 const assert = require ('assert');
 const testOrder = require ('./test.order.js');
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 
 async function testFetchClosedOrders (exchange, symbol) {
     const method = 'fetchClosedOrders';
@@ -20,7 +20,7 @@ async function testFetchClosedOrders (exchange, symbol) {
         testOrder (exchange, method, order, symbol, now);
         assert (exchange.inArray (order['status'], [ 'closed', 'canceled' ]), exchange.id + ' ' + method + ' ' + symbol + ' returned an order with status ' + order['status'] + ' (expected "closed" or "canceled")');
     }
-    sharedMethods.reviseSortedTimestamps (exchange, method, orders);
+    testSharedMethods.reviseSortedTimestamps (exchange, method, orders);
 }
 
 module.exports = testFetchClosedOrders;

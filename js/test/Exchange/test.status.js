@@ -1,6 +1,6 @@
 'use strict';
 
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 
 function testStatus (exchange, method, entry, now) {
     const format = {
@@ -11,11 +11,11 @@ function testStatus (exchange, method, entry, now) {
         'url': undefined, // a link to a GitHub issue or to an exchange post on the subject
     };
     const emptyNotAllowedFor = [ 'status' ];
-    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     //
-    sharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'ok', 'error', 'shutdown', 'maintenance' ]);
-    sharedMethods.Gt (exchange, method, entry, 'updated', '0');
-    sharedMethods.Gt (exchange, method, entry, 'eta', '0');
+    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'ok', 'error', 'shutdown', 'maintenance' ]);
+    testSharedMethods.Gt (exchange, method, entry, 'updated', '0');
+    testSharedMethods.Gt (exchange, method, entry, 'eta', '0');
 }
 
 module.exports = testStatus;

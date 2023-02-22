@@ -120,7 +120,6 @@ function set_exchange_prop ($exchange, $prop, $value) {
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\NotSupported;
 use React\Async;
 use React\Promise;
 
@@ -181,7 +180,7 @@ class testMainClass extends emptyClass {
     public function test_method($methodName, $exchange, $args) {
         return Async\async(function () use ($methodName, $exchange, $args) {
             $skipMessage = null;
-            if (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName]) {
+            if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName])) {
                 $skipMessage = 'not supported';
             } elseif (!(is_array(testFiles) && array_key_exists($methodName, testFiles))) {
                 $skipMessage = 'test not available';
@@ -190,16 +189,13 @@ class testMainClass extends emptyClass {
                 dump ('[Skipping]', $exchange->id, $methodName, ' - ' . $skipMessage);
                 return;
             }
-            dump ('Testing', $exchange->id, $methodName, '(', $args, ')');
+            $argsStringified = '(' . implode(',', $args) . ')';
+            dump ('[Testing]', $exchange->id, $methodName, $argsStringified);
             try {
                 return Async\await(call_method ($methodName, $exchange, $args));
             } catch (Exception $e) {
-                if ($e instanceof ccxt.NotSupported) {
-                    dump ('Not supported', $exchange->id, $methodName, '(', $args, ')');
-                } else {
-                    dump (exception_message($e));
-                    throw $e;
-                }
+                dump (exception_message($e), ' | Exception from => ', $exchange->id, $methodName, $argsStringified);
+                throw $e;
             }
         }) ();
     }
@@ -234,7 +230,7 @@ class testMainClass extends emptyClass {
             $market = $exchange->market ($symbol);
             $isSpot = $market['spot'];
             if ($isSpot) {
-                $tests['fetchCurrencies'] = [$symbol];
+                $tests['fetchCurrencies'] = array();
             } else {
                 $tests['fetchFundingRates'] = [$symbol];
                 $tests['fetchFundingRate'] = [$symbol];

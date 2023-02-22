@@ -1,6 +1,6 @@
 'use strict';
 
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 
 function testTrade (exchange, method, entry, symbol, now) {
     const format = {
@@ -18,14 +18,14 @@ function testTrade (exchange, method, entry, symbol, now) {
     };
     // todo: add takeOrMaker as mandatory set
     const emptyNotAllowedFor = [ 'side', 'price', 'amount', 'cost' ];
-    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    sharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
-    sharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
+    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
+    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
     //
-    sharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
-    sharedMethods.reviseAgainstArray (exchange, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);
-    sharedMethods.reviseFeeObject (exchange, method, entry['fee']);
-    sharedMethods.reviseFeesObject (exchange, method, entry['fees']);
+    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
+    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);
+    testSharedMethods.reviseFeeObject (exchange, method, entry['fee']);
+    testSharedMethods.reviseFeesObject (exchange, method, entry['fees']);
 }
 
 module.exports = testTrade;

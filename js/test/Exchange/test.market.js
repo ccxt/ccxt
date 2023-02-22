@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require ('assert');
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 
 function testMarket (exchange, method, market) {
     const format = {
@@ -55,14 +55,14 @@ function testMarket (exchange, method, market) {
         'info': {}, // the original unparsed market info from the exchange
     };
     const emptyNotAllowedFor = [ 'id', 'symbol', 'base', 'quote', 'baseId', 'quoteId', 'precision', 'limits', 'type', 'spot', 'swap', 'future', 'contract' ];
-    sharedMethods.reviseStructureKeys (exchange, method, market, format, emptyNotAllowedFor);
-    sharedMethods.reviseSymbol (exchange, method, market, 'symbol');
-    const logText = sharedMethods.logTemplate (exchange, method, market);
+    testSharedMethods.reviseStructureKeys (exchange, method, market, format, emptyNotAllowedFor);
+    testSharedMethods.reviseSymbol (exchange, method, market, 'symbol');
+    const logText = testSharedMethods.logTemplate (exchange, method, market);
     //
-    sharedMethods.Gt (exchange, method, market, 'contractSize', '0');
-    sharedMethods.Gt (exchange, method, market, 'expiry', '0');
-    sharedMethods.Gt (exchange, method, market, 'strike', '0');
-    sharedMethods.reviseAgainstArray (exchange, method, market, 'optionType', [ 'put', 'call' ]);
+    testSharedMethods.Gt (exchange, method, market, 'contractSize', '0');
+    testSharedMethods.Gt (exchange, method, market, 'expiry', '0');
+    testSharedMethods.Gt (exchange, method, market, 'strike', '0');
+    testSharedMethods.reviseAgainstArray (exchange, method, market, 'optionType', [ 'put', 'call' ]);
     // todo: handle str/num types later
     // assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'));
     // assert ((market['maker'] === undefined) || (typeof market['maker'] === 'number'));
@@ -76,10 +76,10 @@ function testMarket (exchange, method, market) {
         assert (market['optionType'] !== undefined, '"optionType" must be defined when "option" is true' + logText);
     }
     const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option' ];
-    sharedMethods.reviseAgainstArray (exchange, method, market, 'type', validTypes);
+    testSharedMethods.reviseAgainstArray (exchange, method, market, 'type', validTypes);
     const types = validTypes;
     for (let i = 0; i < types.length; i++) {
-        sharedMethods.reviseAgainstArray (exchange, method, market, types[i], [ true, false, undefined ]);
+        testSharedMethods.reviseAgainstArray (exchange, method, market, types[i], [ true, false, undefined ]);
     }
     if (market['future']) {
         assert ((market['swap'] === false) && (market['option'] === false), 'market swap and option must be false when "future" is true' + logText);
@@ -105,14 +105,14 @@ function testMarket (exchange, method, market) {
     for (let i = 0; i < targetKeys.length; i++) {
         const key = targetKeys[i];
         // todo: should be migrated into Gt after TickSize handling is implemented
-        sharedMethods.Ge (exchange, method, market['precision'], key, '0');
+        testSharedMethods.Ge (exchange, method, market['precision'], key, '0');
     }
     // check limits
     for (let i = 0; i < targetKeys.length; i++) {
         const key = targetKeys[i];
         const limitEntry = market['limits'][key];
-        sharedMethods.Ge (exchange, method, limitEntry, 'min', '0');
-        sharedMethods.Gt (exchange, method, limitEntry, 'max', '0');
+        testSharedMethods.Ge (exchange, method, limitEntry, 'min', '0');
+        testSharedMethods.Gt (exchange, method, limitEntry, 'max', '0');
     }
 }
 

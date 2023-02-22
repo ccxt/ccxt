@@ -2,7 +2,7 @@
 
 const assert = require ('assert');
 const testFundingRateHistory = require ('./test.fundingRateHistory.js');
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 
 async function testFetchFundingRateHistory (exchange, symbol) {
     const method = 'fetchFundingRateHistory';
@@ -17,7 +17,7 @@ async function testFetchFundingRateHistory (exchange, symbol) {
     for (let i = 0; i < fundingRatesHistory.length; i++) {
         testFundingRateHistory (exchange, method, fundingRatesHistory[i], symbol);
     }
-    sharedMethods.reviseSortedTimestamps (exchange, method, fundingRatesHistory);
+    testSharedMethods.reviseSortedTimestamps (exchange, method, fundingRatesHistory);
 }
 
 module.exports = testFetchFundingRateHistory;

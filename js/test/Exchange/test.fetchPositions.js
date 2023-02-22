@@ -2,7 +2,7 @@
 
 const assert = require ('assert');
 const testPosition = require ('./test.position.js');
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 
 async function testFetchPositions (exchange, symbol) {
     const method = 'fetchPositions';
@@ -19,7 +19,7 @@ async function testFetchPositions (exchange, symbol) {
     for (let i = 0; i < positions.length; i++) {
         testPosition (exchange, method, positions[i], undefined, now);
     }
-    sharedMethods.reviseSortedTimestamps (exchange, method, positions);
+    testSharedMethods.reviseSortedTimestamps (exchange, method, positions);
     // with symbol
     const positionsForSymbol = await exchange[method] ([ symbol ]);
     assert (Array.isArray (positionsForSymbol), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positionsForSymbol));
@@ -29,8 +29,8 @@ async function testFetchPositions (exchange, symbol) {
     for (let i = 0; i < positionsForSymbol.length; i++) {
         testPosition (exchange, method, positionsForSymbol[i], symbol, now);
     }
-    const sharedMethods = require ('./test.sharedMethods.js');
-    sharedMethods.reviseSortedTimestamps (exchange, method, positionsForSymbolLength);
+    const testSharedMethods = require ('./test.sharedMethods.js');
+    testSharedMethods.reviseSortedTimestamps (exchange, method, positionsForSymbolLength);
 }
 
 module.exports = testFetchPositions;

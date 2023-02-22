@@ -2,7 +2,7 @@
 
 const assert = require ('assert');
 const testOrder = require ('./test.order.js');
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 
 async function testFetchOrders (exchange, symbol) {
     const method = 'fetchOrders';
@@ -18,7 +18,7 @@ async function testFetchOrders (exchange, symbol) {
     for (let i = 0; i < orders.length; i++) {
         testOrder (exchange, method, orders[i], symbol, now);
     }
-    sharedMethods.reviseSortedTimestamps (exchange, method, orders);
+    testSharedMethods.reviseSortedTimestamps (exchange, method, orders);
 }
 
 module.exports = testFetchOrders;

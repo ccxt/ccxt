@@ -1,6 +1,6 @@
 'use strict'
 
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 
 function testTradingFee (exchange, method, symbol, entry) {
     const format = {
@@ -12,8 +12,8 @@ function testTradingFee (exchange, method, symbol, entry) {
         'tierBased': false,
     };
     const emptyNotAllowedFor = [ 'maker', 'taker', 'percentage', 'tierBased' ];
-    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    sharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
+    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
 }
 
 module.exports = testTradingFee;

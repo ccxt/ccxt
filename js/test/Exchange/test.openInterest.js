@@ -1,6 +1,6 @@
 'use strict'
 
-const sharedMethods = require ('./test.sharedMethods.js')
+const testSharedMethods = require ('./test.sharedMethods.js')
 
 function testOpenInterest (exchange, method, entry) {
     const format = {
@@ -12,12 +12,12 @@ function testOpenInterest (exchange, method, entry) {
         'info': {},
     };
     const emptyNotAllowedFor = [ 'baseVolume' ];
-    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    sharedMethods.reviseSymbol (exchange, method, entry, 'symbol');
-    sharedMethods.reviseCommonTimestamp (exchange, method, entry);
+    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol');
+    testSharedMethods.reviseCommonTimestamp (exchange, method, entry);
     //
-    sharedMethods.Gt (exchange, method, entry, 'quoteVolume', '0');
-    sharedMethods.Gt (exchange, method, entry, 'baseVolume', '0');
+    testSharedMethods.Gt (exchange, method, entry, 'quoteVolume', '0');
+    testSharedMethods.Gt (exchange, method, entry, 'baseVolume', '0');
 }
 
 module.exports = testOpenInterest;

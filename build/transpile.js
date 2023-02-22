@@ -1148,7 +1148,9 @@ class Transpiler {
 
         const newContents = this.regexAll (syncBody, this.getPHPSyncRegexes ().concat (phpTestRegexes));
 
-        fs.truncateSync (sync)
+        if (fs.existsSync (sync)) {
+            fs.truncateSync (sync)
+        }
         fs.writeFileSync (sync, newContents)
     }
 
@@ -1808,7 +1810,7 @@ class Transpiler {
  
     transpileExchangeTestsAuto () {
 
-        this.transpileMainTest ({
+        this.transpileMainTests ({
             'jsFile': './js/test/test.js',
             'pyFile': './python/ccxt/test/test_async.py',
             'phpFile': './php/test/test_async.php',
@@ -1848,7 +1850,7 @@ class Transpiler {
         }
     }
 
-    transpileMainTest (test) {
+    transpileMainTests (test) {
         log.magenta ('Transpiling from', test.jsFile.yellow)
         let js = fs.readFileSync (test.jsFile).toString ()
 
@@ -1906,8 +1908,10 @@ class Transpiler {
 
         if (requiredSubTests.length > 0) {
             const subTestNameUnCamelCase = function (content, testName) {
-                const pattern = new RegExp ('\\b' + testName + '\\(', 'g');
-                content = content.replace (pattern, unCamelCase (testName) + '(');
+                const pattern = new RegExp ('(\\b' + testName + ')(\\.(.*?)|)\\(', 'g');
+                content = content.replace (pattern, function(matched) {
+                    return unCamelCase (matched);
+                });
                 return content;
             };
             for (const subTestName of requiredSubTests) {

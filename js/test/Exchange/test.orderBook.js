@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require ('assert');
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 const Precise = require ('../../base/Precise');
 
 function testOrderBook (exchange, method, entry, symbol) {
@@ -21,10 +21,10 @@ function testOrderBook (exchange, method, entry, symbol) {
         // 'info': {},
     };
     const emptyNotAllowedFor = [ 'bids', 'asks' ];
-    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    sharedMethods.reviseCommonTimestamp (exchange, method, entry);
-    sharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
-    const logText = sharedMethods.logTemplate (exchange, method, entry);
+    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.reviseCommonTimestamp (exchange, method, entry);
+    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
+    const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
     const bids = entry['bids'];
     const bidsLength = bids.length;
@@ -34,8 +34,8 @@ function testOrderBook (exchange, method, entry, symbol) {
             const nextBidString = exchange.safeString (bids[i + 1], 0);
             assert (Precise.stringGt (currentBidString, nextBidString), 'current bid should be > than the next one' + logText);
         }
-        sharedMethods.Gt (exchange, method, bids[i], '0', '0');
-        sharedMethods.Gt (exchange, method, bids[i], '1', '0');
+        testSharedMethods.Gt (exchange, method, bids[i], '0', '0');
+        testSharedMethods.Gt (exchange, method, bids[i], '1', '0');
     }
     const asks = entry['asks'];
     const asksLength = asks.length;
@@ -45,8 +45,8 @@ function testOrderBook (exchange, method, entry, symbol) {
             const nextAskString = exchange.safeString (asks[i + 1], 0);
             assert (Precise.stringLt (currentAskString, nextAskString), 'current ask should be < than the next one' + logText);
         }
-        sharedMethods.Gt (exchange, method, asks[i], '0', '0');
-        sharedMethods.Gt (exchange, method, asks[i], '1', '0');
+        testSharedMethods.Gt (exchange, method, asks[i], '0', '0');
+        testSharedMethods.Gt (exchange, method, asks[i], '1', '0');
     }
     // others
     const skippedExchanges = [];

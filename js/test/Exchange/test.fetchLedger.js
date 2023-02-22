@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const assert = require ('assert');
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 const testLedgerItem = require ('./test.ledgerItem.js');
 
 async function testFetchLedger (exchange, code) {
@@ -20,7 +20,7 @@ async function testFetchLedger (exchange, code) {
     for (let i = 0; i < items.length; i++) {
         testLedgerItem (exchange, method, items[i], code, now);
     }
-    sharedMethods.reviseSortedTimestamps (exchange, method, items);
+    testSharedMethods.reviseSortedTimestamps (exchange, method, items);
     //
     method = 'fetchLedgerItem'; // todo: create separate testfile
     if (exchange.has[method]) {

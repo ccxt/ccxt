@@ -1,6 +1,6 @@
 'use strict';
 
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 
 function testMarginModification (exchange, method, entry) {
     const format = {
@@ -13,15 +13,15 @@ function testMarginModification (exchange, method, entry) {
         'status': 'ok',
     };
     const emptyNotAllowedFor = [ 'type', 'status' ];
-    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    sharedMethods.reviseCurrencyCode (exchange, method, entry, entry['code']);
-    const logText = sharedMethods.logTemplate (exchange, method, entry);
+    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.reviseCurrencyCode (exchange, method, entry, entry['code']);
+    const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
-    sharedMethods.Ge (exchange, method, entry, 'amount', '0');
-    sharedMethods.Ge (exchange, method, entry, 'total', '0');
-    sharedMethods.reviseAgainstArray (exchange, method, entry, 'type', [ 'add', 'reduce', 'set' ]);
-    sharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'canceled', 'failed' ]);
-    sharedMethods.reviseSymbol (exchange, method, entry, 'symbol');
+    testSharedMethods.Ge (exchange, method, entry, 'amount', '0');
+    testSharedMethods.Ge (exchange, method, entry, 'total', '0');
+    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'type', [ 'add', 'reduce', 'set' ]);
+    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'canceled', 'failed' ]);
+    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol');
 }
 
 module.exports = testMarginModification;

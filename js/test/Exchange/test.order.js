@@ -1,6 +1,6 @@
 'use strict';
 
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 const testTrade = require ('./test.trade.js');
 
 function testOrder (exchange, method, entry, symbol, now) {
@@ -30,30 +30,30 @@ function testOrder (exchange, method, entry, symbol, now) {
     const emptyNotAllowedFor = [ 'id' ];
     // todo: skip some exchanges
     // const emptyNotAllowedFor = [ 'id', 'timestamp', 'symbol', 'type', 'side', 'price' ];
-    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    sharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
+    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
     //
-    sharedMethods.reviseAgainstArray (exchange, method, entry, 'timeInForce', [ 'GTC', 'GTK', 'IOC', 'FOK' ]);
-    sharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'open', 'closed', 'canceled' ]);
-    sharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
-    sharedMethods.reviseAgainstArray (exchange, method, entry, 'postOnly', [ true, false ]);
-    sharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
-    sharedMethods.Gt (exchange, method, entry, 'price', '0');
-    sharedMethods.Gt (exchange, method, entry, 'stopPrice', '0');
-    sharedMethods.Gt (exchange, method, entry, 'cost', '0');
-    sharedMethods.Gt (exchange, method, entry, 'average', '0');
-    sharedMethods.Gt (exchange, method, entry, 'average', '0');
-    sharedMethods.Ge (exchange, method, entry, 'filled', '0');
-    sharedMethods.Ge (exchange, method, entry, 'remaining', '0');
-    sharedMethods.Ge (exchange, method, entry, 'amount', '0');
-    sharedMethods.Ge (exchange, method, entry, 'amount', exchange.safeString (entry, 'remaining'));
-    sharedMethods.Ge (exchange, method, entry, 'amount', exchange.safeString (entry, 'filled'));
+    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'timeInForce', [ 'GTC', 'GTK', 'IOC', 'FOK' ]);
+    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'open', 'closed', 'canceled' ]);
+    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
+    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'postOnly', [ true, false ]);
+    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
+    testSharedMethods.Gt (exchange, method, entry, 'price', '0');
+    testSharedMethods.Gt (exchange, method, entry, 'stopPrice', '0');
+    testSharedMethods.Gt (exchange, method, entry, 'cost', '0');
+    testSharedMethods.Gt (exchange, method, entry, 'average', '0');
+    testSharedMethods.Gt (exchange, method, entry, 'average', '0');
+    testSharedMethods.Ge (exchange, method, entry, 'filled', '0');
+    testSharedMethods.Ge (exchange, method, entry, 'remaining', '0');
+    testSharedMethods.Ge (exchange, method, entry, 'amount', '0');
+    testSharedMethods.Ge (exchange, method, entry, 'amount', exchange.safeString (entry, 'remaining'));
+    testSharedMethods.Ge (exchange, method, entry, 'amount', exchange.safeString (entry, 'filled'));
     if (entry['trades'] !== undefined) {
         for (let i = 0; i < entry['trades'].length; i++) {
             testTrade (exchange, method, entry['trades'][i], symbol, now);
         }
     }
-    sharedMethods.reviseFeeObject (exchange, method, entry['fee']);
+    testSharedMethods.reviseFeeObject (exchange, method, entry['fee']);
 }
 
 module.exports = testOrder;

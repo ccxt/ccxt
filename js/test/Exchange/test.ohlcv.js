@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require ('assert');
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 
 function testOHLCV (exchange, method, entry, symbol, now) {
     const format = [
@@ -12,11 +12,11 @@ function testOHLCV (exchange, method, entry, symbol, now) {
         exchange.parseNumber ('0.122'),
         exchange.parseNumber ('123.456'),
     ];
-    const logText = sharedMethods.logTemplate (exchange, method, entry);
+    const logText = testSharedMethods.logTemplate (exchange, method, entry);
     assert (Array.isArray (entry), 'ohlcv is not array;' + logText);
     const emptyNotAllowedFor = [ 0, 1, 2, 3, 4, 5 ];
-    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    sharedMethods.reviseCommonTimestamp (exchange, method, entry, now, 0);
+    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.reviseCommonTimestamp (exchange, method, entry, now, 0);
     //
     const length = entry.length;
     assert (length >= 6, 'ohlcv array length should be >= 6;' + logText);

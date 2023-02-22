@@ -1,6 +1,6 @@
 'use strict'
 
-const sharedMethods = require ('./test.sharedMethods.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 
 function testFundingRateHistory (exchange, method, entry, symbol) {
     const format = {
@@ -12,9 +12,9 @@ function testFundingRateHistory (exchange, method, entry, symbol) {
     };
 
     const emptyNotAllowedFor = [ 'symbol', 'timestamp', 'fundingRate' ];
-    sharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    sharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
-    sharedMethods.reviseCommonTimestamp (exchange, method, entry);
+    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
+    testSharedMethods.reviseCommonTimestamp (exchange, method, entry);
 }
 
 module.exports = testFundingRateHistory;
