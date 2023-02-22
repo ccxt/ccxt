@@ -5,6 +5,7 @@
 const poloniexRest = require ('../poloniex.js');
 const { BadRequest } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -32,9 +33,8 @@ module.exports = class poloniex extends poloniexRest {
                 },
             },
             'options': {
-                // 'tradesLimit': 1000,
-                // 'ordersLimit': 1000,
-                // 'myTradesLimit': 1000,
+                'tradesLimit': 1000,
+                'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
                 'connectionsLimit': 2000, // 2000 public, 2000 private, 4000 total, only for subscribe events, unsubscribe not restricted
                 'requestsLimit': 500, // per second, only for subscribe events, unsubscribe not restricted
@@ -391,6 +391,8 @@ module.exports = class poloniex extends poloniexRest {
 
     parseWsTrade (trade, market = undefined) {
         //
+        // handleTrade
+        //
         //    {
         //        symbol: 'BTC_USDT',
         //        amount: '13.41634893',
@@ -426,19 +428,7 @@ module.exports = class poloniex extends poloniexRest {
         }, market);
     }
 
-    parseWsOrderStatus (status) {
-        // TODO
-        const statuses = {
-            'filled': 'closed',
-            'canceled': 'canceled',
-        };
-        return this.safeString (statuses, status, 'open');
-    }
-
-    handleOrder (client, message) {
-        // TODO
-        //
-        // Order is created
+    parseWsOrderTrade (trade, market = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -467,145 +457,211 @@ module.exports = class poloniex extends poloniexRest {
         //        "ts": 1648708187469
         //    }
         //
+        const timestamp = this.safeInteger (trade, 'tradeTime');
+        const marketId = this.safeString (trade, 'symbol');
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'tradeId'),
+            'symbol': this.safeSymbol (marketId, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'order': this.safeString (trade, 'orderId'),
+            'type': this.safeStringLower (trade, 'type'),
+            'side': this.safeString (trade, 'side'),
+            'takerOrMaker': this.safeString (trade, 'matchRole'),
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'tradeAmount'), // ? tradeQty?
+            'cost': undefined,
+            'fee': {
+                'rate': undefined,
+                'cost': this.safeString (trade, 'tradeFee'),
+                'currency': this.safeString (trade, 'feeCurrency'),
+            },
+        }, market);
+    }
+
+    handleOrder (client, message) {
+        //
+        // Order is created
+        //
+        //    {
+        //        channel: 'orders',
+        //        data: [
+        //            {
+        //                "symbol": "BTC_USDT",
+        //                "type": "LIMIT",
+        //                "quantity": "1",
+        //                "orderId": "32471407854219264",
+        //                "tradeFee": "0",
+        //                "clientOrderId": "",
+        //                "accountType": "SPOT",
+        //                "feeCurrency": "",
+        //                "eventType": "place",
+        //                "source": "API",
+        //                "side": "BUY",
+        //                "filledQuantity": "0",
+        //                "filledAmount": "0",
+        //                "matchRole": "MAKER",
+        //                "state": "NEW",
+        //                "tradeTime": 0,
+        //                "tradeAmount": "0",
+        //                "orderAmount": "0",
+        //                "createTime": 1648708186922,
+        //                "price": "47112.1",
+        //                "tradeQty": "0",
+        //                "tradePrice": "0",
+        //                "tradeId": "0",
+        //                "ts": 1648708187469
+        //            }
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (message, 'data');
         let orders = this.orders;
         if (orders === undefined) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            const limit = this.safeInteger (this.options, 'ordersLimit');
             orders = new ArrayCacheBySymbolById (limit);
             this.orders = orders;
         }
-        const type = this.safeString (message, 'type');
-        const marketId = this.safeString (message, 'product_id');
+        const marketId = this.safeString (data, 'symbol');
         if (marketId !== undefined) {
             const messageHash = 'orders:' + marketId;
             const symbol = this.safeSymbol (marketId);
-            const orderId = this.safeString (message, 'order_id');
-            const makerOrderId = this.safeString (message, 'maker_order_id');
-            const takerOrderId = this.safeString (message, 'taker_order_id');
-            const orders = this.orders;
+            const orderId = this.safeString (data, 'orderId');
+            const clientOrderId = this.safeString (data, 'clientOrderId');
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-            let previousOrder = this.safeValue (previousOrders, orderId);
+            const previousOrder = this.safeValue2 (previousOrders, orderId, clientOrderId);
             if (previousOrder === undefined) {
-                previousOrder = this.safeValue2 (previousOrders, makerOrderId, takerOrderId);
-            }
-            if (previousOrder === undefined) {
-                const parsed = this.parseWsOrder (message);
+                const parsed = this.parseWsOrder (data);
                 orders.append (parsed);
                 client.resolve (orders, messageHash);
             } else {
-                const sequence = this.safeInteger (message, 'sequence');
-                const previousInfo = this.safeValue (previousOrder, 'info', {});
-                const previousSequence = this.safeInteger (previousInfo, 'sequence');
-                if ((previousSequence === undefined) || (sequence > previousSequence)) {
-                    if (type === 'match') {
-                        const trade = this.parseWsTrade (message);
-                        if (previousOrder['trades'] === undefined) {
-                            previousOrder['trades'] = [];
-                        }
-                        previousOrder['trades'].push (trade);
-                        previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                        let totalCost = 0;
-                        let totalAmount = 0;
-                        const trades = previousOrder['trades'];
-                        for (let i = 0; i < trades.length; i++) {
-                            const trade = trades[i];
-                            totalCost = this.sum (totalCost, trade['cost']);
-                            totalAmount = this.sum (totalAmount, trade['amount']);
-                        }
-                        if (totalAmount > 0) {
-                            previousOrder['average'] = totalCost / totalAmount;
-                        }
-                        previousOrder['cost'] = totalCost;
-                        if (previousOrder['filled'] !== undefined) {
-                            previousOrder['filled'] += trade['amount'];
-                            if (previousOrder['amount'] !== undefined) {
-                                previousOrder['remaining'] = previousOrder['amount'] - previousOrder['filled'];
-                            }
-                        }
-                        if (previousOrder['fee'] === undefined) {
-                            previousOrder['fee'] = {
-                                'cost': 0,
-                                'currency': trade['fee']['currency'],
-                            };
-                        }
-                        if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                            previousOrder['fee']['cost'] = this.sum (previousOrder['fee']['cost'], trade['fee']['cost']);
-                        }
-                        // update the newUpdates count
-                        orders.append (previousOrder);
-                        client.resolve (orders, messageHash);
-                    } else if ((type === 'received') || (type === 'done')) {
-                        const info = this.extend (previousOrder['info'], message);
-                        const order = this.parseWsOrder (info);
-                        const keys = Object.keys (order);
-                        // update the reference
-                        for (let i = 0; i < keys.length; i++) {
-                            const key = keys[i];
-                            if (order[key] !== undefined) {
-                                previousOrder[key] = order[key];
-                            }
-                        }
-                        // update the newUpdates count
-                        orders.append (previousOrder);
-                        client.resolve (orders, messageHash);
+                const trade = this.parseWsTrade (data);
+                if (previousOrder['trades'] === undefined) {
+                    previousOrder['trades'] = [];
+                }
+                previousOrder['trades'].push (trade);
+                previousOrder['lastTradeTimestamp'] = trade['timestamp'];
+                let totalCost = 0;
+                let totalAmount = 0;
+                const trades = previousOrder['trades'];
+                for (let i = 0; i < trades.length; i++) {
+                    const trade = trades[i];
+                    totalCost = this.sum (totalCost, trade['cost']);
+                    totalAmount = this.sum (totalAmount, trade['amount']);
+                }
+                if (totalAmount > 0) {
+                    previousOrder['average'] = totalCost / totalAmount;
+                }
+                previousOrder['cost'] = totalCost;
+                if (previousOrder['filled'] !== undefined) { // ? previousOrder['filled'] = 0
+                    previousOrder['filled'] += trade['amount'];
+                    if (previousOrder['amount'] !== undefined) {
+                        previousOrder['remaining'] = previousOrder['amount'] - previousOrder['filled'];
                     }
                 }
+                if (previousOrder['fee'] === undefined) {
+                    previousOrder['fee'] = {
+                        'rate': undefined,
+                        'cost': 0,
+                        'currency': trade['fee']['currency'],
+                    };
+                }
+                if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
+                    const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
+                    const stringTradeCost = this.numberToString (trade['fee']['cost']);
+                    previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
+                }
+                // update the newUpdates count
+                orders.append (previousOrder);
+                client.resolve (orders, messageHash);
+                // } else if ((type === 'received') || (type === 'done')) { // TODO?: delete
+                //     const info = this.extend (previousOrder['info'], data);
+                //     const order = this.parseWsOrder (info);
+                //     const keys = Object.keys (order);
+                //     // update the reference
+                //     for (let i = 0; i < keys.length; i++) {
+                //         const key = keys[i];
+                //         if (order[key] !== undefined) {
+                //             previousOrder[key] = order[key];
+                //         }
+                //     }
+                //     // update the newUpdates count
+                //     orders.append (previousOrder);
+                //     client.resolve (orders, messageHash);
+                // }
             }
         }
     }
 
-    parseWsOrder (order) {
-        // TODO
-        const id = this.safeString (order, 'order_id');
-        const clientOrderId = this.safeString (order, 'client_oid');
-        const marketId = this.safeString (order, 'product_id');
-        const symbol = this.safeSymbol (marketId);
-        const side = this.safeString (order, 'side');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber2 (order, 'size', 'funds');
-        const time = this.safeString (order, 'time');
-        const timestamp = this.parse8601 (time);
-        const reason = this.safeString (order, 'reason');
-        const status = this.parseWsOrderStatus (reason);
-        const orderType = this.safeString (order, 'order_type');
-        let remaining = this.safeNumber (order, 'remaining_size');
-        const type = this.safeString (order, 'type');
-        let filled = undefined;
-        if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = amount - remaining;
-        } else if (type === 'received') {
-            filled = 0;
-            if (amount !== undefined) {
-                remaining = amount - filled;
-            }
+    parseWsOrder (order, market = undefined) {
+        //
+        //    {
+        //        "symbol": "BTC_USDT",
+        //        "type": "LIMIT",
+        //        "quantity": "1",
+        //        "orderId": "32471407854219264",
+        //        "tradeFee": "0",
+        //        "clientOrderId": "",
+        //        "accountType": "SPOT",
+        //        "feeCurrency": "",
+        //        "eventType": "place",
+        //        "source": "API",
+        //        "side": "BUY",
+        //        "filledQuantity": "0",
+        //        "filledAmount": "0",
+        //        "matchRole": "MAKER",
+        //        "state": "NEW",
+        //        "tradeTime": 0,
+        //        "tradeAmount": "0",
+        //        "orderAmount": "0",
+        //        "createTime": 1648708186922,
+        //        "price": "47112.1",
+        //        "tradeQty": "0",
+        //        "tradePrice": "0",
+        //        "tradeId": "0",
+        //        "ts": 1648708187469
+        //    }
+        //
+        const id = this.safeString (order, 'orderId');
+        const clientOrderId = this.safeString (order, 'clientOrderId');
+        const marketId = this.safeString (order, 'symbol');
+        const timestamp = this.safeString (order, 'ts');
+        const filledAmount = this.safeString (order, 'filledAmount'); // TODO? filledQuantity
+        let trades = undefined;
+        if (!Precise.stringEq (filledAmount, '0')) {
+            trades = [];
+            const trade = this.parseWsOrderTrade (order);
+            trades.push (trade);
         }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
-        return {
+        return this.safeOrder ({
             'info': order,
-            'symbol': symbol,
+            'symbol': this.safeSymbol (marketId, market),
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'type': orderType,
+            'type': this.safeString (order, 'type'),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': side,
-            'price': price,
+            'side': this.safeString (order, 'side'),
+            'price': this.safeString (order, 'price'),
             'stopPrice': undefined,
             'triggerPrice': undefined,
-            'amount': amount,
-            'cost': cost,
+            'amount': this.safeString (order, 'orderAmount'),
+            'cost': undefined,
             'average': undefined,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': undefined,
-            'trades': undefined,
-        };
+            'filled': filledAmount,
+            'remaining': this.safeString (order, 'remaining_size'),
+            'status': undefined, // TODO?: eventType, state
+            'fee': {
+                'rate': undefined,
+                'cost': this.safeString (order, 'tradeFee'),
+                'currency': this.safeString (order, 'feeCurrency'),
+            },
+            'trades': trades,
+        });
     }
 
     handleTicker (client, message) {
