@@ -204,7 +204,7 @@ module.exports = class okx extends Exchange {
                         'account/account-position-risk': 2,
                         'account/balance': 2,
                         'account/positions': 2,
-                        'accounts/positions-history': 2,
+                        'account/positions-history': 2,
                         'account/bills': 5 / 3,
                         'account/bills-archive': 5 / 3,
                         'account/config': 4,
@@ -746,7 +746,7 @@ module.exports = class okx extends Exchange {
                     'timezone': 'UTC', // UTC, HK
                 },
                 'fetchPositions': {
-                    'method': 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
+                    'method': 'privateGetAccountPositionsHistory', // privateGetAccountPositions or privateGetAccountPositionsHistory
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
