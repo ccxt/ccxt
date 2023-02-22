@@ -2015,8 +2015,7 @@ module.exports = class krakenfutures extends Exchange {
         }
         const url = this.urls['api'][api] + query;
         if (api === 'private' || access === 'private') {
-            const nonce = ''; // this.nonce ();
-            const auth = postData + nonce + '/api/' + endpoint; // 1
+            const auth = postData + '/api/' + endpoint; // 1
             const hash = this.hash (this.encode (auth), 'sha256', 'binary'); // 2
             const secret = this.base64ToBinary (this.secret); // 3
             const signature = this.hmac (hash, secret, 'sha512', 'base64'); // 4-5
@@ -2025,7 +2024,6 @@ module.exports = class krakenfutures extends Exchange {
                 'APIKey': this.apiKey,
                 'Authent': signature,
             };
-            // headers['Nonce'] = nonce;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
