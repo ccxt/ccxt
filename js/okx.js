@@ -4374,6 +4374,9 @@ module.exports = class okx extends Exchange {
                     side = (market['base'] === parsedCurrency) ? 'long' : 'short';
                 }
             }
+            if (side === undefined) {
+                side = this.safeString (position, 'direction');
+            }
         } else {
             if (pos !== undefined) {
                 if (side === 'net') {
