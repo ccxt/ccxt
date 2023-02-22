@@ -2059,7 +2059,7 @@ module.exports = class coinbase extends Exchange {
                         total = this.priceToPrecision (symbol, cost);
                     }
                 } else {
-                    total = this.priceToPrecision (symbol, amount);
+                    total = this.amountToPrecision (symbol, amount);
                 }
                 request['order_configuration'] = {
                     'market_market_ioc': {
