@@ -37,12 +37,13 @@ import * as errors   from './src/base/errors.js'
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '2.6.71';
+const version = '2.8.24';
 
 (Exchange as any).ccxtVersion = version
 
 //-----------------------------------------------------------------------------
 
+import ace from  './src/ace.js'
 import alpaca from  './src/alpaca.js'
 import ascendex from  './src/ascendex.js'
 import bequant from  './src/bequant.js'
@@ -140,7 +141,6 @@ import poloniexfutures from  './src/poloniexfutures.js'
 import probit from  './src/probit.js'
 import ripio from  './src/ripio.js'
 import stex from  './src/stex.js'
-import therock from  './src/therock.js'
 import tidex from  './src/tidex.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
@@ -193,6 +193,7 @@ import huobiPro from  './src/pro/huobi.js'
 import huobijpPro from  './src/pro/huobijp.js'
 import huobiproPro from  './src/pro/huobipro.js'
 import idexPro from  './src/pro/idex.js'
+import independentreservePro from  './src/pro/independentreserve.js'
 import krakenPro from  './src/pro/kraken.js'
 import kucoinPro from  './src/pro/kucoin.js'
 import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
@@ -211,6 +212,7 @@ import wooPro from  './src/pro/woo.js'
 import zbPro from  './src/pro/zb.js'
 
 const exchanges = {
+    'ace':                    ace,
     'alpaca':                 alpaca,
     'ascendex':               ascendex,
     'bequant':                bequant,
@@ -308,7 +310,6 @@ const exchanges = {
     'probit':                 probit,
     'ripio':                  ripio,
     'stex':                   stex,
-    'therock':                therock,
     'tidex':                  tidex,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
@@ -361,6 +362,7 @@ const pro = {
     'huobijp':                huobijpPro,
     'huobipro':               huobiproPro,
     'idex':                   idexPro,
+    'independentreserve':     independentreservePro,
     'kraken':                 krakenPro,
     'kucoin':                 kucoinPro,
     'kucoinfutures':          kucoinfuturesPro,
@@ -402,6 +404,7 @@ export {
     Precise,
     functions,
     errors,
+    ace,
     alpaca,
     ascendex,
     bequant,
@@ -499,7 +502,6 @@ export {
     probit,
     ripio,
     stex,
-    therock,
     tidex,
     timex,
     tokocrypto,
