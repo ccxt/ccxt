@@ -2277,7 +2277,7 @@ export default class tokocrypto extends Exchange {
         if (networkId !== undefined) {
             request['network'] = networkId.toUpperCase ();
         }
-        const response = await this.privatePostOpenV1Withdraws (this.extend (request, query));
+        const response = await (this as any).privatePostOpenV1Withdraws (this.extend (request, query));
         //
         //     {
         //         "code": 0,
