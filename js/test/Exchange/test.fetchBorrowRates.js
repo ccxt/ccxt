@@ -10,7 +10,7 @@ async function testFetchBorrowRates (exchange) {
         return;
     }
     const borrowRates = await exchange[method] ();
-    assert (typeof borrowRates === 'object', exchange.id + ' ' + method + ' ' + code + ' must return an object. ' + exchange.json(transactions));
+    assert (typeof borrowRates === 'object', exchange.id + ' ' + method + ' ' + code + ' must return an object. ' + exchange.json(borrowRates));
     const keysLength = (Object.keys (borrowRates)).length;
     console.log (exchange.id, method, 'fetched', keysLength, 'entries, asserting each ...');
     const values = exchange.values (borrowRates);

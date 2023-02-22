@@ -2,7 +2,7 @@
 
 const sharedMethods = require ('./test.sharedMethods.js');
 
-function testAccount (exchange, entry, method) {
+function testAccount (exchange, method, entry) {
     const format = {
         'info': {},
         'code': 'BTC',
