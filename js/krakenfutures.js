@@ -219,6 +219,7 @@ module.exports = class krakenfutures extends Exchange {
          * @method
          * @name krakenfutures#fetchMarkets
          * @description Fetches the available trading markets from the exchange, Multi-collateral markets are returned as linear markets, but can be settled in multiple currencies
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
          * @param {object} params exchange specific params
          * @returns An array of market structures
          */
@@ -229,7 +230,7 @@ module.exports = class krakenfutures extends Exchange {
         //        "instruments": [
         //            {
         //                "symbol": "fi_ethusd_180928",
-        //                "type": "futures_inverse",                      // futures_vanilla  // spot index
+        //                "type": "futures_inverse", // futures_vanilla  // spot index
         //                "underlying": "rr_ethusd",
         //                "lastTradingTime": "2018-09-28T15:00:00.000Z",
         //                "tickSize": 0.1,
@@ -267,18 +268,19 @@ module.exports = class krakenfutures extends Exchange {
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        const instruments = response['instruments'];
+        const instruments = this.safeValue (response, 'instruments', []);
         const result = [];
         for (let i = 0; i < instruments.length; i++) {
             const market = instruments[i];
-            const id = market['symbol'];
+            const id = this.safeString (market, 'symbol');
+            const marketType = this.safeString (market, 'type');
             let type = undefined;
-            const index = (market['type'].indexOf (' index') >= 0);
+            const index = (marketType.indexOf (' index') >= 0);
             let linear = undefined;
             let inverse = undefined;
             let expiry = undefined;
             if (!index) {
-                linear = (market['type'].indexOf ('_vanilla') >= 0);
+                linear = (marketType.indexOf ('_vanilla') >= 0);
                 inverse = !linear;
                 const settleTime = this.safeString (market, 'lastTradingTime');
                 type = (settleTime === undefined) ? 'swap' : 'future';
@@ -290,11 +292,11 @@ module.exports = class krakenfutures extends Exchange {
             const future = (type === 'future');
             let symbol = id;
             const split = id.split ('_');
-            const parsed = this.parseSymbolIdJoined (split[1]);
-            const baseId = parsed['baseId'];
-            const quoteId = parsed['quoteId'];
-            const base = parsed['base'];
-            const quote = parsed['quote'];
+            const splitMarket = this.safeString (split, 1);
+            const baseId = splitMarket.replace ('usd', '');
+            const quoteId = 'usd'; // always USD
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             // swap == perpetual
             let settle = undefined;
             let settleId = undefined;
@@ -1938,62 +1940,6 @@ module.exports = class krakenfutures extends Exchange {
             throw new BadRequest (feedback);
         }
         throw new ExchangeError (feedback); // unknown message
-    }
-
-    parseSymbolIdJoined (symbolId) {
-        // Convert by detecting and converting currencies in symbol
-        const symbolIdLower = symbolId.toLowerCase ();
-        const quoteIds = this.options['symbol']['quoteIds'];
-        const reversed = this.options['symbol']['reversed'];
-        const method = reversed ? 'startsWith' : 'endsWith';
-        let quoteId = undefined;
-        let baseId = undefined;
-        for (let i = 0; i < quoteIds.length; i++) {
-            if (this[method] (symbolIdLower, quoteIds[i].toLowerCase ())) {
-                quoteId = quoteIds[i];
-                break;
-            }
-        }
-        if (quoteId === undefined) {
-            throw new BadSymbol (this.id + ' symbolId could not be parsed: ' + symbolId);
-        }
-        if (!reversed) {
-            const baseIdLength = symbolId.length - quoteId.length;
-            baseId = this.sliceString (symbolId, 0, baseIdLength);
-            quoteId = this.sliceString (symbolId, baseIdLength);
-        } else {
-            quoteId = this.sliceString (symbolId, 0, quoteId.length);
-            baseId = this.sliceString (symbolId, quoteId.length);
-        }
-        return {
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'base': this.safeCurrencyCode (baseId),
-            'quote': this.safeCurrencyCode (quoteId),
-        };
-    }
-
-    startsWith (string, x) {
-        return this.sliceString (string, 0, x.length) === x;
-    }
-
-    endsWith (string, x) {
-        const start = Math.max (0, string.length - x.length);
-        return this.sliceString (string, start) === x;
-    }
-
-    sliceString (string, start = undefined, end = undefined) {
-        if (start === undefined) {
-            start = 0;
-        }
-        if (end === undefined) {
-            end = string.length;
-        }
-        return string.slice (start, end);
-    }
-
-    nonce () {
-        return this.milliseconds ().toString ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
