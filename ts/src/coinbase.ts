@@ -2058,7 +2058,7 @@ export default class coinbase extends Exchange {
                         total = this.priceToPrecision (symbol, cost);
                     }
                 } else {
-                    total = this.amountToPrecision (symbol, amount);
+                    total = this.priceToPrecision (symbol, amount);
                 }
                 request['order_configuration'] = {
                     'market_market_ioc': {

@@ -2573,7 +2573,7 @@ export default class okcoin extends Exchange {
         //         }
         //     ]
         //
-        const addressesByCode = this.parseDepositAddresses (response);
+        const addressesByCode = this.parseDepositAddresses (response, [ currency['code'] ]);
         const address = this.safeValue (addressesByCode, code);
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');

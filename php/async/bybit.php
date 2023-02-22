@@ -4799,7 +4799,7 @@ class bybit extends Exchange {
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
-                $request['symbol'] = $symbol;
+                $request['symbol'] = $market['id'];
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
@@ -5467,7 +5467,7 @@ class bybit extends Exchange {
             $chains = $this->safe_value($result, 'chains', array());
             $coin = $this->safe_string($result, 'coin');
             $currency = $this->currency($coin);
-            $parsed = $this->parse_deposit_addresses($chains, array( $code ), false, array(
+            $parsed = $this->parse_deposit_addresses($chains, [ $currency['code'] ], false, array(
                 'currency' => $currency['id'],
             ));
             return $this->index_by($parsed, 'network');

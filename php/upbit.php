@@ -1577,7 +1577,7 @@ class upbit extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_deposit_addresses($response);
+        return $this->parse_deposit_addresses($response, $codes);
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {

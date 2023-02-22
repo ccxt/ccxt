@@ -4715,7 +4715,7 @@ export default class bybit extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = symbol;
+            request['symbol'] = market['id'];
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -5369,7 +5369,7 @@ export default class bybit extends Exchange {
         const chains = this.safeValue (result, 'chains', []);
         const coin = this.safeString (result, 'coin');
         currency = this.currency (coin);
-        const parsed = this.parseDepositAddresses (chains, [ code ], false, {
+        const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
             'currency': currency['id'],
         });
         return this.indexBy (parsed, 'network');

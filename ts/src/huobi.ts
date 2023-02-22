@@ -4743,7 +4743,7 @@ export default class huobi extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const parsed = this.parseDepositAddresses (data, [ code ], false);
+        const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
         return this.indexBy (parsed, 'network');
     }
 
@@ -4757,9 +4757,10 @@ export default class huobi extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
+        const currency = this.currency (code);
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
-        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (code, networkCode, indexedAddresses);
+        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
         return indexedAddresses[selectedNetworkCode];
     }
 
@@ -4785,7 +4786,7 @@ export default class huobi extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const allAddresses = this.parseDepositAddresses (data, [ code ], false);
+        const allAddresses = this.parseDepositAddresses (data, [ currency['code'] ], false);
         const addresses = [];
         for (let i = 0; i < allAddresses.length; i++) {
             const address = allAddresses[i];
