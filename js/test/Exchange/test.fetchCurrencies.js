@@ -1,36 +1,22 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
+const testCurrency = require ('./test.currency.js');
 
-const testCurrency = require ('./test.currency.js')
-
-// ----------------------------------------------------------------------------
-
-module.exports = async (exchange) => {
-
-    const method = 'fetchCurrencies'
-
-    const skippedExchanges = []
-
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
-        return
+async function testFetchCurrencies (exchange) {
+    const method = 'fetchCurrencies';
+    const skippedExchanges = [];
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
+        return;
     }
-
-    if (exchange.has[method] === true || exchange.has[method] === 'emulated') {
-
-        const currencies = await exchange[method] ()
-        if (currencies !== undefined) {
-            const values = Object.values (currencies)
-            for (let i = 0; i < values.length; i++) {
-                const currency = values[i]
-                testCurrency (exchange, method, currency)
-            }
+    const currencies = await exchange[method] ();
+    // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
+    if (currencies !== undefined) {
+        const values = exchange.values (currencies);
+        for (let i = 0; i < values.length; i++) {
+            testCurrency (exchange, method, values[i]);
         }
-        return currencies
-
-    } else {
-
-        console.log (method + '() is not supported')
     }
 }
+
+module.exports = testFetchCurrencies;

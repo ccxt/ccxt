@@ -1,47 +1,23 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
+const assert = require ('assert');
+const testFundingRateHistory = require ('./test.testFundingRateHistory.js');
+const sharedMethods = require ('./test.sharedMethods.js');
 
-const assert = require ('assert')
-
-// ----------------------------------------------------------------------------
-
-module.exports = async (exchange, symbol) => {
-
-    const method = 'fetchFundingRateHistory'
-
-    const format = {
-        'symbol': 'BTC/USDT:USDT',
-        'info': {}, // Or []
-        'timestamp': 1638230400000,
-        'datetime': '2021-11-30T00:00:00.000Z',
-        'fundingRate': 0.0006,
+async function testFetchFundingRateHistory (exchange, symbol) {
+    const method = 'fetchFundingRateHistory';
+    const skippedExchanges = [];
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
+        return;
     }
-
-    if (exchange.has[method]) {
-
-        const market = exchange.market (symbol);
-        if (market.spot) {
-            console.log (method + '() is not supported for spot markets');
-            return;
-        }
-    
-        const fundingRates = await exchange[method] (symbol)
-        console.log ('fetched all', fundingRates.length, 'funding rates')
-
-        for (let i = 0; i < fundingRates.length; i++) {
-            const fundingRate = fundingRates[i]
-            const keys = Object.keys (format)
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i]
-                assert (key in fundingRate)
-            }
-            assert (typeof fundingRate['fundingRate'] === 'number')
-            assert (fundingRate['timestamp'] >= 1199145600000) // 2008-01-01 00:00:00
-        }
-        return fundingRates
-
-    } else {
-        console.log (method + '() is not supported')
+    const fundingRatesHistory = await exchange[method] (symbol);
+    assert (Array.isArray (fundingRatesHistory), exchange.id + ' ' + method + ' ' + symbol + ' must return an array, returned ' + exchange.json (fundingRatesHistory));
+    console.log (exchange.id, method, 'fetched', fundingRatesHistory.length, 'entries, asserting each ...');
+    for (let i = 0; i < fundingRatesHistory.length; i++) {
+        testFundingRateHistory (exchange, method, fundingRatesHistory[i], symbol);
     }
+    sharedMethods.reviseSortedTimestamps (exchange, method, fundingRatesHistory);
 }
+
+module.exports = testFetchFundingRateHistory;

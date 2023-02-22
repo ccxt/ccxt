@@ -18,7 +18,7 @@ async function testFetchOpenOrders (exchange, symbol) {
     for (let i = 0; i < orders.length; i++) {
         const order = orders[i];
         testOrder (exchange, method, order, symbol, now);
-        assert (order['status'] === 'open');
+        assert (order['status'] === 'open', exchange.id + ' ' + method + ' ' + symbol + ' returned an order with status ' + order['status'] + ' (expected "open")');
     }
     sharedMethods.reviseSortedTimestamps (exchange, method, orders);
 }

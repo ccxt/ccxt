@@ -1,33 +1,23 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
+const assert = require ('assert');
+const testTransaction = require ('./test.transaction.js');
 
-const assert = require ('assert')
-    , testTransaction = require ('./test.transaction.js')
-
-// ----------------------------------------------------------------------------
-
-module.exports = async (exchange, code) => {
-
-    const method = 'fetchDeposits'
-
-    if (exchange.has[method]) {
-
-        const transactions = await exchange[method] (code)
-
-        console.log ('fetched', transactions.length, 'deposits, asserting each...')
-
-        assert (transactions instanceof Array)
-
-        const now = exchange.milliseconds ()
-
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = transactions[i]
-            testTransaction (exchange, method, transaction, code, now)
-        }
-
-    } else {
-
-        console.log (method + '() is not supported')
+async function testFetchDeposits (exchange, code) {
+    const method = 'fetchDeposits';
+    const skippedExchanges = [];
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
+        return;
     }
+    const transactions = await exchange[method] (code);
+    assert (Array.isArray(transactions), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json(transactions));
+    console.log (exchange.id, method, 'fetched', transactions.length, 'entries, asserting each ...');
+    const now = exchange.milliseconds ();
+    for (let i = 0; i < transactions.length; i++) {
+        testTransaction (exchange, method, transactions[i], code, now);
+    }
+    sharedMethods.reviseSortedTimestamps (exchange, method, transactions);
 }
+
+module.exports = testFetchDeposits;
