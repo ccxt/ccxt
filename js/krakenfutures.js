@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, BadRequest, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
@@ -509,31 +509,31 @@ module.exports = class krakenfutures extends Exchange {
         const change = Precise.stringSub (last, open);
         const percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
         const average = Precise.stringDiv (Precise.stringAdd (open, last), '2');
-        const volume = this.safeFloat (ticker, 'vol24h');
+        const volume = this.safeString (ticker, 'vol24h');
         const baseVolume = (!market['index'] && market['linear']) ? volume : undefined;
         const quoteVolume = (!market['index'] && market['inverse']) ? volume : undefined;
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': this.safeFloat (ticker, 'bidSize'),
-            'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': this.safeFloat (ticker, 'askSize'),
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': this.safeString (ticker, 'bidSize'),
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': this.safeString (ticker, 'askSize'),
             'vwap': undefined,
-            'open': this.parseNumber (open),
-            'close': this.parseNumber (last),
-            'last': this.parseNumber (last),
+            'open': open,
+            'close': last,
+            'last': last,
             'previousClose': undefined,
-            'change': this.parseNumber (change),
-            'percentage': this.parseNumber (percentage),
-            'average': this.parseNumber (average),
-            'baseVolume': this.parseNumber (baseVolume),
-            'quoteVolume': this.parseNumber (quoteVolume),
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        });
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
