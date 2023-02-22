@@ -1475,7 +1475,7 @@ module.exports = class krakenfutures extends Exchange {
             throw new BadRequest (this.id + ' fetchBalance has no account for ' + type);
         }
         const balance = this.parseBalance (account);
-        return this.merge ({
+        return this.extend ({
             'info': response,
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
