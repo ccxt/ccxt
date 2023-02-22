@@ -605,13 +605,6 @@ module.exports = class krakenfutures extends Exchange {
         ];
     }
 
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'mark',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
-    }
-
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -763,7 +756,7 @@ module.exports = class krakenfutures extends Exchange {
                 takerOrMaker = 'maker';
             }
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -773,11 +766,11 @@ module.exports = class krakenfutures extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': this.parseNumber (price),
-            'amount': this.parseNumber (amount),
-            'cost': this.parseNumber (cost),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1461,7 +1454,7 @@ module.exports = class krakenfutures extends Exchange {
         const datetime = this.safeString (response, 'serverTime');
         if (type === 'marginAccount' || type === 'margin') {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchBalance');
+                throw new ArgumentsRequired (this.id + ' fetchBalance requires symbol argument for margin accounts');
             }
             type = symbol;
         }
@@ -1580,6 +1573,7 @@ module.exports = class krakenfutures extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
@@ -1661,7 +1655,7 @@ module.exports = class krakenfutures extends Exchange {
     }
 
     parsePosition (position, market = undefined) {
-        //
+        // cross
         //    {
         //        side: 'long',
         //        symbol: 'pi_xrpusd',
@@ -1671,10 +1665,29 @@ module.exports = class krakenfutures extends Exchange {
         //        unrealizedFunding: '-0.001878596918214635'
         //    }
         //
+        // isolated
+        //    {
+        //        "side":"long",
+        //        "symbol":"pf_ftmusd",
+        //        "price":"0.4921",
+        //        "fillTime":"2023-02-22T11:37:16.685Z",
+        //        "size":"1",
+        //        "unrealizedFunding":"-8.155240068885155E-8",
+        //        "pnlCurrency":"USD",
+        //        "maxFixedLeverage":"1.0"
+        //    }
+        //
+        const leverage = this.safeNumber (position, 'maxFixedLeverage');
+        let marginType = 'cross';
+        if (leverage !== undefined) {
+            marginType = 'isolated';
+        }
         const datetime = this.safeString (position, 'fillTime');
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
         return {
             'info': position,
-            'symbol': this.safeCurrencyCode (this.safeString (position, 'symbol')),
+            'symbol': market['symbol'],
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'initialMargin': undefined,
@@ -1683,15 +1696,15 @@ module.exports = class krakenfutures extends Exchange {
             'maintenanceMarginPercentage': undefined,
             'entryPrice': this.safeNumber (position, 'price'),
             'notional': undefined,
-            'leverage': undefined,
-            'unrealizedPnl': undefined,
-            'contracts': undefined,
+            'leverage': leverage,
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedFunding'),
+            'contracts': this.safeString (position, 'size'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': undefined,
             'markPrice': undefined,
-            'collateral': this.safeString (position, 'size'),
-            'marginType': 'cross',
+            'collateral': undefined,
+            'marginType': marginType,
             'side': this.safeString (position, 'side'),
             'percentage': undefined,
         };
