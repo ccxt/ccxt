@@ -1,0 +1,163 @@
+async def test_tickers(exchange, symbol):
+    method = 'fetchTickers'
+    ignored_exchanges = [
+        'digifinex',  # requires apiKey to call v2 tickers
+    ]
+    if exchange.id in ignored_exchanges:
+        return
+    if exchange.has[method]:
+        delay = int(exchange.rateLimit / 1000)
+        await asyncio.sleep(delay)
+        tickers = None
+        try:
+            # dump(green(exchange.id), 'fetching all tickers at once...')
+            tickers = await getattr(exchange, method)()
+            dump(green(exchange.id), 'fetched all', green(len(list(tickers.keys()))), 'tickers')
+        except Exception as e:
+            dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
+            tickers = await exchange.fetch_tickers([symbol])
+            dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
+    elif argv.token_bucket:
+        await test_tickers_async(exchange)
+    if argv.token_bucket:
+        await test_l2_order_books_async(exchange)
+		
+		
+		
+async def test_l2_order_books_async(exchange):
+    dump(green(exchange.id), 'fetching all order books by simultaneous multiple concurrent requests')
+    symbols_to_load = get_active_symbols(exchange)
+    input_coroutines = [exchange.fetch_l2_order_book(symbol) for symbol in symbols_to_load]
+    orderbooks = await asyncio.gather(*input_coroutines, return_exceptions=True)
+    for orderbook, symbol in zip(orderbooks, symbols_to_load):
+        if not isinstance(orderbook, dict):
+            dump_error(red('[Error with symbol loading l2 order book]'),
+                       ' Symbol failed to load: {0}, ERROR: {1}'.format(symbol, orderbook))
+    dump(green(exchange.id), 'fetched', green(len(list(orderbooks))), 'order books')
+
+async def test_tickers_async(exchange):
+    print('Activated here')
+    dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
+    symbols_to_load = get_active_symbols(exchange)
+    input_coroutines = [exchange.fetch_ticker(symbol) for symbol in symbols_to_load]
+    tickers = await asyncio.gather(*input_coroutines, return_exceptions=True)
+    for ticker, symbol in zip(tickers, symbols_to_load):
+        if not isinstance(ticker, dict):
+            dump_error(red('[Error with symbol loading ticker]'),
+                       ' Symbol failed to load: {0}, ERROR: {1}'.format(symbol, ticker))
+    dump(green(exchange.id), 'fetched', green(len(list(tickers))), 'tickers')
+
+
+
+
+
+
+
+
+
+
+
+async def try_all_proxies(exchange, proxies=['']):
+    current_proxy = 0
+    max_retries = len(proxies)
+    if exchange.proxy in proxies:
+        current_proxy = proxies.index(exchange.proxy)
+    for num_retries in range(0, max_retries):
+        try:
+            # do not use cors proxy when using a http proxy
+            if not hasattr(exchange, "httpProxy"):
+                exchange.proxy = proxies[current_proxy]
+                dump(green(exchange.id), 'using proxy', '`' + exchange.proxy + '`')
+                current_proxy = (current_proxy + 1) % len(proxies)
+            await load_exchange(exchange)
+            await test_exchange(exchange)
+        except (ccxt.RequestTimeout, ccxt.AuthenticationError, ccxt.NotSupported, ccxt.DDoSProtection, ccxt.ExchangeNotAvailable, ccxt.ExchangeError) as e:
+            print({'type': type(e).__name__, 'num_retries': num_retries, 'max_retries': max_retries}, str(e)[0:200])
+            if (num_retries + 1) == max_retries:
+                dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
+        else:
+            # no exception
+            return True
+    # exception
+    return False
+
+
+# ------------------------------------------------------------------------------
+
+def read_credentials_from_env(exchange):
+    requiredCredentials = exchange.requiredCredentials
+    for credential, isRequired in requiredCredentials.items():
+        if isRequired and credential and not getattr(exchange, credential, None):
+            credentialEnvName = (exchange.id + '_' + credential).upper()  # example: KRAKEN_APIKEY
+            if credentialEnvName in os.environ:
+                credentialValue = os.environ[credentialEnvName]
+                setattr(exchange, credential, credentialValue)
+
+
+# ------------------------------------------------------------------------------
+
+proxies = [
+    '',
+    'https://cors-anywhere.herokuapp.com/',
+]
+
+# prefer local testing keys to global keys
+keys_folder = os.path.dirname(root)
+keys_global = os.path.join(keys_folder, 'keys.json')
+keys_local = os.path.join(keys_folder, 'keys.local.json')
+keys_file = keys_local if os.path.exists(keys_local) else keys_global
+
+# load the api keys from config
+with open(keys_file, encoding='utf8') as file:
+    config = json.load(file)
+
+# instantiate all exchanges
+for id in ccxt.exchanges:
+    exchange = getattr(ccxt, id)
+    exchange_config = {'verbose': argv.verbose}
+    if sys.version_info[0] < 3:
+        exchange_config.update()
+    if id in config:
+        exchange_config = ccxt.Exchange.deep_extend(exchange_config, config[id])
+    exchanges[id] = exchange(exchange_config)
+
+    # check auth keys in env var
+    read_credentials_from_env(exchanges[id])
+
+# ------------------------------------------------------------------------------
+
+
+async def main():
+
+    if argv.exchange:
+
+        exchange = exchanges[argv.exchange]
+        symbol = argv.symbol
+        if hasattr(exchange, 'skip') and exchange.skip:
+            dump(green(exchange.id), 'skipped')
+        elif hasattr(exchange, 'alias') and exchange.alias:
+            dump(green(exchange.id), 'Skipped alias')
+        else:
+            # add http proxy if any
+            if hasattr(exchange, 'httpProxy'):
+                exchange.aiohttp_proxy = exchange.httpProxy
+
+            if argv.sandbox or getattr(exchange, 'sandbox', None):
+                exchange.set_sandbox_mode(True)
+
+            if symbol:
+                code = get_exchange_code(exchange)
+                await load_exchange(exchange)
+                await test_symbol(exchange, symbol, code)
+            else:
+                await try_all_proxies(exchange, proxies)
+
+    else:
+        for exchange in sorted(exchanges.values(), key=lambda x: x.id):
+            if hasattr(exchange, 'skip') and exchange.skip:
+                dump(green(exchange.id), 'skipped')
+            else:
+                await try_all_proxies(exchange, proxies)
+
+# ------------------------------------------------------------------------------
+
