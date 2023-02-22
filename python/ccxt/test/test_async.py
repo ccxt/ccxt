@@ -68,9 +68,9 @@ if 'site-packages' in os.path.dirname(ccxt.__file__):
 import importlib  # noqa: E402
 import glob  # noqa: E402
 testFiles = {}
-for file_path in glob.glob(current_dir + '/transpiled_*.py'):
+for file_path in glob.glob(current_dir + '/test_*.py'):
     name = os.path.basename(file_path)[:-3]
-    if (name != 'transpiled_test_async') and (name != 'transpiled_test_sync'):
+    if (name != 'test_async') and (name != 'test_sync'):
         testFiles = importlib.import_module(name)
 
 # print a colored string

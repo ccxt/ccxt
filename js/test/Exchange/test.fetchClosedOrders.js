@@ -20,7 +20,7 @@ async function testFetchClosedOrders (exchange, symbol) {
         testOrder (exchange, method, order, symbol, now);
         assert (exchange.inArray (order['status'], [ 'closed', 'canceled' ]), exchange.id + ' ' + method + ' ' + symbol + ' returned an order with status ' + order['status'] + ' (expected "closed" or "canceled")');
     }
-    testSharedMethods.reviseSortedTimestamps (exchange, method, orders);
+    testSharedMethods.reviseSortedTimestamps (exchange, method, symbol, orders);
 }
 
 module.exports = testFetchClosedOrders;

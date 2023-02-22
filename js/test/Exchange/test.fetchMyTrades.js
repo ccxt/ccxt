@@ -18,7 +18,7 @@ async function testFetchMyTrades (exchange, symbol) {
     for (let i = 0; i < trades.length; i++) {
         testTrade (exchange, method, trades[i], symbol, now);
     }
-    testSharedMethods.reviseSortedTimestamps (exchange, method, trades);
+    testSharedMethods.reviseSortedTimestamps (exchange, method, symbol, trades);
 }
 
 module.exports = testFetchMyTrades;

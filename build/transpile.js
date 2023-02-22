@@ -1915,14 +1915,24 @@ class Transpiler {
                 return content;
             };
             for (const subTestName of requiredSubTests) {
+                const importName = 'test_' + unCamelCase(subTestName)
+                pythonHeader.push (`import ${importName}  # noqa E402`)
                 const capitalizedName = 'test' + capitalize(subTestName);
                 python3Body = subTestNameUnCamelCase(python3Body, capitalizedName)
                 phpBody = subTestNameUnCamelCase(phpBody, subTestName)
-                const importName = 'test_' + unCamelCase(subTestName)
-                pythonHeader.push (`import ${importName}  # noqa E402`)
             }
         }
         
+        // todo: transpiler doesnt tranpile into unCamelCases correctly, so manually unCamelCase here
+        if (test.jsFile.includes ('sharedMethods')) {
+            [...  js.matchAll (/function (.*?) \(/g)].forEach(match => {
+                const funcName = match[1];
+                const regex = new RegExp ('\\b' + funcName + '(?!\\\\\\()', 'g');
+                python3Body = python3Body.replace (regex, unCamelCase(funcName));
+                phpBody = phpBody.replace (regex, unCamelCase(funcName));
+            });
+        }
+
         if (pythonHeader.length > 0) {
             pythonHeader.unshift ('')
             pythonHeader.push ('', '')

@@ -7,7 +7,7 @@ function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
 }
 
-function reviseStructureKeys (exchange, method, entry, format, requiredValueKeys = []) {
+function reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor = []) {
     // define common log text
     const logText = logTemplate (exchange, method, entry);
     // ensure item is not null/undefined/unset
@@ -15,14 +15,17 @@ function reviseStructureKeys (exchange, method, entry, format, requiredValueKeys
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
     if (Array.isArray (format)) {
         assert (Array.isArray (entry), 'entry is not an array' + logText);
-        const actualLength = entry.length;
+        const realLength = entry.length;
         const expectedLength = format.length;
-        assert (actualLength === expectedLength, 'entry length is not equal to expected length of ' + expectedLength.toString () + logText);
+        assert (realLength === expectedLength, 'entry length is not equal to expected length of ' + expectedLength.toString () + logText);
         for (let i = 0; i < format.length; i++) {
-            const expectedType = typeof format[i];
+            const is_in_array = exchange.inArray (i, emptyNotAllowedFor);
+            if (is_in_array) {
+                assert ((entry[i] !== undefined), i.toString () + ' index is undefined, but is is was expected to be set' + logText);
+            }
             // because of other langs, this is needed for arrays
             try {
-                assert (typeof entry[i] === expectedType, i.toString () + ' index does not have an expected type ' + expectedType + logText);
+                assert (areSameTypes (entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
             } catch (ex) {
                 assert (false, i.toString () + ' index is missing from structure' + logText);
             }
@@ -33,17 +36,26 @@ function reviseStructureKeys (exchange, method, entry, format, requiredValueKeys
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             assert (key in entry, key.toString () + ' key is missing from structure' + logText);
-            const valueType = typeof entry[key];
-            const expectedType = typeof format[key];
-            if (exchange.inArray (key, requiredValueKeys)) {
-                // if it was in required keys, then it should have value, not undefined
-                assert (entry[key] !== undefined, key + ' key is undefined, but is required' + logText);
-            } else {
-                // if it was not in required keys, then tolerate undefined
-                assert ((entry[key] === undefined) || (valueType === expectedType), key+ ' key is neither undefined, neither of expected type ' + expectedType + logText);
+            if (exchange.inArray (key, emptyNotAllowedFor)) {
+                // if it was in needed keys, then it should have value.
+                assert (entry[key] !== undefined, key + ' key is undefined, but is expected to be present' + logText);
             }
+            assert (areSameTypes (entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
         }
     }
+}
+
+function areSameTypes (exchange, entry, key, format) {
+    // because "typeof" string is not transpilable without === 'name', we list them manually at this moment
+    const entryKeyVal = entry[key];
+    const formatKeyVal = format[key];
+    const same_string = (typeof entryKeyVal === 'string') && (typeof formatKeyVal === 'string');
+    const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
+    const same_boolean =  ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
+    const same_array = exchange.isArray(entryKeyVal) && exchange.isArray(formatKeyVal)
+    const same_object = (typeof entryKeyVal === 'object') && (typeof formatKeyVal === 'object');
+    const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
+    return result;
 }
 
 function reviseCommonTimestamp (exchange, method, entry, nowToCheck = undefined, keyName = 'timestamp') {
@@ -162,13 +174,13 @@ function reviseFeesObject (exchange, method, entry) {
     }
 }
 
-function reviseSortedTimestamps (exchange, method, items, ascending = true) {
+function reviseSortedTimestamps (exchange, method, codeOrSymbol, items, ascending = true) {
     for (let i = 0; i < items.length; i++) {
         if (i > 0) {
             const ascendingOrDescending = ascending ? 'ascending' : 'descending';
             const firstIndex = ascending ? i - 1 : i;
             const secondIndex = ascending ? i : i - 1;
-            assert (items[firstIndex].timestamp >= items[secondIndex].timestamp, exchange.id + ' ' + method + ' ' + symbol + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp. ' + exchange.json(items));
+            assert (items[firstIndex].timestamp >= items[secondIndex].timestamp, exchange.id + ' ' + method + ' ' + codeOrSymbol + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp. ' + exchange.json(items));
         }
     }
 }

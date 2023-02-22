@@ -20,7 +20,7 @@ async function testFetchLedger (exchange, code) {
     for (let i = 0; i < items.length; i++) {
         testLedgerItem (exchange, method, items[i], code, now);
     }
-    testSharedMethods.reviseSortedTimestamps (exchange, method, items);
+    testSharedMethods.reviseSortedTimestamps (exchange, method, code, items);
     //
     method = 'fetchLedgerItem'; // todo: create separate testfile
     if (exchange.has[method]) {

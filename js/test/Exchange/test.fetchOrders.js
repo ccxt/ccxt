@@ -18,7 +18,7 @@ async function testFetchOrders (exchange, symbol) {
     for (let i = 0; i < orders.length; i++) {
         testOrder (exchange, method, orders[i], symbol, now);
     }
-    testSharedMethods.reviseSortedTimestamps (exchange, method, orders);
+    testSharedMethods.reviseSortedTimestamps (exchange, method, symbol, orders);
 }
 
 module.exports = testFetchOrders;
