@@ -49,8 +49,9 @@ module.exports = class bybit extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
-                'fetchFundingRate': true,
+                'fetchFundingRate': true, // emulated in exchange
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchMarketLeverageTiers': true,
@@ -1140,6 +1141,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://bybit-exchange.github.io/docs/v3/server-time
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -1531,10 +1533,7 @@ module.exports = class bybit extends Exchange {
             const priceFilter = this.safeValue (market, 'priceFilter', {});
             const leverage = this.safeValue (market, 'leverageFilter', {});
             const status = this.safeString (market, 'status');
-            let active = undefined;
-            if (status !== undefined) {
-                active = (status === 'Trading');
-            }
+            const active = (status === 'Trading');
             const swap = linearPerpetual || inversePerpetual;
             const future = inverseFutures;
             const option = (category === 'option');
@@ -1625,6 +1624,26 @@ module.exports = class bybit extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
+        // spot
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "bid1Price": "20517.96",
+        //         "bid1Size": "2",
+        //         "ask1Price": "20527.77",
+        //         "ask1Size": "1.862172",
+        //         "lastPrice": "20533.13",
+        //         "prevPrice24h": "20393.48",
+        //         "price24hPcnt": "0.0068",
+        //         "highPrice24h": "21128.12",
+        //         "lowPrice24h": "20318.89",
+        //         "turnover24h": "243765620.65899866",
+        //         "volume24h": "11801.27771",
+        //         "usdIndexPrice": "20784.12009279"
+        //     }
+        //
+        // linear/inverse
+        //
         //     {
         //         "symbol": "BTCUSD",
         //         "lastPrice": "16597.00",
@@ -1651,11 +1670,41 @@ module.exports = class bybit extends Exchange {
         //         "bid1Size": "1"
         //     }
         //
+        // option
+        //
+        //     {
+        //         "symbol": "BTC-30DEC22-18000-C",
+        //         "bid1Price": "0",
+        //         "bid1Size": "0",
+        //         "bid1Iv": "0",
+        //         "ask1Price": "435",
+        //         "ask1Size": "0.66",
+        //         "ask1Iv": "5",
+        //         "lastPrice": "435",
+        //         "highPrice24h": "435",
+        //         "lowPrice24h": "165",
+        //         "markPrice": "0.00000009",
+        //         "indexPrice": "16600.55",
+        //         "markIv": "0.7567",
+        //         "underlyingPrice": "16590.42",
+        //         "openInterest": "6.3",
+        //         "turnover24h": "2482.73",
+        //         "volume24h": "0.15",
+        //         "totalVolume": "99",
+        //         "totalTurnover": "1967653",
+        //         "delta": "0.00000001",
+        //         "gamma": "0.00000001",
+        //         "vega": "0.00000004",
+        //         "theta": "-0.00000152",
+        //         "predictedDeliveryPrice": "0",
+        //         "change24h": "86"
+        //     }
+        //
         const timestamp = this.safeInteger (ticker, 'time');
         const marketId = this.safeString (ticker, 'symbol');
         const marketType = (market !== undefined) ? market['type'] : 'linear';
         market = this.safeMarket (marketId, market, undefined, marketType);
-        const symbol = this.safeSymbol (marketId, market, undefined, market['type']);
+        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const last = this.safeString (ticker, 'lastPrice');
         const open = this.safeString (ticker, 'prevPrice24h');
         let percentage = this.safeString (ticker, 'price24hPcnt');
@@ -1695,7 +1744,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://bybit-exchange.github.io/docs-v2/v5/market/tickers
+         * @see https://bybit-exchange.github.io/docs/v5/market/tickers
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -1769,7 +1818,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @see https://bybit-exchange.github.io/docs-v2/v5/market/tickers
+         * @see https://bybit-exchange.github.io/docs/v5/market/tickers
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -1873,6 +1922,10 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bybit-exchange.github.io/docs/v5/market/kline
+         * @see https://bybit-exchange.github.io/docs/v5/market/mark-kline
+         * @see https://bybit-exchange.github.io/docs/v5/market/index-kline
+         * @see https://bybit-exchange.github.io/docs/v5/market/preimum-index-kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -2019,30 +2072,12 @@ module.exports = class bybit extends Exchange {
         };
     }
 
-    async fetchFundingRate (symbol, params = {}) {
-        /**
-         * @method
-         * @name bybit#fetchFundingRate
-         * @description fetch the current funding rate
-         * @see https://bybit-exchange.github.io/docs-v2/v5/market/tickers
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const symbols = [ symbol ];
-        const fr = await this.fetchFundingRates (symbols, params);
-        return this.safeValue (fr, symbol);
-    }
-
     async fetchFundingRates (symbols = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchFundingRates
          * @description fetches funding rates for multiple markets
-         * @see https://bybit-exchange.github.io/docs-v2/v5/market/tickers
+         * @see https://bybit-exchange.github.io/docs/v5/market/tickers
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
@@ -2132,7 +2167,13 @@ module.exports = class bybit extends Exchange {
          */
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
-        const request = {};
+        const request = {
+            // 'category': '', // Product type. linear,inverse
+            // 'symbol': '', // Symbol name
+            // 'startTime': 0, // The start timestamp (ms)
+            // 'endTime': 0, // The end timestamp (ms)
+            // 'limit': 0, // Limit for data size per page. [1, 200]. Default: 200
+        };
         const market = this.market (symbol);
         symbol = market['symbol'];
         request['symbol'] = market['id'];
@@ -2273,34 +2314,6 @@ module.exports = class bybit extends Exchange {
     }
 
     parseContractTrade (trade, market = undefined) {
-        //
-        // public spot
-        //
-        //     {
-        //         "price": "1162.51",
-        //         "time": "1669192055405",
-        //         "qty": "0.86013",
-        //         "isBuyerMaker": "0"
-        //     }
-        //
-        // private spot
-        //
-        //     {
-        //         "symbol": "ETHUSDT",
-        //         "id": "1295416074059212032",
-        //         "orderId": "1295416073941829632",
-        //         "tradeId": "2280000000026848229",
-        //         "orderPrice": "1138.2",
-        //         "orderQty": "0.05",
-        //         "execFee": "0",
-        //         "feeTokenId": "ETH",
-        //         "creatTime": "1669161629850",
-        //         "isBuyer": "0",
-        //         "isMaker": "1",
-        //         "matchOrderId": "1295416073505583360",
-        //         "makerRebate": "0",
-        //         "executionTime": "1669161629861"
-        //     }
         //
         // public contract
         //
@@ -2459,6 +2472,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://bybit-exchange.github.io/docs/v5/market/recent-trade
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -6498,9 +6512,7 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPosition() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchPosition', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -7153,9 +7165,7 @@ module.exports = class bybit extends Exchange {
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('setMarginMode', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['settle'] === 'USDC') {
@@ -7210,9 +7220,7 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('setLeverage', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
@@ -7349,7 +7357,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOpenInterest
          * @description Retrieves the open interest of a derivative trading pair
-         * @see https://bybit-exchange.github.io/docs-v2/v5/market/open-interest
+         * @see https://bybit-exchange.github.io/docs/v5/market/open-interest
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} params exchange specific parameters
          * @param {string|undefined} params.interval 5m, 15m, 30m, 1h, 4h, 1d
@@ -7410,7 +7418,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOpenInterestHistory
          * @description Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
-         * @see https://bybit-exchange.github.io/docs-v2/v5/market/open-interest
+         * @see https://bybit-exchange.github.io/docs/v5/market/open-interest
          * @param {string} symbol Unified market symbol
          * @param {string} timeframe "5m", 15m, 30m, 1h, 4h, 1d
          * @param {int} since Not used by Bybit
@@ -8037,7 +8045,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchMarketLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-         * @see https://bybit-exchange.github.io/docs-v2/v5/market/risk-limit
+         * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
