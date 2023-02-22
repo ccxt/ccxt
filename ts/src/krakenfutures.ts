@@ -1,13 +1,13 @@
-'use strict';
-
-//  ---------------------------------------------------------------------------
-const Exchange = require ('./base/Exchange');
-const { TICK_SIZE } = require ('./base/functions/number');
-const { ArgumentsRequired, AuthenticationError, BadRequest, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
-module.exports = class krakenfutures extends Exchange {
+import { Exchange } from './base/Exchange.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+
+//  ---------------------------------------------------------------------------
+
+export default class krakenfutures extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'krakenfutures',
@@ -223,7 +223,7 @@ module.exports = class krakenfutures extends Exchange {
          * @param {object} params exchange specific params
          * @returns An array of market structures
          */
-        const response = await this.publicGetInstruments (params);
+        const response = await (this as any).publicGetInstruments (params);
         //
         //    {
         //        "result": "success",
@@ -399,7 +399,7 @@ module.exports = class krakenfutures extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetOrderbook (this.extend (request, params));
+        const response = await (this as any).publicGetOrderbook (this.extend (request, params));
         //
         //    {
         //       "result": "success",
@@ -436,7 +436,7 @@ module.exports = class krakenfutures extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetTickers (params);
+        const response = await (this as any).publicGetTickers (params);
         //
         //    {
         //        result: 'success',
@@ -547,7 +547,7 @@ module.exports = class krakenfutures extends Exchange {
         params = this.omit (params, 'price');
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
-            request['from'] = parseInt (since / 1000);
+            request['from'] = this.parseToInt (since / 1000);
             if (limit === undefined) {
                 limit = 5000;
             } else if (limit > 5000) {
@@ -562,9 +562,9 @@ module.exports = class krakenfutures extends Exchange {
             }
             const duration = this.parseTimeframe (timeframe);
             request['to'] = this.seconds ();
-            request['from'] = parseInt (request['to'] - (duration * limit));
+            request['from'] = this.parseToInt (request['to'] - (duration * limit));
         }
-        const response = await this.chartsGetPriceTypeSymbolInterval (this.extend (request, params));
+        const response = await (this as any).chartsGetPriceTypeSymbolInterval (this.extend (request, params));
         //
         //    {
         //        "candles": [
@@ -644,7 +644,7 @@ module.exports = class krakenfutures extends Exchange {
         //        "serverTime": "2022-03-18T06:39:18.056Z"
         //    }
         //
-        const response = await this.publicGetHistory (this.extend (request, params));
+        const response = await (this as any).publicGetHistory (this.extend (request, params));
         const history = this.safeValue (response, 'history');
         return this.parseTrades (history, market, since, limit);
     }
@@ -817,7 +817,7 @@ module.exports = class krakenfutures extends Exchange {
         if (price !== undefined) {
             request['limitPrice'] = price;
         }
-        const response = await this.privatePostSendorder (this.extend (request, params));
+        const response = await (this as any).privatePostSendorder (this.extend (request, params));
         //
         //    {
         //        "result": "success",
@@ -878,7 +878,7 @@ module.exports = class krakenfutures extends Exchange {
         if (price !== undefined) {
             request['limitPrice'] = price;
         }
-        const response = await this.privatePostEditorder (this.extend (request, params));
+        const response = await (this as any).privatePostEditorder (this.extend (request, params));
         const status = this.safeString (response['editStatus'], 'status');
         this.verifyOrderActionSuccess (status, 'editOrder', [ 'filled' ]);
         const order = this.parseOrder (response['editStatus']);
@@ -893,7 +893,7 @@ module.exports = class krakenfutures extends Exchange {
          * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostCancelorder (this.extend ({ 'order_id': id }, params));
+        const response = await (this as any).privatePostCancelorder (this.extend ({ 'order_id': id }, params));
         const status = this.safeString (this.safeValue (response, 'cancelStatus', {}), 'status');
         this.verifyOrderActionSuccess (status, 'cancelOrder');
         let order = {};
@@ -916,7 +916,7 @@ module.exports = class krakenfutures extends Exchange {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        const response = await this.privatePostCancelallorders (this.extend (request, params));
+        const response = await (this as any).privatePostCancelallorders (this.extend (request, params));
         return response;
     }
 
@@ -936,7 +936,7 @@ module.exports = class krakenfutures extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await this.privateGetOpenorders (params);
+        const response = await (this as any).privateGetOpenorders (params);
         const orders = this.safeValue (response, 'openOrders', []);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -1322,7 +1322,7 @@ module.exports = class krakenfutures extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await this.privateGetFills (params);
+        const response = await (this as any).privateGetFills (params);
         //
         //    {
         //        "result": "success",
@@ -1360,7 +1360,7 @@ module.exports = class krakenfutures extends Exchange {
         let type = this.safeString2 (params, 'type', 'account');
         let symbol = this.safeString (params, 'symbol');
         params = this.omit (params, [ 'type', 'account', 'symbol' ]);
-        const response = await this.privateGetAccounts (params);
+        const response = await (this as any).privateGetAccounts (params);
         //
         //    {
         //        result: 'success',
@@ -1579,7 +1579,7 @@ module.exports = class krakenfutures extends Exchange {
         const request = {
             'symbol': market['id'].toUpperCase (),
         };
-        const response = await this.publicGetHistoricalfundingrates (this.extend (request, params));
+        const response = await (this as any).publicGetHistoricalfundingrates (this.extend (request, params));
         //
         //    {
         //        rates: [
@@ -1620,7 +1620,7 @@ module.exports = class krakenfutures extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await this.privateGetOpenpositions (request);
+        const response = await (this as any).privateGetOpenpositions (request);
         //
         //    {
         //        result: 'success',
@@ -1709,7 +1709,7 @@ module.exports = class krakenfutures extends Exchange {
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetInstruments (params);
+        const response = await (this as any).publicGetInstruments (params);
         //
         //    {
         //        "result": "success",
@@ -1983,4 +1983,4 @@ module.exports = class krakenfutures extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-};
+}
