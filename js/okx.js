@@ -204,6 +204,7 @@ module.exports = class okx extends Exchange {
                         'account/account-position-risk': 2,
                         'account/balance': 2,
                         'account/positions': 2,
+                        'accounts/positions-history': 2,
                         'account/bills': 5 / 3,
                         'account/bills-archive': 5 / 3,
                         'account/config': 4,
@@ -743,6 +744,9 @@ module.exports = class okx extends Exchange {
                 'fetchOHLCV': {
                     // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                     'timezone': 'UTC', // UTC, HK
+                },
+                'fetchPositions': {
+                    'method': 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
@@ -4254,7 +4258,9 @@ module.exports = class okx extends Exchange {
                 request['instId'] = marketIds.join (',');
             }
         }
-        const response = await this.privateGetAccountPositions (this.extend (request, params));
+        const fetchPositionsOptions = this.safeValue (this.options, 'fetchPositions', {});
+        const method = this.safeString (fetchPositionsOptions, 'method', 'privateGetAccountPositions');
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": "0",
