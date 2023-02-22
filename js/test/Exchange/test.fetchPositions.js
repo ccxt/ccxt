@@ -2,6 +2,7 @@
 
 const assert = require ('assert');
 const testPosition = require ('./test.position.js');
+const sharedMethods = require ('./test.sharedMethods.js');
 
 async function testFetchPositions (exchange, symbol) {
     const method = 'fetchPositions';
@@ -13,20 +14,23 @@ async function testFetchPositions (exchange, symbol) {
     const now = exchange.milliseconds ();
     // without symbol
     const positions = await exchange[method] ();
-    assert (exchange.isArray (positions), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positions));
-    console.log (exchange.id, method, 'fetched', positions.length, 'positions, asserting each...');
+    assert (Array.isArray (positions), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positions));
+    console.log (exchange.id, method, 'fetched', positions.length, 'entries, asserting each ...');
     for (let i = 0; i < positions.length; i++) {
         testPosition (exchange, method, positions[i], undefined, now);
     }
+    sharedMethods.reviseSortedTimestamps (exchange, method, positions);
     // with symbol
     const positionsForSymbol = await exchange[method] ([ symbol ]);
-    assert (exchange.isArray (positionsForSymbol), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positionsForSymbol));
+    assert (Array.isArray (positionsForSymbol), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positionsForSymbol));
     const positionsForSymbolLength = positionsForSymbol.length;
     assert (positionsForSymbolLength <= 4, exchange.id + ' ' + method + ' positions length for particular symbol should be less than 4, returned ' + exchange.json (positionsForSymbol));
-    console.log (exchange.id, method, 'fetched', positionsForSymbol.length, 'positions for symbol, asserting each...');
+    console.log (exchange.id, method, 'fetched', positionsForSymbol.length, 'entries, asserting each ...');
     for (let i = 0; i < positionsForSymbol.length; i++) {
         testPosition (exchange, method, positionsForSymbol[i], symbol, now);
     }
+    const sharedMethods = require ('./test.sharedMethods.js');
+    sharedMethods.reviseSortedTimestamps (exchange, method, positionsForSymbolLength);
 }
 
 module.exports = testFetchPositions;

@@ -1,44 +1,24 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
+const assert = require ('assert');
+const testTrade = require ('./test.trade.js');
+const sharedMethods = require ('./test.sharedMethods.js');
 
-const assert = require ('assert')
-    , testTrade = require ('./test.trade.js')
-
-// ----------------------------------------------------------------------------
-
-module.exports = async (exchange, symbol) => {
-
-    const method = 'fetchMyTrades'
-
-    const skippedExchanges = [
-        'bitso',
-    ]
-
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
-        return
+async function testFetchMyTrades (exchange, symbol) {
+    const method = 'fetchMyTrades';
+    const skippedExchanges = [];
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
+        return;
     }
-
-    if (exchange.has[method]) {
-
-        const trades = await exchange[method] (symbol)
-
-        assert (trades instanceof Array)
-
-        console.log ('fetched', trades.length, 'trades')
-
-        const now = exchange.milliseconds ()
-
-        for (let i = 0; i < trades.length; i++) {
-            testTrade (exchange, method, trades[i], symbol, now)
-            if (i > 0) {
-                assert (trades[i].timestamp >= trades[i - 1].timestamp)
-            }
-        }
-
-    } else {
-
-        console.log (method + '() is not supported')
+    const trades = await exchange[method] (symbol);
+    assert (Array.isArray(trades), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json(trades));
+    console.log (exchange.id, symbol, 'fetched', trades.length, 'trades');
+    const now = exchange.milliseconds ();
+    for (let i = 0; i < trades.length; i++) {
+        testTrade (exchange, method, trades[i], symbol, now);
     }
+    sharedMethods.reviseSortedTimestamps (exchange, method, trades);
 }
+
+module.exports = testFetchMyTrades;

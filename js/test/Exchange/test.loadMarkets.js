@@ -11,7 +11,7 @@ async function testLoadMarkets (exchange) {
     }
     const markets = await exchange[method] ();
     const marketValues = exchange.values (markets);
-    console.log (exchange.id, method, 'fetched', marketValues.length, 'markets, asserting each ...');
+    console.log (exchange.id, method, 'fetched', marketValues.length, 'entries, asserting each ...');
     for (let i = 0; i < marketValues.length; i++) {
         testMarket (exchange, method, marketValues[i]);
     }

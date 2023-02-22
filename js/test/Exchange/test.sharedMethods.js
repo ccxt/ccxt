@@ -162,6 +162,17 @@ function reviseFeesObject (exchange, method, entry) {
     }
 }
 
+function reviseSortedTimestamps (exchange, method, items, ascending = true) {
+    for (let i = 0; i < items.length; i++) {
+        if (i > 0) {
+            const ascendingOrDescending = ascending ? 'ascending' : 'descending';
+            const firstIndex = ascending ? i - 1 : i;
+            const secondIndex = ascending ? i : i - 1;
+            assert (items[firstIndex].timestamp >= items[secondIndex].timestamp, exchange.id + ' ' + method + ' ' + symbol + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp. ' + exchange.json(items));
+        }
+    }
+}
+
 module.exports = {
     logTemplate,
     reviseCommonTimestamp,
@@ -171,6 +182,7 @@ module.exports = {
     reviseAgainstArray,
     reviseFeeObject,
     reviseFeesObject,
+    reviseSortedTimestamps,
     Gt,
     Ge,
     Lt,

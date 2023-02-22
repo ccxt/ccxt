@@ -1,33 +1,21 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
+const testMarket = require ('./test.market.js');
 
-const testMarket = require ('./test.market.js')
-
-// ----------------------------------------------------------------------------
-
-module.exports = async (exchange) => {
-
-    const method = 'fetchMarkets'
-
-    const skippedExchanges = [
-        'bitforex',
-    ]
-
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
-        return
+async function testFetchMarkets (exchange) {
+    const method = 'fetchMarkets';
+    const skippedExchanges = [];
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
+        return;
     }
-
-    if (exchange.has[method]) {
-
-        // log ('fetching markets...')
-        const markets = await exchange[method] ()
-        Object.values (markets).forEach ((market) => testMarket (exchange, method, market))
-        return markets
-
-    } else {
-
-        console.log (method + '() is not supported')
+    const markets = await exchange[method] ();
+    assert (typeof markets === 'object', exchange.id + ' ' + method + ' must return an object. ' + exchange.json(markets));
+    const marketValues = Object.values (markets);
+    console.log (exchange.id, method, 'fetched', marketValues.length, 'entries, asserting each ...');
+    for (let i = 0; i < marketValues.length; i++) {
+        testMarket (exchange, method, marketValues[i]);
     }
 }
+
+module.exports = testFetchMarkets;

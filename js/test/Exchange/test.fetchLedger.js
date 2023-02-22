@@ -2,45 +2,33 @@
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
-    , testLedgerItem = require ('./test.ledgerItem')
+const assert = require ('assert');
+const sharedMethods = require ('./test.sharedMethods.js');
+const testLedgerItem = require ('./test.ledgerItem.js');
 
-// ----------------------------------------------------------------------------
-
-module.exports = async (exchange, code) => {
-
-    let method = 'fetchLedger'
-
+async function testFetchLedger (exchange, code) {
+    const method = 'fetchLedger';
+    const skippedExchanges = [];
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
+        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
+        return;
+    }
+    const items = await exchange[method] (code);
+    assert (Array.isArray (items), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json(items));
+    const now = exchange.milliseconds ();
+    console.log (exchange.id, method, 'fetched', items.length, 'entries, asserting each ...');
+    for (let i = 0; i < items.length; i++) {
+        testLedgerItem (exchange, method, items[i], code, now);
+    }
+    sharedMethods.reviseSortedTimestamps (exchange, method, items);
+    //
+    method = 'fetchLedgerItem'; // todo: create separate testfile
     if (exchange.has[method]) {
-
-        const items = await exchange[method] (code)
-
-        assert (items instanceof Array)
-
-        console.log ('Fetched', items.length, 'ledger items')
-
-        const now = exchange.milliseconds ()
-
-        for (let i = 0; i < items.length; i++) {
-            testLedgerItem (exchange, method, items[i], code, now)
-            if (i > 0) {
-                assert (items[i].timestamp >= items[i - 1].timestamp)
-            }
+        if (items.length >= 1) {
+            const item = await exchange[method] (items[0].id);
+            testLedgerItem (exchange, method, item, code, now)
         }
-
-        method = 'fetchLedgerItem';
-
-        if (exchange.has[method]) {
-            const { id } = items.pop ()
-            let item = await exchange[method] (id)
-            if (Array.isArray (item)) {
-                item = item[0]
-            }
-            testLedgerItem (exchange, item, code, now)
-        }
-
-    } else {
-
-        console.log (method + '() is not supported')
     }
 }
+
+module.exports = testFetchLedger;

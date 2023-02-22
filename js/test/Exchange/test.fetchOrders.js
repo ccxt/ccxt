@@ -2,6 +2,7 @@
 
 const assert = require ('assert');
 const testOrder = require ('./test.order.js');
+const sharedMethods = require ('./test.sharedMethods.js');
 
 async function testFetchOrders (exchange, symbol) {
     const method = 'fetchOrders';
@@ -11,12 +12,13 @@ async function testFetchOrders (exchange, symbol) {
         return;
     }
     const orders = await exchange[method] (symbol);
-    assert (exchange.isArray (orders), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (orders));
-    console.log (exchange.id, method, 'fetched', orders.length, 'orders for symbol, asserting each...');
+    assert (Array.isArray (orders), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (orders));
+    console.log (exchange.id, method, 'fetched', orders.length, 'entries, asserting each ...');
     const now = exchange.milliseconds ();
     for (let i = 0; i < orders.length; i++) {
         testOrder (exchange, method, orders[i], symbol, now);
     }
+    sharedMethods.reviseSortedTimestamps (exchange, method, orders);
 }
 
 module.exports = testFetchOrders;

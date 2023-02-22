@@ -11,9 +11,8 @@ async function testFetchTrades (exchange, symbol) {
         return;
     }
     const trades = await exchange[method] (symbol);
-    assert (Array.isArray (trades), exchange.id + ' ' + symbol + ' trades must be an array ' + exchange.json(trades));
-    const length = trades.length;
-    console.log (exchange.id, symbol, 'fetched', length, 'trades');
+    assert (Array.isArray(trades), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json(trades));
+    console.log (exchange.id, symbol, 'fetched', trades.length, 'trades');
     const now = exchange.milliseconds ();
     for (let i = 0; i < trades.length; i++) {
         testTrade (exchange, method, trades[i], symbol, now);

@@ -10,7 +10,7 @@ async function testFetchTradingFee (exchange, symbol) {
         return;
     }
     const fee = await exchange[method] (symbol);
-    assert (typeof fee === 'object', exchange.id + ' ' + method + ' must return an object, returned ' + exchange.json (fee));
+    assert (typeof fee === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (fee));
     console.log (exchange.id, method, 'fetched succesfully, asserting now.');
     testTradingFee (exchange, method, symbol, fee);
 }
