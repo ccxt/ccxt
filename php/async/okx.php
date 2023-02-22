@@ -310,6 +310,7 @@ class okx extends Exchange {
                         'account/borrow-repay' => 5 / 3,
                         'account/quick-margin-borrow-repay' => 4,
                         'account/activate-option' => 4,
+                        'account/set-auto-loan' => 4,
                         'asset/transfer' => 10,
                         'asset/withdrawal' => 5 / 3,
                         'asset/purchase_redempt' => 5 / 3,
@@ -3658,7 +3659,7 @@ class okx extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $filtered = $this->filter_by($data, 'selected', true);
-            $parsed = $this->parse_deposit_addresses($filtered, array( $code ), false);
+            $parsed = $this->parse_deposit_addresses($filtered, [ $currency['code'] ], false);
             return $this->index_by($parsed, 'network');
         }) ();
     }

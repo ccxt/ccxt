@@ -323,6 +323,7 @@ class okx(Exchange):
                         'account/borrow-repay': 5 / 3,
                         'account/quick-margin-borrow-repay': 4,
                         'account/activate-option': 4,
+                        'account/set-auto-loan': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/purchase_redempt': 5 / 3,
@@ -3462,7 +3463,7 @@ class okx(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         filtered = self.filter_by(data, 'selected', True)
-        parsed = self.parse_deposit_addresses(filtered, [code], False)
+        parsed = self.parse_deposit_addresses(filtered, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
     def fetch_deposit_address(self, code, params={}):

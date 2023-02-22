@@ -4460,7 +4460,7 @@ class huobi(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        parsed = self.parse_deposit_addresses(data, [code], False)
+        parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
     def fetch_deposit_address(self, code, params={}):
@@ -4471,9 +4471,10 @@ class huobi(Exchange):
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
         self.load_markets()
+        currency = self.currency(code)
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = self.fetch_deposit_addresses_by_network(code, paramsOmited)
-        selectedNetworkCode = self.select_network_code_from_unified_networks(code, networkCode, indexedAddresses)
+        selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
         return indexedAddresses[selectedNetworkCode]
 
     def fetch_withdraw_addresses(self, code, note=None, networkCode=None, params={}):
@@ -4498,7 +4499,7 @@ class huobi(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        allAddresses = self.parse_deposit_addresses(data, [code], False)
+        allAddresses = self.parse_deposit_addresses(data, [currency['code']], False)
         addresses = []
         for i in range(0, len(allAddresses)):
             address = allAddresses[i]

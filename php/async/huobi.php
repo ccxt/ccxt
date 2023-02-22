@@ -4777,7 +4777,7 @@ class huobi extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $parsed = $this->parse_deposit_addresses($data, array( $code ), false);
+            $parsed = $this->parse_deposit_addresses($data, [ $currency['code'] ], false);
             return $this->index_by($parsed, 'network');
         }) ();
     }
@@ -4785,15 +4785,16 @@ class huobi extends Exchange {
     public function fetch_deposit_address($code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
-             * fetch the deposit address for a currency associated with this account
-             * @param {string} $code unified currency $code
+             * fetch the deposit address for a $currency associated with this account
+             * @param {string} $code unified $currency $code
              * @param {array} $params extra parameters specific to the huobi api endpoint
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
              */
             Async\await($this->load_markets());
+            $currency = $this->currency($code);
             list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
             $indexedAddresses = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsOmited));
-            $selectedNetworkCode = $this->select_network_code_from_unified_networks($code, $networkCode, $indexedAddresses);
+            $selectedNetworkCode = $this->select_network_code_from_unified_networks($currency['code'], $networkCode, $indexedAddresses);
             return $indexedAddresses[$selectedNetworkCode];
         }) ();
     }
@@ -4821,7 +4822,7 @@ class huobi extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $allAddresses = $this->parse_deposit_addresses($data, array( $code ), false);
+            $allAddresses = $this->parse_deposit_addresses($data, [ $currency['code'] ], false);
             $addresses = array();
             for ($i = 0; $i < count($allAddresses); $i++) {
                 $address = $allAddresses[$i];
