@@ -3133,7 +3133,7 @@ export default class binance extends Exchange {
         amount = this.safeString (trade, 'quantity', amount);
         const cost = this.safeString2 (trade, 'quoteQty', 'baseQty');  // inverse futures
         const marketId = this.safeString (trade, 'symbol');
-        const marketType = ('M' in trade) || ('orderListId' in trade) ? 'spot' : 'contract';
+        const marketType = ('isIsolated' in trade) || ('M' in trade) || ('orderListId' in trade) ? 'spot' : 'contract';
         market = this.safeMarket (marketId, market, undefined, marketType);
         let symbol = market['symbol'];
         let id = this.safeString2 (trade, 't', 'a');
