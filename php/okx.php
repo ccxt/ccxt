@@ -203,6 +203,7 @@ class okx extends Exchange {
                         'account/account-position-risk' => 2,
                         'account/balance' => 2,
                         'account/positions' => 2,
+                        'account/positions-history' => 2,
                         'account/bills' => 5 / 3,
                         'account/bills-archive' => 5 / 3,
                         'account/config' => 4,
@@ -742,6 +743,9 @@ class okx extends Exchange {
                 'fetchOHLCV' => array(
                     // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                     'timezone' => 'UTC', // UTC, HK
+                ),
+                'fetchPositions' => array(
+                    'method' => 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
                 ),
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice' => false,
@@ -4184,7 +4188,9 @@ class okx extends Exchange {
                 $request['instId'] = implode(',', $marketIds);
             }
         }
-        $response = $this->privateGetAccountPositions (array_merge($request, $params));
+        $fetchPositionsOptions = $this->safe_value($this->options, 'fetchPositions', array());
+        $method = $this->safe_string($fetchPositionsOptions, 'method', 'privateGetAccountPositions');
+        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -4297,6 +4303,9 @@ class okx extends Exchange {
                 if ($parsedCurrency !== null) {
                     $side = ($market['base'] === $parsedCurrency) ? 'long' : 'short';
                 }
+            }
+            if ($side === null) {
+                $side = $this->safe_string($position, 'direction');
             }
         } else {
             if ($pos !== null) {

@@ -3068,7 +3068,7 @@ class binance(Exchange):
         amount = self.safe_string(trade, 'quantity', amount)
         cost = self.safe_string_2(trade, 'quoteQty', 'baseQty')  # inverse futures
         marketId = self.safe_string(trade, 'symbol')
-        marketType = ('M' in trade) or 'spot' if ('orderListId' in trade) else 'contract'
+        marketType = ('isIsolated' in trade) or ('M' in trade) or 'spot' if ('orderListId' in trade) else 'contract'
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         id = self.safe_string_2(trade, 't', 'a')
