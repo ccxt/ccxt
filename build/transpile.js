@@ -1107,6 +1107,8 @@ class Transpiler {
                         .replace ('await asyncio.sleep', 'time.sleep')
                         .replace ('async ', '')
                         .replace ('await ', ''))
+                        .replace ('asyncio.gather\(\*', '(') //needed for test_async -> test_sync
+                        .replace ('asyncio.run', '') //needed for test_async -> test_sync
             })
 
         // lines.forEach (line => log (line))
