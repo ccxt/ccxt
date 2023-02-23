@@ -1664,7 +1664,7 @@ class Transpiler {
 
         const jsFile = './js/test/base/functions/test.number.js'
         const pyFile = './python/ccxt/test/test_decimal_to_precision.py'
-        const phpFile = './php/test/decimal_to_precision.php'
+        const phpFile = './php/test/test_decimal_to_precision.php'
 
         log.magenta ('Transpiling from', jsFile.yellow)
 
