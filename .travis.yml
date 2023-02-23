@@ -48,6 +48,7 @@ script:
       echo "Writing ${NPM_VERSION} to ${DEPLOY_CACHE}";
       echo "${NPM_VERSION}" > ${DEPLOY_CACHE};
     fi
+    date --help;
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
   fi
 after_failure:
