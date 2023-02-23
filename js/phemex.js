@@ -1399,6 +1399,67 @@ module.exports = class phemex extends Exchange {
         //         "clOrdID": "uuid-1577463487504",
         //         "execStatus": "MakerFill"
         //     }
+        // perpetual
+        //     {
+        //         "accountID": 9328670003,
+        //         "action": "New",
+        //         "actionBy": "ByUser",
+        //         "actionTimeNs": 1666858780876924611,
+        //         "addedSeq": 77751555,
+        //         "apRp": "0",
+        //         "bonusChangedAmountRv": "0",
+        //         "bpRp": "0",
+        //         "clOrdID": "c0327a7d-9064-62a9-28f6-2db9aaaa04e0",
+        //         "closedPnlRv": "0",
+        //         "closedSize": "0",
+        //         "code": 0,
+        //         "cumFeeRv": "0",
+        //         "cumQty": "0",
+        //         "cumValueRv": "0",
+        //         "curAccBalanceRv": "1508.489893982237",
+        //         "curAssignedPosBalanceRv": "24.62786650928",
+        //         "curBonusBalanceRv": "0",
+        //         "curLeverageRr": "-10",
+        //         "curPosSide": "Buy",
+        //         "curPosSize": "0.043",
+        //         "curPosTerm": 1,
+        //         "curPosValueRv": "894.0689",
+        //         "curRiskLimitRv": "1000000",
+        //         "currency": "USDT",
+        //         "cxlRejReason": 0,
+        //         "displayQty": "0.003",
+        //         "execFeeRv": "0",
+        //         "execID": "00000000-0000-0000-0000-000000000000",
+        //         "execPriceRp": "20723.7",
+        //         "execQty": "0",
+        //         "execSeq": 77751555,
+        //         "execStatus": "New",
+        //         "execValueRv": "0",
+        //         "feeRateRr": "0",
+        //         "leavesQty": "0.003",
+        //         "leavesValueRv": "63.4503",
+        //         "message": "No error",
+        //         "ordStatus": "New",
+        //         "ordType": "Market",
+        //         "orderID": "fa64c6f2-47a4-4929-aab4-b7fa9bbc4323",
+        //         "orderQty": "0.003",
+        //         "pegOffsetValueRp": "0",
+        //         "posSide": "Long",
+        //         "priceRp": "21150.1",
+        //         "relatedPosTerm": 1,
+        //         "relatedReqNum": 11,
+        //         "side": "Buy",
+        //         "slTrigger": "ByMarkPrice",
+        //         "stopLossRp": "0",
+        //         "stopPxRp": "0",
+        //         "symbol": "BTCUSDT",
+        //         "takeProfitRp": "0",
+        //         "timeInForce": "ImmediateOrCancel",
+        //         "tpTrigger": "ByLastPrice",
+        //         "tradeType": "Amend",
+        //         "transactTimeNs": 1666858780881545305,
+        //         "userID": 932867
+        //     }
         //
         let priceString = undefined;
         let amountString = undefined;
@@ -1436,13 +1497,13 @@ module.exports = class phemex extends Exchange {
             if (execStatus === 'MakerFill') {
                 takerOrMaker = 'maker';
             }
-            priceString = this.fromEp (this.safeString (trade, 'execPriceEp'), market);
+            priceString = this.safeString (trade, 'execPriceRp', this.fromEp (this.safeString (trade, 'execPriceEp'), market));
             amountString = this.fromEv (this.safeString (trade, 'execBaseQtyEv'), market);
             amountString = this.safeString (trade, 'execQty', amountString);
-            costString = this.fromEv (this.safeString2 (trade, 'execQuoteQtyEv', 'execValueEv'), market);
-            const feeCostString = this.fromEv (this.safeString (trade, 'execFeeEv'), market);
+            costString = this.safeString (trade, 'execValueRv', this.fromEv (this.safeString2 (trade, 'execQuoteQtyEv', 'execValueEv'), market));
+            const feeCostString = this.safeString (trade, 'execFeeRv', this.fromEv (this.safeString (trade, 'execFeeEv'), market));
             if (feeCostString !== undefined) {
-                const feeRateString = this.fromEr (this.safeString (trade, 'feeRateEr'), market);
+                const feeRateString = this.safeString (trade, 'feeRateRr', this.fromEr (this.safeString (trade, 'feeRateEr'), market));
                 let feeCurrencyCode = undefined;
                 if (market['spot']) {
                     feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
