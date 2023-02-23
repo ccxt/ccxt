@@ -7121,7 +7121,9 @@ module.exports = class bybit extends Exchange {
                     const maintenanceMarginPriceDifference = Precise.stringAbs (Precise.stringSub (liquidationPrice, bustPrice));
                     maintenanceMarginString = Precise.stringMul (maintenanceMarginPriceDifference, size);
                     // Initial Margin = Contracts x Entry Price / Leverage
-                    initialMarginString = Precise.stringDiv (Precise.stringMul (size, entryPrice), leverage);
+                    if (entryPrice !== undefined) {
+                        initialMarginString = Precise.stringDiv (Precise.stringMul (size, entryPrice), leverage);
+                    }
                 } else {
                     // Contracts * (1 / Entry price - 1 / Bust price) = Collateral
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
@@ -7131,7 +7133,9 @@ module.exports = class bybit extends Exchange {
                     const multiply = Precise.stringMul (bustPrice, liquidationPrice);
                     maintenanceMarginString = Precise.stringDiv (Precise.stringMul (size, difference), multiply);
                     // Initial Margin = Leverage x Contracts / EntryPrice
-                    initialMarginString = Precise.stringDiv (size, Precise.stringMul (entryPrice, leverage));
+                    if (entryPrice !== undefined) {
+                        initialMarginString = Precise.stringDiv (size, Precise.stringMul (entryPrice, leverage));
+                    }
                 }
             }
         }
