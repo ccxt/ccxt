@@ -1208,7 +1208,7 @@ class bitfinex2 extends Exchange {
         $takerOrMaker = null;
         $type = null;
         $fee = null;
-        $symbol = null;
+        $symbol = $this->safe_symbol(null, $market);
         $timestampIndex = $isPrivate ? 2 : 1;
         $timestamp = $this->safe_integer($trade, $timestampIndex);
         if ($isPrivate) {

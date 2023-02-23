@@ -1253,7 +1253,7 @@ class probit(Exchange):
             request['currency_id'] = ','.join(codes)
         response = self.privateGetDepositAddress(self.extend(request, params))
         data = self.safe_value(response, 'data', [])
-        return self.parse_deposit_addresses(data)
+        return self.parse_deposit_addresses(data, codes)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         """

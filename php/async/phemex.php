@@ -134,6 +134,7 @@ class phemex extends Exchange {
                         'nomics/trades', // ?market=<symbol>&since=<since>
                         'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
                         'md/v2/kline/list', // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline', // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                         'md/v2/kline/last', // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                     ),
                 ),
@@ -1061,6 +1062,7 @@ class phemex extends Exchange {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querykline
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
@@ -1068,8 +1070,10 @@ class phemex extends Exchange {
              * @param {array} $params extra parameters specific to the phemex api endpoint
              * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
              */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
             $request = array(
-                // 'symbol' => $market['id'],
+                'symbol' => $market['id'],
                 'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 // 'from' => 1588830682, // seconds
                 // 'to' => $this->seconds(),
@@ -1094,10 +1098,7 @@ class phemex extends Exchange {
                 }
                 $request['limit'] = $limit;
             }
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-            $method = 'publicGetMdKline';
+            $method = 'publicGetMdV2Kline';
             if ($market['linear'] || $market['settle'] === 'USDT') {
                 $method = 'publicGetMdV2KlineLast';
             }

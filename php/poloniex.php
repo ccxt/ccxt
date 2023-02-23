@@ -81,8 +81,12 @@ class poloniex extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
-                'api' => 'https://api.poloniex.com',
-                'test' => 'https://sand-spot-api-gateway.poloniex.com',
+                'api' => array(
+                    'rest' => 'https://api.poloniex.com',
+                ),
+                'test' => array(
+                    'rest' => 'https://sand-spot-api-gateway.poloniex.com',
+                ),
                 'www' => 'https://www.poloniex.com',
                 'doc' => 'https://docs.poloniex.com',
                 'fees' => 'https://poloniex.com/fees',
@@ -1973,7 +1977,7 @@ class poloniex extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'];
+        $url = $this->urls['api']['rest'];
         $query = $this->omit($params, $this->extract_params($path));
         $implodedPath = $this->implode_params($path, $params);
         if ($api === 'public') {

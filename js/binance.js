@@ -3164,7 +3164,7 @@ module.exports = class binance extends Exchange {
         amount = this.safeString (trade, 'quantity', amount);
         const cost = this.safeString2 (trade, 'quoteQty', 'baseQty');  // inverse futures
         const marketId = this.safeString (trade, 'symbol');
-        const marketType = ('M' in trade) || ('orderListId' in trade) ? 'spot' : 'contract';
+        const marketType = ('isIsolated' in trade) || ('M' in trade) || ('orderListId' in trade) ? 'spot' : 'contract';
         market = this.safeMarket (marketId, market, undefined, marketType);
         let symbol = market['symbol'];
         let id = this.safeString2 (trade, 't', 'a');
@@ -4170,7 +4170,7 @@ module.exports = class binance extends Exchange {
             type = this.safeString (query, 'type', defaultType);
         }
         let subType = undefined;
-        [ subType, query ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
+        [ subType, query ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, query);
         const requestParams = this.omit (query, 'type');
         let method = 'privateGetOpenOrders';
         if (type === 'option') {
@@ -6445,7 +6445,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params, 'linear');
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, query, 'linear');
         let method = undefined;
         if (this.isLinear (type, subType)) {
             method = 'fapiPrivateGetLeverageBracket';
