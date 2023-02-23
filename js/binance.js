@@ -4401,17 +4401,15 @@ module.exports = class binance extends Exchange {
         let type = undefined;
         let method = undefined;
         let marginMode = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         if (type === 'option') {
-            if (symbol !== undefined) {
-                market = this.market (symbol);
-                request['symbol'] = market['id'];
-            }
             method = 'eapiPrivateGetUserTrades';
         } else {
             this.checkRequiredSymbol ('fetchMyTrades', symbol);
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
             if (type === 'spot' || type === 'margin') {
                 method = 'privateGetMyTrades';
