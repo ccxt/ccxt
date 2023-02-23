@@ -894,7 +894,7 @@ module.exports = class binance extends Exchange {
                 'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
+                'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
@@ -1425,6 +1425,66 @@ module.exports = class binance extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
+    createExpiredOptionMarket (symbol) {
+        // support expired option contracts
+        const settle = 'USDT';
+        const optionParts = symbol.split ('-');
+        const symbolBase = symbol.split ('/');
+        let base = undefined;
+        if (symbol.indexOf ('/') > -1) {
+            base = this.safeString (symbolBase, 0);
+        } else {
+            base = this.safeString (optionParts, 0);
+        }
+        const expiry = this.safeString (optionParts, 1);
+        const strike = this.safeString (optionParts, 2);
+        const optionType = this.safeString (optionParts, 3);
+        return {
+            'id': base + '-' + expiry + '-' + strike + '-' + optionType,
+            'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': settle,
+            'baseId': base,
+            'quoteId': settle,
+            'active': undefined,
+            'type': 'option',
+            'linear': undefined,
+            'inverse': undefined,
+            'spot': false,
+            'swap': false,
+            'future': false,
+            'option': true,
+            'margin': false,
+            'contract': true,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'optionType': (optionType === 'C') ? 'call' : 'put',
+            'strike': strike,
+            'settle': settle,
+            'settleId': settle,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': undefined,
+        };
+    }
+
     market (symbol) {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
@@ -1475,6 +1535,8 @@ module.exports = class binance extends Exchange {
                 if (futuresSymbol in this.markets) {
                     return this.markets[futuresSymbol];
                 }
+            } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) { // both exchange-id and unified symbols are supported this way regardless of the  defaultType
+                return this.createExpiredOptionMarket (symbol);
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
@@ -2936,13 +2998,30 @@ module.exports = class binance extends Exchange {
         //         ]
         //     ]
         //
+        // options
+        //
+        //     {
+        //         "open": "32.2",
+        //         "high": "32.2",
+        //         "low": "32.2",
+        //         "close": "32.2",
+        //         "volume": "0",
+        //         "interval": "5m",
+        //         "tradeCount": 0,
+        //         "takerVolume": "0",
+        //         "takerAmount": "0",
+        //         "amount": "0",
+        //         "openTime": 1677096900000,
+        //         "closeTime": 1677097200000
+        //     }
+        //
         return [
-            this.safeInteger (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
+            this.safeInteger2 (ohlcv, 0, 'closeTime'),
+            this.safeNumber2 (ohlcv, 1, 'open'),
+            this.safeNumber2 (ohlcv, 2, 'high'),
+            this.safeNumber2 (ohlcv, 3, 'low'),
+            this.safeNumber2 (ohlcv, 4, 'close'),
+            this.safeNumber2 (ohlcv, 5, 'volume'),
         ];
     }
 
@@ -2999,7 +3078,9 @@ module.exports = class binance extends Exchange {
             request['endTime'] = until;
         }
         let method = 'publicGetKlines';
-        if (price === 'mark') {
+        if (market['option']) {
+            method = 'eapiPublicGetKlines';
+        } else if (price === 'mark') {
             if (market['inverse']) {
                 method = 'dapiPublicGetMarkPriceKlines';
             } else {
@@ -3022,6 +3103,25 @@ module.exports = class binance extends Exchange {
         //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
         //         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
+        //     ]
+        //
+        // options (eapi)
+        //
+        //     [
+        //         {
+        //             "open": "32.2",
+        //             "high": "32.2",
+        //             "low": "32.2",
+        //             "close": "32.2",
+        //             "volume": "0",
+        //             "interval": "5m",
+        //             "tradeCount": 0,
+        //             "takerVolume": "0",
+        //             "takerAmount": "0",
+        //             "amount": "0",
+        //             "openTime": 1677096900000,
+        //             "closeTime": 1677097200000
+        //         }
         //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -3166,7 +3266,7 @@ module.exports = class binance extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         const marketType = ('isIsolated' in trade) || ('M' in trade) || ('orderListId' in trade) ? 'spot' : 'contract';
         market = this.safeMarket (marketId, market, undefined, marketType);
-        let symbol = market['symbol'];
+        const symbol = market['symbol'];
         let id = this.safeString2 (trade, 't', 'a');
         id = this.safeString2 (trade, 'tradeId', 'id', id);
         let side = undefined;
@@ -3197,11 +3297,6 @@ module.exports = class binance extends Exchange {
         }
         if (('optionSide' in trade) || market['option']) {
             const settle = this.safeCurrencyCode (this.safeString (trade, 'quoteAsset', 'USDT'));
-            if (symbol === undefined) {
-                const optionParts = marketId.split ('-');
-                const optionType = this.safeString (optionParts, 3);
-                symbol = this.safeString (optionParts, 0) + '/' + settle + ':' + settle + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + optionType;
-            }
             takerOrMaker = this.safeStringLower (trade, 'liquidity');
             if ('fee' in trade) {
                 fee = {
@@ -4341,31 +4436,35 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const type = this.safeString (params, 'type', market['type']);
-        params = this.omit (params, 'type');
+        const request = {};
+        let market = undefined;
+        let type = undefined;
         let method = undefined;
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-        if (type === 'spot' || type === 'margin') {
-            method = 'privateGetMyTrades';
-            if ((type === 'margin') || (marginMode !== undefined)) {
-                method = 'sapiGetMarginMyTrades';
-                if (marginMode === 'isolated') {
-                    request['isIsolated'] = true;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        if (type === 'option') {
+            method = 'eapiPrivateGetUserTrades';
+        } else {
+            this.checkRequiredSymbol ('fetchMyTrades', symbol);
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+            if (type === 'spot' || type === 'margin') {
+                method = 'privateGetMyTrades';
+                if ((type === 'margin') || (marginMode !== undefined)) {
+                    method = 'sapiGetMarginMyTrades';
+                    if (marginMode === 'isolated') {
+                        request['isIsolated'] = true;
+                    }
                 }
+            } else if (market['linear']) {
+                method = 'fapiPrivateGetUserTrades';
+            } else if (market['inverse']) {
+                method = 'dapiPrivateGetUserTrades';
             }
-        } else if (market['linear']) {
-            method = 'fapiPrivateGetUserTrades';
-        } else if (market['inverse']) {
-            method = 'dapiPrivateGetUserTrades';
         }
         let endTime = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
@@ -4389,7 +4488,7 @@ module.exports = class binance extends Exchange {
             params = this.omit (params, [ 'endTime', 'until' ]);
         }
         if (limit !== undefined) {
-            if (market['contract']) {
+            if ((type === 'option') || market['contract']) {
                 limit = Math.min (limit, 1000); // above 1000, returns error
             }
             request['limit'] = limit;
@@ -4433,6 +4532,30 @@ module.exports = class binance extends Exchange {
         //             "side": "SELL",
         //             "symbol": "BTCUSDT",
         //             "time": 1569514978020
+        //         }
+        //     ]
+        //
+        // options (eapi)
+        //
+        //     [
+        //         {
+        //             "id": 1125899906844226012,
+        //             "tradeId": 73,
+        //             "orderId": 4638761100843040768,
+        //             "symbol": "ETH-230211-1500-C",
+        //             "price": "18.70000000",
+        //             "quantity": "-0.57000000",
+        //             "fee": "0.17305890",
+        //             "realizedProfit": "-3.53400000",
+        //             "side": "SELL",
+        //             "type": "LIMIT",
+        //             "volatility": "0.30000000",
+        //             "liquidity": "MAKER",
+        //             "time": 1676085216845,
+        //             "priceScale": 1,
+        //             "quantityScale": 2,
+        //             "optionSide": "CALL",
+        //             "quoteAsset": "USDT"
         //         }
         //     ]
         //
