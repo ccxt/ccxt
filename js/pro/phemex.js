@@ -1444,14 +1444,14 @@ module.exports = class phemex extends phemexRest {
         const method = this.safeString (message, 'method', '');
         if (('market24h' in message) || ('spot_market24h' in message) || (method.indexOf ('perp_market24h_pack_p') >= 0)) {
             return this.handleTicker (client, message);
-        } else if ('trades' in message || 'trades_p' in message) {
+        } else if (('trades' in message) || ('trades_p' in message)) {
             return this.handleTrades (client, message);
-        } else if ('kline' in message || 'kline_p' in message) {
+        } else if (('kline' in message) || ('kline_p' in message)) {
             return this.handleOHLCV (client, message);
-        } else if ('book' in message || 'orderbook_p' in message) {
+        } else if (('book' in message) || ('orderbook_p' in message)) {
             return this.handleOrderBook (client, message);
         }
-        if ('orders' in message || 'orders_p' in message) {
+        if (('orders' in message) || ('orders_p' in message)) {
             const orders = this.safeValue2 (message, 'orders', 'orders_p', {});
             this.handleOrders (client, orders);
         }
