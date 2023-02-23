@@ -10,8 +10,8 @@ async function testFetchAccounts(exchange) {
         return;
     }
     const accounts = await exchange[method] ();
-    assert (typeof account === 'object', exchange.id + ' ' + method + ' ' + code + ' must return an object. ' + exchange.json(borrowInterest));
-    const accountValues = exchange.values (accounts);
+    assert (typeof accounts === 'object', exchange.id + ' ' + method + ' ' + code + ' must return an object. ' + exchange.json(borrowInterest));
+    const accountValues = Object.values (accounts);
     console.log (exchange.id, method, 'fetched', accountValues.length, 'entries, asserting each ...');
     for (let i = 0; i < accountValues.length; i++) {
         testAccount (exchange, method, accounts[i]);

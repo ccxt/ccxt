@@ -71,7 +71,7 @@ testFiles = {}
 for file_path in glob.glob(current_dir + '/test_*.py'):
     name = os.path.basename(file_path)[:-3]
     if (name != 'test_async') and (name != 'test_sync'):
-        testFiles = importlib.import_module(name)
+        testFiles[name] = importlib.import_module(name)
 
 # print a colored string
 def dump(*args):
@@ -99,6 +99,11 @@ sys.excepthook = handle_all_unhandled_exceptions
 # ------------------------------------------------------------------------------
 
 # non-transpiled commons
+import re
+def methodNamerInTest(methodName):
+    snake_cased = re.sub(r'(?<!^)(?=[A-Z])', '_', methodName).lower()
+    snake_cased = snake_cased.replace('o_h_l_c_v', 'ohlcv')
+    return 'test_' + snake_cased
 targetDir = current_dir + '/../../'
 envVars = {}
 class emptyClass():
@@ -119,7 +124,7 @@ def exception_message (exc):
     return '[' + type(exc).__name__ + '] ' + str(exc)[0:200]
 
 async def call_method(methodName, exchange, args):
-    return await getattr(testFiles,methodName)(exchange, *args)
+    return await getattr(testFiles[methodName], methodName)(exchange, *args)
 
 def add_proxy_agent (exchange, settings):
     pass
@@ -187,20 +192,21 @@ class testMainClass(emptyClass):
         add_proxy_agent(exchange, exchangeSettings)
 
     async def test_method(self, methodName, exchange, args):
+        methodNameInTest = methodNamerInTest(methodName)
         skipMessage = None
         if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]):
             skipMessage = 'not supported'
-        elif not (methodName in testFiles):
+        elif not (methodNameInTest in testFiles):
             skipMessage = 'test not available'
         if skipMessage:
-            dump('[Skipping]', exchange.id, methodName, ' - ' + skipMessage)
+            dump('[Skipping]', exchange.id, methodNameInTest, ' - ' + skipMessage)
             return
         argsStringified = '(' + ','.join(args) + ')'
-        dump('[Testing]', exchange.id, methodName, argsStringified)
+        dump('[Testing]', exchange.id, methodNameInTest, argsStringified)
         try:
-            return await call_method(methodName, exchange, args)
+            return await call_method(methodNameInTest, exchange, args)
         except Exception as e:
-            dump(exception_message(e), ' | Exception from: ', exchange.id, methodName, argsStringified)
+            dump(exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
             raise e
 
     async def test_safe(self, methodName, exchange, args):

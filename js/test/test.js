@@ -46,7 +46,7 @@ const exchange = new (ccxt)[exchangeId] ({
 });
 
 //-----------------------------------------------------------------------------
-
+const methodNamerInTest = (str) => str;
 const testFiles = {};
 const properties = Object.keys (exchange.has);
 properties.push ('loadMarkets');
@@ -169,22 +169,23 @@ module.exports = class testMainClass extends emptyClass {
     }
 
     async testMethod (methodName, exchange, args) {
+        const methodNameInTest = methodNamerInTest (methodName);
         let skipMessage = undefined;
         if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName])) {
             skipMessage = 'not supported';
-        } else if (!(methodName in testFiles)) {
+        } else if (!(methodNameInTest in testFiles)) {
             skipMessage = 'test not available';
         }
         if (skipMessage) {
-            dump ('[Skipping]', exchange.id, methodName, ' - ' + skipMessage);
+            dump ('[Skipping]', exchange.id, methodNameInTest, ' - ' + skipMessage);
             return;
         }
         const argsStringified = '(' + args.join (',') + ')';
-        dump ('[Testing]', exchange.id, methodName, argsStringified);
+        dump ('[Testing]', exchange.id, methodNameInTest, argsStringified);
         try {
-            return await call_method (methodName, exchange, args);
+            return await call_method (methodNameInTest, exchange, args);
         } catch (e) {
-            dump (exception_message(e), ' | Exception from: ', exchange.id, methodName, argsStringified);
+            dump (exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
             throw e;
         }
     }

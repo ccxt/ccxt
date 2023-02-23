@@ -29,7 +29,7 @@ async function testFetchPositions (exchange, symbol) {
     for (let i = 0; i < positionsForSymbol.length; i++) {
         testPosition (exchange, method, positionsForSymbol[i], symbol, now);
     }
-    testSharedMethods.reviseSortedTimestamps (exchange, method, symbol, positionsForSymbolLength);
+    testSharedMethods.reviseSortedTimestamps (exchange, method, symbol, positionsForSymbol);
 }
 
 module.exports = testFetchPositions;

@@ -2,6 +2,7 @@
 
 const assert = require ('assert');
 const testTrade = require ('./test.trade.js');
+const testSharedMethods = require ('./test.sharedMethods.js');
 
 async function testFetchTrades (exchange, symbol) {
     const method = 'fetchTrades';
@@ -16,12 +17,8 @@ async function testFetchTrades (exchange, symbol) {
     const now = exchange.milliseconds ();
     for (let i = 0; i < trades.length; i++) {
         testTrade (exchange, method, trades[i], symbol, now);
-        if (i > 0) {
-            if (trades[i].timestamp && trades[i - 1].timestamp) {
-                assert (trades[i].timestamp >= trades[i - 1].timestamp, exchange.id + ' ' + symbol + ' trade[' + i + '] timestamp is less than the previous trade timestamp ' + exchange.iso8601(trades[i].timestamp) + ' ' + exchange.iso8601(trades[i - 1].timestamp));
-            }
-        }
     }
+    testSharedMethods.reviseSortedTimestamps (exchange, method, symbol, trades);
 }
 
 module.exports = testFetchTrades;

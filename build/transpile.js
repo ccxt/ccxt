@@ -1916,7 +1916,8 @@ class Transpiler {
             };
             for (const subTestName of requiredSubTests) {
                 const importName = 'test_' + unCamelCase(subTestName)
-                pythonHeader.push (`import ${importName}  # noqa E402`)
+                const importPre = subTestName === 'sharedMethods'? '' : `from ${importName} `;
+                pythonHeader.push (`${importPre}import ${importName}  # noqa E402`)
                 const capitalizedName = 'test' + capitalize(subTestName);
                 python3Body = subTestNameUnCamelCase(python3Body, capitalizedName)
                 phpBody = subTestNameUnCamelCase(phpBody, subTestName)
@@ -1932,7 +1933,7 @@ class Transpiler {
                 phpBody = phpBody.replace (regex, unCamelCase(funcName));
             });
         }
-
+        python3Body = python3Body.replace ('exchange[method]', 'getattr(exchange,method)');
         if (pythonHeader.length > 0) {
             pythonHeader.unshift ('')
             pythonHeader.push ('', '')

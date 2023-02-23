@@ -25,7 +25,7 @@ function reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFo
             }
             // because of other langs, this is needed for arrays
             try {
-                assert (areSameTypes (entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
+                assert (areSameTypes (exchange, entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
             } catch (ex) {
                 assert (false, i.toString () + ' index is missing from structure' + logText);
             }
@@ -40,7 +40,7 @@ function reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFo
                 // if it was in needed keys, then it should have value.
                 assert (entry[key] !== undefined, key + ' key is undefined, but is expected to be present' + logText);
             }
-            assert (areSameTypes (entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
+            assert (areSameTypes (exchange, entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
         }
     }
 }
@@ -52,7 +52,7 @@ function areSameTypes (exchange, entry, key, format) {
     const same_string = (typeof entryKeyVal === 'string') && (typeof formatKeyVal === 'string');
     const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
     const same_boolean =  ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
-    const same_array = exchange.isArray(entryKeyVal) && exchange.isArray(formatKeyVal)
+    const same_array = Array.isArray(entryKeyVal) && Array.isArray(formatKeyVal)
     const same_object = (typeof entryKeyVal === 'object') && (typeof formatKeyVal === 'object');
     const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
     return result;
@@ -174,13 +174,13 @@ function reviseFeesObject (exchange, method, entry) {
     }
 }
 
-function reviseSortedTimestamps (exchange, method, codeOrSymbol, items, ascending = true) {
+function reviseSortedTimestamps (exchange, method, codeOrSymbol, items, ascending = false) {
     for (let i = 0; i < items.length; i++) {
         if (i > 0) {
             const ascendingOrDescending = ascending ? 'ascending' : 'descending';
             const firstIndex = ascending ? i - 1 : i;
             const secondIndex = ascending ? i : i - 1;
-            assert (items[firstIndex].timestamp >= items[secondIndex].timestamp, exchange.id + ' ' + method + ' ' + codeOrSymbol + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp. ' + exchange.json(items));
+            assert (items[firstIndex]['timestamp'] >= items[secondIndex]['timestamp'], exchange.id + ' ' + method + ' ' + codeOrSymbol + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp. ' + exchange.json(items));
         }
     }
 }

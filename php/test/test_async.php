@@ -179,22 +179,23 @@ class testMainClass extends emptyClass {
 
     public function test_method($methodName, $exchange, $args) {
         return Async\async(function () use ($methodName, $exchange, $args) {
+            $methodNameInTest = methodNamerInTest ($methodName);
             $skipMessage = null;
             if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName])) {
                 $skipMessage = 'not supported';
-            } elseif (!(is_array(testFiles) && array_key_exists($methodName, testFiles))) {
+            } elseif (!(is_array(testFiles) && array_key_exists($methodNameInTest, testFiles))) {
                 $skipMessage = 'test not available';
             }
             if ($skipMessage) {
-                dump ('[Skipping]', $exchange->id, $methodName, ' - ' . $skipMessage);
+                dump ('[Skipping]', $exchange->id, $methodNameInTest, ' - ' . $skipMessage);
                 return;
             }
             $argsStringified = '(' . implode(',', $args) . ')';
-            dump ('[Testing]', $exchange->id, $methodName, $argsStringified);
+            dump ('[Testing]', $exchange->id, $methodNameInTest, $argsStringified);
             try {
-                return Async\await(call_method ($methodName, $exchange, $args));
+                return Async\await(call_method ($methodNameInTest, $exchange, $args));
             } catch (Exception $e) {
-                dump (exception_message($e), ' | Exception from => ', $exchange->id, $methodName, $argsStringified);
+                dump (exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
                 throw $e;
             }
         }) ();

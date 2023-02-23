@@ -1,6 +1,5 @@
 'use strict'
 
-const assert = require ('assert');
 const testStatus = require ('./test.status.js');
 
 async function testFetchStatus (exchange) {
