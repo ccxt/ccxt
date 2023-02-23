@@ -1425,6 +1425,66 @@ module.exports = class binance extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
+    createExpiredOptionMarket (symbol) {
+        // support expired option contracts
+        const settle = 'USDT';
+        const optionParts = symbol.split ('-');
+        const symbolBase = symbol.split ('/');
+        let base = undefined;
+        if (symbol.indexOf ('/') > -1) {
+            base = this.safeString (symbolBase, 0);
+        } else {
+            base = this.safeString (optionParts, 0);
+        }
+        const expiry = this.safeString (optionParts, 1);
+        const strike = this.safeString (optionParts, 2);
+        const optionType = this.safeString (optionParts, 3);
+        return {
+            'id': base + '-' + expiry + '-' + strike + '-' + optionType,
+            'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': settle,
+            'baseId': base,
+            'quoteId': settle,
+            'active': undefined,
+            'type': 'option',
+            'linear': undefined,
+            'inverse': undefined,
+            'spot': false,
+            'swap': false,
+            'future': false,
+            'option': true,
+            'margin': false,
+            'contract': true,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'optionType': (optionType === 'C') ? 'call' : 'put',
+            'strike': strike,
+            'settle': settle,
+            'settleId': settle,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': undefined,
+        };
+    }
+
     market (symbol) {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
@@ -1475,67 +1535,8 @@ module.exports = class binance extends Exchange {
                 if (futuresSymbol in this.markets) {
                     return this.markets[futuresSymbol];
                 }
-            } else if (defaultType === 'option') {
-                // support expired option contracts
-                const settle = 'USDT';
-                if (!(symbol in this.markets)) {
-                    const optionParts = symbol.split ('-');
-                    const symbolBase = symbol.split ('/');
-                    let base = undefined;
-                    if (symbol.indexOf ('/') > -1) {
-                        base = this.safeString (symbolBase, 0);
-                    } else {
-                        base = this.safeString (optionParts, 0);
-                    }
-                    const expiry = this.safeString (optionParts, 1);
-                    const strike = this.safeString (optionParts, 2);
-                    const optionType = this.safeString (optionParts, 3);
-                    const result = {
-                        'id': base + '-' + expiry + '-' + strike + '-' + optionType,
-                        'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
-                        'base': base,
-                        'quote': settle,
-                        'baseId': base,
-                        'quoteId': settle,
-                        'active': undefined,
-                        'type': 'option',
-                        'linear': undefined,
-                        'inverse': undefined,
-                        'spot': false,
-                        'swap': false,
-                        'future': false,
-                        'option': true,
-                        'margin': false,
-                        'contract': true,
-                        'contractSize': undefined,
-                        'expiry': undefined,
-                        'expiryDatetime': undefined,
-                        'optionType': (optionType === 'C') ? 'call' : 'put',
-                        'strike': strike,
-                        'settle': settle,
-                        'settleId': settle,
-                        'precision': {
-                            'amount': undefined,
-                            'price': undefined,
-                        },
-                        'limits': {
-                            'amount': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                            'price': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                            'cost': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                        },
-                        'info': undefined,
-                    };
-                    return result;
-                }
+            } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) { // both exchange-id and unified symbols are supported this way regardless of the  defaultType
+                return this.createExpiredOptionMarket (symbol);
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
