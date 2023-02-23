@@ -63,9 +63,8 @@ function testMarket (exchange, method, market) {
     testSharedMethods.Gt (exchange, method, market, 'expiry', '0');
     testSharedMethods.Gt (exchange, method, market, 'strike', '0');
     testSharedMethods.reviseAgainstArray (exchange, method, market, 'optionType', [ 'put', 'call' ]);
-    // todo: handle str/num types later
-    // assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'));
-    // assert ((market['maker'] === undefined) || (typeof market['maker'] === 'number'));
+    testSharedMethods.Gt (exchange, method, market, 'taker', '-100');
+    testSharedMethods.Gt (exchange, method, market, 'maker', '-100');
     if (market['contract']) {
         assert (market['linear'] !== market['inverse'], 'market linear and inverse must not be the same' + logText);
     } else {

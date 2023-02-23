@@ -29,7 +29,6 @@ async function testFetchPositions (exchange, symbol) {
     for (let i = 0; i < positionsForSymbol.length; i++) {
         testPosition (exchange, method, positionsForSymbol[i], symbol, now);
     }
-    const testSharedMethods = require ('./test.sharedMethods.js');
     testSharedMethods.reviseSortedTimestamps (exchange, method, symbol, positionsForSymbolLength);
 }
 

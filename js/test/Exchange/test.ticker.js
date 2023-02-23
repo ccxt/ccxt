@@ -35,26 +35,22 @@ function testTicker (exchange, method, entry, symbol) {
     assert (!('first' in entry), '`first` field leftover' + logText);
     const lastString = exchange.safeString (entry, 'last');
     const closeString = exchange.safeString (entry, 'close');
-    assert ((closeString === undefined && lastString === undefined) || Precise.stringEq (lastString, closeString), '`last` != `close`' + logText);
+    assert (((closeString === undefined) && (lastString === undefined)) || Precise.stringEq (lastString, closeString), '`last` != `close`' + logText);
     //
     // const { high, low, vwap, baseVolume, quoteVolume } = entry
     // this assert breaks QuadrigaCX sometimes... still investigating
     // if (vwap) {
     //     assert (vwap >= low && vwap <= high)
     // }
-    // if (baseVolume && quoteVolume && high && low) {
-    //     assert (quoteVolume >= baseVolume * low) // this assertion breaks therock
-    //     assert (quoteVolume <= baseVolume * high)
-    // }
-    // if (baseVolume && vwap) {
-    //     assert (quoteVolume)
-    // }
-    // if (quoteVolume && vwap) {
-    //     assert (baseVolume)
-    // }
-    const skippedExchanges = [];
-    if (exchange.inArray (exchange.id, skippedExchanges)) { 
-        return;
+    if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined)) {
+        assert (quoteVolume >= baseVolume * low, 'quoteVolume >= baseVolume * low' + logText);
+        assert (quoteVolume <= baseVolume * high, 'quoteVolume <= baseVolume * high' + logText);
+    }
+    if (baseVolume && vwap) {
+        assert (quoteVolume, 'baseVolume & vwap is defined, but quoteVolume is not' + logText);
+    }
+    if (quoteVolume && vwap) {
+        assert (baseVolume, 'quoteVolume & vwap is defined, but baseVolume is not' + logText);
     }
     if (entry['bid'] && entry['ask']) {
         const symbolName = entry['symbol'] ? (entry['symbol'] + ' ') : '';

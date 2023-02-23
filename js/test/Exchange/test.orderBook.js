@@ -48,11 +48,6 @@ function testOrderBook (exchange, method, entry, symbol) {
         testSharedMethods.Gt (exchange, method, asks[i], '0', '0');
         testSharedMethods.Gt (exchange, method, asks[i], '1', '0');
     }
-    // others
-    const skippedExchanges = [];
-    if (exchange.inArray (exchange.id, skippedExchanges)) {
-        return;
-    }
     if (bidsLength && asksLength) {
         // check bid-ask spread
         assert (bids[0][0] < asks[0][0], 'bids[0][0] (' + bids[0][0] + ') should be < than asks[0][0] (' + asks[0][0] + ')' + logText);
