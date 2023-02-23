@@ -32,29 +32,49 @@ function testTicker (exchange, method, entry, symbol) {
     testSharedMethods.reviseCommonTimestamp (exchange, method, entry);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
+    testSharedMethods.Gt (exchange, method, entry, 'open', '0');
+    testSharedMethods.Gt (exchange, method, entry, 'high', '0');
+    testSharedMethods.Gt (exchange, method, entry, 'low', '0');
+    testSharedMethods.Gt (exchange, method, entry, 'close', '0');
+    testSharedMethods.Gt (exchange, method, entry, 'ask', '0');
+    testSharedMethods.Ge (exchange, method, entry, 'askVolume', '0');
+    testSharedMethods.Gt (exchange, method, entry, 'bid', '0');
+    testSharedMethods.Ge (exchange, method, entry, 'bidVolume', '0');
+    testSharedMethods.Gt (exchange, method, entry, 'vwap', '0');
+    testSharedMethods.Gt (exchange, method, entry, 'average', '0');
+    testSharedMethods.Ge (exchange, method, entry, 'baseVolume', '0');
+    testSharedMethods.Ge (exchange, method, entry, 'quoteVolume', '0');
     assert (!('first' in entry), '`first` field leftover' + logText);
     const lastString = exchange.safeString (entry, 'last');
     const closeString = exchange.safeString (entry, 'close');
     assert (((closeString === undefined) && (lastString === undefined)) || Precise.stringEq (lastString, closeString), '`last` != `close`' + logText);
-    //
-    // const { high, low, vwap, baseVolume, quoteVolume } = entry
-    // this assert breaks QuadrigaCX sometimes... still investigating
-    // if (vwap) {
-    //     assert (vwap >= low && vwap <= high)
-    // }
+    const baseVolume = exchange.safeString (entry, 'baseVolume');
+    const quoteVolume = exchange.safeString (entry, 'quoteVolume');
+    const high = exchange.safeString (entry, 'high');
+    const low = exchange.safeString (entry, 'low');
     if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined)) {
-        assert (quoteVolume >= baseVolume * low, 'quoteVolume >= baseVolume * low' + logText);
-        assert (quoteVolume <= baseVolume * high, 'quoteVolume <= baseVolume * high' + logText);
+        const mulBaseVolLow = Precise.stringMul (baseVolume, low);
+        assert (Precise.Ge (quoteVolume, mulBaseVolLow), 'quoteVolume >= baseVolume * low' + logText);
+        const mulBaseVolHigh = Precise.stringMul (baseVolume, high);
+        assert (Precise.Le (quoteVolume, mulBaseVolHigh), 'quoteVolume <= baseVolume * high' + logText);
     }
-    if (baseVolume && vwap) {
-        assert (quoteVolume, 'baseVolume & vwap is defined, but quoteVolume is not' + logText);
+    const vwap = exchange.safeString (entry, 'vwap');
+    if (vwap !== undefined) {
+        assert (high !== undefined, 'vwap is defined, but high is not' + logText);
+        assert (low !== undefined, 'vwap is defined, but low is not' + logText);
+        assert (Precise.stringGe (vwap, '0'), 'vwap is not greater than zero' + logText);
+        //     assert (vwap >= low && vwap <= high)
+        if (baseVolume !== undefined) {
+            assert (quoteVolume !== undefined, 'baseVolume & vwap is defined, but quoteVolume is not' + logText);
+        }
+        if (quoteVolume !== undefined) {
+            assert (baseVolume !== undefined, 'quoteVolume & vwap is defined, but baseVolume is not' + logText);
+        }
     }
-    if (quoteVolume && vwap) {
-        assert (baseVolume, 'quoteVolume & vwap is defined, but baseVolume is not' + logText);
-    }
-    if (entry['bid'] && entry['ask']) {
-        const symbolName = entry['symbol'] ? (entry['symbol'] + ' ') : '';
-        assert (entry['bid'] <= entry['ask'], symbolName + ' bid is greater than ask!' + logText);
+    const bid = exchange.safeString (entry, 'bid');
+    const ask = exchange.safeString (entry, 'ask');
+    if ((bid !== undefined) && (ask !== undefined)) {
+        assert (Precise.stringGe  (ask, bid), entry['symbol'] + ' bid is greater than ask!' + logText);
     }
     testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
 }
