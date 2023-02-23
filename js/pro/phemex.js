@@ -312,8 +312,9 @@ module.exports = class phemex extends phemexRest {
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        const usePerpetualApi = this.safeValue (params, 'settle') === 'USDT';
-        const messageHash = (usePerpetualApi) ? 'perpetual:balance' : (type + ':balance');
+        const usePerpetualApi = this.safeString (params, 'settle') === 'USDT';
+        let messageHash = ':balance';
+        messageHash = usePerpetualApi ? 'perpetual' + messageHash : type + messageHash;
         return await this.subscribePrivate (type, messageHash, params);
     }
 
