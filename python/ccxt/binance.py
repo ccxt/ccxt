@@ -917,7 +917,7 @@ class binance(Exchange):
                 'fetchCurrencies': True,  # self is a private call and it requires API keys
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-                'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
+                'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': None,  # 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
@@ -1442,6 +1442,64 @@ class binance(Exchange):
         super(binance, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
+    def create_expired_option_market(self, symbol):
+        # support expired option contracts
+        settle = 'USDT'
+        optionParts = symbol.split('-')
+        symbolBase = symbol.split('/')
+        base = None
+        if symbol.find('/') > -1:
+            base = self.safe_string(symbolBase, 0)
+        else:
+            base = self.safe_string(optionParts, 0)
+        expiry = self.safe_string(optionParts, 1)
+        strike = self.safe_string(optionParts, 2)
+        optionType = self.safe_string(optionParts, 3)
+        return {
+            'id': base + '-' + expiry + '-' + strike + '-' + optionType,
+            'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': settle,
+            'baseId': base,
+            'quoteId': settle,
+            'active': None,
+            'type': 'option',
+            'linear': None,
+            'inverse': None,
+            'spot': False,
+            'swap': False,
+            'future': False,
+            'option': True,
+            'margin': False,
+            'contract': True,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'optionType': 'call' if (optionType == 'C') else 'put',
+            'strike': strike,
+            'settle': settle,
+            'settleId': settle,
+            'precision': {
+                'amount': None,
+                'price': None,
+            },
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': None,
+        }
+
     def market(self, symbol):
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
@@ -1485,6 +1543,8 @@ class binance(Exchange):
                 futuresSymbol = symbol + ':' + settle
                 if futuresSymbol in self.markets:
                     return self.markets[futuresSymbol]
+            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):  # both exchange-id and unified symbols are supported self way regardless of the  defaultType
+                return self.create_expired_option_market(symbol)
         raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
 
     def cost_to_precision(self, symbol, cost):
@@ -2485,7 +2545,9 @@ class binance(Exchange):
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         method = 'publicGetDepth'
-        if market['linear']:
+        if market['option']:
+            method = 'eapiPublicGetDepth'
+        elif market['linear']:
             method = 'fapiPublicGetDepth'
         elif market['inverse']:
             method = 'dapiPublicGetDepth'
@@ -2508,9 +2570,27 @@ class binance(Exchange):
         #             ["2493.71","12.054"],
         #         ]
         #     }
+        #
+        # options(eapi)
+        #
+        #     {
+        #         "bids": [
+        #             ["108.7","16.08"],
+        #             ["106","21.29"],
+        #             ["82.4","0.02"]
+        #         ],
+        #         "asks": [
+        #             ["111.4","19.52"],
+        #             ["119.9","17.6"],
+        #             ["141.2","31"]
+        #         ],
+        #         "T": 1676771382078,
+        #         "u": 1015939
+        #     }
+        #
         timestamp = self.safe_integer(response, 'T')
         orderbook = self.parse_order_book(response, symbol, timestamp)
-        orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
+        orderbook['nonce'] = self.safe_integer_2(response, 'lastUpdateId', 'u')
         return orderbook
 
     def parse_ticker(self, ticker, market=None):
@@ -2853,13 +2933,30 @@ class binance(Exchange):
         #         ]
         #     ]
         #
+        # options
+        #
+        #     {
+        #         "open": "32.2",
+        #         "high": "32.2",
+        #         "low": "32.2",
+        #         "close": "32.2",
+        #         "volume": "0",
+        #         "interval": "5m",
+        #         "tradeCount": 0,
+        #         "takerVolume": "0",
+        #         "takerAmount": "0",
+        #         "amount": "0",
+        #         "openTime": 1677096900000,
+        #         "closeTime": 1677097200000
+        #     }
+        #
         return [
-            self.safe_integer(ohlcv, 0),
-            self.safe_number(ohlcv, 1),
-            self.safe_number(ohlcv, 2),
-            self.safe_number(ohlcv, 3),
-            self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, 5),
+            self.safe_integer_2(ohlcv, 0, 'closeTime'),
+            self.safe_number_2(ohlcv, 1, 'open'),
+            self.safe_number_2(ohlcv, 2, 'high'),
+            self.safe_number_2(ohlcv, 3, 'low'),
+            self.safe_number_2(ohlcv, 4, 'close'),
+            self.safe_number_2(ohlcv, 5, 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -2908,7 +3005,9 @@ class binance(Exchange):
         if until is not None:
             request['endTime'] = until
         method = 'publicGetKlines'
-        if price == 'mark':
+        if market['option']:
+            method = 'eapiPublicGetKlines'
+        elif price == 'mark':
             if market['inverse']:
                 method = 'dapiPublicGetMarkPriceKlines'
             else:
@@ -2928,6 +3027,25 @@ class binance(Exchange):
         #         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
         #         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
         #         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
+        #     ]
+        #
+        # options(eapi)
+        #
+        #     [
+        #         {
+        #             "open": "32.2",
+        #             "high": "32.2",
+        #             "low": "32.2",
+        #             "close": "32.2",
+        #             "volume": "0",
+        #             "interval": "5m",
+        #             "tradeCount": 0,
+        #             "takerVolume": "0",
+        #             "takerAmount": "0",
+        #             "amount": "0",
+        #             "openTime": 1677096900000,
+        #             "closeTime": 1677097200000
+        #         }
         #     ]
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -3096,10 +3214,6 @@ class binance(Exchange):
             takerOrMaker = 'maker' if trade['maker'] else 'taker'
         if ('optionSide' in trade) or market['option']:
             settle = self.safe_currency_code(self.safe_string(trade, 'quoteAsset', 'USDT'))
-            if symbol is None:
-                optionParts = marketId.split('-')
-                optionType = self.safe_string(optionParts, 3)
-                symbol = self.safe_string(optionParts, 0) + '/' + settle + ':' + settle + '-' + self.safe_string(optionParts, 1) + '-' + self.safe_string(optionParts, 2) + '-' + optionType
             takerOrMaker = self.safe_string_lower(trade, 'liquidity')
             if 'fee' in trade:
                 fee = {
@@ -4113,28 +4227,31 @@ class binance(Exchange):
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
-        type = self.safe_string(params, 'type', market['type'])
-        params = self.omit(params, 'type')
+        request = {}
+        market = None
+        type = None
         method = None
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
-        if type == 'spot' or type == 'margin':
-            method = 'privateGetMyTrades'
-            if (type == 'margin') or (marginMode is not None):
-                method = 'sapiGetMarginMyTrades'
-                if marginMode == 'isolated':
-                    request['isIsolated'] = True
-        elif market['linear']:
-            method = 'fapiPrivateGetUserTrades'
-        elif market['inverse']:
-            method = 'dapiPrivateGetUserTrades'
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        type, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        if type == 'option':
+            method = 'eapiPrivateGetUserTrades'
+        else:
+            self.check_required_symbol('fetchMyTrades', symbol)
+            marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
+            if type == 'spot' or type == 'margin':
+                method = 'privateGetMyTrades'
+                if (type == 'margin') or (marginMode is not None):
+                    method = 'sapiGetMarginMyTrades'
+                    if marginMode == 'isolated':
+                        request['isIsolated'] = True
+            elif market['linear']:
+                method = 'fapiPrivateGetUserTrades'
+            elif market['inverse']:
+                method = 'dapiPrivateGetUserTrades'
         endTime = self.safe_integer_2(params, 'until', 'endTime')
         if since is not None:
             startTime = int(since)
@@ -4153,7 +4270,7 @@ class binance(Exchange):
             request['endTime'] = endTime
             params = self.omit(params, ['endTime', 'until'])
         if limit is not None:
-            if market['contract']:
+            if (type == 'option') or market['contract']:
                 limit = min(limit, 1000)  # above 1000, returns error
             request['limit'] = limit
         response = getattr(self, method)(self.extend(request, params))
@@ -4195,6 +4312,30 @@ class binance(Exchange):
         #             "side": "SELL",
         #             "symbol": "BTCUSDT",
         #             "time": 1569514978020
+        #         }
+        #     ]
+        #
+        # options(eapi)
+        #
+        #     [
+        #         {
+        #             "id": 1125899906844226012,
+        #             "tradeId": 73,
+        #             "orderId": 4638761100843040768,
+        #             "symbol": "ETH-230211-1500-C",
+        #             "price": "18.70000000",
+        #             "quantity": "-0.57000000",
+        #             "fee": "0.17305890",
+        #             "realizedProfit": "-3.53400000",
+        #             "side": "SELL",
+        #             "type": "LIMIT",
+        #             "volatility": "0.30000000",
+        #             "liquidity": "MAKER",
+        #             "time": 1676085216845,
+        #             "priceScale": 1,
+        #             "quantityScale": 2,
+        #             "optionSide": "CALL",
+        #             "quoteAsset": "USDT"
         #         }
         #     ]
         #
