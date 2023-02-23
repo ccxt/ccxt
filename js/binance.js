@@ -1475,6 +1475,67 @@ module.exports = class binance extends Exchange {
                 if (futuresSymbol in this.markets) {
                     return this.markets[futuresSymbol];
                 }
+            } else if (defaultType === 'option') {
+                // support expired option contracts
+                const settle = 'USDT';
+                if (!(symbol in this.markets)) {
+                    const optionParts = symbol.split ('-');
+                    const symbolBase = symbol.split ('/');
+                    let base = undefined;
+                    if (symbol.indexOf ('/') > -1) {
+                        base = this.safeString (symbolBase, 0);
+                    } else {
+                        base = this.safeString (optionParts, 0);
+                    }
+                    const expiry = this.safeString (optionParts, 1);
+                    const strike = this.safeString (optionParts, 2);
+                    const optionType = this.safeString (optionParts, 3);
+                    const result = {
+                        'id': base + '-' + expiry + '-' + strike + '-' + optionType,
+                        'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+                        'base': base,
+                        'quote': settle,
+                        'baseId': base,
+                        'quoteId': settle,
+                        'active': undefined,
+                        'type': 'option',
+                        'linear': undefined,
+                        'inverse': undefined,
+                        'spot': false,
+                        'swap': false,
+                        'future': false,
+                        'option': true,
+                        'margin': false,
+                        'contract': true,
+                        'contractSize': undefined,
+                        'expiry': undefined,
+                        'expiryDatetime': undefined,
+                        'optionType': (optionType === 'C') ? 'call' : 'put',
+                        'strike': strike,
+                        'settle': settle,
+                        'settleId': settle,
+                        'precision': {
+                            'amount': undefined,
+                            'price': undefined,
+                        },
+                        'limits': {
+                            'amount': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'price': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'cost': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                        'info': undefined,
+                    };
+                    return result;
+                }
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
@@ -3166,7 +3227,7 @@ module.exports = class binance extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         const marketType = ('M' in trade) || ('orderListId' in trade) ? 'spot' : 'contract';
         market = this.safeMarket (marketId, market, undefined, marketType);
-        let symbol = market['symbol'];
+        const symbol = market['symbol'];
         let id = this.safeString2 (trade, 't', 'a');
         id = this.safeString2 (trade, 'tradeId', 'id', id);
         let side = undefined;
@@ -3197,11 +3258,6 @@ module.exports = class binance extends Exchange {
         }
         if (('optionSide' in trade) || market['option']) {
             const settle = this.safeCurrencyCode (this.safeString (trade, 'quoteAsset', 'USDT'));
-            if (symbol === marketId) {
-                const optionParts = marketId.split ('-');
-                const optionType = this.safeString (optionParts, 3);
-                symbol = this.safeString (optionParts, 0) + '/' + settle + ':' + settle + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + optionType;
-            }
             takerOrMaker = this.safeStringLower (trade, 'liquidity');
             if ('fee' in trade) {
                 fee = {
@@ -4347,16 +4403,8 @@ module.exports = class binance extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
         if (type === 'option') {
             if (symbol !== undefined) {
-                const optionParts = symbol.split ('-');
-                const symbolBase = symbol.split ('/');
-                let base = undefined;
-                if (symbol.indexOf ('/') > -1) {
-                    base = this.safeString (symbolBase, 0);
-                } else {
-                    base = this.safeString (optionParts, 0);
-                }
-                symbol = base + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + this.safeString (optionParts, 3);
-                request['symbol'] = symbol;
+                market = this.market (symbol);
+                request['symbol'] = market['id'];
             }
             method = 'eapiPrivateGetUserTrades';
         } else {
