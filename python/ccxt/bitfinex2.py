@@ -1183,7 +1183,7 @@ class bitfinex2(Exchange):
         takerOrMaker = None
         type = None
         fee = None
-        symbol = None
+        symbol = self.safe_symbol(None, market)
         timestampIndex = 2 if isPrivate else 1
         timestamp = self.safe_integer(trade, timestampIndex)
         if isPrivate:

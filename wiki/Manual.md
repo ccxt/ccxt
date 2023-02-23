@@ -134,6 +134,7 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
 | [![indodax](https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg)](https://indodax.com/ref/testbitcoincoid/1)                                                   | indodax            | [INDODAX](https://indodax.com/ref/testbitcoincoid/1)                                                    | [![API Version 2.0](https://img.shields.io/badge/2.0-lightgray)](https://github.com/btcid/indodax-official-api-docs)                               |                                                                                                                             |                                                                              |
 | [![itbit](https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg)](https://www.itbit.com)                                                                          | itbit              | [itBit](https://www.itbit.com)                                                                          | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.itbit.com/docs)                                                           |                                                                                                                             |                                                                              |
 | [![kraken](https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg)](https://www.kraken.com)                                                                       | kraken             | [Kraken](https://www.kraken.com)                                                                        | [![API Version 0](https://img.shields.io/badge/0-lightgray)](https://www.kraken.com/features/api)                                                  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![krakenfutures](https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg)](https://futures.kraken.com/)                                                           | krakenfutures      | [Kraken Futures](https://futures.kraken.com/)                                                           | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://support.kraken.com/hc/en-us/categories/360001806372-Futures-API)              |                                                                                                                             |                                                                              |
 | [![kucoin](https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg)](https://www.kucoin.com/ucenter/signup?rcode=E5wkqe)                                           | kucoin             | [KuCoin](https://www.kucoin.com/ucenter/signup?rcode=E5wkqe)                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.kucoin.com)                                                              | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![kucoinfutures](https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg)](https://futures.kucoin.com/?rcode=E5wkqe)                                              | kucoinfutures      | [KuCoin Futures](https://futures.kucoin.com/?rcode=E5wkqe)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.kucoin.com/futures)                                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![kuna](https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg)](https://kuna.io?r=kunaid-gvfihe8az7o4)                                                          | kuna               | [Kuna](https://kuna.io?r=kunaid-gvfihe8az7o4)                                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://kuna.io/documents/api)                                                        |                                                                                                                             |                                                                              |
@@ -157,7 +158,6 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
 | [![probit](https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg)](https://www.probit.com/r/34608773)                                                            | probit             | [ProBit](https://www.probit.com/r/34608773)                                                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs-en.probit.com)                                                           |                                                                                                                             |                                                                              |
 | [![ripio](https://user-images.githubusercontent.com/1294454/94507548-a83d6a80-0218-11eb-9998-28b9cec54165.jpg)](https://exchange.ripio.com)                                                                     | ripio              | [Ripio](https://exchange.ripio.com)                                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://exchange.ripio.com/en/api/)                                                   |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![stex](https://user-images.githubusercontent.com/1294454/69680782-03fd0b80-10bd-11ea-909e-7f603500e9cc.jpg)](https://app.stex.com?ref=36416021)                                                               | stex               | [STEX](https://app.stex.com?ref=36416021)                                                               | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://apidocs.stex.com/)                                                            |                                                                                                                             |                                                                              |
-| [![therock](https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg)](https://therocktrading.com)                                                                   | therock            | [TheRockTrading](https://therocktrading.com)                                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.therocktrading.com/doc/v1/index.html)                                     |                                                                                                                             |                                                                              |
 | [![tidex](https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg)](https://tidex.com/exchange)                                                                     | tidex              | [Tidex](https://tidex.com/exchange)                                                                     | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://tidex.com/exchange/public-api)                                                |                                                                                                                             |                                                                              |
 | [![timex](https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg)](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                                    | timex              | [TimeX](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.timex.io)                                                                |                                                                                                                             |                                                                              |
 | [![tokocrypto](https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg)](https://tokocrypto.com)                                                                   | tokocrypto         | [Tokocrypto](https://tokocrypto.com)                                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.tokocrypto.com/apidocs/)                                                  |                                                                                                                             |                                                                              |
@@ -2495,21 +2495,35 @@ if ($exchange->has['fetchTrades']) {
 }
 ```
 
-The fetchTrades method shown above returns an ordered list of trades (a flat array, sorted by timestamp in ascending order, oldest trade first, most recent trade last). A list of trades is represented by the following structure:
+The fetchTrades method shown above returns an ordered list of trades (a flat array, sorted by timestamp in ascending order, oldest trade first, most recent trade last). A list of trades is represented by the [trade structure](#trade-structure).
 
 ```JavaScript
 [
     {
-        'info':       { ... },                  // the original decoded JSON as is
-        'id':        '12345-67890:09876/54321', // string trade id
-        'timestamp':  1502962946216,            // Unix timestamp in milliseconds
-        'datetime':  '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
-        'symbol':    'ETH/BTC',                 // symbol
-        'order':     '12345-67890:09876/54321', // string order id or undefined/None/null
-        'type':      'limit',                   // order type, 'market', 'limit' or undefined/None/null
-        'side':      'buy',                     // direction of the trade, 'buy' or 'sell'
-        'price':      0.06917684,               // float price in quote currency
-        'amount':     1.5,                      // amount of base currency
+        'info':          { ... },                  // the original decoded JSON as is
+        'id':           '12345-67890:09876/54321', // string trade id
+        'timestamp':     1502962946216,            // Unix timestamp in milliseconds
+        'datetime':     '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
+        'symbol':       'ETH/BTC',                 // symbol
+        'order':        '12345-67890:09876/54321', // string order id or undefined/None/null
+        'type':         'limit',                   // order type, 'market', 'limit' or undefined/None/null
+        'side':         'buy',                     // direction of the trade, 'buy' or 'sell'
+        'takerOrMaker': 'taker',                   // string, 'taker' or 'maker'
+        'price':         0.06917684,               // float price in quote currency
+        'amount':        1.5,                      // amount of base currency
+        'cost':          0.10376526,               // total cost, `price * amount`,
+        'fee':           {                         // if provided by exchange or calculated by ccxt
+            'cost':  0.0015,                       // float
+            'currency': 'ETH',                     // usually base currency for buys, quote currency for sells
+            'rate': 0.002,                         // the fee rate (if available)
+        },
+        'fees': [                                  // an array of fees if paid in multiple currencies
+            {                                      // if provided by exchange or calculated by ccxt
+                'cost':  0.0015,                   // float
+                'currency': 'ETH',                 // usually base currency for buys, quote currency for sells
+                'rate': 0.002,                     // the fee rate (if available)
+            },
+        ]
     },
     ...
 ]
@@ -4299,10 +4313,17 @@ Returns ordered array `[]` of trades (most recent trade last).
         'currency': 'ETH',                      // usually base currency for buys, quote currency for sells
         'rate': 0.002,                          // the fee rate (if available)
     },
+    'fees': [                                   // an array of fees if paid in multiple currencies
+        {                                       // if provided by exchange or calculated by ccxt
+            'cost':  0.0015,                    // float
+            'currency': 'ETH',                  // usually base currency for buys, quote currency for sells
+            'rate': 0.002,                      // the fee rate (if available)
+        },
+    ],
 }
 ```
 
-- The work on `'fee'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
+- The work on `'fee'` and `'fees'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
 - The `fee` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
 - The `cost` of the trade means `amount * price`. It is the total *quote* volume of the trade (whereas `amount` is the *base* volume). The cost field itself is there mostly for convenience and can be deduced from other fields.
 - The `cost` of the trade is a _"gross"_ value. That is the value pre-fee, and the fee has to be applied afterwards.

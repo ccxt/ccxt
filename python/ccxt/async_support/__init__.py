@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.8.16'
+__version__ = '2.8.31'
 
 # -----------------------------------------------------------------------------
 
@@ -126,6 +126,7 @@ from ccxt.async_support.independentreserve import independentreserve            
 from ccxt.async_support.indodax import indodax                                  # noqa: F401
 from ccxt.async_support.itbit import itbit                                      # noqa: F401
 from ccxt.async_support.kraken import kraken                                    # noqa: F401
+from ccxt.async_support.krakenfutures import krakenfutures                      # noqa: F401
 from ccxt.async_support.kucoin import kucoin                                    # noqa: F401
 from ccxt.async_support.kucoinfutures import kucoinfutures                      # noqa: F401
 from ccxt.async_support.kuna import kuna                                        # noqa: F401
@@ -151,7 +152,6 @@ from ccxt.async_support.poloniexfutures import poloniexfutures                  
 from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.ripio import ripio                                      # noqa: F401
 from ccxt.async_support.stex import stex                                        # noqa: F401
-from ccxt.async_support.therock import therock                                  # noqa: F401
 from ccxt.async_support.tidex import tidex                                      # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
@@ -239,6 +239,7 @@ exchanges = [
     'indodax',
     'itbit',
     'kraken',
+    'krakenfutures',
     'kucoin',
     'kucoinfutures',
     'kuna',
@@ -264,7 +265,6 @@ exchanges = [
     'probit',
     'ripio',
     'stex',
-    'therock',
     'tidex',
     'timex',
     'tokocrypto',

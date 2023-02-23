@@ -19,6 +19,9 @@ if (!exchangeId) {
 const exchangeSymbols = require ('./pro-tests.json')
 const symbol = exchangeSymbol || exchangeSymbols[exchangeId] || 'BTC/USDT'
 log.bright ('\nTESTING', { exchangeId, symbol }, '\n')
+if (verbose) {
+    log.bright.yellow ('Running in verbose mode')
+}
 
 // ----------------------------------------------------------------------------
 

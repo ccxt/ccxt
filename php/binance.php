@@ -3140,7 +3140,7 @@ class binance extends Exchange {
         $amount = $this->safe_string($trade, 'quantity', $amount);
         $cost = $this->safe_string_2($trade, 'quoteQty', 'baseQty');  // inverse futures
         $marketId = $this->safe_string($trade, 'symbol');
-        $marketType = (is_array($trade) && array_key_exists('M', $trade)) || (is_array($trade) && array_key_exists('orderListId', $trade)) ? 'spot' : 'contract';
+        $marketType = (is_array($trade) && array_key_exists('isIsolated', $trade)) || (is_array($trade) && array_key_exists('M', $trade)) || (is_array($trade) && array_key_exists('orderListId', $trade)) ? 'spot' : 'contract';
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
         $id = $this->safe_string_2($trade, 't', 'a');
@@ -4134,7 +4134,7 @@ class binance extends Exchange {
             $type = $this->safe_string($query, 'type', $defaultType);
         }
         $subType = null;
-        list($subType, $query) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params);
+        list($subType, $query) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $query);
         $requestParams = $this->omit($query, 'type');
         $method = 'privateGetOpenOrders';
         if ($type === 'option') {
@@ -6367,7 +6367,7 @@ class binance extends Exchange {
         $this->load_markets();
         list($type, $query) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverageTiers', null, $params, 'linear');
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverageTiers', null, $query, 'linear');
         $method = null;
         if ($this->is_linear($type, $subType)) {
             $method = 'fapiPrivateGetLeverageBracket';

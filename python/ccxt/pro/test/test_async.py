@@ -135,8 +135,6 @@ def get_test_symbol(exchange, symbols):
 
 
 async def test_exchange(exchange):
-    print(exchange.id)
-    # delay = 2
 
     codes = [
         'BTC',
@@ -245,8 +243,6 @@ async def test():
         # add http proxy if any
         if hasattr(exchange, 'httpProxy'):
             exchange.aiohttp_proxy = exchange.httpProxy
-
-        print(exchange.id, argv.verbose)
         await exchange.load_markets()
         exchange.verbose = argv.verbose
         # exchange.print = print_to_file
