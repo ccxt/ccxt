@@ -58,6 +58,11 @@ if (!$exchange) {
     throw new \Exception('No exchange specified');
 }
 
+function methodNamerInTest($methodName) {
+    $snake_cased = strtolower(preg_replace('(?<!^)(?=[A-Z])', '_', $methodName));
+    $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', $snake_cased);
+    return 'test_' . $snake_cased;
+}
 define('targetDir', __DIR__ . '/../../');
 
 global $testMethodsArray;
