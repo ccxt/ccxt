@@ -59,8 +59,11 @@ if (!$exchange) {
     throw new \Exception('No exchange specified');
 }
 
-function methodNamerInTest($methodName) {
-    $snake_cased = strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName));
+function snake_case ($methodName) {
+    return strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName));
+}
+function method_namer_in_test($methodName) {
+    $snake_cased = snake_case($methodName);
     $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', $snake_cased);
     return 'test_' . $snake_cased;
 }
@@ -103,7 +106,7 @@ function io_file_read($path, $decode = true) {
 }
 
 function call_method($methodName, $exchange, $args) {
-    return testFiles[$methodName](testFiles, $exchange, ... $args);
+    return testFiles[$methodName]($exchange, ... $args);
 }
 
 function exception_message ($exc) {
@@ -196,7 +199,7 @@ class testMainClass extends emptyClass {
 
     public function test_method($methodName, $exchange, $args) {
         return Async\async(function () use ($methodName, $exchange, $args) {
-            $methodNameInTest = methodNamerInTest ($methodName);
+            $methodNameInTest = method_namer_in_test ($methodName);
             $skipMessage = null;
             if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName])) {
                 $skipMessage = 'not supported';

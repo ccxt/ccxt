@@ -46,7 +46,7 @@ const exchange = new (ccxt)[exchangeId] ({
 });
 
 //-----------------------------------------------------------------------------
-const methodNamerInTest = (str) => str;
+const method_namer_in_test = (str) => str;
 const testFiles = {};
 const properties = Object.keys (exchange.has);
 properties.push ('loadMarkets');
@@ -169,7 +169,7 @@ module.exports = class testMainClass extends emptyClass {
     }
 
     async testMethod (methodName, exchange, args) {
-        const methodNameInTest = methodNamerInTest (methodName);
+        const methodNameInTest = method_namer_in_test (methodName);
         let skipMessage = undefined;
         if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName])) {
             skipMessage = 'not supported';

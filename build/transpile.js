@@ -1915,13 +1915,15 @@ class Transpiler {
             phpBodyAsync += pre + obj.phpAsync[iPH+1].trim()  + '\n'+ tr(obj.phpAsync[iPH+2]) + '\n' + obj.phpAsync[iPH+3].trim();
         }
       
-        const ohlcvCaser = (content) => content.replace ('testOHLCV', 'test_ohlcv')
-        python3Body = python3Body.replace (/\(self, /g, '(').replace ('exchange[method]', 'getattr(exchange,method)');
-        python3Body = ohlcvCaser (python3Body);
-        phpBody = phpBody.replace (/public /g, '');
-        phpBody = ohlcvCaser (phpBody);
-        phpBodyAsync = phpBodyAsync.replace (/public /g, '');
-        phpBodyAsync = ohlcvCaser (phpBodyAsync);
+        const ohlcvCaser = (content) => content.
+            replace ('testOHLCV', 'test_ohlcv')
+        python3Body = ohlcvCaser(python3Body).replace (/\(self, /g, '(').replace ('exchange[method]', 'getattr(exchange,method)');
+        const phpExtra = (content) => ohlcvCaser (content).
+            replace (/public /g, '').
+            replace ('exchange[$method]', 'exchange->$method').
+            replace (/strlen/g, 'count') // temp fix for php strlen
+        phpBody = phpExtra(phpBody)
+        phpBodyAsync =  phpExtra(phpBodyAsync)
         // py
         let pythonHeader = []
         if (python3Body.indexOf ('numbers.') >= 0) {

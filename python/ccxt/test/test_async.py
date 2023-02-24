@@ -106,7 +106,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 # non-transpiled commons
 import re
-def methodNamerInTest(methodName):
+def method_namer_in_test(methodName):
     snake_cased = re.sub(r'(?<!^)(?=[A-Z])', '_', methodName).lower()
     snake_cased = snake_cased.replace('o_h_l_c_v', 'ohlcv')
     full_name = 'test_' + snake_cased
@@ -200,7 +200,7 @@ class testMainClass(emptyClass):
         add_proxy_agent(exchange, exchangeSettings)
 
     async def test_method(self, methodName, exchange, args):
-        methodNameInTest = methodNamerInTest(methodName)
+        methodNameInTest = method_namer_in_test(methodName)
         skipMessage = None
         if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]):
             skipMessage = 'not supported'
