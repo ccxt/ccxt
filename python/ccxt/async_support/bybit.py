@@ -6480,7 +6480,7 @@ class bybit(Exchange):
         request = {}
         if code is not None:
             currency = self.safe_currency_code(code)
-            request['coin'] = currency['id']
+            request['coin'] = currency
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -6641,7 +6641,7 @@ class bybit(Exchange):
         #      }
         #
         currencyId = self.safe_string(transfer, 'coin')
-        timestamp = self.safe_timestamp(transfer, 'timestamp')
+        timestamp = self.safe_integer(transfer, 'timestamp')
         fromAccountId = self.safe_string_2(transfer, 'fromAccountType', 'from_account_type')
         toAccountId = self.safe_string_2(transfer, 'toAccountType', 'to_account_type')
         accountIds = self.safe_value(self.options, 'accountsById', {})

@@ -2307,7 +2307,7 @@ export default class kucoin extends Exchange {
     parseTransactionStatus (status) {
         const statuses = {
             'SUCCESS': 'ok',
-            'PROCESSING': 'ok',
+            'PROCESSING': 'pending',
             'FAILURE': 'failed',
         };
         return this.safeString (statuses, status);

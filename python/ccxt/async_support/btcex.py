@@ -1538,17 +1538,16 @@ class btcex(Exchange):
             # 'end_id': 0,  # The ID number of the last trade to be returned
             # 'sorting': '',  # Direction of results sorting,default: desc
             # 'self_trade': False,  # If not set, query all
+            # 'start_timestamp': False  # The trade time of the first trade to be returned
+            # 'end_timestamp': False  # The trade time of the last trade to be returned
         }
-        method = None
         market = self.market(symbol)
         request['instrument_name'] = market['id']
-        if since is None:
-            method = 'privateGetGetUserTradesByInstrument'
-        else:
-            method = 'privateGetGetUserTradesByInstrumentAndTime'
         if limit is not None:
             request['count'] = limit  # default 20
-        response = await getattr(self, method)(self.extend(request, params))
+        if since is not None:
+            request['start_timestamp'] = since
+        response = await self.privateGetGetUserTradesByInstrument(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         #
         #     {

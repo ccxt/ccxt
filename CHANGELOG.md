@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.37 (2023-02-24)
+
+
+### Bug Fixes
+
+* **Kucoin:** fix transaction status ([ca5b3d6](https://github.com/ccxt/ccxt/commit/ca5b3d66846dde00e2aaffdd217e746a70fbe2b7))
+
+### 2.8.36 (2023-02-24)
+
+
+### Bug Fixes
+
+* **Binance:** fix parseTrades margin ([7d52071](https://github.com/ccxt/ccxt/commit/7d52071baa76ec97a3692c3cce7cd534915ce3bb))
+
+### 2.8.35 (2023-02-24)
+
+### 2.8.34 (2023-02-24)
+
+
+### Features
+
+* **ccxt.d.ts:** add transfer and setLeverage types ([6e2c7d9](https://github.com/ccxt/ccxt/commit/6e2c7d94acbefeee90a02721f1b67bb424629c37))
+
+### 2.8.33 (2023-02-24)
+
+### 2.8.32 (2023-02-23)
+
 ### 2.8.31 (2023-02-22)
 
 ### 2.8.30 (2023-02-22)

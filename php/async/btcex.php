@@ -1629,19 +1629,18 @@ class btcex extends Exchange {
                 // 'end_id' => 0, // The ID number of the last trade to be returned
                 // 'sorting' => '', // Direction of results sorting,default => desc
                 // 'self_trade' => false, // If not set, query all
+                // 'start_timestamp' => false // The trade time of the first trade to be returned
+                // 'end_timestamp' => false // The trade time of the last trade to be returned
             );
-            $method = null;
             $market = $this->market($symbol);
             $request['instrument_name'] = $market['id'];
-            if ($since === null) {
-                $method = 'privateGetGetUserTradesByInstrument';
-            } else {
-                $method = 'privateGetGetUserTradesByInstrumentAndTime';
-            }
             if ($limit !== null) {
                 $request['count'] = $limit; // default 20
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            if ($since !== null) {
+                $request['start_timestamp'] = $since;
+            }
+            $response = Async\await($this->privateGetGetUserTradesByInstrument (array_merge($request, $params)));
             $result = $this->safe_value($response, 'result', array());
             //
             //     {
