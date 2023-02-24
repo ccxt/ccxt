@@ -1603,7 +1603,7 @@ export default class btcex extends Exchange {
         if (since !== undefined) {
             request['start_timestamp'] = since;
         }
-        const response = await this.privateGetGetUserTradesByInstrument (this.extend (request, params));
+        const response = await (this as any).privateGetGetUserTradesByInstrument (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
