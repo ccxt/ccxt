@@ -2402,7 +2402,11 @@ module.exports = class bybit extends Exchange {
         //
         const id = this.safeStringN (trade, [ 'execId', 'id', 'tradeId' ]);
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, market['type']);
+        let marketType = 'contract';
+        if (market !== undefined) {
+            marketType = market['type'];
+        }
+        market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = market['symbol'];
         const amountString = this.safeStringN (trade, [ 'execQty', 'orderQty', 'size' ]);
         const priceString = this.safeStringN (trade, [ 'execPrice', 'orderPrice', 'price' ]);
@@ -2792,7 +2796,7 @@ module.exports = class bybit extends Exchange {
             for (let i = 0; i < currencyList.length; i++) {
                 const entry = currencyList[i];
                 const accountType = this.safeString (entry, 'accountType');
-                if (accountType === 'UNIFIED') {
+                if (accountType === 'UNIFIED' || accountType === 'CONTRACT') {
                     const coins = this.safeValue (entry, 'coin');
                     for (let j = 0; j < coins.length; j++) {
                         const account = this.account ();
@@ -2897,56 +2901,6 @@ module.exports = class bybit extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchUnifiedAccountBalance (params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'accountType': 'UNIFIED',
-        };
-        const response = await this.privateGetV5AccountWalletBalance (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "list": [
-        //                 {
-        //                     "totalEquity": "18070.32797922",
-        //                     "accountIMRate": "0.0101",
-        //                     "totalMarginBalance": "18070.32797922",
-        //                     "totalInitialMargin": "182.60183684",
-        //                     "accountType": "UNIFIED",
-        //                     "totalAvailableBalance": "17887.72614237",
-        //                     "accountMMRate": "0",
-        //                     "totalPerpUPL": "-0.11001349",
-        //                     "totalWalletBalance": "18070.43799271",
-        //                     "totalMaintenanceMargin": "0.38106773",
-        //                     "coin": [
-        //                         {
-        //                             "availableToBorrow": "2.5",
-        //                             "accruedInterest": "0",
-        //                             "availableToWithdraw": "0.805994",
-        //                             "totalOrderIM": "0",
-        //                             "equity": "0.805994",
-        //                             "totalPositionMM": "0",
-        //                             "usdValue": "12920.95352538",
-        //                             "unrealisedPnl": "0",
-        //                             "borrowAmount": "0",
-        //                             "totalPositionIM": "0",
-        //                             "walletBalance": "0.805994",
-        //                             "cumRealisedPnl": "0",
-        //                             "coin": "BTC"
-        //                         }
-        //                     ]
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": {},
-        //         "time": 1672125441042
-        //     }
-        //
-        return this.parseBalance (response);
-    }
-
     async fetchUnifiedMarginBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetUnifiedV3PrivateAccountWalletBalance (params);
@@ -2994,8 +2948,13 @@ module.exports = class bybit extends Exchange {
 
     async fetchDerivativesBalance (params = {}) {
         await this.loadMarkets ();
-        const request = {};
-        const response = await this.privateGetContractV3PrivateAccountWalletBalance (this.extend (request, params));
+        const accountTypes = this.safeValue (this.options, 'accountsByType', {});
+        const type = this.safeString (params, 'type');
+        params = this.omit (params, [ 'type' ]);
+        const request = {
+            'accountType': this.safeString (accountTypes, type),
+        };
+        const response = await this.privateGetV5AccountWalletBalance (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -3003,37 +2962,38 @@ module.exports = class bybit extends Exchange {
         //         "result": {
         //             "list": [
         //                 {
-        //                     "coin": "BTC",
-        //                     "equity": "0.00000002",
-        //                     "walletBalance": "0.00000002",
-        //                     "positionMargin": "0",
-        //                     "availableBalance": "0.00000002",
-        //                     "orderMargin": "0",
-        //                     "occClosingFee": "0",
-        //                     "occFundingFee": "0",
-        //                     "unrealisedPnl": "0",
-        //                     "cumRealisedPnl": "-0.00010941",
-        //                     "givenCash": "0",
-        //                     "serviceCash": "0"
-        //                 },
-        //                 {
-        //                     "coin": "USDT",
-        //                     "equity": "3662.81038535",
-        //                     "walletBalance": "3662.81038535",
-        //                     "positionMargin": "0",
-        //                     "availableBalance": "3662.81038535",
-        //                     "orderMargin": "0",
-        //                     "occClosingFee": "0",
-        //                     "occFundingFee": "0",
-        //                     "unrealisedPnl": "0",
-        //                     "cumRealisedPnl": "-36.01761465",
-        //                     "givenCash": "0",
-        //                     "serviceCash": "0"
-        //                 },
+        //                     "totalEquity": "18070.32797922",
+        //                     "accountIMRate": "0.0101",
+        //                     "totalMarginBalance": "18070.32797922",
+        //                     "totalInitialMargin": "182.60183684",
+        //                     "accountType": "UNIFIED",
+        //                     "totalAvailableBalance": "17887.72614237",
+        //                     "accountMMRate": "0",
+        //                     "totalPerpUPL": "-0.11001349",
+        //                     "totalWalletBalance": "18070.43799271",
+        //                     "totalMaintenanceMargin": "0.38106773",
+        //                     "coin": [
+        //                         {
+        //                             "availableToBorrow": "2.5",
+        //                             "accruedInterest": "0",
+        //                             "availableToWithdraw": "0.805994",
+        //                             "totalOrderIM": "0",
+        //                             "equity": "0.805994",
+        //                             "totalPositionMM": "0",
+        //                             "usdValue": "12920.95352538",
+        //                             "unrealisedPnl": "0",
+        //                             "borrowAmount": "0",
+        //                             "totalPositionIM": "0",
+        //                             "walletBalance": "0.805994",
+        //                             "cumRealisedPnl": "0",
+        //                             "coin": "BTC"
+        //                         }
+        //                     ]
+        //                 }
         //             ]
         //         },
         //         "retExtInfo": {},
-        //         "time": 1669845599631
+        //         "time": 1672125441042
         //     }
         //
         return this.parseBalance (response);
@@ -3079,12 +3039,12 @@ module.exports = class bybit extends Exchange {
         }
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         if (enableUnifiedAccount) {
-            return await this.fetchUnifiedAccountBalance (params);
+            return await this.fetchDerivativesBalance (this.extend (params, { 'type': 'unified' }));
         } else if (enableUnifiedMargin) {
             return await this.fetchUnifiedMarginBalance (params);
         } else {
             // linear/inverse future/swap
-            return await this.fetchDerivativesBalance (params);
+            return await this.fetchDerivativesBalance (this.extend (params, { 'type': 'swap' }));
         }
     }
 
@@ -3418,10 +3378,10 @@ module.exports = class bybit extends Exchange {
     async createUnifiedAccountOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (price === undefined && type === 'limit') {
+        const lowerCaseType = type.toLowerCase ();
+        if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
         }
-        const lowerCaseType = type.toLowerCase ();
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
@@ -3610,10 +3570,10 @@ module.exports = class bybit extends Exchange {
         if (!market['linear'] && !market['option']) {
             throw new NotSupported (this.id + ' createOrder does not allow inverse market orders for ' + symbol + ' markets');
         }
-        if (price === undefined && type === 'limit') {
+        const lowerCaseType = type.toLowerCase ();
+        if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
         }
-        const lowerCaseType = type.toLowerCase ();
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
@@ -3702,10 +3662,10 @@ module.exports = class bybit extends Exchange {
     async createContractV3Order (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if ((price === undefined) && (type === 'limit')) {
+        const lowerCaseType = type.toLowerCase ();
+        if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new ArgumentsRequired (this.id + ' createContractV3Order requires a price argument for limit orders');
         }
-        const lowerCaseType = type.toLowerCase ();
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
@@ -3794,10 +3754,10 @@ module.exports = class bybit extends Exchange {
         if (type === 'market') {
             throw new NotSupported (this.id + 'createOrder does not allow market orders for ' + symbol + ' markets');
         }
-        if (price === undefined && type === 'limit') {
+        const lowerCaseType = type.toLowerCase ();
+        if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
         }
-        const lowerCaseType = type.toLowerCase ();
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
@@ -3962,10 +3922,10 @@ module.exports = class bybit extends Exchange {
         if (!market['linear'] && !market['option']) {
             throw new NotSupported (this.id + ' editOrder does not allow inverse market orders for ' + symbol + ' markets');
         }
-        if (price === undefined && type === 'limit') {
+        const lowerCaseType = type.toLowerCase ();
+        if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new ArgumentsRequired (this.id + ' editOrder requires a price argument for limit orders');
         }
-        const lowerCaseType = type.toLowerCase ();
         const request = {
             'orderId': id,
             'symbol': market['id'],
@@ -5003,8 +4963,9 @@ module.exports = class bybit extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        const enableUnified = await this.isUnifiedEnabled ();
         const request = {};
-        if (type === 'spot') {
+        if ((type === 'spot') && !enableUnified[1]) {
             return await this.fetchSpotClosedOrders (symbol, since, limit, params);
         } else {
             request['orderStatus'] = 'Cancelled';
@@ -5818,7 +5779,8 @@ module.exports = class bybit extends Exchange {
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         if (enableUnifiedAccount && !isInverse) {
-            if (params['orderId'] === undefined) {
+            const orderId = this.safeString (params, 'orderId');
+            if (orderId === undefined) {
                 this.checkRequiredSymbol ('fetchMyTrades', symbol);
             }
             return await this.fetchMyUnifiedTrades (symbol, since, limit, query);
