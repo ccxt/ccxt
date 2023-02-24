@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.37 (2023-02-24)
+
+
+### Bug Fixes
+
+* **Kucoin:** fix transaction status ([ca5b3d6](https://github.com/ccxt/ccxt/commit/ca5b3d66846dde00e2aaffdd217e746a70fbe2b7))
+
 ### 2.8.36 (2023-02-24)
 
 

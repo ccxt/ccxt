@@ -2255,7 +2255,7 @@ class kucoin extends Exchange {
     public function parse_transaction_status($status) {
         $statuses = array(
             'SUCCESS' => 'ok',
-            'PROCESSING' => 'ok',
+            'PROCESSING' => 'pending',
             'FAILURE' => 'failed',
         );
         return $this->safe_string($statuses, $status);
