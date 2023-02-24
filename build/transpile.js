@@ -1950,6 +1950,7 @@ class Transpiler {
                 const capitalizedName = 'test' + capitalize(subTestName);
                 python3Body = subTestNameUnCamelCase(python3Body, capitalizedName)
                 phpBody = subTestNameUnCamelCase(phpBody, subTestName)
+                phpBodyAsync = subTestNameUnCamelCase(phpBodyAsync, subTestName)
             }
         }
 
@@ -1957,9 +1958,12 @@ class Transpiler {
         if (test.jsFile.includes ('sharedMethods')) {
             [...  js.matchAll (/function (.*?) \(/g)].forEach(match => {
                 const funcName = match[1];
-                const regex = new RegExp ('\\b' + funcName + '(?!\\\\\\()', 'g');
-                python3Body = python3Body.replace (regex, unCamelCase(funcName));
-                phpBody = phpBody.replace (regex, unCamelCase(funcName));
+                const snake_cased = unCamelCase(funcName);
+                const regexPy = new RegExp ('\\b' + funcName + '(?!\\\\\\()', 'g');
+                python3Body = python3Body.replace (regexPy, snake_cased);
+                const regexPhp = new RegExp ('\\b' + funcName + '(?! \\\\\\()', 'g');
+                phpBody = phpBody.replace (regexPhp, snake_cased);
+                phpBodyAsync = phpBodyAsync.replace (regexPhp, snake_cased);
             });
         }
 
