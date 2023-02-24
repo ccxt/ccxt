@@ -1176,7 +1176,9 @@ module.exports = class probit extends Exchange {
                 if (createMarketBuyOrderRequiresPrice) {
                     if (price !== undefined) {
                         if (cost === undefined) {
-                            cost = amount * price;
+                            const amountString = this.numberToString (amount);
+                            const priceString = this.numberToString (price);
+                            cost = Precise.stringMul (amountString, priceString);
                         }
                     } else if (cost === undefined) {
                         throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
