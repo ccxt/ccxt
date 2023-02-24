@@ -72,7 +72,7 @@ define('targetDir', __DIR__ . '/../../');
 foreach (glob(__DIR__ . '/test_*.php') as $filename) {
     if (strpos($filename, 'test_async') === false && strpos($filename, 'test_sync') === false) {
         if (
-            (is_sync && stripos($filename, '_sync') !== false) 
+            (is_sync && stripos($filename, '_async') === false) 
                 ||
             (!is_sync && stripos($filename, '_async') !== false)
         ){

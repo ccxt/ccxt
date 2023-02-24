@@ -1812,14 +1812,13 @@ class Transpiler {
  
     transpileExchangeTestsAuto () {
 
-        const mainTests = {
+        this.transpileMainTests ({
             'jsFile': './js/test/test.js',
-            'pyFile': './python/ccxt/test/test_async.py',
-            'phpFile': './php/test/test_async.php',
-            'pyFileAsync': './python/ccxt/test/test_sync.py',
-            'phpFileAsync': './php/test/test_sync.php',
-        };
-        this.transpileMainTests (mainTests);
+            'pyFileAsync': './python/ccxt/test/test_async.py',
+            'phpFileAsync': './php/test/test_async.php',
+            'pyFileSync': './python/ccxt/test/test_sync.py',
+            'phpFileSync': './php/test/test_sync.php',
+        });
 
         const baseFolders = {
             js: './js/test/Exchange/',
@@ -1857,9 +1856,9 @@ class Transpiler {
         }
     }
 
-    transpileMainTests (test) {
-        log.magenta ('Transpiling from', test.jsFile.yellow)
-        let js = fs.readFileSync (test.jsFile).toString ()
+    transpileMainTests (files) {
+        log.magenta ('Transpiling from', files.jsFile.yellow)
+        let js = fs.readFileSync (files.jsFile).toString ()
 
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
@@ -1873,16 +1872,16 @@ class Transpiler {
         const mainContent = js.split (commentStartLine)[1].split (commentEndLine)[0];
         let { python2, python3, phpSync, phpAsync, className, baseClass } = this.transpileClass (mainContent);
         phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
-        const existinPhpBody = fs.readFileSync (test.phpFile).toString ();
+        const existinPhpBody = fs.readFileSync (files.phpFileAsync).toString ();
         const newPhp = existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + phpAsync + '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1];
-        overwriteFile (test.phpFile, newPhp);
+        overwriteFile (files.phpFileAsync, newPhp);
 
         python3 = python3.replace (/from ccxt\.async_support(.*)/g, '');
-        const existinPythonBody = fs.readFileSync (test.pyFile).toString ();
+        const existinPythonBody = fs.readFileSync (files.pyFileAsync).toString ();
         let newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
-        overwriteFile (test.pyFile, newPython);
-        this.transpilePythonAsyncToSync (test.pyFile, test.pyFileAsync);
-        this.transpilePhpAsyncToSync (test.phpFile, test.phpFileAsync);
+        overwriteFile (files.pyFileAsync, newPython);
+        this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFile);
+        this.transpilePhpAsyncToSync (files.phpFileAsync, files.phpFile);
     }
 
     // ============================================================================
@@ -1900,7 +1899,7 @@ class Transpiler {
             [ /module.exports\s+=\s+[^;]+;/g, '' ],
         ])
         //const isAsync = test.jsFile.indexOf ('async ') >= 0 && test.jsFile.indexOf ('await ') >= 0;
-        const tr = (content)=>{ 
+        const indentRemove = (content)=>{ 
             return content.replace (/^\s{4}/,'');
         };
         const methods = js.trim ().split (/\n\s*\n/)
@@ -1912,7 +1911,7 @@ class Transpiler {
             const pre = i===0? '' : '\n\n';
             python3Body += pre + obj.python3[iPY+1].trim() + '\n' + obj.python3[iPY+2];
             phpBody += pre + obj.php[iPH+1].trim()  + '\n' + obj.php[iPH+2] + '\n' + obj.php[iPH+3].trim();
-            phpBodyAsync += pre + obj.phpAsync[iPH+1].trim()  + '\n'+ tr(obj.phpAsync[iPH+2]) + '\n' + obj.phpAsync[iPH+3].trim();
+            phpBodyAsync += pre + obj.phpAsync[iPH+1].trim()  + '\n'+ indentRemove(obj.phpAsync[iPH+2]) + '\n' + obj.phpAsync[iPH+3].trim();
         }
       
         const ohlcvCaser = (content) => content.
