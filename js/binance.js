@@ -7025,10 +7025,14 @@ module.exports = class binance extends Exchange {
          * @returns {[object]} a list of [settlement history objects]
          */
         await this.loadMarkets ();
-        let market = undefined;
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
+        if (type !== 'option') {
+            throw new NotSupported (this.id + ' fetchSettlementHistory() supports option markets only');
+        }
         const request = {};
         if (symbol !== undefined) {
-            market = this.market (symbol);
             const optionParts = symbol.split ('-');
             const symbolBase = symbol.split ('/');
             let base = undefined;
