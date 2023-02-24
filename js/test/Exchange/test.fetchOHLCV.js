@@ -10,9 +10,8 @@ async function testFetchOHLCV (exchange, symbol) {
         console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
         return;
     }
-    const exchangeTimeframes = exchange.safeValue (exchange, 'timeframes', { '1d': '1d' });
-    const exchangeTimeframeKeys = Object.keys (exchangeTimeframes);
-    const timeframe = exchangeTimeframeKeys[0];
+    const timeframes = Object.keys (exchange.timeframes);
+    const timeframe = timeframes[0];
     const limit = 10;
     const duration = exchange.parseTimeframe (timeframe);
     const since = exchange.milliseconds () - duration * limit * 1000 - 1000;

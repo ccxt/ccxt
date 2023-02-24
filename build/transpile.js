@@ -1089,10 +1089,10 @@ class Transpiler {
 
     //-----------------------------------------------------------------------------
 
-    transpilePythonAsyncToSync () {
+    transpilePythonAsyncToSync (asyncFilePath, syncFilePath) {
 
-        const async = './python/ccxt/test/test_async.py'
-        const sync = './python/ccxt/test/test_sync.py'
+        const async = asyncFilePath
+        const sync = syncFilePath
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
         let lines = fileContents.split ("\n")
@@ -1135,10 +1135,10 @@ class Transpiler {
 
     //-----------------------------------------------------------------------------
 
-    transpilePhpAsyncToSync () {
+    transpilePhpAsyncToSync (asyncFilePath, syncFilePath) {
 
-        const async = './php/test/test_async.php'
-        const sync = './php/test/test_sync.php'
+        const async = asyncFilePath
+        const sync = syncFilePath
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
         const syncBody = this.transpileAsyncPHPToSyncPHP (fileContents)
@@ -1812,11 +1812,14 @@ class Transpiler {
  
     transpileExchangeTestsAuto () {
 
-        this.transpileMainTests ({
+        const mainTests = {
             'jsFile': './js/test/test.js',
             'pyFile': './python/ccxt/test/test_async.py',
             'phpFile': './php/test/test_async.php',
-        });
+            'pyFileAsync': './python/ccxt/test/test_sync.py',
+            'phpFileAsync': './php/test/test_sync.php',
+        };
+        this.transpileMainTests (mainTests);
 
         const baseFolders = {
             js: './js/test/Exchange/',
@@ -1847,6 +1850,8 @@ class Transpiler {
                 jsFile: baseFolders.js + originalJsFileName + '.js',
                 pyFile: baseFolders.py + prefix + unCamelCasedFileName + '.py',
                 phpFile: baseFolders.php + prefix + unCamelCasedFileName + '.php',
+                pyFileAsync: baseFolders.py + prefix + unCamelCasedFileName + '_async.py',
+                phpFileAsync: baseFolders.php + prefix + unCamelCasedFileName + '_async.php',
             };
             this.transpileTest (test);
         }
@@ -1876,6 +1881,8 @@ class Transpiler {
         const existinPythonBody = fs.readFileSync (test.pyFile).toString ();
         let newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
         overwriteFile (test.pyFile, newPython);
+        this.transpilePythonAsyncToSync (test.pyFile, test.pyFileAsync);
+        this.transpilePhpAsyncToSync (test.phpFile, test.phpFileAsync);
     }
 
     // ============================================================================
@@ -1892,16 +1899,36 @@ class Transpiler {
             [ /[^\n]+require[^\n]+\n/g, '' ],
             [ /module.exports\s+=\s+[^;]+;/g, '' ],
         ])
-
-        let { python3Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
-
+        //const isAsync = test.jsFile.indexOf ('async ') >= 0 && test.jsFile.indexOf ('await ') >= 0;
+        const tr = (content)=>{ 
+            return content.replace (/^\s{4}/,'');
+        };
+        const methods = js.trim ().split (/\n\s*\n/)
+        var obj = this.transpileMethodsToAllLanguages ('', methods);
+        let python3Body='',phpBody='',phpBodyAsync='';
+        for (let i = 0; i < methods.length; i++) {
+            const iPY = i * 3;
+            const iPH = i * 4;
+            const pre = i===0? '' : '\n\n';
+            python3Body += pre + obj.python3[iPY+1].trim() + '\n' + obj.python3[iPY+2];
+            phpBody += pre + obj.php[iPH+1].trim()  + '\n' + obj.php[iPH+2] + '\n' + obj.php[iPH+3].trim();
+            phpBodyAsync += pre + obj.phpAsync[iPH+1].trim()  + '\n'+ tr(obj.phpAsync[iPH+2]) + '\n' + obj.phpAsync[iPH+3].trim();
+        }
+      
+        const ohlcvCaser = (content) => content.replace ('testOHLCV', 'test_ohlcv')
+        python3Body = python3Body.replace (/\(self, /g, '(').replace ('exchange[method]', 'getattr(exchange,method)');
+        python3Body = ohlcvCaser (python3Body);
+        phpBody = phpBody.replace (/public /g, '');
+        phpBody = ohlcvCaser (phpBody);
+        phpBodyAsync = phpBodyAsync.replace (/public /g, '');
+        phpBodyAsync = ohlcvCaser (phpBodyAsync);
         // py
         let pythonHeader = []
-        let phpPreamble = this.getPHPPreamble (false)
-
         if (python3Body.indexOf ('numbers.') >= 0) {
             pythonHeader.push ('import numbers  # noqa E402')
         }
+
+        let phpPreamble = this.getPHPPreamble (false)
 
         if (containsPrecise) {
             pythonHeader.push ('from ccxt.base.precise import Precise  # noqa E402')
@@ -1925,7 +1952,7 @@ class Transpiler {
                 phpBody = subTestNameUnCamelCase(phpBody, subTestName)
             }
         }
-        
+
         // todo: transpiler doesnt tranpile into unCamelCases correctly, so manually unCamelCase here
         if (test.jsFile.includes ('sharedMethods')) {
             [...  js.matchAll (/function (.*?) \(/g)].forEach(match => {
@@ -1935,22 +1962,23 @@ class Transpiler {
                 phpBody = phpBody.replace (regex, unCamelCase(funcName));
             });
         }
-        python3Body = python3Body.replace ('exchange[method]', 'getattr(exchange,method)');
+
         if (pythonHeader.length > 0) {
             pythonHeader.unshift ('')
             pythonHeader.push ('', '')
         }
-
         pythonHeader = pythonCodingUtf8 + '\n\n' + pythonHeader.join ('\n')
-
-        const python = pythonHeader + python3Body
-
-        const php = phpPreamble + phpBody
+ 
+        const finalPhpContentAsync = phpPreamble + phpBodyAsync
+        //const finalPhpContentSync = phpPreamble + phpBody
+        const finalPyContentAsync = pythonHeader + python3Body
+        
         log.magenta ('→', test.pyFile.yellow)
         log.magenta ('→', test.phpFile.yellow)
-
-        overwriteFile (test.pyFile, python)
-        overwriteFile (test.phpFile, php)
+        overwriteFile (test.pyFileAsync, finalPyContentAsync)
+        overwriteFile (test.phpFileAsync, finalPhpContentAsync)
+        this.transpilePythonAsyncToSync (test.pyFileAsync, test.pyFile);
+        this.transpilePhpAsyncToSync (test.phpFileAsync, test.phpFile);
     }
 
     // ============================================================================
@@ -2035,10 +2063,6 @@ class Transpiler {
         this.transpileErrorHierarchy ({ tsFilename })
 
         this.transpileTests ()
-
-        this.transpilePythonAsyncToSync ()
-
-        this.transpilePhpAsyncToSync ()
 
         this.transpilePhpBaseClassMethods ()
 

@@ -65,13 +65,19 @@ if 'site-packages' in os.path.dirname(ccxt.__file__):
 
 # ------------------------------------------------------------------------------
 
+# trick transpiler
+is_sync = ('token'+'_'+'bucket') not in locals()
+
 import importlib  # noqa: E402
 import glob  # noqa: E402
 testFiles = {}
 for file_path in glob.glob(current_dir + '/test_*.py'):
     name = os.path.basename(file_path)[:-3]
     if (name != 'test_async') and (name != 'test_sync'):
-        testFiles[name] = importlib.import_module(name)
+        if not is_sync and '_async' in name:
+            testFiles[name.replace('_async','')] = importlib.import_module(name)
+        elif is_sync and '_async' not in name:
+            testFiles[name] = importlib.import_module(name.replace('test_async', 'test_sync'))
 
 # print a colored string
 def dump(*args):
@@ -103,7 +109,9 @@ import re
 def methodNamerInTest(methodName):
     snake_cased = re.sub(r'(?<!^)(?=[A-Z])', '_', methodName).lower()
     snake_cased = snake_cased.replace('o_h_l_c_v', 'ohlcv')
-    return 'test_' + snake_cased
+    full_name = 'test_' + snake_cased
+    return full_name
+
 targetDir = current_dir + '/../../'
 envVars = {}
 class emptyClass():
