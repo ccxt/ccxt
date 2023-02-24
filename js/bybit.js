@@ -6916,7 +6916,7 @@ module.exports = class bybit extends Exchange {
         const request = {};
         if (code !== undefined) {
             currency = this.safeCurrencyCode (code);
-            request['coin'] = currency['id'];
+            request['coin'] = currency;
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -7091,7 +7091,7 @@ module.exports = class bybit extends Exchange {
         //      }
         //
         const currencyId = this.safeString (transfer, 'coin');
-        const timestamp = this.safeTimestamp (transfer, 'timestamp');
+        const timestamp = this.safeInteger (transfer, 'timestamp');
         const fromAccountId = this.safeString2 (transfer, 'fromAccountType', 'from_account_type');
         const toAccountId = this.safeString2 (transfer, 'toAccountType', 'to_account_type');
         const accountIds = this.safeValue (this.options, 'accountsById', {});
