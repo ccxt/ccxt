@@ -46,7 +46,7 @@ define ('is_sync', stripos(__FILE__, '_async') === false);
 foreach (Exchange::$exchanges as $id) {
     if (in_array($id, $args)) {
         $exchangeName = '\\ccxt\\async\\' . $id;
-        $exchange = new $exchangeName();
+        $selected_exchange = new $exchangeName();
                             // httpsAgent,
                             // verbose,
                             // enableRateLimit,
@@ -55,7 +55,7 @@ foreach (Exchange::$exchanges as $id) {
     }
 }
 
-if (!$exchange) {
+if (!$selected_exchange) {
     throw new \Exception('No exchange specified');
 }
 
@@ -70,7 +70,7 @@ function method_namer_in_test($methodName) {
 define('targetDir', __DIR__ . '/../../');
 
 foreach (glob(__DIR__ . '/test_*.php') as $filename) {
-    if (strpos($filename, 'test_async') === false && strpos($filename, 'test_sync') === false) {
+    if (strpos($filename, 'test_async') === false && strpos($filename, 'test_sync') === false && strpos($filename, 'datetime_functions') === false) {
         if (
             (is_sync && stripos($filename, '_async') === false) 
                 ||
@@ -617,5 +617,5 @@ class testMainClass extends emptyClass {
 
 // ### AUTO-TRANSPILER-END ###
 // ###########################
-$promise = (new testMainClass())->init($exchange, $exchangeSymbol); // Async\coroutine(
+$promise = (new testMainClass())->init($selected_exchange, $exchangeSymbol); // Async\coroutine(
 //Async\await($promise);

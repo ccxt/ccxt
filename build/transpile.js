@@ -1146,6 +1146,7 @@ class Transpiler {
         const phpTestRegexes = [
             [ /Async\\coroutine\(\$main\)/, '\$main()' ],
             [ /ccxt\\\\async/, 'ccxt' ],
+            [ /ccxt\\\\async/, 'ccxt' ],
         ]
 
         const newContents = this.regexAll (syncBody, this.getPHPSyncRegexes ().concat (phpTestRegexes));
@@ -1870,18 +1871,28 @@ class Transpiler {
         const commentEndLine = '### AUTO-TRANSPILER-END ###';
 
         const mainContent = js.split (commentStartLine)[1].split (commentEndLine)[0];
-        let { python2, python3, phpSync, phpAsync, className, baseClass } = this.transpileClass (mainContent);
-        phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
-        const existinPhpBody = fs.readFileSync (files.phpFileAsync).toString ();
-        const newPhp = existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + phpAsync + '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1];
-        overwriteFile (files.phpFileAsync, newPhp);
+        let { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (mainContent);
 
+        // ########### PYTHON ###########
         python3 = python3.replace (/from ccxt\.async_support(.*)/g, '');
         const existinPythonBody = fs.readFileSync (files.pyFileAsync).toString ();
         let newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
         overwriteFile (files.pyFileAsync, newPython);
-        this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFile);
-        this.transpilePhpAsyncToSync (files.phpFileAsync, files.phpFile);
+        this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
+
+        
+        // ########### PHP ###########
+        phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
+        const existinPhpBody = fs.readFileSync (files.phpFileAsync).toString ();
+        const phpReform = (cont) =>
+            existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + cont + '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1];
+        const bodyPhpAsync = phpReform (phpAsync);
+        overwriteFile (files.phpFileAsync, bodyPhpAsync);
+        //doesnt work: this.transpilePhpAsyncToSync (files.phpFileAsync, files.phpFileSync);
+        const phpRemovedStart = php.replace (/\<\?php(.*?)(?:namespace ccxt)/gs, '');
+        let bodyPhpSync = phpReform (phpRemovedStart); 
+        bodyPhpSync = bodyPhpSync.replace (/ccxt(\\)+async/g, 'ccxt');
+        overwriteFile (files.phpFileSync, bodyPhpSync);
     }
 
     // ============================================================================
@@ -1985,7 +1996,7 @@ class Transpiler {
         overwriteFile (test.pyFileAsync, finalPyContentAsync)
         overwriteFile (test.phpFileAsync, finalPhpContentAsync)
         this.transpilePythonAsyncToSync (test.pyFileAsync, test.pyFile);
-        //this.transpilePhpAsyncToSync (test.phpFileAsync, test.phpFile);
+        //doesnt work: this.transpilePhpAsyncToSync (test.phpFileAsync, test.phpFile);
         overwriteFile (test.phpFile, finalPhpContentSync)
         
     }
