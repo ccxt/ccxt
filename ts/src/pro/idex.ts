@@ -600,17 +600,17 @@ export default class idex extends idexRest {
         const id = this.safeString (order, 'i');
         const side = this.safeString (order, 's');
         const orderType = this.safeString (order, 'o');
-        const amount = this.safeFloat (order, 'q');
-        const filled = this.safeFloat (order, 'z');
+        const amount = this.safeString (order, 'q');
+        const filled = this.safeString (order, 'z');
         let remaining = undefined;
         if ((amount !== undefined) && (filled !== undefined)) {
-            remaining = amount - filled;
+            remaining = Precise.stringSub (amount, filled);
         }
-        const average = this.safeFloat (order, 'v');
-        const price = this.safeFloat (order, 'price', average);  // for market orders
+        const average = this.safeString (order, 'v');
+        const price = this.safeString (order, 'price', average);  // for market orders
         let cost = undefined;
         if ((amount !== undefined) && (price !== undefined)) {
-            cost = amount * price;
+            cost = Precise.stringMul (amount, price);
         }
         const rawStatus = this.safeString (order, 'X');
         const status = this.parseOrderStatus (rawStatus);
@@ -635,14 +635,14 @@ export default class idex extends idexRest {
             'symbol': symbol,
             'type': orderType,
             'side': side,
-            'price': price,
+            'price': this.parseNumber (price),
             'stopPrice': undefined,
             'triggerPrice': undefined,
-            'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
-            'remaining': remaining,
+            'amount': this.parseNumber (amount),
+            'cost': this.parseNumber (cost),
+            'average': this.parseNumber (average),
+            'filled': this.parseNumber (filled),
+            'remaining': this.parseNumber (remaining),
             'status': status,
             'fee': fee,
             'trades': trades,
