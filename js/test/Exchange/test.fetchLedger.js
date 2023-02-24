@@ -1,7 +1,5 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
-
 const assert = require ('assert');
 const testSharedMethods = require ('./test.sharedMethods.js');
 const testLedgerItem = require ('./test.ledgerItem.js');

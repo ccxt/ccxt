@@ -19,7 +19,6 @@ function testBorrowRate (exchange, method, entry, requestedCode) {
     //
     // assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) // Milliseconds in an hour or a day
     testSharedMethods.Gt (exchange, method, entry, 'rate', '0');
-
 }
 
 module.exports = testBorrowRate;

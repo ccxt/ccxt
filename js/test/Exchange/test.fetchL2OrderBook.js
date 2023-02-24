@@ -3,7 +3,7 @@
 const assert = require ('assert');
 const testOrderBook = require ('./test.orderBook.js');
 
-async function testFetchL2OrderBook(exchange, symbol) {
+async function testFetchL2OrderBook (exchange, symbol) {
     const method = 'fetchL2OrderBook';
     const skippedExchanges = [];
     if (exchange.inArray(exchange.id, skippedExchanges)) {

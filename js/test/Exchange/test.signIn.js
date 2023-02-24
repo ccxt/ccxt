@@ -1,6 +1,6 @@
 'use strict'
 
-async function testSignIn(exchange) {
+async function testSignIn (exchange) {
     const method = 'signIn';
     const skippedExchanges = [];
     if (exchange.inArray(exchange.id, skippedExchanges)) {

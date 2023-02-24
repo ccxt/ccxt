@@ -2,7 +2,7 @@
 
 const testAccount = require ('./test.account.js')
 
-async function testFetchAccounts(exchange) {
+async function testFetchAccounts (exchange) {
     const method = 'fetchAccounts';
     const skippedExchanges = [];
     if (exchange.inArray(exchange.id, skippedExchanges)) {
