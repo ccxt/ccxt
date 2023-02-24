@@ -166,16 +166,16 @@ module.exports = class bitfinex extends bitfinexRest {
             id = this.safeString (trade, tradeLength - 4);
         }
         const timestamp = this.safeTimestamp (trade, tradeLength - 3);
-        const price = this.safeFloat (trade, tradeLength - 2);
-        let amount = this.safeFloat (trade, tradeLength - 1);
+        const price = this.safeString (trade, tradeLength - 2);
+        let amount = this.safeString (trade, tradeLength - 1);
         let side = undefined;
         if (amount !== undefined) {
-            side = (amount > 0) ? 'buy' : 'sell';
-            amount = Math.abs (amount);
+            side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
+            amount = Precise.stringAbs (amount);
         }
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
+            cost = Precise.stringMul (amount, price);
         }
         const seq = this.safeString (trade, 2);
         const parts = seq.split ('-');
@@ -186,7 +186,7 @@ module.exports = class bitfinex extends bitfinexRest {
         const symbol = this.safeSymbol (marketId, market);
         const takerOrMaker = undefined;
         const orderId = undefined;
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -200,7 +200,7 @@ module.exports = class bitfinex extends bitfinexRest {
             'amount': amount,
             'cost': cost,
             'fee': undefined,
-        };
+        });
     }
 
     handleTicker (client, message, subscription) {
