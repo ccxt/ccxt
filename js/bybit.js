@@ -2552,8 +2552,10 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        let defaultLimit = 25;
         if (market['spot']) {
             // limit: [1, 50]. Default: 1
+            defaultLimit = 50;
             request['category'] = 'spot';
         } else {
             if (market['option']) {
@@ -2567,9 +2569,7 @@ module.exports = class bybit extends Exchange {
                 request['category'] = 'inverse';
             }
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
+        request['limit'] = (limit !== undefined) ? limit : defaultLimit;
         const response = await this.publicGetV5MarketOrderbook (this.extend (request, params));
         //
         //     {
@@ -7147,7 +7147,7 @@ module.exports = class bybit extends Exchange {
         if (leverage === undefined) {
             sellLeverage = this.safeNumber2 (params, 'sell_leverage', 'sellLeverage');
             buyLeverage = this.safeNumber2 (params, 'buy_leverage', 'buyLeverage');
-            if (sellLeverage === undefined || buyLeverage === undefined) {
+            if (sellLeverage === undefined && buyLeverage === undefined) {
                 throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
             }
             params = this.omit (params, [ 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ]);
@@ -7813,7 +7813,7 @@ module.exports = class bybit extends Exchange {
         //      }
         //
         const currencyId = this.safeString (transfer, 'coin');
-        const timestamp = this.safeTimestamp (transfer, 'timestamp');
+        const timestamp = this.safeInteger (transfer, 'timestamp');
         const fromAccountId = this.safeString2 (transfer, 'fromAccountType', 'from_account_type');
         const toAccountId = this.safeString2 (transfer, 'toAccountType', 'to_account_type');
         const accountIds = this.safeValue (this.options, 'accountsById', {});
@@ -7830,140 +7830,6 @@ module.exports = class bybit extends Exchange {
             'toAccount': toAccount,
             'status': this.parseTransferStatus (this.safeString (transfer, 'status')),
         };
-    }
-
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
-        if (api === 'public') {
-            if (Object.keys (params).length) {
-                url += '?' + this.rawencode (params);
-            }
-        } else if (api === 'private') {
-            this.checkRequiredCredentials ();
-            const isOpenapi = url.indexOf ('openapi') >= 0;
-            const isV3UnifiedMargin = url.indexOf ('unified/v3') >= 0;
-            const isV5UnifiedAccount = url.indexOf ('v5') >= 0;
-            const timestamp = this.nonce ().toString ();
-            if (isOpenapi) {
-                if (Object.keys (params).length) {
-                    body = this.json (params);
-                } else {
-                    // this fix for PHP is required otherwise it generates
-                    // '[]' on empty arrays even when forced to use objects
-                    body = '{}';
-                }
-                const payload = timestamp + this.apiKey + body;
-                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
-                headers = {
-                    'Content-Type': 'application/json',
-                    'X-BAPI-API-KEY': this.apiKey,
-                    'X-BAPI-TIMESTAMP': timestamp,
-                    'X-BAPI-SIGN': signature,
-                };
-            } else if (isV3UnifiedMargin || isV5UnifiedAccount) {
-                headers = {
-                    'Content-Type': 'application/json',
-                    'X-BAPI-API-KEY': this.apiKey,
-                    'X-BAPI-TIMESTAMP': timestamp,
-                    'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString (),
-                };
-                if (isV3UnifiedMargin) {
-                    headers['X-BAPI-SIGN-TYPE'] = '2';
-                }
-                const query = params;
-                const queryEncoded = this.rawencode (query);
-                const auth_base = timestamp.toString () + this.apiKey + this.options['recvWindow'].toString ();
-                let authFull = undefined;
-                if (method === 'POST') {
-                    body = this.json (query);
-                    authFull = auth_base + body;
-                } else {
-                    authFull = auth_base + queryEncoded;
-                    url += '?' + this.rawencode (query);
-                }
-                headers['X-BAPI-SIGN'] = this.hmac (this.encode (authFull), this.encode (this.secret));
-            } else {
-                const query = this.extend (params, {
-                    'api_key': this.apiKey,
-                    'recv_window': this.options['recvWindow'],
-                    'timestamp': timestamp,
-                });
-                const sortedQuery = this.keysort (query);
-                const auth = this.rawencode (sortedQuery);
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-                if (method === 'POST') {
-                    const isSpot = url.indexOf ('spot') >= 0;
-                    const extendedQuery = this.extend (query, {
-                        'sign': signature,
-                    });
-                    if (isSpot) {
-                        body = this.urlencode (extendedQuery);
-                        headers = {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        };
-                    } else {
-                        body = this.json (extendedQuery);
-                        headers = {
-                            'Content-Type': 'application/json',
-                        };
-                    }
-                } else {
-                    url += '?' + this.rawencode (sortedQuery);
-                    url += '&sign=' + signature;
-                }
-            }
-        }
-        if (method === 'POST') {
-            const brokerId = this.safeString (this.options, 'brokerId');
-            if (brokerId !== undefined) {
-                headers['Referer'] = brokerId;
-            }
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
-            return; // fallback to default error handler
-        }
-        //
-        //     {
-        //         ret_code: 10001,
-        //         ret_msg: 'ReadMapCB: expect { or n, but found \u0000, error ' +
-        //         'found in #0 byte of ...||..., bigger context ' +
-        //         '...||...',
-        //         ext_code: '',
-        //         ext_info: '',
-        //         result: null,
-        //         time_now: '1583934106.590436'
-        //     }
-        //
-        //     {
-        //         "retCode":10001,
-        //         "retMsg":"symbol params err",
-        //         "result":{"symbol":"","bid":"","bidIv":"","bidSize":"","ask":"","askIv":"","askSize":"","lastPrice":"","openInterest":"","indexPrice":"","markPrice":"","markPriceIv":"","change24h":"","high24h":"","low24h":"","volume24h":"","turnover24h":"","totalVolume":"","totalTurnover":"","fundingRate":"","predictedFundingRate":"","nextFundingTime":"","countdownHour":"0","predictedDeliveryPrice":"","underlyingPrice":"","delta":"","gamma":"","vega":"","theta":""}
-        //     }
-        //
-        const errorCode = this.safeString2 (response, 'ret_code', 'retCode');
-        if (errorCode !== '0') {
-            if (errorCode === '30084') {
-                // not an error
-                // https://github.com/ccxt/ccxt/issues/11268
-                // https://github.com/ccxt/ccxt/pull/11624
-                // POST https://api.bybit.com/v2/private/position/switch-isolated 200 OK
-                // {"ret_code":30084,"ret_msg":"Isolated not modified","ext_code":"","ext_info":"","result":null,"time_now":"1642005219.937988","rate_limit_status":73,"rate_limit_reset_ms":1642005219894,"rate_limit":75}
-                return undefined;
-            }
-            let feedback = undefined;
-            if (errorCode === '10005') {
-                feedback = this.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body;
-            } else {
-                feedback = this.id + ' ' + body;
-            }
-            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            throw new ExchangeError (feedback); // unknown message
-        }
     }
 
     async fetchDerivativesMarketLeverageTiers (symbol, params = {}) {
@@ -8238,5 +8104,139 @@ module.exports = class bybit extends Exchange {
             result[symbol] = fee;
         }
         return result;
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
+        if (api === 'public') {
+            if (Object.keys (params).length) {
+                url += '?' + this.rawencode (params);
+            }
+        } else if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const isOpenapi = url.indexOf ('openapi') >= 0;
+            const isV3UnifiedMargin = url.indexOf ('unified/v3') >= 0;
+            const isV5UnifiedAccount = url.indexOf ('v5') >= 0;
+            const timestamp = this.nonce ().toString ();
+            if (isOpenapi) {
+                if (Object.keys (params).length) {
+                    body = this.json (params);
+                } else {
+                    // this fix for PHP is required otherwise it generates
+                    // '[]' on empty arrays even when forced to use objects
+                    body = '{}';
+                }
+                const payload = timestamp + this.apiKey + body;
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
+                headers = {
+                    'Content-Type': 'application/json',
+                    'X-BAPI-API-KEY': this.apiKey,
+                    'X-BAPI-TIMESTAMP': timestamp,
+                    'X-BAPI-SIGN': signature,
+                };
+            } else if (isV3UnifiedMargin || isV5UnifiedAccount) {
+                headers = {
+                    'Content-Type': 'application/json',
+                    'X-BAPI-API-KEY': this.apiKey,
+                    'X-BAPI-TIMESTAMP': timestamp,
+                    'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString (),
+                };
+                if (isV3UnifiedMargin) {
+                    headers['X-BAPI-SIGN-TYPE'] = '2';
+                }
+                const query = params;
+                const queryEncoded = this.rawencode (query);
+                const auth_base = timestamp.toString () + this.apiKey + this.options['recvWindow'].toString ();
+                let authFull = undefined;
+                if (method === 'POST') {
+                    body = this.json (query);
+                    authFull = auth_base + body;
+                } else {
+                    authFull = auth_base + queryEncoded;
+                    url += '?' + this.rawencode (query);
+                }
+                headers['X-BAPI-SIGN'] = this.hmac (this.encode (authFull), this.encode (this.secret));
+            } else {
+                const query = this.extend (params, {
+                    'api_key': this.apiKey,
+                    'recv_window': this.options['recvWindow'],
+                    'timestamp': timestamp,
+                });
+                const sortedQuery = this.keysort (query);
+                const auth = this.rawencode (sortedQuery);
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                if (method === 'POST') {
+                    const isSpot = url.indexOf ('spot') >= 0;
+                    const extendedQuery = this.extend (query, {
+                        'sign': signature,
+                    });
+                    if (isSpot) {
+                        body = this.urlencode (extendedQuery);
+                        headers = {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        };
+                    } else {
+                        body = this.json (extendedQuery);
+                        headers = {
+                            'Content-Type': 'application/json',
+                        };
+                    }
+                } else {
+                    url += '?' + this.rawencode (sortedQuery);
+                    url += '&sign=' + signature;
+                }
+            }
+        }
+        if (method === 'POST') {
+            const brokerId = this.safeString (this.options, 'brokerId');
+            if (brokerId !== undefined) {
+                headers['Referer'] = brokerId;
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            return; // fallback to default error handler
+        }
+        //
+        //     {
+        //         ret_code: 10001,
+        //         ret_msg: 'ReadMapCB: expect { or n, but found \u0000, error ' +
+        //         'found in #0 byte of ...||..., bigger context ' +
+        //         '...||...',
+        //         ext_code: '',
+        //         ext_info: '',
+        //         result: null,
+        //         time_now: '1583934106.590436'
+        //     }
+        //
+        //     {
+        //         "retCode":10001,
+        //         "retMsg":"symbol params err",
+        //         "result":{"symbol":"","bid":"","bidIv":"","bidSize":"","ask":"","askIv":"","askSize":"","lastPrice":"","openInterest":"","indexPrice":"","markPrice":"","markPriceIv":"","change24h":"","high24h":"","low24h":"","volume24h":"","turnover24h":"","totalVolume":"","totalTurnover":"","fundingRate":"","predictedFundingRate":"","nextFundingTime":"","countdownHour":"0","predictedDeliveryPrice":"","underlyingPrice":"","delta":"","gamma":"","vega":"","theta":""}
+        //     }
+        //
+        const errorCode = this.safeString2 (response, 'ret_code', 'retCode');
+        if (errorCode !== '0') {
+            if (errorCode === '30084') {
+                // not an error
+                // https://github.com/ccxt/ccxt/issues/11268
+                // https://github.com/ccxt/ccxt/pull/11624
+                // POST https://api.bybit.com/v2/private/position/switch-isolated 200 OK
+                // {"ret_code":30084,"ret_msg":"Isolated not modified","ext_code":"","ext_info":"","result":null,"time_now":"1642005219.937988","rate_limit_status":73,"rate_limit_reset_ms":1642005219894,"rate_limit":75}
+                return undefined;
+            }
+            let feedback = undefined;
+            if (errorCode === '10005') {
+                feedback = this.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body;
+            } else {
+                feedback = this.id + ' ' + body;
+            }
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
