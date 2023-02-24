@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.34 (2023-02-24)
+
+
+### Features
+
+* **ccxt.d.ts:** add transfer and setLeverage types ([6e2c7d9](https://github.com/ccxt/ccxt/commit/6e2c7d94acbefeee90a02721f1b67bb424629c37))
+
 ### 2.8.33 (2023-02-24)
 
 ### 2.8.32 (2023-02-23)
