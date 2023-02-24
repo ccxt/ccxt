@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.36 (2023-02-24)
+
+
+### Bug Fixes
+
+* **Binance:** fix parseTrades margin ([7d52071](https://github.com/ccxt/ccxt/commit/7d52071baa76ec97a3692c3cce7cd534915ce3bb))
+
 ### 2.8.35 (2023-02-24)
 
 ### 2.8.34 (2023-02-24)
