@@ -40,6 +40,7 @@ define ('sandbox', in_array('--sandbox', $args));
 define ('privateTest', in_array('--private', $args));
 define ('privateOnly', in_array('--privateOnly', $args));
 
+define ('is_sync', stripos(__FILE__, '_async') === false);
 
 //-----------------------------------------------------------------------------
 foreach (Exchange::$exchanges as $id) {
@@ -59,7 +60,7 @@ if (!$exchange) {
 }
 
 function methodNamerInTest($methodName) {
-    $snake_cased = strtolower(preg_replace('(?<!^)(?=[A-Z])', '_', $methodName));
+    $snake_cased = strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName));
     $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', $snake_cased);
     return 'test_' . $snake_cased;
 }
@@ -68,9 +69,15 @@ define('targetDir', __DIR__ . '/../../');
 global $testMethodsArray;
 $testMethodsArray = [];
 
-foreach (glob(__DIR__ . '/transpiled_test_*.php') as $filename) {
-    if (strpos($filename, 'transpiled_test_async') === false && strpos($filename, 'transpiled_test_sync') === false) {
-        include_once $filename;
+foreach (glob(__DIR__ . '/test_*.php') as $filename) {
+    if (strpos($filename, 'test_async') === false && strpos($filename, 'test_sync') === false) {
+        if (
+            (is_sync && stripos($filename, '_sync') !== false) 
+                ||
+            (!is_sync && stripos($filename, '_async') !== false)
+        ){
+            include_once $filename;
+        }
     }
 }
 

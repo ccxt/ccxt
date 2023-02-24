@@ -24,7 +24,7 @@ async function testFetchLedger (exchange, code) {
     if (exchange.has[method]) {
         if (items.length >= 1) {
             const item = await exchange[method] (items[0].id);
-            testLedgerItem (exchange, method, item, code, now)
+            testLedgerItem (exchange, method, item, code, now);
         }
     }
 }

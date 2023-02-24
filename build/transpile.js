@@ -1970,7 +1970,7 @@ class Transpiler {
         pythonHeader = pythonCodingUtf8 + '\n\n' + pythonHeader.join ('\n')
  
         const finalPhpContentAsync = phpPreamble + phpBodyAsync
-        //const finalPhpContentSync = phpPreamble + phpBody
+        const finalPhpContentSync = phpPreamble + phpBody
         const finalPyContentAsync = pythonHeader + python3Body
         
         log.magenta ('→', test.pyFile.yellow)
@@ -1978,7 +1978,9 @@ class Transpiler {
         overwriteFile (test.pyFileAsync, finalPyContentAsync)
         overwriteFile (test.phpFileAsync, finalPhpContentAsync)
         this.transpilePythonAsyncToSync (test.pyFileAsync, test.pyFile);
-        this.transpilePhpAsyncToSync (test.phpFileAsync, test.phpFile);
+        //this.transpilePhpAsyncToSync (test.phpFileAsync, test.phpFile);
+        overwriteFile (test.phpFile, finalPhpContentSync)
+        
     }
 
     // ============================================================================

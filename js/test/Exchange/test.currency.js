@@ -31,7 +31,7 @@ function testCurrency (exchange, method, entry) {
     testSharedMethods.reviseCurrencyCode (exchange, method, entry, entry['code']);
     //
     testSharedMethods.Gt (exchange, method, entry, 'precision', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'fee', '0')
+    testSharedMethods.Ge (exchange, method, entry, 'fee', '0');
     const limits = exchange.safeValue (entry, 'limits', {});
     const withdrawLimits = exchange.safeValue (limits, 'withdraw', {});
     const depositLimits = exchange.safeValue (limits, 'deposit', {});

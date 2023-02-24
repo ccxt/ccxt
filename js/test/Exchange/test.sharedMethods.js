@@ -35,7 +35,8 @@ function reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFo
         const keys = Object.keys (format);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            assert (key in entry, key.toString () + ' key is missing from structure' + logText);
+            const keyStr = key.toString ();
+            assert (key in entry, keyStr + ' key is missing from structure' + logText);
             if (exchange.inArray (key, emptyNotAllowedFor)) {
                 // if it was in needed keys, then it should have value.
                 assert (entry[key] !== undefined, key + ' key is undefined, but is expected to be present' + logText);
@@ -52,7 +53,7 @@ function areSameTypes (exchange, entry, key, format) {
     const same_string = (typeof entryKeyVal === 'string') && (typeof formatKeyVal === 'string');
     const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
     const same_boolean =  ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
-    const same_array = Array.isArray(entryKeyVal) && Array.isArray(formatKeyVal)
+    const same_array = Array.isArray(entryKeyVal) && Array.isArray(formatKeyVal);
     const same_object = (typeof entryKeyVal === 'object') && (typeof formatKeyVal === 'object');
     const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
     return result;
