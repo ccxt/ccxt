@@ -1973,7 +1973,9 @@ class Transpiler {
         }
         pythonHeader = pythonCodingUtf8 + '\n\n' + pythonHeader.join ('\n')
  
-        const finalPhpContentAsync = phpPreamble + phpBodyAsync
+        const phpPreambleAsync = phpPreamble.replace (/namespace ccxt;/, 'namespace ccxt;\nuse React\\\Async;\nuse React\\\Promise;');
+
+        const finalPhpContentAsync = phpPreambleAsync + phpBodyAsync
         const finalPhpContentSync = phpPreamble + phpBody
         const finalPyContentAsync = pythonHeader + python3Body
         

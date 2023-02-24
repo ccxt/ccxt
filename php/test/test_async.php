@@ -66,9 +66,6 @@ function methodNamerInTest($methodName) {
 }
 define('targetDir', __DIR__ . '/../../');
 
-global $testMethodsArray;
-$testMethodsArray = [];
-
 foreach (glob(__DIR__ . '/test_*.php') as $filename) {
     if (strpos($filename, 'test_async') === false && strpos($filename, 'test_sync') === false) {
         if (
@@ -81,7 +78,15 @@ foreach (glob(__DIR__ . '/test_*.php') as $filename) {
     }
 }
 
-define('testFiles', $testMethodsArray);
+$allfuncs = get_defined_functions()['user'];
+$testFuncs = [];
+foreach ($allfuncs as $fName) {
+    if (stripos($fName, 'ccxt\\test_')!==false) {
+        $nameWithoutNs = str_replace('ccxt\\', '', $fName);
+        $testFuncs[$nameWithoutNs] = $fName;
+    }
+}
+define('testFiles', $testFuncs);
 define('envVars', []);
 
 
