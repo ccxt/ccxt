@@ -512,7 +512,8 @@ module.exports = class krakenfutures extends Exchange {
         const volume = this.safeString (ticker, 'vol24h');
         let baseVolume = undefined;
         let quoteVolume = undefined;
-        if (!market['index']) {
+        const isIndex = this.safeValue (market, 'index', false);
+        if (!isIndex) {
             if (market['linear']) {
                 baseVolume = volume;
             } else if (market['inverse']) {
