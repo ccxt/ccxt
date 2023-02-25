@@ -699,6 +699,10 @@ module.exports = class gate extends gateRest {
         //   }
         //
         const result = this.safeValue (message, 'result', []);
+        const timestamp = this.safeInteger (message, 'time');
+        this.balance['info'] = result;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601 (timestamp);
         for (let i = 0; i < result.length; i++) {
             const rawBalance = result[i];
             const account = this.account ();
