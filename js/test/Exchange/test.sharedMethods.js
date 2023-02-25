@@ -36,7 +36,7 @@ function reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFo
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const keyStr = key.toString ();
-            assert (key in entry, keyStr + ' key is missing from structure' + logText);
+            assert ((key in entry), keyStr + ' key is missing from structure' + logText);
             if (exchange.inArray (key, emptyNotAllowedFor)) {
                 // if it was in needed keys, then it should have value.
                 assert (entry[key] !== undefined, key + ' key is undefined, but is expected to be present' + logText);
@@ -65,7 +65,7 @@ function reviseCommonTimestamp (exchange, method, entry, nowToCheck = undefined,
     const isDateTimeObject = typeof keyName === 'string';
     // ensure timestamp exists in object
     if (isDateTimeObject) {
-        assert (keyName in entry, 'timestamp key ' + keyName + ' is missing from structure' + logText);
+        assert ((keyName in entry), 'timestamp key ' + keyName + ' is missing from structure' + logText);
     } else {
         assert (typeof entry[keyName] !== 'undefined', 'timestamp index '+ keyName + ' is missing from structure' + logText);
     }
@@ -81,7 +81,7 @@ function reviseCommonTimestamp (exchange, method, entry, nowToCheck = undefined,
     // only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
     if (isDateTimeObject) {
         // we also test 'datetime' here because it's certain sibling of 'timestamp'
-        assert ('datetime' in entry, 'datetime is missing from structure' + logText);
+        assert (('datetime' in entry), 'datetime is missing from structure' + logText);
         const dt = entry['datetime'];
         if (dt !== undefined) {
             assert (typeof dt === 'string', 'datetime is not a string' + logText);
@@ -95,7 +95,7 @@ function reviseCurrencyCode (exchange, method, entry, actualCode, expectedCode =
     const logText = logTemplate (exchange, method, entry);
     if (actualCode !== undefined) {
         assert (typeof actualCode === 'string', 'currency code should be either undefined or a string' + logText);
-        assert (actualCode in exchange.currencies, 'currency code should be present in exchange.currencies' + logText);
+        assert ((actualCode in exchange.currencies), 'currency code should be present in exchange.currencies' + logText);
         if (expectedCode !== undefined) {
             assert (actualCode === expectedCode, 'currency code in response (' + actualCode + ') should be equal to expected code (' + expectedCode + ')' + logText);
         }
@@ -107,7 +107,7 @@ function reviseSymbol (exchange, method, entry, key, expectedSymbol = undefined)
     const actualSymbol = exchange.safeString (entry, key);
     if (actualSymbol !== undefined) {
         assert (typeof actualSymbol === 'string', 'symbol should be either undefined or a string' + logText);
-        assert (actualSymbol in exchange.markets, 'symbol should be present in exchange.symbols' + logText);
+        assert ((actualSymbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
     }
     if (expectedSymbol !== undefined) {
         assert (actualSymbol === expectedSymbol, 'symbol in response (' + actualSymbol + ') should be equal to expected symbol (' + expectedSymbol + ')' + logText);
@@ -158,9 +158,9 @@ function reviseAgainstArray (exchange, method, entry, key, expectedArray) {
 function reviseFeeObject (exchange, method, entry) {
     const logText = logTemplate (exchange, method, entry);
     if (entry !== undefined) {
-        assert ('cost' in entry, '"fee" should contain a "cost" key' + logText); 
+        assert (('cost' in entry), '"fee" should contain a "cost" key' + logText); 
         Ge (exchange, method, entry, 'cost', '0');
-        assert ('currency' in entry, '"fee" should contain a "currency" key' + logText);
+        assert (('currency' in entry), '"fee" should contain a "currency" key' + logText);
         reviseCurrencyCode (exchange, method, entry, entry['currency']);
     }
 }

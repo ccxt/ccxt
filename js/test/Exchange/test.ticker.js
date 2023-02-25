@@ -44,7 +44,8 @@ function testTicker (exchange, method, entry, symbol) {
     testSharedMethods.Gt (exchange, method, entry, 'average', '0');
     testSharedMethods.Ge (exchange, method, entry, 'baseVolume', '0');
     testSharedMethods.Ge (exchange, method, entry, 'quoteVolume', '0');
-    assert (!('first' in entry), '`first` field leftover' + logText);
+    const existsFirst = ('first' in entry);
+    assert (!existsFirst, '`first` field leftover' + logText);
     const lastString = exchange.safeString (entry, 'last');
     const closeString = exchange.safeString (entry, 'close');
     assert (((closeString === undefined) && (lastString === undefined)) || Precise.stringEq (lastString, closeString), '`last` != `close`' + logText);

@@ -87,6 +87,7 @@ foreach ($allfuncs as $fName) {
     if (stripos($fName, 'ccxt\\test_')!==false) {
         $nameWithoutNs = str_replace('ccxt\\', '', $fName);
         $testFuncs[$nameWithoutNs] = $fName;
+        
     }
 }
 define('testFiles', $testFuncs);
