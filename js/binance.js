@@ -7042,6 +7042,7 @@ module.exports = class binance extends Exchange {
         }
         const request = {};
         if (symbol !== undefined) {
+            symbol = market['symbol'];
             request['underlying'] = market['baseId'] + market['quoteId'];
         }
         if (since !== undefined) {
