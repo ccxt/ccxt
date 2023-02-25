@@ -3260,7 +3260,8 @@ class binance extends Exchange {
         $amount = $this->safe_string($trade, 'quantity', $amount);
         $cost = $this->safe_string_2($trade, 'quoteQty', 'baseQty');  // inverse futures
         $marketId = $this->safe_string($trade, 'symbol');
-        $marketType = (is_array($trade) && array_key_exists('isIsolated', $trade)) || (is_array($trade) && array_key_exists('M', $trade)) || (is_array($trade) && array_key_exists('orderListId', $trade)) ? 'spot' : 'contract';
+        $isSpotTrade = (is_array($trade) && array_key_exists('isIsolated', $trade)) || (is_array($trade) && array_key_exists('M', $trade)) || (is_array($trade) && array_key_exists('orderListId', $trade));
+        $marketType = $isSpotTrade ? 'spot' : 'contract';
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
         $id = $this->safe_string_2($trade, 't', 'a');

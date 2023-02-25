@@ -229,6 +229,18 @@ declare module 'ccxt' {
         tag?: string;
     }
 
+    export interface Transfer {
+        info: any;
+        id: string;
+        timestamp: number;
+        datetime: string;
+        currency: string;
+        amount: number;
+        fromAccount: string;
+        toAccount: string;
+        status: string;
+    }
+
     /** [ timestamp, open, high, low, close, volume ] */
     export type OHLCV = [number, number, number, number, number, number];
 
@@ -447,6 +459,8 @@ declare module 'ccxt' {
         symbol (symbol: string): string;
         withdraw (currency: string, amount: number, address: string, tag?: string, params?: Params): Promise<WithdrawalResponse>;
         YmdHMS (timestamp: string, infix: string) : string;
+        setLeverage (leverage:number, symbol:string, params?: Params): Promise<any>;
+        transfer (code: string, amount: number, fromAccount: string, toAccount: string, params?: Params): Promise<Transfer>;
     }
     
     /* tslint:disable */

@@ -510,8 +510,15 @@ module.exports = class krakenfutures extends Exchange {
         const percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
         const average = Precise.stringDiv (Precise.stringAdd (open, last), '2');
         const volume = this.safeString (ticker, 'vol24h');
-        const baseVolume = (!market['index'] && market['linear']) ? volume : undefined;
-        const quoteVolume = (!market['index'] && market['inverse']) ? volume : undefined;
+        let baseVolume = undefined;
+        let quoteVolume = undefined;
+        if (!market['index']) {
+            if (market['linear']) {
+                baseVolume = volume;
+            } else if (market['inverse']) {
+                quoteVolume = volume;
+            }
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
