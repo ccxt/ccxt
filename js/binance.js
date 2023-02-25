@@ -86,6 +86,7 @@ module.exports = class binance extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -1535,11 +1536,20 @@ module.exports = class binance extends Exchange {
                 if (futuresSymbol in this.markets) {
                     return this.markets[futuresSymbol];
                 }
-            } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) { // both exchange-id and unified symbols are supported this way regardless of the  defaultType
+            } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) { // both exchange-id and unified symbols are supported this way regardless of the defaultType
                 return this.createExpiredOptionMarket (symbol);
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+    }
+
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1));
+        if (isOption && !(marketId in this.markets_by_id)) {
+            // handle expired option contracts
+            return this.createExpiredOptionMarket (marketId);
+        }
+        return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
     costToPrecision (symbol, cost) {
@@ -7010,6 +7020,93 @@ module.exports = class binance extends Exchange {
         //     }
         //
         return await this[method] (this.extend (request, params));
+    }
+
+    async fetchSettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchSettlementHistory
+         * @description fetches historical settlement records
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#historical-exercise-records
+         * @param {string} symbol unified market symbol of the settlement history
+         * @param {int} since timestamp in ms
+         * @param {int} limit number of records, default 100, max 100
+         * @param {object} params exchange specific params
+         * @returns {[object]} a list of [settlement history objects]
+         */
+        await this.loadMarkets ();
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
+        if (type !== 'option') {
+            throw new NotSupported (this.id + ' fetchSettlementHistory() supports option markets only');
+        }
+        const request = {};
+        if (symbol !== undefined) {
+            symbol = market['symbol'];
+            request['underlying'] = market['baseId'] + market['quoteId'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.eapiPublicGetExerciseHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "ETH-230223-1900-P",
+        //             "strikePrice": "1900",
+        //             "realStrikePrice": "1665.5897334",
+        //             "expiryDate": 1677139200000,
+        //             "strikeResult": "REALISTIC_VALUE_STRICKEN"
+        //         }
+        //     ]
+        //
+        const settlements = this.parseSettlements (response, market);
+        const sorted = this.sortBy (settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseSettlement (settlement, market) {
+        //
+        //     {
+        //         "symbol": "ETH-230223-1900-P",
+        //         "strikePrice": "1900",
+        //         "realStrikePrice": "1665.5897334",
+        //         "expiryDate": 1677139200000,
+        //         "strikeResult": "REALISTIC_VALUE_STRICKEN"
+        //     }
+        //
+        const timestamp = this.safeInteger (settlement, 'expiryDate');
+        const marketId = this.safeString (settlement, 'symbol');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol (marketId, market),
+            'price': this.safeNumber (settlement, 'realStrikePrice'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    parseSettlements (settlements, market) {
+        //
+        //     [
+        //         {
+        //             "symbol": "ETH-230223-1900-P",
+        //             "strikePrice": "1900",
+        //             "realStrikePrice": "1665.5897334",
+        //             "expiryDate": 1677139200000,
+        //             "strikeResult": "EXTRINSIC_VALUE_EXPIRED"
+        //         }
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push (this.parseSettlement (settlements[i], market));
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
