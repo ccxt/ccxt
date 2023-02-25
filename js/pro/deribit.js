@@ -135,6 +135,7 @@ module.exports = class deribit extends deribitRest {
         //
         const params = this.safeValue (message, 'params', {});
         const data = this.safeValue (params, 'data', {});
+        this.balance['info'] = data;
         const currencyId = this.safeString (data, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
         const balance = this.parseBalance (data);
