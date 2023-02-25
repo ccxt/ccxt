@@ -667,30 +667,41 @@ module.exports = class poloniex extends poloniexRest {
     handleTicker (client, message) {
         //
         //    {
-        //        "symbol": "ETH_USDT",
-        //        "dailyChange": "0.9428",
-        //        "high": "507",
-        //        "amount": "20",
-        //        "quantity": "3",
-        //        "tradeCount": 11,
-        //        "low": "16",
-        //        "closeTime": 1634062351868,
-        //        "startTime": 1633996800000,
-        //        "close": "204",
-        //        "open": "105",
-        //        "ts": 1648052794867,
-        //        "markPrice": "205",
+        //        channel: 'ticker',
+        //        data: [
+        //            {
+        //                symbol: 'BTC_USDT',
+        //                startTime: 1677280800000,
+        //                open: '23154.32',
+        //                high: '23212.21',
+        //                low: '22761.01',
+        //                close: '23148.86',
+        //                quantity: '105.179566',
+        //                amount: '2423161.17436702',
+        //                tradeCount: 17582,
+        //                dailyChange: '-0.0002',
+        //                markPrice: '23151.09',
+        //                closeTime: 1677367197924,
+        //                ts: 1677367251090
+        //            }
+        //        ]
         //    }
         //
-        const marketId = this.safeString (message, 'symbol');
-        if (marketId !== undefined) {
-            const ticker = this.parseTicker (message);
-            const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
-            const messageHash = marketId;
-            client.resolve (ticker, messageHash);
+        const data = this.safeValue (message, 'data');
+        if (data !== undefined) {
+            for (let i = 0; i < data.length; i++) {
+                const item = data[i];
+                const marketId = this.safeString (item, 'symbol');
+                if (marketId !== undefined) {
+                    const ticker = this.parseTicker (item);
+                    const symbol = ticker['symbol'];
+                    this.tickers[symbol] = ticker;
+                    const messageHash = 'ticker:' + marketId;
+                    client.resolve (ticker, messageHash);
+                }
+            }
+            return message;
         }
-        return message;
     }
 
     handleDelta (bookside, delta) {
