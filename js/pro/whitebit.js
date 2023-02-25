@@ -691,6 +691,7 @@ module.exports = class whitebit extends whitebitRest {
         const method = this.safeString (message, 'method');
         const data = this.safeValue (message, 'params');
         const balanceDict = this.safeValue (data, 0);
+        this.balance['info'] = balanceDict;
         const keys = Object.keys (balanceDict);
         const currencyId = this.safeValue (keys, 0);
         const rawBalance = this.safeValue (balanceDict, currencyId);
