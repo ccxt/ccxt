@@ -5,7 +5,7 @@
 const poloniexRest = require ('../poloniex.js');
 const { BadRequest } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
-const Precise = require ('./base/Precise');
+const Precise = require ('../base/Precise');
 
 //  ---------------------------------------------------------------------------
 
