@@ -595,6 +595,8 @@ module.exports = class okcoin extends okcoinRest {
         //
         const table = this.safeString (message, 'table');
         const parts = table.split ('/');
+        const data = this.safeValue (message, 'data', []);
+        this.balance['info'] = data;
         let type = this.safeString (parts, 0);
         if (type === 'spot') {
             const part1 = this.safeString (parts, 1);
@@ -602,7 +604,6 @@ module.exports = class okcoin extends okcoinRest {
                 type = 'margin';
             }
         }
-        const data = this.safeValue (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = this.parseBalanceByType (type, data);
             const oldBalance = this.safeValue (this.balance, type, {});
