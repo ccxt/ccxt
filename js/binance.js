@@ -7042,15 +7042,7 @@ module.exports = class binance extends Exchange {
         }
         const request = {};
         if (symbol !== undefined) {
-            const optionParts = symbol.split ('-');
-            const symbolBase = symbol.split ('/');
-            let base = undefined;
-            if (symbol.indexOf ('/') > -1) {
-                base = this.safeString (symbolBase, 0);
-            } else {
-                base = this.safeString (optionParts, 0);
-            }
-            request['underlying'] = base + 'USDT';
+            request['underlying'] = market['baseId'] + market['quoteId'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
