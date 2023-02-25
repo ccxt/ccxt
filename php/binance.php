@@ -85,6 +85,7 @@ class binance extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => true,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -1534,11 +1535,20 @@ class binance extends Exchange {
                 if (is_array($this->markets) && array_key_exists($futuresSymbol, $this->markets)) {
                     return $this->markets[$futuresSymbol];
                 }
-            } elseif ((mb_strpos($symbol, '-C') > -1) || (mb_strpos($symbol, '-P') > -1)) { // both exchange-id and unified symbols are supported this way regardless of the  $defaultType
+            } elseif ((mb_strpos($symbol, '-C') > -1) || (mb_strpos($symbol, '-P') > -1)) { // both exchange-id and unified symbols are supported this way regardless of the $defaultType
                 return $this->create_expired_option_market($symbol);
             }
         }
         throw new BadSymbol($this->id . ' does not have $market $symbol ' . $symbol);
+    }
+
+    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+        $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
+        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+            // handle expired option contracts
+            return $this->create_expired_option_market($marketId);
+        }
+        return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
     public function cost_to_precision($symbol, $cost) {
@@ -6917,6 +6927,91 @@ class binance extends Exchange {
         //     }
         //
         return $this->$method (array_merge($request, $params));
+    }
+
+    public function fetch_settlement_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical settlement records
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#historical-exercise-records
+         * @param {string} $symbol unified $market $symbol of the settlement history
+         * @param {int} $since timestamp in ms
+         * @param {int} $limit number of records, default 100, max 100
+         * @param {array} $params exchange specific $params
+         * @return {[array]} a list of [settlement history objects]
+         */
+        $this->load_markets();
+        $market = ($symbol === null) ? null : $this->market($symbol);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
+        if ($type !== 'option') {
+            throw new NotSupported($this->id . ' fetchSettlementHistory() supports option markets only');
+        }
+        $request = array();
+        if ($symbol !== null) {
+            $symbol = $market['symbol'];
+            $request['underlying'] = $market['baseId'] . $market['quoteId'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->eapiPublicGetExerciseHistory (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "symbol" => "ETH-230223-1900-P",
+        //             "strikePrice" => "1900",
+        //             "realStrikePrice" => "1665.5897334",
+        //             "expiryDate" => 1677139200000,
+        //             "strikeResult" => "REALISTIC_VALUE_STRICKEN"
+        //         }
+        //     )
+        //
+        $settlements = $this->parse_settlements($response, $market);
+        $sorted = $this->sort_by($settlements, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_settlement($settlement, $market) {
+        //
+        //     {
+        //         "symbol" => "ETH-230223-1900-P",
+        //         "strikePrice" => "1900",
+        //         "realStrikePrice" => "1665.5897334",
+        //         "expiryDate" => 1677139200000,
+        //         "strikeResult" => "REALISTIC_VALUE_STRICKEN"
+        //     }
+        //
+        $timestamp = $this->safe_integer($settlement, 'expiryDate');
+        $marketId = $this->safe_string($settlement, 'symbol');
+        return array(
+            'info' => $settlement,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'price' => $this->safe_number($settlement, 'realStrikePrice'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_settlements($settlements, $market) {
+        //
+        //     array(
+        //         {
+        //             "symbol" => "ETH-230223-1900-P",
+        //             "strikePrice" => "1900",
+        //             "realStrikePrice" => "1665.5897334",
+        //             "expiryDate" => 1677139200000,
+        //             "strikeResult" => "EXTRINSIC_VALUE_EXPIRED"
+        //         }
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($settlements); $i++) {
+            $result[] = $this->parse_settlement($settlements[$i], $market);
+        }
+        return $result;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
