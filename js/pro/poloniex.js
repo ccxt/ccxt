@@ -665,7 +665,6 @@ module.exports = class poloniex extends poloniexRest {
     }
 
     handleTicker (client, message) {
-        // TODO
         //
         //    {
         //        "symbol": "ETH_USDT",
@@ -683,69 +682,15 @@ module.exports = class poloniex extends poloniexRest {
         //        "markPrice": "205",
         //    }
         //
-        const marketId = this.safeString (message, 'product_id');
+        const marketId = this.safeString (message, 'symbol');
         if (marketId !== undefined) {
             const ticker = this.parseTicker (message);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const type = this.safeString (message, 'type');
-            const messageHash = type + ':' + marketId;
+            const messageHash = marketId;
             client.resolve (ticker, messageHash);
         }
         return message;
-    }
-
-    parseTicker (ticker, market = undefined) {
-        // TODO
-        //
-        //     {
-        //         type: 'ticker',
-        //         sequence: 12042642428,
-        //         product_id: 'BTC-USD',
-        //         price: '9380.55',
-        //         open_24h: '9450.81000000',
-        //         volume_24h: '9611.79166047',
-        //         low_24h: '9195.49000000',
-        //         high_24h: '9475.19000000',
-        //         volume_30d: '327812.00311873',
-        //         best_bid: '9380.54',
-        //         best_ask: '9380.55',
-        //         side: 'buy',
-        //         time: '2020-02-01T01:40:16.253563Z',
-        //         trade_id: 82062566,
-        //         last_size: '0.41969131'
-        //     }
-        //
-        const type = this.safeString (ticker, 'type');
-        if (type === undefined) {
-            return super.parseTicker (ticker, market);
-        }
-        const marketId = this.safeString (ticker, 'product_id');
-        const symbol = this.safeSymbol (marketId, market, '-');
-        const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
-        const last = this.safeNumber (ticker, 'price');
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high_24h'),
-            'low': this.safeNumber (ticker, 'low_24h'),
-            'bid': this.safeNumber (ticker, 'best_bid'),
-            'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'best_ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open_24h'),
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume_24h'),
-            'quoteVolume': undefined,
-            'info': ticker,
-        };
     }
 
     handleDelta (bookside, delta) {

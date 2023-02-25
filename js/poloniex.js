@@ -487,6 +487,7 @@ module.exports = class poloniex extends Exchange {
         //         "displayName" : "BTC/USDT",
         //         "dailyChange" : "0.0152",
         //         "ts" : 1659692169838
+        //         "markPrice": "205", // WS only
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'ts');
