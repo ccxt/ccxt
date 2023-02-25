@@ -753,27 +753,28 @@ module.exports = class kucoin extends kucoinRest {
 
     handleBalance (client, message) {
         //
-        // {
-        //     "id":"6217a451294b030001e3a26a",
-        //     "type":"message",
-        //     "topic":"/account/balance",
-        //     "userId":"6217707c52f97f00012a67db",
-        //     "channelType":"private",
-        //     "subject":"account.balance",
-        //     "data":{
-        //        "accountId":"62177fe67810720001db2f18",
-        //        "available":"89",
-        //        "availableChange":"-30",
-        //        "currency":"USDT",
-        //        "hold":"0",
-        //        "holdChange":"0",
-        //        "relationContext":{
-        //        },
-        //        "relationEvent":"main.transfer",
-        //        "relationEventId":"6217a451294b030001e3a26a",
-        //        "time":"1645716561816",
-        //        "total":"89"
-        //     }
+        //    {
+        //        "id":"6217a451294b030001e3a26a",
+        //        "type":"message",
+        //        "topic":"/account/balance",
+        //        "userId":"6217707c52f97f00012a67db",
+        //        "channelType":"private",
+        //        "subject":"account.balance",
+        //        "data":{
+        //           "accountId":"62177fe67810720001db2f18",
+        //           "available":"89",
+        //           "availableChange":"-30",
+        //           "currency":"USDT",
+        //           "hold":"0",
+        //           "holdChange":"0",
+        //           "relationContext":{
+        //           },
+        //           "relationEvent":"main.transfer",
+        //           "relationEventId":"6217a451294b030001e3a26a",
+        //           "time":"1645716561816",
+        //           "total":"89"
+        //        }
+        //    }
         //
         const data = this.safeValue (message, 'data', {});
         const messageHash = 'balance';
@@ -790,6 +791,7 @@ module.exports = class kucoin extends kucoinRest {
         if (!(uniformType in this.balance)) {
             this.balance[uniformType] = {};
         }
+        this.balance[uniformType]['info'] = data;
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
         account['free'] = this.safeString (data, 'available');
