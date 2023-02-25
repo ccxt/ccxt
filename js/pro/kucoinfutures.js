@@ -640,6 +640,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
                 this.balance[code] = snapshot[code];
             }
         }
+        this.balance['info'] = this.safeValue (snapshot, 'info', {});
         client.resolve (this.balance, messageHash);
     }
 
