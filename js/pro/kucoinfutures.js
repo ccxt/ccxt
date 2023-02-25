@@ -576,6 +576,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         //    }
         //
         const data = this.safeValue (message, 'data', {});
+        this.balance['info'] = data;
         const currencyId = this.safeString (data, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
