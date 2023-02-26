@@ -85,6 +85,7 @@ class binance extends Exchange {
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
@@ -1437,6 +1438,15 @@ class binance extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
+    public function convert_expire_date($date) {
+        // parse YYMMDD to timestamp
+        $year = mb_substr($date, 0, 2 - 0);
+        $month = mb_substr($date, 2, 4 - 2);
+        $day = mb_substr($date, 4, 6 - 4);
+        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
+        return $reconstructedDate;
+    }
+
     public function create_expired_option_market($symbol) {
         // support expired option contracts
         $settle = 'USDT';
@@ -1451,6 +1461,8 @@ class binance extends Exchange {
         $expiry = $this->safe_string($optionParts, 1);
         $strike = $this->safe_string($optionParts, 2);
         $optionType = $this->safe_string($optionParts, 3);
+        $datetime = $this->convert_expire_date($expiry);
+        $timestamp = $this->parse8601($datetime);
         return array(
             'id' => $base . '-' . $expiry . '-' . $strike . '-' . $optionType,
             'symbol' => $base . '/' . $settle . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
@@ -1469,8 +1481,8 @@ class binance extends Exchange {
             'margin' => false,
             'contract' => true,
             'contractSize' => null,
-            'expiry' => null,
-            'expiryDatetime' => null,
+            'expiry' => $timestamp,
+            'expiryDatetime' => $datetime,
             'optionType' => ($optionType === 'C') ? 'call' : 'put',
             'strike' => $strike,
             'settle' => $settle,
@@ -7803,14 +7815,81 @@ class binance extends Exchange {
         }) ();
     }
 
+    public function fetch_open_interest($symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * retrieves the open interest of a contract trading pair
+             * @see https://binance-docs.github.io/apidocs/futures/en/#open-interest
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#open-interest
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#open-interest
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {array} $params exchange specific parameters
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array();
+            if ($market['option']) {
+                $request['underlyingAsset'] = $market['baseId'];
+                $request['expiration'] = $this->yymmdd($market['expiry']);
+            } else {
+                $request['symbol'] = $market['id'];
+            }
+            $method = 'fapiPublicGetOpenInterest';
+            if ($market['option']) {
+                $method = 'eapiPublicGetOpenInterest';
+            } elseif ($market['inverse']) {
+                $method = 'dapiPublicGetOpenInterest';
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            // futures (fapi)
+            //
+            //     {
+            //         "symbol" => "ETHUSDT_230331",
+            //         "openInterest" => "23581.677",
+            //         "time" => 1677356872265
+            //     }
+            //
+            // futures (dapi)
+            //
+            //     {
+            //         "symbol" => "ETHUSD_PERP",
+            //         "pair" => "ETHUSD",
+            //         "openInterest" => "26542436",
+            //         "contractType" => "PERPETUAL",
+            //         "time" => 1677360272224
+            //     }
+            //
+            // options (eapi)
+            //
+            //     array(
+            //         {
+            //             "symbol" => "ETH-230225-1625-C",
+            //             "sumOpenInterest" => "460.50",
+            //             "sumOpenInterestUsd" => "734957.4358092150",
+            //             "timestamp" => "1677304860000"
+            //         }
+            //     )
+            //
+            if ($market['option']) {
+                return $this->parse_open_interests($response, $market);
+            } else {
+                return $this->parse_open_interest($response, $market);
+            }
+        }) ();
+    }
+
     public function parse_open_interest($interest, $market = null) {
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $id = $this->safe_string($interest, 'symbol');
-        $amount = $this->safe_number($interest, 'sumOpenInterest');
-        $value = $this->safe_number($interest, 'sumOpenInterestValue');
+        $amount = $this->safe_number_2($interest, 'sumOpenInterest', 'openInterest');
+        $value = $this->safe_number_2($interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');
+        // Inverse returns the number of contracts different from the base or quote volume in this case
+        // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         return array(
-            'symbol' => $this->safe_symbol($id, null, null, 'contract'),
-            'baseVolume' => $amount,  // deprecated
+            'symbol' => $this->safe_symbol($id, $market, null, 'contract'),
+            'baseVolume' => $market['inverse'] ? null : $amount,  // deprecated
             'quoteVolume' => $value,  // deprecated
             'openInterestAmount' => $amount,
             'openInterestValue' => $value,
