@@ -719,56 +719,51 @@ module.exports = class poloniex extends poloniexRest {
     }
 
     handleOrderBook (client, message) {
-        // TODO
         //
-        //    snapshot
+        // snapshot
         //
         //    {
-        //        "channel": "book_lv2",
-        //        "action": "snapshot",
-        //        "data": [
+        //        channel: 'book_lv2',
+        //        data: [
         //            {
-        //                "symbol": "BTC_USDT",
+        //                symbol: 'BTC_USDT',
+        //                createTime: 1677368876253,
         //                "asks": [
-        //                    ["6.16", "0.6"],
-        //                    ["6.17", "1"],
-        //                    ["6.18", "1"],
+        //                    ["5.65", "0.02"],
         //                    ...
         //                ],
         //                "bids": [
-        //                    ["5.65", "0.02"],
-        //                    ["5.61", "1.68"],
-        //                    ["5.6", "25.38"],
-        //                  ...
+        //                    ["6.16", "0.6"],
+        //                    ...
         //                ],
-        //                "createTime": 1653029116343,
-        //                "lastId": 10409,
-        //                "id": 10410,
-        //                "ts": 1652774727337
+        //                lastId: 164148724,
+        //                id: 164148725,
+        //                ts: 1677368876316
         //            }
-        //        ]
+        //        ],
+        //        action: 'snapshot'
         //    }
         //
-        //    update
+        // update
         //
         //    {
-        //        "channel": "book_lv2",
-        //        "action": "update",
-        //        "data": [
+        //        channel: 'book_lv2',
+        //        data: [
         //            {
-        //                "symbol": "BTC_USDT",
+        //                symbol: 'BTC_USDT',
+        //                createTime: 1677368876882,
         //                "asks": [
         //                    ["6.35", "3"]
         //                ],
         //                "bids": [
         //                    ["5.65", "0.02"]
         //                ],
-        //                "createTime": 1653029116345,
-        //                "lastId": 10410,
-        //                "id": 10421,
-        //                "ts": 1653029116529
+        //                lastId: 164148725,
+        //                id: 164148726,
+        //                ts: 1677368876890
         //            }
-        //        ]
+        //        ],
+        //        action: 'update'
         //    }
         //
         const type = this.safeString (message, 'type');
@@ -810,43 +805,66 @@ module.exports = class poloniex extends poloniexRest {
         }
     }
 
-    handleSubscriptionStatus (client, message) {
-        // TODO?
-        //
-        //     {
-        //         type: 'subscriptions',
-        //         channels: [
-        //             {
-        //                 name: 'level2',
-        //                 product_ids: [ 'ETH-BTC' ]
-        //             }
-        //         ]
-        //     }
-        //
-        return message;
-    }
-
     handleBalance (client, message) {
-        // TODO
         //
         //    {
-        //        "changeTime": 1657312008411,
-        //        "accountId": "1234",
-        //        "accountType": "SPOT",
-        //        "eventType": "place_order",
-        //        "available": "9999999983.668",
-        //        "currency": "BTC",
-        //        "id": 60018450912695040,
-        //        "userId": 12345,
-        //        "hold": "16.332",
-        //        "ts": 1657312008443
+        //       "channel": "balances",
+        //       "data": [
+        //            {
+        //                "changeTime": 1657312008411,
+        //                "accountId": "1234",
+        //                "accountType": "SPOT",
+        //                "eventType": "place_order",
+        //                "available": "9999999983.668",
+        //                "currency": "BTC",
+        //                "id": 60018450912695040,
+        //                "userId": 12345,
+        //                "hold": "16.332",
+        //                "ts": 1657312008443
+        //            }
+        //        ]
         //    }
         //
-        const params = this.safeValue (message, 'params', {});
-        const data = this.safeValue (params, 'data', {});
-        const messageHash = 'balancess';
-        this.balance = this.parseBalance (data);
+        const data = this.safeValue (message, 'data', []);
+        const messageHash = 'balances';
+        this.balance = this.parseWsBalance (data);
         client.resolve (this.balance, messageHash);
+    }
+
+    parseWsBalance (response) {
+        //
+        //    [
+        //        {
+        //            "changeTime": 1657312008411,
+        //            "accountId": "1234",
+        //            "accountType": "SPOT",
+        //            "eventType": "place_order",
+        //            "available": "9999999983.668",
+        //            "currency": "BTC",
+        //            "id": 60018450912695040,
+        //            "userId": 12345,
+        //            "hold": "16.332",
+        //            "ts": 1657312008443
+        //        }
+        //    ]
+        //
+        const firstBalance = this.safeValue (response, 0, {});
+        const timestamp = this.safeInteger (firstBalance, 'ts');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        for (let i = 0; i < response.length; i++) {
+            const balance = this.safeValue (response, i);
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const newAccount = this.account ();
+            newAccount['free'] = this.safeString (balance, 'available');
+            newAccount['used'] = this.safeString (balance, 'hold');
+            result[code] = newAccount;
+        }
+        return this.safeBalance (result);
     }
 
     handleMessage (client, message) {
