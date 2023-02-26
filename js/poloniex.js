@@ -1305,6 +1305,22 @@ module.exports = class poloniex extends Exchange {
     }
 
     parseBalance (response) {
+        //
+        //     [
+        //         {
+        //             "accountId" : "7xxxxxxxxxx8",
+        //             "accountType" : "SPOT",
+        //             "balances" : [
+        //                 {
+        //                     "currencyId" : "214",
+        //                     "currency" : "USDT",
+        //                     "available" : "2.00",
+        //                     "hold" : "0.00"
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        //
         const result = {
             'info': response,
             'timestamp': undefined,
