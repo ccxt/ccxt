@@ -7021,7 +7021,7 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.eapiPublicGetExerciseHistory (this.extend (request, params));
+        const response = await (this as any).eapiPublicGetExerciseHistory (this.extend (request, params));
         //
         //     [
         //         {
