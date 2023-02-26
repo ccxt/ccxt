@@ -74,6 +74,7 @@ module.exports = class binance extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
@@ -1426,6 +1427,15 @@ module.exports = class binance extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
+    convertExpireDate (date) {
+        // parse YYMMDD to timestamp
+        const year = date.slice (0, 2);
+        const month = date.slice (2, 4);
+        const day = date.slice (4, 6);
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        return reconstructedDate;
+    }
+
     createExpiredOptionMarket (symbol) {
         // support expired option contracts
         const settle = 'USDT';
@@ -1440,6 +1450,8 @@ module.exports = class binance extends Exchange {
         const expiry = this.safeString (optionParts, 1);
         const strike = this.safeString (optionParts, 2);
         const optionType = this.safeString (optionParts, 3);
+        const datetime = this.convertExpireDate (expiry);
+        const timestamp = this.parse8601 (datetime);
         return {
             'id': base + '-' + expiry + '-' + strike + '-' + optionType,
             'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
@@ -1458,8 +1470,8 @@ module.exports = class binance extends Exchange {
             'margin': false,
             'contract': true,
             'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
             'optionType': (optionType === 'C') ? 'call' : 'put',
             'strike': strike,
             'settle': settle,
@@ -7787,14 +7799,81 @@ module.exports = class binance extends Exchange {
         return this.parseOpenInterests (response, symbol, since, limit);
     }
 
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchOpenInterest
+         * @description retrieves the open interest of a contract trading pair
+         * @see https://binance-docs.github.io/apidocs/futures/en/#open-interest
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#open-interest
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#open-interest
+         * @param {string} symbol unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {};
+        if (market['option']) {
+            request['underlyingAsset'] = market['baseId'];
+            request['expiration'] = this.yymmdd (market['expiry']);
+        } else {
+            request['symbol'] = market['id'];
+        }
+        let method = 'fapiPublicGetOpenInterest';
+        if (market['option']) {
+            method = 'eapiPublicGetOpenInterest';
+        } else if (market['inverse']) {
+            method = 'dapiPublicGetOpenInterest';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // futures (fapi)
+        //
+        //     {
+        //         "symbol": "ETHUSDT_230331",
+        //         "openInterest": "23581.677",
+        //         "time": 1677356872265
+        //     }
+        //
+        // futures (dapi)
+        //
+        //     {
+        //         "symbol": "ETHUSD_PERP",
+        //         "pair": "ETHUSD",
+        //         "openInterest": "26542436",
+        //         "contractType": "PERPETUAL",
+        //         "time": 1677360272224
+        //     }
+        //
+        // options (eapi)
+        //
+        //     [
+        //         {
+        //             "symbol": "ETH-230225-1625-C",
+        //             "sumOpenInterest": "460.50",
+        //             "sumOpenInterestUsd": "734957.4358092150",
+        //             "timestamp": "1677304860000"
+        //         }
+        //     ]
+        //
+        if (market['option']) {
+            return this.parseOpenInterests (response, market);
+        } else {
+            return this.parseOpenInterest (response, market);
+        }
+    }
+
     parseOpenInterest (interest, market = undefined) {
         const timestamp = this.safeInteger (interest, 'timestamp');
         const id = this.safeString (interest, 'symbol');
-        const amount = this.safeNumber (interest, 'sumOpenInterest');
-        const value = this.safeNumber (interest, 'sumOpenInterestValue');
+        const amount = this.safeNumber2 (interest, 'sumOpenInterest', 'openInterest');
+        const value = this.safeNumber2 (interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');
+        // Inverse returns the number of contracts different from the base or quote volume in this case
+        // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         return {
-            'symbol': this.safeSymbol (id, undefined, undefined, 'contract'),
-            'baseVolume': amount,  // deprecated
+            'symbol': this.safeSymbol (id, market, undefined, 'contract'),
+            'baseVolume': market['inverse'] ? undefined : amount,  // deprecated
             'quoteVolume': value,  // deprecated
             'openInterestAmount': amount,
             'openInterestValue': value,
