@@ -507,8 +507,16 @@ class krakenfutures extends Exchange {
         $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
         $average = Precise::string_div(Precise::string_add($open, $last), '2');
         $volume = $this->safe_string($ticker, 'vol24h');
-        $baseVolume = (!$market['index'] && $market['linear']) ? $volume : null;
-        $quoteVolume = (!$market['index'] && $market['inverse']) ? $volume : null;
+        $baseVolume = null;
+        $quoteVolume = null;
+        $isIndex = $this->safe_value($market, 'index', false);
+        if (!$isIndex) {
+            if ($market['linear']) {
+                $baseVolume = $volume;
+            } elseif ($market['inverse']) {
+                $quoteVolume = $volume;
+            }
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,

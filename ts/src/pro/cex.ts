@@ -88,7 +88,9 @@ export default class cex extends cexRest {
         const data = this.safeValue (message, 'data', {});
         const freeBalance = this.safeValue (data, 'balance', {});
         const usedBalance = this.safeValue (data, 'obalance', {});
-        const result = {};
+        const result = {
+            'info': data,
+        };
         const currencyIds = Object.keys (freeBalance);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];

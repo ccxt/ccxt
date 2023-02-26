@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.41 (2023-02-25)
+
+### 2.8.40 (2023-02-25)
+
+
+### Bug Fixes
+
+* **kucoin:** watchBalance add info and time to balance structure ([27d7c28](https://github.com/ccxt/ccxt/commit/27d7c283a3b8f6186cfd4c1e6824c515b0538ef3))
+
+### 2.8.39 (2023-02-25)
+
+### 2.8.38 (2023-02-25)
+
 ### 2.8.37 (2023-02-24)
 
 

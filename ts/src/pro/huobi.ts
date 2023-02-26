@@ -1384,6 +1384,10 @@ export default class huobi extends huobiRest {
         //     }
         //
         const channel = this.safeString (message, 'ch');
+        const timestamp = this.safeInteger (message, 'ts');
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601 (timestamp);
+        this.balance['info'] = this.safeValue (message, 'data');
         if (channel !== undefined) {
             // spot balance
             const data = this.safeValue (message, 'data', {});
