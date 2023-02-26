@@ -1427,6 +1427,15 @@ module.exports = class binance extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
+    convertExpireDate (date) {
+        // parse YYMMDD to timestamp
+        const year = date.slice (0, 2);
+        const month = date.slice (2, 4);
+        const day = date.slice (4, 6);
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        return reconstructedDate;
+    }
+
     createExpiredOptionMarket (symbol) {
         // support expired option contracts
         const settle = 'USDT';
@@ -1441,6 +1450,8 @@ module.exports = class binance extends Exchange {
         const expiry = this.safeString (optionParts, 1);
         const strike = this.safeString (optionParts, 2);
         const optionType = this.safeString (optionParts, 3);
+        const datetime = this.convertExpireDate (expiry);
+        const timestamp = this.parse8601 (datetime);
         return {
             'id': base + '-' + expiry + '-' + strike + '-' + optionType,
             'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
@@ -1459,8 +1470,8 @@ module.exports = class binance extends Exchange {
             'margin': false,
             'contract': true,
             'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
             'optionType': (optionType === 'C') ? 'call' : 'put',
             'strike': strike,
             'settle': settle,
@@ -7804,18 +7815,8 @@ module.exports = class binance extends Exchange {
         const market = this.market (symbol);
         const request = {};
         if (market['option']) {
-            const optionParts = symbol.split ('-');
-            const symbolBase = symbol.split ('/');
-            let base = undefined;
-            if (symbol.indexOf ('/') > -1) {
-                base = this.safeString (symbolBase, 0);
-            } else {
-                base = this.safeString (optionParts, 0);
-            }
-            const expiration = this.safeString (optionParts, 1);
-            request['underlyingAsset'] = base;
-            request['expiration'] = expiration;
-            params = this.omit (params, [ 'underlyingAsset', 'expiration' ]);
+            request['underlyingAsset'] = market['baseId'];
+            request['expiration'] = this.yymmdd (market['expiry']);
         } else {
             request['symbol'] = market['id'];
         }
