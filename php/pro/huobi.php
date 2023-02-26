@@ -1387,6 +1387,10 @@ class huobi extends \ccxt\async\huobi {
         //     }
         //
         $channel = $this->safe_string($message, 'ch');
+        $timestamp = $this->safe_integer($message, 'ts');
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance['info'] = $this->safe_value($message, 'data');
         if ($channel !== null) {
             // spot $balance
             $data = $this->safe_value($message, 'data', array());

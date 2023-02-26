@@ -1296,6 +1296,10 @@ class huobi(Exchange, ccxt.async_support.huobi):
         #     }
         #
         channel = self.safe_string(message, 'ch')
+        timestamp = self.safe_integer(message, 'ts')
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
+        self.balance['info'] = self.safe_value(message, 'data')
         if channel is not None:
             # spot balance
             data = self.safe_value(message, 'data', {})
