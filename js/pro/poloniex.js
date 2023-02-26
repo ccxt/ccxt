@@ -704,20 +704,6 @@ module.exports = class poloniex extends poloniexRest {
         }
     }
 
-    handleDelta (bookside, delta) {
-        // TODO?
-        const price = this.safeNumber (delta, 0);
-        const amount = this.safeNumber (delta, 1);
-        bookside.store (price, amount);
-    }
-
-    handleDeltas (bookside, deltas) {
-        // TODO?
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
-        }
-    }
-
     handleOrderBook (client, message) {
         //
         // snapshot
@@ -766,38 +752,41 @@ module.exports = class poloniex extends poloniexRest {
         //        action: 'update'
         //    }
         //
-        const type = this.safeString (message, 'type');
-        const marketId = this.safeString (message, 'product_id');
-        const market = this.safeMarket (marketId, undefined, '-');
+        const data = this.safeValue (message, 'data', []);
+        const item = this.safeValue (data, 0, {});
+        const type = this.safeString (message, 'action');
+        const marketId = this.safeString (item, 'symbol');
+        const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const name = 'level2';
+        const name = 'book_lv2';
         const messageHash = name + ':' + marketId;
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
-        if (type === 'snapshot') {
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
+        const timestamp = this.safeInteger (item, 'ts');
+        const asks = this.safeValue (item, 'asks');
+        const bids = this.safeValue (item, 'bids');
+        const snapshot = type === 'snapshot';
+        const update = type === 'update';
+        if (snapshot || update) {
+            if (snapshot) {
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            }
             const orderbook = this.orderbooks[symbol];
-            this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
-            this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));
-            orderbook['timestamp'] = undefined;
-            orderbook['datetime'] = undefined;
-            client.resolve (orderbook, messageHash);
-        } else if (type === 'l2update') {
-            const orderbook = this.orderbooks[symbol];
-            const timestamp = this.parse8601 (this.safeString (message, 'time'));
-            const changes = this.safeValue (message, 'changes', []);
-            const sides = {
-                'sell': 'asks',
-                'buy': 'bids',
-            };
-            for (let i = 0; i < changes.length; i++) {
-                const change = changes[i];
-                const key = this.safeString (change, 0);
-                const side = this.safeString (sides, key);
-                const price = this.safeNumber (change, 1);
-                const amount = this.safeNumber (change, 2);
-                const bookside = orderbook[side];
-                bookside.store (price, amount);
+            if (bids !== undefined) {
+                for (let i = 0; i < bids.length; i++) {
+                    const bid = this.safeValue (bids, i);
+                    const price = this.safeNumber (bid, 0);
+                    const amount = this.safeNumber (bid, 1);
+                    orderbook['bids'].store (price, amount);
+                }
+            }
+            if (asks !== undefined) {
+                for (let i = 0; i < asks.length; i++) {
+                    const ask = this.safeValue (asks, i);
+                    const price = this.safeNumber (ask, 0);
+                    const amount = this.safeNumber (ask, 1);
+                    orderbook['asks'].store (price, amount);
+                }
             }
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
