@@ -109,6 +109,7 @@ class binance(Exchange):
                 'fetchPositions': True,
                 'fetchPositionsRisk': True,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -1543,9 +1544,16 @@ class binance(Exchange):
                 futuresSymbol = symbol + ':' + settle
                 if futuresSymbol in self.markets:
                     return self.markets[futuresSymbol]
-            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):  # both exchange-id and unified symbols are supported self way regardless of the  defaultType
+            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):  # both exchange-id and unified symbols are supported self way regardless of the defaultType
                 return self.create_expired_option_market(symbol)
         raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
+
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+        isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1))
+        if isOption and not (marketId in self.markets_by_id):
+            # handle expired option contracts
+            return self.create_expired_option_market(marketId)
+        return super(binance, self).safe_market(marketId, market, delimiter, marketType)
 
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['quote'], self.precisionMode, self.paddingMode)
@@ -6552,6 +6560,83 @@ class binance(Exchange):
         #     }
         #
         return getattr(self, method)(self.extend(request, params))
+
+    def fetch_settlement_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches historical settlement records
+        see https://binance-docs.github.io/apidocs/voptions/en/#historical-exercise-records
+        :param str symbol: unified market symbol of the settlement history
+        :param int since: timestamp in ms
+        :param int limit: number of records, default 100, max 100
+        :param dict params: exchange specific params
+        :returns [dict]: a list of [settlement history objects]
+        """
+        self.load_markets()
+        market = None if (symbol is None) else self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchSettlementHistory', market, params)
+        if type != 'option':
+            raise NotSupported(self.id + ' fetchSettlementHistory() supports option markets only')
+        request = {}
+        if symbol is not None:
+            symbol = market['symbol']
+            request['underlying'] = market['baseId'] + market['quoteId']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.eapiPublicGetExerciseHistory(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "symbol": "ETH-230223-1900-P",
+        #             "strikePrice": "1900",
+        #             "realStrikePrice": "1665.5897334",
+        #             "expiryDate": 1677139200000,
+        #             "strikeResult": "REALISTIC_VALUE_STRICKEN"
+        #         }
+        #     ]
+        #
+        settlements = self.parse_settlements(response, market)
+        sorted = self.sort_by(settlements, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_settlement(self, settlement, market):
+        #
+        #     {
+        #         "symbol": "ETH-230223-1900-P",
+        #         "strikePrice": "1900",
+        #         "realStrikePrice": "1665.5897334",
+        #         "expiryDate": 1677139200000,
+        #         "strikeResult": "REALISTIC_VALUE_STRICKEN"
+        #     }
+        #
+        timestamp = self.safe_integer(settlement, 'expiryDate')
+        marketId = self.safe_string(settlement, 'symbol')
+        return {
+            'info': settlement,
+            'symbol': self.safe_symbol(marketId, market),
+            'price': self.safe_number(settlement, 'realStrikePrice'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
+    def parse_settlements(self, settlements, market):
+        #
+        #     [
+        #         {
+        #             "symbol": "ETH-230223-1900-P",
+        #             "strikePrice": "1900",
+        #             "realStrikePrice": "1665.5897334",
+        #             "expiryDate": 1677139200000,
+        #             "strikeResult": "EXTRINSIC_VALUE_EXPIRED"
+        #         }
+        #     ]
+        #
+        result = []
+        for i in range(0, len(settlements)):
+            result.append(self.parse_settlement(settlements[i], market))
+        return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if not (api in self.urls['api']):

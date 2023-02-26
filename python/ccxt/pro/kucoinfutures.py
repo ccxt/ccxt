@@ -524,6 +524,7 @@ class kucoinfutures(Exchange, ccxt.async_support.kucoinfutures):
         #    }
         #
         data = self.safe_value(message, 'data', {})
+        self.balance['info'] = data
         currencyId = self.safe_string(data, 'currency')
         code = self.safe_currency_code(currencyId)
         account = self.account()
@@ -583,6 +584,7 @@ class kucoinfutures(Exchange, ccxt.async_support.kucoinfutures):
             code = keys[i]
             if code != 'free' and code != 'used' and code != 'total' and code != 'timestamp' and code != 'datetime' and code != 'info':
                 self.balance[code] = snapshot[code]
+        self.balance['info'] = self.safe_value(snapshot, 'info', {})
         client.resolve(self.balance, messageHash)
 
     def handle_subject(self, client, message):

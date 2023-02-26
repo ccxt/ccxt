@@ -1040,7 +1040,7 @@ module.exports = class bitget extends Exchange {
             'inverse': inverse,
             'taker': this.safeNumber (market, 'takerFeeRate'),
             'maker': this.safeNumber (market, 'makerFeeRate'),
-            'contractSize': this.safeNumber (market, 'sizeMultiplier'),
+            'contractSize': 1,
             'expiry': expiry,
             'expiryDatetime': expiryDatetime,
             'strike': undefined,

@@ -1039,7 +1039,7 @@ class bitget(Exchange):
             'inverse': inverse,
             'taker': self.safe_number(market, 'takerFeeRate'),
             'maker': self.safe_number(market, 'makerFeeRate'),
-            'contractSize': self.safe_number(market, 'sizeMultiplier'),
+            'contractSize': 1,
             'expiry': expiry,
             'expiryDatetime': expiryDatetime,
             'strike': None,

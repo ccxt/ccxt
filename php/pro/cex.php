@@ -95,7 +95,9 @@ class cex extends \ccxt\async\cex {
         $data = $this->safe_value($message, 'data', array());
         $freeBalance = $this->safe_value($data, 'balance', array());
         $usedBalance = $this->safe_value($data, 'obalance', array());
-        $result = array();
+        $result = array(
+            'info' => $data,
+        );
         $currencyIds = is_array($freeBalance) ? array_keys($freeBalance) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];

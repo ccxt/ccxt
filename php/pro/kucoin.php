@@ -798,6 +798,10 @@ class kucoin extends \ccxt\async\kucoin {
         if (!(is_array($this->balance) && array_key_exists($uniformType, $this->balance))) {
             $this->balance[$uniformType] = array();
         }
+        $this->balance[$uniformType]['info'] = $data;
+        $timestamp = $this->safe_integer($data, 'time');
+        $this->balance[$uniformType]['timestamp'] = $timestamp;
+        $this->balance[$uniformType]['datetime'] = $this->iso8601($timestamp);
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();
         $account['free'] = $this->safe_string($data, 'available');
