@@ -850,18 +850,18 @@ module.exports = class bitget extends Exchange {
          * @returns {object} response from the exchange
          */
         // BITGET HAS NOT IMPLEMENTED THIS YET
-        const unifiedResponse = {
-            'symbol': null,
-            'tradeMode': 'hedged',
-        };
-        return unifiedResponse;
-        // const defaultSubType = this.safeString (this.options, 'defaultSubType');
-        // const request = {
-        //     'productType': (defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
-        //     'holdMode': hedged ? 'double_hold' : 'single_hold',
+        // const unifiedResponse = {
+        //     'symbol': null,
+        //     'tradeMode': 'hedged',
         // };
-        // const response = await this.privateMixPostAccountSetPositionMode (this.extend (request, params));
-        // return response;
+        // return unifiedResponse;
+        const defaultSubType = this.safeString (this.options, 'defaultSubType');
+        const request = {
+            'productType': (defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
+            'holdMode': hedged ? 'double_hold' : 'single_hold',
+        };
+        const response = await this.privateMixPostAccountSetPositionMode (this.extend (request, params));
+        return response;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3848,7 +3848,10 @@ module.exports = class bitget extends Exchange {
         const sellLeverage = this.safeFloat (data, 'fixedShortLeverage');
         const marginCoin = this.safeString (data, 'marginCoin');
         const holdMode = this.safeString (data, 'holdMode');
-        const tradeMode = holdMode === 'double_hold' ? 'hedged' : 'oneway';
+        let tradeMode = 'oneway';
+        if (holdMode === 'double_hold') {
+            tradeMode = 'hedged';
+        }
         const accountConfig = {
             'info': data,
             'markets': {},

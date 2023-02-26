@@ -847,18 +847,18 @@ class bitget extends Exchange {
          * @return {array} $response from the exchange
          */
         // BITGET HAS NOT IMPLEMENTED THIS YET
-        $unifiedResponse = array(
-            'symbol' => null,
-            'tradeMode' => 'hedged',
-        );
-        return $unifiedResponse;
-        // $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
-        // $request = array(
-        //     'productType' => ($defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
-        //     'holdMode' => $hedged ? 'double_hold' : 'single_hold',
+        // $unifiedResponse = array(
+        //     'symbol' => null,
+        //     'tradeMode' => 'hedged',
         // );
-        // $response = $this->privateMixPostAccountSetPositionMode (array_merge($request, $params));
-        // return $response;
+        // return $unifiedResponse;
+        $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
+        $request = array(
+            'productType' => ($defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
+            'holdMode' => $hedged ? 'double_hold' : 'single_hold',
+        );
+        $response = $this->privateMixPostAccountSetPositionMode (array_merge($request, $params));
+        return $response;
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -3772,7 +3772,10 @@ class bitget extends Exchange {
         $sellLeverage = $this->safe_float($data, 'fixedShortLeverage');
         $marginCoin = $this->safe_string($data, 'marginCoin');
         $holdMode = $this->safe_string($data, 'holdMode');
-        $tradeMode = $holdMode === 'double_hold' ? 'hedged' : 'oneway';
+        $tradeMode = 'oneway';
+        if ($holdMode === 'double_hold') {
+            $tradeMode = 'hedged';
+        }
         $accountConfig = array(
             'info' => $data,
             'markets' => array(),

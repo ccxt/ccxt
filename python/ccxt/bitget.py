@@ -857,18 +857,18 @@ class bitget(Exchange):
         :returns dict: response from the exchange
         """
         # BITGET HAS NOT IMPLEMENTED THIS YET
-        unifiedResponse = {
-            'symbol': None,
-            'tradeMode': 'hedged',
-        }
-        return unifiedResponse
-        # defaultSubType = self.safe_string(self.options, 'defaultSubType')
-        # request = {
-        #     'productType': 'umcbl' if (defaultSubType == 'linear') else 'dmcbl',
-        #     'holdMode': 'double_hold' if hedged else 'single_hold',
+        # unifiedResponse = {
+        #     'symbol': null,
+        #     'tradeMode': 'hedged',
         # }
-        # response = self.privateMixPostAccountSetPositionMode(self.extend(request, params))
-        # return response
+        # return unifiedResponse
+        defaultSubType = self.safe_string(self.options, 'defaultSubType')
+        request = {
+            'productType': 'umcbl' if (defaultSubType == 'linear') else 'dmcbl',
+            'holdMode': 'double_hold' if hedged else 'single_hold',
+        }
+        response = self.privateMixPostAccountSetPositionMode(self.extend(request, params))
+        return response
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -3599,7 +3599,9 @@ class bitget(Exchange):
         sellLeverage = self.safe_float(data, 'fixedShortLeverage')
         marginCoin = self.safe_string(data, 'marginCoin')
         holdMode = self.safe_string(data, 'holdMode')
-        tradeMode = holdMode == 'hedged' if 'double_hold' else 'oneway'
+        tradeMode = 'oneway'
+        if holdMode == 'double_hold':
+            tradeMode = 'hedged'
         accountConfig = {
             'info': data,
             'markets': {},
