@@ -1683,12 +1683,14 @@ class Exchange {
 
         // this name for the proxy string is deprecated
         // we should rename it to $this->cors everywhere
-        if (is_callable($this->proxy)) {
+        if (is_callable($this->proxy)){
             $url = call_user_func($this->proxy, $url);
             $headers['Origin'] = $this->origin;
-        } else if (gettype($this->proxy) === 'string') {
-            $url = $this->proxy . $url;
-            $headers['Origin'] = $this->origin;
+        } else if (gettype($this->proxy) === 'string'){
+            if (strlen($this->proxy)>0){
+                $url = $this->proxy . $url;
+                $headers['Origin'] = $this->origin;
+            }
         }
 
         $headers = $this->set_headers($headers);
