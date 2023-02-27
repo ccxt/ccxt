@@ -4296,20 +4296,24 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let settle = undefined;
+        let type = undefined;
+        let subType = undefined;
         const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             settle = market['settle'];
             request['symbol'] = market['id'];
-            if (market['spot']) {
-                request['category'] = 'spot';
-            } else if (market['option']) {
-                request['category'] = 'option';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            } else {
-                throw new NotSupported (this.id + ' cancelAllOrders() does not allow inverse market orders for ' + symbol + ' markets');
-            }
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params, 'linear');
+        if (type === 'spot') {
+            request['category'] = 'spot';
+        } else if (type === 'option') {
+            request['category'] = 'option';
+        } else if (subType === 'linear') {
+            request['category'] = 'linear';
+        } else {
+            throw new NotSupported (this.id + ' cancelAllOrders() does not allow inverse market orders for ' + type + ' markets');
         }
         if (settle !== undefined) {
             request['settleCoin'] = settle;
