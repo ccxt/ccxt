@@ -6680,12 +6680,17 @@ module.exports = class bybit extends Exchange {
         } else if (symbols !== undefined) {
             symbols = [ symbols ];
         }
-        if (settle === undefined && enableUnified[1]) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions() required either symbol or settle in unified account mode');
-        } else if (settle !== undefined) {
+        symbols = this.marketSymbols (symbols);
+        if (symbols === undefined) {
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', 'USDT');
+        } else {
+            const first = this.safeValue (symbols, 0);
+            const market = this.market (first);
+            settle = market['settle'];
+        }
+        if (enableUnified[1]) {
             request['settleCoin'] = settle;
         }
-        symbols = this.marketSymbols (symbols);
         // market undefined
         [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
         let subType = undefined;
