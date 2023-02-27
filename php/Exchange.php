@@ -1681,7 +1681,13 @@ class Exchange {
 
         $headers = array_merge($this->headers, $headers ? $headers : array());
 
-        if (strlen($this->proxy)) {
+        // this name for the proxy string is deprecated
+        // we should rename it to $this->cors everywhere
+        if (is_callable($this->proxy)) {
+            $url = call_user_func($this->proxy, $url);
+            $headers['Origin'] = $this->origin;
+        } else if (gettype($this->proxy) === 'string') {
+            $url = $this->proxy . $url;
             $headers['Origin'] = $this->origin;
         }
 
@@ -1699,9 +1705,6 @@ class Exchange {
             }
         }
 
-        // this name for the proxy string is deprecated
-        // we should rename it to $this->cors everywhere
-        $url = $this->proxy . $url;
 
         // https://github.com/ccxt/ccxt/issues/5914
         if ($this->curl) {

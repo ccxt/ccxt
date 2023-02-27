@@ -71,9 +71,16 @@ class Exchange extends \ccxt\Exchange {
                 $headers = array();
             }
 
-            if (strlen($this->proxy)) {
+            // this name for the proxy string is deprecated
+            // we should rename it to $this->cors everywhere
+            if (is_callable($this->proxy)) {
+                $url = call_user_func($this->proxy, $url);
+                $headers['Origin'] = $this->origin;
+            } else if (gettype($this->proxy) === 'string') {
+                $url = $this->proxy . $url;
                 $headers['Origin'] = $this->origin;
             }
+
 
             if ($this->userAgent) {
                 if (gettype($this->userAgent) == 'string') {
@@ -82,10 +89,6 @@ class Exchange extends \ccxt\Exchange {
                     $headers['User-Agent'] = $this->userAgent['User-Agent'];
                 }
             }
-
-            // this name for the proxy string is deprecated
-            // we should rename it to $this->cors everywhere
-            $url = $this->proxy . $url;
 
             if ($this->verbose) {
                 print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $headers, 'RequestBody:', $body));
