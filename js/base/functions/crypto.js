@@ -166,6 +166,43 @@ function crc32 (str, signed = false) {
 
 /*  ------------------------------------------------------------------------ */
 
+function pedersenHash (...input) {
+    if (!this.constantPoints) {
+        let constantPoints = []; 
+        const constantPointsHex = this.constantPointsHex;
+        const starkEc = new EC ('stark');
+        for (let i = 0; i < constantPointsHex.length; i++) {
+            constantPoints[i] = starkEc.curve.point (constantPointsHex[i][0], constantPointsHex[i][1]);
+        }
+        this.constantPoints = constantPoints;
+    }
+    const constantPoints = this.constantPoints;
+    const zeroBn = new BN ('0');
+    const oneBn = new BN(1);
+    const prime = new BN('800000000000011000000000000000000000000000000000000000000000001', 16);    
+    let point = constantPoints[0];
+    for (let i = 0; i < input.length; i++) {
+        let x = new BN (input[i], 16);
+        if (!(x.gte (zeroBn) && x.lt (prime))) {
+            throw new Error ('Input to pedersen hash out of range: ' + x.toString (16));
+        }
+        for (let j = 0; j < 252; j++) {
+            const pt = constantPoints[2 + i * 252 + j];
+            if (point.getX ().eq (pt.getX ())) {
+                throw new Error ('Error computing pedersen hash');
+            }
+            if (x.and (oneBn).toNumber () !== 0) {
+                point = point.add (pt);
+            }
+            x = x.shrn (1);
+        }
+    }
+    return point.getX ().toString (16);
+}
+
+
+/*  ------------------------------------------------------------------------ */
+
 module.exports = {
     hash,
     hmac,
@@ -175,6 +212,7 @@ module.exports = {
     ecdsa,
     eddsa,
     crc32,
+    pedersenHash,
 }
 
 /*  ------------------------------------------------------------------------ */

@@ -117,6 +117,7 @@ class Exchange {
         'delta',
         'deribit',
         'digifinex',
+        'dydx',
         'exmo',
         'flowbtc',
         'fmfwio',
@@ -239,11 +240,13 @@ class Exchange {
         'urlencodeNested' => 'urlencode_nested',
         'urlencodeWithArrayRepeat' => 'urlencode_with_array_repeat',
         'urlencodeBase64' => 'urlencode_base64',
+        'urldecodeBase64' => 'urldecode_base64',
         'numberToLE' => 'number_to_le',
         'numberToBE' => 'number_to_be',
         'base58ToBinary' => 'base58_to_binary',
         'binaryToBase58' => 'binary_to_base58',
         'byteArrayToWordArray' => 'byte_array_to_word_array',
+        'pedersenHash' => 'pedersen_hash',
         'parseDate' => 'parse_date',
         'setTimeout_safe' => 'set_timeout_safe',
         'TimedOut' => 'timed_out',
@@ -281,6 +284,8 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'hexMod' => 'hex_mod',
+        'hexShiftBitsN' => 'hex_shift_bits_n',
         'getDefaultOptions' => 'get_default_options',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'setMarkets' => 'set_markets',
@@ -2445,6 +2450,53 @@ class Exchange {
         } else {
             return $unsigned;
         }
+    }
+
+    public static function urldecode_base64($base64string) {
+        return str_replace('/\-/g', '+', str_replace('/\_/g', '/', $base64string));
+    }
+
+    public function hex_mod($a, $b) {
+        return new BN ($a, 16).mod (new BN ($b, 16)).toString (16);
+    }
+
+    public function hex_shift_bits_n($hex, $n, $left = true) {
+        return $left ? new BN ($hex, 16).iushln ($n).toString (16) : new BN ($hex, 16).iushrn ($n).toString (16);
+    }
+
+    public function pedersen_hash() {
+        $input = func_get_args();
+        if (!$this->constantPoints) {
+            $constantPoints = array(); 
+            $constantPointsHex = $this->constantPointsHex;
+            $starkEc = new EC ('stark');
+            for ($i = 0; $i < count($constantPointsHex); $i++) {
+                $constantPoints[$i] = $starkEc->curve.point ($constantPointsHex[$i][0], $constantPointsHex[$i][1]);
+            }
+            $this->constantPoints = $constantPoints;
+        }
+        $constantPoints = $this->constantPoints;
+        $zeroBn = new BN ('0');
+        $oneBn = new BN(1);
+        $prime = new BN('800000000000011000000000000000000000000000000000000000000000001', 16);    
+        $point = $constantPoints[0];
+        for ($i = 0; $i < count($input); $i++) {
+            $x = new BN ($input[$i], 16);
+            if (!($x->gte ($zeroBn) && $x->lt ($prime))) {
+                throw new \Exception('Input to pedersen hash out of range => ' . $x->toString (16));
+            }
+            for ($j = 0; $j < 252; $j++) {
+                $pt = $constantPoints[2 . $i * 252 . $j];
+                if ($point->getX ().eq ($pt->getX ())) {
+                    throw new \Exception('Error computing pedersen hash');
+                }
+                if ($x->and ($oneBn).toNumber () !== 0) {
+                    $point = $point->add ($pt);
+                }
+                $x = $x->shrn (1);
+            }
+        }
+        return $point->getX ().toString (16);
     }
 
     // ########################################################################

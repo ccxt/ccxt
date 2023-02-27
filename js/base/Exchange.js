@@ -759,6 +759,14 @@ module.exports = class Exchange {
         }
     }
 
+    hexMod (a, b) {
+        return new BN (a, 16).mod (new BN (b, 16)).toString (16);
+    }
+    
+    hexShiftBitsN (hex, n, left = true) {
+        return left ? new BN (hex, 16).iushln (n).toString (16) : new BN (hex, 16).iushrn (n).toString (16);
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 

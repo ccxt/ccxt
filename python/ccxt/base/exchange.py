@@ -1074,6 +1074,14 @@ class Exchange(object):
         return _urlencode.quote(uri, safe=safe)
 
     @staticmethod
+    def urlencode_base64(base64string):
+        return base64string.replace('=', '').replace('+', '-').replace('/', '_')
+
+    @staticmethod
+    def urldecode_base64(base64string):
+        return base64string.replace('-', '+').replace('_', '/')
+
+    @staticmethod
     def omit(d, *args):
         if isinstance(d, dict):
             result = d.copy()
@@ -1342,6 +1350,7 @@ class Exchange(object):
             'p384': [ecdsa.NIST384p, 'sha384'],
             'p521': [ecdsa.NIST521p, 'sha512'],
             'secp256k1': [ecdsa.SECP256k1, 'sha256'],
+            'stark': [ecdsa.STARK, 'sha256'],
         }
         if algorithm not in algorithms:
             raise ArgumentsRequired(algorithm + ' is not a supported algorithm')
@@ -1606,7 +1615,7 @@ class Exchange(object):
         return '0x' + Exchange.decode(base64.b16encode(hash_bytes)).lower()
 
     @staticmethod
-    def signHash(hash, privateKey):
+    def sign_hash(hash, privateKey):
         signature = Exchange.ecdsa(hash[-64:], privateKey, 'secp256k1', None)
         return {
             'r': '0x' + signature['r'],
@@ -1649,7 +1658,7 @@ class Exchange(object):
         #     }
         #
         message_hash = self.hashMessage(message)
-        signature = self.signHash(message_hash[-64:], privateKey[-64:])
+        signature = self.sign_hash(message_hash[-64:], privateKey[-64:])
         return signature
 
     @staticmethod
@@ -1759,6 +1768,66 @@ class Exchange(object):
             return unsigned - 0x100000000
         else:
             return unsigned
+
+    def pedersen_hash(self, *input):
+        def igcdex(a, b):
+            if (not a) and (not b):
+                return (0, 1, 0)
+            if not a:
+                return (0, b // abs(b), abs(b))
+            if not b:
+                return (a // abs(a), 0, abs(a))
+            if a < 0:
+                a, x_sign = -a, -1
+            else:
+                x_sign = 1
+            if b < 0:
+                b, y_sign = -b, -1
+            else:
+                y_sign = 1
+            x, y, r, s = 1, 0, 0, 1
+            while b:
+                (c, q) = (a % b, a // b)
+                (a, b, r, s, x, y) = (b, c, x - q * r, y - q * s, r, s)
+            return (x * x_sign, y * y_sign, a)
+
+        def div_mod(n, m, p):
+            a, b, c = igcdex(m, p)
+            assert c == 1
+            return (n * a) % p
+
+        def ec_add(point1, point2, p):
+            assert (point1[0] - point2[0]) % p != 0
+            m = div_mod(point1[1] - point2[1], point1[0] - point2[0], p)
+            x = (m * m - point1[0] - point2[0]) % p
+            y = (m * (point1[0] - x) - point1[1]) % p
+            return x, y
+
+        if not hasattr(self, 'constant_points'):
+            self.constant_points = [[int(element, 16) for element in point] for point in self.constantPointsHex]
+        prime = 3618502788666131213697322783095070105623107215331596699973092056135872020481
+        point = self.constant_points[0]
+        bits = 252
+        for i, x in enumerate(input):
+            x = int(x, 16)
+            assert 0 <= x < prime
+            point_list = self.constant_points[2 + i * bits:2 + (i + 1) * bits]
+            assert len(point_list) == bits
+            for pt in point_list:
+                assert point[0] != pt[0], 'Unhashable input.'
+                if x & 1:
+                    point = ec_add(point, pt, prime)
+                x >>= 1
+            assert x == 0
+        return Exchange.remove0x_prefix(hex(point[0]))
+
+    @staticmethod
+    def hex_mod(a, b):
+        return hex(int(a, 16) % int(b, 16))
+
+    @staticmethod
+    def hex_shift_bits_n(a, n, left=True):
+        return Exchange.remove0x_prefix(hex(int(a, 16) << n) if left else hex(int(a, 16) >> n))
 
     # ########################################################################
     # ########################################################################

@@ -49,6 +49,8 @@ module.exports =
                                                    .replace (/\+/g, '-')
                                                    .replace (/\//g, '_')
 
+    , urldecodeBase64: base64string => base64string.replace (/\-/g, '+').replace (/\_/g, '/')
+
     , numberToLE: (n, padding) => {
         const hexArray = new BN (n).toArray ('le', padding)
         return byteArrayToWordArray (hexArray)

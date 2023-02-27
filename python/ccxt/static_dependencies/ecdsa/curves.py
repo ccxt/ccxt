@@ -43,8 +43,11 @@ NIST521p = Curve("NIST521p", ecdsa.curve_521,
 SECP256k1 = Curve("SECP256k1", ecdsa.curve_secp256k1,
                   ecdsa.generator_secp256k1,
                   (1, 3, 132, 0, 10), "secp256k1")
+STARK = Curve("STARK", ecdsa.curve_stark,
+                  ecdsa.generator_stark,
+                  (1, 3, 132, 0, 11), "stark")
 
-curves = [NIST192p, NIST224p, NIST256p, NIST384p, NIST521p, SECP256k1]
+curves = [NIST192p, NIST224p, NIST256p, NIST384p, NIST521p, SECP256k1, STARK]
 
 
 def find_curve(oid_curve):

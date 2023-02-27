@@ -203,21 +203,17 @@ defineCurve('secp256k1', {
   ]
 });
 
-var preStark;
-try {
-  preStark = require('./precomputed/stark');
-} catch (e) {
-  preStark = undefined;
-}
-
 defineCurve('stark', {
   type: 'short',
   prime: null,
-  p: '800000000000011000000000000000000000000000000000000000000000001',
+  p: '08000000 00000011 00000000 00000000 00000000 00000000 00000000 00000001',
   a: '00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001',
   b: '06f21413 efbe40de 150e596d 72f7a8c5 609ad26c 15c915c1 f4cdfcb9 9cee9e89',
   n: '08000000 00000010 ffffffff ffffffff b781126d cae7b232 1e66a241 adc64d2f',
   hash: 'SHA256',
   gRed: false,
-  g: preStark[1],
+  g: [
+    '1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca', 
+    '5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f'
+  ]
 });
