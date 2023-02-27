@@ -29,6 +29,7 @@ use \ccxt\BadSymbol;
 use React;
 use React\Async;
 use React\EventLoop\Loop;
+use Clue;
 
 use Exception;
 
@@ -48,13 +49,17 @@ class Exchange extends \ccxt\Exchange {
 
     public function __construct($options = array()) {
         parent::__construct($options);
-        $connector = new React\Socket\Connector(Loop::get(), array(
-            'timeout' => $this->timeout,
-        ));
-        if ($this->browser === null) {
-            $this->browser = (new React\Http\Browser(Loop::get(), $connector))->withRejectErrorResponse(false);
-        }
+        $this->set_request_browser();
         $this->throttle = new Throttle($this->tokenBucket);
+    }
+
+    public function set_request_browser($connector_options = array()){
+        $connector = new React\Socket\Connector(array_merge(array(
+            'timeout' => $this->timeout,
+        ), $connector_options), Loop::get());
+        //if ($this->browser === null) {
+            $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
+        //}
     }
 
     public static function execute_and_run($closure) {
@@ -77,21 +82,34 @@ class Exchange extends \ccxt\Exchange {
                 $url = call_user_func($this->proxy, $url);
                 $headers['Origin'] = $this->origin;
             } else if (gettype($this->proxy) === 'string'){
-                if (strlen($this->proxy)>0){
+                if (strlen($this->proxy) > 0){
                     $url = $this->proxy . $url;
                     $headers['Origin'] = $this->origin;
                 }
             }
 
-
             if ($this->userAgent) {
-                if (gettype($this->userAgent) == 'string') {
+                if (gettype($this->userAgent) === 'string') {
                     $headers['User-Agent'] = $this->userAgent;
-                } elseif ((gettype($this->userAgent) == 'array') && array_key_exists('User-Agent', $this->userAgent)) {
+                } elseif ((gettype($this->userAgent) === 'array') && array_key_exists('User-Agent', $this->userAgent)) {
                     $headers['User-Agent'] = $this->userAgent['User-Agent'];
                 }
             }
 
+            if ($this->proxy_agent_url) {
+                if (stripos($this->proxy_agent_url, 'socks5://') !== false) {
+                    $proxy = new Clue\React\Socks\Client($this->proxy_agent_url);
+                } else {
+                    $proxy = new Clue\React\HttpProxy\ProxyConnector($this->proxy_agent_url);
+                }
+                $this->set_request_browser(array(
+                    'tcp' => $proxy,
+                    'dns' => false
+                ));
+            } else {
+                $this->set_request_browser();
+            }
+    
             if ($this->verbose) {
                 print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $headers, 'RequestBody:', $body));
             }

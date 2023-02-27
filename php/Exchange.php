@@ -75,6 +75,7 @@ class Exchange {
     public $curlopt_interface = null;
     public $timeout = 10000; // in milliseconds
     public $proxy = '';
+    public $proxy_agent_url = null; // SOCKS5 & HTTP(S) supported, i.e.  socks5://127.0.0.1:8000 or http://127.0.0.1:443
     public $origin = '*'; // CORS origin
     public $headers = array();
     public $hostname = null; // in case of inaccessibility of the "main" domain
@@ -1687,7 +1688,7 @@ class Exchange {
             $url = call_user_func($this->proxy, $url);
             $headers['Origin'] = $this->origin;
         } else if (gettype($this->proxy) === 'string'){
-            if (strlen($this->proxy)>0){
+            if (strlen($this->proxy) > 0){
                 $url = $this->proxy . $url;
                 $headers['Origin'] = $this->origin;
             }
@@ -1779,14 +1780,17 @@ class Exchange {
             curl_setopt($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
         }
 
-        /*
+        if ($this->proxy_agent_url) {
+            curl_setopt($this->curl, CURLOPT_PROXY, $this->proxy_agent_url);
+            // atm we don't make as tunnel
+            // curl_setopt($this->curl, CURLOPT_HTTPPROXYTUNNEL, 1);
+            // curl_setopt($this->curl, CURLOPT_SUPPRESS_CONNECT_HEADERS, 1);
 
-        // this is currently not integrated, reserved for future
-        if ($this->proxy) {
-            curl_setopt ($this->curl, CURLOPT_PROXY, $this->proxy);
+            // default proxy type is 'HTTP'
+            if (stripos($this->proxy_agent_url, 'socks5://') !== false) {
+                curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
+            }
         }
-
-        */
 
         curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($this->curl, CURLOPT_FAILONERROR, false);
