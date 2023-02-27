@@ -53,6 +53,7 @@ module.exports = class krakenfutures extends Exchange {
                 'fetchOrders': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'setLeverage': false,
@@ -432,6 +433,12 @@ module.exports = class krakenfutures extends Exchange {
         //
         const timestamp = this.parse8601 (response['serverTime']);
         return this.parseOrderBook (response['orderBook'], symbol, timestamp);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        return await super.fetchTicker (market['symbol'], params);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
