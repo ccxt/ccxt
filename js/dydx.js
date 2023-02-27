@@ -5,6 +5,10 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
+const BN = require ('./static_dependencies/BN/bn');
+const elliptic = require ('./static_dependencies/elliptic/lib/elliptic');
+const constantPointsHex = require ('./static_dependencies/elliptic/lib/elliptic/precomputed/stark.js');
 
 // ----------------------------------------------------------------------------
 
@@ -23,20 +27,20 @@ module.exports = class dydx extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelAllOrders': undefined, // TODO, needs stark sign
                 'createDepositAddress': false,
-                'createOrder': undefined, // TODO, needs stark sign
+                'createOrder': true,
                 'fetchBalance': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': false,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOrder': true,
                 'fetchOpenOrders': true,
-                'fetchCanceledOrders': true,
-                'fetchClosedOrders': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
@@ -196,19 +200,61 @@ module.exports = class dydx extends Exchange {
                 },
             },
             'requiredCredentials': {
-                // 'walletAddress': true,
-                // 'privateKey': true, // Ethereum Key Authentication
+                'privateKey': false, // Ethereum Key Authentication, required if none of the other credentials are provided, see exchange specific checkRequiredCredentials function
                 'apiKey': true,
                 'secret': true,
                 'password': true,
-                // 'starkKeyYCoordinate': true, // STARK Key Authentication
-                // 'starkKey': true, // STARK Key Authentication
+                'starkPrivateKey': true, // STARK Key Authentication
             },
             'options': {
                 'mainCurrency': 'USDC',
-                'limitFee': 0.01, // 1% // TODO: this needs to be defined automatically, from either /users or /config endpoints, however we don't implement them
+                'limitFee': '0.01', // 1% // TODO: this needs to be defined automatically, from either /users or /config endpoints, however we don't implement them
                 'gtcDate': '2099-12-31T23:59:59.999Z',
                 'fetchOpenOrdersMethod': 'privateGetOrders',  // 'privateGetActiveOrders' (higher rate-limits, less informational) or 'privateGetOrders' (lower rate-limit, more informational)
+            },
+            'pedersenHashCache': {},
+            'encodedMessageStrings': {
+                // pre-generated encodedMessageStrings for mainnet and testnet, as EIP-712 typed structured data not implemented yet (ABI type encoding needs a solution first)
+                // used https://gist.github.com/ashwinYardi/90d2b8801c52a60796999c2642fa9550 with the following typed data object:
+                // const typedData = {
+                //     types: {
+                //         EIP712Domain: [
+                //             { name: 'name', type: 'string' },
+                //             { name: 'version', type: 'string' },
+                //             { name: 'chainId', type: 'uint256' },
+                //         ],
+                //         dYdX: [
+                //           { type: 'string', name: 'action' },
+                //           { type: 'string', name: 'onlySignOn' } // leave out for testnet
+                //         ],
+                //     },
+                //     primaryType: 'dYdX',
+                //     domain: {
+                //         name: 'dYdX',
+                //         version: '1.0',
+                //         chainId: 1, // 5 for testnet
+                //     },
+                //     message: {
+                //       action: 'dYdX STARK Key', //  'dYdX Onboarding' for apiKey
+                //       onlySignOn: 'https://trade.dydx.exchange', // leave out for testnet,
+                //     },
+                //   };
+                'mainnet': {
+                    'starkKey': '0x0f9c71ef542bfca920d829ba80e515471e25e671202287713b8eaceef47f12dc',
+                    'onboarding': '0xea8542295a919314b6db804076a90473337ebec28a962ea126aea3f2bcafa679',
+                },
+                'testnet': {
+                    'starkKey': '0xae1353e14f103174748e254577d8bb84eddbce5477bce5dd045c9625ed49deeb',
+                    'onboarding': '0xaaaa52c2b4cf4b173f5c9d0478d248a3e6ddfd11d1a1b40657ee097e665f7848',
+                },
+            },
+            'networkId': 1,
+            'constants': {
+                'zeroBn': new BN (0),
+                'oneBn': new BN (1),
+                'maxEcdsaVal': new BN ('800000000000000000000000000000000000000000000000000000000000000', 16),
+                'prime': new BN ('800000000000011000000000000000000000000000000000000000000000001', 16),
+                'maxNonce': new BN (2).pow (new BN (32)),
             },
         });
     }
@@ -846,6 +892,7 @@ module.exports = class dydx extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkStarkKeyCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -853,7 +900,6 @@ module.exports = class dydx extends Exchange {
             'side': this.parseOrderSide (side, true),
             'type': this.parseOrderType (type, true),
             'size': this.amountToPrecision (market['symbol'], amount),
-            // 'signature': 'edfwefweawds
         };
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (market['symbol'], price);
@@ -865,20 +911,35 @@ module.exports = class dydx extends Exchange {
         if (timeInForce === 'GTC') {
             request['expiration'] = this.options['gtcDate']; // simulate GTC, because only GTT supported, so set it as unrealistic future
         }
-        // [Required] postOnly
-        const postOnly = this.safeString (params, 'postOnly');
-        if (postOnly === undefined) {
-            request['postOnly'] = false;  // default to false
+        if ('expiration' in params) {
+            request['expiration'] = this.safeString (params, 'expiration');
         }
+        // [Required] postOnly
+        request['postOnly'] = this.safeValue (params, 'postOnly', false);
         // [Required] clientId
         const clientOrderId = this.safeString2 (params, 'clientId', 'clientOrderId');
-        request['clientId'] = (clientOrderId !== undefined) ? clientOrderId : this.nonce ().toString ();
+        request['clientId'] = (clientOrderId !== undefined) ? clientOrderId : this.milliseconds ().toString ();
+        const orderToSign = {
+            'humanSize': request.size,
+            'humanPrice': request.price,
+            'limitFee': request.limitFee,
+            'market': request.market,
+            'side': request.side,
+            'expirationIsoTimestamp': request.expiration,
+            'clientId': request['clientId'],
+            'positionId': await this.getPositionId (),
+            'assetIdSynthetic': market.info.syntheticAssetId,
+            'assetResolution': market.info.assetResolution,
+        };
+        const hashBN = await this.starkHashBN (orderToSign, 'order');
+        const signature = await this.starkSignature (hashBN);
+        request['signature'] = signature;
         params = this.omit (params, [ 'clientOrderId' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
         // TODO
         return this.parseOrder (response, market);
     }
-
+    
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = undefined;
@@ -976,7 +1037,6 @@ module.exports = class dydx extends Exchange {
             // }
         } else {
             response = await this.privateDeleteOrders (this.extend (request, params));
-            // TODO - like 'createOrder', this is Unauthorized for now without stark keys
         }
         const ordersArray = this.safeValue (response, 'cancelOrders', []);
         return this.parseOrders (ordersArray, market, undefined, undefined, params);
@@ -1195,14 +1255,19 @@ module.exports = class dydx extends Exchange {
             }
         }
         const url = this.urls['api'][api] + request;
-        if (api === 'private') {
+        if (method === 'POST' && path === 'onboarding') {
+            // can be implemented TODO generate all different static EIP-712 messages
+        } else if ((method === 'POST' || method === 'DELETE') && path === 'api-keys') {
+            // can not be implemented at the moment due to EIP-712 resp. ABI encoding missing
+        } else if (api === 'private') {
+            this.checkApiKeyCredentials ();
             const timestamp = this.iso8601 (this.milliseconds ());
             let auth = timestamp + method + request;
             if (method !== 'GET') {
                 body = this.json (params);
                 auth += body;
             }
-            const secret = this.base64ToBinary (this.secret);
+            const secret = this.encode (this.secret);
             const signature = this.hmac (this.encode (auth), secret, 'sha256', 'base64');
             headers = {
                 'DYDX-TIMESTAMP': timestamp,
@@ -1215,6 +1280,330 @@ module.exports = class dydx extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    getStarkEc () {
+        const starkEc = this.safeValue (this, 'starkEc');
+        if (!starkEc) {
+            const EC = elliptic.ec;
+            this.starkEc = new EC ('stark');
+        }
+        return this.starkEc;
+    }
+
+    getConstantPoints () {
+        const constantPoints = this.safeValue (this, 'constantPoints', []);
+        if (constantPoints.length === 0) {
+            for (let i = 0; i < constantPointsHex.length; i++) {
+                constantPoints[i] = this.getStarkEc ().curve.point (new BN (constantPointsHex[i][0], 16), new BN (constantPointsHex[i][1], 16));
+            }
+            this.constantPoints = constantPoints;
+        }
+        return constantPoints;
+    }
+
+    getShiftPoint () {
+        return this.getConstantPoints ()[0];
+    }
+
+    setSandboxMode (enabled) {
+        if (!!enabled) { // eslint-disable-line no-extra-boolean-cast
+            if ('test' in this.urls) {
+                if (typeof this.urls['api'] === 'string') {
+                    this.urls['apiBackup'] = this.urls['api']
+                    this.urls['api'] = this.urls['test']
+                } else {
+                    this.urls['apiBackup'] = this.clone (this.urls['api'])
+                    this.urls['api'] = this.clone (this.urls['test'])
+                }
+                this.networkId = 5;
+            } else {
+                throw new NotSupported (this.id + ' does not have a sandbox URL')
+            }
+        } else if ('apiBackup' in this.urls) {
+            if (typeof this.urls['api'] === 'string') {
+                this.urls['api'] = this.urls['apiBackup']
+            } else {
+                this.urls['api'] = this.clone (this.urls['apiBackup'])
+            }
+            this.networkId = 1;
+        }
+    }
+
+    toQuantumsHelper (humanAmount, quantumSize, roundMode, assertIntegerResult) {
+        const amountPrecise = new Precise (humanAmount);
+        const quantumSizePrecise = new Precise (quantumSize);
+        const remainder = amountPrecise.mod (quantumSizePrecise);
+        if (assertIntegerResult && !remainder.equals (new Precise ('0'))) { 
+            throw new Error ('toQuantums: Amount ' + humanAmount + 'is not a multiple of the quantum size ' + quantumSize);
+        }
+        return this.decimalToPrecision (amountPrecise.div (quantumSizePrecise).toString (), roundMode, 0);  // .round(0, rm).toFixed(0);
+    }
+
+    getStarkwareLimitFeeAmount (limitFee, quantumsAmountCollateral) {
+        const lf = new Precise (limitFee).toString ();
+        const lfAdj = this.decimalToPrecision (lf, 'ROUND_DOWN', 6);
+        const product = Precise.stringMul (lfAdj, quantumsAmountCollateral);
+        return this.decimalToPrecision (product, 'ROUND_UP', 0);
+    }
+
+    hexToBn (hex) {
+        return new BN (this.remove0xPrefix (hex), 16);
+    }
+
+    numToBn (dec) {
+        return new BN (dec, 10);
+    }
+
+    async starkHashBN (signObject, type) {
+        if (type === 'order') {
+            const nonceHex = this.hash (signObject.clientId, 'SHA256');
+            const nonce = new BN (this.remove0xPrefix (nonceHex), 16).mod (this.constants['maxNonce']).toString ();
+            // const orderType = 'LIMIT_ORDER_WITH_FEES';
+            const isBuyingSynthetic = signObject.side === 'BUY';
+            const assetIdSynthetic = signObject.assetIdSynthetic;
+            const assetIdCollateral = this.networkId === 1 ? '0x02893294412a4c8f915f75892b395ebbf6859ec246ec365c3b1f56f47c3a0a5d' : '0x03bda2b4764039f2df44a00a9cf1d1569a83f95406a983ce4beb95791c376008';
+            const quantumSizeSyn = Precise.stringDiv ('1', signObject.assetResolution);
+            const quantumsAmountSynthetic = this.toQuantumsHelper (signObject.humanSize, quantumSizeSyn, 'ROUND_DOWN', true);
+            const quantumSizeColl = '1e-6'; // for USDC collateral only, as all markets are
+            const humanAmountCollateral = Precise.stringMul (signObject.humanSize, signObject.humanPrice);
+            const roundMode = isBuyingSynthetic ? 'ROUND_UP' : 'ROUND_DOWN';
+            const quantumsAmountCollateral = this.toQuantumsHelper (humanAmountCollateral, quantumSizeColl, roundMode, false);
+            const quantumsAmountFee = this.getStarkwareLimitFeeAmount (signObject.limitFee, quantumsAmountCollateral);
+            const expirationEpochHoursInt = Math.ceil (new Date (signObject.expirationIsoTimestamp).getTime () / 3600000) + 168;
+            const assetIdFee = assetIdCollateral;
+            // BNs for hasing
+            const assetIdSyntheticBn = this.hexToBn (assetIdSynthetic);
+            const assetIdCollateralBn = this.hexToBn (assetIdCollateral);
+            const assetIdFeeBn = this.hexToBn (assetIdFee);
+            const quantumsAmountSyntheticBn = this.numToBn (quantumsAmountSynthetic);
+            const quantumsAmountCollateralBn = this.numToBn (quantumsAmountCollateral);
+            const quantumsAmountFeeBn = this.numToBn (quantumsAmountFee);
+            const nonceBn = this.numToBn (nonce);
+            const positionIdBn = this.numToBn (signObject.positionId); 
+            const expirationEpochHours = this.numToBn (expirationEpochHoursInt);
+            const [ assetIdSellBn, assetIdBuyBn ] = isBuyingSynthetic
+                ? [ assetIdCollateralBn, assetIdSyntheticBn ]
+                : [ assetIdSyntheticBn, assetIdCollateralBn ];
+            const [ quantumsAmountSellBn, quantumsAmountBuyBn ] = isBuyingSynthetic
+                ? [ quantumsAmountCollateralBn, quantumsAmountSyntheticBn ]
+                : [ quantumsAmountSyntheticBn, quantumsAmountCollateralBn ];
+            const orderPart1 = new BN (quantumsAmountSellBn.toString (), 10)
+                .iushln (64).iadd (quantumsAmountBuyBn)
+                .iushln (64)
+                .iadd (quantumsAmountFeeBn)
+                .iushln (32)
+                .iadd (nonceBn);
+            const orderPart2 = new BN (3)
+                .iushln (64).iadd (positionIdBn)
+                .iushln (64)
+                .iadd (positionIdBn)
+                .iushln (64)
+                .iadd (positionIdBn)
+                .iushln (32)
+                .iadd (expirationEpochHours)
+                .iushln (17);
+            const assetsBn = await this.getCacheablePedersenHash (await this.getCacheablePedersenHash (assetIdSellBn, assetIdBuyBn), assetIdFeeBn);
+            const hashBN = await this.pedersenHash (await this.pedersenHash (assetsBn, orderPart1), orderPart2);
+            return hashBN;
+        }
+    }
+
+    async starkSignature (hashBN) {
+        const ecKeyPair = this.safeValue (this, 'ecKeyPair', this.starkKeyFromPrivate (this.starkPrivateKey));
+        const bnInRange = this.bnInRange;
+        if (!bnInRange (hashBN, this.constants['zeroBn'], this.constants['maxEcdsaVal'])) {
+            throw new Error ('Message cannot be signed since it exceeds the max length');
+        }
+        const ecSignature = ecKeyPair.sign (this.fixHashLength (hashBN));
+        const { r, s } = ecSignature;
+        const w = s.invm (this.getStarkEc ().n);
+        if (!bnInRange (r, this.constants['oneBn'], this.constants['maxEcdsaVal'])
+            || !bnInRange (s, this.constants['oneBn'], this.getStarkEc ().n)
+            || !bnInRange (w, this.constants['oneBn'], this.constants['maxEcdsaVal'])) {
+            throw new Error ('Sanity check failed: an invalid signature was produced');
+        }
+        const simpleSignature = {
+            'r': this.normalizeHex32 (ecSignature.r.toString (16)),
+            's': this.normalizeHex32 (ecSignature.s.toString (16)),
+        };
+        return this.normalizeHex32 (simpleSignature.r) + this.normalizeHex32 (simpleSignature.s);
+    }
+
+    bnInRange (input, lowerBoundInclusive, upperBoundExclusive) {
+        return input.gte (lowerBoundInclusive) && input.lt (upperBoundExclusive);
+    }
+
+    fixHashLength (messageHash) {
+        const hashHex = messageHash.toString (16);
+        if (hashHex.length <= 62) {
+            return messageHash;
+        }
+        if (hashHex.length !== 63) {
+            throw new Error ('Invalid hash length: ' + hashHex.length + ' !== 63');
+        }
+        return messageHash.ushln (4);
+    }
+
+    starkKeyFromPrivate (starkPrivateKey) {
+        this.ecKeyPair = this.getStarkEc ().keyFromPrivate (this.normalizeHex32 (starkPrivateKey));
+        return this.ecKeyPair;
+    }
+
+    async getCacheablePedersenHash (left, right) {
+        const leftString = left.toString (16);
+        const rightString = right.toString (16);
+
+        if (this.pedersenHashCache[leftString] === undefined) {
+            this.pedersenHashCache[leftString] = {};
+        }
+        if (this.pedersenHashCache[leftString][rightString] === undefined) {
+            this.pedersenHashCache[leftString][rightString] = await this.pedersenHash (left, right);
+        }
+        return this.pedersenHashCache[leftString][rightString];
+    }
+
+    async pedersenHash (...input) {
+        let point = this.getShiftPoint ();
+        for (let i = 0; i < input.length; i++) {
+            let x = input[i];
+            if (!(x.gte (this.constants['zeroBn']) && x.lt (this.constants['prime']))) {
+                throw new Error ('Input to pedersen hash out of range: ' + x.toString (16));
+            }
+            for (let j = 0; j < 252; j++) {
+                const pt = this.getConstantPoints ()[2 + i * 252 + j];
+                if (point.getX ().eq (pt.getX ())) {
+                    throw new Error ('Error computing pedersen hash');
+                }
+                if (x.and (this.constants['oneBn']).toNumber () !== 0) {
+                    point = point.add (pt);
+                }
+                x = x.shrn (1);
+            }
+        }
+        return point.getX ();
+    }
+
+    normalizeHex32 (hex) {
+        return this.remove0xPrefix (hex).toLowerCase ().padStart (64, '0');
+    }
+
+    deriveStarkKey () {
+        const net = this.networkId === 1 ? 'mainnet' : 'testnet';
+        const encodedMessageString = this.encodedMessageStrings[net]['starkKey'];
+        const signatureObject = this.signHash (encodedMessageString, this.privateKey);
+        const signature = this.remove0xPrefix (signatureObject['r']) + this.remove0xPrefix (signatureObject['s']) + this.binaryToBase16 (this.numberToBE (signatureObject['v'])) + '00';
+        const binary = this.base16ToBinary (signature);
+        const hashedData = this.hash (binary, 'keccak');
+        const hashBN = new BN (this.remove0xPrefix (hashedData), 'hex');
+        const privateKey = hashBN.iushrn (5).toString ('hex');
+        this.ecKeyPair = this.getStarkEc ().keyFromPrivate (this.normalizeHex32 (privateKey));
+        const ecPrivateKey = this.ecKeyPair.getPrivate ();
+        const ecPublicKey = this.ecKeyPair.getPublic ();
+        this.starkPublicKey = this.normalizeHex32 (ecPublicKey.getX().toString(16)),
+        this.starkKeyYCoordinate = this.normalizeHex32 (ecPublicKey.getY ().toString (16));
+        this.starkPrivateKey = this.normalizeHex32 (ecPrivateKey.toString (16));
+    }
+
+    uuidFormatKey (key) {
+        return [
+            key.slice (0, 8),
+            key.slice (8, 12),
+            key.slice (12, 16),
+            key.slice (16, 20),
+            key.slice (20, 32),
+        ].join ('-');
+    }
+
+    async getPositionId () {
+        const positionId = this.safeString (this, 'positionId');
+        if (positionId) {
+            return positionId;
+        }
+        this.checkStarkKeyCredentials ();
+        const response = await this.privateGetAccounts ();
+        const accounts = this.safeValue (response, 'accounts');
+        for (let i = 0; i < accounts.length; i++) {
+            const currentAcc = accounts[i];
+            const accountNumber = this.safeString (currentAcc, 'accountNumber');
+            if (accountNumber && (accountNumber === '0')) {
+                const positionId = this.safeString (currentAcc, 'positionId');
+                this.positionId = positionId;
+                return this.positionId;
+            }
+        }
+        return undefined;
+    }
+
+    generateApiCredentials () {
+        // recoverDefaultApiCredentials
+        const net = this.networkId === 1 ? 'mainnet' : 'testnet';
+        const encodedMessageString = this.encodedMessageStrings[net]['onboarding'];
+        const signatureObject = this.signHash (encodedMessageString, this.privateKey);
+        const signature = this.remove0xPrefix (signatureObject['r']) + this.remove0xPrefix (signatureObject['s']) + this.binaryToBase16 (this.numberToBE (signatureObject['v'])) + '00';
+        // secret
+        const rSignature = signature.slice (0, 64);
+        const rSignatureBinary = this.base16ToBinary (rSignature);
+        const rHashedData = this.hash (rSignatureBinary, 'keccak');
+        const secret = rHashedData.slice (0, 60);
+        // key and passphrase
+        const sSignature = signature.slice (64, 128);
+        const sSignatureBinary = this.base16ToBinary (sSignature);
+        const sHashedData = this.hash (sSignatureBinary, 'keccak');
+        const key = sHashedData.slice (0, 32);
+        const passphrase = sHashedData.slice (32, 62);
+        this.apiKey = this.uuidFormatKey (key);
+        this.secret = this.base16ToBinary (secret);
+        this.password = this.urlencodeBase64 (this.binaryToBase64 (this.base16ToBinary (passphrase)));
+    }
+
+    checkRequiredCredentials (error = true) {
+        const privateKey = this.safeString (this, 'privateKey');
+        if (privateKey) {
+            return true;
+        }
+        const starkKeysProvided = this.checkStarkKeyCredentials (false);
+        const apiKeysProvided = this.checkApiKeyCredentials (false);
+        if (!starkKeysProvided || !apiKeysProvided) {
+            if (error) {
+                throw new AuthenticationError (this.id + ' requires either a privateKey credential (Ethereum Key Authentication) or all of the following credentials: apiKey, secret, password, starkKeyYCoordinate, starkPrivateKey');
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    checkStarkKeyCredentials (error = true) {
+        const keys = [ 'starkKeyYCoordinate', 'starkPrivateKey' ];
+        const starkKeysProvided = this.checkCredentials (keys, false);
+        if (!starkKeysProvided && this.safeString (this, 'privateKey')) {
+            this.deriveStarkKey ();
+        }
+        return this.checkCredentials (keys, error);
+    }
+
+    checkApiKeyCredentials (error = true) {
+        const keys = [ 'apiKey', 'secret', 'password' ];
+        const apiKeysProvided = this.checkCredentials (keys, false);
+        if (!apiKeysProvided && this.safeString (this, 'privateKey')) {
+            this.generateApiCredentials ();
+        }
+        return this.checkCredentials (keys, error);
+    }
+
+    checkCredentials (keys, error = true) {
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.requiredCredentials[key] && !this[key]) {
+                if (error) {
+                    throw new AuthenticationError (this.id + ' requires "' + key + '" credential or a privateKey credential (Ethereum Key Authentication)');
+                } else {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
