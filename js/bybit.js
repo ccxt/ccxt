@@ -7140,6 +7140,33 @@ module.exports = class bybit extends Exchange {
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const values = await this.isUnifiedEnabled ();
+        const isUnifiedAccount = this.safeValue (values, 1);
+        if (isUnifiedAccount) {
+            return await this.setUnifiedMarginMode (marginMode, symbol, params);
+        }
+        return await this.setDerivativesMarginMode (marginMode, symbol, params);
+    }
+
+    async setUnifiedMarginMode (marginMode, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if ((marginMode !== 'REGULAR_MARGIN') && (marginMode !== 'PORTFOLIO_MARGIN')) {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode must be either REGULAR_MARGIN or PORTFOLIO_MARGIN');
+        }
+        const request = {
+            'setMarginMode': marginMode,
+        };
+        const response = await this.privatePostV5AccountSetMarginMode (this.extend (request, params));
+        //
+        //  {
+        //      "setMarginMode": "PORTFOLIO_MARGIN"
+        //  }
+        //
+        return response;
+    }
+
+    async setDerivativesMarginModeMarginMode (marginMode, symbol = undefined, params = {}) {
         this.checkRequiredSymbol ('setMarginMode', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
