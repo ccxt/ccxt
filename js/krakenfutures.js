@@ -53,7 +53,6 @@ module.exports = class krakenfutures extends Exchange {
                 'fetchOrders': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'setLeverage': false,
@@ -435,12 +434,6 @@ module.exports = class krakenfutures extends Exchange {
         return this.parseOrderBook (response['orderBook'], symbol, timestamp);
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        return await super.fetchTicker (market['symbol'], params);
-    }
-
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTickers (params);
@@ -517,16 +510,8 @@ module.exports = class krakenfutures extends Exchange {
         const percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
         const average = Precise.stringDiv (Precise.stringAdd (open, last), '2');
         const volume = this.safeString (ticker, 'vol24h');
-        let baseVolume = undefined;
-        let quoteVolume = undefined;
-        const isIndex = this.safeValue (market, 'index', false);
-        if (!isIndex) {
-            if (market['linear']) {
-                baseVolume = volume;
-            } else if (market['inverse']) {
-                quoteVolume = volume;
-            }
-        }
+        const baseVolume = (!market['index'] && market['linear']) ? volume : undefined;
+        const quoteVolume = (!market['index'] && market['inverse']) ? volume : undefined;
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
