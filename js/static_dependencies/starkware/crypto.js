@@ -47,7 +47,7 @@ const starkEc = new EllipticCurve(
     new eCurves.PresetCurve({
         type: 'short',
         prime: null,
-        p: prime.toString(16),
+        p: '80000000 00000110 00000000 00000000 00000000 00000000 00000000 0000001',
         a: '00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001',
         b: '06f21413 efbe40de 150e596d 72f7a8c5 609ad26c 15c915c1 f4cdfcb9 9cee9e89',
         n: '08000000 00000010 ffffffff ffffffff b781126d cae7b232 1e66a241 adc64d2f',
