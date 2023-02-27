@@ -4303,6 +4303,8 @@ module.exports = class bybit extends Exchange {
             market = this.market (symbol);
             settle = market['settle'];
             request['symbol'] = market['id'];
+        } else {
+            [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', 'USDT');
         }
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params, 'linear');
@@ -4315,9 +4317,7 @@ module.exports = class bybit extends Exchange {
         } else {
             throw new NotSupported (this.id + ' cancelAllOrders() does not allow inverse market orders for ' + type + ' markets');
         }
-        if (settle !== undefined) {
-            request['settleCoin'] = settle;
-        }
+        request['settleCoin'] = settle;
         const isStop = this.safeValue (params, 'stop', false);
         params = this.omit (params, [ 'stop' ]);
         if (isStop) {
