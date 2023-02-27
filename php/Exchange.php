@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.8.50';
+$version = '2.8.51';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.8.50';
+    const VERSION = '2.8.51';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4147,6 +4147,9 @@ class Exchange {
 
     public function fetch_ticker($symbol, $params = array ()) {
         if ($this->has['fetchTickers']) {
+            $this->load_markets();
+            $market = $this->market ($symbol);
+            $symbol = $market['symbol'];
             $tickers = $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {

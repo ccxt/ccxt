@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.8.50'
+__version__ = '2.8.51'
 
 # -----------------------------------------------------------------------------
 
@@ -3157,6 +3157,9 @@ class Exchange(object):
 
     def fetch_ticker(self, symbol, params={}):
         if self.has['fetchTickers']:
+            self.load_markets()
+            market = self.market(symbol)
+            symbol = market['symbol']
             tickers = self.fetch_tickers([symbol], params)
             ticker = self.safe_value(tickers, symbol)
             if ticker is None:
