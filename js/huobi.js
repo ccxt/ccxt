@@ -6435,7 +6435,7 @@ module.exports = class huobi extends Exchange {
         const omitted = this.omit (account, [ 'positions' ]);
         const positions = this.safeValue (account, 'positions');
         let position = undefined;
-        if (market['future'] && market['inverse']) {
+        if ((market['future'] && market['inverse']) || market['swap']) {
             for (let i = 0; i < positions.length; i++) {
                 const entry = positions[i];
                 if (entry['contract_code'] === market['id']) {
