@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.60 (2023-02-28)
+
+
+### Bug Fixes
+
+* **exmo:** watchBalance info ([ac097d0](https://github.com/ccxt/ccxt/commit/ac097d088409f5648e18d37735bba3b91688a82e))
+
 ### 2.8.59 (2023-02-28)
 
 ### 2.8.58 (2023-02-28)
