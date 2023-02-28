@@ -756,7 +756,7 @@ module.exports = class gate extends gateRest {
         });
         const channel = typeId + '.orders';
         let messageHash = 'orders';
-        let payload = [ '!all' ];
+        let payload = [ '!' + 'all' ];
         if (symbol !== undefined) {
             messageHash += ':' + market['id'];
             payload = [ market['id'] ];
