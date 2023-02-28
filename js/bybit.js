@@ -4704,7 +4704,7 @@ module.exports = class bybit extends Exchange {
         if (enableUnifiedMargin) {
             request['orderStatus'] = 'Canceled';
         } else {
-            request['orderStatus'] = 'Filled,Canceled';
+            request['orderStatus'] = 'Cancelled';
         }
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
