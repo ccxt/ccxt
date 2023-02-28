@@ -96,11 +96,19 @@ class Exchange extends \ccxt\Exchange {
                 }
             }
 
+            $proxy_url = null;
             if ($this->proxy_agent_url) {
-                if (stripos($this->proxy_agent_url, 'socks5://') !== false) {
-                    $proxy = new Clue\React\Socks\Client($this->proxy_agent_url);
+                $proxy_url = $this->proxy_agent_url;
+            } elseif ($this->http_proxy) {
+                $proxy_url = $this->http_proxy;
+            } elseif ($this->https_proxy) {
+                $proxy_url = $this->https_proxy;
+            }
+            if ($proxy_url) {
+                if (stripos($proxy_url, 'socks5://') !== false) {
+                    $proxy = new Clue\React\Socks\Client($proxy_url);
                 } else {
-                    $proxy = new Clue\React\HttpProxy\ProxyConnector($this->proxy_agent_url);
+                    $proxy = new Clue\React\HttpProxy\ProxyConnector($proxy_url);
                 }
                 // because of complexity, ssh is not supported atm: 
                 // $proxy = new Clue\React\SshProxy\SshSocksConnector('user@example.com', $loop);
@@ -108,8 +116,12 @@ class Exchange extends \ccxt\Exchange {
                     'tcp' => $proxy,
                     'dns' => false
                 ));
+                $this->is_reseted_browser = false;
             } else {
-                $this->set_request_browser();
+                if (!$this->is_reseted_browser) {
+                    $this->is_reseted_browser = true;
+                    $this->set_request_browser();
+                }
             }
     
             if ($this->verbose) {
