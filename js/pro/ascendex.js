@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ascendexRest = require ('../ascendex.js');
-const { AuthenticationError } = require ('../base/errors');
+const { AuthenticationError, NetworkError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -934,8 +934,13 @@ module.exports = class ascendex extends ascendexRest {
         await client.send ({ 'op': 'pong', 'hp': this.safeInteger (message, 'hp') });
     }
 
-    handlePing (client, message) {
-        this.spawn (this.pong, client, message);
+    async handlePing (client, message) {
+        try {
+            await this.spawn (this.pong, client, message);
+        } catch (e) {
+            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.json (e));
+            client.reset (error);
+        }
     }
 
     authenticate (url, params = {}) {
