@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.56 (2023-02-28)
+
+
+### Bug Fixes
+
+* **gate:** reset correctly orderbook after invalid nonce error ([309acb6](https://github.com/ccxt/ccxt/commit/309acb66457cc3c1074fcde01cffad224a62e032))
+
 ### 2.8.55 (2023-02-28)
 
 ### 2.8.54 (2023-02-27)

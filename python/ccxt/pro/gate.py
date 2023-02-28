@@ -186,7 +186,7 @@ class gate(Exchange, ccxt.async_support.gate):
         marketId = self.safe_string(delta, 's')
         symbol = self.safe_symbol(marketId, None, '_', marketType)
         messageHash = 'orderbook:' + symbol
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
+        storedOrderBook = self.safe_value(self.orderbooks, symbol, self.order_book({}))
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
             cacheLength = 0
@@ -207,6 +207,8 @@ class gate(Exchange, ccxt.async_support.gate):
             self.handle_delta(storedOrderBook, delta)
         else:
             error = InvalidNonce(self.id + ' orderbook update has a nonce bigger than u')
+            del client.subscriptions[messageHash]
+            del self.orderbooks[symbol]
             client.reject(error, messageHash)
         client.resolve(storedOrderBook, messageHash)
 

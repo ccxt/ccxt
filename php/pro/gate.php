@@ -192,7 +192,7 @@ class gate extends \ccxt\async\gate {
         $marketId = $this->safe_string($delta, 's');
         $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
         $messageHash = 'orderbook:' . $symbol;
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
+        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol, $this->order_book(array()));
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
             $cacheLength = 0;
@@ -215,6 +215,8 @@ class gate extends \ccxt\async\gate {
             $this->handle_delta($storedOrderBook, $delta);
         } else {
             $error = new InvalidNonce ($this->id . ' orderbook update has a $nonce bigger than u');
+            unset($client->subscriptions[$messageHash]);
+            unset($this->orderbooks[$symbol]);
             $client->reject ($error, $messageHash);
         }
         $client->resolve ($storedOrderBook, $messageHash);
