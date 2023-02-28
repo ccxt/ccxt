@@ -189,7 +189,7 @@ export default class exmo extends exmoRest {
         //     }
         //
         const data = this.safeValue (message, 'data');
-        this.balances['info'] = data;
+        this.balance['info'] = data;
         const currencies = Object.keys (data);
         for (let i = 0; i < currencies.length; i++) {
             const currencyId = currencies[i];
