@@ -456,6 +456,7 @@ declare module 'ccxt' {
         request (path: string, api?: string, method?: string, params?: Params, headers?: any, body?: any): Promise<any>;
         seconds (): number;
         setMarkets (markets: Market[], currencies?: Currency[]): Dictionary<Market>;
+        setSandboxMode (enabled: boolean): void;
         symbol (symbol: string): string;
         withdraw (currency: string, amount: number, address: string, tag?: string, params?: Params): Promise<WithdrawalResponse>;
         YmdHMS (timestamp: string, infix: string) : string;
