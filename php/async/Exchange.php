@@ -53,7 +53,7 @@ class Exchange extends \ccxt\Exchange {
         $this->throttle = new Throttle($this->tokenBucket);
     }
 
-    public function set_request_browser($connector_options = array()){
+    public function set_request_browser($connector_options = array()) {
         $connector = new React\Socket\Connector(array_merge(array(
             'timeout' => $this->timeout,
         ), $connector_options), Loop::get());
@@ -78,11 +78,11 @@ class Exchange extends \ccxt\Exchange {
 
             // this name for the proxy string is deprecated
             // we should rename it to $this->cors everywhere
-            if (is_callable($this->proxy)){
+            if (is_callable($this->proxy)) {
                 $url = call_user_func($this->proxy, $url);
                 $headers['Origin'] = $this->origin;
-            } else if (gettype($this->proxy) === 'string'){
-                if (strlen($this->proxy) > 0){
+            } else if (gettype($this->proxy) === 'string') {
+                if (strlen($this->proxy) > 0) {
                     $url = $this->proxy . $url;
                     $headers['Origin'] = $this->origin;
                 }
