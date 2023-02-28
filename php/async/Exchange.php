@@ -102,6 +102,8 @@ class Exchange extends \ccxt\Exchange {
                 } else {
                     $proxy = new Clue\React\HttpProxy\ProxyConnector($this->proxy_agent_url);
                 }
+                // because of complexity, ssh is not supported atm: 
+                // $proxy = new Clue\React\SshProxy\SshSocksConnector('user@example.com', $loop);
                 $this->set_request_browser(array(
                     'tcp' => $proxy,
                     'dns' => false
