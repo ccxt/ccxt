@@ -98,6 +98,7 @@ class binance(Exchange):
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
@@ -253,6 +254,7 @@ class binance(Exchange):
                         'margin/crossMarginCollateralRatio': 10,
                         'margin/exchange-small-liability': 0.6667,
                         'margin/exchange-small-liability-history': 0.6667,
+                        'margin/next-hourly-interest-rate': 0.6667,
                         'loan/income': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/ongoing/orders': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/ltv/adjustment/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
@@ -391,6 +393,8 @@ class binance(Exchange):
                         'portfolio/account': 0.1,
                         'portfolio/collateralRate': 5,
                         'portfolio/pmLoan': 3.3335,
+                        'portfolio/interest-history': 0.6667,
+                        'portfolio/interest-rate': 0.6667,
                         # staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -1444,6 +1448,14 @@ class binance(Exchange):
         super(binance, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
+    def convert_expire_date(self, date):
+        # parse YYMMDD to timestamp
+        year = date[0:2]
+        month = date[2:4]
+        day = date[4:6]
+        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
+        return reconstructedDate
+
     def create_expired_option_market(self, symbol):
         # support expired option contracts
         settle = 'USDT'
@@ -1457,6 +1469,8 @@ class binance(Exchange):
         expiry = self.safe_string(optionParts, 1)
         strike = self.safe_string(optionParts, 2)
         optionType = self.safe_string(optionParts, 3)
+        datetime = self.convert_expire_date(expiry)
+        timestamp = self.parse8601(datetime)
         return {
             'id': base + '-' + expiry + '-' + strike + '-' + optionType,
             'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
@@ -1475,8 +1489,8 @@ class binance(Exchange):
             'margin': False,
             'contract': True,
             'contractSize': None,
-            'expiry': None,
-            'expiryDatetime': None,
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
             'optionType': 'call' if (optionType == 'C') else 'put',
             'strike': strike,
             'settle': settle,
@@ -7223,14 +7237,75 @@ class binance(Exchange):
         #
         return self.parse_open_interests(response, symbol, since, limit)
 
+    async def fetch_open_interest(self, symbol, params={}):
+        """
+        retrieves the open interest of a contract trading pair
+        see https://binance-docs.github.io/apidocs/futures/en/#open-interest
+        see https://binance-docs.github.io/apidocs/delivery/en/#open-interest
+        see https://binance-docs.github.io/apidocs/voptions/en/#open-interest
+        :param str symbol: unified CCXT market symbol
+        :param dict params: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {}
+        if market['option']:
+            request['underlyingAsset'] = market['baseId']
+            request['expiration'] = self.yymmdd(market['expiry'])
+        else:
+            request['symbol'] = market['id']
+        method = 'fapiPublicGetOpenInterest'
+        if market['option']:
+            method = 'eapiPublicGetOpenInterest'
+        elif market['inverse']:
+            method = 'dapiPublicGetOpenInterest'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # futures(fapi)
+        #
+        #     {
+        #         "symbol": "ETHUSDT_230331",
+        #         "openInterest": "23581.677",
+        #         "time": 1677356872265
+        #     }
+        #
+        # futures(dapi)
+        #
+        #     {
+        #         "symbol": "ETHUSD_PERP",
+        #         "pair": "ETHUSD",
+        #         "openInterest": "26542436",
+        #         "contractType": "PERPETUAL",
+        #         "time": 1677360272224
+        #     }
+        #
+        # options(eapi)
+        #
+        #     [
+        #         {
+        #             "symbol": "ETH-230225-1625-C",
+        #             "sumOpenInterest": "460.50",
+        #             "sumOpenInterestUsd": "734957.4358092150",
+        #             "timestamp": "1677304860000"
+        #         }
+        #     ]
+        #
+        if market['option']:
+            return self.parse_open_interests(response, market)
+        else:
+            return self.parse_open_interest(response, market)
+
     def parse_open_interest(self, interest, market=None):
         timestamp = self.safe_integer(interest, 'timestamp')
         id = self.safe_string(interest, 'symbol')
-        amount = self.safe_number(interest, 'sumOpenInterest')
-        value = self.safe_number(interest, 'sumOpenInterestValue')
+        amount = self.safe_number_2(interest, 'sumOpenInterest', 'openInterest')
+        value = self.safe_number_2(interest, 'sumOpenInterestValue', 'sumOpenInterestUsd')
+        # Inverse returns the number of contracts different from the base or quote volume in self case
+        # compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         return {
-            'symbol': self.safe_symbol(id, None, None, 'contract'),
-            'baseVolume': amount,  # deprecated
+            'symbol': self.safe_symbol(id, market, None, 'contract'),
+            'baseVolume': None if market['inverse'] else amount,  # deprecated
             'quoteVolume': value,  # deprecated
             'openInterestAmount': amount,
             'openInterestValue': value,

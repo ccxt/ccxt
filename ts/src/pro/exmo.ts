@@ -147,6 +147,7 @@ export default class exmo extends exmoRest {
         //
         const event = this.safeString (message, 'event');
         const data = this.safeValue (message, 'data');
+        this.balance['info'] = data;
         if (event === 'snapshot') {
             const balances = this.safeValue (data, 'balances', {});
             const reserved = this.safeValue (data, 'reserved', {});
@@ -188,6 +189,7 @@ export default class exmo extends exmoRest {
         //     }
         //
         const data = this.safeValue (message, 'data');
+        this.balances['info'] = data;
         const currencies = Object.keys (data);
         for (let i = 0; i < currencies.length; i++) {
             const currencyId = currencies[i];

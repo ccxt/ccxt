@@ -1034,6 +1034,10 @@ export default class mexc extends mexcRest {
         // }
         //
         const data = this.safeValue (message, 'data');
+        const timestamp = this.safeInteger (message, 'ts');
+        this.balance['info'] = data;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601 (timestamp);
         const currencyId = this.safeString (data, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();

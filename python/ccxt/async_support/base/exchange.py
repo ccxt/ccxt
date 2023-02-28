@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.8.41'
+__version__ = '2.8.59'
 
 # -----------------------------------------------------------------------------
 
@@ -1869,6 +1869,9 @@ class Exchange(BaseExchange):
 
     async def fetch_ticker(self, symbol, params={}):
         if self.has['fetchTickers']:
+            await self.load_markets()
+            market = self.market(symbol)
+            symbol = market['symbol']
             tickers = await self.fetch_tickers([symbol], params)
             ticker = self.safe_value(tickers, symbol)
             if ticker is None:

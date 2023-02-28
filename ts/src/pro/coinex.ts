@@ -258,6 +258,7 @@ export default class coinex extends coinexRest {
         //
         const params = this.safeValue (message, 'params', []);
         const first = this.safeValue (params, 0, {});
+        this.balance['info'] = first;
         const currencies = Object.keys (first);
         for (let i = 0; i < currencies.length; i++) {
             const currencyId = currencies[i];

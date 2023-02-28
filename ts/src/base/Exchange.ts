@@ -3130,7 +3130,10 @@ export default class Exchange {
 
     async fetchTicker (symbol: string, params = {}) {
         if (this.has['fetchTickers']) {
-            const tickers = await (this as any).fetchTickers ([ symbol ], params);
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            const tickers = await this.fetchTickers ([ symbol ], params);
             const ticker = this.safeValue (tickers, symbol);
             if (ticker === undefined) {
                 throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
