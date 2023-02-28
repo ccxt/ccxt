@@ -390,6 +390,7 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
         #
         messageHash = self.safe_string(message, 'subscription')
         data = self.safe_value(message, 'data')
+        self.balance['info'] = data
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency')

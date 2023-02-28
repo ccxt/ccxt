@@ -645,6 +645,10 @@ class gate(Exchange, ccxt.async_support.gate):
         #   }
         #
         result = self.safe_value(message, 'result', [])
+        timestamp = self.safe_integer(message, 'time')
+        self.balance['info'] = result
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
         for i in range(0, len(result)):
             rawBalance = result[i]
             account = self.account()

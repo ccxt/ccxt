@@ -88,7 +88,9 @@ class cex(Exchange, ccxt.async_support.cex):
         data = self.safe_value(message, 'data', {})
         freeBalance = self.safe_value(data, 'balance', {})
         usedBalance = self.safe_value(data, 'obalance', {})
-        result = {}
+        result = {
+            'info': data,
+        }
         currencyIds = list(freeBalance.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]

@@ -7674,7 +7674,7 @@ module.exports = class bybit extends Exchange {
         const request = {};
         if (code !== undefined) {
             currency = this.safeCurrencyCode (code);
-            request['coin'] = currency['id'];
+            request['coin'] = currency;
         }
         if (since !== undefined) {
             request['startTime'] = since;

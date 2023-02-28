@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.8.31';
+$version = '2.8.54';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.8.31';
+    const VERSION = '2.8.54';
 
     public $browser;
     public $marketsLoading = null;
@@ -1928,6 +1928,9 @@ class Exchange extends \ccxt\Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             if ($this->has['fetchTickers']) {
+                Async\await($this->load_markets());
+                $market = $this->market ($symbol);
+                $symbol = $market['symbol'];
                 $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
                 $ticker = $this->safe_value($tickers, $symbol);
                 if ($ticker === null) {

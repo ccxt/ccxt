@@ -74,6 +74,7 @@ module.exports = class binance extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
@@ -86,6 +87,7 @@ module.exports = class binance extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -894,7 +896,7 @@ module.exports = class binance extends Exchange {
                 'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
+                'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
@@ -1425,6 +1427,77 @@ module.exports = class binance extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
+    convertExpireDate (date) {
+        // parse YYMMDD to timestamp
+        const year = date.slice (0, 2);
+        const month = date.slice (2, 4);
+        const day = date.slice (4, 6);
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        return reconstructedDate;
+    }
+
+    createExpiredOptionMarket (symbol) {
+        // support expired option contracts
+        const settle = 'USDT';
+        const optionParts = symbol.split ('-');
+        const symbolBase = symbol.split ('/');
+        let base = undefined;
+        if (symbol.indexOf ('/') > -1) {
+            base = this.safeString (symbolBase, 0);
+        } else {
+            base = this.safeString (optionParts, 0);
+        }
+        const expiry = this.safeString (optionParts, 1);
+        const strike = this.safeString (optionParts, 2);
+        const optionType = this.safeString (optionParts, 3);
+        const datetime = this.convertExpireDate (expiry);
+        const timestamp = this.parse8601 (datetime);
+        return {
+            'id': base + '-' + expiry + '-' + strike + '-' + optionType,
+            'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': settle,
+            'baseId': base,
+            'quoteId': settle,
+            'active': undefined,
+            'type': 'option',
+            'linear': undefined,
+            'inverse': undefined,
+            'spot': false,
+            'swap': false,
+            'future': false,
+            'option': true,
+            'margin': false,
+            'contract': true,
+            'contractSize': undefined,
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': (optionType === 'C') ? 'call' : 'put',
+            'strike': strike,
+            'settle': settle,
+            'settleId': settle,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': undefined,
+        };
+    }
+
     market (symbol) {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
@@ -1475,9 +1548,20 @@ module.exports = class binance extends Exchange {
                 if (futuresSymbol in this.markets) {
                     return this.markets[futuresSymbol];
                 }
+            } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) { // both exchange-id and unified symbols are supported this way regardless of the defaultType
+                return this.createExpiredOptionMarket (symbol);
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+    }
+
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1));
+        if (isOption && !(marketId in this.markets_by_id)) {
+            // handle expired option contracts
+            return this.createExpiredOptionMarket (marketId);
+        }
+        return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
     costToPrecision (symbol, cost) {
@@ -2540,7 +2624,9 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let method = 'publicGetDepth';
-        if (market['linear']) {
+        if (market['option']) {
+            method = 'eapiPublicGetDepth';
+        } else if (market['linear']) {
             method = 'fapiPublicGetDepth';
         } else if (market['inverse']) {
             method = 'dapiPublicGetDepth';
@@ -2564,9 +2650,27 @@ module.exports = class binance extends Exchange {
         //             ["2493.71","12.054"],
         //         ]
         //     }
+        //
+        // options (eapi)
+        //
+        //     {
+        //         "bids": [
+        //             ["108.7","16.08"],
+        //             ["106","21.29"],
+        //             ["82.4","0.02"]
+        //         ],
+        //         "asks": [
+        //             ["111.4","19.52"],
+        //             ["119.9","17.6"],
+        //             ["141.2","31"]
+        //         ],
+        //         "T": 1676771382078,
+        //         "u": 1015939
+        //     }
+        //
         const timestamp = this.safeInteger (response, 'T');
         const orderbook = this.parseOrderBook (response, symbol, timestamp);
-        orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
+        orderbook['nonce'] = this.safeInteger2 (response, 'lastUpdateId', 'u');
         return orderbook;
     }
 
@@ -2936,13 +3040,30 @@ module.exports = class binance extends Exchange {
         //         ]
         //     ]
         //
+        // options
+        //
+        //     {
+        //         "open": "32.2",
+        //         "high": "32.2",
+        //         "low": "32.2",
+        //         "close": "32.2",
+        //         "volume": "0",
+        //         "interval": "5m",
+        //         "tradeCount": 0,
+        //         "takerVolume": "0",
+        //         "takerAmount": "0",
+        //         "amount": "0",
+        //         "openTime": 1677096900000,
+        //         "closeTime": 1677097200000
+        //     }
+        //
         return [
-            this.safeInteger (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
+            this.safeInteger2 (ohlcv, 0, 'closeTime'),
+            this.safeNumber2 (ohlcv, 1, 'open'),
+            this.safeNumber2 (ohlcv, 2, 'high'),
+            this.safeNumber2 (ohlcv, 3, 'low'),
+            this.safeNumber2 (ohlcv, 4, 'close'),
+            this.safeNumber2 (ohlcv, 5, 'volume'),
         ];
     }
 
@@ -2999,7 +3120,9 @@ module.exports = class binance extends Exchange {
             request['endTime'] = until;
         }
         let method = 'publicGetKlines';
-        if (price === 'mark') {
+        if (market['option']) {
+            method = 'eapiPublicGetKlines';
+        } else if (price === 'mark') {
             if (market['inverse']) {
                 method = 'dapiPublicGetMarkPriceKlines';
             } else {
@@ -3022,6 +3145,25 @@ module.exports = class binance extends Exchange {
         //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
         //         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
+        //     ]
+        //
+        // options (eapi)
+        //
+        //     [
+        //         {
+        //             "open": "32.2",
+        //             "high": "32.2",
+        //             "low": "32.2",
+        //             "close": "32.2",
+        //             "volume": "0",
+        //             "interval": "5m",
+        //             "tradeCount": 0,
+        //             "takerVolume": "0",
+        //             "takerAmount": "0",
+        //             "amount": "0",
+        //             "openTime": 1677096900000,
+        //             "closeTime": 1677097200000
+        //         }
         //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -3164,9 +3306,10 @@ module.exports = class binance extends Exchange {
         amount = this.safeString (trade, 'quantity', amount);
         const cost = this.safeString2 (trade, 'quoteQty', 'baseQty');  // inverse futures
         const marketId = this.safeString (trade, 'symbol');
-        const marketType = ('isIsolated' in trade) || ('M' in trade) || ('orderListId' in trade) ? 'spot' : 'contract';
+        const isSpotTrade = ('isIsolated' in trade) || ('M' in trade) || ('orderListId' in trade);
+        const marketType = isSpotTrade ? 'spot' : 'contract';
         market = this.safeMarket (marketId, market, undefined, marketType);
-        let symbol = market['symbol'];
+        const symbol = market['symbol'];
         let id = this.safeString2 (trade, 't', 'a');
         id = this.safeString2 (trade, 'tradeId', 'id', id);
         let side = undefined;
@@ -3197,11 +3340,6 @@ module.exports = class binance extends Exchange {
         }
         if (('optionSide' in trade) || market['option']) {
             const settle = this.safeCurrencyCode (this.safeString (trade, 'quoteAsset', 'USDT'));
-            if (symbol === undefined) {
-                const optionParts = marketId.split ('-');
-                const optionType = this.safeString (optionParts, 3);
-                symbol = this.safeString (optionParts, 0) + '/' + settle + ':' + settle + '-' + this.safeString (optionParts, 1) + '-' + this.safeString (optionParts, 2) + '-' + optionType;
-            }
             takerOrMaker = this.safeStringLower (trade, 'liquidity');
             if ('fee' in trade) {
                 fee = {
@@ -4341,31 +4479,35 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const type = this.safeString (params, 'type', market['type']);
-        params = this.omit (params, 'type');
+        const request = {};
+        let market = undefined;
+        let type = undefined;
         let method = undefined;
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-        if (type === 'spot' || type === 'margin') {
-            method = 'privateGetMyTrades';
-            if ((type === 'margin') || (marginMode !== undefined)) {
-                method = 'sapiGetMarginMyTrades';
-                if (marginMode === 'isolated') {
-                    request['isIsolated'] = true;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        if (type === 'option') {
+            method = 'eapiPrivateGetUserTrades';
+        } else {
+            this.checkRequiredSymbol ('fetchMyTrades', symbol);
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+            if (type === 'spot' || type === 'margin') {
+                method = 'privateGetMyTrades';
+                if ((type === 'margin') || (marginMode !== undefined)) {
+                    method = 'sapiGetMarginMyTrades';
+                    if (marginMode === 'isolated') {
+                        request['isIsolated'] = true;
+                    }
                 }
+            } else if (market['linear']) {
+                method = 'fapiPrivateGetUserTrades';
+            } else if (market['inverse']) {
+                method = 'dapiPrivateGetUserTrades';
             }
-        } else if (market['linear']) {
-            method = 'fapiPrivateGetUserTrades';
-        } else if (market['inverse']) {
-            method = 'dapiPrivateGetUserTrades';
         }
         let endTime = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
@@ -4389,7 +4531,7 @@ module.exports = class binance extends Exchange {
             params = this.omit (params, [ 'endTime', 'until' ]);
         }
         if (limit !== undefined) {
-            if (market['contract']) {
+            if ((type === 'option') || market['contract']) {
                 limit = Math.min (limit, 1000); // above 1000, returns error
             }
             request['limit'] = limit;
@@ -4433,6 +4575,30 @@ module.exports = class binance extends Exchange {
         //             "side": "SELL",
         //             "symbol": "BTCUSDT",
         //             "time": 1569514978020
+        //         }
+        //     ]
+        //
+        // options (eapi)
+        //
+        //     [
+        //         {
+        //             "id": 1125899906844226012,
+        //             "tradeId": 73,
+        //             "orderId": 4638761100843040768,
+        //             "symbol": "ETH-230211-1500-C",
+        //             "price": "18.70000000",
+        //             "quantity": "-0.57000000",
+        //             "fee": "0.17305890",
+        //             "realizedProfit": "-3.53400000",
+        //             "side": "SELL",
+        //             "type": "LIMIT",
+        //             "volatility": "0.30000000",
+        //             "liquidity": "MAKER",
+        //             "time": 1676085216845,
+        //             "priceScale": 1,
+        //             "quantityScale": 2,
+        //             "optionSide": "CALL",
+        //             "quoteAsset": "USDT"
         //         }
         //     ]
         //
@@ -6868,6 +7034,93 @@ module.exports = class binance extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
+    async fetchSettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchSettlementHistory
+         * @description fetches historical settlement records
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#historical-exercise-records
+         * @param {string} symbol unified market symbol of the settlement history
+         * @param {int} since timestamp in ms
+         * @param {int} limit number of records, default 100, max 100
+         * @param {object} params exchange specific params
+         * @returns {[object]} a list of [settlement history objects]
+         */
+        await this.loadMarkets ();
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
+        if (type !== 'option') {
+            throw new NotSupported (this.id + ' fetchSettlementHistory() supports option markets only');
+        }
+        const request = {};
+        if (symbol !== undefined) {
+            symbol = market['symbol'];
+            request['underlying'] = market['baseId'] + market['quoteId'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.eapiPublicGetExerciseHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "ETH-230223-1900-P",
+        //             "strikePrice": "1900",
+        //             "realStrikePrice": "1665.5897334",
+        //             "expiryDate": 1677139200000,
+        //             "strikeResult": "REALISTIC_VALUE_STRICKEN"
+        //         }
+        //     ]
+        //
+        const settlements = this.parseSettlements (response, market);
+        const sorted = this.sortBy (settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseSettlement (settlement, market) {
+        //
+        //     {
+        //         "symbol": "ETH-230223-1900-P",
+        //         "strikePrice": "1900",
+        //         "realStrikePrice": "1665.5897334",
+        //         "expiryDate": 1677139200000,
+        //         "strikeResult": "REALISTIC_VALUE_STRICKEN"
+        //     }
+        //
+        const timestamp = this.safeInteger (settlement, 'expiryDate');
+        const marketId = this.safeString (settlement, 'symbol');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol (marketId, market),
+            'price': this.safeNumber (settlement, 'realStrikePrice'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    parseSettlements (settlements, market) {
+        //
+        //     [
+        //         {
+        //             "symbol": "ETH-230223-1900-P",
+        //             "strikePrice": "1900",
+        //             "realStrikePrice": "1665.5897334",
+        //             "expiryDate": 1677139200000,
+        //             "strikeResult": "EXTRINSIC_VALUE_EXPIRED"
+        //         }
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push (this.parseSettlement (settlements[i], market));
+        }
+        return result;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (!(api in this.urls['api'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
@@ -7546,14 +7799,81 @@ module.exports = class binance extends Exchange {
         return this.parseOpenInterests (response, symbol, since, limit);
     }
 
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchOpenInterest
+         * @description retrieves the open interest of a contract trading pair
+         * @see https://binance-docs.github.io/apidocs/futures/en/#open-interest
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#open-interest
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#open-interest
+         * @param {string} symbol unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {};
+        if (market['option']) {
+            request['underlyingAsset'] = market['baseId'];
+            request['expiration'] = this.yymmdd (market['expiry']);
+        } else {
+            request['symbol'] = market['id'];
+        }
+        let method = 'fapiPublicGetOpenInterest';
+        if (market['option']) {
+            method = 'eapiPublicGetOpenInterest';
+        } else if (market['inverse']) {
+            method = 'dapiPublicGetOpenInterest';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // futures (fapi)
+        //
+        //     {
+        //         "symbol": "ETHUSDT_230331",
+        //         "openInterest": "23581.677",
+        //         "time": 1677356872265
+        //     }
+        //
+        // futures (dapi)
+        //
+        //     {
+        //         "symbol": "ETHUSD_PERP",
+        //         "pair": "ETHUSD",
+        //         "openInterest": "26542436",
+        //         "contractType": "PERPETUAL",
+        //         "time": 1677360272224
+        //     }
+        //
+        // options (eapi)
+        //
+        //     [
+        //         {
+        //             "symbol": "ETH-230225-1625-C",
+        //             "sumOpenInterest": "460.50",
+        //             "sumOpenInterestUsd": "734957.4358092150",
+        //             "timestamp": "1677304860000"
+        //         }
+        //     ]
+        //
+        if (market['option']) {
+            return this.parseOpenInterests (response, market);
+        } else {
+            return this.parseOpenInterest (response, market);
+        }
+    }
+
     parseOpenInterest (interest, market = undefined) {
         const timestamp = this.safeInteger (interest, 'timestamp');
         const id = this.safeString (interest, 'symbol');
-        const amount = this.safeNumber (interest, 'sumOpenInterest');
-        const value = this.safeNumber (interest, 'sumOpenInterestValue');
+        const amount = this.safeNumber2 (interest, 'sumOpenInterest', 'openInterest');
+        const value = this.safeNumber2 (interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');
+        // Inverse returns the number of contracts different from the base or quote volume in this case
+        // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         return {
-            'symbol': this.safeSymbol (id, undefined, undefined, 'contract'),
-            'baseVolume': amount,  // deprecated
+            'symbol': this.safeSymbol (id, market, undefined, 'contract'),
+            'baseVolume': market['inverse'] ? undefined : amount,  // deprecated
             'quoteVolume': value,  // deprecated
             'openInterestAmount': amount,
             'openInterestValue': value,

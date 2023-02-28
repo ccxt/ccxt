@@ -212,37 +212,38 @@ class phemex extends \ccxt\async\phemex {
 
     public function handle_balance($type, $client, $message) {
         // spot
-        //  array(
-        //     array(
-        //         balanceEv => 0,
-        //         $currency => 'BTC',
-        //         lastUpdateTimeNs => '1650442638722099092',
-        //         $lockedTradingBalanceEv => 0,
-        //         $lockedWithdrawEv => 0,
-        //         userID => 2647224
-        //       ),
-        //       {
-        //         balanceEv => 1154232337,
-        //         $currency => 'USDT',
-        //         lastUpdateTimeNs => '1650442617610017597',
-        //         $lockedTradingBalanceEv => 0,
-        //         $lockedWithdrawEv => 0,
-        //         userID => 2647224
-        //       }
+        //    array(
+        //       array(
+        //           balanceEv => 0,
+        //           $currency => 'BTC',
+        //           lastUpdateTimeNs => '1650442638722099092',
+        //           $lockedTradingBalanceEv => 0,
+        //           $lockedWithdrawEv => 0,
+        //           userID => 2647224
+        //         ),
+        //         {
+        //           balanceEv => 1154232337,
+        //           $currency => 'USDT',
+        //           lastUpdateTimeNs => '1650442617610017597',
+        //           $lockedTradingBalanceEv => 0,
+        //           $lockedWithdrawEv => 0,
+        //           userID => 2647224
+        //         }
         //    )
         //
         // swap
-        //  array(
-        //       {
-        //         accountBalanceEv => 0,
-        //         accountID => 26472240001,
-        //         bonusBalanceEv => 0,
-        //         $currency => 'BTC',
-        //         totalUsedBalanceEv => 0,
-        //         userID => 2647224
-        //       }
-        //  )
+        //    array(
+        //         {
+        //           accountBalanceEv => 0,
+        //           accountID => 26472240001,
+        //           bonusBalanceEv => 0,
+        //           $currency => 'BTC',
+        //           totalUsedBalanceEv => 0,
+        //           userID => 2647224
+        //         }
+        //    )
         //
+        $this->balance['info'] = $message;
         for ($i = 0; $i < count($message); $i++) {
             $balance = $message[$i];
             $currencyId = $this->safe_string($balance, 'currency');

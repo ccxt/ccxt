@@ -84,6 +84,10 @@ module.exports = class wazirx extends wazirxRest {
         //
         const data = this.safeValue (message, 'data', {});
         const balances = this.safeValue (data, 'B', []);
+        const timestamp = this.safeInteger (data, 'E');
+        this.balance['info'] = balances;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601 (timestamp);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'a');

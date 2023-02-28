@@ -652,7 +652,7 @@ class gate extends \ccxt\async\gate {
         //       event => 'update',
         //       $result => array(
         //         {
-        //           timestamp => '1653664351',
+        //           $timestamp => '1653664351',
         //           timestamp_ms => '1653664351017',
         //           user => '10406147',
         //           currency => 'LTC',
@@ -705,6 +705,10 @@ class gate extends \ccxt\async\gate {
         //   }
         //
         $result = $this->safe_value($message, 'result', array());
+        $timestamp = $this->safe_integer($message, 'time');
+        $this->balance['info'] = $result;
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
         for ($i = 0; $i < count($result); $i++) {
             $rawBalance = $result[$i];
             $account = $this->account();

@@ -513,8 +513,14 @@ class krakenfutures(Exchange):
         percentage = Precise.string_mul(Precise.string_div(change, open), '100')
         average = Precise.string_div(Precise.string_add(open, last), '2')
         volume = self.safe_string(ticker, 'vol24h')
-        baseVolume = volume if (not market['index'] and market['linear']) else None
-        quoteVolume = volume if (not market['index'] and market['inverse']) else None
+        baseVolume = None
+        quoteVolume = None
+        isIndex = self.safe_value(market, 'index', False)
+        if not isIndex:
+            if market['linear']:
+                baseVolume = volume
+            elif market['inverse']:
+                quoteVolume = volume
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,

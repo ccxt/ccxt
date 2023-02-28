@@ -6843,7 +6843,7 @@ class bybit extends Exchange {
         $request = array();
         if ($code !== null) {
             $currency = $this->safe_currency_code($code);
-            $request['coin'] = $currency['id'];
+            $request['coin'] = $currency;
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -7014,7 +7014,7 @@ class bybit extends Exchange {
         //      }
         //
         $currencyId = $this->safe_string($transfer, 'coin');
-        $timestamp = $this->safe_timestamp($transfer, 'timestamp');
+        $timestamp = $this->safe_integer($transfer, 'timestamp');
         $fromAccountId = $this->safe_string_2($transfer, 'fromAccountType', 'from_account_type');
         $toAccountId = $this->safe_string_2($transfer, 'toAccountType', 'to_account_type');
         $accountIds = $this->safe_value($this->options, 'accountsById', array());

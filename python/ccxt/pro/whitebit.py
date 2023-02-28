@@ -638,6 +638,7 @@ class whitebit(Exchange, ccxt.async_support.whitebit):
         method = self.safe_string(message, 'method')
         data = self.safe_value(message, 'params')
         balanceDict = self.safe_value(data, 0)
+        self.balance['info'] = balanceDict
         keys = list(balanceDict.keys())
         currencyId = self.safe_value(keys, 0)
         rawBalance = self.safe_value(balanceDict, currencyId)
