@@ -697,7 +697,7 @@ class gate(Exchange, ccxt.async_support.gate):
         })
         channel = typeId + '.orders'
         messageHash = 'orders'
-        payload = ['not all']
+        payload = ['!' + 'all']
         if symbol is not None:
             messageHash += ':' + market['id']
             payload = [market['id']]
