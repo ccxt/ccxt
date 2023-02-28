@@ -254,6 +254,7 @@ class binance(Exchange):
                         'margin/crossMarginCollateralRatio': 10,
                         'margin/exchange-small-liability': 0.6667,
                         'margin/exchange-small-liability-history': 0.6667,
+                        'margin/next-hourly-interest-rate': 0.6667,
                         'loan/income': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/ongoing/orders': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/ltv/adjustment/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
@@ -392,6 +393,8 @@ class binance(Exchange):
                         'portfolio/account': 0.1,
                         'portfolio/collateralRate': 5,
                         'portfolio/pmLoan': 3.3335,
+                        'portfolio/interest-history': 0.6667,
+                        'portfolio/interest-rate': 0.6667,
                         # staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
