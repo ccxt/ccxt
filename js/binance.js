@@ -7249,49 +7249,28 @@ module.exports = class binance extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        if (type === undefined) {
-            return undefined;
-        } else if (type === 'FEE') {
-            return 'fee';
-        } else if (type === 'FUNDING_FEE') {
-            return 'fee';
-        } else if (type === 'OPTIONS_PREMIUM_FEE') {
-            return 'fee';
-        } else if (type === 'POSITION_LIMIT_INCREASE_FEE') {
-            return 'fee';
-        } else if (type === 'CONTRACT') {
-            return 'trade';
-        } else if (type === 'REALIZED_PNL') {
-            return 'trade';
-        } else if (type === 'TRANSFER') {
-            return 'transfer';
-        } else if (type === 'CROSS_COLLATERAL_TRANSFER') {
-            return 'transfer';
-        } else if (type === 'INTERNAL_TRANSFER') {
-            return 'transfer';
-        } else if (type === 'COIN_SWAP_DEPOSIT') {
-            return 'deposit';
-        } else if (type === 'COIN_SWAP_WITHDRAW') {
-            return 'withdrawal';
-        } else if (type === 'OPTIONS_SETTLE_PROFIT') {
-            return 'settlement';
-        } else if (type === 'DELIVERED_SETTELMENT') {
-            return 'settlement';
-        } else if (type === 'WELCOME_BONUS') {
-            return 'cashback';
-        } else if (type === 'CONTEST_REWARD') {
-            return 'cashback';
-        } else if (type === 'COMMISSION_REBATE') {
-            return 'rebate';
-        } else if (type === 'API_REBATE') {
-            return 'rebate';
-        } else if (type === 'REFERRAL_KICKBACK') {
-            return 'referral';
-        } else if (type === 'COMMISSION') {
-            return 'commission';
-        } else {
-            return type;
-        }
+        const ledgerType = {
+            'FEE': 'fee',
+            'FUNDING_FEE': 'fee',
+            'OPTIONS_PREMIUM_FEE': 'fee',
+            'POSITION_LIMIT_INCREASE_FEE': 'fee',
+            'CONTRACT': 'trade',
+            'REALIZED_PNL': 'trade',
+            'TRANSFER': 'transfer',
+            'CROSS_COLLATERAL_TRANSFER': 'transfer',
+            'INTERNAL_TRANSFER': 'transfer',
+            'COIN_SWAP_DEPOSIT': 'deposit',
+            'COIN_SWAP_WITHDRAW': 'withdrawal',
+            'OPTIONS_SETTLE_PROFIT': 'settlement',
+            'DELIVERED_SETTELMENT': 'settlement',
+            'WELCOME_BONUS': 'cashback',
+            'CONTEST_REWARD': 'cashback',
+            'COMMISSION_REBATE': 'rebate',
+            'API_REBATE': 'rebate',
+            'REFERRAL_KICKBACK': 'referral',
+            'COMMISSION': 'commission',
+        };
+        return this.safeString (ledgerType, type, type);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
