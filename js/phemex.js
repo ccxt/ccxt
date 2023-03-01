@@ -2136,7 +2136,8 @@ module.exports = class phemex extends Exchange {
 
     parseOrder (order, market = undefined) {
         const isSwap = this.safeValue (market, 'swap', false);
-        if (isSwap || 'closedPnl' in order) {
+        const hasPnl = ('closedPnl' in order);
+        if (isSwap || hasPnl) {
             return this.parseSwapOrder (order, market);
         }
         return this.parseSpotOrder (order, market);
