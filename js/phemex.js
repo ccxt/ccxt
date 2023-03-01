@@ -3548,17 +3548,15 @@ module.exports = class phemex extends Exchange {
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        this.checkRequiredSymbol ('setMarginMode', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap'] || market['settle'] === 'USDT') {
+            throw new BadSymbol (this.id + ' setMarginMode() supports swap (non USDT based) contracts only');
         }
         marginMode = marginMode.toLowerCase ();
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (market['type'] !== 'swap') {
-            throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
         let leverage = this.safeInteger (params, 'leverage');
         if (marginMode === 'cross') {
