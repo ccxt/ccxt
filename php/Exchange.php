@@ -1468,7 +1468,6 @@ class Exchange {
             }
         }
 
-        $this->options = $this->get_default_options(); // exchange-specific options if any
         $this->add_base_properties(); // add transpilable base properties
     
         if ($this->api) {
