@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.67 (2023-03-01)
+
+
+### Bug Fixes
+
+* **Bybit:** timeframe parsing ([9178d79](https://github.com/ccxt/ccxt/commit/9178d792144469882f54eccbacd04155483bb9a9))
+
 ### 2.8.66 (2023-03-01)
 
 

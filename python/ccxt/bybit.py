@@ -1941,14 +1941,13 @@ class bybit(Exchange):
         request = {
             'symbol': market['id'],
         }
-        duration = self.parse_timeframe(timeframe)
         if limit is None:
             limit = 200  # default is 200 when requested with `since`
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit  # max 1000, default 1000
-        request['interval'] = duration
+        request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
         method = None
         if market['spot']:
             request['category'] = 'spot'

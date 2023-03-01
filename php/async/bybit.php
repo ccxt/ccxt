@@ -1995,7 +1995,6 @@ class bybit extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $duration = $this->parse_timeframe($timeframe);
             if ($limit === null) {
                 $limit = 200; // default is 200 when requested with `$since`
             }
@@ -2005,7 +2004,7 @@ class bybit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // max 1000, default 1000
             }
-            $request['interval'] = $duration;
+            $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $method = null;
             if ($market['spot']) {
                 $request['category'] = 'spot';
