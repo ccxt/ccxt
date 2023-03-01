@@ -1977,7 +1977,6 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const duration = this.parseTimeframe (timeframe);
         if (limit === undefined) {
             limit = 200; // default is 200 when requested with `since`
         }
@@ -1987,7 +1986,7 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000, default 1000
         }
-        request['interval'] = duration;
+        request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
         let method = undefined;
         if (market['spot']) {
             request['category'] = 'spot';
