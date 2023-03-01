@@ -1981,7 +1981,7 @@ module.exports = class bybit extends Exchange {
         if (limit === undefined) {
             limit = 200; // default is 200 when requested with `since`
         }
-        if (since === undefined) {
+        if (since !== undefined) {
             request['start'] = since;
         }
         if (limit !== undefined) {
