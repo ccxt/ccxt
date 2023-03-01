@@ -76,7 +76,7 @@ module.exports = class phemex extends Exchange {
                 'setLeverage': true,
                 'setMargin': true,
                 'setMarginMode': true,
-                'setPositionMode': false,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': undefined,
             },
@@ -3041,21 +3041,20 @@ module.exports = class phemex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let query = undefined;
         let subType = undefined;
-        [ subType, query ] = this.handleSubTypeAndParams ('fetchPositions', undefined, query);
         let method = 'privateGetAccountsAccountPositions';
-        let code = this.safeString (params, 'code');
+        let code = this.safeString (params, 'currency');
         let settle = undefined;
-        const firstSymbol = this.safeString (symbols, 0, undefined);
-        if (firstSymbol !== undefined && firstSymbol.indexOf (':') >= 0) {
-            settle = firstSymbol.split (':')[-1];
+        let market = undefined;
+        const firstSymbol = this.safeString (symbols, 0);
+        if (firstSymbol !== undefined) {
+            market = this.market (firstSymbol);
+            settle = market['settle'];
+            code = market['settle'];
+        } else {
+            [ settle, params ] = this.handleSettleAndParams ('fetchPositions', undefined, params, 'USD');
         }
-        if (settle === undefined) {
-            const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USD');
-            settle = this.safeString2 (params, 'settle', defaultSettle);
-            query = this.omit (query, [ 'settle', 'defaultSettle' ]);
-        }
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
         if (settle === 'USDT') {
             code = 'USDT';
             method = 'privateGetGAccountsAccountPositions';
