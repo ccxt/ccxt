@@ -774,11 +774,11 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
-             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {string} $symbol $unified market $symbol of the market orders were made in
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @param {boolean} $params->unifiedMargin use unified margin account
+             * @param {boolean} $params->unifiedMargin use $unified margin account
              * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
              */
             $method = 'watchMyTrades';
@@ -788,7 +788,8 @@ class bybit extends \ccxt\async\bybit {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
             }
-            $isUnifiedMargin = Async\await($this->isUnifiedMarginEnabled ());
+            $unified = Async\await($this->isUnifiedEnabled ());
+            $isUnifiedMargin = $this->safe_value($unified, 0, false);
             $url = $this->get_url_by_market_type($symbol, true, $isUnifiedMargin, $method, $params);
             Async\await($this->authenticate($url));
             $topicByMarket = array(
@@ -891,7 +892,7 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
-             * @param {string|null} $symbol unified market $symbol of the market $orders were made in
+             * @param {string|null} $symbol $unified market $symbol of the market $orders were made in
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bybit api endpoint
@@ -904,7 +905,8 @@ class bybit extends \ccxt\async\bybit {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
             }
-            $isUnifiedMargin = Async\await($this->isUnifiedMarginEnabled ());
+            $unified = Async\await($this->isUnifiedEnabled ());
+            $isUnifiedMargin = $this->safe_value($unified, 0, false);
             $url = $this->get_url_by_market_type(null, true, $isUnifiedMargin, $method, $params);
             Async\await($this->authenticate($url));
             $topicsByMarket = array(
@@ -1169,7 +1171,8 @@ class bybit extends \ccxt\async\bybit {
              */
             $method = 'watchBalance';
             $messageHash = 'balances';
-            $isUnifiedMargin = Async\await($this->isUnifiedMarginEnabled ());
+            $unified = Async\await($this->isUnifiedEnabled ());
+            $isUnifiedMargin = $this->safe_value($unified, 0, false);
             $url = $this->get_url_by_market_type(null, true, $isUnifiedMargin, $method, $params);
             Async\await($this->authenticate($url));
             $topicByMarket = array(

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.66 (2023-03-01)
+
+
+### Bug Fixes
+
+* **bybit:** remove isUnifiedMarginEnabled from ws ([83f895b](https://github.com/ccxt/ccxt/commit/83f895b025c96a00909cedb61dba3ff78aa0e0e4))
+
 ### 2.8.65 (2023-03-01)
 
 
