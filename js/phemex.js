@@ -2013,7 +2013,7 @@ module.exports = class phemex extends Exchange {
         if (execInst === 'ReduceOnly') {
             reduceOnly = true;
         }
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -2037,7 +2037,7 @@ module.exports = class phemex extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     parseOrder (order, market = undefined) {
@@ -2529,6 +2529,7 @@ module.exports = class phemex extends Exchange {
             if (e instanceof OrderNotFound) {
                 return [];
             }
+            throw e;
         }
         const data = this.safeValue (response, 'data', {});
         if (Array.isArray (data)) {
