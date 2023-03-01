@@ -66,7 +66,7 @@ module.exports = class binance extends Exchange {
                 'fetchIndexOHLCV': true,
                 'fetchL3OrderBook': undefined,
                 'fetchLastPrices': true,
-                'fetchLedger': undefined,
+                'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -7119,6 +7119,179 @@ module.exports = class binance extends Exchange {
             result.push (this.parseSettlement (settlements[i], market));
         }
         return result;
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#account-funding-flow-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry
+         * @param {int|undefined} limit max number of ledger entrys to return
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
+        await this.loadMarkets ();
+        let type = undefined;
+        let subType = undefined;
+        let currency = undefined;
+        let method = undefined;
+        const request = {};
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLedger', undefined, params);
+        if (type === 'option') {
+            this.checkRequiredArgument ('fetchLedger', code, 'code');
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+            method = 'eapiPrivateGetBill';
+        } else if (this.isLinear (type, subType)) {
+            method = 'fapiPrivateGetIncome';
+        } else if (this.isInverse (type, subType)) {
+            method = 'dapiPrivateGetIncome';
+        } else {
+            throw new NotSupported (this.id + ' fetchLedger() supports contract wallets only');
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // options (eapi)
+        //
+        //     [
+        //         {
+        //             "id": "1125899906845701870",
+        //             "asset": "USDT",
+        //             "amount": "-0.16518203",
+        //             "type": "FEE",
+        //             "createDate": 1676621042489
+        //         }
+        //     ]
+        //
+        // futures (fapi, dapi)
+        //
+        //     [
+        //         {
+        //             "symbol": "",
+        //             "incomeType": "TRANSFER",
+        //             "income": "10.00000000",
+        //             "asset": "USDT",
+        //             "time": 1677645250000,
+        //             "info": "TRANSFER",
+        //             "tranId": 131001573082,
+        //             "tradeId": ""
+        //         }
+        //     ]
+        //
+        return this.parseLedger (response, currency, since, limit);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        // options (eapi)
+        //
+        //     {
+        //         "id": "1125899906845701870",
+        //         "asset": "USDT",
+        //         "amount": "-0.16518203",
+        //         "type": "FEE",
+        //         "createDate": 1676621042489
+        //     }
+        //
+        // futures (fapi, dapi)
+        //
+        //     {
+        //         "symbol": "",
+        //         "incomeType": "TRANSFER",
+        //         "income": "10.00000000",
+        //         "asset": "USDT",
+        //         "time": 1677645250000,
+        //         "info": "TRANSFER",
+        //         "tranId": 131001573082,
+        //         "tradeId": ""
+        //     }
+        //
+        let amount = this.safeString2 (item, 'amount', 'income');
+        let direction = undefined;
+        if (amount < 0) {
+            direction = 'out';
+            amount = Precise.stringMul ('-1', amount);
+        } else {
+            direction = 'in';
+        }
+        const currencyId = this.safeString (item, 'asset');
+        const timestamp = this.safeInteger2 (item, 'createDate', 'time');
+        const type = this.safeString2 (item, 'type', 'incomeType');
+        return {
+            'id': this.safeString2 (item, 'id', 'tranId'),
+            'direction': direction,
+            'account': undefined,
+            'referenceAccount': undefined,
+            'referenceId': this.safeString (item, 'tradeId'),
+            'type': this.parseLedgerEntryType (type),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.parseNumber (amount),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': undefined,
+            'after': undefined,
+            'status': undefined,
+            'fee': undefined,
+            'info': item,
+        };
+    }
+
+    parseLedgerEntryType (type) {
+        if (type === undefined) {
+            return undefined;
+        } else if (type === 'FEE') {
+            return 'fee';
+        } else if (type === 'FUNDING_FEE') {
+            return 'fee';
+        } else if (type === 'OPTIONS_PREMIUM_FEE') {
+            return 'fee';
+        } else if (type === 'POSITION_LIMIT_INCREASE_FEE') {
+            return 'fee';
+        } else if (type === 'CONTRACT') {
+            return 'trade';
+        } else if (type === 'REALIZED_PNL') {
+            return 'trade';
+        } else if (type === 'TRANSFER') {
+            return 'transfer';
+        } else if (type === 'CROSS_COLLATERAL_TRANSFER') {
+            return 'transfer';
+        } else if (type === 'INTERNAL_TRANSFER') {
+            return 'transfer';
+        } else if (type === 'COIN_SWAP_DEPOSIT') {
+            return 'deposit';
+        } else if (type === 'COIN_SWAP_WITHDRAW') {
+            return 'withdrawal';
+        } else if (type === 'OPTIONS_SETTLE_PROFIT') {
+            return 'settlement';
+        } else if (type === 'DELIVERED_SETTELMENT') {
+            return 'settlement';
+        } else if (type === 'WELCOME_BONUS') {
+            return 'cashback';
+        } else if (type === 'CONTEST_REWARD') {
+            return 'cashback';
+        } else if (type === 'COMMISSION_REBATE') {
+            return 'rebate';
+        } else if (type === 'API_REBATE') {
+            return 'rebate';
+        } else if (type === 'REFERRAL_KICKBACK') {
+            return 'referral';
+        } else if (type === 'COMMISSION') {
+            return 'commission';
+        } else {
+            return type;
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
