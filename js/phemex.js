@@ -3544,7 +3544,6 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
-         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the phemex api endpoint
@@ -3562,28 +3561,18 @@ module.exports = class phemex extends Exchange {
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
+        let leverage = this.safeInteger (params, 'leverage');
+        if (marginMode === 'cross') {
+            leverage = 0;
+        }
+        if (leverage === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
+        }
         const request = {
             'symbol': market['id'],
+            'leverage': leverage,
         };
-        let method = 'privatePutPositionsLeverage';
-        if (market['settle'] === 'USDT') {
-            let mode = 'OneWay';
-            if (marginMode === 'cross') {
-                mode = 'Hedged';
-            }
-            request['targetPosMode'] = mode;
-            method = 'privatePutGPositionsSwitchPosModeSync';
-        } else {
-            let leverage = this.safeInteger (params, 'leverage');
-            if (marginMode === 'cross') {
-                leverage = 0;
-            }
-            if (leverage === undefined) {
-                throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
-            }
-            request['leverage'] = leverage;
-        }
-        return await this[method] (this.extend (request, params));
+        return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {
