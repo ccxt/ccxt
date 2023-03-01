@@ -8,6 +8,7 @@ import ccxt.async_support
 from ccxt.pro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NetworkError
 
 
 class ascendex(Exchange, ccxt.async_support.ascendex):
@@ -868,8 +869,12 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
         #
         await client.send({'op': 'pong', 'hp': self.safe_integer(message, 'hp')})
 
-    def handle_ping(self, client, message):
-        self.spawn(self.pong, client, message)
+    async def handle_ping(self, client, message):
+        try:
+            await self.spawn(self.pong, client, message)
+        except Exception as e:
+            error = NetworkError(self.id + ' handlePing failed with error ' + self.json(e))
+            client.reset(error)
 
     def authenticate(self, url, params={}):
         self.check_required_credentials()

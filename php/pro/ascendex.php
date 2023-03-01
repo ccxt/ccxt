@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\AuthenticationError;
+use ccxt\NetworkError;
 use React\Async;
 
 class ascendex extends \ccxt\async\ascendex {
@@ -947,7 +948,14 @@ class ascendex extends \ccxt\async\ascendex {
     }
 
     public function handle_ping($client, $message) {
-        $this->spawn(array($this, 'pong'), $client, $message);
+        return Async\async(function () use ($client, $message) {
+            try {
+                Async\await($this->spawn(array($this, 'pong'), $client, $message));
+            } catch (Exception $e) {
+                $error = new NetworkError ($this->id . ' handlePing failed with $error ' . $this->json($e));
+                $client->reset ($error);
+            }
+        }) ();
     }
 
     public function authenticate($url, $params = array ()) {
