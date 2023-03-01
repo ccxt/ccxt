@@ -65,7 +65,7 @@ class binance extends Exchange {
                 'fetchIndexOHLCV' => true,
                 'fetchL3OrderBook' => null,
                 'fetchLastPrices' => true,
-                'fetchLedger' => null,
+                'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
@@ -7027,6 +7027,156 @@ class binance extends Exchange {
             $result[] = $this->parse_settlement($settlements[$i], $market);
         }
         return $result;
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#account-funding-flow-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
+         * @param {string|null} $code unified $currency $code
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry
+         * @param {int|null} $limit max number of ledger entrys to return
+         * @param {array} $params extra parameters specific to the binance api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
+        $this->load_markets();
+        $type = null;
+        $subType = null;
+        $currency = null;
+        $method = null;
+        $request = array();
+        list($type, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchLedger', null, $params);
+        if ($type === 'option') {
+            $this->check_required_argument('fetchLedger', $code, 'code');
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+            $method = 'eapiPrivateGetBill';
+        } elseif ($this->is_linear($type, $subType)) {
+            $method = 'fapiPrivateGetIncome';
+        } elseif ($this->is_inverse($type, $subType)) {
+            $method = 'dapiPrivateGetIncome';
+        } else {
+            throw new NotSupported($this->id . ' fetchLedger() supports contract wallets only');
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // options (eapi)
+        //
+        //     array(
+        //         {
+        //             "id" => "1125899906845701870",
+        //             "asset" => "USDT",
+        //             "amount" => "-0.16518203",
+        //             "type" => "FEE",
+        //             "createDate" => 1676621042489
+        //         }
+        //     )
+        //
+        // futures (fapi, dapi)
+        //
+        //     array(
+        //         {
+        //             "symbol" => "",
+        //             "incomeType" => "TRANSFER",
+        //             "income" => "10.00000000",
+        //             "asset" => "USDT",
+        //             "time" => 1677645250000,
+        //             "info" => "TRANSFER",
+        //             "tranId" => 131001573082,
+        //             "tradeId" => ""
+        //         }
+        //     )
+        //
+        return $this->parse_ledger($response, $currency, $since, $limit);
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        //
+        // options (eapi)
+        //
+        //     {
+        //         "id" => "1125899906845701870",
+        //         "asset" => "USDT",
+        //         "amount" => "-0.16518203",
+        //         "type" => "FEE",
+        //         "createDate" => 1676621042489
+        //     }
+        //
+        // futures (fapi, dapi)
+        //
+        //     {
+        //         "symbol" => "",
+        //         "incomeType" => "TRANSFER",
+        //         "income" => "10.00000000",
+        //         "asset" => "USDT",
+        //         "time" => 1677645250000,
+        //         "info" => "TRANSFER",
+        //         "tranId" => 131001573082,
+        //         "tradeId" => ""
+        //     }
+        //
+        $amount = $this->safe_string_2($item, 'amount', 'income');
+        $direction = null;
+        if (Precise::string_le($amount, '0')) {
+            $direction = 'out';
+            $amount = Precise::string_mul('-1', $amount);
+        } else {
+            $direction = 'in';
+        }
+        $currencyId = $this->safe_string($item, 'asset');
+        $timestamp = $this->safe_integer_2($item, 'createDate', 'time');
+        $type = $this->safe_string_2($item, 'type', 'incomeType');
+        return array(
+            'id' => $this->safe_string_2($item, 'id', 'tranId'),
+            'direction' => $direction,
+            'account' => null,
+            'referenceAccount' => null,
+            'referenceId' => $this->safe_string($item, 'tradeId'),
+            'type' => $this->parse_ledger_entry_type($type),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->parse_number($amount),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'before' => null,
+            'after' => null,
+            'status' => null,
+            'fee' => null,
+            'info' => $item,
+        );
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $ledgerType = array(
+            'FEE' => 'fee',
+            'FUNDING_FEE' => 'fee',
+            'OPTIONS_PREMIUM_FEE' => 'fee',
+            'POSITION_LIMIT_INCREASE_FEE' => 'fee',
+            'CONTRACT' => 'trade',
+            'REALIZED_PNL' => 'trade',
+            'TRANSFER' => 'transfer',
+            'CROSS_COLLATERAL_TRANSFER' => 'transfer',
+            'INTERNAL_TRANSFER' => 'transfer',
+            'COIN_SWAP_DEPOSIT' => 'deposit',
+            'COIN_SWAP_WITHDRAW' => 'withdrawal',
+            'OPTIONS_SETTLE_PROFIT' => 'settlement',
+            'DELIVERED_SETTELMENT' => 'settlement',
+            'WELCOME_BONUS' => 'cashback',
+            'CONTEST_REWARD' => 'cashback',
+            'COMMISSION_REBATE' => 'rebate',
+            'API_REBATE' => 'rebate',
+            'REFERRAL_KICKBACK' => 'referral',
+            'COMMISSION' => 'commission',
+        );
+        return $this->safe_string($ledgerType, $type, $type);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

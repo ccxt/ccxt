@@ -90,7 +90,7 @@ class binance(Exchange):
                 'fetchIndexOHLCV': True,
                 'fetchL3OrderBook': None,
                 'fetchLastPrices': True,
-                'fetchLedger': None,
+                'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -6653,6 +6653,149 @@ class binance(Exchange):
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))
         return result
+
+    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+        see https://binance-docs.github.io/apidocs/voptions/en/#account-funding-flow-user_data
+        see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
+        :param str|None code: unified currency code
+        :param int|None since: timestamp in ms of the earliest ledger entry
+        :param int|None limit: max number of ledger entrys to return
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
+        await self.load_markets()
+        type = None
+        subType = None
+        currency = None
+        method = None
+        request = {}
+        type, params = self.handle_market_type_and_params('fetchLedger', None, params)
+        subType, params = self.handle_sub_type_and_params('fetchLedger', None, params)
+        if type == 'option':
+            self.check_required_argument('fetchLedger', code, 'code')
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+            method = 'eapiPrivateGetBill'
+        elif self.is_linear(type, subType):
+            method = 'fapiPrivateGetIncome'
+        elif self.is_inverse(type, subType):
+            method = 'dapiPrivateGetIncome'
+        else:
+            raise NotSupported(self.id + ' fetchLedger() supports contract wallets only')
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # options(eapi)
+        #
+        #     [
+        #         {
+        #             "id": "1125899906845701870",
+        #             "asset": "USDT",
+        #             "amount": "-0.16518203",
+        #             "type": "FEE",
+        #             "createDate": 1676621042489
+        #         }
+        #     ]
+        #
+        # futures(fapi, dapi)
+        #
+        #     [
+        #         {
+        #             "symbol": "",
+        #             "incomeType": "TRANSFER",
+        #             "income": "10.00000000",
+        #             "asset": "USDT",
+        #             "time": 1677645250000,
+        #             "info": "TRANSFER",
+        #             "tranId": 131001573082,
+        #             "tradeId": ""
+        #         }
+        #     ]
+        #
+        return self.parse_ledger(response, currency, since, limit)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        # options(eapi)
+        #
+        #     {
+        #         "id": "1125899906845701870",
+        #         "asset": "USDT",
+        #         "amount": "-0.16518203",
+        #         "type": "FEE",
+        #         "createDate": 1676621042489
+        #     }
+        #
+        # futures(fapi, dapi)
+        #
+        #     {
+        #         "symbol": "",
+        #         "incomeType": "TRANSFER",
+        #         "income": "10.00000000",
+        #         "asset": "USDT",
+        #         "time": 1677645250000,
+        #         "info": "TRANSFER",
+        #         "tranId": 131001573082,
+        #         "tradeId": ""
+        #     }
+        #
+        amount = self.safe_string_2(item, 'amount', 'income')
+        direction = None
+        if Precise.string_le(amount, '0'):
+            direction = 'out'
+            amount = Precise.string_mul('-1', amount)
+        else:
+            direction = 'in'
+        currencyId = self.safe_string(item, 'asset')
+        timestamp = self.safe_integer_2(item, 'createDate', 'time')
+        type = self.safe_string_2(item, 'type', 'incomeType')
+        return {
+            'id': self.safe_string_2(item, 'id', 'tranId'),
+            'direction': direction,
+            'account': None,
+            'referenceAccount': None,
+            'referenceId': self.safe_string(item, 'tradeId'),
+            'type': self.parse_ledger_entry_type(type),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.parse_number(amount),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'before': None,
+            'after': None,
+            'status': None,
+            'fee': None,
+            'info': item,
+        }
+
+    def parse_ledger_entry_type(self, type):
+        ledgerType = {
+            'FEE': 'fee',
+            'FUNDING_FEE': 'fee',
+            'OPTIONS_PREMIUM_FEE': 'fee',
+            'POSITION_LIMIT_INCREASE_FEE': 'fee',
+            'CONTRACT': 'trade',
+            'REALIZED_PNL': 'trade',
+            'TRANSFER': 'transfer',
+            'CROSS_COLLATERAL_TRANSFER': 'transfer',
+            'INTERNAL_TRANSFER': 'transfer',
+            'COIN_SWAP_DEPOSIT': 'deposit',
+            'COIN_SWAP_WITHDRAW': 'withdrawal',
+            'OPTIONS_SETTLE_PROFIT': 'settlement',
+            'DELIVERED_SETTELMENT': 'settlement',
+            'WELCOME_BONUS': 'cashback',
+            'CONTEST_REWARD': 'cashback',
+            'COMMISSION_REBATE': 'rebate',
+            'API_REBATE': 'rebate',
+            'REFERRAL_KICKBACK': 'referral',
+            'COMMISSION': 'commission',
+        }
+        return self.safe_string(ledgerType, type, type)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if not (api in self.urls['api']):
