@@ -36,45 +36,44 @@ module.exports = class coinbase extends coinbaseRest {
         });
     }
 
-    // authenticate () {
-    //     this.checkRequiredCredentials ();
-    //     const path = '/users/self/verify';
-    //     const nonce = this.nonce ();
-    //     const payload = nonce.toString () + 'GET' + path;
-    //     const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), 'sha256', 'base64');
-    //     return {
-    //         'timestamp': nonce,
-    //         'key': this.apiKey,
-    //         'signature': signature,
-    //         'passphrase': this.password,
-    //     };
-    // }
-
     timestampAndSign (message, channel, products = []) {
-        const timestamp = Math.floor(Date.now() / 1000).toString();
-        const auth = `${timestamp}${channel}${products.join(',')}`;
+        this.checkRequiredCredentials ();
+        // const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), 'sha256', 'base64');
+        const timestamp = Math.floor (Date.now () / 1000).toString ();
+        const auth = `${timestamp}${channel}${products.join (',')}`;
         const sig = this.hmac (this.encode (auth), this.encode (this.secret));
-        return { ...message, signature: sig, timestamp: timestamp };
+        return {
+            'message': message,
+            'signature': sig,
+            'timestamp': timestamp,
+            'api_key': this.apiKey,
+        };
     }
 
     async subscribe (name, symbol, messageHashStart, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const messageHash = messageHashStart + ':' + market['id'];
-        let url = this.urls['api']['ws'];
-        if ('signature' in params) {
-            // need to distinguish between public trades and user trades
-            url = url + '?';
+        let market = undefined;
+        let messageHash = undefined;
+        let productIds = [];
+        if (Array.isArray (symbol)) {
+            const symbols = this.marketSymbols (symbol);
+            const marketIds = this.marketIds (symbols);
+            messageHash = messageHashStart + ':';
+            productIds = marketIds;
+        } else {
+            market = this.market (symbol);
+            messageHash = messageHashStart + ':' + market['id'];
+            productIds = [ market['id'] ];
         }
+        const url = this.urls['api']['ws'];
         const subscribe = {
             'type': 'subscribe',
-            'product_ids': [
-                market['id'],
-            ],
+            'product_ids': productIds,
             'channel': name,
-            'api_key': this.apiKey,
         };
-        const request = this.extend (subscribe, params);
+        const authentication = this.timestampAndSign ('subscribe', name, productIds);
+        const authedParams = this.extend (authentication, params);
+        const request = this.extend (subscribe, authedParams);
         return await this.watch (url, messageHash, request, messageHash);
     }
 
@@ -103,7 +102,152 @@ module.exports = class coinbase extends coinbaseRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const name = 'ticker_batch';
-        return await this.subscribe (name, symbols, name, params);
+        const tickers = await this.subscribe (name, symbols, name, params);
+        return tickers;
+        // todo: like binance
+        // const result = {};
+        // for (let i = 0; i < tickers.length; i++) {
+        //     const ticker = tickers[i];
+        //     const tickerSymbol = ticker['symbol'];
+        //     if (symbols === undefined || this.inArray (tickerSymbol, symbols)) {
+        //         result[tickerSymbol] = ticker;
+        //     }
+        // }
+        // const resultKeys = Object.keys (result);
+        // const resultKeysLength = resultKeys.length;
+        // if (resultKeysLength > 0) {
+        //     if (this.newUpdates) {
+        //         return result;
+        //     }
+        //     return this.filterByArray (this.tickers, 'symbol', symbols);
+        // }
+        // return await this.watchTickers (symbols, oriParams);
+    }
+
+    handleTicker (client, message) {
+        //
+        //    {
+        //        "channel": "ticker",
+        //        "client_id": "",
+        //        "timestamp": "2023-03-01T12:16:31.714675066Z",
+        //        "sequence_num": 0,
+        //        "events": [
+        //            {
+        //                "type": "snapshot",
+        //                "tickers": [
+        //                    {
+        //                        "type": "ticker",
+        //                        "product_id": "DOGE-USD",
+        //                        "price": "0.08211",
+        //                        "volume_24_h": "242625971.7",
+        //                        "low_24_h": "0.07989",
+        //                        "high_24_h": "0.08308",
+        //                        "low_52_w": "0.04908",
+        //                        "high_52_w": "0.1801",
+        //                        "price_percent_chg_24_h": "0.47723935389134"
+        //                    }
+        //                ]
+        //            }
+        //        ]
+        //    }
+        //
+        const channel = this.safeString (message, 'channel');
+        this.parseRawTickersHelper (client, message, channel);
+    }
+
+    handleTickers (client, message) {
+        //
+        //    {
+        //        "channel": "ticker_batch",
+        //        "client_id": "",
+        //        "timestamp": "2023-03-01T12:15:18.382173051Z",
+        //        "sequence_num": 0,
+        //        "events": [
+        //            {
+        //                "type": "snapshot",
+        //                "tickers": [
+        //                    {
+        //                        "type": "ticker",
+        //                        "product_id": "DOGE-USD",
+        //                        "price": "0.08212",
+        //                        "volume_24_h": "242556423.3",
+        //                        "low_24_h": "0.07989",
+        //                        "high_24_h": "0.08308",
+        //                        "low_52_w": "0.04908",
+        //                        "high_52_w": "0.1801",
+        //                        "price_percent_chg_24_h": "0.50177456859626"
+        //                    }
+        //                ]
+        //            }
+        //        ]
+        //    }
+        //
+        const channel = this.safeString (message, 'channel');
+        this.parseRawTickersHelper (client, message, channel);
+        client.resolve (Object.values (this.tickers), channel + ':');
+    }
+
+    parseRawTickersHelper (client, message, channel) {
+        const events = this.safeValue (message, 'events', []);
+        for (let i = 0; i < events.length; i++) {
+            const tickersObj = events[i];
+            const tickers = this.safeValue (tickersObj, 'tickers', []);
+            for (let j = 0; j < tickers.length; j++) {
+                const ticker = tickers[j];
+                const result = this.parseWsTicker (ticker);
+                const symbol = result['symbol'];
+                this.tickers[symbol] = result;
+                const wsMarketId = this.safeString (ticker, 'product_id');
+                const messageHash = channel + ':' + wsMarketId;
+                client.resolve (result, messageHash);
+            }
+        }
+    }
+
+    parseWsTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "type": "ticker",
+        //         "product_id": "DOGE-USD",
+        //         "price": "0.08212",
+        //         "volume_24_h": "242556423.3",
+        //         "low_24_h": "0.07989",
+        //         "high_24_h": "0.08308",
+        //         "low_52_w": "0.04908",
+        //         "high_52_w": "0.1801",
+        //         "price_percent_chg_24_h": "0.50177456859626"
+        //     }
+        //
+        const type = this.safeString (ticker, 'type');
+        if (type === undefined) {
+            return super.parseTicker (ticker, market);
+        }
+        const marketId = this.safeString (ticker, 'product_id');
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const timestamp = undefined;
+        const last = this.safeNumber (ticker, 'price');
+        return {
+            'info': ticker,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeNumber (ticker, 'high_24_h'),
+            'low': this.safeNumber (ticker, 'low_24_h'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeNumber (ticker, 'volume_24_h'),
+            'quoteVolume': undefined,
+        };
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -547,90 +691,6 @@ module.exports = class coinbase extends coinbaseRest {
         };
     }
 
-    handleTicker (client, message) {
-        //
-        //     {
-        //         type: 'ticker',
-        //         sequence: 12042642428,
-        //         product_id: 'BTC-USD',
-        //         price: '9380.55',
-        //         open_24h: '9450.81000000',
-        //         volume_24h: '9611.79166047',
-        //         low_24h: '9195.49000000',
-        //         high_24h: '9475.19000000',
-        //         volume_30d: '327812.00311873',
-        //         best_bid: '9380.54',
-        //         best_ask: '9380.55',
-        //         side: 'buy',
-        //         time: '2020-02-01T01:40:16.253563Z',
-        //         trade_id: 82062566,
-        //         last_size: '0.41969131'
-        //     }
-        //
-        const marketId = this.safeString (message, 'product_id');
-        if (marketId !== undefined) {
-            const ticker = this.parseTicker (message);
-            const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
-            const type = this.safeString (message, 'type');
-            const messageHash = type + ':' + marketId;
-            client.resolve (ticker, messageHash);
-        }
-        return message;
-    }
-
-    parseTicker (ticker, market = undefined) {
-        //
-        //     {
-        //         type: 'ticker',
-        //         sequence: 12042642428,
-        //         product_id: 'BTC-USD',
-        //         price: '9380.55',
-        //         open_24h: '9450.81000000',
-        //         volume_24h: '9611.79166047',
-        //         low_24h: '9195.49000000',
-        //         high_24h: '9475.19000000',
-        //         volume_30d: '327812.00311873',
-        //         best_bid: '9380.54',
-        //         best_ask: '9380.55',
-        //         side: 'buy',
-        //         time: '2020-02-01T01:40:16.253563Z',
-        //         trade_id: 82062566,
-        //         last_size: '0.41969131'
-        //     }
-        //
-        const type = this.safeString (ticker, 'type');
-        if (type === undefined) {
-            return super.parseTicker (ticker, market);
-        }
-        const marketId = this.safeString (ticker, 'product_id');
-        const symbol = this.safeSymbol (marketId, market, '-');
-        const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
-        const last = this.safeNumber (ticker, 'price');
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high_24h'),
-            'low': this.safeNumber (ticker, 'low_24h'),
-            'bid': this.safeNumber (ticker, 'best_bid'),
-            'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'best_ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open_24h'),
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume_24h'),
-            'quoteVolume': undefined,
-            'info': ticker,
-        };
-    }
-
     handleDelta (bookside, delta) {
         const price = this.safeNumber (delta, 0);
         const amount = this.safeNumber (delta, 1);
@@ -724,32 +784,16 @@ module.exports = class coinbase extends coinbaseRest {
     }
 
     handleMessage (client, message) {
-        const type = this.safeString (message, 'type');
+        const channel = this.safeString (message, 'channel');
         const methods = {
-            'snapshot': this.handleOrderBook,
-            'l2update': this.handleOrderBook,
-            'subscribe': this.handleSubscriptionStatus,
+            // 'snapshot': this.handleOrderBook,
+            // 'l2update': this.handleOrderBook,
+            'subscriptions': this.handleSubscriptionStatus,
             'ticker': this.handleTicker,
-            'received': this.handleOrder,
-            'open': this.handleOrder,
-            'change': this.handleOrder,
-            'done': this.handleOrder,
+            'ticker_batch': this.handleTickers,
         };
-        const length = client.url.length - 0;
-        const authenticated = client.url[length - 1] === '?';
-        const method = this.safeValue (methods, type);
-        if (method === undefined) {
-            if (type === 'match') {
-                if (authenticated) {
-                    this.handleMyTrade (client, message);
-                    this.handleOrder (client, message);
-                } else {
-                    this.handleTrade (client, message);
-                }
-            }
-        } else {
-            return method.call (this, client, message);
-        }
+        const method = this.safeValue (methods, channel);
+        return method.call (this, client, message);
     }
 };
 

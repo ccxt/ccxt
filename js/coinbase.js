@@ -282,6 +282,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchTicker': 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers': 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
                 'fetchAccounts': 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
+                'user_native_currency': 'USD', // needed to get fees for v3
             },
         });
     }
@@ -998,7 +999,19 @@ module.exports = class coinbase extends Exchange {
         //         ...
         //     ]
         //
-        const fees = await this.v3PrivateGetBrokerageTransactionSummary (params);
+        let user_native_currency = undefined;
+        [ user_native_currency, params ] = this.handleOptionAndParams (params, 'fetchMarketsV3', 'user_native_currency', 'USD');
+        const feesRequest = {
+            'user_native_currency': user_native_currency,
+            'product_type': 'SPOT',
+        };
+        let enableMaketFeesFetch = undefined;
+        [ enableMaketFeesFetch, params ] = this.handleOptionAndParams (params, 'fetchMarketsV3', 'enableMaketFeesFetch', true);
+        let fees = {};
+        // atm it does not work; https://forums.coinbasecloud.dev/t/bug-500-internal-error-on-transaction-summary-for-new-accounts/1919
+        if (enableMaketFeesFetch) {
+            fees = await this.v3PrivateGetBrokerageTransactionSummary (this.extend (feesRequest, params));
+        }
         //
         //     {
         //         "total_volume": 0,
