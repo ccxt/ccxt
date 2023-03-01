@@ -566,11 +566,11 @@ module.exports = class coinex extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.safeString (leverages, 0),
-                        'max': this.safeString (leverages, leveragesLength - 1),
+                        'min': this.safeNumber (leverages, 0),
+                        'max': this.safeNumber (leverages, leveragesLength - 1),
                     },
                     'amount': {
-                        'min': this.safeString (entry, 'amount_min'),
+                        'min': this.safeNumber (entry, 'amount_min'),
                         'max': undefined,
                     },
                     'price': {
