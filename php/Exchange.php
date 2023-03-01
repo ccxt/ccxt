@@ -1431,6 +1431,8 @@ class Exchange {
         //     }
         // }
 
+        $this->options = $this->get_default_options();
+
         $this->urlencode_glue = ini_get('arg_separator.output'); // can be overrided by exchange constructor params
 
         $options = array_replace_recursive($this->describe(), $options);
