@@ -128,7 +128,6 @@ module.exports = class coinsph extends Exchange {
                 'api': {
                     'public': 'https://api.pro.coins.ph',
                     'private': 'https://api.pro.coins.ph',
-                    'quote': 'https://api.pro.coins.ph',
                 },
                 'www': 'https://coins.ph/',
                 'referral': {
@@ -144,57 +143,52 @@ module.exports = class coinsph extends Exchange {
                 'public': {
                     'get': {
                         // in progress ==========================
-                        'ping': 1,
-                        'exchangeInfo': 10,
-                        // ======================================
-                        'time': 1,
-                        'pairs': 1,
-                    },
-                },
-                'quote': {
-                    'get': {
-                        // in progress ==========================
+                        'openapi/v1/ping': 1,
+                        'openapi/v1/exchangeInfo': 10,
                         // cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         // cost 20 if 'symbols' param is a list of 21-100 market symbols
                         // cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omited
-                        'ticker/24hr': { 'cost': 1, 'limits': [ [ 1, 1 ], [ 21, 20 ], [ 101, 40 ] ] },
-                        'depth': 1, // cost 1 if limit <= 100; 5 if limit > 100.
-                        'klines': 1, // default limit 500; max 1000.
-                        'trades': 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
+                        'openapi/quote/v1/ticker/24hr': { 'cost': 1, 'noSymbolAndNoSymbols': 40, 'bySymbolsAmount': [ [ 101, 40 ], [ 21, 20 ], [ 0, 1 ] ] },
+                        // cost 1 if limit <= 100; 5 if limit > 100.
+                        'openapi/quote/v1/depth': { 'cost': 1, 'byLimit': [ [ 101, 5 ], [ 0, 1 ] ] },
+                        'openapi/quote/v1/klines': 1, // default limit 500; max 1000.
+                        'openapi/quote/v1/trades': 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
                         // ======================================
-                        'avgPrice': 1,
-                        'ticker/price': 1,
+                        'openapi/v1/time': 1,
+                        'openapi/v1/pairs': 1,
+                        'openapi/quote/v1/avgPrice': 1,
                         // cost 1 if 'symbol' param defined (one market symbol)
                         // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omited
-                        'ticker/bookTicker': 1,
+                        'openapi/quote/v1/ticker/price': { 'cost': 1, 'noSymbol': 2 },
                         // cost 1 if 'symbol' param defined (one market symbol)
                         // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omited
+                        'openapi/quote/v1/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
                     },
                 },
                 'private': {
                     'get': {
                         // in progress ==========================
-                        'account': 10,
-                        'openOrders': 3,
+                        'openapi/v1/account': 10,
                         // cost 3 for a single symbol; 40 when the symbol parameter is omitted
+                        'openapi/v1/openOrders': { 'cost': 3, 'noSymbol': 40 },
                         // ======================================
-                        'order': 2,
-                        'historyOrders': 10,
+                        'openapi/v1/order': 2,
                         // cost 10 with symbol, 40 when the symbol parameter is omitted;
-                        'myTrades': 10,
-                        'capital/deposit/history': 1,
-                        'capital/withdraw/history': 1,
-                        'asset/tradeFee': 1,
+                        'openapi/v1/historyOrders': { 'cost': 10, 'noSymbol': 40 },
+                        'openapi/v1/myTrades': 10,
+                        'openapi/v1/capital/deposit/history': 1,
+                        'openapi/v1/capital/withdraw/history': 1,
+                        'openapi/v1/asset/tradeFee': 1,
                     },
                     'post': {
-                        'order/test': 1,
-                        'order': 1,
-                        'capital/withdraw/apply': 1,
-                        'capital/deposit/apply': 1,
+                        'openapi/v1/order/test': 1,
+                        'openapi/v1/order': 1,
+                        'openapi/v1/capital/withdraw/apply': 1,
+                        'openapi/v1/capital/deposit/apply': 1,
                     },
                     'delete': {
-                        'order': 1,
-                        'openOrders': 1,
+                        'openapi/v1/order': 1,
+                        'openapi/v1/openOrders': 1,
                     },
                 },
             },
@@ -218,6 +212,34 @@ module.exports = class coinsph extends Exchange {
         });
     }
 
+    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+        if (('noSymbol' in config) && !('symbol' in params)) {
+            return config['noSymbol'];
+        } else if (('noSymbolAndNoSymbols' in config) && !('symbol' in params) && !('symbols' in params)) {
+            return config['noSymbolAndNoSymbols'];
+        } else if (('bySymbolsAmount' in config) && ('symbols' in params)) {
+            const symbols = params['symbols'];
+            const symbolsAmount = symbols.length;
+            const bySymbolsAmount = config['bySymbolsAmount'];
+            for (let i = 0; i < bySymbolsAmount.length; i++) {
+                const entry = bySymbolsAmount[i];
+                if (symbolsAmount >= entry[0]) {
+                    return entry[1];
+                }
+            }
+        } else if (('byLimit' in config) && ('limit' in params)) {
+            const limit = params['limit'];
+            const byLimit = config['byLimit'];
+            for (let i = 0; i < byLimit.length; i++) {
+                const entry = byLimit[i];
+                if (limit >= entry[0]) {
+                    return entry[1];
+                }
+            }
+        }
+        return this.safeValue (config, 'cost', 1);
+    }
+
     async fetchStatus (params = {}) {
         /**
          * @method
@@ -226,7 +248,7 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
-        const response = await this.publicGetPing (params);
+        const response = await this.publicGetOpenapiV1Ping (params);
         return {
             'status': 'ok', // if there's no Errors, status = 'ok'
             'updated': undefined,
@@ -244,7 +266,7 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.publicGetExchangeInfo (params);
+        const response = await this.publicGetOpenapiV1ExchangeInfo (params);
         //
         //     {
         //         timezone: 'UTC',
@@ -315,9 +337,9 @@ module.exports = class coinsph extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const isActive = this.safeString (market, 'status') === 'TRADING';
             const limits = this.indexBy (this.safeValue (market, 'filters'), 'filterType');
-            const amountLimits = this.safeValue (limits, 'LOT_SIZE'); // to do: all safeValue methods should have a default value {} or []
-            const priceLimits = this.safeValue (limits, 'PRICE_FILTER');
-            const costLimits = this.safeValue (limits, 'NOTIONAL');
+            const amountLimits = this.safeValue (limits, 'LOT_SIZE', {}); // to do: all safeValue methods should have a default value {} or []
+            const priceLimits = this.safeValue (limits, 'PRICE_FILTER', {});
+            const costLimits = this.safeValue (limits, 'NOTIONAL', {});
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -385,9 +407,15 @@ module.exports = class coinsph extends Exchange {
         await this.loadMarkets ();
         const request = {};
         if (symbols !== undefined) {
-            // to do
+            const ids = [];
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                const id = market['id'];
+                ids.push (id);
+            }
+            request['symbols'] = ids;
         }
-        const tickers = await this.quoteGetTicker24hr (this.extend (request, params));
+        const tickers = await this.publicGetOpenapiQuoteV1Ticker24hr (this.extend (request, params));
         return this.parseTickers (tickers, symbols, params);
     }
 
@@ -405,7 +433,7 @@ module.exports = class coinsph extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const ticker = await this.quoteGetTicker24hr (this.extend (request, params));
+        const ticker = await this.publicGetOpenapiQuoteV1Ticker24hr (this.extend (request, params));
         return this.parseTicker (ticker, market);
     }
 
@@ -500,7 +528,7 @@ module.exports = class coinsph extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.quoteGetDepth (this.extend (request, params));
+        const response = await this.publicGetOpenapiQuoteV1Depth (this.extend (request, params));
         //
         //     {
         //         "lastUpdateId": "1667022157000699400",
@@ -554,7 +582,7 @@ module.exports = class coinsph extends Exchange {
                 request['limit'] = limit;
             }
         }
-        const response = await this.quoteGetKlines (this.extend (request, params));
+        const response = await this.publicGetOpenapiQuoteV1Klines (this.extend (request, params));
         //
         //     [
         //         [
@@ -615,7 +643,7 @@ module.exports = class coinsph extends Exchange {
                 request['limit'] = limit;
             }
         }
-        const trades = await this.quoteGetTrades (this.extend (request, params));
+        const trades = await this.publicGetOpenapiQuoteV1Trades (this.extend (request, params));
         //
         //     [
         //         {
@@ -691,7 +719,7 @@ module.exports = class coinsph extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetAccount (params);
+        const response = await this.privateGetOpenapiV1Account (params);
         //
         //     {
         //         accountType: 'SPOT',
@@ -717,7 +745,7 @@ module.exports = class coinsph extends Exchange {
     }
 
     parseBalance (response) {
-        const balances = this.safeValue (response, 'balances');
+        const balances = this.safeValue (response, 'balances', []);
         const timestamp = this.milliseconds ();
         const result = {
             'info': response,
@@ -775,7 +803,7 @@ module.exports = class coinsph extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = this.privateGetOpenOrders (this.extend (request, params));
+        const response = this.privateGetOpenapiV1OpenOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -925,37 +953,59 @@ module.exports = class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let endpoint = '/openapi/';
-        // some endpoints of public api starts with 'v1', other starts with 'quote/v1'
-        // i decided do divide them into different groups ('public' and 'qoute')
-        if (api === 'quote') {
-            endpoint = endpoint + 'quote/';
+    urlEncodeQuery (query = {}) {
+        // to do: check if it is good
+        let encodedArrayParams = '';
+        const keys = Object.keys (query);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.isArray (query[key])) {
+                if (i !== 0) {
+                    encodedArrayParams += '&';
+                }
+                const array = query[key];
+                query = this.omit (query, key);
+                const encodedArrayParam = this.parseArrayParam (array, key);
+                encodedArrayParams += encodedArrayParam;
+            }
         }
+        const encodedQuery = this.urlencode (query);
+        if (encodedQuery.length !== 0) {
+            return encodedQuery + '&' + encodedArrayParams;
+        } else {
+            return encodedArrayParams;
+        }
+    }
+
+    parseArrayParam (array, key) {
+        let stringifiedArray = this.json (array);
+        stringifiedArray = stringifiedArray.replace ('[', '%5B');
+        stringifiedArray = stringifiedArray.replace (']', '%5D');
+        const urlEncodedParam = key + '=' + stringifiedArray;
+        return urlEncodedParam;
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
-        endpoint = endpoint + this.version + '/' + this.implodeParams (path, params);
-        url += endpoint;
+        const endpoint = this.implodeParams (path, params);
+        url = url + '/' + endpoint;
         if (api === 'private') {
             // to do: should i send signature in body or in query string?
             this.checkRequiredCredentials ();
             query = this.extend ({
                 'timestamp': this.milliseconds (),
             }, query);
-            const queryString = this.urlencode (query);
-            const signature = this.hmac (this.encode (queryString), this.encode (this.secret), 'sha256');
-            url = url + '?' + queryString + '&signature=' + signature;
+            query = this.urlEncodeQuery (query);
+            const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
+            url = url + '?' + query + '&signature=' + signature;
             headers = {
                 'X-COINS-APIKEY': this.apiKey,
             };
         } else {
-            if (Object.keys (query).length) {
-                // to do: doesn't encode lists (arrays) properly
-                // e.g. { symbols: ['BTCUSDT', 'ETHUSDT'] } should become
-                // 'symbols=%5BBTCUSDT,ETHUSDT%5D'
-                // urlencode returns 'symbols%5B0%5D=BTCUSDT&symbols%5B1%5D=ETHUSDT'
-                // url += '?' + 'symbols=%5BBTCUSDT,ETHUSDT%5D';
-                url += '?' + this.urlencode (query);
+            query = this.urlEncodeQuery (query);
+            if (query.length !== 0) {
+                url += '?' + query;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
