@@ -3575,6 +3575,34 @@ module.exports = class phemex extends Exchange {
         return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name phemex#setPositionMode
+         * @description set hedged to true or false for a market
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
+         * @param {bool} hedged set to true to use dualSidePosition
+         * @param {string|undefined} symbol not used by binance setPositionMode ()
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} response from the exchange
+         */
+
+        this.checkRequiredArgument ('setPositionMode', symbol, 'symbol');
+        const market = this.market (symbol);
+        if (market['settle'] !== 'USDT') {
+            throw new BadSymbol (this.id + ' setPositionMode() supports USDT settled markets only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        if (hedged) {
+            request['targetPosMode'] = 'Hedged';
+        } else {
+            request['targetPosMode'] = 'OneWay';
+        }
+        return await this.privatePutGPositionsSwitchPosModeSync (this.extend (request, params));
+    }
+
     async fetchLeverageTiers (symbols = undefined, params = {}) {
         /**
          * @method
