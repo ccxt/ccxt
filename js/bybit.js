@@ -372,8 +372,10 @@ module.exports = class bybit extends Exchange {
                         'v5/asset/deposit/query-sub-member-record': 2.5,
                         'v5/asset/deposit/query-address': 2.5,
                         'v5/asset/deposit/query-sub-member-address': 2.5,
+                        'v5/asset/deposit/query-internal-record': 2.5,
                         'v5/asset/coin/query-info': 2.5,
                         'v5/asset/withdraw/query-record': 2.5,
+                        'v5/asset/withdraw/withdrawable-amount': 2.5,
                         'v5/asset/transfer/query-account-coins-balance': 2.5,
                         // user
                         'v5/user/query-sub-members': 10,
@@ -695,6 +697,42 @@ module.exports = class bybit extends Exchange {
                     '130021': InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100} |  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100} caused issues/9149#issuecomment-1146559498
                     '130074': InvalidOrder, // {"ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100}
                     '131001': InsufficientFunds, // {"retCode":131001,"retMsg":"the available balance is not sufficient to cover the handling fee","result":{},"retExtInfo":{},"time":1666892821245}
+                    '131084': ExchangeError, // Withdraw failed because of Uta Upgrading
+                    '131200': ExchangeError, // Service error
+                    '131201': ExchangeError, // Internal error
+                    '131202': BadRequest, // Invalid memberId
+                    '131203': BadRequest, // Request parameter error
+                    '131204': BadRequest, // Account info error
+                    '131205': BadRequest, // Query transfer error
+                    '131206': ExchangeError, // Fail to transfer
+                    '131207': BadRequest, // Account not exist
+                    '131208': ExchangeError, // Forbid transfer
+                    '131209': BadRequest, // Get subMember relation error
+                    '131210': BadRequest, // Amount accuracy error
+                    '131211': BadRequest, // fromAccountType can't be the same as toAccountType
+                    '131212': InsufficientFunds, // Insufficient balance
+                    '131213': BadRequest, // TransferLTV check error
+                    '131214': BadRequest, // TransferId exist
+                    '131215': BadRequest, // Amount error
+                    '131216': ExchangeError, // Query balance error
+                    '131217': ExchangeError, // Risk check error
+                    '131002': BadRequest, // Parameter error
+                    '131003': ExchangeError, // Interal error
+                    '131004': AuthenticationError, // KYC needed
+                    '131085': InsufficientFunds, // Withdrawal amount is greater than your availale balance (the deplayed withdrawal is triggered)
+                    '131086': BadRequest, // Withdrawal amount exceeds risk limit (the risk limit of margin trade is triggered)
+                    '131088': BadRequest, // The withdrawal amount exceeds the remaining withdrawal limit of your identity verification level. The current available amount for withdrawal : %s
+                    '131089': BadRequest, // User sensitive operation, withdrawal is prohibited within 24 hours
+                    '131090': ExchangeError, // User withdraw has been banned
+                    '131091': ExchangeError, // Blocked login status does not allow withdrawals
+                    '131092': ExchangeError, // User status is abnormal
+                    '131093': ExchangeError, // The withdrawal address is not in the whitelist
+                    '131094': BadRequest, // UserId is not in the whitelist
+                    '131095': BadRequest, // Withdrawl amount exceeds the 24 hour platform limit
+                    '131096': BadRequest, // Withdraw amount does not satify the lower limit or upper limit
+                    '131097': ExchangeError, // Withdrawal of this currency has been closed
+                    '131098': ExchangeError, // Withdrawal currently is not availble from new address
+                    '131099': ExchangeError, // Hot wallet status can cancel the withdraw
                     '140003': InvalidOrder, // Order price is out of permissible range
                     '140004': InsufficientFunds, // Insufficient wallet balance
                     '140005': InvalidOrder, // position status
