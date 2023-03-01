@@ -526,8 +526,8 @@ class coinex(Exchange):
             fees = self.fees
             leverages = self.safe_value(entry, 'leverages', [])
             subType = self.safe_integer(entry, 'type')
-            linear = True if (subType == 1) else False
-            inverse = True if (subType == 2) else False
+            linear = (subType == 1)
+            inverse = (subType == 2)
             id = self.safe_string(entry, 'name')
             baseId = self.safe_string(entry, 'stock')
             quoteId = self.safe_string(entry, 'money')
@@ -558,22 +558,22 @@ class coinex(Exchange):
                 'inverse': inverse,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
-                'contractSize': None,
+                'contractSize': self.safe_number(entry, 'multiplier'),
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'stock_prec'))),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'amount_prec'))),
                     'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'money_prec'))),
                 },
                 'limits': {
                     'leverage': {
-                        'min': self.safe_string(leverages, 0),
-                        'max': self.safe_string(leverages, leveragesLength - 1),
+                        'min': self.safe_number(leverages, 0),
+                        'max': self.safe_number(leverages, leveragesLength - 1),
                     },
                     'amount': {
-                        'min': self.safe_string(entry, 'amount_min'),
+                        'min': self.safe_number(entry, 'amount_min'),
                         'max': None,
                     },
                     'price': {
