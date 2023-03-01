@@ -783,7 +783,8 @@ module.exports = class bybit extends bybitRest {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
-        const isUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const unified = await this.isUnifiedEnabled ();
+        const isUnifiedMargin = this.safeValue (unified, 0, false);
         const url = this.getUrlByMarketType (symbol, true, isUnifiedMargin, method, params);
         await this.authenticate (url);
         const topicByMarket = {
@@ -899,7 +900,8 @@ module.exports = class bybit extends bybitRest {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
-        const isUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const unified = await this.isUnifiedEnabled ();
+        const isUnifiedMargin = this.safeValue (unified, 0, false);
         const url = this.getUrlByMarketType (undefined, true, isUnifiedMargin, method, params);
         await this.authenticate (url);
         const topicsByMarket = {
@@ -1164,7 +1166,8 @@ module.exports = class bybit extends bybitRest {
          */
         const method = 'watchBalance';
         const messageHash = 'balances';
-        const isUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const unified = await this.isUnifiedEnabled ();
+        const isUnifiedMargin = this.safeValue (unified, 0, false);
         const url = this.getUrlByMarketType (undefined, true, isUnifiedMargin, method, params);
         await this.authenticate (url);
         const topicByMarket = {
