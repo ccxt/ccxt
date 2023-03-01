@@ -2203,7 +2203,7 @@ module.exports = class phemex extends Exchange {
             if (market['settle'] === 'USDT') {
                 request['priceRp'] = this.priceToPrecision (symbol, price);
             } else {
-                const priceString = price.toString ();
+                const priceString = this.numberToString (price);
                 request['priceEp'] = this.toEp (priceString, market);
             }
         }
@@ -3583,7 +3583,6 @@ module.exports = class phemex extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} response from the exchange
          */
-
         this.checkRequiredArgument ('setPositionMode', symbol, 'symbol');
         const market = this.market (symbol);
         if (market['settle'] !== 'USDT') {
