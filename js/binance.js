@@ -7220,7 +7220,7 @@ module.exports = class binance extends Exchange {
         //
         let amount = this.safeString2 (item, 'amount', 'income');
         let direction = undefined;
-        if (amount < 0) {
+        if (Precise.stringLe (amount, '0')) {
             direction = 'out';
             amount = Precise.stringMul ('-1', amount);
         } else {
