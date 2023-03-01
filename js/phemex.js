@@ -1985,6 +1985,40 @@ module.exports = class phemex extends Exchange {
         //         "execInst": "ReduceOnly"
         //     }
         //
+        // usdt
+        // {
+        //        "bizError":"0",
+        //        "orderID":"bd720dff-5647-4596-aa4e-656bac87aaad",
+        //        "clOrdID":"ccxt2022843dffac9477b497",
+        //        "symbol":"LTCUSDT",
+        //        "side":"Buy",
+        //        "actionTimeNs":"1677667878751724052",
+        //        "transactTimeNs":"1677667878754017434",
+        //        "orderType":"Limit",
+        //        "priceRp":"40",
+        //        "orderQtyRq":"0.1",
+        //        "displayQtyRq":"0.1",
+        //        "timeInForce":"GoodTillCancel",
+        //        "reduceOnly":false,
+        //        "closedPnlRv":"0",
+        //        "closedSizeRq":"0",
+        //        "cumQtyRq":"0",
+        //        "cumValueRv":"0",
+        //        "leavesQtyRq":"0.1",
+        //        "leavesValueRv":"4",
+        //        "stopDirection":"UNSPECIFIED",
+        //        "stopPxRp":"0",
+        //        "trigger":"UNSPECIFIED",
+        //        "pegOffsetValueRp":"0",
+        //        "pegOffsetProportionRr":"0",
+        //        "execStatus":"New",
+        //        "pegPriceType":"UNSPECIFIED",
+        //        "ordStatus":"New",
+        //        "execInst":"None",
+        //        "takeProfitRp":"0",
+        //        "stopLossRp":"0"
+        //     }
+        //
         const id = this.safeString (order, 'orderID');
         let clientOrderId = this.safeString (order, 'clOrdID');
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
@@ -1995,18 +2029,21 @@ module.exports = class phemex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'orderType'));
-        const price = this.parseNumber (this.fromEp (this.safeString (order, 'priceEp'), market));
-        const amount = this.safeNumber (order, 'orderQty');
-        const filled = this.safeNumber (order, 'cumQty');
-        const remaining = this.safeNumber (order, 'leavesQty');
+        let price = this.safeString (order, 'priceRp');
+        if (price === undefined) {
+            price = this.fromEp (this.safeString (order, 'priceEp'), market);
+        }
+        const amount = this.safeNumber2 (order, 'orderQty', 'orderQtyRq');
+        const filled = this.safeNumber2 (order, 'cumQty', 'cumQtyRq');
+        const remaining = this.safeNumber2 (order, 'leavesQty', 'leavesQtyRq');
         const timestamp = this.safeIntegerProduct (order, 'actionTimeNs', 0.000001);
-        const cost = this.safeNumber (order, 'cumValue');
+        const cost = this.safeNumber2 (order, 'cumValue', 'cumValueRv');
         let lastTradeTimestamp = this.safeIntegerProduct (order, 'transactTimeNs', 0.000001);
         if (lastTradeTimestamp === 0) {
             lastTradeTimestamp = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.safeNumber (order, 'stopPx');
+        const stopPrice = this.safeNumber2 (order, 'stopPx', 'stopPxRp');
         const postOnly = (timeInForce === 'PO');
         let reduceOnly = this.safeValue (order, 'reduceOnly');
         const execInst = this.safeString (order, 'execInst');
@@ -2041,7 +2078,8 @@ module.exports = class phemex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        if ('closedPnl' in order) {
+        const isSwap = this.safeValue (market, 'swap', false);
+        if (isSwap || 'closedPnl' in order) {
             return this.parseSwapOrder (order, market);
         }
         return this.parseSpotOrder (order, market);
