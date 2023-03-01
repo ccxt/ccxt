@@ -212,6 +212,7 @@ class okx extends Exchange {
                         'account/account-position-risk' => 2,
                         'account/balance' => 2,
                         'account/positions' => 2,
+                        'account/positions-history' => 2,
                         'account/bills' => 5 / 3,
                         'account/bills-archive' => 5 / 3,
                         'account/config' => 4,
@@ -310,6 +311,7 @@ class okx extends Exchange {
                         'account/borrow-repay' => 5 / 3,
                         'account/quick-margin-borrow-repay' => 4,
                         'account/activate-option' => 4,
+                        'account/set-auto-loan' => 4,
                         'asset/transfer' => 10,
                         'asset/withdrawal' => 5 / 3,
                         'asset/purchase_redempt' => 5 / 3,
@@ -627,6 +629,8 @@ class okx extends Exchange {
                     '58117' => '\\ccxt\\ExchangeError', // Account assets are abnormal, please deal with negative assets before transferring
                     '58125' => '\\ccxt\\BadRequest', // Non-tradable assets can only be transferred from sub-accounts to main accounts
                     '58126' => '\\ccxt\\BadRequest', // Non-tradable assets can only be transferred between funding accounts
+                    '58127' => '\\ccxt\\BadRequest', // Main account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
+                    '58128' => '\\ccxt\\BadRequest', // Sub-account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
                     '58200' => '\\ccxt\\ExchangeError', // Withdrawal from {0} to {1} is unavailable for this currency
                     '58201' => '\\ccxt\\ExchangeError', // Withdrawal amount exceeds the daily limit
                     '58202' => '\\ccxt\\ExchangeError', // The minimum withdrawal amount for NEO is 1, and the amount must be an integer
@@ -748,6 +752,9 @@ class okx extends Exchange {
                 'fetchOHLCV' => array(
                     // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                     'timezone' => 'UTC', // UTC, HK
+                ),
+                'fetchPositions' => array(
+                    'method' => 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
                 ),
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice' => false,
@@ -3656,7 +3663,7 @@ class okx extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $filtered = $this->filter_by($data, 'selected', true);
-            $parsed = $this->parse_deposit_addresses($filtered, array( $code ), false);
+            $parsed = $this->parse_deposit_addresses($filtered, [ $currency['code'] ], false);
             return $this->index_by($parsed, 'network');
         }) ();
     }
@@ -4260,7 +4267,9 @@ class okx extends Exchange {
                     $request['instId'] = implode(',', $marketIds);
                 }
             }
-            $response = Async\await($this->privateGetAccountPositions (array_merge($request, $params)));
+            $fetchPositionsOptions = $this->safe_value($this->options, 'fetchPositions', array());
+            $method = $this->safe_string($fetchPositionsOptions, 'method', 'privateGetAccountPositions');
+            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -4374,6 +4383,9 @@ class okx extends Exchange {
                 if ($parsedCurrency !== null) {
                     $side = ($market['base'] === $parsedCurrency) ? 'long' : 'short';
                 }
+            }
+            if ($side === null) {
+                $side = $this->safe_string($position, 'direction');
             }
         } else {
             if ($pos !== null) {

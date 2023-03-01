@@ -143,6 +143,7 @@ class phemex(Exchange):
                         'nomics/trades',  # ?market=<symbol>&since=<since>
                         'md/kline',  # ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
                         'md/v2/kline/list',  # perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline',  # ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                         'md/v2/kline/last',  # perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                     ],
                 },
@@ -1027,6 +1028,7 @@ class phemex(Exchange):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querykline
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
@@ -1034,8 +1036,10 @@ class phemex(Exchange):
         :param dict params: extra parameters specific to the phemex api endpoint
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
+        self.load_markets()
+        market = self.market(symbol)
         request = {
-            # 'symbol': market['id'],
+            'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': 1588830682,  # seconds
             # 'to': self.seconds(),
@@ -1057,10 +1061,7 @@ class phemex(Exchange):
             if not self.in_array(limit, possibleLimitValues):
                 limit = 100
             request['limit'] = limit
-        self.load_markets()
-        market = self.market(symbol)
-        request['symbol'] = market['id']
-        method = 'publicGetMdKline'
+        method = 'publicGetMdV2Kline'
         if market['linear'] or market['settle'] == 'USDT':
             method = 'publicGetMdV2KlineLast'
         response = getattr(self, method)(self.extend(request, params))

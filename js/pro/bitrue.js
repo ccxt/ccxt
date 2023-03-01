@@ -145,6 +145,7 @@ module.exports = class bitrue extends bitrueRest {
         //         t: 1657799510000
         //     }]
         //
+        this.balance['info'] = balances;
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'a');

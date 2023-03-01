@@ -4678,7 +4678,7 @@ class bybit extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $symbol;
+            $request['symbol'] = $market['id'];
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -5324,7 +5324,7 @@ class bybit extends Exchange {
         $chains = $this->safe_value($result, 'chains', array());
         $coin = $this->safe_string($result, 'coin');
         $currency = $this->currency($coin);
-        $parsed = $this->parse_deposit_addresses($chains, array( $code ), false, array(
+        $parsed = $this->parse_deposit_addresses($chains, [ $currency['code'] ], false, array(
             'currency' => $currency['id'],
         ));
         return $this->index_by($parsed, 'network');
@@ -5465,7 +5465,7 @@ class bybit extends Exchange {
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['startTime'] = $this->yyyymmdd($since);
+            $request['startTime'] = $since;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -6843,7 +6843,7 @@ class bybit extends Exchange {
         $request = array();
         if ($code !== null) {
             $currency = $this->safe_currency_code($code);
-            $request['coin'] = $currency['id'];
+            $request['coin'] = $currency;
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -7014,7 +7014,7 @@ class bybit extends Exchange {
         //      }
         //
         $currencyId = $this->safe_string($transfer, 'coin');
-        $timestamp = $this->safe_timestamp($transfer, 'timestamp');
+        $timestamp = $this->safe_integer($transfer, 'timestamp');
         $fromAccountId = $this->safe_string_2($transfer, 'fromAccountType', 'from_account_type');
         $toAccountId = $this->safe_string_2($transfer, 'toAccountType', 'to_account_type');
         $accountIds = $this->safe_value($this->options, 'accountsById', array());

@@ -1958,7 +1958,7 @@ class coinbase(Exchange):
                         cost = self.parse_number(Precise.string_mul(amountString, priceString))
                         total = self.price_to_precision(symbol, cost)
                 else:
-                    total = self.amount_to_precision(symbol, amount)
+                    total = self.price_to_precision(symbol, amount)
                 request['order_configuration'] = {
                     'market_market_ioc': {
                         'quote_size': total,

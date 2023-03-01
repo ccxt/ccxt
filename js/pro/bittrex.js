@@ -305,6 +305,7 @@ module.exports = class bittrex extends bittrexRest {
         //     }
         //
         const delta = this.safeValue (message, 'delta', {});
+        this.balance['info'] = delta;
         const currencyId = this.safeString (delta, 'currencySymbol');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();

@@ -4446,7 +4446,7 @@ class bybit(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = symbol
+            request['symbol'] = market['id']
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetSpotV3PrivateOpenOrders(self.extend(request, params))
@@ -5051,7 +5051,7 @@ class bybit(Exchange):
         chains = self.safe_value(result, 'chains', [])
         coin = self.safe_string(result, 'coin')
         currency = self.currency(coin)
-        parsed = self.parse_deposit_addresses(chains, [code], False, {
+        parsed = self.parse_deposit_addresses(chains, [currency['code']], False, {
             'currency': currency['id'],
         })
         return self.index_by(parsed, 'network')
@@ -5183,7 +5183,7 @@ class bybit(Exchange):
             currency = self.currency(code)
             request['coin'] = currency['id']
         if since is not None:
-            request['startTime'] = self.yyyymmdd(since)
+            request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetAssetV3PrivateWithdrawRecordQuery(self.extend(request, params))
@@ -6480,7 +6480,7 @@ class bybit(Exchange):
         request = {}
         if code is not None:
             currency = self.safe_currency_code(code)
-            request['coin'] = currency['id']
+            request['coin'] = currency
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -6641,7 +6641,7 @@ class bybit(Exchange):
         #      }
         #
         currencyId = self.safe_string(transfer, 'coin')
-        timestamp = self.safe_timestamp(transfer, 'timestamp')
+        timestamp = self.safe_integer(transfer, 'timestamp')
         fromAccountId = self.safe_string_2(transfer, 'fromAccountType', 'from_account_type')
         toAccountId = self.safe_string_2(transfer, 'toAccountType', 'to_account_type')
         accountIds = self.safe_value(self.options, 'accountsById', {})

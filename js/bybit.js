@@ -4715,7 +4715,7 @@ module.exports = class bybit extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = symbol;
+            request['symbol'] = market['id'];
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -5369,7 +5369,7 @@ module.exports = class bybit extends Exchange {
         const chains = this.safeValue (result, 'chains', []);
         const coin = this.safeString (result, 'coin');
         currency = this.currency (coin);
-        const parsed = this.parseDepositAddresses (chains, [ code ], false, {
+        const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
             'currency': currency['id'],
         });
         return this.indexBy (parsed, 'network');
@@ -5516,7 +5516,7 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['startTime'] = this.yyyymmdd (since);
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -6916,7 +6916,7 @@ module.exports = class bybit extends Exchange {
         const request = {};
         if (code !== undefined) {
             currency = this.safeCurrencyCode (code);
-            request['coin'] = currency['id'];
+            request['coin'] = currency;
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -7091,7 +7091,7 @@ module.exports = class bybit extends Exchange {
         //      }
         //
         const currencyId = this.safeString (transfer, 'coin');
-        const timestamp = this.safeTimestamp (transfer, 'timestamp');
+        const timestamp = this.safeInteger (transfer, 'timestamp');
         const fromAccountId = this.safeString2 (transfer, 'fromAccountType', 'from_account_type');
         const toAccountId = this.safeString2 (transfer, 'toAccountType', 'to_account_type');
         const accountIds = this.safeValue (this.options, 'accountsById', {});

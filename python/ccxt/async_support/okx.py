@@ -226,6 +226,7 @@ class okx(Exchange):
                         'account/account-position-risk': 2,
                         'account/balance': 2,
                         'account/positions': 2,
+                        'account/positions-history': 2,
                         'account/bills': 5 / 3,
                         'account/bills-archive': 5 / 3,
                         'account/config': 4,
@@ -324,6 +325,7 @@ class okx(Exchange):
                         'account/borrow-repay': 5 / 3,
                         'account/quick-margin-borrow-repay': 4,
                         'account/activate-option': 4,
+                        'account/set-auto-loan': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/purchase_redempt': 5 / 3,
@@ -641,6 +643,8 @@ class okx(Exchange):
                     '58117': ExchangeError,  # Account assets are abnormal, please deal with negative assets before transferring
                     '58125': BadRequest,  # Non-tradable assets can only be transferred from sub-accounts to main accounts
                     '58126': BadRequest,  # Non-tradable assets can only be transferred between funding accounts
+                    '58127': BadRequest,  # Main account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
+                    '58128': BadRequest,  # Sub-account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
                     '58200': ExchangeError,  # Withdrawal from {0} to {1} is unavailable for self currency
                     '58201': ExchangeError,  # Withdrawal amount exceeds the daily limit
                     '58202': ExchangeError,  # The minimum withdrawal amount for NEO is 1, and the amount must be an integer
@@ -762,6 +766,9 @@ class okx(Exchange):
                 'fetchOHLCV': {
                     # 'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                     'timezone': 'UTC',  # UTC, HK
+                },
+                'fetchPositions': {
+                    'method': 'privateGetAccountPositions',  # privateGetAccountPositions or privateGetAccountPositionsHistory
                 },
                 'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': False,
@@ -3462,7 +3469,7 @@ class okx(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         filtered = self.filter_by(data, 'selected', True)
-        parsed = self.parse_deposit_addresses(filtered, [code], False)
+        parsed = self.parse_deposit_addresses(filtered, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
     async def fetch_deposit_address(self, code, params={}):
@@ -4009,7 +4016,9 @@ class okx(Exchange):
             marketIdsLength = len(marketIds)
             if marketIdsLength > 0:
                 request['instId'] = ','.join(marketIds)
-        response = await self.privateGetAccountPositions(self.extend(request, params))
+        fetchPositionsOptions = self.safe_value(self.options, 'fetchPositions', {})
+        method = self.safe_string(fetchPositionsOptions, 'method', 'privateGetAccountPositions')
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -4119,6 +4128,8 @@ class okx(Exchange):
                 parsedCurrency = self.safe_currency_code(posCcy)
                 if parsedCurrency is not None:
                     side = 'long' if (market['base'] == parsedCurrency) else 'short'
+            if side is None:
+                side = self.safe_string(position, 'direction')
         else:
             if pos is not None:
                 if side == 'net':

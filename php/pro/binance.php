@@ -72,6 +72,9 @@ class binance extends \ccxt\async\binance {
                 'watchTickers' => array(
                     'name' => 'ticker', // ticker or miniTicker or bookTicker
                 ),
+                'watchOHLCV' => array(
+                    'name' => 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
+                ),
                 'watchBalance' => array(
                     'fetchBalanceSnapshot' => false, // or true
                     'awaitBalanceSnapshot' => true, // whether to wait for the balance snapshot before providing updates
@@ -646,7 +649,14 @@ class binance extends \ccxt\async\binance {
             $market = $this->market($symbol);
             $marketId = $market['lowercaseId'];
             $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $name = 'kline';
+            $options = $this->safe_value($this->options, 'watchOHLCV', array());
+            $nameOption = $this->safe_string($options, 'name', 'kline');
+            $name = $this->safe_string($params, 'name', $nameOption);
+            if ($name === 'indexPriceKline') {
+                // weird behavior for index price kline we can't use the perp suffix
+                $marketId = str_replace('_perp', '', $marketId);
+            }
+            $params = $this->omit($params, 'name');
             $messageHash = $marketId . '@' . $name . '_' . $interval;
             $type = $market['type'];
             if ($market['contract']) {
@@ -699,10 +709,19 @@ class binance extends \ccxt\async\binance {
         //         }
         //     }
         //
-        $marketId = $this->safe_string($message, 's');
-        $lowercaseMarketId = $this->safe_string_lower($message, 's');
         $event = $this->safe_string($message, 'e');
+        $eventMap = array(
+            'indexPrice_kline' => 'indexPriceKline',
+            'markPrice_kline' => 'markPriceKline',
+        );
+        $event = $this->safe_string($eventMap, $event, $event);
         $kline = $this->safe_value($message, 'k');
+        $marketId = $this->safe_string_2($kline, 's', 'ps');
+        if ($event === 'indexPriceKline') {
+            // indexPriceKline doesn't have the _PERP suffix
+            $marketId = $this->safe_string($message, 'ps');
+        }
+        $lowercaseMarketId = strtolower($marketId);
         $interval = $this->safe_string($kline, 'i');
         // use a reverse lookup in a static map instead
         $timeframe = $this->find_timeframe($interval);
@@ -1699,6 +1718,8 @@ class binance extends \ccxt\async\binance {
             'trade' => array($this, 'handle_trade'),
             'aggTrade' => array($this, 'handle_trade'),
             'kline' => array($this, 'handle_ohlcv'),
+            'markPrice_kline' => array($this, 'handle_ohlcv'),
+            'indexPrice_kline' => array($this, 'handle_ohlcv'),
             '24hrTicker@arr' => array($this, 'handle_tickers'),
             '24hrMiniTicker@arr' => array($this, 'handle_tickers'),
             '24hrTicker' => array($this, 'handle_ticker'),

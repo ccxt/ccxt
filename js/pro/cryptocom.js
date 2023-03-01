@@ -433,6 +433,7 @@ module.exports = class cryptocom extends cryptocomRest {
         //
         const messageHash = this.safeString (message, 'subscription');
         const data = this.safeValue (message, 'data');
+        this.balance['info'] = data;
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency');

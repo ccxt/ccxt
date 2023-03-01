@@ -696,6 +696,7 @@ class whitebit extends \ccxt\async\whitebit {
         $method = $this->safe_string($message, 'method');
         $data = $this->safe_value($message, 'params');
         $balanceDict = $this->safe_value($data, 0);
+        $this->balance['info'] = $balanceDict;
         $keys = is_array($balanceDict) ? array_keys($balanceDict) : array();
         $currencyId = $this->safe_value($keys, 0);
         $rawBalance = $this->safe_value($balanceDict, $currencyId);

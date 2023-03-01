@@ -723,6 +723,10 @@ class kucoin(Exchange, ccxt.async_support.kucoin):
         uniformType = self.safe_string(accountsByType, requestAccountType, 'trade')
         if not (uniformType in self.balance):
             self.balance[uniformType] = {}
+        self.balance[uniformType]['info'] = data
+        timestamp = self.safe_integer(data, 'time')
+        self.balance[uniformType]['timestamp'] = timestamp
+        self.balance[uniformType]['datetime'] = self.iso8601(timestamp)
         code = self.safe_currency_code(currencyId)
         account = self.account()
         account['free'] = self.safe_string(data, 'available')

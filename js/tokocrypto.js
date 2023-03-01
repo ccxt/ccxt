@@ -104,7 +104,7 @@ module.exports = class tokocrypto extends Exchange {
                 'setPositionMode': false,
                 'signIn': false,
                 'transfer': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -2165,6 +2165,17 @@ module.exports = class tokocrypto extends Exchange {
         //         "createTime": 1659521314413
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "成功",
+        //         "data": {
+        //             "withdrawId":"12"
+        //         },
+        //         "timestamp": 1571745049095
+        //     }
+        //
         const address = this.safeString (transaction, 'address');
         let tag = this.safeString (transaction, 'addressTag'); // set but unused
         if (tag !== undefined) {
@@ -2180,7 +2191,7 @@ module.exports = class tokocrypto extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
         const insertTime = this.safeInteger (transaction, 'insertTime');
-        const createTime = this.safeInteger (transaction, 'createTime');
+        const createTime = this.safeInteger2 (transaction, 'createTime', 'timestamp');
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
             if ((insertTime !== undefined) && (createTime === undefined)) {
@@ -2205,9 +2216,15 @@ module.exports = class tokocrypto extends Exchange {
         if (internal !== undefined) {
             internal = internal ? true : false;
         }
+        let id = this.safeString (transaction, 'id');
+        if (id === undefined) {
+            const data = this.safeValue (transaction, 'data', {});
+            id = this.safeString (data, 'withdrawId');
+            type = 'withdrawal';
+        }
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
+            'id': id,
             'txid': txid,
             'type': type,
             'currency': code,
@@ -2227,6 +2244,52 @@ module.exports = class tokocrypto extends Exchange {
             'internal': internal,
             'fee': fee,
         };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#withdraw
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            // 'clientId': 'string', // // client's custom id for withdraw order, server does not check it's uniqueness, automatically generated if not sent
+            // 'network': 'string',
+            'address': address,
+            // 'addressTag': 'string', // for coins like XRP, XMR, etc
+            'amount': this.numberToString (amount),
+        };
+        if (tag !== undefined) {
+            request['addressTag'] = tag;
+        }
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
+        if (networkId !== undefined) {
+            request['network'] = networkId.toUpperCase ();
+        }
+        const response = await this.privatePostOpenV1Withdraws (this.extend (request, query));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "成功",
+        //         "data": {
+        //             "withdrawId":"12"
+        //         },
+        //         "timestamp": 1571745049095
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

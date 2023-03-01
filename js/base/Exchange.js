@@ -2453,6 +2453,9 @@ module.exports = class Exchange {
 
     async fetchTicker (symbol, params = {}) {
         if (this.has['fetchTickers']) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            symbol = market['symbol'];
             const tickers = await this.fetchTickers ([ symbol ], params);
             const ticker = this.safeValue (tickers, symbol);
             if (ticker === undefined) {
