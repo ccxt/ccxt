@@ -1595,6 +1595,21 @@ module.exports = class phemex extends Exchange {
     }
 
     parseSwapBalance (response) {
+        // usdt
+        //   {
+        //       info: {
+        //         code: '0',
+        //         msg: '',
+        //         data: {
+        //           account: {
+        //             userID: '940666',
+        //             accountId: '9406660003',
+        //             currency: 'USDT',
+        //             accountBalanceRv: '99.93143972',
+        //             totalUsedBalanceRv: '0.40456',
+        //             bonusBalanceRv: '0'
+        //           },
+        //   }
         //
         //     {
         //         "code":0,
@@ -1606,66 +1621,7 @@ module.exports = class phemex extends Exchange {
         //                 "accountBalanceEv":1254744,
         //                 "totalUsedBalanceEv":0,
         //                 "bonusBalanceEv":1254744
-        //             },
-        //             "positions":[
-        //                 {
-        //                     "accountID":6192120001,
-        //                     "symbol":"BTCUSD",
-        //                     "currency":"BTC",
-        //                     "side":"None",
-        //                     "positionStatus":"Normal",
-        //                     "crossMargin":false,
-        //                     "leverageEr":0,
-        //                     "leverage":0E-8,
-        //                     "initMarginReqEr":1000000,
-        //                     "initMarginReq":0.01000000,
-        //                     "maintMarginReqEr":500000,
-        //                     "maintMarginReq":0.00500000,
-        //                     "riskLimitEv":10000000000,
-        //                     "riskLimit":100.00000000,
-        //                     "size":0,
-        //                     "value":0E-8,
-        //                     "valueEv":0,
-        //                     "avgEntryPriceEp":0,
-        //                     "avgEntryPrice":0E-8,
-        //                     "posCostEv":0,
-        //                     "posCost":0E-8,
-        //                     "assignedPosBalanceEv":0,
-        //                     "assignedPosBalance":0E-8,
-        //                     "bankruptCommEv":0,
-        //                     "bankruptComm":0E-8,
-        //                     "bankruptPriceEp":0,
-        //                     "bankruptPrice":0E-8,
-        //                     "positionMarginEv":0,
-        //                     "positionMargin":0E-8,
-        //                     "liquidationPriceEp":0,
-        //                     "liquidationPrice":0E-8,
-        //                     "deleveragePercentileEr":0,
-        //                     "deleveragePercentile":0E-8,
-        //                     "buyValueToCostEr":1150750,
-        //                     "buyValueToCost":0.01150750,
-        //                     "sellValueToCostEr":1149250,
-        //                     "sellValueToCost":0.01149250,
-        //                     "markPriceEp":96359083,
-        //                     "markPrice":9635.90830000,
-        //                     "markValueEv":0,
-        //                     "markValue":null,
-        //                     "unRealisedPosLossEv":0,
-        //                     "unRealisedPosLoss":null,
-        //                     "estimatedOrdLossEv":0,
-        //                     "estimatedOrdLoss":0E-8,
-        //                     "usedBalanceEv":0,
-        //                     "usedBalance":0E-8,
-        //                     "takeProfitEp":0,
-        //                     "takeProfit":null,
-        //                     "stopLossEp":0,
-        //                     "stopLoss":null,
-        //                     "realisedPnlEv":0,
-        //                     "realisedPnl":null,
-        //                     "cumRealisedPnlEv":0,
-        //                     "cumRealisedPnl":null
-        //                 }
-        //             ]
+        //             }
         //         }
         //     }
         //
@@ -1675,12 +1631,13 @@ module.exports = class phemex extends Exchange {
         const currencyId = this.safeString (balance, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const currency = this.currency (code);
-        const account = this.account ();
-        const accountBalanceEv = this.safeString (balance, 'accountBalanceEv');
-        const totalUsedBalanceEv = this.safeString (balance, 'totalUsedBalanceEv');
         const valueScale = this.safeInteger (currency, 'valueScale', 8);
-        account['total'] = this.fromEn (accountBalanceEv, valueScale);
-        account['used'] = this.fromEn (totalUsedBalanceEv, valueScale);
+        const account = this.account ();
+        const accountBalanceEv = this.safeString2 (balance, 'accountBalanceEv', 'accountBalanceRv');
+        const totalUsedBalanceEv = this.safeString2 (balance, 'totalUsedBalanceEv', 'totalUsedBalanceRv');
+        const needsConversion = (code !== 'USDT');
+        account['total'] = needsConversion ? this.fromEn (accountBalanceEv, valueScale) : accountBalanceEv;
+        account['used'] = needsConversion ? this.fromEn (totalUsedBalanceEv, valueScale) : totalUsedBalanceEv;
         result[code] = account;
         return this.safeBalance (result);
     }
@@ -1695,33 +1652,53 @@ module.exports = class phemex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        let query = undefined;
         let type = undefined;
-        [ type, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let method = 'privateGetSpotWallets';
         const request = {};
         if (type === 'swap') {
-            const code = this.safeString (query, 'code');
-            if (code !== undefined) {
-                const currency = this.currency (code);
+            const code = this.safeString (params, 'code');
+            let settle = undefined;
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'settle');
+            if (code !== undefined || settle !== undefined) {
+                let coin = undefined;
+                if (code !== undefined) {
+                    coin = code;
+                } else {
+                    coin = settle;
+                }
+                const currency = this.currency (coin);
                 request['currency'] = currency['id'];
-                query = this.omit (query, 'code');
+                if (currency['id'] === 'USDT') {
+                    method = 'privateGetGAccountsAccountPositions';
+                } else {
+                    method = 'privateGetAccountsAccountPositions';
+                }
             } else {
-                const currency = this.safeString (query, 'currency');
+                const currency = this.safeString (params, 'currency');
                 if (currency === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchBalance() requires a code parameter or a currency parameter for ' + type + ' type');
+                    throw new ArgumentsRequired (this.id + ' fetchBalance() requires a code parameter or a currency or settle parameter for ' + type + ' type');
                 }
             }
-            method = 'privateGetAccountsAccountPositions';
-            const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USD');
-            const settle = this.safeString2 (params, 'settle', defaultSettle);
-            query = this.omit (query, [ 'settle', 'defaultSettle' ]);
-            if (settle === 'USDT') {
-                method = 'privateGetGAccountsAccountPositions';
-            }
         }
-        params = this.omit (params, 'type');
+        params = this.omit (params, [ 'type', 'code' ]);
         const response = await this[method] (this.extend (request, params));
+        //
+        // usdt
+        //   {
+        //       info: {
+        //         code: '0',
+        //         msg: '',
+        //         data: {
+        //           account: {
+        //             userID: '940666',
+        //             accountId: '9406660003',
+        //             currency: 'USDT',
+        //             accountBalanceRv: '99.93143972',
+        //             totalUsedBalanceRv: '0.40456',
+        //             bonusBalanceRv: '0'
+        //           },
+        //   }
         //
         // spot
         //
