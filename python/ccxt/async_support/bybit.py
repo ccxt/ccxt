@@ -1946,7 +1946,7 @@ class bybit(Exchange):
         duration = self.parse_timeframe(timeframe)
         if limit is None:
             limit = 200  # default is 200 when requested with `since`
-        if since is None:
+        if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit  # max 1000, default 1000

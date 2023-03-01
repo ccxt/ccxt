@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.65 (2023-03-01)
+
+
+### Bug Fixes
+
+* **bybit:** fix fetchOHLCV since ([6025fdc](https://github.com/ccxt/ccxt/commit/6025fdc00b19a280da078832502066fc2bc0f3e5))
+
 ### 2.8.64 (2023-03-01)
 
 ### 2.8.63 (2023-03-01)

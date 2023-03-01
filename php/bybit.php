@@ -1968,7 +1968,7 @@ class bybit extends Exchange {
         if ($limit === null) {
             $limit = 200; // default is 200 when requested with `$since`
         }
-        if ($since === null) {
+        if ($since !== null) {
             $request['start'] = $since;
         }
         if ($limit !== null) {
