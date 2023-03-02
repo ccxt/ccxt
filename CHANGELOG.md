@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.71 (2023-03-02)
+
+
+### Bug Fixes
+
+* **bybit:** setMarginMode rename and leverage ([4fc1fef](https://github.com/ccxt/ccxt/commit/4fc1fef9fe7ce34ff4b44e7a1dc297e5fd4a6875))
+
 ### 2.8.70 (2023-03-02)
 
 ### 2.8.69 (2023-03-01)

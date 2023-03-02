@@ -1048,6 +1048,8 @@ class bybit(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'enableUnifiedMargin': None,
+                'enableUnifiedAccount': None,
                 'createMarketBuyOrderRequiresPrice': True,
                 'createUnifiedMarginAccount': False,
                 'defaultType': 'swap',  # 'swap', 'future', 'option', 'spot'
@@ -6756,7 +6758,7 @@ class bybit(Exchange):
         isUnifiedAccount = self.safe_value(values, 1)
         if isUnifiedAccount:
             return self.set_unified_margin_mode(marginMode, symbol, params)
-        return self.setDerivativesMarginMode(marginMode, symbol, params)
+        return self.set_derivatives_margin_mode(marginMode, symbol, params)
 
     def set_unified_margin_mode(self, marginMode, symbol=None, params={}):
         self.load_markets()
@@ -6773,7 +6775,7 @@ class bybit(Exchange):
         #
         return response
 
-    def set_derivatives_margin_mode_margin_mode(self, marginMode, symbol=None, params={}):
+    def set_derivatives_margin_mode(self, marginMode, symbol=None, params={}):
         self.check_required_symbol('setMarginMode', symbol)
         self.load_markets()
         market = self.market(symbol)
@@ -6799,8 +6801,8 @@ class bybit(Exchange):
         request = {
             'symbol': market['id'],
             'tradeMode': tradeMode,
-            'buyLeverage': leverage,
-            'sellLeverage': leverage,
+            'buyLeverage': buyLeverage,
+            'sellLeverage': sellLeverage,
         }
         response = self.privatePostContractV3PrivatePositionSwitchIsolated(self.extend(request, params))
         #

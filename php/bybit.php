@@ -1034,6 +1034,8 @@ class bybit extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'enableUnifiedMargin' => null,
+                'enableUnifiedAccount' => null,
                 'createMarketBuyOrderRequiresPrice' => true,
                 'createUnifiedMarginAccount' => false,
                 'defaultType' => 'swap',  // 'swap', 'future', 'option', 'spot'
@@ -7126,7 +7128,7 @@ class bybit extends Exchange {
         if ($isUnifiedAccount) {
             return $this->set_unified_margin_mode($marginMode, $symbol, $params);
         }
-        return $this->setDerivativesMarginMode ($marginMode, $symbol, $params);
+        return $this->set_derivatives_margin_mode($marginMode, $symbol, $params);
     }
 
     public function set_unified_margin_mode($marginMode, $symbol = null, $params = array ()) {
@@ -7146,7 +7148,7 @@ class bybit extends Exchange {
         return $response;
     }
 
-    public function set_derivatives_margin_mode_margin_mode($marginMode, $symbol = null, $params = array ()) {
+    public function set_derivatives_margin_mode($marginMode, $symbol = null, $params = array ()) {
         $this->check_required_symbol('setMarginMode', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
@@ -7176,8 +7178,8 @@ class bybit extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'tradeMode' => $tradeMode,
-            'buyLeverage' => $leverage,
-            'sellLeverage' => $leverage,
+            'buyLeverage' => $buyLeverage,
+            'sellLeverage' => $sellLeverage,
         );
         $response = $this->privatePostContractV3PrivatePositionSwitchIsolated (array_merge($request, $params));
         //
