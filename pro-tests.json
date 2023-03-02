@@ -38,6 +38,7 @@
     "kraken": "BTC/USDT",
     "kucoin": "BTC/USDT",
     "kucoinfutures": "BTC/USDT:USDT",
+    "krakenfutures": "BTC/USD:USD",
     "luno": "ETH/BTC",
     "mexc": "BTC/USDT",
     "ndax": "BTC/USDT",
