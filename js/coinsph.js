@@ -2,6 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 // const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } = require ('./base/errors');
+const { InsufficientFunds } = require ('./base/errors');
 const { DECIMAL_PLACES } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -18,12 +19,12 @@ module.exports = class coinsph extends Exchange {
             'has': {
                 // 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
-                'addMargin': undefined,
-                'borrowMargin': undefined,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'borrowMargin': false,
                 // 'cancelAllOrders': true,
                 // 'cancelOrder': true,
                 // 'cancelOrders': undefined,
@@ -83,11 +84,11 @@ module.exports = class coinsph extends Exchange {
                 // 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
-                'fetchTickers': true, // to do: handle with accepting and encoding of arrays/lists
-                // 'fetchTime': true,
-                // 'fetchTrades': true,
-                // 'fetchTradingFee': true,
-                // 'fetchTradingFees': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 // 'fetchTradingLimits': undefined,
                 // 'fetchTransactionFee': undefined,
                 // 'fetchTransactionFees': true,
@@ -139,11 +140,12 @@ module.exports = class coinsph extends Exchange {
                 'fees': 'https://support.coins.ph/hc/en-us/sections/4407198694681-Limits-Fees',
             },
             'api': {
-                // to do: use full relative paths for ALL endpoints
                 'public': {
                     'get': {
-                        // in progress ==========================
+                        // done =================================
                         'openapi/v1/ping': 1,
+                        'openapi/v1/time': 1,
+                        // in progress ==========================
                         'openapi/v1/exchangeInfo': 10,
                         // cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         // cost 20 if 'symbols' param is a list of 21-100 market symbols
@@ -154,7 +156,6 @@ module.exports = class coinsph extends Exchange {
                         'openapi/quote/v1/klines': 1, // default limit 500; max 1000.
                         'openapi/quote/v1/trades': 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
                         // ======================================
-                        'openapi/v1/time': 1,
                         'openapi/v1/pairs': 1,
                         'openapi/quote/v1/avgPrice': 1,
                         // cost 1 if 'symbol' param defined (one market symbol)
@@ -171,6 +172,7 @@ module.exports = class coinsph extends Exchange {
                         'openapi/v1/account': 10,
                         // cost 3 for a single symbol; 40 when the symbol parameter is omitted
                         'openapi/v1/openOrders': { 'cost': 3, 'noSymbol': 40 },
+                        'openapi/v1/asset/tradeFee': 1,
                         // ======================================
                         'openapi/v1/order': 2,
                         // cost 10 with symbol, 40 when the symbol parameter is omitted;
@@ -178,7 +180,6 @@ module.exports = class coinsph extends Exchange {
                         'openapi/v1/myTrades': 10,
                         'openapi/v1/capital/deposit/history': 1,
                         'openapi/v1/capital/withdraw/history': 1,
-                        'openapi/v1/asset/tradeFee': 1,
                     },
                     'post': {
                         'openapi/v1/order/test': 1,
@@ -204,6 +205,7 @@ module.exports = class coinsph extends Exchange {
             'exceptions': {
                 'exact': {
                     // to do
+                    '-1140': InsufficientFunds, //  {"code":-1140,"msg":"Transaction amount lower than the minimum."}
                 },
                 'broad': {
                     // to do
@@ -258,11 +260,26 @@ module.exports = class coinsph extends Exchange {
         };
     }
 
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name coinsph#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.publicGetOpenapiV1Time (params);
+        //
+        //     {"serverTime":1677705408268}
+        //
+        return this.safeInteger (response, 'serverTime');
+    }
+
     async fetchMarkets (params = {}) {
         /**
          * @method
-         * @name binance#fetchMarkets
-         * @description retrieves data on all markets for binance
+         * @name coinsph#fetchMarkets
+         * @description retrieves data on all markets for coinsph
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
@@ -488,7 +505,7 @@ module.exports = class coinsph extends Exchange {
         let changePcnt = this.safeString (ticker, 'priceChangePercent');
         changePcnt = Precise.stringMul (changePcnt, '100');
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': market['symbol'], // to do: should I use this.safeSymbol?
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'open': open,
@@ -688,7 +705,7 @@ module.exports = class coinsph extends Exchange {
         //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        symbol = market['symbol'];
+        symbol = market['symbol']; // to do: should I use this.safeSymbol?
         id = this.safeString (trade, 'id');
         timestamp = this.safeString (trade, 'time');
         priceString = this.safeString (trade, 'price');
@@ -780,8 +797,17 @@ module.exports = class coinsph extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const test = {};
-        return this.parseOrder (test, market);
+        const orderSide = (side === 'buy') ? 'BUY' : 'SELL';
+        const request = {
+            'symbol': market['id'],
+            'side': orderSide,
+            'type': 'LIMIT',
+            'price': price,
+            'quantity': amount,
+            'timeInForce': 'GTC',
+        };
+        const response = await this.privatePostOpenapiV1Order (this.extend (request, params));
+        return this.parseOrder (response, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -892,7 +918,7 @@ module.exports = class coinsph extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined, // to do: is it updateTime and transactTime
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
-            'symbol': market['symbol'],
+            'symbol': market['symbol'], // to do: should I use this.safeSymbol?
             'type': this.parseOrderType (this.safeString (order, 'type')),
             'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'timeInForce')),
             'side': this.parseOrderSide (this.safeString (order, 'side')),
@@ -953,8 +979,88 @@ module.exports = class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name coinsph#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetOpenapiV1AssetTradeFee (this.extend (request, params));
+        //
+        //     [
+        //       {
+        //         "symbol": "ETHUSDT",
+        //         "makerCommission": "0.0025",
+        //         "takerCommission": "0.003"
+        //       }
+        //     ]
+        //
+        const tradingFee = this.safeValue (response, 0, {});
+        return this.parseTradingFee (tradingFee, market);
+    }
+
+    async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name coinsph#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetOpenapiV1AssetTradeFee (params);
+        //
+        //     [
+        //         {
+        //             symbol: 'ETHPHP',
+        //             makerCommission: '0.0025',
+        //             takerCommission: '0.003'
+        //         },
+        //         {
+        //             symbol: 'UNIPHP',
+        //             makerCommission: '0.0025',
+        //             takerCommission: '0.003'
+        //         },
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const fee = this.parseTradingFee (response[i]);
+            const symbol = fee['symbol'];
+            result[symbol] = fee;
+        }
+        return result;
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //     "symbol": "ETHUSDT",
+        //     "makerCommission": "0.0025",
+        //     "takerCommission": "0.003"
+        //     }
+        //
+        const marketId = this.safeString (fee, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol']; // to do: should I use this.safeSymbol?
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber (fee, 'makerCommission'),
+            'taker': this.safeNumber (fee, 'takerCommission'),
+        };
+    }
+
     urlEncodeQuery (query = {}) {
-        // to do: check if it is good
+        // to do: check if it is good and make it transpilable
         let encodedArrayParams = '';
         const keys = Object.keys (query);
         for (let i = 0; i < keys.length; i++) {
