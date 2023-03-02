@@ -75,10 +75,10 @@ class Exchange {
     public $curlopt_interface = null;
     public $timeout = 10000; // in milliseconds
     public $proxy = '';
-    public $proxy_agent_url = null; // SOCKS5 & HTTP(S) supported, i.e.  socks5://127.0.0.1:8000 or http://127.0.0.1:443
-    public $http_proxy = null; // same as proxy_agent_url
-    public $https_proxy = null; // same as proxy_agent_url
-    public $is_reseted_browser = null; // same as proxy_agent_url
+    // below two are for real proxies: SOCKS5 & HTTP(S) supported, i.e.  socks5://127.0.0.1:8000 or http://127.0.0.1:443
+    public $http_proxy = null;
+    public $https_proxy = null;
+    public $is_reseted_browser = null;
     public $origin = '*'; // CORS origin
     public $headers = array();
     public $hostname = null; // in case of inaccessibility of the "main" domain
@@ -1784,9 +1784,7 @@ class Exchange {
         }
 
         $proxy_url = null;
-        if ($this->proxy_agent_url) {
-            $proxy_url = $this->proxy_agent_url;
-        } elseif ($this->http_proxy) {
+        if ($this->http_proxy) {
             $proxy_url = $this->http_proxy;
         } elseif ($this->https_proxy) {
             $proxy_url = $this->https_proxy;

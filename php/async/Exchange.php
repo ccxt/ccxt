@@ -97,9 +97,7 @@ class Exchange extends \ccxt\Exchange {
             }
 
             $proxy_url = null;
-            if ($this->proxy_agent_url) {
-                $proxy_url = $this->proxy_agent_url;
-            } elseif ($this->http_proxy) {
+            if ($this->http_proxy) {
                 $proxy_url = $this->http_proxy;
             } elseif ($this->https_proxy) {
                 $proxy_url = $this->https_proxy;
