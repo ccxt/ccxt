@@ -2735,11 +2735,31 @@ class bybit(Exchange):
         #         "time": 1672125441042
         #     }
         #
+        # funding v5
+        #    {
+        #        retCode: '0',
+        #        retMsg: 'success',
+        #        result: {
+        #          memberId: '452265',
+        #          accountType: 'FUND',
+        #          balance: [
+        #            {
+        #              coin: 'BTC',
+        #              transferBalance: '0.2',
+        #              walletBalance: '0.2',
+        #              bonus: ''
+        #            }
+        #          ]
+        #        },
+        #        retExtInfo: {},
+        #        time: '1677781902858'
+        #    }
+        #
         result = {
             'info': response,
         }
         responseResult = self.safe_value(response, 'result', {})
-        currencyList = self.safe_value_n(responseResult, ['loanAccountList', 'list', 'coin', 'balances'])
+        currencyList = self.safe_value_n(responseResult, ['loanAccountList', 'list', 'coin', 'balances', 'balance'])
         if currencyList is None:
             # usdc wallet
             code = 'USDC'
@@ -2893,13 +2913,20 @@ class bybit(Exchange):
 
     def fetch_derivatives_balance(self, params={}):
         self.load_markets()
+        type = None
+        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        type = None if (type is None) else type.lower()
+        if type != 'unified' and type != 'funding':
+            type = 'unified'  # all other values are invalid
         accountTypes = self.safe_value(self.options, 'accountsByType', {})
-        type = self.safe_string(params, 'type')
-        params = self.omit(params, ['type'])
         request = {
             'accountType': self.safe_string(accountTypes, type),
         }
-        response = self.privateGetV5AccountWalletBalance(self.extend(request, params))
+        response = None
+        if type == 'unified':
+            response = self.privateGetV5AccountWalletBalance(self.extend(request, params))
+        else:
+            response = self.privateGetV5AssetTransferQueryAccountCoinsBalance(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
@@ -2973,18 +3000,17 @@ class bybit(Exchange):
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         self.load_markets()
-        type = None
-        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        type, query = self.handle_market_type_and_params('fetchBalance', None, params)
         if type == 'spot':
-            return self.fetch_spot_balance(params)
+            return self.fetch_spot_balance(query)
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         if enableUnifiedAccount:
-            return self.fetch_derivatives_balance(self.extend(params, {'type': 'unified'}))
+            return self.fetch_derivatives_balance(params)
         elif enableUnifiedMargin:
-            return self.fetch_unified_margin_balance(params)
+            return self.fetch_unified_margin_balance(query)
         else:
             # linear/inverse future/swap
-            return self.fetch_derivatives_balance(self.extend(params, {'type': 'swap'}))
+            return self.fetch_derivatives_balance(self.extend(query, {'type': 'swap'}))
 
     def parse_order_status(self, status):
         statuses = {

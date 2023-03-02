@@ -2799,11 +2799,31 @@ class bybit extends Exchange {
         //         "time" => 1672125441042
         //     }
         //
+        // funding v5
+        //    {
+        //        retCode => '0',
+        //        retMsg => 'success',
+        //        $result => {
+        //          memberId => '452265',
+        //          $accountType => 'FUND',
+        //          balance => array(
+        //            array(
+        //              coin => 'BTC',
+        //              transferBalance => '0.2',
+        //              walletBalance => '0.2',
+        //              bonus => ''
+        //            }
+        //          )
+        //        ),
+        //        retExtInfo => array(),
+        //        time => '1677781902858'
+        //    }
+        //
         $result = array(
             'info' => $response,
         );
         $responseResult = $this->safe_value($response, 'result', array());
-        $currencyList = $this->safe_value_n($responseResult, array( 'loanAccountList', 'list', 'coin', 'balances' ));
+        $currencyList = $this->safe_value_n($responseResult, array( 'loanAccountList', 'list', 'coin', 'balances', 'balance' ));
         if ($currencyList === null) {
             // usdc wallet
             $code = 'USDC';
@@ -2967,13 +2987,22 @@ class bybit extends Exchange {
 
     public function fetch_derivatives_balance($params = array ()) {
         $this->load_markets();
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $type = ($type === null) ? null : strtolower($type);
+        if ($type !== 'unified' && $type !== 'funding') {
+            $type = 'unified'; // all other values are invalid
+        }
         $accountTypes = $this->safe_value($this->options, 'accountsByType', array());
-        $type = $this->safe_string($params, 'type');
-        $params = $this->omit($params, array( 'type' ));
         $request = array(
             'accountType' => $this->safe_string($accountTypes, $type),
         );
-        $response = $this->privateGetV5AccountWalletBalance (array_merge($request, $params));
+        $response = null;
+        if ($type === 'unified') {
+            $response = $this->privateGetV5AccountWalletBalance (array_merge($request, $params));
+        } else {
+            $response = $this->privateGetV5AssetTransferQueryAccountCoinsBalance (array_merge($request, $params));
+        }
         //
         //     {
         //         "retCode" => 0,
@@ -3044,24 +3073,23 @@ class bybit extends Exchange {
 
     public function fetch_balance($params = array ()) {
         /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * $query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} $params extra parameters specific to the bybit api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $this->load_markets();
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        list($type, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         if ($type === 'spot') {
-            return $this->fetch_spot_balance($params);
+            return $this->fetch_spot_balance($query);
         }
         list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
         if ($enableUnifiedAccount) {
-            return $this->fetch_derivatives_balance(array_merge($params, array( 'type' => 'unified' )));
+            return $this->fetch_derivatives_balance($params);
         } elseif ($enableUnifiedMargin) {
-            return $this->fetch_unified_margin_balance($params);
+            return $this->fetch_unified_margin_balance($query);
         } else {
             // linear/inverse future/swap
-            return $this->fetch_derivatives_balance(array_merge($params, array( 'type' => 'swap' )));
+            return $this->fetch_derivatives_balance(array_merge($query, array( 'type' => 'swap' )));
         }
     }
 
