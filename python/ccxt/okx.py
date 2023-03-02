@@ -266,6 +266,7 @@ class okx(Exchange):
                         'trade/fills-history': 2,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
+                        'trade/order-algo': 1,
                         'account/subaccount/balances': 10,
                         'asset/subaccount/bills': 5 / 3,
                         'users/subaccount/list': 10,
@@ -2509,13 +2510,17 @@ class okx(Exchange):
         method = self.safe_string(params, 'method', defaultMethod)
         stop = self.safe_value(params, 'stop')
         if stop:
-            raise NotSupported(self.id + ' fetchOrder() does not support stop orders, use fetchOpenOrders() fetchCanceledOrders() or fetchClosedOrders()')
+            method = 'privateGetTradeOrderAlgo'
+            if clientOrderId is not None:
+                request['algoClOrdId'] = clientOrderId
+            else:
+                request['algoId'] = id
         else:
             if clientOrderId is not None:
                 request['clOrdId'] = clientOrderId
             else:
                 request['ordId'] = id
-        query = self.omit(params, ['method', 'clOrdId', 'clientOrderId'])
+        query = self.omit(params, ['method', 'clOrdId', 'clientOrderId', 'stop'])
         response = getattr(self, method)(self.extend(request, query))
         #
         # Spot and Swap
@@ -2559,6 +2564,58 @@ class okx(Exchange):
         #             }
         #         ],
         #         "msg": ""
+        #     }
+        #
+        # Algo order
+        #     {
+        #         "code":"0",
+        #         "msg":"",
+        #         "data":[
+        #             {
+        #                 "instType":"FUTURES",
+        #                 "instId":"BTC-USD-200329",
+        #                 "ordId":"123445",
+        #                 "ccy":"BTC",
+        #                 "clOrdId":"",
+        #                 "algoId":"1234",
+        #                 "sz":"999",
+        #                 "closeFraction":"",
+        #                 "ordType":"oco",
+        #                 "side":"buy",
+        #                 "posSide":"long",
+        #                 "tdMode":"cross",
+        #                 "tgtCcy": "",
+        #                 "state":"effective",
+        #                 "lever":"20",
+        #                 "tpTriggerPx":"",
+        #                 "tpTriggerPxType":"",
+        #                 "tpOrdPx":"",
+        #                 "slTriggerPx":"",
+        #                 "slTriggerPxType":"",
+        #                 "triggerPx":"99",
+        #                 "triggerPxType":"last",
+        #                 "ordPx":"12",
+        #                 "actualSz":"",
+        #                 "actualPx":"",
+        #                 "actualSide":"",
+        #                 "pxVar":"",
+        #                 "pxSpread":"",
+        #                 "pxLimit":"",
+        #                 "szLimit":"",
+        #                 "tag": "adadadadad",
+        #                 "timeInterval":"",
+        #                 "callbackRatio":"",
+        #                 "callbackSpread":"",
+        #                 "activePx":"",
+        #                 "moveTriggerPx":"",
+        #                 "reduceOnly": "false",
+        #                 "triggerTime":"1597026383085",
+        #                 "last": "16012",
+        #                 "failCode": "",
+        #                 "algoClOrdId": "",
+        #                 "cTime":"1597026383000"
+        #             }
+        #         ]
         #     }
         #
         data = self.safe_value(response, 'data', [])
