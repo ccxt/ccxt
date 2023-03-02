@@ -6691,7 +6691,7 @@ class bybit(Exchange):
         tradeMode = self.safe_integer(position, 'tradeMode', 0)
         marginMode = 'isolated' if tradeMode else 'cross'
         collateralString = self.safe_string(position, 'positionBalance')
-        entryPrice = self.omit_zero(self.safe_string(position, 'entryPrice'))
+        entryPrice = self.omit_zero(self.safe_string_2(position, 'entryPrice', 'avgPrice'))
         liquidationPrice = self.omit_zero(self.safe_string(position, 'liqPrice'))
         leverage = self.safe_string(position, 'leverage')
         if liquidationPrice is not None:
