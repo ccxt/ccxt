@@ -245,6 +245,7 @@ module.exports = class okx extends Exchange {
                         'trade/fills-history': 2,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
+                        'trade/order-algo': 1,
                         'account/subaccount/balances': 10,
                         'asset/subaccount/bills': 5 / 3,
                         'users/subaccount/list': 10,
