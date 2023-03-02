@@ -2820,11 +2820,31 @@ module.exports = class bybit extends Exchange {
         //         "time": 1672125441042
         //     }
         //
+        // funding v5
+        //    {
+        //        retCode: '0',
+        //        retMsg: 'success',
+        //        result: {
+        //          memberId: '452265',
+        //          accountType: 'FUND',
+        //          balance: [
+        //            {
+        //              coin: 'BTC',
+        //              transferBalance: '0.2',
+        //              walletBalance: '0.2',
+        //              bonus: ''
+        //            }
+        //          ]
+        //        },
+        //        retExtInfo: {},
+        //        time: '1677781902858'
+        //    }
+        //
         const result = {
             'info': response,
         };
         const responseResult = this.safeValue (response, 'result', {});
-        const currencyList = this.safeValueN (responseResult, [ 'loanAccountList', 'list', 'coin', 'balances' ]);
+        const currencyList = this.safeValueN (responseResult, [ 'loanAccountList', 'list', 'coin', 'balances', 'balance' ]);
         if (currencyList === undefined) {
             // usdc wallet
             const code = 'USDC';
@@ -2988,13 +3008,22 @@ module.exports = class bybit extends Exchange {
 
     async fetchDerivativesBalance (params = {}) {
         await this.loadMarkets ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        type = (type === undefined) ? undefined : type.toLowerCase ();
+        if (type !== 'unified' && type !== 'funding') {
+            type = 'unified'; // all other values are invalid
+        }
         const accountTypes = this.safeValue (this.options, 'accountsByType', {});
-        const type = this.safeString (params, 'type');
-        params = this.omit (params, [ 'type' ]);
         const request = {
             'accountType': this.safeString (accountTypes, type),
         };
-        const response = await this.privateGetV5AccountWalletBalance (this.extend (request, params));
+        let response = undefined;
+        if (type === 'unified') {
+            response = await this.privateGetV5AccountWalletBalance (this.extend (request, params));
+        } else {
+            response = await this.privateGetV5AssetTransferQueryAccountCoinsBalance (this.extend (request, params));
+        }
         //
         //     {
         //         "retCode": 0,
@@ -3072,19 +3101,18 @@ module.exports = class bybit extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         if (type === 'spot') {
-            return await this.fetchSpotBalance (params);
+            return await this.fetchSpotBalance (query);
         }
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         if (enableUnifiedAccount) {
-            return await this.fetchDerivativesBalance (this.extend (params, { 'type': 'unified' }));
+            return await this.fetchDerivativesBalance (params);
         } else if (enableUnifiedMargin) {
-            return await this.fetchUnifiedMarginBalance (params);
+            return await this.fetchUnifiedMarginBalance (query);
         } else {
             // linear/inverse future/swap
-            return await this.fetchDerivativesBalance (this.extend (params, { 'type': 'swap' }));
+            return await this.fetchDerivativesBalance (this.extend (query, { 'type': 'swap' }));
         }
     }
 
