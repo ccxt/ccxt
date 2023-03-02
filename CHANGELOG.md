@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.74 (2023-03-02)
+
+
+### Bug Fixes
+
+* **Cex:** incorrect currency precision parsing ([ea6c278](https://github.com/ccxt/ccxt/commit/ea6c278e7d216686bbcbc322af10e3b04970d7bc))
+
 ### 2.8.73 (2023-03-02)
 
 
