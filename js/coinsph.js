@@ -2,7 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 // const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } = require ('./base/errors');
-const { InsufficientFunds } = require ('./base/errors');
+const { ArgumentsRequired, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 const { DECIMAL_PLACES } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -156,8 +156,8 @@ module.exports = class coinsph extends Exchange {
                         'openapi/quote/v1/klines': 1, // default limit 500; max 1000.
                         'openapi/quote/v1/trades': 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
                         // ======================================
-                        'openapi/v1/pairs': 1,
-                        'openapi/quote/v1/avgPrice': 1,
+                        'openapi/v1/pairs': 1, // to do: find method
+                        'openapi/quote/v1/avgPrice': 1, // to do: find method
                         // cost 1 if 'symbol' param defined (one market symbol)
                         // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omited
                         'openapi/quote/v1/ticker/price': { 'cost': 1, 'noSymbol': 2 },
@@ -205,7 +205,10 @@ module.exports = class coinsph extends Exchange {
             'exceptions': {
                 'exact': {
                     // to do
-                    '-1140': InsufficientFunds, //  {"code":-1140,"msg":"Transaction amount lower than the minimum."}
+                    '-1004': ArgumentsRequired, // {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
+                    '-1105': ArgumentsRequired, // {"code":-1105,"msg":"Parameter \u0027orderId and origClientOrderId\u0027 is empty."}
+                    '-1140': InsufficientFunds, // {"code":-1140,"msg":"Transaction amount lower than the minimum."}
+                    '-2013': OrderNotFound, // {"code":-2013,"msg":"Order does not exist."} to do: is it right exception?
                 },
                 'broad': {
                     // to do
@@ -660,7 +663,7 @@ module.exports = class coinsph extends Exchange {
                 request['limit'] = limit;
             }
         }
-        const trades = await this.publicGetOpenapiQuoteV1Trades (this.extend (request, params));
+        const response = await this.publicGetOpenapiQuoteV1Trades (this.extend (request, params));
         //
         //     [
         //         {
@@ -674,42 +677,79 @@ module.exports = class coinsph extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinsph#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {string} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve (default 500, max 1000)
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
+        await this.loadMarkets ();
+        // to do: write this method properly
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['limit'] = 1000;
+        } else {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        }
+        const response = await this.privateGetOpenapiV1MyTrades (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
-        let id = undefined;
-        let timestamp = undefined;
-        const orderId = undefined;
-        let symbol = undefined;
-        const fee = undefined;
-        const type = undefined;
-        const side = undefined;
-        const takerOrMaker = undefined;
-        let priceString = undefined;
-        let amountString = undefined;
-        const costString = undefined;
         //
         // fetchTrades
-        //     [
-        //         {
-        //             price: '89685.8',
-        //             id: '1365561108437680129',
-        //             qty: '0.000004',
-        //             quoteQty: '0.000004000000000000', // same as qty
-        //             time: '1677523569575',
-        //             isBuyerMaker: false, // to do: solve this riddle!
-        //             isBestMatch: true
-        //         },
-        //     ]
+        //     {
+        //         price: '89685.8',
+        //         id: '1365561108437680129',
+        //         qty: '0.000004',
+        //         quoteQty: '0.000004000000000000', // to do: same as qty
+        //         time: '1677523569575',
+        //         isBuyerMaker: false, // to do: solve this riddle!
+        //         isBestMatch: true
+        //     },
+        //
+        // fetchMyTrades
+        //     {
+        //         "symbol": "BNBBTC",
+        //         "id": 1194460299787317856,
+        //         "orderId": 1194453774196830977,
+        //         "price": "4.00000100",
+        //         "qty": "12.00000000",
+        //         "quoteQty": "48.000012",
+        //         "commission": "10.10000000",
+        //         "commissionAsset": "BNB",
+        //         "time": 1499865549590,
+        //         "isBuyer": true,
+        //         "isMaker": false,
+        //         "isBestMatch": true
+        //     }
         //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        symbol = market['symbol']; // to do: should I use this.safeSymbol?
-        id = this.safeString (trade, 'id');
-        timestamp = this.safeString (trade, 'time');
-        priceString = this.safeString (trade, 'price');
-        amountString = this.safeString (trade, 'qty');
+        const symbol = market['symbol']; // to do: should I use this.safeSymbol?
+        const id = this.safeString (trade, 'id');
+        const orderId = this.safeString (trade, 'orderId');
+        const timestamp = this.safeString (trade, 'time');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'qty');
+        const fee = undefined; // to do
+        const type = undefined; // to do
+        const side = undefined; // to do
+        const takerOrMaker = undefined; // to do
+        const costString = undefined; // to do
         return this.safeTrade ({
             'id': id,
             'order': orderId,
@@ -792,7 +832,6 @@ module.exports = class coinsph extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the coinsph api endpoint
-         * @param {string|undefined} params.marginMode only 'isolated' is supported for spot-margin trading
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -810,6 +849,25 @@ module.exports = class coinsph extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinsph#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {int|string} id order id
+         * @param {string} symbol not used by coinsph fetchOrder ()
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        // to do: write this method
+        const request = {
+            'orderId': id,
+        };
+        const response = await this.privateGetOpenapiV1Order (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -819,7 +877,6 @@ module.exports = class coinsph extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the coinsph api endpoint
-         * @param {string|undefined} params.marginMode only 'isolated' is supported, for spot-margin trading
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -831,6 +888,67 @@ module.exports = class coinsph extends Exchange {
         }
         const response = this.privateGetOpenapiV1OpenOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinsph#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        // to do: write this mithod
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = this.privateGetOpenapiV1HistoryOrders (this.extend (request, params));
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinsph#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string|undefined} symbol not used by coinsph fetchOrder ()
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        // to do: write this method
+        const request = {
+            'orderId': id,
+        };
+        const response = await this.privateDeleteOpenapiV1Order (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinsph#cancelAllOrders
+         * @description cancel open orders of market
+         * @param {string|undefined} symbol unified market symbol
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        // to do: write this mithod
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'], // to do: check if 'symbol' param is mandatory
+        };
+        const response = this.privateGetOpenapiV1OpenOrders (this.extend (request, params));
+        return this.parseOrders (response, market);
     }
 
     parseOrder (order, market = undefined) {
@@ -870,7 +988,10 @@ module.exports = class coinsph extends Exchange {
         //         ]
         //     }
         //
-        // fetchOrder GET /openapi/v1/order     fetchOpenOrders GET /openapi/v1/openOrders      fetchClosedOrders GET /openapi/v1/historyOrders
+        // fetchOrder GET /openapi/v1/order
+        // fetchOpenOrders GET /openapi/v1/openOrders
+        // fetchClosedOrders GET /openapi/v1/historyOrders
+        // cancelAllOrders DELETE /openapi/v1/openOrders
         //     {
         //         "symbol": "LTCBTC",
         //         "orderId": 1202289462787244800,
@@ -1059,6 +1180,89 @@ module.exports = class coinsph extends Exchange {
         };
     }
 
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinsph#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {string} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        // to do: write this method
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currencies[code]; // to do: make it right
+            request['coin'] = currency['id'];
+        }
+        const response = await this.privateGetOpenapiV1CapitalDepositHistory (this.extend (request, params));
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinsph#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {string} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        // to do: write this method
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currencies[code]; // to do: make it right
+            request['coin'] = currency['id'];
+        }
+        const response = await this.privateGetOpenapiV1CapitalWithdrawHistory (this.extend (request, params));
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseTransaction () {
+        // fetchDeposits
+        //     {
+        //         "coin": "PHP",
+        //         "address": "Internal Transfer",
+        //         "addressTag": "Internal Transfer",
+        //         "amount": "0.02",
+        //         "id": "31312321312312312312322",
+        //         "network": "Internal",
+        //         "transferType": "0",
+        //         "status": 3,
+        //         "confirmTimes": "",
+        //         "unlockConfirm": "",
+        //         "txId": "Internal Transfer",
+        //         "insertTime": 1657623798000,
+        //         "depositOrderId": "the deposit id which created by client"
+        //     }
+        //
+        // fetchWithdrawals
+        //     {
+        //         "coin": "BTC",
+        //         "address": "Internal Transfer",
+        //         "amount": "0.1",
+        //         "id": "1201515362324421632",
+        //         "withdrawOrderId": null,
+        //         "network": "Internal",
+        //         "transferType": "0",
+        //         "status": 0,
+        //         "transactionFee": "0",
+        //         "confirmNo": 0,
+        //         "info": "{}",
+        //         "txId": "Internal Transfer",
+        //         "applyTime": 1657967792000
+        //     }
+
+    }
+
     urlEncodeQuery (query = {}) {
         // to do: check if it is good and make it transpilable
         let encodedArrayParams = '';
@@ -1097,7 +1301,6 @@ module.exports = class coinsph extends Exchange {
         const endpoint = this.implodeParams (path, params);
         url = url + '/' + endpoint;
         if (api === 'private') {
-            // to do: should i send signature in body or in query string?
             this.checkRequiredCredentials ();
             query = this.extend ({
                 'timestamp': this.milliseconds (),
