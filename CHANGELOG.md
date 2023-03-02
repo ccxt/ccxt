@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.78 (2023-03-02)
+
+
+### Bug Fixes
+
+* **whitebit:** handle authenticate error ([39cd58c](https://github.com/ccxt/ccxt/commit/39cd58c62843473cb2aa314d80f4916f93007de4))
+
 ### 2.8.77 (2023-03-02)
 
 ### 2.8.76 (2023-03-02)
