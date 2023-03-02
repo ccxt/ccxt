@@ -3018,7 +3018,12 @@ module.exports = class bybit extends Exchange {
         const request = {
             'accountType': this.safeString (accountTypes, type),
         };
-        const response = await this.privateGetV5AccountWalletBalance (this.extend (request, params));
+        let response = undefined;
+        if (type === 'unified') {
+            response = await this.privateGetV5AccountWalletBalance (this.extend (request, params));
+        } else {
+            response = await this.privateGetV5AssetTransferQueryAccountCoinsBalance (this.extend (request, params));
+        }
         //
         //     {
         //         "retCode": 0,
