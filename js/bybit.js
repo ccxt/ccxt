@@ -7205,7 +7205,7 @@ module.exports = class bybit extends Exchange {
         return response;
     }
 
-    async setDerivativesMarginModeMarginMode (marginMode, symbol = undefined, params = {}) {
+    async setDerivativesMarginMode (marginMode, symbol = undefined, params = {}) {
         this.checkRequiredSymbol ('setMarginMode', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -7235,8 +7235,8 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
             'tradeMode': tradeMode,
-            'buyLeverage': leverage,
-            'sellLeverage': leverage,
+            'buyLeverage': buyLeverage,
+            'sellLeverage': sellLeverage,
         };
         const response = await this.privatePostContractV3PrivatePositionSwitchIsolated (this.extend (request, params));
         //
