@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.73 (2023-03-02)
+
+
+### Bug Fixes
+
+* **ascendex:** fix [#17010](https://github.com/ccxt/ccxt/issues/17010) ([fb03e92](https://github.com/ccxt/ccxt/commit/fb03e924662a147ab394698f0958eaee8f91cb7c))
+
 ### 2.8.72 (2023-03-02)
 
 ### 2.8.71 (2023-03-02)
