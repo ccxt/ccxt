@@ -47,10 +47,12 @@ class gate extends Exchange {
                     'public' => array(
                         'futures' => 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options' => 'https://fx-api-testnet.gateio.ws/api/v4',
                     ),
                     'private' => array(
                         'futures' => 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options' => 'https://fx-api-testnet.gateio.ws/api/v4',
                     ),
                 ),
                 'referral' => array(
@@ -434,6 +436,7 @@ class gate extends Exchange {
                 'X-Gate-Channel-Id' => 'ccxt',
             ),
             'options' => array(
+                'sandboxMode' => false,
                 'createOrder' => array(
                     'expiration' => 86400, // for conditional orders
                 ),
@@ -669,20 +672,30 @@ class gate extends Exchange {
         ));
     }
 
+    public function set_sandbox_mode($enable) {
+        parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
+    }
+
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for gate
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing market data
          */
+        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $promises = array(
-            $this->fetch_spot_markets($params),
             $this->fetch_contract_markets($params),
             $this->fetch_option_markets($params),
         );
-        $spotMarkets = $promises[0];
-        $contractMarkets = $promises[1];
-        $optionMarkets = $promises[2];
+        if (!$sandboxMode) {
+            // gate does not have a sandbox for spot $markets
+            $mainnetOnly = array( $this->fetch_spot_markets($params) );
+            $promises = $this->array_concat($promises, $mainnetOnly);
+        }
+        $spotMarkets = $this->safe_value($promises, 0, array());
+        $contractMarkets = $this->safe_value($promises, 1, array());
+        $optionMarkets = $this->safe_value($promises, 2, array());
         $markets = $this->array_concat($spotMarkets, $contractMarkets);
         return $this->array_concat($markets, $optionMarkets);
     }

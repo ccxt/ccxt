@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.76 (2023-03-02)
+
+
+### Bug Fixes
+
+* **Gate:** sandbox markets loading ([b564e9d](https://github.com/ccxt/ccxt/commit/b564e9dd4607b0ec2d278fcf5502cfc1e8b5e4cf))
+
 ### 2.8.75 (2023-03-02)
 
 ### 2.8.74 (2023-03-02)
