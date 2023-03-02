@@ -142,7 +142,7 @@ module.exports = class Exchange extends BaseExchange {
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
         let connected = undefined;
-        if (this.enableRateLimit && this.clients.throttle) {
+        if (this.enableRateLimit && this.clients.throttle && !client.startedConnecting) {
             connected = this.clients.throttle ().then (() => client.connect (backoffDelay));
         } else {
             connected = client.connect (backoffDelay);
