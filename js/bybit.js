@@ -1034,6 +1034,8 @@ module.exports = class bybit extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'enableUnifiedMargin': undefined,
+                'enableUnifiedAccount': undefined,
                 'createMarketBuyOrderRequiresPrice': true,
                 'createUnifiedMarginAccount': false,
                 'defaultType': 'swap',  // 'swap', 'future', 'option', 'spot'
