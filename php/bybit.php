@@ -42,6 +42,7 @@ class bybit extends Exchange {
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
+                'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => false,
@@ -4975,6 +4976,32 @@ class bybit extends Exchange {
         $request = array();
         if (($type === 'spot') && !$enableUnified[1]) {
             return $this->fetch_spot_closed_orders($symbol, $since, $limit, $params);
+        } else {
+            $request['orderStatus'] = 'Filled';
+        }
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple canceled orders made by the user
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since timestamp in ms of the earliest order, default is null
+         * @param {int|null} $limit max number of orders to return, default is null
+         * @param {array} $params extra parameters specific to the bybit api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchCanceledOrders', $market, $params);
+        $enableUnified = $this->is_unified_enabled();
+        $request = array();
+        if (($type === 'spot') && !$enableUnified[1]) {
+            throw new NotSupported($this->id . ' fetchCanceledOrders() only allow spot $market orders for unified trade account, use exchange.fetch_open_orders() and exchange.fetchClosedOrders () instead');
         } else {
             $request['orderStatus'] = 'Cancelled';
         }

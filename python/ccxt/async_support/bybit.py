@@ -57,6 +57,7 @@ class bybit(Exchange):
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
+                'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
@@ -4735,6 +4736,29 @@ class bybit(Exchange):
         request = {}
         if (type == 'spot') and not enableUnified[1]:
             return await self.fetch_spot_closed_orders(symbol, since, limit, params)
+        else:
+            request['orderStatus'] = 'Filled'
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
+
+    async def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchCanceledOrders', market, params)
+        enableUnified = await self.is_unified_enabled()
+        request = {}
+        if (type == 'spot') and not enableUnified[1]:
+            raise NotSupported(self.id + ' fetchCanceledOrders() only allow spot market orders for unified trade account, use exchange.fetch_open_orders() and exchange.fetchClosedOrders() instead')
         else:
             request['orderStatus'] = 'Cancelled'
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
