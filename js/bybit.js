@@ -7111,7 +7111,7 @@ module.exports = class bybit extends Exchange {
         const tradeMode = this.safeInteger (position, 'tradeMode', 0);
         const marginMode = tradeMode ? 'isolated' : 'cross';
         let collateralString = this.safeString (position, 'positionBalance');
-        const entryPrice = this.omitZero (this.safeString (position, 'entryPrice'));
+        const entryPrice = this.omitZero (this.safeString2 (position, 'entryPrice', 'avgPrice'));
         const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));
         const leverage = this.safeString (position, 'leverage');
         if (liquidationPrice !== undefined) {
