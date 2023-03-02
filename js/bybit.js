@@ -42,6 +42,7 @@ module.exports = class bybit extends Exchange {
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
@@ -5008,6 +5009,34 @@ module.exports = class bybit extends Exchange {
         const request = {};
         if ((type === 'spot') && !enableUnified[1]) {
             return await this.fetchSpotClosedOrders (symbol, since, limit, params);
+        } else {
+            request['orderStatus'] = 'Filled';
+        }
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
+        const enableUnified = await this.isUnifiedEnabled ();
+        const request = {};
+        if ((type === 'spot') && !enableUnified[1]) {
+            throw new NotSupported (this.id + ' fetchCanceledOrders() only allow spot market orders for unified trade account, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
         } else {
             request['orderStatus'] = 'Cancelled';
         }
