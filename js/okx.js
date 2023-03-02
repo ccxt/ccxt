@@ -2638,7 +2638,7 @@ module.exports = class okx extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         const options = this.safeValue (this.options, 'fetchOrder', {});
         const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrder');
-        const method = this.safeString (params, 'method', defaultMethod);
+        let method = this.safeString (params, 'method', defaultMethod);
         const stop = this.safeValue (params, 'stop');
         if (stop) {
             method = 'privateGetTradeOrderAlgo';
@@ -2654,7 +2654,7 @@ module.exports = class okx extends Exchange {
                 request['ordId'] = id;
             }
         }
-        const query = this.omit (params, [ 'method', 'clOrdId', 'clientOrderId' ]);
+        const query = this.omit (params, [ 'method', 'clOrdId', 'clientOrderId', 'stop' ]);
         const response = await this[method] (this.extend (request, query));
         //
         // Spot and Swap
