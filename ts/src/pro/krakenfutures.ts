@@ -155,6 +155,107 @@ module.exports = class krakenfutures extends krakenfuturesRest {
         return await this.watchPublic ('trade', symbol, params);
     }
 
+    async watchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return.
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
+        const orderbook = await this.watchPublic ('book', symbol, params);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client, message) {
+        //
+        // snapshot
+        //   {
+        //       "feed": "book_snapshot",
+        //       "product_id": "PI_XBTUSD",
+        //       "timestamp": 1612269825817,
+        //       "seq": 326072249,
+        //       "tickSize": null,
+        //       "bids": [
+        //         {
+        //           "price": 34892.5,
+        //           "qty": 6385
+        //         },
+        //         {
+        //           "price": 34892,
+        //           "qty": 10924
+        //         },
+        //       ],
+        //       "asks": [
+        //         {
+        //           "price": 34911.5,
+        //           "qty": 20598
+        //         },
+        //         {
+        //           "price": 34912,
+        //           "qty": 2300
+        //         },
+        //       ]
+        //   }
+        // delta
+        //
+        //   {
+        //       "feed": "book",
+        //       "product_id": "PI_XBTUSD",
+        //       "side": "sell",
+        //       "seq": 326094134,
+        //       "price": 34981,
+        //       "qty": 0,
+        //       "timestamp": 1612269953629
+        //   }
+        //
+        const feed = this.safeString (message, 'feed');
+        const marketId = this.safeStringLower (message, 'product_id');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger (message, 'timestamp');
+        const nonce = this.safeInteger (message, 'seq');
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ();
+        }
+        if (feed === 'book_snapshot') {
+            const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'qty');
+            orderbook.reset (snapshot);
+        } else {
+            const side = this.safeString (message, 'side');
+            if (side === 'sell') {
+                this.handleDelta (orderbook['asks'], message);
+            } else {
+                this.handleDelta (orderbook['bids'], message);
+            }
+        }
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = nonce;
+        const messageHash = 'book' + ':' + symbol;
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+    }
+
+    handleDelta (bookside, delta) {
+        //
+        //   {
+        //       "feed": "book",
+        //       "product_id": "PI_XBTUSD",
+        //       "side": "sell",
+        //       "seq": 326094134,
+        //       "price": 34981,
+        //       "qty": 0,
+        //       "timestamp": 1612269953629
+        //   }
+        //
+        const bidAsk = this.parseBidAsk (delta, 'price', 'qty');
+        bookside.storeArray (bidAsk);
+    }
+
     async watchHeartbeat (params = {}) {
         await this.loadMarkets ();
         const event = 'heartbeat';
@@ -271,7 +372,8 @@ module.exports = class krakenfutures extends krakenfuturesRest {
             // public
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
-            'trade_snapshot': this.handleTrades,
+            'book_snapshot': this.handleOrderBook,
+            'book': this.handleOrderBook,
         };
         const method = this.safeValue (methods, name);
         if (method === undefined) {
