@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -38,6 +39,7 @@ module.exports = class deepwaters extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,                      // GET /orders?status-in=FILLED&pair=XXX (pair is optional, returns max 100 orders)
+                'fetchCanceledOrders': true,                    // GET /orders?status-in=CANCELLED&pair=XXX (pair is optional, returns max 100 orders)
                 'fetchCurrencies': true,                        // GET /assets
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
@@ -46,7 +48,7 @@ module.exports = class deepwaters extends Exchange {
                 'fetchMyTrades': true,                          // GET /trades?pair=:marketName (pair is optional, returns max 100 results)
                 'fetchOHLCV': false,                            // Currently not supported
                 'fetchOpenOrders': true,                        // GET /orders?status-in=ACTIVE-PARTIALLY_FILLED&pair=XXX (pair is optional, returns max 100 orders)
-                'fetchOrder': undefined,                        // GET /orders/by-venue-order-id/:orderId
+                'fetchOrder': true,                             // GET /orders/by-venue-order-id/:orderId
                 'fetchOrderBook': true,                         // GET /pairs/:marketId/orderbook
                 'fetchOrders': true,                            // GET /orders?pair=:marketId (pair is optional, returns max 100 orders)
                 'fetchPositionMode': false,
@@ -100,20 +102,25 @@ module.exports = class deepwaters extends Exchange {
                     'get': {
                         'assets': 1,
                         'pairs': 1,
-                        'pairs/{marketId}/orderbook': 1,      
+                        'pairs/{pair}/orderbook': 1,
                     },
                 },
                 'private': {
                     'get': {
                         'customer': 1,
+                        'customer/api-key-status': 1,
                         'orders': 1,
                         'trades': 1,
+                        'orders/by-venue-order-id/{id}': 1,
+                        'orders/by-customer-object-id/{id}': 1,
                     },
                     'post': {
                         'orders': 1,
                     },
                     'delete': {
                         'orders': 1,
+                        'orders/by-venue-order-id/{id}': 1,
+                        'orders/by-customer-object-id/{id}': 1,
                     },
                 },
                 'precisionMode': DECIMAL_PLACES,
@@ -129,6 +136,10 @@ module.exports = class deepwaters extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         const response = await this.publicGetPairs ();
+        const success = this.safeValue (response, 'success', false);
+        if (!success) {
+            return this.handleError (response);
+        }
         // {
         //     "success": true,
         //     "result": [
@@ -231,6 +242,17 @@ module.exports = class deepwaters extends Exchange {
         return this.dwnonce;
     }
 
+    async fetchNonce () {
+        const response = await this.privateGetCustomerApiKeyStatus ();
+        const success = this.safeValue (response, 'success', false);
+        if (!success) {
+            return this.handleError (response);
+        }
+        const result = this.safeValue (response, 'result', {});
+        const nonce = this.safeString (result, 'nonce', '0');
+        this.dwnonce = this.parseNumber (nonce);
+    }
+
     async fetchCurrencies () {
         /**
          * @method
@@ -239,6 +261,10 @@ module.exports = class deepwaters extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetAssets ();
+        const success = this.safeValue (response, 'success', false);
+        if (!success) {
+            return this.handleError (response);
+        }
         // {
         //     "success": true,
         //     "result": [
@@ -300,8 +326,6 @@ module.exports = class deepwaters extends Exchange {
             'datetime': this.iso8601 (timestamp),
         };
         const responseResult = this.safeValue (response, 'result', {});
-        const nonce = this.safeNumber (responseResult, 'nonce', 0);
-        this.dwnonce = nonce;
         const responseBalances = this.safeValue (responseResult, 'balances', []);
         const balances = this.isArray (responseBalances) ? responseBalances : [];
         for (let i = 0; i < balances.length; i++) {
@@ -328,20 +352,23 @@ module.exports = class deepwaters extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const baseId = this.safeString (order, 'baseAssetID');
-        const base = this.safeCurrencyCode (baseId);
-        const quoteId = this.safeString (order, 'quoteAssetID');
-        let quote = this.safeCurrencyCode (quoteId);
-        if ((!(quoteId in this.currencies_by_id)) && (quote.indexOf('USDC') === 0)) {
-            // Their testnet has multiple USDC currencies with different IDs.
-            // This causes the currencies list USDC entry to be overwritten when currencies
-            // are parsed, which means the above will have an undefined quote.
-            // As of right now, there isn't any ambiguity with mainnet currencies
-            quote = 'USDC';
+        // console.log('parseorder', order, market);
+        if (market === undefined) {
+            const baseId = this.safeString (order, 'baseAssetID');
+            const base = this.safeCurrencyCode (baseId);
+            const quoteId = this.safeString (order, 'quoteAssetID');
+            let quote = this.safeCurrencyCode (quoteId);
+            if ((!(quoteId in this.currencies_by_id)) && (quoteId.indexOf('USDC') === 0)) {
+                // Their testnet has multiple USDC currencies with different IDs.
+                // This causes the currencies list USDC entry to be overwritten when currencies
+                // are parsed, which means the above will have an undefined quote.
+                // As of right now, there isn't any ambiguity with mainnet currencies
+                quote = 'USDC';
+            }
+    
+            const marketSymbol = base + '/' + quote;
+            market = this.market (marketSymbol);
         }
-
-        const marketSymbol = base + '/' + quote;
-        market = this.market (marketSymbol);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
 
         // Deepwaters appears to have 2 unique IDs per order: customerObjectID and
@@ -397,12 +424,10 @@ module.exports = class deepwaters extends Exchange {
             'trades': undefined,
             // 'average': this.parseNumber (average), TODO
             // 'cost': this.parseNumber (cost), TODO
-            // Not available via API. No fee information in docs:
-            'fee': undefined,
-            // Not applicable:
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'postOnly': undefined,
+            'fee': undefined, // Not available via API
+            'stopPrice': undefined, // N/A
+            'triggerPrice': undefined, // N/A
+            'postOnly': undefined, // N/A
         }
         if (status === 'closed') {
             parsedOrder['lastTradetimestamp'] = this.parseNumber (updatedTimestampMs);
@@ -424,8 +449,8 @@ module.exports = class deepwaters extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetCustomer ();
         const success = this.safeValue (response, 'success', false);
-        if (success) {
-            return this.parseBalance (response);
+        if (!success) {
+            return this.handleError (response);
         }
         return {};
     }
@@ -433,7 +458,7 @@ module.exports = class deepwaters extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         /**
          * @method
-         * @name osl#fetchOrderBook
+         * @name deepwaters#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -443,26 +468,35 @@ module.exports = class deepwaters extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'pair': market['id'],
         };
         if (limit !== undefined) {
             request['depth'] = limit; // default 25, see https://docs.osl.com/#get-l2-order-book
         }
-        const response = await this.v4PrivateGetOrderBookL2 (this.extend (request, params));
+        const response = await this.publicGetPairsPairOrderbook (this.extend (request, params));
+        const success = this.safeValue (response, 'success', false);
+        if (!success) {
+            return this.handleError (response);
+        }
+        const result = this.safeValue (response, 'result', {});
+        //
         // {
-        //     symbol: 'BTCUSDT',
-        //     asks: [
-        //         [ '20202', '3' ],
-        //         [ '20208', '5' ],
-        //     ],
-        //     bids: [
-        //         [ '20185', '1' ],
-        //         [ '20184', '2' ],
-        //     ],
-        //     updateTime: '2022-08-29T15:45:18.015Z'
+        //   snapshotAtMicros: '1641562961192',
+        //   asks: [
+        //     { price: '0.921', quantity: '76.01', depth: 0 },
+        //     { price: '0.933', quantity: '477.10', depth: 1 },
+        //     ...
+        //   ],
+        //   bids: [
+        //     { price: '0.940', quantity: '13502.47', depth: 0 },
+        //     { price: '0.932', quantity: '43.91', depth: 1 },
+        //     ...
+        //   ]
         // }
-        const orderbook = this.parseOrderBook (response, symbol);
-        return orderbook;
+        //
+        const timestampMicros = this.safeString (result, 'snapshotAtMicros', '0');
+        const timestamp = this.parseNumber (Precise.stringDiv (timestampMicros, '1000', 0));
+        return this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -491,6 +525,10 @@ module.exports = class deepwaters extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetOrders (this.extend (request, params));
+        const success = this.safeValue (response, 'success', false);
+        if (!success) {
+            return this.handleError (response);
+        }
         const result = this.safeValue (response, 'result', {});
         const orders = this.safeValue (result, 'orders', [])
         // const success = this.safeValue (response, 'success', false);
@@ -498,44 +536,45 @@ module.exports = class deepwaters extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const suppliedFilters = this.safeString (params, 'orders-in', '').split ('-');
+        const suppliedFilters = this.safeString (params, 'status-in', '').split ('-');
         const constructedFilters = ['ACTIVE', 'PARTIALLY_FILLED'];
         const remainingAvailableFilters = ['FILLED', 'REJECTED', 'CANCELLED', 'EXPIRED'];
         for (let i = 0; i < remainingAvailableFilters.length; i++) {
             const filter = remainingAvailableFilters[i];
-            if (this.inArray (suppliedFilters, filter)) {
+            if (this.inArray (filter, suppliedFilters)) {
                 constructedFilters.push (filter);
             }
         }
-        params = this.extend (params, { 'orders-in': constructedFilters.join ('-')});
+        params = this.extend (params, { 'status-in': constructedFilters.join ('-')});
+        // console.log(symbol, since, limit, params);
         return this.fetchOrders (symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const suppliedFilters = this.safeString (params, 'orders-in', '').split ('-');
+        const suppliedFilters = this.safeString (params, 'status-in', '').split ('-');
         const constructedFilters = ['FILLED'];
         const remainingAvailableFilters = ['ACTIVE', 'REJECTED', 'CANCELLED', 'EXPIRED', 'PARTIALLY_FILLED'];
         for (let i = 0; i < remainingAvailableFilters.length; i++) {
             const filter = remainingAvailableFilters[i];
-            if (this.inArray (suppliedFilters, filter)) {
+            if (this.inArray (filter, suppliedFilters)) {
                 constructedFilters.push (filter);
             }
         }
-        params = this.extend (params, { 'orders-in': constructedFilters.join ('-')});
+        params = this.extend (params, { 'status-in': constructedFilters.join ('-')});
         return this.fetchOrders (symbol, since, limit, params);
     }
 
-    async fetchCancelledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const suppliedFilters = this.safeString (params, 'orders-in', '').split ('-');
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const suppliedFilters = this.safeString (params, 'status-in', '').split ('-');
         const constructedFilters = ['CANCELLED'];
         const remainingAvailableFilters = ['ACTIVE', 'REJECTED', 'CANCELLED', 'EXPIRED', 'PARTIALLY_FILLED'];
         for (let i = 0; i < remainingAvailableFilters.length; i++) {
             const filter = remainingAvailableFilters[i];
-            if (this.inArray (suppliedFilters, filter)) {
+            if (this.inArray (filter, suppliedFilters)) {
                 constructedFilters.push (filter);
             }
         }
-        params = this.extend (params, { 'orders-in': constructedFilters.join ('-')});
+        params = this.extend (params, { 'status-in': constructedFilters.join ('-')});
         return this.fetchOrders (symbol, since, limit, params);
     }
 
@@ -557,29 +596,120 @@ module.exports = class deepwaters extends Exchange {
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
         const request = {
-            'symbol': market['id'],
             'type': orderType,
             'side': orderSide,
             'durationType': this.safeString (params, 'durationType', 'GOOD_TILL_CANCEL'),
-            'expiresAtMicros': 0,
-            'expiresIn': '',
+            'expiresAtMicros': undefined, // TODO
+            'expiresIn': undefined,       // TODO
             'baseAssetID': market.baseId,
-            'quoteAssetID': market.quoteID,
+            'quoteAssetID': market.quoteId,
             'price': this.priceToPrecision (symbol, price),
             'quantity': this.amountToPrecision (symbol, amount),
         };
-        if (typeof this.dwnonce !== 'number') {
-            await this.fetchBalance();
+        const customerObjectId = this.safeString (params, 'customerObjectId');
+        if (customerObjectId) {
+            request['customerObjectID'] = customerObjectId;
         }
+
+        // sets nonce as 'dwnonce' on self, accessed via getNonce in signing
+        await this.fetchNonce ();
         const response = await this.privatePostOrders (request);
+        const success = this.safeValue (response, 'success', false);
+        if (!success) {
+            return this.handleError (response);
+        }
+        const result = this.safeValue (response, 'result', {});
         return this.extend (
-            this.parseOrder (response, market),
+            this.parseOrder (result, market),
             {
                 'type': orderType,
                 'side': orderSide,
                 'symbol': symbol,
             }
         );
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        // params and symbol are unused
+        await this.loadMarkets();
+        params = {
+            'id': id,
+        };
+        if (typeof id !== 'string') {
+            throw new ArgumentsRequired (this.id + ' cancelOrder () requires a string id');
+        }
+        const isVenueId = id.slice (0, 2) === '0x';
+        let response = undefined;
+        if (isVenueId) {
+            response = await this.privateGetOrdersByVenueOrderIdId (params);
+        } else {
+            response = await this.privateGetOrdersByCustomerObjectIdId (params);
+        }
+        const success = this.safeValue (response, 'success', false);
+        if (!success) {
+            return this.handleError (response);
+        }
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrder (result);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name deepwaters#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string} symbol unused
+         * @param {object} params unused
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        await this.fetchNonce ();
+        params = {
+            'id': id,
+        }
+        if (typeof id !== 'string') {
+            throw new ArgumentsRequired (this.id + ' cancelOrder () requires a string id');
+        }
+        const isVenueId = id.slice (0, 2) === '0x';
+        let response = undefined;
+        if (isVenueId) {
+            response = await this.privateDeleteOrdersByVenueOrderIdId (params);
+        } else {
+            response = await this.privateDeleteOrdersByCustomerObjectIdId (params);
+        }
+        const success = this.safeValue (response, 'success', false);
+        if (!success) {
+            return this.handleError (response);
+        }
+        // Deepwaters doesn't respond with any order information on cancelation
+        const order = {
+            'status': 'canceled',
+        }
+        if (isVenueId) {
+            order['id'] = id;
+        } else {
+            order['clientOrderId'] = id;
+        }
+        return this.parseOrder (order);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        await this.fetchNonce();
+        if (symbol) {
+            const market = this.market(symbol);
+            const pairParam = {
+                pair: market.id,
+            }
+            params = this.extend (params, pairParam);
+        }
+        const response = await this.privateDeleteOrders (params);
+        const success = this.safeValue (response, 'success', false);
+        if (!success) {
+            return this.handleError (response);
+        }
+        return this.safeValue (response, 'result', {});
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -592,7 +722,7 @@ module.exports = class deepwaters extends Exchange {
 
         // Remove params which were substituted in path, important for signing
         params = this.omit (params, pathParams);
-        let nonceString = '';
+        let nonce = '';
         let bodyString = '';
         if (api === 'private') {
             headers = {};
@@ -603,21 +733,21 @@ module.exports = class deepwaters extends Exchange {
                 if (keys.length) {
                     path = path + '?' + this.urlencode (params);
                 }
-            } else {
+            }
+            if ((method === 'POST') || (method === 'DELETE')) {
                 if (method === 'POST') {
                     body = params;
                     bodyString = JSON.stringify (body);
                 }
-                const nonce = this.numberToString (this.getNonce ());
-                nonceString = Precise.stringAdd (nonce, '1');
+                nonce = this.numberToString (this.getNonce ());
                 const postDeleteHeaders = {
                     'content-type': 'application/json',
-                    'X-DW-NONCE': nonceString,
+                    'X-DW-NONCE': nonce,
                 };
                 headers = this.extend (headers, postDeleteHeaders);
             }
-            const message = method + '/rest/v1' + path.toLowerCase () + timestamp + nonceString + bodyString;
-            console.log(message);
+            const message = method + '/rest/v1' + path.toLowerCase () + timestamp + nonce + bodyString;
+            // console.log(message);
             const signature = this.signHash (this.hash (message, 'keccak'), this.secret);
             signature.v = signature.v - 27;
             let vByte = signature.v.toString (16);
@@ -633,7 +763,17 @@ module.exports = class deepwaters extends Exchange {
             headers = this.extend (headers, sigHeaders);
         }
         let url = this.urls['api'][api] + path;
-        console.log({ 'url': url, 'method': method, 'body': body, 'headers': headers });
+        // console.log({ 'url': url, 'method': method, 'body': bodyString, 'headers': headers });
+        if (bodyString.length) {
+            return { 'url': url, 'method': method, 'body': bodyString, 'headers': headers };
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleError (response = {}) {
+        const error = this.safeString (response, 'error', '');
+        const code = this.safeString (response, 'code', '');
+        const status = this.safeString (response, 'status', '');
+        throw new ExchangeError (code + ': ' + error + ' ' + status);
     }
 };
