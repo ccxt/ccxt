@@ -3123,7 +3123,7 @@ class phemex extends Exchange {
                 $settle = $market['settle'];
                 $code = $market['settle'];
             } else {
-                list($settle, $params) = $this->handleSettleAndParams ('fetchPositions', null, $params, 'USD');
+                list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', 'USD');
             }
             list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params);
             if ($settle === 'USDT') {

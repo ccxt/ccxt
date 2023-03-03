@@ -3117,7 +3117,7 @@ module.exports = class phemex extends Exchange {
             settle = market['settle'];
             code = market['settle'];
         } else {
-            [ settle, params ] = this.handleSettleAndParams ('fetchPositions', undefined, params, 'USD');
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', 'USD');
         }
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
         if (settle === 'USDT') {

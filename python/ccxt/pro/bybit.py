@@ -371,7 +371,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 parsed = self.parse_ws_contract_ohlcv(data[i])
                 stored.append(parsed)
         else:
-            parsed = self.parseSpotOHLCV(data)
+            parsed = self.parse_ohlcv(data, market)
             stored.append(parsed)
         messageHash = 'kline' + ':' + timeframeId + ':' + symbol
         client.resolve(stored, messageHash)

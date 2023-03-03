@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.82 (2023-03-03)
+
+### 2.8.81 (2023-03-03)
+
+
+### Bug Fixes
+
+* **phemex:** fix handleSettle ([4754570](https://github.com/ccxt/ccxt/commit/4754570e25168fa8fe9a508edcd62e0270b3ccd5))
+
 ### 2.8.80 (2023-03-03)
 
 ### 2.8.79 (2023-03-02)

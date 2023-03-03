@@ -393,7 +393,7 @@ class bybit extends \ccxt\async\bybit {
                 $stored->append ($parsed);
             }
         } else {
-            $parsed = $this->parseSpotOHLCV ($data);
+            $parsed = $this->parse_ohlcv($data, $market);
             $stored->append ($parsed);
         }
         $messageHash = 'kline' . ':' . $timeframeId . ':' . $symbol;
