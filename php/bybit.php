@@ -2908,7 +2908,7 @@ class bybit extends Exchange {
          */
         $this->load_markets();
         $request = array();
-        $method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery';
+        $method = null;
         list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
@@ -2922,7 +2922,7 @@ class bybit extends Exchange {
                 if ($marginMode !== null) {
                     $method = 'privateGetSpotV3PrivateCrossMarginAccount';
                 } else {
-                    $request['accountType'] = 'SPOT';
+                    $method = 'privateGetSpotV3PrivateAccount';
                 }
             }
         } elseif ($enableUnifiedAccount || $enableUnifiedMargin) {
@@ -2936,7 +2936,15 @@ class bybit extends Exchange {
         }
         if (!$isSpot) {
             $accountTypes = $this->safe_value($this->options, 'accountsByType', array());
-            $request['accountType'] = $this->safe_string($accountTypes, $type);
+            $unifiedType = $this->safe_string($accountTypes, $type);
+            if ($unifiedType === 'FUND') {
+                // use this endpoint only we have no other choice
+                // because it requires transfer permission
+                $method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery';
+                $request['accountType'] = $unifiedType;
+            } else {
+                $method = 'privateGetContractV3PrivateAccountWalletBalance';
+            }
         }
         $response = $this->$method (array_merge($request, $params));
         //

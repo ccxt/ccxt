@@ -2839,7 +2839,7 @@ class bybit(Exchange):
         """
         await self.load_markets()
         request = {}
-        method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery'
+        method = None
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
@@ -2853,7 +2853,7 @@ class bybit(Exchange):
                 if marginMode is not None:
                     method = 'privateGetSpotV3PrivateCrossMarginAccount'
                 else:
-                    request['accountType'] = 'SPOT'
+                    method = 'privateGetSpotV3PrivateAccount'
         elif enableUnifiedAccount or enableUnifiedMargin:
             if type == 'swap':
                 type = 'unified'
@@ -2862,7 +2862,14 @@ class bybit(Exchange):
                 type = 'contract'
         if not isSpot:
             accountTypes = self.safe_value(self.options, 'accountsByType', {})
-            request['accountType'] = self.safe_string(accountTypes, type)
+            unifiedType = self.safe_string(accountTypes, type)
+            if unifiedType == 'FUND':
+                # use self endpoint only we have no other choice
+                # because it requires transfer permission
+                method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery'
+                request['accountType'] = unifiedType
+            else:
+                method = 'privateGetContractV3PrivateAccountWalletBalance'
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot wallet
