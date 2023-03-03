@@ -7210,10 +7210,16 @@ module.exports = class bybit extends Exchange {
         let sellLeverage = undefined;
         let buyLeverage = undefined;
         if (leverage === undefined) {
-            sellLeverage = this.safeNumber2 (params, 'sell_leverage', 'sellLeverage');
-            buyLeverage = this.safeNumber2 (params, 'buy_leverage', 'buyLeverage');
+            sellLeverage = this.safeString2 (params, 'sell_leverage', 'sellLeverage');
+            buyLeverage = this.safeString2 (params, 'buy_leverage', 'buyLeverage');
             if (sellLeverage === undefined && buyLeverage === undefined) {
                 throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
+            }
+            if (buyLeverage === undefined) {
+                buyLeverage = sellLeverage;
+            }
+            if (sellLeverage === undefined) {
+                sellLeverage = buyLeverage;
             }
             params = this.omit (params, [ 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ]);
         } else {
