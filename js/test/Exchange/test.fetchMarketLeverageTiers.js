@@ -10,7 +10,7 @@ async function testFetchMarketLeverageTiers (exchange, symbol) {
         console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
         return;
     }
-    const tiers = await exchange [method] (symbol);
+    const tiers = await exchange[method] (symbol);
     assert (Array.isArray(tiers), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json(tiers));
     const arrayLength = tiers.length;
     assert (arrayLength >= 1, exchange.id + ' ' + method + ' ' + symbol + ' must return an array with at least one entry. ' + exchange.json(tiers));

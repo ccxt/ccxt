@@ -81,16 +81,16 @@ function testMarket (exchange, method, market) {
         testSharedMethods.reviseAgainstArray (exchange, method, market, types[i], [ true, false, undefined ]);
     }
     if (market['future']) {
-        assert ((market['swap'] === false) && (market['option'] === false), 'market swap and option must be false when "future" is true' + logText);
+        assert (!market['swap'] && !market['option'], 'market swap and option must be false when "future" is true' + logText);
     } else if (market['swap']) {
-        assert ((market['future'] === false) && (market['option'] === false), 'market future and option must be false when "swap" is true' + logText);
+        assert (!market['future'] && !market['option'], 'market future and option must be false when "swap" is true' + logText);
     } else if (market['option']) {
-        assert ((market['future'] === false) && (market['swap'] === false), 'market future and swap must be false when "option" is true' + logText);
+        assert (!market['future'] && !market['swap'], 'market future and swap must be false when "option" is true' + logText);
     }
     if (market['linear']) {
-        assert (market['inverse'] === false, 'market inverse must be false when "linear" is true' + logText);
+        assert (!market['inverse'], 'market inverse must be false when "linear" is true' + logText);
     } else if (market['inverse']) {
-        assert (market['linear'] === false, 'market linear must be false when "inverse" is true' + logText);
+        assert (!market['linear'], 'market linear must be false when "inverse" is true' + logText);
     }
     if (market['future']) {
         assert (market['expiry'] !== undefined, '"expiry" must be defined when "future" is true' + logText);

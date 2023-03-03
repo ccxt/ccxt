@@ -113,8 +113,8 @@ function set_exchange_prop (exchange, prop, value) {
     exchange[prop] = value;
 }
 
-// #############################
-// ### AUTO-TRANSPILER-START ###
+// *********************************
+// ***** AUTO-TRANSPILER-START *****
 
 module.exports = class testMainClass extends emptyClass {
 
@@ -572,7 +572,7 @@ module.exports = class testMainClass extends emptyClass {
     }
 };
 
-// ### AUTO-TRANSPILER-END ###
-// ###########################
+// ***** AUTO-TRANSPILER-END *****
+// *******************************
 const cls = module.exports;
 (new cls ()).init (exchange, exchangeSymbol);

@@ -11,7 +11,7 @@ async function testFetchLeverageTiers (exchange, symbol) {
         console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
         return;
     }
-    const tiers = await exchange [method] (symbol);
+    const tiers = await exchange[method] (symbol);
     // const format = {
     //     'RAY/USDT': [
     //       {},
@@ -23,7 +23,7 @@ async function testFetchLeverageTiers (exchange, symbol) {
     assert (arrayLength >= 1, exchange.id + ' ' + method + ' ' + symbol + ' must have at least one entry. ' + exchange.json(tiers));
     console.log (exchange.id, method, 'fetched', arrayLength, 'entries, asserting each ...');
     for (let i = 0; i < arrayLength; i++) {
-        const tiersForSymbol = tiers [ tierKeys[i] ];
+        const tiersForSymbol = tiers[ tierKeys[i] ];
         const arrayLengthSymbol = tiersForSymbol.length;
         assert (arrayLengthSymbol >= 1, exchange.id + ' ' + method + ' ' + symbol + ' must have at least one entry. ' + exchange.json(tiers));
         for (let j = 0; j < tiersForSymbol.length; j++) {

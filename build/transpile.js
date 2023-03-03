@@ -1867,18 +1867,26 @@ class Transpiler {
            // [ /module.exports\s+=\s+[^;]+;/g, '' ],
         ])
 
-        const commentStartLine = '### AUTO-TRANSPILER-START ###';
-        const commentEndLine = '### AUTO-TRANSPILER-END ###';
+        const commentStartLine = '***** AUTO-TRANSPILER-START *****';
+        const commentEndLine = '***** AUTO-TRANSPILER-END *****';
 
         const mainContent = js.split (commentStartLine)[1].split (commentEndLine)[0];
         let { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (mainContent);
 
         // ########### PYTHON ###########
-        python3 = python3.replace (/from ccxt\.async_support(.*)/g, '');
+        python3 = python3.
+            // remove async ccxt import
+            replace (/from ccxt\.async_support(.*)/g, '').
+            // add one more newline before function
+            replace (/^(async def|def) (\w)/gs, '\n$1 $2')
         const existinPythonBody = fs.readFileSync (files.pyFileAsync).toString ();
-        let newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
+        let newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n# ' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
         overwriteFile (files.pyFileAsync, newPython);
         this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
+        // remove 4 extra newlines
+        let existingPythonWN = fs.readFileSync (files.pyFileSync).toString ();
+        existingPythonWN = existingPythonWN.replace (/(\n){4}/g, '\n\n');
+        overwriteFile (files.pyFileSync, newPython);
 
         
         // ########### PHP ###########
@@ -1928,9 +1936,10 @@ class Transpiler {
 
         python3Body = ohlcvCaser(python3Body).
             replace (/\(self, /g, '(').
-            replace ('exchange[method]', 'getattr(exchange,method)').
+            replace ('exchange[method]', 'getattr(exchange, method)').
             // add one more newline before function
-            replace (/(async |)def (\w)/gs, '\n$1def $2')
+            replace (/^(async def|def) (\w)/gs, '\n$1 $2')
+        python3Body += '\n' //new line in the end of file
 
         const phpRefine = (content) => ohlcvCaser (content).
             replace (/public /g, '').
@@ -1973,6 +1982,7 @@ class Transpiler {
 
         // todo: transpiler doesnt tranpile into unCamelCases correctly, so manually unCamelCase here
         if (test.jsFile.includes ('sharedMethods')) {
+            python3Body = python3Body.replace (/\n\n(async def|def) (\w)/g, '\n\n\n$1 $2');
             [...  js.matchAll (/function (.*?) \(/g)].forEach(match => {
                 const funcName = match[1];
                 const snake_cased = unCamelCase(funcName);

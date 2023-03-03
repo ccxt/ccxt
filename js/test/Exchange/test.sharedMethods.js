@@ -52,7 +52,9 @@ function areSameTypes (exchange, entry, key, format) {
     const formatKeyVal = format[key];
     const same_string = (typeof entryKeyVal === 'string') && (typeof formatKeyVal === 'string');
     const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
-    const same_boolean =  ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
+    // todo: the below is correct, but is not being transpiled into python correctly: (x == False) instead of (x is False)
+    // const same_boolean = ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
+    const same_boolean = ((entryKeyVal || !entryKeyVal) && (formatKeyVal || !formatKeyVal));
     const same_array = Array.isArray(entryKeyVal) && Array.isArray(formatKeyVal);
     const same_object = (typeof entryKeyVal === 'object') && (typeof formatKeyVal === 'object');
     const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
@@ -67,7 +69,7 @@ function reviseCommonTimestamp (exchange, method, entry, nowToCheck = undefined,
     if (isDateTimeObject) {
         assert ((keyName in entry), 'timestamp key ' + keyName + ' is missing from structure' + logText);
     } else {
-        assert (typeof entry[keyName] !== 'undefined', 'timestamp index '+ keyName + ' is missing from structure' + logText);
+        assert (typeof entry[keyName] !== 'undefined', 'timestamp index ' + keyName + ' is missing from structure' + logText);
     }
     const ts = entry[keyName];
     if (ts !== undefined) {
@@ -158,7 +160,7 @@ function reviseAgainstArray (exchange, method, entry, key, expectedArray) {
 function reviseFeeObject (exchange, method, entry) {
     const logText = logTemplate (exchange, method, entry);
     if (entry !== undefined) {
-        assert (('cost' in entry), '"fee" should contain a "cost" key' + logText); 
+        assert (('cost' in entry), '"fee" should contain a "cost" key' + logText);
         Ge (exchange, method, entry, 'cost', '0');
         assert (('currency' in entry), '"fee" should contain a "currency" key' + logText);
         reviseCurrencyCode (exchange, method, entry, entry['currency']);
@@ -168,7 +170,7 @@ function reviseFeeObject (exchange, method, entry) {
 function reviseFeesObject (exchange, method, entry) {
     const logText = logTemplate (exchange, method, entry);
     if (entry !== undefined) {
-        assert (Array.isArray (entry), '"fees" is not an array' +  logText);
+        assert (Array.isArray (entry), '"fees" is not an array' + logText);
         for (let i = 0; i < entry.length; i++) {
             reviseFeeObject (exchange, method, entry[i]);
         }

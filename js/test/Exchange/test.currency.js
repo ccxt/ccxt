@@ -7,24 +7,21 @@ function testCurrency (exchange, method, entry) {
         'info': {},
         'id': 'btc', // string literal for referencing within an exchange
         'code': 'BTC', // uppercase string literal of a pair of currencies
-        //----------------------------------------------------------------------
         'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
         'withdraw': true, // can withdraw
         'deposit': true, // can deposit
-        // 'active': true, // can both withdraw & deposit
         'precision': exchange.parseNumber ('0.0001'), // in case of SIGNIFICANT_DIGITS it will be 8 - number of digits "after the dot"
         'fee': exchange.parseNumber ('0.001'), //
-        'limits': { // value limits when placing orders on this market
-            'withdraw':  {
+        'limits': {
+            'withdraw': {
                 'min': exchange.parseNumber ('0.01'),
                 'max': exchange.parseNumber ('1000'),
             },
-            'deposit':  {
+            'deposit': {
                 'min': exchange.parseNumber ('0.01'),
                 'max': exchange.parseNumber ('1000'),
             },
         },
-        //----------------------------------------------------------------------
     };
     const emptyNotAllowedFor = [ 'id', 'code', 'precision' ];
     testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
