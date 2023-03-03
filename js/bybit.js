@@ -341,6 +341,7 @@ module.exports = class bybit extends Exchange {
                         'asset/v3/private/transfer/transfer-coin/list/query': 0.84, // 60/s
                         'asset/v3/private/transfer/account-coin/balance/query': 0.84, // 60/s
                         'asset/v3/private/transfer/asset-info/query': 0.84, // 60/s
+                        'asset/v3/private/transfer/account-coins/balance/query': 100,
                         'asset/v3/public/deposit/allowed-deposit-list/query': 0.17, // 300/s
                         'asset/v3/private/deposit/record/query': 0.17, // 300/s
                         'asset/v3/private/withdraw/record/query': 0.17, // 300/s
@@ -1056,6 +1057,8 @@ module.exports = class bybit extends Exchange {
                     'investment': 'INVESTMENT',
                     'unified': 'UNIFIED',
                     'funding': 'FUND',
+                    'fund': 'FUND',
+                    'contract': 'CONTRACT',
                 },
                 'accountsById': {
                     'SPOT': 'spot',
@@ -2840,6 +2843,32 @@ module.exports = class bybit extends Exchange {
         //        time: '1677781902858'
         //    }
         //
+        // all coins balance
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "success",
+        //         "result": {
+        //             "memberId": "533285",
+        //             "accountType": "FUND",
+        //             "balance": [
+        //                 {
+        //                     "coin": "USDT",
+        //                     "transferBalance": "1010",
+        //                     "walletBalance": "1010",
+        //                     "bonus": ""
+        //                 },
+        //                 {
+        //                     "coin": "USDC",
+        //                     "transferBalance": "0",
+        //                     "walletBalance": "0",
+        //                     "bonus": ""
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1675865290069
+        //     }
+        //
         const result = {
             'info': response,
         };
@@ -2881,7 +2910,7 @@ module.exports = class bybit extends Exchange {
                         account['debt'] = Precise.stringAdd (loan, interest);
                     }
                     account['total'] = this.safeString2 (entry, 'total', 'walletBalance');
-                    account['free'] = this.safeStringN (entry, [ 'free', 'availableBalanceWithoutConvert', 'availableBalance' ]);
+                    account['free'] = this.safeStringN (entry, [ 'free', 'availableBalanceWithoutConvert', 'availableBalance', 'transferBalance' ]);
                     account['used'] = this.safeString (entry, 'locked');
                     const currencyId = this.safeStringN (entry, [ 'tokenId', 'coin', 'currencyCoin' ]);
                     const code = this.safeCurrencyCode (currencyId);
@@ -2892,15 +2921,48 @@ module.exports = class bybit extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchSpotBalance (params = {}) {
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        let method = 'privateGetSpotV3PrivateAccount';
-        if (marginMode !== undefined) {
-            method = 'privateGetSpotV3PrivateCrossMarginAccount';
+        const request = {};
+        let method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery';
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const isSpot = (type === 'spot');
+        if (isSpot) {
+            if (enableUnifiedAccount || enableUnifiedMargin) {
+                method = 'privateGetSpotV3PrivateAccount';
+            } else {
+                let marginMode = undefined;
+                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
+                if (marginMode !== undefined) {
+                    method = 'privateGetSpotV3PrivateCrossMarginAccount';
+                } else {
+                    request['accountType'] = 'SPOT';
+                }
+            }
+        } else if (enableUnifiedAccount || enableUnifiedMargin) {
+            if (type === 'swap') {
+                type = 'unified';
+            }
+        } else {
+            if (type === 'swap') {
+                type = 'contract';
+            }
         }
-        const response = await this[method] (params);
+        if (!isSpot) {
+            const accountTypes = this.safeValue (this.options, 'accountsByType', {});
+            request['accountType'] = this.safeString (accountTypes, type);
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
         // spot wallet
         //     {
         //       retCode: '0',
@@ -2958,162 +3020,33 @@ module.exports = class bybit extends Exchange {
         //         "time": 1669843584123
         //     }
         //
-        return this.parseBalance (response);
-    }
-
-    async fetchUnifiedMarginBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetUnifiedV3PrivateAccountWalletBalance (params);
-        //
+        // all coins balance
         //     {
         //         "retCode": 0,
-        //         "retMsg": "Success",
+        //         "retMsg": "success",
         //         "result": {
-        //             "totalEquity": "112.21267421",
-        //             "accountIMRate": "0.6895",
-        //             "totalMarginBalance": "80.37711012",
-        //             "totalInitialMargin": "55.42180254",
-        //             "totalAvailableBalance": "24.95530758",
-        //             "accountMMRate": "0.0459",
-        //             "totalPerpUPL": "-16.69586570",
-        //             "totalWalletBalance": "97.07311619",
-        //             "totalMaintenanceMargin": "3.68580537",
-        //             "coin": [
+        //             "memberId": "533285",
+        //             "accountType": "FUND",
+        //             "balance": [
         //                 {
-        //                     "currencyCoin": "ETH",
-        //                     "availableToBorrow": "0.00000000",
-        //                     "borrowSize": "0.00000000",
-        //                     "bonus": "0.00000000",
-        //                     "accruedInterest": "0.00000000",
-        //                     "availableBalanceWithoutConvert": "0.00000000",
-        //                     "totalOrderIM": "",
-        //                     "equity": "0.00000000",
-        //                     "totalPositionMM": "",
-        //                     "usdValue": "0.00000000",
-        //                     "availableBalance": "0.02441165",
-        //                     "unrealisedPnl": "",
-        //                     "totalPositionIM": "",
-        //                     "marginBalanceWithoutConvert": "0.00000000",
-        //                     "walletBalance": "0.00000000",
-        //                     "cumRealisedPnl": "",
-        //                     "marginBalance": "0.07862610"
-        //                 }
-        //             ]
-        //         },
-        //         "time": 1657716037033
-        //     }
-        //
-        return this.parseBalance (response);
-    }
-
-    async fetchDerivativesBalance (params = {}) {
-        await this.loadMarkets ();
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        type = (type === undefined) ? undefined : type.toLowerCase ();
-        if (type !== 'unified' && type !== 'funding') {
-            type = 'unified'; // all other values are invalid
-        }
-        const accountTypes = this.safeValue (this.options, 'accountsByType', {});
-        const request = {
-            'accountType': this.safeString (accountTypes, type),
-        };
-        let response = undefined;
-        if (type === 'unified') {
-            response = await this.privateGetV5AccountWalletBalance (this.extend (request, params));
-        } else {
-            response = await this.privateGetV5AssetTransferQueryAccountCoinsBalance (this.extend (request, params));
-        }
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "list": [
+        //                     "coin": "USDT",
+        //                     "transferBalance": "1010",
+        //                     "walletBalance": "1010",
+        //                     "bonus": ""
+        //                 },
         //                 {
-        //                     "totalEquity": "18070.32797922",
-        //                     "accountIMRate": "0.0101",
-        //                     "totalMarginBalance": "18070.32797922",
-        //                     "totalInitialMargin": "182.60183684",
-        //                     "accountType": "UNIFIED",
-        //                     "totalAvailableBalance": "17887.72614237",
-        //                     "accountMMRate": "0",
-        //                     "totalPerpUPL": "-0.11001349",
-        //                     "totalWalletBalance": "18070.43799271",
-        //                     "totalMaintenanceMargin": "0.38106773",
-        //                     "coin": [
-        //                         {
-        //                             "availableToBorrow": "2.5",
-        //                             "accruedInterest": "0",
-        //                             "availableToWithdraw": "0.805994",
-        //                             "totalOrderIM": "0",
-        //                             "equity": "0.805994",
-        //                             "totalPositionMM": "0",
-        //                             "usdValue": "12920.95352538",
-        //                             "unrealisedPnl": "0",
-        //                             "borrowAmount": "0",
-        //                             "totalPositionIM": "0",
-        //                             "walletBalance": "0.805994",
-        //                             "cumRealisedPnl": "0",
-        //                             "coin": "BTC"
-        //                         }
-        //                     ]
+        //                     "coin": "USDC",
+        //                     "transferBalance": "0",
+        //                     "walletBalance": "0",
+        //                     "bonus": ""
         //                 }
         //             ]
         //         },
         //         "retExtInfo": {},
-        //         "time": 1672125441042
+        //         "time": 1675865290069
         //     }
         //
         return this.parseBalance (response);
-    }
-
-    async fetchUSDCBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance (params);
-        //
-        //    {
-        //      "result": {
-        //           "walletBalance": "10.0000",
-        //           "accountMM": "0.0000",
-        //           "bonus": "0.0000",
-        //           "accountIM": "0.0000",
-        //           "totalSessionRPL": "0.0000",
-        //           "equity": "10.0000",
-        //           "totalRPL": "0.0000",
-        //           "marginBalance": "10.0000",
-        //           "availableBalance": "10.0000",
-        //           "totalSessionUPL": "0.0000"
-        //       },
-        //       "retCode": "0",
-        //       "retMsg": "Success."
-        //    }
-        //
-        return this.parseBalance (response);
-    }
-
-    async fetchBalance (params = {}) {
-        /**
-         * @method
-         * @name bybit#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
-        await this.loadMarkets ();
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        if (type === 'spot') {
-            return await this.fetchSpotBalance (query);
-        }
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        if (enableUnifiedAccount) {
-            return await this.fetchDerivativesBalance (params);
-        } else if (enableUnifiedMargin) {
-            return await this.fetchUnifiedMarginBalance (query);
-        } else {
-            // linear/inverse future/swap
-            return await this.fetchDerivativesBalance (this.extend (query, { 'type': 'swap' }));
-        }
     }
 
     parseOrderStatus (status) {
