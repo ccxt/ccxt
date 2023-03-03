@@ -355,6 +355,7 @@ class bybit(Exchange):
                         'user/v3/private/query-api': 5,  # 10/s
                         'asset/v3/private/transfer/transfer-coin/list/query': 0.84,  # 60/s
                         'asset/v3/private/transfer/account-coin/balance/query': 0.84,  # 60/s
+                        'asset/v3/private/transfer/account-coins/balance/query': 0.84,  # 60/s
                         'asset/v3/private/transfer/asset-info/query': 0.84,  # 60/s
                         'asset/v3/public/deposit/allowed-deposit-list/query': 0.17,  # 300/s
                         'asset/v3/private/deposit/record/query': 0.17,  # 300/s
