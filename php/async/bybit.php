@@ -7306,10 +7306,16 @@ class bybit extends Exchange {
             $sellLeverage = null;
             $buyLeverage = null;
             if ($leverage === null) {
-                $sellLeverage = $this->safe_number_2($params, 'sell_leverage', 'sellLeverage');
-                $buyLeverage = $this->safe_number_2($params, 'buy_leverage', 'buyLeverage');
+                $sellLeverage = $this->safe_string_2($params, 'sell_leverage', 'sellLeverage');
+                $buyLeverage = $this->safe_string_2($params, 'buy_leverage', 'buyLeverage');
                 if ($sellLeverage === null && $buyLeverage === null) {
                     throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter or sell_leverage and buy_leverage parameters');
+                }
+                if ($buyLeverage === null) {
+                    $buyLeverage = $sellLeverage;
+                }
+                if ($sellLeverage === null) {
+                    $sellLeverage = $buyLeverage;
                 }
                 $params = $this->omit($params, array( 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ));
             } else {

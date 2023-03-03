@@ -6776,10 +6776,14 @@ class bybit(Exchange):
         sellLeverage = None
         buyLeverage = None
         if leverage is None:
-            sellLeverage = self.safe_number_2(params, 'sell_leverage', 'sellLeverage')
-            buyLeverage = self.safe_number_2(params, 'buy_leverage', 'buyLeverage')
+            sellLeverage = self.safe_string_2(params, 'sell_leverage', 'sellLeverage')
+            buyLeverage = self.safe_string_2(params, 'buy_leverage', 'buyLeverage')
             if sellLeverage is None and buyLeverage is None:
                 raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters')
+            if buyLeverage is None:
+                buyLeverage = sellLeverage
+            if sellLeverage is None:
+                sellLeverage = buyLeverage
             params = self.omit(params, ['buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage'])
         else:
             params = self.omit(params, 'leverage')
