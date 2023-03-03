@@ -683,16 +683,16 @@ export default class gate extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
-        let promises = [
+        let rawPromises = [
             this.fetchContractMarkets (params),
             this.fetchOptionMarkets (params),
         ];
         if (!sandboxMode) {
             // gate does not have a sandbox for spot markets
             const mainnetOnly = [ this.fetchSpotMarkets (params) ];
-            promises = this.arrayConcat (promises, mainnetOnly);
+            rawPromises = this.arrayConcat (rawPromises, mainnetOnly);
         }
-        promises = await Promise.all (promises);
+        const promises = await Promise.all (rawPromises);
         const spotMarkets = this.safeValue (promises, 0, []);
         const contractMarkets = this.safeValue (promises, 1, []);
         const optionMarkets = this.safeValue (promises, 2, []);

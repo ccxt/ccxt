@@ -386,7 +386,7 @@ export default class bybit extends bybitRest {
                 stored.append (parsed);
             }
         } else {
-            const parsed = this.parseSpotOHLCV (data);
+            const parsed = this.parseOHLCV (data, market);
             stored.append (parsed);
         }
         const messageHash = 'kline' + ':' + timeframeId + ':' + symbol;

@@ -1125,7 +1125,7 @@ export default class bybit extends Exchange {
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         const enableUnifiedAccount = this.safeValue (this.options, 'enableUnifiedAccount');
         if (enableUnifiedMargin === undefined || enableUnifiedAccount === undefined) {
-            const response = await this.privateGetUserV3PrivateQueryApi (params);
+            const response = await (this as any).privateGetUserV3PrivateQueryApi (params);
             //
             //     {
             //         "retCode":0,
@@ -1175,7 +1175,7 @@ export default class bybit extends Exchange {
     }
 
     async upgradeUnifiedTradeAccount (params = {}) {
-        return await this.privatePostV5AccountUpgradeToUta (params);
+        return await (this as any).privatePostV5AccountUpgradeToUta (params);
     }
 
     async fetchTime (params = {}) {
@@ -1215,7 +1215,7 @@ export default class bybit extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
         }
-        const response = await this.privateGetV5AssetCoinQueryInfo (params);
+        const response = await (this as any).privateGetV5AssetCoinQueryInfo (params);
         //
         //     {
         //         "retCode": 0,
@@ -1338,7 +1338,7 @@ export default class bybit extends Exchange {
         const request = {
             'category': 'spot',
         };
-        const response = await this.publicGetV5MarketInstrumentsInfo (this.extend (request, params));
+        const response = await (this as any).publicGetV5MarketInstrumentsInfo (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -1443,7 +1443,7 @@ export default class bybit extends Exchange {
 
     async fetchDerivativesMarkets (params) {
         params['limit'] = 1000; // minimize number of requests
-        const response = await this.publicGetV5MarketInstrumentsInfo (params);
+        const response = await (this as any).publicGetV5MarketInstrumentsInfo (params);
         const data = this.safeValue (response, 'result', {});
         let markets = this.safeValue (data, 'list', []);
         let paginationCursor = this.safeString (data, 'nextPageCursor');
@@ -1810,7 +1810,7 @@ export default class bybit extends Exchange {
                 request['category'] = 'inverse';
             }
         }
-        const response = await this.publicGetV5MarketTickers (this.extend (request, params));
+        const response = await (this as any).publicGetV5MarketTickers (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -1887,7 +1887,7 @@ export default class bybit extends Exchange {
         } else if (type === 'option') {
             request['category'] = 'option';
         }
-        const response = await this.publicGetV5MarketTickers (this.extend (request, params));
+        const response = await (this as any).publicGetV5MarketTickers (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -2142,7 +2142,7 @@ export default class bybit extends Exchange {
             [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', market, params, 'linear');
             request['category'] = subType;
         }
-        const response = await this.publicGetV5MarketTickers (this.extend (request, params));
+        const response = await (this as any).publicGetV5MarketTickers (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -2237,7 +2237,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetV5MarketFundingHistory (this.extend (request, params));
+        const response = await (this as any).publicGetV5MarketFundingHistory (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -2548,7 +2548,7 @@ export default class bybit extends Exchange {
                 request['category'] = 'inverse';
             }
         }
-        const response = await this.publicGetV5MarketRecentTrade (this.extend (request, params));
+        const response = await (this as any).publicGetV5MarketRecentTrade (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -2611,7 +2611,7 @@ export default class bybit extends Exchange {
             }
         }
         request['limit'] = (limit !== undefined) ? limit : defaultLimit;
-        const response = await this.publicGetV5MarketOrderbook (this.extend (request, params));
+        const response = await (this as any).publicGetV5MarketOrderbook (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -3021,9 +3021,9 @@ export default class bybit extends Exchange {
         };
         let response = undefined;
         if (type === 'unified') {
-            response = await this.privateGetV5AccountWalletBalance (this.extend (request, params));
+            response = await (this as any).privateGetV5AccountWalletBalance (this.extend (request, params));
         } else {
-            response = await this.privateGetV5AssetTransferQueryAccountCoinsBalance (this.extend (request, params));
+            response = await (this as any).privateGetV5AssetTransferQueryAccountCoinsBalance (this.extend (request, params));
         }
         //
         //     {
@@ -3536,7 +3536,7 @@ export default class bybit extends Exchange {
             request['orderLinkId'] = this.uuid16 ();
         }
         params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ]);
-        const response = await this.privatePostV5OrderCreate (this.extend (request, params));
+        const response = await (this as any).privatePostV5OrderCreate (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -3965,7 +3965,7 @@ export default class bybit extends Exchange {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        const response = await this.privatePostV5OrderAmend (this.extend (request, params));
+        const response = await (this as any).privatePostV5OrderAmend (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -4164,7 +4164,7 @@ export default class bybit extends Exchange {
         } else {
             throw new NotSupported (this.id + ' cancelOrder() does not allow inverse market orders for ' + symbol + ' markets');
         }
-        const response = await this.privatePostV5OrderCancel (this.extend (request, params));
+        const response = await (this as any).privatePostV5OrderCancel (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -4392,7 +4392,7 @@ export default class bybit extends Exchange {
         if (isStop) {
             request['orderFilter'] = 'tpslOrder';
         }
-        const response = await this.privatePostV5OrderCancelAll (this.extend (request, params));
+        const response = await (this as any).privatePostV5OrderCancelAll (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -4682,7 +4682,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV5OrderHistory (this.extend (request, params));
+        const response = await (this as any).privateGetV5OrderHistory (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -4865,7 +4865,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV5OrderHistory (this.extend (request, params));
+        const response = await (this as any).privateGetV5OrderHistory (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -5128,7 +5128,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV5OrderRealtime (this.extend (request, params));
+        const response = await (this as any).privateGetV5OrderRealtime (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -5358,7 +5358,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV5OrderRealtime (this.extend (request, params));
+        const response = await (this as any).privateGetV5OrderRealtime (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -5555,7 +5555,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 50
         }
-        const response = await this.privateGetV5ExecutionList (this.extend (request, params));
+        const response = await (this as any).privateGetV5ExecutionList (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -5757,7 +5757,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 100
         }
-        const response = await this.privateGetV5ExecutionList (this.extend (request, params));
+        const response = await (this as any).privateGetV5ExecutionList (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -5934,7 +5934,7 @@ export default class bybit extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await this.privateGetV5AssetDepositQueryAddress (this.extend (request, params));
+        const response = await (this as any).privateGetV5AssetDepositQueryAddress (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -5984,7 +5984,7 @@ export default class bybit extends Exchange {
         if (networkId !== undefined) {
             request['chainType'] = networkId;
         }
-        const response = await this.privateGetV5AssetDepositQueryAddress (this.extend (request, query));
+        const response = await (this as any).privateGetV5AssetDepositQueryAddress (this.extend (request, query));
         //
         //     {
         //         "retCode": 0,
@@ -6045,7 +6045,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV5AssetDepositQueryRecord (this.extend (request, params));
+        const response = await (this as any).privateGetV5AssetDepositQueryRecord (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -6107,7 +6107,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV5AssetWithdrawQueryRecord (this.extend (request, params));
+        const response = await (this as any).privateGetV5AssetWithdrawQueryRecord (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -6946,7 +6946,7 @@ export default class bybit extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params, 'linear');
         request['category'] = subType;
-        const response = await this.privateGetV5PositionList (this.extend (request, params));
+        const response = await (this as any).privateGetV5PositionList (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -7254,7 +7254,7 @@ export default class bybit extends Exchange {
         const request = {
             'setMarginMode': marginMode,
         };
-        const response = await this.privatePostV5AccountSetMarginMode (this.extend (request, params));
+        const response = await (this as any).privatePostV5AccountSetMarginMode (this.extend (request, params));
         //
         //  {
         //      "setMarginMode": "PORTFOLIO_MARGIN"
@@ -7420,7 +7420,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetV5MarketOpenInterest (this.extend (request, params));
+        const response = await (this as any).publicGetV5MarketOpenInterest (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -7481,7 +7481,7 @@ export default class bybit extends Exchange {
             'intervalTime': interval,
             'category': category,
         };
-        const response = await this.publicGetV5MarketOpenInterest (this.extend (request, params));
+        const response = await (this as any).publicGetV5MarketOpenInterest (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -7779,7 +7779,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV5AssetTransferQueryInterTransferList (this.extend (request, params));
+        const response = await (this as any).privateGetV5AssetTransferQueryInterTransferList (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -7976,7 +7976,7 @@ export default class bybit extends Exchange {
         } else if (market['inverse']) {
             request['category'] = 'inverse';
         }
-        const response = await this.publicGetV5MarketRiskLimit (this.extend (request, params));
+        const response = await (this as any).publicGetV5MarketRiskLimit (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -8171,7 +8171,7 @@ export default class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.privateGetV5AccountFeeRate (this.extend (request, params));
+        const response = await (this as any).privateGetV5AccountFeeRate (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -8210,7 +8210,7 @@ export default class bybit extends Exchange {
         if (type === 'spot') {
             throw new NotSupported (this.id + ' fetchTradingFees() is not supported for spot market');
         }
-        const response = await this.privateGetV5AccountFeeRate (params);
+        const response = await (this as any).privateGetV5AccountFeeRate (params);
         //
         //     {
         //         "retCode": 0,

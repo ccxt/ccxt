@@ -3118,7 +3118,7 @@ export default class phemex extends Exchange {
             settle = market['settle'];
             code = market['settle'];
         } else {
-            [ settle, params ] = this.handleSettleAndParams ('fetchPositions', undefined, params, 'USD');
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', 'USD');
         }
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
         if (settle === 'USDT') {
@@ -3662,7 +3662,7 @@ export default class phemex extends Exchange {
         } else {
             request['targetPosMode'] = 'OneWay';
         }
-        return await this.privatePutGPositionsSwitchPosModeSync (this.extend (request, params));
+        return await (this as any).privatePutGPositionsSwitchPosModeSync (this.extend (request, params));
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {
