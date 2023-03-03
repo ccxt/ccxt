@@ -1018,7 +1018,7 @@ class deepwaters extends Exchange {
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
         $exchangeStatus = $this->safe_value($order, 'status');
-        $status = $this->safe_value($this->parse_order_status($exchangeStatus));
+        $status = $this->parse_order_status($exchangeStatus);
         $createdAtMicros = $this->safe_value($order, 'createdAtMicros');
         $timestamp = $this->parse_number(Precise::string_div($createdAtMicros, '1000', '0'));
         $datetime = $this->iso8601($timestamp);
@@ -1027,7 +1027,7 @@ class deepwaters extends Exchange {
         $baseAssetID = $this->safe_value($order, 'baseAssetID');
         $quoteAssetID = $this->safe_value($order, 'quoteAssetID');
         $market = $market ? $market : $this->market($baseAssetID . '-' . $quoteAssetID);
-        $symbol = $this->safe_value($order, 'symbol');
+        $symbol = $this->safe_value($market, 'symbol');
         $price = $this->safe_number($order, 'price');
         $average = $this->safe_number($order, 'averagePrice');
         $amount = $this->safe_number($order, 'originalQuantity');
