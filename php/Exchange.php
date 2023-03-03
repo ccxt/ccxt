@@ -385,6 +385,7 @@ class Exchange {
         'coinspot',
         'cryptocom',
         'currencycom',
+        'deepwaters',
         'delta',
         'deribit',
         'digifinex',
