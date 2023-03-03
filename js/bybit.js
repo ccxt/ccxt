@@ -2931,7 +2931,6 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        // let method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery';
         let method = undefined;
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         let type = undefined;
