@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.8.59';
+$version = '2.8.80';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.8.59';
+    const VERSION = '2.8.80';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1429,6 +1429,8 @@ class Exchange {
         //         }
         //     }
         // }
+
+        $this->options = $this->get_default_options();
 
         $this->urlencode_glue = ini_get('arg_separator.output'); // can be overrided by exchange constructor params
 

@@ -805,7 +805,7 @@ class whitebit extends \ccxt\async\whitebit {
         return Async\async(function () use ($params) {
             $this->check_required_credentials();
             $url = $this->urls['api']['ws'];
-            $messageHash = 'login';
+            $messageHash = 'authenticated';
             $client = $this->client($url);
             $future = $client->future ('authenticated');
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
@@ -830,7 +830,12 @@ class whitebit extends \ccxt\async\whitebit {
                     'id' => $id,
                     'method' => array($this, 'handle_authenticate'),
                 );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $subscription);
+                try {
+                    Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+                } catch (Exception $e) {
+                    unset($client->subscriptions[$messageHash]);
+                    $future->reject ($e);
+                }
             }
             return Async\await($future);
         }) ();
@@ -863,8 +868,8 @@ class whitebit extends \ccxt\async\whitebit {
         } catch (Exception $e) {
             if ($e instanceof AuthenticationError) {
                 $client->reject ($e, 'authenticated');
-                if (is_array($client->subscriptions) && array_key_exists('login', $client->subscriptions)) {
-                    unset($client->subscriptions['login']);
+                if (is_array($client->subscriptions) && array_key_exists('authenticated', $client->subscriptions)) {
+                    unset($client->subscriptions['authenticated']);
                 }
                 return false;
             }

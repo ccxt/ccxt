@@ -44,10 +44,12 @@ export default class gate extends Exchange {
                     'public': {
                         'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
                     },
                     'private': {
                         'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
                     },
                 },
                 'referral': {
@@ -431,6 +433,7 @@ export default class gate extends Exchange {
                 'X-Gate-Channel-Id': 'ccxt',
             },
             'options': {
+                'sandboxMode': false,
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
@@ -666,6 +669,11 @@ export default class gate extends Exchange {
         });
     }
 
+    setSandboxMode (enable) {
+        super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
+    }
+
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -674,15 +682,20 @@ export default class gate extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const rawPromises = [
-            this.fetchSpotMarkets (params),
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        let promises = [
             this.fetchContractMarkets (params),
             this.fetchOptionMarkets (params),
         ];
-        const promises = await Promise.all (rawPromises);
-        const spotMarkets = promises[0];
-        const contractMarkets = promises[1];
-        const optionMarkets = promises[2];
+        if (!sandboxMode) {
+            // gate does not have a sandbox for spot markets
+            const mainnetOnly = [ this.fetchSpotMarkets (params) ];
+            promises = this.arrayConcat (promises, mainnetOnly);
+        }
+        promises = await Promise.all (promises);
+        const spotMarkets = this.safeValue (promises, 0, []);
+        const contractMarkets = this.safeValue (promises, 1, []);
+        const optionMarkets = this.safeValue (promises, 2, []);
         const markets = this.arrayConcat (spotMarkets, contractMarkets);
         return this.arrayConcat (markets, optionMarkets);
     }

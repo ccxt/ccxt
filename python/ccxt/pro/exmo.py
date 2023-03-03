@@ -183,7 +183,7 @@ class exmo(Exchange, ccxt.async_support.exmo):
         #     }
         #
         data = self.safe_value(message, 'data')
-        self.balances['info'] = data
+        self.balance['info'] = data
         currencies = list(data.keys())
         for i in range(0, len(currencies)):
             currencyId = currencies[i]

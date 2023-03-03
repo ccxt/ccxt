@@ -733,7 +733,8 @@ class bybit(Exchange, ccxt.async_support.bybit):
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
-        isUnifiedMargin = await self.isUnifiedMarginEnabled()
+        unified = await self.isUnifiedEnabled()
+        isUnifiedMargin = self.safe_value(unified, 0, False)
         url = self.get_url_by_market_type(symbol, True, isUnifiedMargin, method, params)
         await self.authenticate(url)
         topicByMarket = {
@@ -840,7 +841,8 @@ class bybit(Exchange, ccxt.async_support.bybit):
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
-        isUnifiedMargin = await self.isUnifiedMarginEnabled()
+        unified = await self.isUnifiedEnabled()
+        isUnifiedMargin = self.safe_value(unified, 0, False)
         url = self.get_url_by_market_type(None, True, isUnifiedMargin, method, params)
         await self.authenticate(url)
         topicsByMarket = {
@@ -1091,7 +1093,8 @@ class bybit(Exchange, ccxt.async_support.bybit):
         """
         method = 'watchBalance'
         messageHash = 'balances'
-        isUnifiedMargin = await self.isUnifiedMarginEnabled()
+        unified = await self.isUnifiedEnabled()
+        isUnifiedMargin = self.safe_value(unified, 0, False)
         url = self.get_url_by_market_type(None, True, isUnifiedMargin, method, params)
         await self.authenticate(url)
         topicByMarket = {

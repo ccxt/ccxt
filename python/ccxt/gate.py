@@ -65,10 +65,12 @@ class gate(Exchange):
                     'public': {
                         'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
                     },
                     'private': {
                         'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
                     },
                 },
                 'referral': {
@@ -452,6 +454,7 @@ class gate(Exchange):
                 'X-Gate-Channel-Id': 'ccxt',
             },
             'options': {
+                'sandboxMode': False,
                 'createOrder': {
                     'expiration': 86400,  # for conditional orders
                 },
@@ -686,20 +689,28 @@ class gate(Exchange):
             },
         })
 
+    def set_sandbox_mode(self, enable):
+        super(gate, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable
+
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for gate
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         promises = [
-            self.fetch_spot_markets(params),
             self.fetch_contract_markets(params),
             self.fetch_option_markets(params),
         ]
-        spotMarkets = promises[0]
-        contractMarkets = promises[1]
-        optionMarkets = promises[2]
+        if not sandboxMode:
+            # gate does not have a sandbox for spot markets
+            mainnetOnly = [self.fetch_spot_markets(params)]
+            promises = self.array_concat(promises, mainnetOnly)
+        spotMarkets = self.safe_value(promises, 0, [])
+        contractMarkets = self.safe_value(promises, 1, [])
+        optionMarkets = self.safe_value(promises, 2, [])
         markets = self.array_concat(spotMarkets, contractMarkets)
         return self.array_concat(markets, optionMarkets)
 

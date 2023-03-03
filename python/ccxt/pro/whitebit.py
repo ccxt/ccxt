@@ -729,7 +729,7 @@ class whitebit(Exchange, ccxt.async_support.whitebit):
     async def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']
-        messageHash = 'login'
+        messageHash = 'authenticated'
         client = self.client(url)
         future = client.future('authenticated')
         authenticated = self.safe_value(client.subscriptions, messageHash)
@@ -754,7 +754,11 @@ class whitebit(Exchange, ccxt.async_support.whitebit):
                 'id': id,
                 'method': self.handle_authenticate,
             }
-            self.spawn(self.watch, url, messageHash, request, messageHash, subscription)
+            try:
+                await self.watch(url, messageHash, request, messageHash, subscription)
+            except Exception as e:
+                del client.subscriptions[messageHash]
+                future.reject(e)
         return await future
 
     def handle_authenticate(self, client, message):
@@ -782,8 +786,8 @@ class whitebit(Exchange, ccxt.async_support.whitebit):
         except Exception as e:
             if isinstance(e, AuthenticationError):
                 client.reject(e, 'authenticated')
-                if 'login' in client.subscriptions:
-                    del client.subscriptions['login']
+                if 'authenticated' in client.subscriptions:
+                    del client.subscriptions['authenticated']
                 return False
         return message
 

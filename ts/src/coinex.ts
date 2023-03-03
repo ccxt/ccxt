@@ -522,8 +522,8 @@ export default class coinex extends Exchange {
             const fees = this.fees;
             const leverages = this.safeValue (entry, 'leverages', []);
             const subType = this.safeInteger (entry, 'type');
-            const linear = (subType === 1) ? true : false;
-            const inverse = (subType === 2) ? true : false;
+            const linear = (subType === 1);
+            const inverse = (subType === 2);
             const id = this.safeString (entry, 'name');
             const baseId = this.safeString (entry, 'stock');
             const quoteId = this.safeString (entry, 'money');
@@ -554,22 +554,22 @@ export default class coinex extends Exchange {
                 'inverse': inverse,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
-                'contractSize': undefined,
+                'contractSize': this.safeNumber (entry, 'multiplier'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'stock_prec'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'amount_prec'))),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'money_prec'))),
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.safeString (leverages, 0),
-                        'max': this.safeString (leverages, leveragesLength - 1),
+                        'min': this.safeNumber (leverages, 0),
+                        'max': this.safeNumber (leverages, leveragesLength - 1),
                     },
                     'amount': {
-                        'min': this.safeString (entry, 'amount_min'),
+                        'min': this.safeNumber (entry, 'amount_min'),
                         'max': undefined,
                     },
                     'price': {

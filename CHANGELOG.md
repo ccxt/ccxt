@@ -2,6 +2,98 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.80 (2023-03-03)
+
+### 2.8.79 (2023-03-02)
+
+### 2.8.78 (2023-03-02)
+
+
+### Bug Fixes
+
+* **whitebit:** handle authenticate error ([39cd58c](https://github.com/ccxt/ccxt/commit/39cd58c62843473cb2aa314d80f4916f93007de4))
+
+### 2.8.77 (2023-03-02)
+
+### 2.8.76 (2023-03-02)
+
+
+### Bug Fixes
+
+* **Gate:** sandbox markets loading ([b564e9d](https://github.com/ccxt/ccxt/commit/b564e9dd4607b0ec2d278fcf5502cfc1e8b5e4cf))
+
+### 2.8.75 (2023-03-02)
+
+### 2.8.74 (2023-03-02)
+
+
+### Bug Fixes
+
+* **Cex:** incorrect currency precision parsing ([ea6c278](https://github.com/ccxt/ccxt/commit/ea6c278e7d216686bbcbc322af10e3b04970d7bc))
+
+### 2.8.73 (2023-03-02)
+
+
+### Bug Fixes
+
+* **ascendex:** fix [#17010](https://github.com/ccxt/ccxt/issues/17010) ([fb03e92](https://github.com/ccxt/ccxt/commit/fb03e924662a147ab394698f0958eaee8f91cb7c))
+
+### 2.8.72 (2023-03-02)
+
+### 2.8.71 (2023-03-02)
+
+
+### Bug Fixes
+
+* **bybit:** setMarginMode rename and leverage ([4fc1fef](https://github.com/ccxt/ccxt/commit/4fc1fef9fe7ce34ff4b44e7a1dc297e5fd4a6875))
+
+### 2.8.70 (2023-03-02)
+
+### 2.8.69 (2023-03-01)
+
+
+### Bug Fixes
+
+* **Exchange:** restore options ([3fa16bb](https://github.com/ccxt/ccxt/commit/3fa16bba1fa3e533ced07850d1117a73f2fad68a))
+
+### 2.8.68 (2023-03-01)
+
+### 2.8.67 (2023-03-01)
+
+
+### Bug Fixes
+
+* **Bybit:** timeframe parsing ([9178d79](https://github.com/ccxt/ccxt/commit/9178d792144469882f54eccbacd04155483bb9a9))
+
+### 2.8.66 (2023-03-01)
+
+
+### Bug Fixes
+
+* **bybit:** remove isUnifiedMarginEnabled from ws ([83f895b](https://github.com/ccxt/ccxt/commit/83f895b025c96a00909cedb61dba3ff78aa0e0e4))
+
+### 2.8.65 (2023-03-01)
+
+
+### Bug Fixes
+
+* **bybit:** fix fetchOHLCV since ([6025fdc](https://github.com/ccxt/ccxt/commit/6025fdc00b19a280da078832502066fc2bc0f3e5))
+
+### 2.8.64 (2023-03-01)
+
+### 2.8.63 (2023-03-01)
+
+### 2.8.62 (2023-03-01)
+
+### 2.8.61 (2023-03-01)
+
+### 2.8.60 (2023-02-28)
+
+
+### Bug Fixes
+
+* **exmo:** watchBalance info ([ac097d0](https://github.com/ccxt/ccxt/commit/ac097d088409f5648e18d37735bba3b91688a82e))
+
 ### 2.8.59 (2023-02-28)
 
 ### 2.8.58 (2023-02-28)

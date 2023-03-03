@@ -314,7 +314,7 @@ export default class cex extends Exchange {
                 'active': active,
                 'deposit': undefined,
                 'withdraw': undefined,
-                'precision': this.parseNumber (this.safeString (currency, 'precision')),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
                 'fee': undefined,
                 'limits': {
                     'amount': {

@@ -194,7 +194,7 @@ class exmo extends \ccxt\async\exmo {
         //     }
         //
         $data = $this->safe_value($message, 'data');
-        $this->balances['info'] = $data;
+        $this->balance['info'] = $data;
         $currencies = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currencyId = $currencies[$i];

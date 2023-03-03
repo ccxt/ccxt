@@ -519,8 +519,8 @@ class coinex extends Exchange {
             $fees = $this->fees;
             $leverages = $this->safe_value($entry, 'leverages', array());
             $subType = $this->safe_integer($entry, 'type');
-            $linear = ($subType === 1) ? true : false;
-            $inverse = ($subType === 2) ? true : false;
+            $linear = ($subType === 1);
+            $inverse = ($subType === 2);
             $id = $this->safe_string($entry, 'name');
             $baseId = $this->safe_string($entry, 'stock');
             $quoteId = $this->safe_string($entry, 'money');
@@ -551,22 +551,22 @@ class coinex extends Exchange {
                 'inverse' => $inverse,
                 'taker' => $fees['trading']['taker'],
                 'maker' => $fees['trading']['maker'],
-                'contractSize' => null,
+                'contractSize' => $this->safe_number($entry, 'multiplier'),
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'stock_prec'))),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'amount_prec'))),
                     'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'money_prec'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
-                        'min' => $this->safe_string($leverages, 0),
-                        'max' => $this->safe_string($leverages, $leveragesLength - 1),
+                        'min' => $this->safe_number($leverages, 0),
+                        'max' => $this->safe_number($leverages, $leveragesLength - 1),
                     ),
                     'amount' => array(
-                        'min' => $this->safe_string($entry, 'amount_min'),
+                        'min' => $this->safe_number($entry, 'amount_min'),
                         'max' => null,
                     ),
                     'price' => array(
