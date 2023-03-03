@@ -146,11 +146,11 @@ module.exports = class krakenfutures extends krakenfuturesRest {
     async watchTrades (symbol, params = {}) {
         /**
          * @method
-         * @name krakenfutures#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @name krakenfuturest#watchTrades
+         * @description watches information on multiple trades made in a market
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         return await this.watchPublic ('trade', symbol, params);
     }
