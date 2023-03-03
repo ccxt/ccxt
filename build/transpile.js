@@ -1924,15 +1924,20 @@ class Transpiler {
             phpBody += pre + obj.php[iPH+1].trim()  + '\n' + obj.php[iPH+2] + '\n' + obj.php[iPH+3].trim();
             phpBodyAsync += pre + obj.phpAsync[iPH+1].trim()  + '\n'+ indentRemove(obj.phpAsync[iPH+2]) + '\n' + obj.phpAsync[iPH+3].trim();
         }
-        const ohlcvCaser = (content) => content.
-            replace ('testOHLCV', 'test_ohlcv')
-        python3Body = ohlcvCaser(python3Body).replace (/\(self, /g, '(').replace ('exchange[method]', 'getattr(exchange,method)');
-        const phpExtra = (content) => ohlcvCaser (content).
+        const ohlcvCaser = (content) => content.replace ('testOHLCV', 'test_ohlcv')
+
+        python3Body = ohlcvCaser(python3Body).
+            replace (/\(self, /g, '(').
+            replace ('exchange[method]', 'getattr(exchange,method)').
+            // add one more newline before function
+            replace (/(async |)def (\w)/gs, '\n$1def $2')
+
+        const phpRefine = (content) => ohlcvCaser (content).
             replace (/public /g, '').
             replace ('exchange[$method]', 'exchange->$method').
             replace (/strlen/g, 'count') // temp fix for php strlen
-        phpBody = phpExtra(phpBody)
-        phpBodyAsync = phpExtra(phpBodyAsync)
+        phpBody = phpRefine(phpBody)
+        phpBodyAsync = phpRefine(phpBodyAsync)
 
         let pythonHeader = []
         let phpHeaderSync = []
@@ -1956,7 +1961,7 @@ class Transpiler {
                 const capitalizedName = 'test' + capitalize(subTestName);
                 const snake_case = 'test_' + unCamelCase(subTestName);
                 // python
-                pythonHeader.push ((subTestName === 'sharedMethods'? '' : `from ${snake_case}`) + `import ${snake_case}  # noqa E402`)
+                pythonHeader.push ((subTestName === 'sharedMethods'? '' : `from ${snake_case} `) + `import ${snake_case}  # noqa E402`)
                 python3Body = subTestNameUnCamelCase(python3Body, capitalizedName, false)
                 // php
                 phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
@@ -1993,9 +1998,9 @@ class Transpiler {
         const finalPhpContentSync = phpPreambleSync + phpBody
         const finalPyContentAsync = pythonPreamble + python3Body
         
-        log.magenta ('→', test.pyFile.yellow)
-        log.magenta ('→', test.phpFile.yellow)
+        log.magenta ('→', test.pyFileAsync.yellow)
         overwriteFile (test.pyFileAsync, finalPyContentAsync)
+        log.magenta ('→', test.phpFileAsync.yellow)
         overwriteFile (test.phpFileAsync, finalPhpContentAsync)
         this.transpilePythonAsyncToSync (test.pyFileAsync, test.pyFile);
         //doesnt work: this.transpilePhpAsyncToSync (test.phpFileAsync, test.phpFile);
