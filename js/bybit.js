@@ -2931,7 +2931,8 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        let method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery';
+        // let method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery';
+        let method = undefined;
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
@@ -2945,7 +2946,7 @@ module.exports = class bybit extends Exchange {
                 if (marginMode !== undefined) {
                     method = 'privateGetSpotV3PrivateCrossMarginAccount';
                 } else {
-                    request['accountType'] = 'SPOT';
+                    method = 'privateGetSpotV3PrivateAccount';
                 }
             }
         } else if (enableUnifiedAccount || enableUnifiedMargin) {
@@ -2959,7 +2960,15 @@ module.exports = class bybit extends Exchange {
         }
         if (!isSpot) {
             const accountTypes = this.safeValue (this.options, 'accountsByType', {});
-            request['accountType'] = this.safeString (accountTypes, type);
+            const unifiedType = this.safeString (accountTypes, type);
+            if (unifiedType === 'FUND') {
+                // use this endpoint only we have no other choice
+                // because it requires transfer permission
+                method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery';
+                request['accountType'] = unifiedType;
+            } else {
+                method = 'privateGetContractV3PrivateAccountWalletBalance';
+            }
         }
         const response = await this[method] (this.extend (request, params));
         //
