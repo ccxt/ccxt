@@ -714,7 +714,7 @@ module.exports = class krakenfutures extends Exchange {
         //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'fillTime'));
         const price = this.safeString (trade, 'price');
-        const amount = this.safeString2 (trade, 'size', 'amount', '0.0');
+        const amount = this.safeStringN (trade, [ 'size', 'amount', 'qty' ], '0.0');
         let id = this.safeString2 (trade, 'uid', 'fill_id');
         if (id === undefined) {
             id = this.safeString (trade, 'executionId');

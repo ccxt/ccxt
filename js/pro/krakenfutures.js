@@ -4,6 +4,7 @@
 
 const krakenfuturesRest = require ('../krakenfutures.js');
 const { BadSymbol, BadRequest } = require ('../base/errors');
+const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -144,6 +145,18 @@ module.exports = class krakenfutures extends krakenfuturesRest {
         return await this.watchPublic ('ticker', symbol, params);
     }
 
+    async watchTrades (symbol, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        return await this.watchPublic ('trade', symbol, params);
+    }
+
     async watchHeartbeat (params = {}) {
         await this.loadMarkets ();
         const event = 'heartbeat';
@@ -159,6 +172,59 @@ module.exports = class krakenfutures extends krakenfuturesRest {
         //
         const event = this.safeString (message, 'event');
         client.resolve (message, event);
+    }
+
+    handleTrades (client, message) {
+        //
+        // snapshot
+        // {
+        //     feed: 'trade_snapshot',
+        //     product_id: 'PF_XBTUSD',
+        //     trades: [
+        //       {
+        //         feed: 'trade',
+        //         product_id: 'PF_XBTUSD',
+        //         uid: 'e074476f-09de-4c39-9538-1c1fc485a3af',
+        //         side: 'buy',
+        //         type: 'fill',
+        //         seq: 46590,
+        //         time: 1677863497310,
+        //         qty: 1,
+        //         price: 22437
+        //       }
+        //     ]
+        //   }
+        //
+        // single trade
+        //
+        //   {
+        //       feed: 'trade',
+        //       product_id: 'PF_XBTUSD',
+        //       uid: 'cf0932f3-a048-4f23-821f-1cc24a50b922',
+        //       side: 'buy',
+        //       type: 'fill',
+        //       seq: 46690,
+        //       time: 1677865802580,
+        //       qty: 0.0489,
+        //       price: 22429
+        //   }
+        //
+        const trades = this.safeValue (message, 'trades', [ message ]);
+        const marketId = this.safeStringLower (message, 'product_id');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
+        for (let j = 0; j < trades.length; j++) {
+            const parsed = this.parseTrade (trades[j], market);
+            stored.append (parsed);
+        }
+        const messageHash = 'trade' + ':' + symbol;
+        client.resolve (stored, messageHash);
     }
 
     handleSubscriptionStatus (client, message) {
@@ -206,6 +272,8 @@ module.exports = class krakenfutures extends krakenfuturesRest {
         const methods = {
             // public
             'ticker': this.handleTicker,
+            'trade': this.handleTrades,
+            'trade_snapshot': this.handleTrades,
         };
         const method = this.safeValue (methods, name);
         if (method === undefined) {
