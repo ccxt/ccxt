@@ -361,16 +361,32 @@ class deepwaters(Exchange):
             balance = balances[i]
             currencyId = self.safe_value(balance, 'assetID')
             currency = self.safe_value(self.currencies_by_id, currencyId)
+            if not currency:
+                # self is only needed in sandbox mode, if you get airdrops
+                continue
             currencyCode = self.safe_value(currency, 'code')
+            if not output[currencyCode]:
+                output[currencyCode] = {
+                    'used': '0',
+                    'free': '0',
+                }
+                output['used'][currencyCode] = '0'
+                output['free'][currencyCode] = '0'
             amount = self.safe_value(balance, 'amount')
-            output[currencyCode] = {
-                'total': amount,
-                'free': amount,
-                'used': '0',
-            }
-            output.total[currencyCode] = amount
-            output.free[currencyCode] = amount
-            output.used[currencyCode] = '0'
+            serviceName = self.safe_value(balance, 'serviceName')
+            if serviceName == 'accounting.available':
+                output[currencyCode]['free'] = amount
+                output['free'][currencyCode] = amount
+            elif serviceName == 'fee' or serviceName == 'swap.engine':
+                used = Precise.string_add(output[currencyCode]['used'], amount)
+                output[currencyCode]['used'] = used
+                output['used'][currencyCode] = used
+        keys = list(output['used'].keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            total = Precise.string_add(output['used'][key], output['free'][key])
+            output['total'][key] = total
+            output[key]['total'] = total
         return self.safe_balance(output)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -494,11 +510,9 @@ class deepwaters(Exchange):
             userWasMaker = self.safe_value(market, 'userWasMaker')
             maker = 'maker' if userWasMaker else 'taker'
             side = userWasMaker == 'buy' if makerWasBuyer else 'sell'
-            price = self.safe_value(market, 'price')
-            precisionPrice = self.price_to_precision(symbol, price)
-            amount = self.safe_value(market, 'quantity')
-            precisionAmount = self.amount_to_precision(symbol, amount)
-            cost = precisionAmount * precisionPrice
+            price = self.safe_number(market, 'price')
+            amount = self.safe_number(market, 'quantity')
+            cost = Precise.string_mul(self.safe_value(market, 'price'), self.safe_value(market, 'quantity'))
             userWasAggressor = self.safe_value(market, 'userWasAggressor')
             type = 'market' if userWasAggressor else 'limit'
             output.append(self.safe_trade({
@@ -511,8 +525,8 @@ class deepwaters(Exchange):
                 'type': type,
                 'side': side,
                 'takerOrMaker': maker,
-                'price': precisionPrice,
-                'amount': precisionAmount,
+                'price': price,
+                'amount': amount,
                 'cost': cost,
             }))
         return output

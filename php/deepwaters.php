@@ -368,16 +368,36 @@ class deepwaters extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_value($balance, 'assetID');
             $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+            if (!$currency) {
+                // this is only needed in sandbox mode, if you get airdrops
+                continue;
+            }
             $currencyCode = $this->safe_value($currency, 'code');
+            if (!$output[$currencyCode]) {
+                $output[$currencyCode] = array(
+                    'used' => '0',
+                    'free' => '0',
+                );
+                $output['used'][$currencyCode] = '0';
+                $output['free'][$currencyCode] = '0';
+            }
             $amount = $this->safe_value($balance, 'amount');
-            $output[$currencyCode] = array(
-                'total' => $amount,
-                'free' => $amount,
-                'used' => '0',
-            );
-            $output->total[$currencyCode] = $amount;
-            $output->free[$currencyCode] = $amount;
-            $output->used[$currencyCode] = '0';
+            $serviceName = $this->safe_value($balance, 'serviceName');
+            if ($serviceName === 'accounting.available') {
+                $output[$currencyCode]['free'] = $amount;
+                $output['free'][$currencyCode] = $amount;
+            } elseif ($serviceName === 'fee' || $serviceName === 'swap.engine') {
+                $used = Precise::string_add($output[$currencyCode]['used'], $amount);
+                $output[$currencyCode]['used'] = $used;
+                $output['used'][$currencyCode] = $used;
+            }
+        }
+        $keys = is_array($output['used']) ? array_keys($output['used']) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $total = Precise::string_add($output['used'][$key], $output['free'][$key]);
+            $output['total'][$key] = $total;
+            $output[$key]['total'] = $total;
         }
         return $this->safe_balance($output);
     }
@@ -512,11 +532,9 @@ class deepwaters extends Exchange {
             $userWasMaker = $this->safe_value($market, 'userWasMaker');
             $maker = $userWasMaker ? 'maker' : 'taker';
             $side = $userWasMaker === $makerWasBuyer ? 'buy' : 'sell';
-            $price = $this->safe_value($market, 'price');
-            $precisionPrice = $this->price_to_precision($symbol, $price);
-            $amount = $this->safe_value($market, 'quantity');
-            $precisionAmount = $this->amount_to_precision($symbol, $amount);
-            $cost = $precisionAmount * $precisionPrice;
+            $price = $this->safe_number($market, 'price');
+            $amount = $this->safe_number($market, 'quantity');
+            $cost = Precise::string_mul($this->safe_value($market, 'price'), $this->safe_value($market, 'quantity'));
             $userWasAggressor = $this->safe_value($market, 'userWasAggressor');
             $type = $userWasAggressor ? 'market' : 'limit';
             $output[] = $this->safe_trade(array(
@@ -529,8 +547,8 @@ class deepwaters extends Exchange {
                 'type' => $type,
                 'side' => $side,
                 'takerOrMaker' => $maker,
-                'price' => $precisionPrice,
-                'amount' => $precisionAmount,
+                'price' => $price,
+                'amount' => $amount,
                 'cost' => $cost,
             ));
         }

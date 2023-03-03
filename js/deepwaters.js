@@ -371,16 +371,36 @@ module.exports = class deepwaters extends Exchange {
             const balance = balances[i];
             const currencyId = this.safeValue (balance, 'assetID');
             const currency = this.safeValue (this.currencies_by_id, currencyId);
+            if (!currency) {
+                // this is only needed in sandbox mode, if you get airdrops
+                continue;
+            }
             const currencyCode = this.safeValue (currency, 'code');
+            if (!output[currencyCode]) {
+                output[currencyCode] = {
+                    'used': '0',
+                    'free': '0',
+                };
+                output['used'][currencyCode] = '0';
+                output['free'][currencyCode] = '0';
+            }
             const amount = this.safeValue (balance, 'amount');
-            output[currencyCode] = {
-                'total': amount,
-                'free': amount,
-                'used': '0',
-            };
-            output.total[currencyCode] = amount;
-            output.free[currencyCode] = amount;
-            output.used[currencyCode] = '0';
+            const serviceName = this.safeValue (balance, 'serviceName');
+            if (serviceName === 'accounting.available') {
+                output[currencyCode]['free'] = amount;
+                output['free'][currencyCode] = amount;
+            } else if (serviceName === 'fee' || serviceName === 'swap.engine') {
+                const used = Precise.stringAdd (output[currencyCode]['used'], amount);
+                output[currencyCode]['used'] = used;
+                output['used'][currencyCode] = used;
+            }
+        }
+        const keys = Object.keys (output['used']);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const total = Precise.stringAdd (output['used'][key], output['free'][key]);
+            output['total'][key] = total;
+            output[key]['total'] = total;
         }
         return this.safeBalance (output);
     }
@@ -519,11 +539,9 @@ module.exports = class deepwaters extends Exchange {
             const userWasMaker = this.safeValue (market, 'userWasMaker');
             const maker = userWasMaker ? 'maker' : 'taker';
             const side = userWasMaker === makerWasBuyer ? 'buy' : 'sell';
-            const price = this.safeValue (market, 'price');
-            const precisionPrice = this.priceToPrecision (symbol, price);
-            const amount = this.safeValue (market, 'quantity');
-            const precisionAmount = this.amountToPrecision (symbol, amount);
-            const cost = precisionAmount * precisionPrice;
+            const price = this.safeNumber (market, 'price');
+            const amount = this.safeNumber (market, 'quantity');
+            const cost = Precise.stringMul (this.safeValue (market, 'price'), this.safeValue (market, 'quantity'));
             const userWasAggressor = this.safeValue (market, 'userWasAggressor');
             const type = userWasAggressor ? 'market' : 'limit';
             output.push (this.safeTrade ({
@@ -536,8 +554,8 @@ module.exports = class deepwaters extends Exchange {
                 'type': type,
                 'side': side,
                 'takerOrMaker': maker,
-                'price': precisionPrice,
-                'amount': precisionAmount,
+                'price': price,
+                'amount': amount,
                 'cost': cost,
             }));
         }
