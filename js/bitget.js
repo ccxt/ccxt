@@ -849,15 +849,13 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} response from the exchange
          */
-        // BITGET HAS NOT IMPLEMENTED THIS YET
-        // const unifiedResponse = {
-        //     'symbol': null,
-        //     'tradeMode': 'hedged',
-        // };
-        // return unifiedResponse;
-        const defaultSubType = this.safeString (this.options, 'defaultSubType');
+        if (!symbol) {
+            throw new ArgumentsRequired (this.id + ' setPositionMode requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const subType = this.getSubTypeFromMarketId (market['id']);
         const request = {
-            'productType': (defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
+            'productType': subType,
             'holdMode': hedged ? 'double_hold' : 'single_hold',
         };
         const response = await this.privateMixPostAccountSetPositionMode (this.extend (request, params));
@@ -3827,9 +3825,16 @@ module.exports = class bitget extends Exchange {
     async fetchAccountConfiguration (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const marginCoin = market['settleId'];
+        let fakeSymbol = symbol;
+        if (marginCoin === 'USDC') {
+            fakeSymbol = 'BTCPERP_CMCBL';
+        } else if (marginCoin === 'USDT') {
+            fakeSymbol = '1INCHUSDT_UMCBL';
+        }
         const request = {
-            'symbol': market['id'],
-            'marginCoin': market['settleId'],
+            'symbol': fakeSymbol,
+            'marginCoin': marginCoin,
         };
         const response = await this.privateMixGetAccountAccount (this.extend (request, params));
         const data = this.safeValue (response, 'data');
@@ -3868,6 +3873,8 @@ module.exports = class bitget extends Exchange {
         const accountConfig = {
             'info': data,
             'markets': {},
+            'tradeMode': tradeMode,
+            'marginType': isIsolated ? 'isolated' : 'cross',
         };
         const leverageConfigs = accountConfig['markets'];
         leverageConfigs[market['symbol']] = {

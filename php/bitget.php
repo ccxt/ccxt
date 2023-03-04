@@ -840,21 +840,19 @@ class bitget extends Exchange {
 
     public function set_position_mode($hedged, $symbol = null, $params = array ()) {
         /**
-         * set $hedged to true or false for a market
+         * set $hedged to true or false for a $market
          * @param {bool} $hedged set to true to use dualSidePosition
          * @param {string|null} $symbol not used by binance setPositionMode ()
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} $response from the exchange
          */
-        // BITGET HAS NOT IMPLEMENTED THIS YET
-        // $unifiedResponse = array(
-        //     'symbol' => null,
-        //     'tradeMode' => 'hedged',
-        // );
-        // return $unifiedResponse;
-        $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
+        if (!$symbol) {
+            throw new ArgumentsRequired($this->id . ' setPositionMode requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $subType = $this->get_sub_type_from_market_id($market['id']);
         $request = array(
-            'productType' => ($defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
+            'productType' => $subType,
             'holdMode' => $hedged ? 'double_hold' : 'single_hold',
         );
         $response = $this->privateMixPostAccountSetPositionMode (array_merge($request, $params));
@@ -3751,9 +3749,16 @@ class bitget extends Exchange {
     public function fetch_account_configuration($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
+        $marginCoin = $market['settleId'];
+        $fakeSymbol = $symbol;
+        if ($marginCoin === 'USDC') {
+            $fakeSymbol = 'BTCPERP_CMCBL';
+        } elseif ($marginCoin === 'USDT') {
+            $fakeSymbol = '1INCHUSDT_UMCBL';
+        }
         $request = array(
-            'symbol' => $market['id'],
-            'marginCoin' => $market['settleId'],
+            'symbol' => $fakeSymbol,
+            'marginCoin' => $marginCoin,
         );
         $response = $this->privateMixGetAccountAccount (array_merge($request, $params));
         $data = $this->safe_value($response, 'data');
@@ -3792,6 +3797,8 @@ class bitget extends Exchange {
         $accountConfig = array(
             'info' => $data,
             'markets' => array(),
+            'tradeMode' => $tradeMode,
+            'marginType' => $isIsolated ? 'isolated' : 'cross',
         );
         $leverageConfigs = $accountConfig['markets'];
         $leverageConfigs[$market['symbol']] = array(

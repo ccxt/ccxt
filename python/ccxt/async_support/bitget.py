@@ -857,15 +857,12 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: response from the exchange
         """
-        # BITGET HAS NOT IMPLEMENTED THIS YET
-        # unifiedResponse = {
-        #     'symbol': null,
-        #     'tradeMode': 'hedged',
-        # }
-        # return unifiedResponse
-        defaultSubType = self.safe_string(self.options, 'defaultSubType')
+        if not symbol:
+            raise ArgumentsRequired(self.id + ' setPositionMode requires a symbol argument')
+        market = self.market(symbol)
+        subType = self.get_sub_type_from_market_id(market['id'])
         request = {
-            'productType': 'umcbl' if (defaultSubType == 'linear') else 'dmcbl',
+            'productType': subType,
             'holdMode': 'double_hold' if hedged else 'single_hold',
         }
         response = await self.privateMixPostAccountSetPositionMode(self.extend(request, params))
@@ -3582,9 +3579,15 @@ class bitget(Exchange):
     async def fetch_account_configuration(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        marginCoin = market['settleId']
+        fakeSymbol = symbol
+        if marginCoin == 'USDC':
+            fakeSymbol = 'BTCPERP_CMCBL'
+        elif marginCoin == 'USDT':
+            fakeSymbol = '1INCHUSDT_UMCBL'
         request = {
-            'symbol': market['id'],
-            'marginCoin': market['settleId'],
+            'symbol': fakeSymbol,
+            'marginCoin': marginCoin,
         }
         response = await self.privateMixGetAccountAccount(self.extend(request, params))
         data = self.safe_value(response, 'data')
@@ -3621,6 +3624,8 @@ class bitget(Exchange):
         accountConfig = {
             'info': data,
             'markets': {},
+            'tradeMode': tradeMode,
+            'marginType': 'isolated' if isIsolated else 'cross',
         }
         leverageConfigs = accountConfig['markets']
         leverageConfigs[market['symbol']] = {
