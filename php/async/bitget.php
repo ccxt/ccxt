@@ -2468,6 +2468,7 @@ class bitget extends Exchange {
             $market = $this->market($symbol);
             list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
             $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
+            $tradeMode = $this->safe_value($params, 'tradeMode', 'hedged');
             $isTriggerOrder = $triggerPrice !== null;
             $stopLossPrice = null;
             $isStopLossOrder = null;
@@ -2600,15 +2601,19 @@ class bitget extends Exchange {
                         $method = 'privateMixPostPlanPlaceTPSL';
                     }
                 } else {
-                    if ($reduceOnly) {
-                        $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
+                    if ($tradeMode === 'oneway') {
+                        $request['side'] = ($side === 'buy') ? 'buy_single' : 'sell_single';
                     } else {
-                        $request['side'] = ($side === 'buy') ? 'open_long' : 'open_short';
+                        if ($reduceOnly) {
+                            $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
+                        } else {
+                            $request['side'] = ($side === 'buy') ? 'open_long' : 'open_short';
+                        }
                     }
                 }
                 $request['marginCoin'] = $market['settleId'];
             }
-            $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly' ));
+            $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'tradeMode', 'marginType' ));
             $response = Async\await($this->$method (array_merge($request, $omitted)));
             //
             //     {

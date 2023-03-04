@@ -2347,6 +2347,7 @@ class bitget(Exchange):
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
         triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        tradeMode = self.safe_value(params, 'tradeMode', 'hedged')
         isTriggerOrder = triggerPrice is not None
         stopLossPrice = None
         isStopLossOrder = None
@@ -2456,12 +2457,15 @@ class bitget(Exchange):
                 else:
                     method = 'privateMixPostPlanPlaceTPSL'
             else:
-                if reduceOnly:
-                    request['side'] = 'close_short' if (side == 'buy') else 'close_long'
+                if tradeMode == 'oneway':
+                    request['side'] = 'buy_single' if (side == 'buy') else 'sell_single'
                 else:
-                    request['side'] = 'open_long' if (side == 'buy') else 'open_short'
+                    if reduceOnly:
+                        request['side'] = 'close_short' if (side == 'buy') else 'close_long'
+                    else:
+                        request['side'] = 'open_long' if (side == 'buy') else 'open_short'
             request['marginCoin'] = market['settleId']
-        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly'])
+        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'tradeMode', 'marginType'])
         response = getattr(self, method)(self.extend(request, omitted))
         #
         #     {

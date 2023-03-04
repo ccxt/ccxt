@@ -2457,6 +2457,7 @@ module.exports = class bitget extends Exchange {
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+        const tradeMode = this.safeValue (params, 'tradeMode', 'hedged');
         let isTriggerOrder = triggerPrice !== undefined;
         let stopLossPrice = undefined;
         let isStopLossOrder = undefined;
@@ -2589,15 +2590,19 @@ module.exports = class bitget extends Exchange {
                     method = 'privateMixPostPlanPlaceTPSL';
                 }
             } else {
-                if (reduceOnly) {
-                    request['side'] = (side === 'buy') ? 'close_short' : 'close_long';
+                if (tradeMode === 'oneway') {
+                    request['side'] = (side === 'buy') ? 'buy_single' : 'sell_single';
                 } else {
-                    request['side'] = (side === 'buy') ? 'open_long' : 'open_short';
+                    if (reduceOnly) {
+                        request['side'] = (side === 'buy') ? 'close_short' : 'close_long';
+                    } else {
+                        request['side'] = (side === 'buy') ? 'open_long' : 'open_short';
+                    }
                 }
             }
             request['marginCoin'] = market['settleId'];
         }
-        const omitted = this.omit (query, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly' ]);
+        const omitted = this.omit (query, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'tradeMode', 'marginType' ]);
         const response = await this[method] (this.extend (request, omitted));
         //
         //     {
