@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.94 (2023-03-04)
+
+
+### Bug Fixes
+
+* **bybit:** parseTicker default type ([8a929fa](https://github.com/ccxt/ccxt/commit/8a929fa60908ba4d8ff31bb2b95945c1bf9353e1))
+
 ### 2.8.93 (2023-03-04)
 
 
