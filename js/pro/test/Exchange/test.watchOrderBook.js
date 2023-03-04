@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const log = require ('ololog')
-    , testOrderBook = require ('../../../test/Exchange/test.orderbook.js')
+    , testOrderBook = require ('../../../test/Exchange/test.orderBook.js')
     , errors = require ('../../../base/errors.js')
 
 /*  ------------------------------------------------------------------------ */
