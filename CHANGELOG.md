@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.88 (2023-03-04)
+
+
+### Features
+
+* **coinbasepro:** Added bidVolume and askVolume to watchTicker ([86ed8aa](https://github.com/ccxt/ccxt/commit/86ed8aaec409b9447019907024eaa6ad575c5a21))
+
 ### 2.8.87 (2023-03-04)
 
 ### 2.8.86 (2023-03-04)
