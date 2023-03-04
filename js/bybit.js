@@ -1746,9 +1746,9 @@ module.exports = class bybit extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'time');
         const marketId = this.safeString (ticker, 'symbol');
-        const marketType = (market !== undefined) ? market['type'] : 'linear';
-        market = this.safeMarket (marketId, market, undefined, marketType);
-        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        market = this.safeMarket (marketId, market, undefined, defaultType);
+        const symbol = this.safeSymbol (marketId, market, undefined, defaultType);
         const last = this.safeString (ticker, 'lastPrice');
         const open = this.safeString (ticker, 'prevPrice24h');
         let percentage = this.safeString (ticker, 'price24hPcnt');
