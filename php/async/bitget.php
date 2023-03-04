@@ -3844,33 +3844,12 @@ class bitget extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            // MAJOR HACKS TO GET THE RIGHT HOLD MODE....
-            $marginCoin = $market['settleId'];
-            $fakeSymbol = $market['id'];
-            if ($marginCoin === 'USDC') {
-                $fakeSymbol = 'BTCPERP_CMCBL';
-            } elseif ($marginCoin === 'USDT') {
-                $fakeSymbol = 'BTCUSDT_UMCBL';
-            }
-            $request1 = array(
-                'symbol' => $fakeSymbol,
-                'marginCoin' => $marginCoin,
-            );
-            $request2 = array(
+            $request = array(
                 'symbol' => $market['id'],
-                'marginCoin' => $marginCoin,
+                'marginCoin' => $market['settleId'],
             );
-            $promises = array(
-                $this->privateMixGetAccountAccount (array_merge($request1, $params)),
-                $this->privateMixGetAccountAccount (array_merge($request2, $params)),
-            );
-            $promises = Async\await(Promise\all($promises));
-            $response1 = $promises[0];
-            $response2 = $promises[1];
-            $data1 = $this->safe_value($response1, 'data');
-            $data2 = $this->safe_value($response2, 'data');
-            $data = $data2;
-            $data['holdMode'] = $this->safe_value($data1, 'holdMode');
+            $response = Async\await($this->privateMixGetAccountAccount (array_merge($request, $params)));
+            $data = $this->safe_value($response, 'data');
             return $this->parse_account_configuration($data, $market);
         }) ();
     }
@@ -3900,9 +3879,12 @@ class bitget extends Exchange {
         $sellLeverage = $this->safe_float($data, 'fixedShortLeverage');
         $marginCoin = $this->safe_string($data, 'marginCoin');
         $holdMode = $this->safe_string($data, 'holdMode');
-        $tradeMode = 'oneway';
-        if ($holdMode === 'double_hold') {
-            $tradeMode = 'hedged';
+        $tradeMode = 'hedged';
+        if ($holdMode === 'single_hold') {
+            $tradeMode = 'oneway';
+            if ($isIsolated) {
+                $leverage = $buyLeverage;
+            }
         }
         $accountConfig = array(
             'info' => $data,

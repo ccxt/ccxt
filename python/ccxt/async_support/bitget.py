@@ -3579,32 +3579,12 @@ class bitget(Exchange):
     async def fetch_account_configuration(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        # MAJOR HACKS TO GET THE RIGHT HOLD MODE....
-        marginCoin = market['settleId']
-        fakeSymbol = market['id']
-        if marginCoin == 'USDC':
-            fakeSymbol = 'BTCPERP_CMCBL'
-        elif marginCoin == 'USDT':
-            fakeSymbol = 'BTCUSDT_UMCBL'
-        request1 = {
-            'symbol': fakeSymbol,
-            'marginCoin': marginCoin,
-        }
-        request2 = {
+        request = {
             'symbol': market['id'],
-            'marginCoin': marginCoin,
+            'marginCoin': market['settleId'],
         }
-        promises = [
-            self.privateMixGetAccountAccount(self.extend(request1, params)),
-            self.privateMixGetAccountAccount(self.extend(request2, params)),
-        ]
-        promises = await asyncio.gather(*promises)
-        response1 = promises[0]
-        response2 = promises[1]
-        data1 = self.safe_value(response1, 'data')
-        data2 = self.safe_value(response2, 'data')
-        data = data2
-        data['holdMode'] = self.safe_value(data1, 'holdMode')
+        response = await self.privateMixGetAccountAccount(self.extend(request, params))
+        data = self.safe_value(response, 'data')
         return self.parse_account_configuration(data, market)
 
     def parse_account_configuration(self, data, market):
@@ -3632,9 +3612,11 @@ class bitget(Exchange):
         sellLeverage = self.safe_float(data, 'fixedShortLeverage')
         marginCoin = self.safe_string(data, 'marginCoin')
         holdMode = self.safe_string(data, 'holdMode')
-        tradeMode = 'oneway'
-        if holdMode == 'double_hold':
-            tradeMode = 'hedged'
+        tradeMode = 'hedged'
+        if holdMode == 'single_hold':
+            tradeMode = 'oneway'
+            if isIsolated:
+                leverage = buyLeverage
         accountConfig = {
             'info': data,
             'markets': {},

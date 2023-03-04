@@ -3825,33 +3825,12 @@ module.exports = class bitget extends Exchange {
     async fetchAccountConfiguration (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // MAJOR HACKS TO GET THE RIGHT HOLD MODE....
-        const marginCoin = market['settleId'];
-        let fakeSymbol = market['id'];
-        if (marginCoin === 'USDC') {
-            fakeSymbol = 'BTCPERP_CMCBL';
-        } else if (marginCoin === 'USDT') {
-            fakeSymbol = 'BTCUSDT_UMCBL';
-        }
-        const request1 = {
-            'symbol': fakeSymbol,
-            'marginCoin': marginCoin,
-        };
-        const request2 = {
+        const request = {
             'symbol': market['id'],
-            'marginCoin': marginCoin,
+            'marginCoin': market['settleId'],
         };
-        let promises = [
-            this.privateMixGetAccountAccount (this.extend (request1, params)),
-            this.privateMixGetAccountAccount (this.extend (request2, params)),
-        ];
-        promises = await Promise.all (promises);
-        const response1 = promises[0];
-        const response2 = promises[1];
-        const data1 = this.safeValue (response1, 'data');
-        const data2 = this.safeValue (response2, 'data');
-        const data = data2;
-        data['holdMode'] = this.safeValue (data1, 'holdMode');
+        const response = await this.privateMixGetAccountAccount (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
         return this.parseAccountConfiguration (data, market);
     }
 
@@ -3875,14 +3854,17 @@ module.exports = class bitget extends Exchange {
         // }
         const marginMode = this.safeString (data, 'marginMode');
         const isIsolated = (marginMode === 'fixed');
-        const leverage = this.safeFloat (data, 'crossMarginLeverage');
+        let leverage = this.safeFloat (data, 'crossMarginLeverage');
         const buyLeverage = this.safeFloat (data, 'fixedLongLeverage');
         const sellLeverage = this.safeFloat (data, 'fixedShortLeverage');
         const marginCoin = this.safeString (data, 'marginCoin');
         const holdMode = this.safeString (data, 'holdMode');
-        let tradeMode = 'oneway';
-        if (holdMode === 'double_hold') {
-            tradeMode = 'hedged';
+        let tradeMode = 'hedged';
+        if (holdMode === 'single_hold') {
+            tradeMode = 'oneway';
+            if (isIsolated) {
+                leverage = buyLeverage;
+            }
         }
         const accountConfig = {
             'info': data,
