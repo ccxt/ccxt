@@ -3827,7 +3827,7 @@ module.exports = class bitget extends Exchange {
         const market = this.market (symbol);
         // MAJOR HACKS TO GET THE RIGHT HOLD MODE....
         const marginCoin = market['settleId'];
-        let fakeSymbol = symbol;
+        let fakeSymbol = market['id'];
         if (marginCoin === 'USDC') {
             fakeSymbol = 'BTCPERP_CMCBL';
         } else if (marginCoin === 'USDT') {

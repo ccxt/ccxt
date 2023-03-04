@@ -3846,7 +3846,7 @@ class bitget extends Exchange {
             $market = $this->market($symbol);
             // MAJOR HACKS TO GET THE RIGHT HOLD MODE....
             $marginCoin = $market['settleId'];
-            $fakeSymbol = $symbol;
+            $fakeSymbol = $market['id'];
             if ($marginCoin === 'USDC') {
                 $fakeSymbol = 'BTCPERP_CMCBL';
             } elseif ($marginCoin === 'USDT') {

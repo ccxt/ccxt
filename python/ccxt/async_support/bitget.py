@@ -3581,7 +3581,7 @@ class bitget(Exchange):
         market = self.market(symbol)
         # MAJOR HACKS TO GET THE RIGHT HOLD MODE....
         marginCoin = market['settleId']
-        fakeSymbol = symbol
+        fakeSymbol = market['id']
         if marginCoin == 'USDC':
             fakeSymbol = 'BTCPERP_CMCBL'
         elif marginCoin == 'USDT':
