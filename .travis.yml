@@ -40,9 +40,11 @@ script:
     npm run vss && npm run copy-python-files;
     npm list -g standard-version --depth=0 || npm install -g standard-version@9.5.0;
     standard-version --skip.bump --skip.commit --skip.tag;
-    export $DEPLOY_OUTPUT=$(env DEPLOY_CACHE=.cache/deploy SECONDS_BEFORE_NEXT_DEPLOY=43200 NPM_VERSION=${NPM_VERSION} ./build/deploy.sh);
-    echo "DEPLOY_OUTPUT: ${DEPLOY_OUTPUT}";
-    export $DEPLOY_RESULT=$(${DEPLOY_OUTPUT} | tail -n 1);
+    export DEPLOY_CACHE=".cache/deploy";
+    export SECONDS_BEFORE_NEXT_DEPLOY=43200;
+    export DEPLOY_OUTPUT=$(./build/deploy.sh);
+    echo " DEPLOY_OUTPUT: ${DEPLOY_OUTPUT}";
+    export DEPLOY_RESULT=$(${DEPLOY_OUTPUT} | tail -n 1);
     echo "DEPLOY_RESULT: ${DEPLOY_RESULT}";
     env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
