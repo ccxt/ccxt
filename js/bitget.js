@@ -3825,19 +3825,33 @@ module.exports = class bitget extends Exchange {
     async fetchAccountConfiguration (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // MAJOR HACKS TO GET THE RIGHT HOLD MODE....
         const marginCoin = market['settleId'];
         let fakeSymbol = symbol;
         if (marginCoin === 'USDC') {
             fakeSymbol = 'BTCPERP_CMCBL';
         } else if (marginCoin === 'USDT') {
-            fakeSymbol = '1INCHUSDT_UMCBL';
+            fakeSymbol = 'BTCUSDT_UMCBL';
         }
-        const request = {
+        const request1 = {
             'symbol': fakeSymbol,
             'marginCoin': marginCoin,
         };
-        const response = await this.privateMixGetAccountAccount (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const request2 = {
+            'symbol': market['id'],
+            'marginCoin': marginCoin,
+        };
+        let promises = [
+            this.privateMixGetAccountAccount (this.extend (request1, params)),
+            this.privateMixGetAccountAccount (this.extend (request2, params)),
+        ];
+        promises = await Promise.all (promises);
+        const response1 = promises[0];
+        const response2 = promises[1];
+        const data1 = this.safeValue (response1, 'data');
+        const data2 = this.safeValue (response2, 'data');
+        const data = data2;
+        data['holdMode'] = this.safeValue (data1, 'holdMode');
         return this.parseAccountConfiguration (data, market);
     }
 

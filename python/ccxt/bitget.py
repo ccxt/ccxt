@@ -3573,18 +3573,31 @@ class bitget(Exchange):
     def fetch_account_configuration(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
+        # MAJOR HACKS TO GET THE RIGHT HOLD MODE....
         marginCoin = market['settleId']
         fakeSymbol = symbol
         if marginCoin == 'USDC':
             fakeSymbol = 'BTCPERP_CMCBL'
         elif marginCoin == 'USDT':
-            fakeSymbol = '1INCHUSDT_UMCBL'
-        request = {
+            fakeSymbol = 'BTCUSDT_UMCBL'
+        request1 = {
             'symbol': fakeSymbol,
             'marginCoin': marginCoin,
         }
-        response = self.privateMixGetAccountAccount(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        request2 = {
+            'symbol': market['id'],
+            'marginCoin': marginCoin,
+        }
+        promises = [
+            self.privateMixGetAccountAccount(self.extend(request1, params)),
+            self.privateMixGetAccountAccount(self.extend(request2, params)),
+        ]
+        response1 = promises[0]
+        response2 = promises[1]
+        data1 = self.safe_value(response1, 'data')
+        data2 = self.safe_value(response2, 'data')
+        data = data2
+        data['holdMode'] = self.safe_value(data1, 'holdMode')
         return self.parse_account_configuration(data, market)
 
     def parse_account_configuration(self, data, market):
