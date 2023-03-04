@@ -1970,7 +1970,11 @@ class Transpiler {
                 const capitalizedName = 'test' + capitalize(subTestName);
                 const snake_case = 'test_' + unCamelCase(subTestName);
                 // python
-                pythonHeader.push ((subTestName === 'sharedMethods'? '' : `from ${snake_case} `) + `import ${snake_case}  # noqa E402`)
+                if (subTestName === 'sharedMethods') {
+                    pythonHeader.push (`from . import test_shared_methods  # noqa E402`)
+                } else {
+                    pythonHeader.push (`from .${snake_case} import ${snake_case}  # noqa E402`)
+                }
                 python3Body = subTestNameUnCamelCase(python3Body, capitalizedName, false)
                 // php
                 phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
