@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.8.93 (2023-03-04)
+
+
+### Bug Fixes
+
+* **binance:** stream reconnect ([da96a59](https://github.com/ccxt/ccxt/commit/da96a597f6296524fc0151d2c1bd40974948b71c))
+
 ### 2.8.92 (2023-03-04)
 
 ### 2.8.91 (2023-03-04)

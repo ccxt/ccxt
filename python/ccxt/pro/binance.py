@@ -106,16 +106,6 @@ class binance(Exchange, ccxt.async_support.binance):
             self.options['streamBySubscriptionsHash'][subscriptionHash] = stream
         return stream
 
-    def on_error(self, client, error):
-        self.options['streamBySubscriptionsHash'] = {}
-        self.options['streamIndex'] = -1
-        super(binance, self).on_error(client, error)
-
-    def on_close(self, client, error):
-        self.options['streamBySubscriptionsHash'] = {}
-        self.options['streamIndex'] = -1
-        super(binance, self).on_close(client, error)
-
     async def watch_order_book(self, symbol, limit=None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
