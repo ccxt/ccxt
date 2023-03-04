@@ -29,4 +29,7 @@ echo "NEXT_DEPLOY_DATETIME: ${NEXT_DEPLOY_DATETIME}";
 
 if [ ${SECONDS_SINCE_LAST_DEPLOY} -lt ${SECONDS_BEFORE_NEXT_DEPLOY} ]; then
     echo "Not publishing until ${NEXT_DEPLOY_DATETIME}";
+    echo "Publish: false"
+else
+    echo "Publish: true"
 fi
