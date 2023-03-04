@@ -2469,6 +2469,8 @@ class bitget(Exchange):
                         request['side'] = 'close_short' if (side == 'buy') else 'close_long'
                     else:
                         request['side'] = 'open_long' if (side == 'buy') else 'open_short'
+                if reduceOnly:
+                    request['cancelOrder'] = True
             request['marginCoin'] = market['settleId']
         omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'tradeMode', 'marginType'])
         response = await getattr(self, method)(self.extend(request, omitted))

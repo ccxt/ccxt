@@ -2599,6 +2599,9 @@ module.exports = class bitget extends Exchange {
                         request['side'] = (side === 'buy') ? 'open_long' : 'open_short';
                     }
                 }
+                if (reduceOnly) {
+                    request['cancelOrder'] = true;
+                }
             }
             request['marginCoin'] = market['settleId'];
         }
