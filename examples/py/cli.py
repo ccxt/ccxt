@@ -17,6 +17,7 @@ sys.path.append(root + '/python')
 # ------------------------------------------------------------------------------
 import ccxt.pro as ccxtpro
 import ccxt.async_support as ccxt  # noqa: E402
+from ccxt.base.errors import ResetConnection
 
 # ------------------------------------------------------------------------------
 
@@ -208,15 +209,23 @@ async def main():
                 is_ws_method = True # handle ws methods
             print(f"{argv.exchange_id}.{argv.method}({','.join(map(str, args))})")
             while True:
-                result = await method(*args)
-                if argv.table:
-                    result = list(result.values()) if isinstance(result, dict) else result
-                    print(table([exchange.omit(v, 'info') for v in result]))
-                else:
-                    pprint(result)
-                if not is_ws_method:
+                try:
+                    result = await method(*args)
+                    if argv.table:
+                        result = list(result.values()) if isinstance(result, dict) else result
+                        print(table([exchange.omit(v, 'info') for v in result]))
+                    else:
+                        pprint(result)
+                    if not is_ws_method:
+                        await exchange.close()
+                        return
+                except ResetConnection:
+                    print ('ResetConnection')
+                except Exception as e:
+                    print (e)
                     await exchange.close()
                     return
+
         else:  # otherwise it's a property, print it
             result = method
         if argv.table:
