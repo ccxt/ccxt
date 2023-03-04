@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # this script is started by Travis CI:
 # env DEPLOY_CACHE=.cache/deploy SECONDS_BEFORE_NEXT_DEPLOY=43200 ./build/deploy.sh;
@@ -6,6 +6,9 @@
 set -e
 
 pwd
+
+DEPLOY_CACHE=.cache/deploy
+SECONDS_BEFORE_NEXT_DEPLOY=43200
 
 if [ ! -f "${DEPLOY_CACHE}" ]; then
     echo "${DEPLOY_CACHE} does not exist";
