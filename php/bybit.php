@@ -340,6 +340,7 @@ class bybit extends Exchange {
                         'user/v3/private/query-api' => 5, // 10/s
                         'asset/v3/private/transfer/transfer-coin/list/query' => 0.84, // 60/s
                         'asset/v3/private/transfer/account-coin/balance/query' => 0.84, // 60/s
+                        'asset/v3/private/transfer/account-coins/balance/query' => 50,
                         'asset/v3/private/transfer/asset-info/query' => 0.84, // 60/s
                         'asset/v3/public/deposit/allowed-deposit-list/query' => 0.17, // 300/s
                         'asset/v3/private/deposit/record/query' => 0.17, // 300/s
@@ -1056,6 +1057,8 @@ class bybit extends Exchange {
                     'investment' => 'INVESTMENT',
                     'unified' => 'UNIFIED',
                     'funding' => 'FUND',
+                    'fund' => 'FUND',
+                    'contract' => 'CONTRACT',
                 ),
                 'accountsById' => array(
                     'SPOT' => 'spot',
@@ -2819,6 +2822,32 @@ class bybit extends Exchange {
         //        time => '1677781902858'
         //    }
         //
+        // all $coins balance
+        //     {
+        //         "retCode" => 0,
+        //         "retMsg" => "success",
+        //         "result" => {
+        //             "memberId" => "533285",
+        //             "accountType" => "FUND",
+        //             "balance" => array(
+        //                 array(
+        //                     "coin" => "USDT",
+        //                     "transferBalance" => "1010",
+        //                     "walletBalance" => "1010",
+        //                     "bonus" => ""
+        //                 ),
+        //                 array(
+        //                     "coin" => "USDC",
+        //                     "transferBalance" => "0",
+        //                     "walletBalance" => "0",
+        //                     "bonus" => ""
+        //                 }
+        //             )
+        //         ),
+        //         "retExtInfo" => array(),
+        //         "time" => 1675865290069
+        //     }
+        //
         $result = array(
             'info' => $response,
         );
@@ -2860,7 +2889,7 @@ class bybit extends Exchange {
                         $account['debt'] = Precise::string_add($loan, $interest);
                     }
                     $account['total'] = $this->safe_string_2($entry, 'total', 'walletBalance');
-                    $account['free'] = $this->safe_string_n($entry, array( 'free', 'availableBalanceWithoutConvert', 'availableBalance' ));
+                    $account['free'] = $this->safe_string_n($entry, array( 'free', 'availableBalanceWithoutConvert', 'availableBalance', 'transferBalance' ));
                     $account['used'] = $this->safe_string($entry, 'locked');
                     $currencyId = $this->safe_string_n($entry, array( 'tokenId', 'coin', 'currencyCoin' ));
                     $code = $this->safe_currency_code($currencyId);
@@ -2871,15 +2900,54 @@ class bybit extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_spot_balance($params = array ()) {
+    public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} $params extra parameters specific to the bybit api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
-        $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
-        $method = 'privateGetSpotV3PrivateAccount';
-        if ($marginMode !== null) {
-            $method = 'privateGetSpotV3PrivateCrossMarginAccount';
+        $request = array();
+        $method = null;
+        list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $isSpot = ($type === 'spot');
+        if ($isSpot) {
+            if ($enableUnifiedAccount || $enableUnifiedMargin) {
+                $method = 'privateGetSpotV3PrivateAccount';
+            } else {
+                $marginMode = null;
+                list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
+                if ($marginMode !== null) {
+                    $method = 'privateGetSpotV3PrivateCrossMarginAccount';
+                } else {
+                    $method = 'privateGetSpotV3PrivateAccount';
+                }
+            }
+        } elseif ($enableUnifiedAccount || $enableUnifiedMargin) {
+            if ($type === 'swap') {
+                $type = 'unified';
+            }
+        } else {
+            if ($type === 'swap') {
+                $type = 'contract';
+            }
         }
-        $response = $this->$method ($params);
+        if (!$isSpot) {
+            $accountTypes = $this->safe_value($this->options, 'accountsByType', array());
+            $unifiedType = $this->safe_string($accountTypes, $type);
+            if ($unifiedType === 'FUND') {
+                // use this endpoint only we have no other choice
+                // because it requires transfer permission
+                $method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery';
+                $request['accountType'] = $unifiedType;
+            } else {
+                $method = 'privateGetContractV3PrivateAccountWalletBalance';
+            }
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
         // spot wallet
         //     {
         //       retCode => '0',
@@ -2937,160 +3005,33 @@ class bybit extends Exchange {
         //         "time" => 1669843584123
         //     }
         //
-        return $this->parse_balance($response);
-    }
-
-    public function fetch_unified_margin_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetUnifiedV3PrivateAccountWalletBalance ($params);
-        //
+        // all coins balance
         //     {
         //         "retCode" => 0,
-        //         "retMsg" => "Success",
+        //         "retMsg" => "success",
         //         "result" => {
-        //             "totalEquity" => "112.21267421",
-        //             "accountIMRate" => "0.6895",
-        //             "totalMarginBalance" => "80.37711012",
-        //             "totalInitialMargin" => "55.42180254",
-        //             "totalAvailableBalance" => "24.95530758",
-        //             "accountMMRate" => "0.0459",
-        //             "totalPerpUPL" => "-16.69586570",
-        //             "totalWalletBalance" => "97.07311619",
-        //             "totalMaintenanceMargin" => "3.68580537",
-        //             "coin" => array(
+        //             "memberId" => "533285",
+        //             "accountType" => "FUND",
+        //             "balance" => array(
         //                 array(
-        //                     "currencyCoin" => "ETH",
-        //                     "availableToBorrow" => "0.00000000",
-        //                     "borrowSize" => "0.00000000",
-        //                     "bonus" => "0.00000000",
-        //                     "accruedInterest" => "0.00000000",
-        //                     "availableBalanceWithoutConvert" => "0.00000000",
-        //                     "totalOrderIM" => "",
-        //                     "equity" => "0.00000000",
-        //                     "totalPositionMM" => "",
-        //                     "usdValue" => "0.00000000",
-        //                     "availableBalance" => "0.02441165",
-        //                     "unrealisedPnl" => "",
-        //                     "totalPositionIM" => "",
-        //                     "marginBalanceWithoutConvert" => "0.00000000",
-        //                     "walletBalance" => "0.00000000",
-        //                     "cumRealisedPnl" => "",
-        //                     "marginBalance" => "0.07862610"
-        //                 }
-        //             )
-        //         ),
-        //         "time" => 1657716037033
-        //     }
-        //
-        return $this->parse_balance($response);
-    }
-
-    public function fetch_derivatives_balance($params = array ()) {
-        $this->load_markets();
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $type = ($type === null) ? null : strtolower($type);
-        if ($type !== 'unified' && $type !== 'funding') {
-            $type = 'unified'; // all other values are invalid
-        }
-        $accountTypes = $this->safe_value($this->options, 'accountsByType', array());
-        $request = array(
-            'accountType' => $this->safe_string($accountTypes, $type),
-        );
-        $response = null;
-        if ($type === 'unified') {
-            $response = $this->privateGetV5AccountWalletBalance (array_merge($request, $params));
-        } else {
-            $response = $this->privateGetV5AssetTransferQueryAccountCoinsBalance (array_merge($request, $params));
-        }
-        //
-        //     {
-        //         "retCode" => 0,
-        //         "retMsg" => "OK",
-        //         "result" => {
-        //             "list" => array(
-        //                 {
-        //                     "totalEquity" => "18070.32797922",
-        //                     "accountIMRate" => "0.0101",
-        //                     "totalMarginBalance" => "18070.32797922",
-        //                     "totalInitialMargin" => "182.60183684",
-        //                     "accountType" => "UNIFIED",
-        //                     "totalAvailableBalance" => "17887.72614237",
-        //                     "accountMMRate" => "0",
-        //                     "totalPerpUPL" => "-0.11001349",
-        //                     "totalWalletBalance" => "18070.43799271",
-        //                     "totalMaintenanceMargin" => "0.38106773",
-        //                     "coin" => array(
-        //                         array(
-        //                             "availableToBorrow" => "2.5",
-        //                             "accruedInterest" => "0",
-        //                             "availableToWithdraw" => "0.805994",
-        //                             "totalOrderIM" => "0",
-        //                             "equity" => "0.805994",
-        //                             "totalPositionMM" => "0",
-        //                             "usdValue" => "12920.95352538",
-        //                             "unrealisedPnl" => "0",
-        //                             "borrowAmount" => "0",
-        //                             "totalPositionIM" => "0",
-        //                             "walletBalance" => "0.805994",
-        //                             "cumRealisedPnl" => "0",
-        //                             "coin" => "BTC"
-        //                         }
-        //                     )
+        //                     "coin" => "USDT",
+        //                     "transferBalance" => "1010",
+        //                     "walletBalance" => "1010",
+        //                     "bonus" => ""
+        //                 ),
+        //                 array(
+        //                     "coin" => "USDC",
+        //                     "transferBalance" => "0",
+        //                     "walletBalance" => "0",
+        //                     "bonus" => ""
         //                 }
         //             )
         //         ),
         //         "retExtInfo" => array(),
-        //         "time" => 1672125441042
+        //         "time" => 1675865290069
         //     }
         //
         return $this->parse_balance($response);
-    }
-
-    public function fetch_usdc_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance ($params);
-        //
-        //    {
-        //      "result" => array(
-        //           "walletBalance" => "10.0000",
-        //           "accountMM" => "0.0000",
-        //           "bonus" => "0.0000",
-        //           "accountIM" => "0.0000",
-        //           "totalSessionRPL" => "0.0000",
-        //           "equity" => "10.0000",
-        //           "totalRPL" => "0.0000",
-        //           "marginBalance" => "10.0000",
-        //           "availableBalance" => "10.0000",
-        //           "totalSessionUPL" => "0.0000"
-        //       ),
-        //       "retCode" => "0",
-        //       "retMsg" => "Success."
-        //    }
-        //
-        return $this->parse_balance($response);
-    }
-
-    public function fetch_balance($params = array ()) {
-        /**
-         * $query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the bybit api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        $this->load_markets();
-        list($type, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        if ($type === 'spot') {
-            return $this->fetch_spot_balance($query);
-        }
-        list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
-        if ($enableUnifiedAccount) {
-            return $this->fetch_derivatives_balance($params);
-        } elseif ($enableUnifiedMargin) {
-            return $this->fetch_unified_margin_balance($query);
-        } else {
-            // linear/inverse future/swap
-            return $this->fetch_derivatives_balance(array_merge($query, array( 'type' => 'swap' )));
-        }
     }
 
     public function parse_order_status($status) {
@@ -7218,10 +7159,16 @@ class bybit extends Exchange {
         $sellLeverage = null;
         $buyLeverage = null;
         if ($leverage === null) {
-            $sellLeverage = $this->safe_number_2($params, 'sell_leverage', 'sellLeverage');
-            $buyLeverage = $this->safe_number_2($params, 'buy_leverage', 'buyLeverage');
+            $sellLeverage = $this->safe_string_2($params, 'sell_leverage', 'sellLeverage');
+            $buyLeverage = $this->safe_string_2($params, 'buy_leverage', 'buyLeverage');
             if ($sellLeverage === null && $buyLeverage === null) {
                 throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter or sell_leverage and buy_leverage parameters');
+            }
+            if ($buyLeverage === null) {
+                $buyLeverage = $sellLeverage;
+            }
+            if ($sellLeverage === null) {
+                $sellLeverage = $buyLeverage;
             }
             $params = $this->omit($params, array( 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ));
         } else {
