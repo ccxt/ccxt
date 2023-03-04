@@ -43,7 +43,7 @@ script:
     export DEPLOY_OUTPUT=$(env DEPLOY_CACHE=.cache/deploy SECONDS_BEFORE_NEXT_DEPLOY=43200 NPM_VERSION=${NPM_VERSION} ./build/deploy.sh);
     echo "${DEPLOY_OUTPUT}";
     export DEPLOY_RESULT=$(${DEPLOY_OUTPUT} | tail -n 1);
-    echo "${DEPLOY_RESULT};
+    echo "${DEPLOY_RESULT}";
     env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
   fi
