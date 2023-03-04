@@ -2959,7 +2959,7 @@ module.exports = class bybit extends Exchange {
         }
         if (!isSpot) {
             const accountTypes = this.safeValue (this.options, 'accountsByType', {});
-            const unifiedType = this.safeString (accountTypes, type);
+            const unifiedType = this.safeStringUpper (accountTypes, type, type);
             if (unifiedType === 'FUND') {
                 // use this endpoint only we have no other choice
                 // because it requires transfer permission
