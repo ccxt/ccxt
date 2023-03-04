@@ -107,18 +107,6 @@ module.exports = class binance extends binanceRest {
         return stream;
     }
 
-    onError (client, error) {
-        this.options['streamBySubscriptionsHash'] = {};
-        this.options['streamIndex'] = -1;
-        super.onError (client, error);
-    }
-
-    onClose (client, error) {
-        this.options['streamBySubscriptionsHash'] = {};
-        this.options['streamIndex'] = -1;
-        super.onClose (client, error);
-    }
-
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         /**
          * @method
