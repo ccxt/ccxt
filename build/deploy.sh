@@ -14,9 +14,9 @@ if [ ! -f "${DEPLOY_CACHE}" ]; then
 fi
 
 LAST_DEPLOYED_VERSION=$(cat ${DEPLOY_CACHE});
+DEPLOY_CACHE_MTIME=$(date -r ${DEPLOY_CACHE} +%s);
 echo "Last deployed version: ${LAST_DEPLOYED_VERSION}";
 echo "as of $(date -r ${DEPLOY_CACHE_MTIME} '+%F %T')";
-DEPLOY_CACHE_MTIME=$(date -r ${DEPLOY_CACHE} +%s);
 CURRENT_TIME=$(date +%s);
 SECONDS_SINCE_LAST_DEPLOY=$((${CURRENT_TIME} - ${DEPLOY_CACHE_MTIME}));
 echo "${SECONDS_SINCE_LAST_DEPLOY} seconds ago";
