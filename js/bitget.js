@@ -2371,15 +2371,20 @@ module.exports = class bitget extends Exchange {
         const rawStopTrigger = this.safeString (order, 'triggerType');
         const trigger = this.parseStopTrigger (rawStopTrigger);
         let side = this.safeString2 (order, 'side', 'posSide');
-        let reduce = false;
-        let close = false;
+        let reduce = this.safeValue (order, 'reduceOnly', false);
+        let close = reduce;
+        const planType = this.safeString (order, 'planType');
+        if (planType === 'sl') {
+            reduce = true;
+            close = true;
+        }
         if (side && side.split ('_')[0] === 'close') {
             reduce = true;
             close = true;
         }
-        if ((side === 'open_long') || (side === 'close_short')) {
+        if ((side === 'open_long') || (side === 'close_short') || (side === 'buy_single')) {
             side = 'buy';
-        } else if ((side === 'close_long') || (side === 'open_short')) {
+        } else if ((side === 'close_long') || (side === 'open_short') || (side === 'sell_single')) {
             side = 'sell';
         }
         if (rawStopTrigger) {
@@ -2605,7 +2610,7 @@ module.exports = class bitget extends Exchange {
             }
             request['marginCoin'] = market['settleId'];
         }
-        const omitted = this.omit (query, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'tradeMode', 'marginType' ]);
+        const omitted = this.omit (query, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'tradeMode', 'marginType', 'reduceOnly', 'close' ]);
         const response = await this[method] (this.extend (request, omitted));
         //
         //     {

@@ -2383,15 +2383,20 @@ class bitget extends Exchange {
         $rawStopTrigger = $this->safe_string($order, 'triggerType');
         $trigger = $this->parse_stop_trigger($rawStopTrigger);
         $side = $this->safe_string_2($order, 'side', 'posSide');
-        $reduce = false;
-        $close = false;
+        $reduce = $this->safe_value($order, 'reduceOnly', false);
+        $close = $reduce;
+        $planType = $this->safe_string($order, 'planType');
+        if ($planType === 'sl') {
+            $reduce = true;
+            $close = true;
+        }
         if ($side && explode('_', $side)[0] === 'close') {
             $reduce = true;
             $close = true;
         }
-        if (($side === 'open_long') || ($side === 'close_short')) {
+        if (($side === 'open_long') || ($side === 'close_short') || ($side === 'buy_single')) {
             $side = 'buy';
-        } elseif (($side === 'close_long') || ($side === 'open_short')) {
+        } elseif (($side === 'close_long') || ($side === 'open_short') || ($side === 'sell_single')) {
             $side = 'sell';
         }
         if ($rawStopTrigger) {
@@ -2616,7 +2621,7 @@ class bitget extends Exchange {
                 }
                 $request['marginCoin'] = $market['settleId'];
             }
-            $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'tradeMode', 'marginType' ));
+            $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'tradeMode', 'marginType', 'reduceOnly', 'close' ));
             $response = Async\await($this->$method (array_merge($request, $omitted)));
             //
             //     {

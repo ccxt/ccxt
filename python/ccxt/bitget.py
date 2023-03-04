@@ -2269,14 +2269,18 @@ class bitget(Exchange):
         rawStopTrigger = self.safe_string(order, 'triggerType')
         trigger = self.parse_stop_trigger(rawStopTrigger)
         side = self.safe_string_2(order, 'side', 'posSide')
-        reduce = False
-        close = False
+        reduce = self.safe_value(order, 'reduceOnly', False)
+        close = reduce
+        planType = self.safe_string(order, 'planType')
+        if planType == 'sl':
+            reduce = True
+            close = True
         if side and side.split('_')[0] == 'close':
             reduce = True
             close = True
-        if (side == 'open_long') or (side == 'close_short'):
+        if (side == 'open_long') or (side == 'close_short') or (side == 'buy_single'):
             side = 'buy'
-        elif (side == 'close_long') or (side == 'open_short'):
+        elif (side == 'close_long') or (side == 'open_short') or (side == 'sell_single'):
             side = 'sell'
         if rawStopTrigger:
             if type == 'market':
@@ -2467,7 +2471,7 @@ class bitget(Exchange):
                 if reduceOnly:
                     request['cancelOrder'] = True
             request['marginCoin'] = market['settleId']
-        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'tradeMode', 'marginType'])
+        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'tradeMode', 'marginType', 'reduceOnly', 'close'])
         response = getattr(self, method)(self.extend(request, omitted))
         #
         #     {
