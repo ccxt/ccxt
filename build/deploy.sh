@@ -14,13 +14,14 @@ if [ ! -f "${DEPLOY_CACHE}" ]; then
 fi
 
 LAST_DEPLOYED_VERSION=$(cat ${DEPLOY_CACHE});
+echo "Last deployed version: ${LAST_DEPLOYED_VERSION}";
+echo 'as of $(date -r ${DEPLOY_CACHE_MTIME} "+%F %T")';
 DEPLOY_CACHE_MTIME=$(date -r ${DEPLOY_CACHE} +%s);
 CURRENT_TIME=$(date +%s);
 SECONDS_SINCE_LAST_DEPLOY=$((${CURRENT_TIME} - ${DEPLOY_CACHE_MTIME}));
+echo "${SECONDS_SINCE_LAST_DEPLOY} seconds ago";
 NEXT_DEPLOY_TIME=$((${DEPLOY_CACHE_MTIME} + ${SECONDS_BEFORE_NEXT_DEPLOY}));
 NEXT_DEPLOY_DATETIME=$(date -r ${NEXT_DEPLOY_TIME} +%c);
-
-echo "Last deployed version: ${LAST_DEPLOYED_VERSION} as of $(date -r ${DEPLOY_CACHE_MTIME} '+%F %T'), ${SECONDS_SINCE_LAST_DEPLOY} seconds ago";
 
 if [ ${SECONDS_SINCE_LAST_DEPLOY} -lt ${SECONDS_BEFORE_NEXT_DEPLOY} ]; then
     echo "Not publishing until ${NEXT_DEPLOY_DATETIME}";
