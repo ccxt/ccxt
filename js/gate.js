@@ -572,7 +572,7 @@ module.exports = class gate extends Exchange {
                     },
                 },
             },
-            // https://www.gate.io/docs/apiv4/en/index.html#label-list
+            // https://www.gate.io/docs/developers/apiv4/en/#label-list
             'exceptions': {
                 'exact': {
                     'INVALID_PARAM_VALUE': BadRequest,
@@ -665,6 +665,8 @@ module.exports = class gate extends Exchange {
                     'TOO_BUSY': ExchangeNotAvailable,
                     'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
                     'RISK_LIMIT_TOO_LOW': BadRequest, // {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
+                    'AUTO_TRIGGER_PRICE_LESS_LAST': InvalidOrder,  // {"label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument: Trigger.Price must < last_price"}
+                    'AUTO_TRIGGER_PRICE_GREATE_LAST': InvalidOrder, // {"label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument: Trigger.Price must > last_price"}
                 },
                 'broad': {},
             },
