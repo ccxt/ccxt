@@ -8,9 +8,9 @@ function testCurrency (exchange, method, entry) {
         'id': 'btc', // string literal for referencing within an exchange
         'code': 'BTC', // uppercase string literal of a pair of currencies
         'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-        'withdraw': true, // can withdraw
-        'deposit': true, // can deposit
-        'precision': exchange.parseNumber ('0.0001'), // in case of SIGNIFICANT_DIGITS it will be 8 - number of digits "after the dot"
+        'withdraw': true, // withdraw enabled
+        'deposit': true, // deposit enabled
+        'precision': exchange.parseNumber ('0.0001'), // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
         'fee': exchange.parseNumber ('0.001'), //
         'limits': {
             'withdraw': {
