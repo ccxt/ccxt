@@ -7473,106 +7473,28 @@ class bybit(Exchange):
 
     def parse_market_leverage_tiers(self, info, market):
         #
-        #    Linear
-        #    [
-        #        {
-        #            id: '11',
-        #            symbol: 'ETHUSDT',
-        #            limit: '800000',
-        #            maintain_margin: '0.01',
-        #            starting_margin: '0.02',
-        #            section: [
-        #                '1',  '2',  '3',
-        #                '5',  '10', '15',
-        #                '25'
-        #            ],
-        #            is_lowest_risk: '1',
-        #            created_at: '2022-02-04 23:30:33.555252',
-        #            updated_at: '2022-02-04 23:30:33.555254',
-        #            max_leverage: '50'
-        #        },
-        #        ...
-        #    ]
-        #
-        #    Inverse
-        #    [
-        #        {
-        #            id: '180',
-        #            is_lowest_risk: '0',
-        #            section: [
-        #                '1', '2', '3',
-        #                '4', '5', '7',
-        #                '8', '9'
-        #            ],
-        #            symbol: 'ETHUSDH22',
-        #            limit: '30000',
-        #            max_leverage: '9',
-        #            starting_margin: '11',
-        #            maintain_margin: '5.5',
-        #            coin: 'ETH',
-        #            created_at: '2021-04-22T15:00:00Z',
-        #            updated_at: '2021-04-22T15:00:00Z'
-        #        }
-        #        ...
-        #    ]
-        #
-        # usdc swap
-        #
-        #    {
-        #        "riskId":"10001",
-        #        "symbol":"BTCPERP",
-        #        "limit":"1000000",
-        #        "startingMargin":"0.0100",
-        #        "maintainMargin":"0.0050",
-        #        "isLowestRisk":true,
-        #        "section":[
-        #           "1",
-        #           "2",
-        #           "3",
-        #           "5",
-        #           "10",
-        #           "25",
-        #           "50",
-        #           "100"
-        #        ],
-        #        "maxLeverage":"100.00"
-        #    }
-        #
-        # Unified Margin
-        #
-        #     [
-        #         {
-        #             "id": 1,
-        #             "symbol": "BTCUSDT",
-        #             "limit": "2000000",
-        #             "maintainMargin": "0.005",
-        #             "initialMargin": "0.01",
-        #             "section": [
-        #                 "1",
-        #                 "3",
-        #                 "5",
-        #                 "10",
-        #                 "25",
-        #                 "50",
-        #                 "80"
-        #             ],
-        #             "isLowestRisk": 1,
-        #             "maxLeverage": "100.00"
-        #         }
-        #     ]
+        #     {
+        #         "id": 1,
+        #         "symbol": "BTCUSD",
+        #         "riskLimitValue": "150",
+        #         "maintenanceMargin": "0.5",
+        #         "initialMargin": "1",
+        #         "isLowestRisk": 1,
+        #         "maxLeverage": "100.00"
+        #     }
         #
         minNotional = 0
         tiers = []
         for i in range(0, len(info)):
             item = info[i]
-            maxNotional = self.safe_number(item, 'limit')
+            maxNotional = self.safe_number(item, 'riskLimitValue')
             tiers.append({
                 'tier': self.sum(i, 1),
                 'currency': market['base'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
-                'maintenanceMarginRate': self.safe_number_2(item, 'maintain_margin', 'maintainMargin'),
-                'maxLeverage': self.safe_number_2(item, 'max_leverage', 'maxLeverage'),
+                'maintenanceMarginRate': self.safe_number(item, 'maintenanceMargin'),
+                'maxLeverage': self.safe_number(item, 'maxLeverage'),
                 'info': item,
             })
             minNotional = maxNotional
