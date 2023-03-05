@@ -195,6 +195,39 @@ module.exports = class coinsph extends Exchange {
             },
             'fees': {
                 // to do: check bitfinex
+                'trading': {
+                    'feeSide': 'get',
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0025'),
+                    'taker': this.parseNumber ('0.003'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.003') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0027') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0024') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('500000000'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('1000000000'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('2500000000'), this.parseNumber ('0.0005') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0025') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0022') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('500000000'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('1000000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('2500000000'), this.parseNumber ('0.0005') ],
+                        ],
+                    },
+                },
             },
             'precisionMode': DECIMAL_PLACES, // to do: change to TICK_SIZE in fetchMarkets (see precisionFromString)
             // exchange-specific options
@@ -203,15 +236,14 @@ module.exports = class coinsph extends Exchange {
             },
             // https://coins-docs.github.io/errors/
             'exceptions': {
+                // to do
                 'exact': {
-                    // to do
                     '-1004': ArgumentsRequired, // {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
                     '-1105': ArgumentsRequired, // {"code":-1105,"msg":"Parameter \u0027orderId and origClientOrderId\u0027 is empty."}
                     '-1140': InsufficientFunds, // {"code":-1140,"msg":"Transaction amount lower than the minimum."}
                     '-2013': OrderNotFound, // {"code":-2013,"msg":"Order does not exist."} to do: is it right exception?
                 },
                 'broad': {
-                    // to do
                 },
             },
         });
@@ -313,13 +345,13 @@ module.exports = class coinsph extends Exchange {
         //                     {
         //                         minPrice: '0.01',
         //                         maxPrice: '99999999.00000000',
-        //                         tickSize: '0.01', // to do: use it for precision['price']
+        //                         tickSize: '0.01',
         //                         filterType: 'PRICE_FILTER'
         //                     },
         //                     {
         //                         minQty: '0.01',
         //                         maxQty: '99999999999.00000000',
-        //                         stepSize: '0.01', // to do: use it for precision['amount']
+        //                         stepSize: '0.01',
         //                         filterType: 'LOT_SIZE'
         //                     },
         //                     { minNotional: '50', filterType: 'NOTIONAL' },
@@ -357,7 +389,9 @@ module.exports = class coinsph extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const isActive = this.safeString (market, 'status') === 'TRADING';
             const limits = this.indexBy (this.safeValue (market, 'filters'), 'filterType');
-            const amountLimits = this.safeValue (limits, 'LOT_SIZE', {}); // to do: all safeValue methods should have a default value {} or []
+            const precisionPrice = this.safeValue (limits, 'PRICE_FILTER', {});
+            const precisionAmount = this.safeValue (limits, 'LOT_SIZE', {});
+            const amountLimits = this.safeValue (limits, 'LOT_SIZE', {});
             const priceLimits = this.safeValue (limits, 'PRICE_FILTER', {});
             const costLimits = this.safeValue (limits, 'NOTIONAL', {});
             result.push ({
@@ -387,8 +421,8 @@ module.exports = class coinsph extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.safeString (market, 'baseAssetPrecision')),
-                    'price': this.parseNumber (this.safeString (market, 'quoteAssetPrecision')),
+                    'amount': this.parseNumber (this.safeString (precisionPrice, 'tickSize')),
+                    'price': this.parseNumber (this.safeString (precisionAmount, 'stepSize')),
                 },
                 'limits': {
                     'leverage': {
@@ -454,7 +488,7 @@ module.exports = class coinsph extends Exchange {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetOpenapiQuoteV1Ticker24hr (this.extend (request, params));
-        return this.parseTicker (ticker, market);
+        return this.parseTicker (ticker, market, params);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -488,15 +522,8 @@ module.exports = class coinsph extends Exchange {
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const bid = this.safeString (ticker, 'bidPrice');
         const ask = this.safeString (ticker, 'askPrice');
-        let bidVolume = this.safeString (ticker, 'bidQty');
-        let askVolume = this.safeString (ticker, 'askQty');
-        // to do: check all tickers for 0 bid or ask volume
-        if (Precise.stringEq (bidVolume, '0')) {
-            bidVolume = undefined;
-        }
-        if (Precise.stringEq (askVolume, '0')) {
-            askVolume = undefined;
-        }
+        const bidVolume = this.safeString (ticker, 'bidQty');
+        const askVolume = this.safeString (ticker, 'askQty');
         const baseVolume = this.safeString (ticker, 'volume');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         const open = this.safeString (ticker, 'openPrice');
@@ -717,7 +744,7 @@ module.exports = class coinsph extends Exchange {
         //         qty: '0.000004',
         //         quoteQty: '0.000004000000000000', // to do: same as qty
         //         time: '1677523569575',
-        //         isBuyerMaker: false, // to do: solve this riddle!
+        //         isBuyerMaker: false,
         //         isBestMatch: true
         //     },
         //
@@ -747,8 +774,17 @@ module.exports = class coinsph extends Exchange {
         const amountString = this.safeString (trade, 'qty');
         const fee = undefined; // to do
         const type = undefined; // to do
-        const side = undefined; // to do
-        const takerOrMaker = undefined; // to do
+        // to do: check for side and takerOrMaker are good
+        const isBuyer = this.safeString2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
+        let side = undefined;
+        if (isBuyer !== undefined) {
+            side = (isBuyer === 'true') ? 'buy' : 'sell';
+        }
+        const isMaker = this.safeString2 (trade, 'isMaker', undefined);
+        let takerOrMaker = undefined;
+        if (isMaker !== undefined) {
+            takerOrMaker = (isMaker === 'true') ? 'maker' : 'taker';
+        }
         const costString = undefined; // to do
         return this.safeTrade ({
             'id': id,
@@ -902,7 +938,7 @@ module.exports = class coinsph extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        // to do: write this mithod
+        // to do: write this method
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -942,7 +978,7 @@ module.exports = class coinsph extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        // to do: write this mithod
+        // to do: write this method
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'], // to do: check if 'symbol' param is mandatory
