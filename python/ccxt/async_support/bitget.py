@@ -2465,6 +2465,8 @@ class bitget(Exchange):
             else:
                 if tradeMode == 'oneway':
                     request['side'] = 'buy_single' if (side == 'buy') else 'sell_single'
+                    if reduceOnly:
+                        request['reduceOnly'] = True
                 else:
                     if reduceOnly:
                         request['side'] = 'close_short' if (side == 'buy') else 'close_long'

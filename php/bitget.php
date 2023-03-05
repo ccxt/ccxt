@@ -2556,6 +2556,9 @@ class bitget extends Exchange {
             } else {
                 if ($tradeMode === 'oneway') {
                     $request['side'] = ($side === 'buy') ? 'buy_single' : 'sell_single';
+                    if ($reduceOnly) {
+                        $request['reduceOnly'] = true;
+                    }
                 } else {
                     if ($reduceOnly) {
                         $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
