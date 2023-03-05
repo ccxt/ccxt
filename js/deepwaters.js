@@ -611,7 +611,7 @@ module.exports = class deepwaters extends Exchange {
             // 'created-at-or-after-micros': '',
             // 'created-before-micros': '',
             // 'skip': '',
-            'limit': 100
+            'limit': 100,
         };
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -625,13 +625,13 @@ module.exports = class deepwaters extends Exchange {
             limit = this.decimalToPrecision (limit);
             request['limit'] = limit;
         }
-        const type = this.safeString (params, 'type')
+        const type = this.safeString (params, 'type');
         if (typeof type === 'string') {
             params = this.omit (params, 'type');
             if (type.toUpperCase === 'LIMIT') {
                 request['type'] = 'LIMIT';
             }
-            if (type.toUpperCase() === 'MARKET') {
+            if (type.toUpperCase () === 'MARKET') {
                 // Getting the following error right now with type === 'MARKET' despite what the docs say
                 //     handleRestResponse:
                 //     deepwaters GET https://testnet.api.deepwaters.xyz/rest/v1/trades?limit=10&pair=WAVAX.AVALANCHE_FUJI.43113.TESTNET.PROD-USDC.AVALANCHE_FUJI.43113.TESTNET.PROD&created-at-or-after-micros=1677982036376000&type=MARKET 400 Bad Request
@@ -695,7 +695,7 @@ module.exports = class deepwaters extends Exchange {
             const makerWasBuyer = this.safeValue (market, 'makerWasBuyer');
             const userWasMaker = this.safeValue (market, 'userWasMaker');
             const maker = userWasMaker ? 'maker' : 'taker';
-            let orderId;
+            let orderId = undefined;
             if (maker) {
                 orderId = this.safeString (trade, 'makerVenueOrderID');
             } else {
