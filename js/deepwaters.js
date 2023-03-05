@@ -625,6 +625,31 @@ module.exports = class deepwaters extends Exchange {
             limit = this.decimalToPrecision (limit);
             request['limit'] = limit;
         }
+        const type = this.safeString (params, 'type')
+        if (typeof type === 'string') {
+            params = this.omit (params, 'type');
+            if (type.toUpperCase === 'LIMIT') {
+                request['type'] = 'LIMIT';
+            }
+            if (type.toUpperCase() === 'MARKET') {
+                // Getting the following error right now with type === 'MARKET' despite what the docs say
+                //     handleRestResponse:
+                //     deepwaters GET https://testnet.api.deepwaters.xyz/rest/v1/trades?limit=10&pair=WAVAX.AVALANCHE_FUJI.43113.TESTNET.PROD-USDC.AVALANCHE_FUJI.43113.TESTNET.PROD&created-at-or-after-micros=1677982036376000&type=MARKET 400 Bad Request
+                //    ResponseHeaders:
+                //     {
+                //      'Alt-Svc': 'h3=":443"; ma=2592000',
+                //      Connection: 'close',
+                //      'Content-Length': '112',
+                //      'Content-Type': 'application/json; charset=utf-8',
+                //      Date: 'Sun, 05 Mar 2023 05:27:16 GMT',
+                //      Server: 'Caddy',
+                //      Vary: 'Origin'
+                //    }
+                //    ResponseBody:
+                //     {"success":false,"status":"invalid request","error":"MARKET is an invalid type. Valid are: FILL, PARTIAL_FILL"}
+                request['type'] = 'PARTIAL_FILL';
+            }
+        }
         const response = await this.privateGetTrades (this.extend (request, params));
         const success = this.safeValue (response, 'success', false);
         if (!success) {
@@ -660,8 +685,8 @@ module.exports = class deepwaters extends Exchange {
             // }
             const trade = trades[i];
             const id = this.safeValue (trade, 'tradeID');
-            const createdAtMicros = this.safeValue (trade, 'createdAtMicros');
-            const timestamp = this.parseNumber (Precise.stringDiv (createdAtMicros, '1000'));
+            const createdAtMicros = this.safeString (trade, 'createdAtMicros');
+            const timestamp = this.parseNumber (Precise.stringDiv (createdAtMicros, '1000', 0));
             const datetime = this.iso8601 (timestamp);
             const baseAssetID = this.safeValue (trade, 'baseAssetID');
             const quoteAssetID = this.safeValue (trade, 'quoteAssetID');
@@ -670,10 +695,16 @@ module.exports = class deepwaters extends Exchange {
             const makerWasBuyer = this.safeValue (market, 'makerWasBuyer');
             const userWasMaker = this.safeValue (market, 'userWasMaker');
             const maker = userWasMaker ? 'maker' : 'taker';
+            let orderId;
+            if (maker) {
+                orderId = this.safeString (trade, 'makerVenueOrderID');
+            } else {
+                orderId = this.safeString (trade, 'aggressorVenueOrderID');
+            }
             const side = userWasMaker === makerWasBuyer ? 'buy' : 'sell';
-            const price = this.safeNumber (market, 'price');
-            const amount = this.safeNumber (market, 'quantity');
-            const cost = Precise.stringMul (this.safeValue (market, 'price'), this.safeValue (market, 'quantity'));
+            const price = this.safeNumber (trade, 'price');
+            const amount = this.safeNumber (trade, 'quantity');
+            const cost = Precise.stringMul (this.safeString (trade, 'price'), this.safeString (trade, 'quantity'));
             const userWasAggressor = this.safeValue (market, 'userWasAggressor');
             const type = userWasAggressor ? 'market' : 'limit';
             output.push (this.safeTrade ({
@@ -682,7 +713,7 @@ module.exports = class deepwaters extends Exchange {
                 'timestamp': timestamp,
                 'datetime': datetime,
                 'symbol': symbol,
-                'order': undefined,
+                'order': orderId,
                 'type': type,
                 'side': side,
                 'takerOrMaker': maker,
@@ -804,13 +835,13 @@ module.exports = class deepwaters extends Exchange {
         // }
         // Limit Order
         const result = this.safeValue (response, 'result', {});
-        const id = this.safeValue (result, 'venueOrderID');
-        const respondedAtMicros = this.safeValue (result, 'respondedAtMicros');
+        const id = this.safeString (result, 'venueOrderID');
+        const respondedAtMicros = this.safeString (result, 'respondedAtMicros');
         const timestamp = this.parseNumber (Precise.stringDiv (respondedAtMicros, '1000', '0'));
         const datetime = this.iso8601 (timestamp);
         const exchangeStatus = this.safeValue (result, 'status');
         const status = this.parseOrderStatus (exchangeStatus);
-        const originalQuantitiy = this.safeValue (result, 'originalQuantitiy');
+        const originalQuantity = this.safeString (result, 'originalQuantity');
         const order = {
             'id': id,
             'timestamp': timestamp,
@@ -819,11 +850,11 @@ module.exports = class deepwaters extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'amount': originalQuantitiy,
+            'amount': originalQuantity,
             'info': result,
         };
         if (exchangeStatus === 'FILLED') {
-            order['filled'] = originalQuantitiy;
+            order['filled'] = originalQuantity;
         }
         if (type === 'limit') {
             order['price'] = price;
