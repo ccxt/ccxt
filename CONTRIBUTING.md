@@ -119,7 +119,7 @@ If you're not going to develop CCXT and contribute code to the CCXT library, the
 
 ### With Docker
 
-The easiest way is to use Docker to run an isolated build & test enviroment with all the dependencies installed:
+The easiest way is to use Docker to run an isolated build & test environment with all the dependencies installed:
 
 ```shell
 docker-compose run --rm ccxt
@@ -658,8 +658,8 @@ That `.length;` line ending does the trick. The only case when the array `.lengt
 In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up numbers or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is.
 
 There's this aspect of representation of numbers throughout the lib.
-The existing approach documented int the Manual says that the library will accept and will return "floats everywhere" for amounts, prices, costs, etc.
-Using floats is the easiest way of unboarding new users.
+The existing approach documented in the Manual says that the library will accept and will return "floats everywhere" for amounts, prices, costs, etc.
+Using floats is the easiest way of onboarding new users.
 This has known quirks, it's impossible to represent exact numbers with floats (https://0.30000000000000004.com/)
 
 To address that, we are switching to string-based representations everywhere.
@@ -757,7 +757,7 @@ The brackets are needed to hint the transpiler which part of the conditional is 
 Here are some examples of a badly-designed code that will break the transpiler:
 
 ```JavaScript
-// this is an example of bad codestyle that will likely break the transpiler
+// this is an example of bad code style that will likely break the transpiler
 const foo = {
    'bar': 'a' + qux === 'baz' ? this.a () : this.b () + 'b',
 };
