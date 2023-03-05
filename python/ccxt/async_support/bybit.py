@@ -2862,7 +2862,7 @@ class bybit(Exchange):
                 type = 'contract'
         if not isSpot:
             accountTypes = self.safe_value(self.options, 'accountsByType', {})
-            unifiedType = self.safe_string(accountTypes, type)
+            unifiedType = self.safe_string_upper(accountTypes, type, type)
             if unifiedType == 'FUND':
                 # use self endpoint only we have no other choice
                 # because it requires transfer permission
