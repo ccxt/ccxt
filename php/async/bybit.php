@@ -2977,7 +2977,7 @@ class bybit extends Exchange {
             }
             if (!$isSpot) {
                 $accountTypes = $this->safe_value($this->options, 'accountsByType', array());
-                $unifiedType = $this->safe_string($accountTypes, $type);
+                $unifiedType = $this->safe_string_upper($accountTypes, $type, $type);
                 if ($unifiedType === 'FUND') {
                     // use this endpoint only we have no other choice
                     // because it requires transfer permission
