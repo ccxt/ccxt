@@ -47,6 +47,11 @@ script:
     export DEPLOY_RESULT=$(echo ${DEPLOY_OUTPUT} | awk '{print $NF}');
     echo "${DEPLOY_RESULT}";
     echo "----------------";
+    if [ "$DEPLOY_RESULT" = "true" ]; then
+      echo "Publishing";
+    else
+      echo "Not publishing";
+    fi;
     env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
   fi
