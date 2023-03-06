@@ -1378,7 +1378,8 @@ class bybit(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            active = self.safe_integer(market, 'status') == 1
+            status = self.safe_string(market, 'status')
+            active = (status == 'trading') or (status == '1')  # latter can be removed after 10/03
             lotSizeFilter = self.safe_value(market, 'lotSizeFilter')
             priceFilter = self.safe_value(market, 'priceFilter')
             quotePrecision = self.safe_number(lotSizeFilter, 'quotePrecision')
