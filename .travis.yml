@@ -26,7 +26,6 @@ before_install:
 - php --version
 - composer install
 script:
-- set -x
 - npm run force-build
 - npm run test-base
 - npm run test-base-ws
@@ -54,7 +53,7 @@ script:
       cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
     else
       echo "Not publishing";
-      env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh || sleep 10;
+      env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
     fi;
   fi
 after_failure:

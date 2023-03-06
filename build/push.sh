@@ -1,10 +1,8 @@
 #!/bin/sh
 
 set -e
-set -x
 
 # ---------------------------------------------------------------------------------
-# debug
 
 echo "Checking if HEAD hasn't changed on remote..."
 echo ""
@@ -43,7 +41,7 @@ git config --global user.email "travis@travis-ci.org"
 git config --global user.name "Travis CI"
 git add CHANGELOG.md php/*.php php/async/*.php php/pro/*.php php/test/*.php python/ccxt/test/*.py python/ccxt/async_support/*.py python/ccxt/*.py python/ccxt/pro/*.py python/ccxt/pro/test/*.py python/ccxt/pro/test/exchange/*.py wiki/*
 git add -f python/LICENSE.txt python/package.json python/README.md
-git commit -a -m "${COMMIT_MESSAGE}" -m '[ci skip]'
+git commit -a -m "${COMMIT_MESSAGE}" -m '[ci skip]' || exit 0
 if [ "$SHOULD_TAG" = "true" ]; then
     git tag -a "${COMMIT_MESSAGE}" -m "${LAST_COMMIT_MESSAGE}" -m "" -m "[ci skip]";
 fi
