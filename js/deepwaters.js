@@ -1020,7 +1020,7 @@ module.exports = class deepwaters extends Exchange {
             }
             const signatureString = signature.r + signature.s.slice (2) + vByte;
             const sigHeaders = {
-                'X-DW-APIKEY': this['apiKey'],
+                'X-DW-APIKEY': this.apiKey,
                 'X-DW-TSUS': timestamp,
                 'X-DW-SIGHEX': signatureString,
             };
