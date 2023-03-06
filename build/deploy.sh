@@ -31,5 +31,7 @@ if [ ${SECONDS_SINCE_LAST_DEPLOY} -lt ${SECONDS_BEFORE_NEXT_DEPLOY} ]; then
     echo "Not publishing until ${NEXT_DEPLOY_DATETIME}";
     echo "Publish: false"
 else
+    echo "Publishing and writing ${NPM_VERSION} to ${DEPLOY_CACHE}";
+    echo "${NPM_VERSION}" > ${DEPLOY_CACHE};
     echo "Publish: true"
 fi
