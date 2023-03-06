@@ -17,9 +17,9 @@ if [ ! -f "${DEPLOY_CACHE}" ]; then
 fi
 
 LAST_DEPLOYED_DATETIME=$(cat ${DEPLOY_CACHE});
-echo "LAST_DEPLOYED_DATETIME: ${LAST_DEPLOYED_DATETIME}"
+echo "LAST_DEPLOYED_DATETIME: ${LAST_DEPLOYED_DATETIME}";
 DEPLOY_CACHE_MTIME=$(date -r ${DEPLOY_CACHE} +%s);
-echo "DEPLOY_CACHE_MTIME: ${DEPLOY_CACHE_MTIME} $(date -r ${DEPLOY_CACHE} +%c)"
+echo "DEPLOY_CACHE_MTIME: ${DEPLOY_CACHE_MTIME} $(date -r ${DEPLOY_CACHE} +%c)";
 SECONDS_SINCE_LAST_DEPLOY=$((${CURRENT_TIME} - ${DEPLOY_CACHE_MTIME}));
 echo "SECONDS_SINCE_LAST_DEPLOY: ${SECONDS_SINCE_LAST_DEPLOY}";
 
@@ -31,9 +31,9 @@ echo "NEXT_DEPLOY_DATETIME: ${NEXT_DEPLOY_DATETIME}";
 
 if [ ${SECONDS_SINCE_LAST_DEPLOY} -lt ${SECONDS_BEFORE_NEXT_DEPLOY} ]; then
     echo "Not publishing until ${NEXT_DEPLOY_DATETIME}";
-    echo "Publish: false"
+    echo "Publish: false";
 else
     echo "Publishing and writing ${CURRENT_DATETIME} to ${DEPLOY_CACHE}";
     echo "${CURRENT_DATETIME}" > ${DEPLOY_CACHE};
-    echo "Publish: true"
+    echo "Publish: true";
 fi
