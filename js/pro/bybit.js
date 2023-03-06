@@ -813,6 +813,7 @@ module.exports = class bybit extends bybitRest {
          * @method
          * @name bybit#watchOrders
          * @description watches information on multiple orders made by the user
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/order
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
@@ -832,8 +833,7 @@ module.exports = class bybit extends bybitRest {
         await this.authenticate (url);
         const topicsByMarket = {
             'spot': [ 'order', 'stopOrder' ],
-            'contract': [ 'user.order.contractAccount' ],
-            'unified': [ 'user.order.unifiedAccount' ],
+            'unified': [ 'order' ],
         };
         const topics = this.safeValue (topicsByMarket, this.getPrivateType (url));
         const orders = await this.watchTopics (url, messageHash, topics, params);
@@ -882,84 +882,52 @@ module.exports = class bybit extends bybitRest {
         //             }
         //         ]
         //     }
-        //  contract
+        // unified
         //     {
-        //         "topic": "user.order.contractAccount",
+        //         "id": "5923240c6880ab-c59f-420b-9adb-3639adc9dd90",
+        //         "topic": "order",
+        //         "creationTime": 1672364262474,
         //         "data": [
         //             {
-        //                 "symbol": "BTCUSD",
-        //                 "orderId": "ee013d82-fafc-4504-97b1-d92aca21eedd",
-        //                 "side": "Buy",
+        //                 "symbol": "ETH-30DEC22-1400-C",
+        //                 "orderId": "5cf98598-39a7-459e-97bf-76ca765ee020",
+        //                 "side": "Sell",
         //                 "orderType": "Market",
-        //                 "stopOrderType": "UNKNOWN",
-        //                 "price": "21920.00",
-        //                 "qty": "200",
-        //                 "timeInForce": "ImmediateOrCancel",
+        //                 "cancelType": "UNKNOWN",
+        //                 "price": "72.5",
+        //                 "qty": "1",
+        //                 "orderIv": "",
+        //                 "timeInForce": "IOC",
         //                 "orderStatus": "Filled",
-        //                 "triggerPrice": "0.00",
-        //                 "orderLinkId": "inv001",
-        //                 "createdTime": "1661338622771",
-        //                 "updatedTime": "1661338622775",
-        //                 "takeProfit": "0.00",
-        //                 "stopLoss": "0.00",
-        //                 "tpTriggerBy": "UNKNOWN",
-        //                 "slTriggerBy": "UNKNOWN",
-        //                 "triggerBy": "UNKNOWN",
+        //                 "orderLinkId": "",
+        //                 "lastPriceOnCreated": "",
         //                 "reduceOnly": false,
-        //                 "closeOnTrigger": false,
+        //                 "leavesQty": "",
+        //                 "leavesValue": "",
+        //                 "cumExecQty": "1",
+        //                 "cumExecValue": "75",
+        //                 "avgPrice": "75",
+        //                 "blockTradeId": "",
+        //                 "positionIdx": 0,
+        //                 "cumExecFee": "0.358635",
+        //                 "createdTime": "1672364262444",
+        //                 "updatedTime": "1672364262457",
+        //                 "rejectReason": "EC_NoError",
+        //                 "stopOrderType": "",
+        //                 "triggerPrice": "",
+        //                 "takeProfit": "",
+        //                 "stopLoss": "",
+        //                 "tpTriggerBy": "",
+        //                 "slTriggerBy": "",
         //                 "triggerDirection": 0,
-        //                 "leavesQty": "0",
-        //                 "lastExecQty": "200",
-        //                 "lastExecPrice": "21282.00",
-        //                 "cumExecQty": "200",
-        //                 "cumExecValue": "0.00939761"
+        //                 "triggerBy": "",
+        //                 "closeOnTrigger": false,
+        //                 "category": "option"
         //             }
         //         ]
         //     }
-        // unified
-        //     {
-        //         "id": "f91080af-5187-4261-a802-7604419771aa",
-        //         "topic": "user.order.unifiedAccount",
-        //         "ts": 1661932033707,
-        //         "data": {
-        //             "result": [
-        //                 {
-        //                     "orderId": "415f8961-4073-4d74-bc3e-df2830e52843",
-        //                     "orderLinkId": "",
-        //                     "symbol": "BTCUSDT",
-        //                     "side": "Buy",
-        //                     "orderType": "Limit",
-        //                     "price": "17000.00000000",
-        //                     "qty": "0.0100",
-        //                     "timeInForce": "GoodTillCancel",
-        //                     "orderStatus": "New",
-        //                     "cumExecQty": "0.0000",
-        //                     "cumExecValue": "0.00000000",
-        //                     "cumExecFee": "0.00000000",
-        //                     "stopOrderType": "UNKNOWN",
-        //                     "triggerBy": "UNKNOWN",
-        //                     "triggerPrice": "",
-        //                     "reduceOnly": true,
-        //                     "closeOnTrigger": true,
-        //                     "createdTime": 1661932033636,
-        //                     "updatedTime": 1661932033644,
-        //                     "iv": "",
-        //                     "orderIM": "",
-        //                     "takeProfit": "",
-        //                     "stopLoss": "",
-        //                     "tpTriggerBy": "UNKNOWN",
-        //                     "slTriggerBy": "UNKNOWN",
-        //                     "basePrice": "",
-        //                     "blockTradeId": "",
-        //                     "leavesQty": "0.0100"
-        //                 }
-        //             ],
-        //             "version": 284
-        //         },
-        //         "type": "snapshot"
-        //     }
         //
-        const topic = this.safeString (message, 'topic', '');
+        const type = this.safeString (message, 'type', '');
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -967,7 +935,7 @@ module.exports = class bybit extends bybitRest {
         const orders = this.orders;
         let rawOrders = [];
         let parser = undefined;
-        if (topic === 'order') {
+        if (type === 'snapshot') {
             rawOrders = this.safeValue (message, 'data', []);
             parser = 'parseWsSpotOrder';
         } else {
