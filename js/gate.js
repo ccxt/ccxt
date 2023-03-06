@@ -1984,6 +1984,7 @@ module.exports = class gate extends Exchange {
             'margin': 'publicSpotGetOrderBook',
             'swap': 'publicFuturesGetSettleOrderBook',
             'future': 'publicDeliveryGetSettleOrderBook',
+            'option': 'publicOptionsGetOrderBook',
         });
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
@@ -2083,6 +2084,7 @@ module.exports = class gate extends Exchange {
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
+            'option': 'publicOptionsGetUnderlyings',
         });
         const response = await this[method] (this.extend (request, query));
         const ticker = this.safeValue (response, 0);
@@ -2207,6 +2209,7 @@ module.exports = class gate extends Exchange {
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
+            'option': 'publicOptionsGetTickers',
         });
         const response = await this[method] (this.extend (request, requestParams));
         return this.parseTickers (response, symbols);
@@ -2603,6 +2606,7 @@ module.exports = class gate extends Exchange {
             'margin': 'publicSpotGetTrades',
             'swap': 'publicFuturesGetSettleTrades',
             'future': 'publicDeliveryGetSettleTrades',
+            'option': 'publicOptionsGetTrades',
         });
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
@@ -2733,6 +2737,7 @@ module.exports = class gate extends Exchange {
             'margin': 'privateSpotGetMyTrades',
             'swap': 'privateFuturesGetSettleMyTrades',
             'future': 'privateDeliveryGetSettleMyTrades',
+            'option': 'privateOptionsGetMyTrades',
         });
         const response = await this[method] (this.extend (request, params));
         //
@@ -3346,6 +3351,7 @@ module.exports = class gate extends Exchange {
             'margin': 'privateSpotPost' + methodTail,
             'swap': 'privateFuturesPostSettle' + methodTail,
             'future': 'privateDeliveryPostSettle' + methodTail,
+            'option': 'privateOptionsPost' + methodTail,
         });
         const response = await this[method] (this.deepExtend (request, params));
         //
@@ -3793,6 +3799,7 @@ module.exports = class gate extends Exchange {
             'margin': 'privateSpotGet' + methodMiddle + 'OrderId',
             'swap': 'privateFuturesGetSettle' + methodMiddle + 'OrderId',
             'future': 'privateDeliveryGetSettle' + methodMiddle + 'OrderId',
+            'option': 'privateOptionsGet' + methodMiddle + 'OrderId',
         });
         const response = await this[method] (this.extend (request, requestParams));
         return this.parseOrder (response, market);
@@ -3864,6 +3871,7 @@ module.exports = class gate extends Exchange {
             'margin': 'privateSpotGet' + methodTail,
             'swap': 'privateFuturesGetSettle' + methodTail,
             'future': 'privateDeliveryGetSettle' + methodTail,
+            'option': 'privateOptionsGet' + methodTail,
         });
         const response = await this[method] (this.extend (request, requestParams));
         //
@@ -4022,6 +4030,7 @@ module.exports = class gate extends Exchange {
             'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
             'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
+            'option': 'privateOptionsDelete' + pathMiddle + 'OrdersOrderId',
         });
         const response = await this[method] (this.extend (request, requestParams));
         //
@@ -4129,6 +4138,7 @@ module.exports = class gate extends Exchange {
             'margin': 'privateSpotDelete' + methodTail,
             'swap': 'privateFuturesDeleteSettle' + methodTail,
             'future': 'privateDeliveryDeleteSettle' + methodTail,
+            'option': 'privateOptionsDelete' + methodTail,
         });
         const response = await this[method] (this.extend (request, requestParams));
         //
