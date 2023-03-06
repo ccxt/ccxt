@@ -41,6 +41,9 @@ module.exports = class binance extends binanceRest {
                     },
                 },
             },
+            'streaming': {
+                'keepAlive': 180000,
+            },
             'options': {
                 'streamLimits': {
                     'spot': 50, // max 1024
