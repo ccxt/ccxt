@@ -36,7 +36,7 @@ script:
 - ./tests-manager.sh 2>&1
 - git checkout master composer.json
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
-    export DEPLOY_OUTPUT=$(env DEPLOY_CACHE=.cache/deploy SECONDS_BEFORE_NEXT_DEPLOY=43200 TRAVIS_COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" ./build/deploy.sh);
+    export DEPLOY_OUTPUT=$(env DEPLOY_CACHE=.cache/deploy SECONDS_BEFORE_NEXT_DEPLOY=43200 TRAVIS_COMMIT_MESSAGE=${TRAVIS_COMMIT_MESSAGE} ./build/deploy.sh);
     echo "----------------";
     echo "${DEPLOY_OUTPUT}";
     echo "----------------";
@@ -44,12 +44,18 @@ script:
     echo "----------------";
     echo "${SHOULD_DEPLOY}";
     echo "----------------";
-    npm config set git-tag-version=false && NPM_VERSION=$(npm version patch);
-    npm run vss && npm run copy-python-files;
-    npm list -g standard-version --depth=0 || npm install -g standard-version@9.5.0;
-    standard-version --skip.bump --skip.commit --skip.tag;
-    env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG="true" ./build/push.sh;
-    cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
+    if [ "$SHOULD_DEPLOY" = "true" ]; then
+      echo "Publishing";
+      npm config set git-tag-version=false && NPM_VERSION=$(npm version patch);
+      npm run vss && npm run copy-python-files;
+      npm list -g standard-version --depth=0 || npm install -g standard-version@9.5.0;
+      standard-version --skip.bump --skip.commit --skip.tag;
+      env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
+      cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
+    else
+      echo "Not publishing";
+      env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
+    fi;
   fi
 after_failure:
 - dmesg | grep -i kill
