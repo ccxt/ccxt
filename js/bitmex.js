@@ -1847,6 +1847,36 @@ module.exports = class bitmex extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async createOrderBulk (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const orderType = this.capitalize (type);
+        const requests = [];
+        for (let i = 0; i < amount.length; i++) {
+            const request = {
+                'symbol': market['id'],
+                'side': this.capitalize (side),
+                'orderQty': amount[i],
+                'ordType': orderType,
+            };
+            if (price !== undefined) {
+                if (orderType === 'Stop') {
+                    request['stopPx'] = price[i];
+                } else {
+                    request['price'] = price[i];
+                }
+            }
+            const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                request['clOrdID'] = clientOrderId;
+                params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
+            }
+            requests.push (request);
+        }
+        const response = await this.privatePostOrder (this.extend (requests, params));
+        return this.parseOrder (response, market);
+    }
+
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
