@@ -33,9 +33,12 @@ module.exports = class bybit extends bybitRest {
                             'linear': 'wss://stream.{hostname}/v5/public/linear',
                         },
                         'private': {
-                            'spot': 'wss://stream.{hostname}/spot/private/v3',
+                            'spot': {
+                                'unified': 'wss://stream.{hostname}/v5/private',
+                                'nonUnified': 'wss://stream.{hostname}/spot/private/v3',
+                            },
                             'contract': {
-                                'unified': 'wss://stream.{hostname}/unified/private/v3',
+                                'unified': 'wss://stream.{hostname}/v5/private',
                                 'nonUnified': 'wss://stream.{hostname}/contract/private/v3',
                             },
                         },
@@ -50,11 +53,11 @@ module.exports = class bybit extends bybitRest {
                             'option': 'wss://stream-testnet.{hostname}/v5/public/option',
                         },
                         'private': {
-                            'spot': 'wss://stream-testnet.{hostname}/spot/private/v3',
-                            'contract': {
-                                'unified': 'wss://stream-testnet.{hostname}/unified/private/v3',
-                                'nonUnified': 'wss://stream-testnet.{hostname}/contract/private/v3',
+                            'spot': {
+                                'unified': 'wss://stream-testnet.{hostname}/v5/private',
+                                'nonUnified': 'wss://stream-testnet.{hostname}/spot/private/v3',
                             },
+                            'contract': 'wss://stream-testnet.{hostname}/v5/private',
                         },
                     },
                 },
@@ -132,10 +135,10 @@ module.exports = class bybit extends bybitRest {
         isSpot = (type === 'spot');
         if (isPrivate) {
             if (isSpot) {
-                url = url[accessibility]['spot'];
-            } else {
                 const margin = isUnifiedMargin ? 'unified' : 'nonUnified';
-                url = url[accessibility]['contract'][margin];
+                url = url[accessibility]['spot'][margin];
+            } else {
+                url = url[accessibility]['contract'];
             }
         } else {
             if (isSpot) {
@@ -613,30 +616,6 @@ module.exports = class bybit extends bybitRest {
         //         "i": "20f43950-d8dd-5b31-9112-a178eb6023af",
         //         "BT": false
         //     }
-        // contract private
-        //
-        // parsed by rest implementation
-        //    {
-        //        "symbol": "BITUSDT",
-        //        "execFee": "0.02022",
-        //        "execId": "beba036f-9fb4-59a7-84b7-2620e5d13e1c",
-        //        "execPrice": "0.674",
-        //        "execQty": "50",
-        //        "execType": "Trade",
-        //        "execValue": "33.7",
-        //        "feeRate": "0.0006",
-        //        "lastLiquidityInd": "RemovedLiquidity",
-        //        "leavesQty": "0",
-        //        "orderId": "ddbea432-2bd7-45dd-ab42-52d920b8136d",
-        //        "orderLinkId": "b001",
-        //        "orderPrice": "0.707",
-        //        "orderQty": "50",
-        //        "orderType": "Market",
-        //        "stopOrderType": "UNKNOWN",
-        //        "side": "Buy",
-        //        "execTime": "1659057535081",
-        //        "closedSize": "0"
-        //    }
         //
         // spot private
         //     {
@@ -698,10 +677,8 @@ module.exports = class bybit extends bybitRest {
     getPrivateType (url) {
         if (url.indexOf ('spot') >= 0) {
             return 'spot';
-        } else if (url.indexOf ('unified') >= 0) {
+        } else if (url.indexOf ('v5/private') >= 0) {
             return 'unified';
-        } else if (url.indexOf ('contract') >= 0) {
-            return 'contract';
         }
     }
 
@@ -710,6 +687,7 @@ module.exports = class bybit extends bybitRest {
          * @method
          * @name bybit#watchMyTrades
          * @description watches information on multiple trades made by the user
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
@@ -730,8 +708,7 @@ module.exports = class bybit extends bybitRest {
         await this.authenticate (url);
         const topicByMarket = {
             'spot': 'ticketInfo',
-            'contract': 'user.execution.contractAccount',
-            'unified': 'user.execution.unifiedAccount',
+            'unified': 'execution',
         };
         const topic = this.safeValue (topicByMarket, this.getPrivateType (url));
         const trades = await this.watchTopics (url, messageHash, [ topic ], params);
@@ -743,6 +720,7 @@ module.exports = class bybit extends bybitRest {
 
     handleMyTrades (client, message) {
         //
+        // spot
         //    {
         //        "type": "snapshot",
         //        "topic": "ticketInfo",
@@ -766,39 +744,46 @@ module.exports = class bybit extends bybitRest {
         //            }
         //        ]
         //    }
-        // contract
+        // unified
         //     {
-        //         topic: 'user.execution.contractAccount',
-        //         data: [
-        //           {
-        //             symbol: 'BTCUSD',
-        //             execFee: '0.00000004',
-        //             execId: '7d0f66da-8312-52a9-959b-9fba58a90af0',
-        //             execPrice: '17228.00',
-        //             execQty: '1',
-        //             execType: 'Trade',
-        //             execValue: '0.00005804',
-        //             feeRate: '0.0006',
-        //             lastLiquidityInd: 'RemovedLiquidity',
-        //             leavesQty: '0',
-        //             orderId: '6111f83d-2c8c-463a-b9a8-77885eae2f57',
-        //             orderLinkId: '',
-        //             orderPrice: '17744.50',
-        //             orderQty: '1',
-        //             orderType: 'Market',
-        //             stopOrderType: 'UNKNOWN',
-        //             side: 'Buy',
-        //             execTime: '1670210101997',
-        //             closedSize: '0'
-        //           }
+        //         "id": "592324803b2785-26fa-4214-9963-bdd4727f07be",
+        //         "topic": "execution",
+        //         "creationTime": 1672364174455,
+        //         "data": [
+        //             {
+        //                 "category": "linear",
+        //                 "symbol": "XRPUSDT",
+        //                 "execFee": "0.005061",
+        //                 "execId": "7e2ae69c-4edf-5800-a352-893d52b446aa",
+        //                 "execPrice": "0.3374",
+        //                 "execQty": "25",
+        //                 "execType": "Trade",
+        //                 "execValue": "8.435",
+        //                 "isMaker": false,
+        //                 "feeRate": "0.0006",
+        //                 "tradeIv": "",
+        //                 "markIv": "",
+        //                 "blockTradeId": "",
+        //                 "markPrice": "0.3391",
+        //                 "indexPrice": "",
+        //                 "underlyingPrice": "",
+        //                 "leavesQty": "0",
+        //                 "orderId": "f6e324ff-99c2-4e89-9739-3086e47f9381",
+        //                 "orderLinkId": "",
+        //                 "orderPrice": "0.3207",
+        //                 "orderQty": "25",
+        //                 "orderType": "Market",
+        //                 "stopOrderType": "UNKNOWN",
+        //                 "side": "Sell",
+        //                 "execTime": "1672364174443",
+        //                 "isLeverage": "0"
+        //             }
         //         ]
         //     }
         //
         const topic = this.safeString (message, 'topic');
         const spot = topic === 'ticketInfo';
-        let data = this.safeValue (message, 'data', []);
-        // unified margin
-        data = this.safeValue (data, 'result', data);
+        const data = this.safeValue (message, 'data', []);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);

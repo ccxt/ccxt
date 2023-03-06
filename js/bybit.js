@@ -2449,6 +2449,12 @@ module.exports = class bybit extends Exchange {
         if (market !== undefined) {
             marketType = market['type'];
         }
+        const category = this.safeString (trade, 'category');
+        if (category !== undefined) {
+            if (category === 'spot') {
+                marketType = 'spot';
+            }
+        }
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = market['symbol'];
         const amountString = this.safeStringN (trade, [ 'execQty', 'orderQty', 'size' ]);
