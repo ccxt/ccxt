@@ -83,6 +83,7 @@ const exchanges = {
     'btcmarkets':              require ('./js/btcmarkets.js'),
     'btctradeua':              require ('./js/btctradeua.js'),
     'btcturk':                 require ('./js/btcturk.js'),
+    'btse':                    require ('./js/btse.js'),
     'buda':                    require ('./js/buda.js'),
     'bybit':                   require ('./js/bybit.js'),
     'cex':                     require ('./js/cex.js'),
