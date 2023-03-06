@@ -65,6 +65,8 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': true,
+                'fetchTime': undefined,
+                'fetchStatus': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,

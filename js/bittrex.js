@@ -73,6 +73,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
+                'fetchStatus': undefined,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,

@@ -61,6 +61,7 @@ module.exports = class ace extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
+                'fetchStatus': undefined,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,

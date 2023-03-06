@@ -45,6 +45,7 @@ module.exports = class latoken extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
+                'fetchStatus': undefined,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,

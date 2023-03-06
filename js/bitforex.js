@@ -43,6 +43,8 @@ module.exports = class bitforex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPositionMode': false,
+                'fetchTime': undefined,
+                'fetchStatus': undefined,
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': true,

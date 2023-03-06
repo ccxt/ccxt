@@ -66,6 +66,7 @@ module.exports = class zonda extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
+                'fetchStatus': undefined,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,

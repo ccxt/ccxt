@@ -55,6 +55,8 @@ module.exports = class blockchaincom extends Exchange {
                 'fetchOrderBook': true,
                 'fetchPositionMode': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTime': undefined,
+                'fetchStatus': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': false,

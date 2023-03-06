@@ -41,6 +41,8 @@ module.exports = class zaif extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTime': undefined,
+                'fetchStatus': undefined,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,

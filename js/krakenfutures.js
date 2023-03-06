@@ -53,6 +53,8 @@ module.exports = class krakenfutures extends Exchange {
                 'fetchOrders': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTime': undefined,
+                'fetchStatus': undefined,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'setLeverage': false,

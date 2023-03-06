@@ -50,6 +50,8 @@ module.exports = class coincheck extends Exchange {
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTime': undefined,
+                'fetchStatus': undefined,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,

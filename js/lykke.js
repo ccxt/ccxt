@@ -64,6 +64,7 @@ module.exports = class lykke extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
+                'fetchStatus': undefined,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,

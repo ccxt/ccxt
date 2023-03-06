@@ -71,6 +71,8 @@ module.exports = class idex extends Exchange {
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTime': true,
+                'fetchStatus': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,

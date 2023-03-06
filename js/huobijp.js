@@ -60,6 +60,7 @@ module.exports = class huobijp extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
+                'fetchStatus': undefined,
                 'fetchTrades': true,
                 'fetchTradingLimits': true,
                 'fetchWithdrawals': true,

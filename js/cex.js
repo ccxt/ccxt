@@ -56,6 +56,8 @@ module.exports = class cex extends Exchange {
                 'fetchOrders': true,
                 'fetchPositionMode': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTime': undefined,
+                'fetchStatus': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,

@@ -39,6 +39,8 @@ module.exports = class paymium extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOrderBook': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTime': undefined,
+                'fetchStatus': undefined,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,

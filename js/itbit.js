@@ -59,6 +59,8 @@ module.exports = class itbit extends Exchange {
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTime': undefined,
+                'fetchStatus': undefined,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,

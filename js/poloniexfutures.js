@@ -44,6 +44,7 @@ module.exports = class poloniexfutures extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
+                'fetchStatus': undefined,
                 'fetchTrades': true,
                 'setMarginMode': true,
             },

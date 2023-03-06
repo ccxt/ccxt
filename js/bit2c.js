@@ -55,6 +55,8 @@ module.exports = class bit2c extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTime': undefined,
+                'fetchStatus': undefined,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransfer': false,

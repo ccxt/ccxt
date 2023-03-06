@@ -47,6 +47,7 @@ module.exports = class bitbns extends Exchange {
                 'fetchOrderBook': true,
                 'fetchPositionMode': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTime': undefined,
                 'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
