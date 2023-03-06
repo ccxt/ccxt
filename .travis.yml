@@ -41,6 +41,9 @@ script:
     echo "${DEPLOY_OUTPUT}";
     echo "----------------";
     export DEPLOY_RESULT=$(echo ${DEPLOY_OUTPUT} | awk '{print $NF}');
+    if [ $TRAVIS_COMMIT_MESSAGE ?? '[ci deploy]' ]; then
+      export DEPLOY_RESULT="true";
+    fi
     echo "${DEPLOY_RESULT}";
     echo "----------------";
     if [ "$DEPLOY_RESULT" = "true" ]; then
