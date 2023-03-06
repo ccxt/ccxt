@@ -29,6 +29,8 @@ const fs = require ('fs')
     , tsFilename = './ccxt.d.ts'
     , pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
 
+const astTranspiler = require ('ast-transpiler');
+
 const exchangeIds = require("../exchanges.json").ids;
 class Transpiler {
 
@@ -1906,129 +1908,112 @@ class Transpiler {
     // ============================================================================
 
     transpileTest (test) {
+        const transpiler = new astTranspiler.Transpiler({
+            'verbose': false,
+            'python':{
+                'uncamelcaseIdentifiers': true,
+            },
+            'php':{
+                'uncamelcaseIdentifiers': true,
+            }
+        });
+
         log.magenta ('Transpiling from', test.jsFile.yellow)
         let js = fs.readFileSync (test.jsFile).toString ()
 
-        const containsPrecise = js.match (/[\s(]Precise/);
-        const requiredSubTests = [...js.matchAll (/require \('\.\/test\.(.*?)\.js'\)/g)].map(m => m[1]);
-
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
-            [ /[^\n]+require[^\n]+\n/g, '' ],
-            [ /module.exports\s+=\s+[^;]+;/g, '' ],
         ])
-        const isAsync = test.jsFile.indexOf ('async ') >= 0 && test.jsFile.indexOf ('await ') >= 0;
-        const indentRemove = (content)=>{ 
-            return content.replace (/^\s{4}/,'');
-        };
-        const methods = js.trim ().split (/\n\s*\n/)
-        var obj = this.transpileMethodsToAllLanguages ('', methods);
-        let python3Body='', phpBody='', phpBodyAsync='';
-        for (let i = 0; i < methods.length; i++) {
-            const iPY = i * 3;
-            const iPH = i * 4;
-            const pre = i===0? '' : '\n\n';
-            python3Body += pre + obj.python3[iPY+1].trim() + '\n' + obj.python3[iPY+2];
-            phpBody += pre + obj.php[iPH+1].trim()  + '\n' + obj.php[iPH+2] + '\n' + obj.php[iPH+3].trim();
-            phpBodyAsync += pre + obj.phpAsync[iPH+1].trim()  + '\n'+ indentRemove(obj.phpAsync[iPH+2]) + '\n' + obj.phpAsync[iPH+3].trim();
-        }
-        const ohlcvCaser = (content) => content.replace ('testOHLCV', 'test_ohlcv')
 
-        python3Body = ohlcvCaser(python3Body).
-            replace (/\(self, /g, '(').
-            replace ('exchange[method]', 'getattr(exchange, method)').
-            // add one more newline before function
-            replace (/^(async def|def) (\w)/gs, '\n$1 $2')
-        python3Body += '\n' //new line in the end of file
+        const config = [
+            {
+                language: "php",
+                async: true
+            },
+            {
+                language: "php",
+                async: false
+            },
+            {
+                language: "python",
+                async: false
+            },
+            {
+                language: "python",
+                async: true
+            },
+        ]
+        const time = Date.now ();
+        const result = transpiler.transpileDifferentLanguages(config, js);
+        const elapsed = Date.now () - time;
+        const phpAsync = result[0].content;
+        const phpSync = result[1].content;
+        const pythonSync = result[2].content;
+        const pythonAsync = result[3].content;
 
-        const phpRefine = (content) => ohlcvCaser (content).
-            replace (/public /g, '').
-            replace ('exchange[$method]', 'exchange->$method').
-            replace (/strlen/g, 'count') // temp fix for php strlen
-        phpBody = phpRefine(phpBody)
-        phpBodyAsync = phpRefine(phpBodyAsync)
+        const imports = result[0].imports;
+        // const exports = result[0].exports;
+
+        const usesPrecise = imports.find(x => x.name.includes('Precise'));
+        const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
 
         let pythonHeader = []
         let phpHeaderSync = []
         let phpHeaderAsync = []
-        if (python3Body.indexOf ('numbers.') >= 0) {
+
+        if (pythonAsync.indexOf ('numbers.') >= 0) {
             pythonHeader.push ('import numbers  # noqa E402')
         }
-        if (containsPrecise) {
+        if (usesPrecise) {
             pythonHeader.push ('from ccxt.base.precise import Precise  # noqa E402')
             //phpHeader.push ('use \\ccxt\\Precise;')
         }
 
-        if (requiredSubTests.length > 0) {
-            const subTestNameUnCamelCase = function (content, testName, isPhp) {
-                return content.replace (new RegExp ('(\\b' + testName + ')(\\.(.*?)|)( |)\\(', 'g'), function(matched) {
-                    const snaked = unCamelCase (matched);
-                    return (isPhp ? snaked.replace ('test_shared_methods.', '') : snaked);
-                });
-            };
-            for (const subTestName of requiredSubTests) {
-                const capitalizedName = 'test' + capitalize(subTestName);
-                const snake_case = 'test_' + unCamelCase(subTestName);
-                // python
-                if (subTestName === 'sharedMethods') {
-                    pythonHeader.push (`from . import test_shared_methods  # noqa E402`)
-                } else {
-                    pythonHeader.push (`from .${snake_case} import ${snake_case}  # noqa E402`)
-                }
-                python3Body = subTestNameUnCamelCase(python3Body, capitalizedName, false)
-                // php
-                phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
-                phpHeaderAsync.push (`include_once __DIR__ . '/${snake_case}_async.php';`)
-                phpBody = subTestNameUnCamelCase(phpBody, capitalizedName, true)
-                phpBodyAsync = subTestNameUnCamelCase(phpBodyAsync, capitalizedName, true)
+        for (const subTestName of requiredSubTests) {
+            const snake_case = 'test_' + unCamelCase(subTestName);
+            // python
+            if (subTestName === 'sharedMethods') {
+                pythonHeader.push (`from . import test_shared_methods  # noqa E402`)
+            } else {
+                pythonHeader.push (`from .${snake_case} import ${snake_case}  # noqa E402`)
             }
-        }
-
-        // todo: transpiler doesnt tranpile into unCamelCases correctly, so manually unCamelCase here
-        if (test.jsFile.includes ('sharedMethods')) {
-            python3Body = python3Body.replace (/\n\n(async def|def) (\w)/g, '\n\n\n$1 $2');
-            [...  js.matchAll (/function (.*?) \(/g)].forEach(match => {
-                const funcName = match[1];
-                const snake_cased = unCamelCase(funcName);
-                const regexPy = new RegExp ('\\b' + funcName + '(?!\\\\\\()', 'g');
-                python3Body = python3Body.replace (regexPy, snake_cased);
-                const regexPhp = new RegExp ('\\b' + funcName + '(?! \\\\\\()', 'g');
-                phpBody = phpBody.replace (regexPhp, snake_cased);
-                phpBodyAsync = phpBodyAsync.replace (regexPhp, snake_cased);
-            });
+            // php
+            phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
+            phpHeaderAsync.push (`include_once __DIR__ . '/${snake_case}_async.php';`)
         }
 
         if (pythonHeader.length > 0) {
             pythonHeader.unshift ('')
             pythonHeader.push ('', '')
         }
-        const pythonPreamble = pythonCodingUtf8 + '\n\n' + pythonHeader.join ('\n')
+        const pythonPreamble = pythonCodingUtf8 + '\n\n' + pythonHeader.join ('\n') + '\n';
         const phpPreambleSyncInit = this.getPHPPreamble (false) + phpHeaderSync.join ('\n') + "\n\n";
         const phpPreambleAsyncInit = this.getPHPPreamble (false) + phpHeaderAsync.join ('\n') + "\n\n";
         const phpPreambleAsync = phpPreambleAsyncInit.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;\nuse React\\\Async;\nuse React\\\Promise;');
         const phpPreambleSync = phpPreambleSyncInit.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
 
-        const finalPhpContentAsync = phpPreambleAsync + phpBodyAsync
-        const finalPhpContentSync = phpPreambleSync + phpBody
-        const finalPyContentAsync = pythonPreamble + python3Body
-        
+        const finalPhpContentAsync = phpPreambleAsync + phpAsync;
+        const finalPhpContentSync = phpPreambleSync + phpSync;
+        const finalPyContentAsync = pythonPreamble + pythonAsync;
+        const finalPyContentSync = pythonPreamble + pythonSync;
+
         log.magenta ('→', test.pyFileAsync.yellow)
         overwriteFile (test.pyFileAsync, finalPyContentAsync)
         log.magenta ('→', test.phpFileAsync.yellow)
         overwriteFile (test.phpFileAsync, finalPhpContentAsync)
-        this.transpilePythonAsyncToSync (test.pyFileAsync, test.pyFile);
-        //doesnt work: this.transpilePhpAsyncToSync (test.phpFileAsync, test.phpFile);
+        log.magenta ('→', test.phpFile.yellow)
         overwriteFile (test.phpFile, finalPhpContentSync)
-        
+        log.magenta ('→', test.pyFile.yellow)
+        overwriteFile (test.pyFile, finalPyContentSync)
     }
 
     // ============================================================================
 
     transpileTests () {
 
-        this.transpilePrecisionTests ()
-        this.transpileDateTimeTests ()
-        this.transpileCryptoTests ()
+        // this.transpilePrecisionTests ()
+        // this.transpileDateTimeTests ()
+        // this.transpileCryptoTests ()
 
         this.transpileExchangeTestsAuto ()
     }
