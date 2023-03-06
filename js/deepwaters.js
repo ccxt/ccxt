@@ -1,6 +1,6 @@
 const Exchange = require ('./base/Exchange');
 const Precise = require ('./base/Precise');
-const { ExchangeError, ArgumentsRequired, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidNonce, BadSymbol } = require ('./base/errors');
 const { DECIMAL_PLACES } = require ('./base/functions/number');
 
 module.exports = class deepwaters extends Exchange {
@@ -27,7 +27,7 @@ module.exports = class deepwaters extends Exchange {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
-                'fetchBidsAsks': false,
+                'fetchBidsAsks': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -37,7 +37,7 @@ module.exports = class deepwaters extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -48,16 +48,16 @@ module.exports = class deepwaters extends Exchange {
                 'fetchOrders': true,
                 'fetchPositionMode': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': false,
-                'fetchTime': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -92,36 +92,125 @@ module.exports = class deepwaters extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': {
-                        'assets': 1,
-                        'pairs': 1,
-                        'pairs/{pair}/orderbook': 1,
-                    },
+                    'get': [
+                        'assets',
+                        'pairs',
+                        'pairs/{pair}/orderbook',
+                        'time',
+                    ],
                 },
                 'private': {
-                    'get': {
-                        'customer': 1,
-                        'customer/api-key-status': 1,
-                        'orders': 1,
-                        'orders/by-venue-order-id/{id}': 1,
-                        'orders/by-customer-object-id/{id}': 1,
-                        'trades': 1,
-                    },
-                    'post': {
-                        'orders': 1,
-                    },
-                    'delete': {
-                        'orders': 1,
-                        'orders/by-customer-object-id/{id}': 1,
-                        'orders/by-venue-order-id/{id}': 1,
-                    },
+                    'get': [
+                        'customer',
+                        'customer/api-key-status',
+                        'orders',
+                        'orders/by-venue-order-id/{id}',
+                        'orders/by-customer-object-id/{id}',
+                        'trades',
+                    ],
+                    'post': [
+                        'orders',
+                    ],
+                    'delete': [
+                        'orders',
+                        'orders/by-customer-object-id/{id}',
+                        'orders/by-venue-order-id/{id}',
+                    ],
                 },
-                'precisionMode': DECIMAL_PLACES,
             },
+            'precisionMode': DECIMAL_PLACES,
         });
     }
 
-    async fetchMarkets () {
+    async fetchBidsAsks (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name deepwaters#fetchBidsAsks
+         * @description fetches the bid and ask price and volume for multiple markets
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {object} params extra parameters specific to the deepwaters api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        return await this.fetchTickers (symbols, params);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name deepwaters#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the deepwaters api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        if (!symbol) {
+            throw new ArgumentsRequired ('symbol must be provided to deepwaters#fetchTicket()');
+        }
+        const tickers = await this.fetchTickers ([ symbol ]);
+        if (tickers.length === 0) {
+            throw new BadSymbol ('Symbol not found. Is it available in  deepwaters#fetchMarkets()?');
+        }
+        return tickers[symbol];
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name deepwaters#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the deepwaters api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetPairs ();
+        const success = this.safeValue (response, 'success', false);
+        if (!success) {
+            return this.handleError (response);
+        }
+        const markets = this.safeValue (response, 'result', {});
+        const tickers = [];
+        for (let i = 0; i < markets.length; i++) {
+            // {
+            //     baseAssetRootSymbol: 'AVAX',
+            //     quoteAssetRootSymbol: 'USDC',
+            //     baseAssetParentSymbol: 'WAVAX.DW',
+            //     quoteAssetParentSymbol: 'USDC.DW',
+            //     baseAssetID: 'WAVAX.AVALANCHE_FUJI.43113.TESTNET.PROD',
+            //     quoteAssetID: 'USDC.AVALANCHE_FUJI.43113.TESTNET.PROD',
+            //     name: 'WAVAX.AVALANCHE_FUJI.43113.TESTNET.PROD-USDC.AVALANCHE_FUJI.43113.TESTNET.PROD',
+            //     baseAssetIncrementSize: '.01',
+            //     baseAssetIncrementPrecision: '2',
+            //     quoteAssetIncrementSize: '.001',
+            //     quoteAssetIncrementPrecision: '3',
+            //     createdAtMicros: '1677695274781348',
+            //     quotedAtMicros: '1677838210968536',
+            //     ask: '16.418',
+            //     bid: '16.396'
+            // }
+            const market = markets[i];
+            const base = this.safeValue (market, 'baseAssetRootSymbol');
+            const quote = this.safeValue (market, 'quoteAssetRootSymbol');
+            const symbol = base + '/' + quote;
+            const quotedAtMicros = this.safeValue (market, 'quotedAtMicros');
+            const timestamp = this.parseNumber (Precise.stringDiv (quotedAtMicros, '1000', 0));
+            const datetime = this.iso8601 (timestamp);
+            const ask = this.safeNumber (market, 'ask');
+            const bid = this.safeNumber (market, 'bid');
+            tickers.push (this.safeTicker ({
+                'symbol': symbol,
+                'timestamp': timestamp,
+                'datetime': datetime,
+                'ask': ask,
+                'bid': bid,
+                'info': market,
+            }));
+        }
+        return this.filterByArray (tickers, 'symbol', symbols);
+    }
+
+    async fetchMarkets (params = {}) {
         /**
          * @method
          * @name deepwaters#fetchMarkets
@@ -158,7 +247,7 @@ module.exports = class deepwaters extends Exchange {
             const lowercaseId = this.safeStringLower (market, 'name');
             const base = this.safeValue (market, 'baseAssetRootSymbol');
             const quote = this.safeValue (market, 'quoteAssetRootSymbol');
-            const symbol = `${base}/${quote}`;
+            const symbol = base + '/' + quote;
             const baseId = this.safeValue (market, 'baseAssetID');
             const quoteId = this.safeValue (market, 'quoteAssetID');
             const baseAssetIncrementPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetIncrementPrecision')));
@@ -322,7 +411,7 @@ module.exports = class deepwaters extends Exchange {
         //     asks: []
         // }
         const snapshotAtMicros = this.safeString (result, 'snapshotAtMicros', '0');
-        const timestamp = this.parseNumber (Precise.stringDiv (snapshotAtMicros, '1000'));
+        const timestamp = this.parseNumber (Precise.stringDiv (snapshotAtMicros, '1000', 0));
         return this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
@@ -351,7 +440,7 @@ module.exports = class deepwaters extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const balances = this.safeValue (result, 'balances');
         const modifiedAtMicros = this.safeValue (result, 'modifiedAtMicros');
-        const timestamp = this.parseNumber (Precise.stringDiv (modifiedAtMicros, '1000', '0'));
+        const timestamp = this.parseNumber (Precise.stringDiv (modifiedAtMicros, '1000', 0));
         const datetime = this.iso8601 (timestamp);
         const output = {
             'timestamp': timestamp,
@@ -529,7 +618,7 @@ module.exports = class deepwaters extends Exchange {
             const trade = trades[i];
             const id = this.safeValue (trade, 'tradeID');
             const createdAtMicros = this.safeValue (trade, 'createdAtMicros');
-            const timestamp = this.parseNumber (Precise.stringDiv (createdAtMicros, '1000'));
+            const timestamp = this.parseNumber (Precise.stringDiv (createdAtMicros, '1000', 0));
             const datetime = this.iso8601 (timestamp);
             const baseAssetID = this.safeValue (trade, 'baseAssetID');
             const quoteAssetID = this.safeValue (trade, 'quoteAssetID');
@@ -726,7 +815,7 @@ module.exports = class deepwaters extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const id = this.safeValue (result, 'venueOrderID');
         const respondedAtMicros = this.safeValue (result, 'respondedAtMicros');
-        const timestamp = this.parseNumber (Precise.stringDiv (respondedAtMicros, '1000', '0'));
+        const timestamp = this.parseNumber (Precise.stringDiv (respondedAtMicros, '1000', 0));
         const datetime = this.iso8601 (timestamp);
         const exchangeStatus = this.safeValue (result, 'status');
         const status = this.parseOrderStatus (exchangeStatus);
@@ -843,16 +932,19 @@ module.exports = class deepwaters extends Exchange {
         if (!success) {
             return this.handleError (response);
         }
-        // Deepwaters doesn't respond with any order information on cancelation
+        const result = this.safeValue (response, 'result');
+        const respondedAtMicros = this.safeValue (result, 'respondedAtMicros');
+        const timestamp = this.parseNumber (Precise.stringDiv (respondedAtMicros, '1000', 0));
+        const datetime = this.iso8601 (timestamp);
         const order = {
             'status': 'canceled',
+            'id': id,
+            'datetime': datetime,
+            'timestamp': timestamp,
+            'symbol': symbol,
+            'info': result,
         };
-        if (isVenueId) {
-            order['id'] = id;
-        } else {
-            order['clientOrderId'] = id;
-        }
-        return this.parseOrder (order);
+        return this.safeOrder (order);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1010,10 +1102,10 @@ module.exports = class deepwaters extends Exchange {
         const exchangeStatus = this.safeValue (order, 'status');
         const status = this.parseOrderStatus (exchangeStatus);
         const createdAtMicros = this.safeValue (order, 'createdAtMicros');
-        const timestamp = this.parseNumber (Precise.stringDiv (createdAtMicros, '1000', '0'));
+        const timestamp = this.parseNumber (Precise.stringDiv (createdAtMicros, '1000', 0));
         const datetime = this.iso8601 (timestamp);
         const modifiedAtMicros = this.safeValue (order, 'modifiedAtMicros');
-        const lastTradeTimestamp = this.parseNumber (Precise.stringDiv (modifiedAtMicros, '1000', '0'));
+        const lastTradeTimestamp = this.parseNumber (Precise.stringDiv (modifiedAtMicros, '1000', 0));
         const baseAssetID = this.safeValue (order, 'baseAssetID');
         const quoteAssetID = this.safeValue (order, 'quoteAssetID');
         market = market ? market : this.market (baseAssetID + '-' + quoteAssetID);
@@ -1042,5 +1134,23 @@ module.exports = class deepwaters extends Exchange {
             'info': order,
         };
         return this.safeOrder (output);
+    }
+
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name deepwaters#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the deepwaters server
+         * @param {object} params extra parameters specific to the deepwaters api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the deepwaters server
+         */
+        const response = await this.publicGetTime ();
+        const success = this.safeValue (response, 'success', false);
+        if (!success) {
+            return this.handleError (response);
+        }
+        const timestampMicros = this.safeValue (response, 'timestampMicros');
+        const timestamp = this.parseNumber (Precise.stringDiv (timestampMicros, '1000', 0));
+        return timestamp;
     }
 };
