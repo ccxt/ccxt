@@ -41,7 +41,6 @@ script:
     echo "${DEPLOY_OUTPUT}";
     echo "----------------";
     export SHOULD_DEPLOY=$(echo ${DEPLOY_OUTPUT} | awk '{print $NF}');
-    echo "----------------";
     echo "${SHOULD_DEPLOY}";
     echo "----------------";
     if [ "$SHOULD_DEPLOY" = "true" ]; then
