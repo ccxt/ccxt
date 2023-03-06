@@ -36,7 +36,7 @@ script:
 - ./tests-manager.sh 2>&1
 - git checkout master composer.json
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
-    export DEPLOY_OUTPUT=$(env DEPLOY_CACHE=.cache/deploy SECONDS_BEFORE_NEXT_DEPLOY=43200 ./build/deploy.sh);
+    export DEPLOY_OUTPUT=$(env DEPLOY_CACHE=.cache/deploy SECONDS_BEFORE_NEXT_DEPLOY=43200 TRAVIS_COMMIT_MESSAGE=${TRAVIS_COMMIT_MESSAGE} ./build/deploy.sh);
     echo "----------------";
     echo "${DEPLOY_OUTPUT}";
     echo "----------------";
