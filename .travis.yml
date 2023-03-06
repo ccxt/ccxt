@@ -43,7 +43,6 @@ script:
     export SHOULD_DEPLOY=$(echo ${DEPLOY_OUTPUT} | awk '{print $NF}');
     echo "${SHOULD_DEPLOY}";
     echo "----------------";
-    export SHOULD_DEPLOY="true";
     if [ "$SHOULD_DEPLOY" = "true" ]; then
       echo "Publishing";
       npm config set git-tag-version=false && NPM_VERSION=$(npm version patch);

@@ -39,8 +39,8 @@ fi
 if [ $SHOULD_DEPLOY ]; then
     echo "Publishing and writing ${CURRENT_DATETIME} to ${DEPLOY_CACHE}";
     echo "${CURRENT_DATETIME}" > ${DEPLOY_CACHE};
-    echo "Publish: true";
+    echo "true";
 else
     echo "Not publishing until ${NEXT_DEPLOY_DATETIME}";
-    echo "Publish: false";
+    echo "false";
 fi
