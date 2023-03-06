@@ -3015,6 +3015,8 @@ class gate extends Exchange {
             if ($network !== null) {
                 $request['chain'] = $network;
                 $params = $this->omit($params, 'network');
+            } else {
+                $request['chain'] = $currency['id'];
             }
             $response = Async\await($this->privateWithdrawalsPostWithdrawals (array_merge($request, $params)));
             //
@@ -3077,15 +3079,19 @@ class gate extends Exchange {
         //
         $id = $this->safe_string($transaction, 'id');
         $type = null;
-        $amount = $this->safe_string($transaction, 'amount');
+        $amountString = $this->safe_string($transaction, 'amount');
         if ($id !== null) {
             if ($id[0] === 'b') {
                 // GateCode handling
-                $type = Precise::string_gt($amount, '0') ? 'deposit' : 'withdrawal';
-                $amount = Precise::string_abs($amount);
+                $type = Precise::string_gt($amountString, '0') ? 'deposit' : 'withdrawal';
+                $amountString = Precise::string_abs($amountString);
             } else {
                 $type = $this->parse_transaction_type($id[0]);
             }
+        }
+        $feeCostString = $this->safe_string($transaction, 'fee');
+        if ($type === 'withdrawal') {
+            $amountString = Precise::string_sub($amountString, $feeCostString);
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
@@ -3093,7 +3099,6 @@ class gate extends Exchange {
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = $this->parse_transaction_status($rawStatus);
         $address = $this->safe_string($transaction, 'address');
-        $fee = $this->safe_number($transaction, 'fee');
         $tag = $this->safe_string($transaction, 'memo');
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         return array(
@@ -3101,7 +3106,7 @@ class gate extends Exchange {
             'id' => $id,
             'txid' => $txid,
             'currency' => $code,
-            'amount' => $this->parse_number($amount),
+            'amount' => $this->parse_number($amountString),
             'network' => null,
             'address' => $address,
             'addressTo' => null,
@@ -3114,7 +3119,10 @@ class gate extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'updated' => null,
-            'fee' => $fee,
+            'fee' => array(
+                'currency' => $code,
+                'cost' => $this->parse_number($feeCostString),
+            ),
         );
     }
 
