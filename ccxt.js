@@ -115,6 +115,7 @@ const exchanges = {
     'idex':                    require ('./js/idex.js'),
     'independentreserve':      require ('./js/independentreserve.js'),
     'indodax':                 require ('./js/indodax.js'),
+    'interactivebrokers':      require ('./js/interactivebrokers.js'),
     'itbit':                   require ('./js/itbit.js'),
     'kraken':                  require ('./js/kraken.js'),
     'krakenfutures':           require ('./js/krakenfutures.js'),
