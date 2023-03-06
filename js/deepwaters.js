@@ -415,7 +415,7 @@ module.exports = class deepwaters extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         /**
          * @method
          * @name deepwaters#fetchBalance
