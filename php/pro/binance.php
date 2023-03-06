@@ -46,6 +46,9 @@ class binance extends \ccxt\async\binance {
                     ),
                 ),
             ),
+            'streaming' => array(
+                'keepAlive' => 180000,
+            ),
             'options' => array(
                 'streamLimits' => array(
                     'spot' => 50, // max 1024
