@@ -198,51 +198,56 @@ module.exports = class binance extends binanceRest {
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
-        const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-        const type = this.safeValue (subscription, 'type');
-        const symbol = this.safeString (subscription, 'symbol');
         const messageHash = this.safeString (subscription, 'messageHash');
-        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
-        const params = this.safeValue (subscription, 'params');
-        // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-        // todo: this is a synch blocking call in ccxt.php - make it async
-        // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        const snapshot = await this.fetchOrderBook (symbol, limit, params);
-        const orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            // if the orderbook is dropped before the snapshot is received
-            return;
-        }
-        orderbook.reset (snapshot);
-        // unroll the accumulated deltas
-        const messages = orderbook.cache;
-        for (let i = 0; i < messages.length; i++) {
-            const message = messages[i];
-            const U = this.safeInteger (message, 'U');
-            const u = this.safeInteger (message, 'u');
-            const pu = this.safeInteger (message, 'pu');
-            if (type === 'future') {
-                // 4. Drop any event where u is < lastUpdateId in the snapshot
-                if (u < orderbook['nonce']) {
-                    continue;
-                }
-                // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                if ((U <= orderbook['nonce']) && (u >= orderbook['nonce']) || (pu === orderbook['nonce'])) {
-                    this.handleOrderBookMessage (client, message, orderbook);
-                }
-            } else {
-                // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                if (u <= orderbook['nonce']) {
-                    continue;
-                }
-                // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                if (((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce'])) {
-                    this.handleOrderBookMessage (client, message, orderbook);
+        const symbol = this.safeString (subscription, 'symbol');
+        try {
+            const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+            const type = this.safeValue (subscription, 'type');
+            const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+            const params = this.safeValue (subscription, 'params');
+            // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
+            // todo: this is a synch blocking call in ccxt.php - make it async
+            // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
+            const snapshot = await this.fetchOrderBook (symbol, limit, params);
+            const orderbook = this.safeValue (this.orderbooks, symbol);
+            if (orderbook === undefined) {
+                // if the orderbook is dropped before the snapshot is received
+                return;
+            }
+            orderbook.reset (snapshot);
+            // unroll the accumulated deltas
+            const messages = orderbook.cache;
+            for (let i = 0; i < messages.length; i++) {
+                const message = messages[i];
+                const U = this.safeInteger (message, 'U');
+                const u = this.safeInteger (message, 'u');
+                const pu = this.safeInteger (message, 'pu');
+                if (type === 'future') {
+                    // 4. Drop any event where u is < lastUpdateId in the snapshot
+                    if (u < orderbook['nonce']) {
+                        continue;
+                    }
+                    // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+                    if ((U <= orderbook['nonce']) && (u >= orderbook['nonce']) || (pu === orderbook['nonce'])) {
+                        this.handleOrderBookMessage (client, message, orderbook);
+                    }
+                } else {
+                    // 4. Drop any event where u is <= lastUpdateId in the snapshot
+                    if (u <= orderbook['nonce']) {
+                        continue;
+                    }
+                    // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+                    if (((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce'])) {
+                        this.handleOrderBookMessage (client, message, orderbook);
+                    }
                 }
             }
+            this.orderbooks[symbol] = orderbook;
+            client.resolve (orderbook, messageHash);
+        } catch (e) {
+            delete client.subscriptions[messageHash];
+            client.reject (e, messageHash);
         }
-        this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, messageHash);
     }
 
     handleDelta (bookside, delta) {
