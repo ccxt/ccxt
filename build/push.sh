@@ -50,3 +50,4 @@ git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.git
 node build/cleanup-old-tags --limit
 git push origin --tags HEAD:master
 
+echo "Done executing build/push.sh"
