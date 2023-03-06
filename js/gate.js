@@ -3001,6 +3001,8 @@ module.exports = class gate extends Exchange {
         if (network !== undefined) {
             request['chain'] = network;
             params = this.omit (params, 'network');
+        } else {
+            request['chain'] = currency['id'];
         }
         const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, params));
         //
@@ -3062,15 +3064,19 @@ module.exports = class gate extends Exchange {
         //
         const id = this.safeString (transaction, 'id');
         let type = undefined;
-        let amount = this.safeString (transaction, 'amount');
+        let amountString = this.safeString (transaction, 'amount');
         if (id !== undefined) {
             if (id[0] === 'b') {
                 // GateCode handling
-                type = Precise.stringGt (amount, '0') ? 'deposit' : 'withdrawal';
-                amount = Precise.stringAbs (amount);
+                type = Precise.stringGt (amountString, '0') ? 'deposit' : 'withdrawal';
+                amountString = Precise.stringAbs (amountString);
             } else {
                 type = this.parseTransactionType (id[0]);
             }
+        }
+        const feeCostString = this.safeString (transaction, 'fee');
+        if (type === 'withdrawal') {
+            amountString = Precise.stringSub (amountString, feeCostString);
         }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
@@ -3078,7 +3084,6 @@ module.exports = class gate extends Exchange {
         const rawStatus = this.safeString (transaction, 'status');
         const status = this.parseTransactionStatus (rawStatus);
         const address = this.safeString (transaction, 'address');
-        const fee = this.safeNumber (transaction, 'fee');
         const tag = this.safeString (transaction, 'memo');
         const timestamp = this.safeTimestamp (transaction, 'timestamp');
         return {
@@ -3086,7 +3091,7 @@ module.exports = class gate extends Exchange {
             'id': id,
             'txid': txid,
             'currency': code,
-            'amount': this.parseNumber (amount),
+            'amount': this.parseNumber (amountString),
             'network': undefined,
             'address': address,
             'addressTo': undefined,
@@ -3099,7 +3104,10 @@ module.exports = class gate extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'updated': undefined,
-            'fee': fee,
+            'fee': {
+                'currency': code,
+                'cost': this.parseNumber (feeCostString),
+            },
         };
     }
 
