@@ -112,18 +112,6 @@ class binance extends \ccxt\async\binance {
         return $stream;
     }
 
-    public function on_error($client, $error) {
-        $this->options['streamBySubscriptionsHash'] = array();
-        $this->options['streamIndex'] = -1;
-        parent::on_error($client, $error);
-    }
-
-    public function on_close($client, $error) {
-        $this->options['streamBySubscriptionsHash'] = array();
-        $this->options['streamIndex'] = -1;
-        parent::on_close($client, $error);
-    }
-
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**

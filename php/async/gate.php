@@ -583,7 +583,7 @@ class gate extends Exchange {
                     ),
                 ),
             ),
-            // https://www.gate.io/docs/apiv4/en/index.html#label-list
+            // https://www.gate.io/docs/developers/apiv4/en/#label-list
             'exceptions' => array(
                 'exact' => array(
                     'INVALID_PARAM_VALUE' => '\\ccxt\\BadRequest',
@@ -676,6 +676,8 @@ class gate extends Exchange {
                     'TOO_BUSY' => '\\ccxt\\ExchangeNotAvailable',
                     'CROSS_ACCOUNT_NOT_FOUND' => '\\ccxt\\ExchangeError',
                     'RISK_LIMIT_TOO_LOW' => '\\ccxt\\BadRequest', // array("label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000")
+                    'AUTO_TRIGGER_PRICE_LESS_LAST' => '\\ccxt\\InvalidOrder',  // array("label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument => Trigger.Price must < last_price")
+                    'AUTO_TRIGGER_PRICE_GREATE_LAST' => '\\ccxt\\InvalidOrder', // array("label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument => Trigger.Price must > last_price")
                 ),
                 'broad' => array(),
             ),

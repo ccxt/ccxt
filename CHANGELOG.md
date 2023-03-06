@@ -2,6 +2,76 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.9.6 (2023-03-06)
+
+### 2.9.5 (2023-03-06)
+
+### 2.9.4 (2023-03-06)
+
+### 2.9.3 (2023-03-06)
+
+### 2.9.2 (2023-03-06)
+
+### 2.9.1 (2023-03-06)
+
+### 2.8.99 (2023-03-06)
+
+### 2.8.98 (2023-03-05)
+
+### 2.8.97 (2023-03-05)
+
+### 2.8.96 (2023-03-05)
+
+### 2.8.95 (2023-03-05)
+
+### 2.8.94 (2023-03-04)
+
+
+### Bug Fixes
+
+* **bybit:** parseTicker default type ([8a929fa](https://github.com/ccxt/ccxt/commit/8a929fa60908ba4d8ff31bb2b95945c1bf9353e1))
+
+### 2.8.93 (2023-03-04)
+
+
+### Bug Fixes
+
+* **binance:** stream reconnect ([da96a59](https://github.com/ccxt/ccxt/commit/da96a597f6296524fc0151d2c1bd40974948b71c))
+
+### 2.8.92 (2023-03-04)
+
+### 2.8.91 (2023-03-04)
+
+### 2.8.90 (2023-03-04)
+
+### 2.8.89 (2023-03-04)
+
+### 2.8.88 (2023-03-04)
+
+
+### Features
+
+* **coinbasepro:** Added bidVolume and askVolume to watchTicker ([86ed8aa](https://github.com/ccxt/ccxt/commit/86ed8aaec409b9447019907024eaa6ad575c5a21))
+
+### 2.8.87 (2023-03-04)
+
+### 2.8.86 (2023-03-04)
+
+### 2.8.85 (2023-03-04)
+
+### 2.8.84 (2023-03-03)
+
+### 2.8.83 (2023-03-03)
+
+### 2.8.82 (2023-03-03)
+
+### 2.8.81 (2023-03-03)
+
+
+### Bug Fixes
+
+* **phemex:** fix handleSettle ([4754570](https://github.com/ccxt/ccxt/commit/4754570e25168fa8fe9a508edcd62e0270b3ccd5))
+
 ### 2.8.80 (2023-03-03)
 
 ### 2.8.79 (2023-03-02)

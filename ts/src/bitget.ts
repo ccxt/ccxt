@@ -2063,24 +2063,23 @@ export default class bitget extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
-        if (market['type'] === 'spot') {
-            const timeframes = this.options['timeframes']['spot'];
-            request['period'] = this.safeString (timeframes, timeframe, timeframe);
+        const timeframes = this.options['timeframes'][marketType];
+        const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
+        const duration = this.parseTimeframe (timeframe);
+        if (market['spot']) {
+            request['period'] = selectedTimeframe;
             request['limit'] = limit;
             if (since !== undefined) {
                 request['after'] = since;
                 if (until === undefined) {
-                    const millisecondsPerTimeframe = this.options['timeframes']['swap'][timeframe] * 1000;
-                    request['before'] = this.sum (since, millisecondsPerTimeframe * limit);
+                    request['before'] = this.sum (since, limit * duration * 1000);
                 }
             }
             if (until !== undefined) {
                 request['before'] = until;
             }
-        } else if (market['type'] === 'swap') {
-            const timeframes = this.options['timeframes']['swap'];
-            request['granularity'] = this.safeString (timeframes, timeframe, timeframe);
-            const duration = this.parseTimeframe (timeframe);
+        } else if (market['swap']) {
+            request['granularity'] = selectedTimeframe;
             const now = this.milliseconds ();
             if (since === undefined) {
                 request['startTime'] = now - (limit - 1) * (duration * 1000);

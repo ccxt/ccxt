@@ -26,7 +26,7 @@ class wavesexchange(Exchange):
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': ['CH'],  # Switzerland
-            'certified': False,
+            'certified': True,
             'pro': False,
             'has': {
                 'CORS': None,

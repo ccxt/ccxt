@@ -2927,7 +2927,7 @@ class phemex(Exchange):
             settle = market['settle']
             code = market['settle']
         else:
-            settle, params = self.handleSettleAndParams('fetchPositions', None, params, 'USD')
+            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', 'USD')
         subType, params = self.handle_sub_type_and_params('fetchPositions', market, params)
         if settle == 'USDT':
             code = 'USDT'
