@@ -319,6 +319,8 @@ module.exports = class bybit extends bybitRest {
          * @method
          * @name bybit#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -332,10 +334,7 @@ module.exports = class bybit extends bybitRest {
         const url = this.getUrlByMarketType (symbol, false, false, params);
         params = this.cleanParams (params);
         let ohlcv = undefined;
-        const marketType = market['spot'] ? 'spot' : 'contract';
-        const marketOptions = this.safeValue (this.options, marketType, {});
-        const timeframes = this.safeValue (marketOptions, 'timeframes', {});
-        const timeframeId = this.safeString (timeframes, timeframe, timeframe);
+        const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
         const topics = [ 'kline.' + timeframeId + '.' + market['id'] ];
         const messageHash = 'kline' + ':' + timeframeId + ':' + symbol;
         ohlcv = await this.watchTopics (url, messageHash, topics, params);
@@ -347,43 +346,26 @@ module.exports = class bybit extends bybitRest {
 
     handleOHLCV (client, message) {
         //
-        // swap
-        //    {
-        //        "topic":"kline.1.BTCUSDT",
-        //        "data":[
-        //          {
-        //            "start":1658150220000,
-        //            "end":1658150279999,
-        //            "interval":"1",
-        //            "open":"22212",
-        //            "close":"22214",
-        //            "high":"22214.5",
-        //            "low":"22212",
-        //            "volume":"5.456",
-        //            "turnover":"121193.36",
-        //            "confirm":false,
-        //            "timestamp":1658150224542
-        //          }
-        //        ],
-        //        "ts":1658150224542,
-        //        "type":"snapshot"
-        //    }
-        //
-        // spot
-        //    {
-        //        "data": {
-        //            "t": 1661742000000,
-        //            "s": "BTCUSDT",
-        //            "c": "19685.55",
-        //            "h": "19756.95",
-        //            "l": "19674.61",
-        //            "o": "19705.38",
-        //            "v": "0.232154"
-        //        },
-        //        "type": "delta",
-        //        "topic": "kline.1h.BTCUSDT",
-        //        "ts": 1661745259605
-        //    }
+        //     {
+        //         "topic": "kline.5.BTCUSDT",
+        //         "data": [
+        //             {
+        //                 "start": 1672324800000,
+        //                 "end": 1672325099999,
+        //                 "interval": "5",
+        //                 "open": "16649.5",
+        //                 "close": "16677",
+        //                 "high": "16677",
+        //                 "low": "16608",
+        //                 "volume": "2.081",
+        //                 "turnover": "34666.4005",
+        //                 "confirm": false,
+        //                 "timestamp": 1672324988882
+        //             }
+        //         ],
+        //         "ts": 1672324988882,
+        //         "type": "snapshot"
+        //     }
         //
         const data = this.safeValue (message, 'data', {});
         const topic = this.safeString (message, 'topic');
@@ -405,20 +387,15 @@ module.exports = class bybit extends bybitRest {
             stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][timeframeId] = stored;
         }
-        if (Array.isArray (data)) {
-            for (let i = 0; i < data.length; i++) {
-                const parsed = this.parseWsContractOHLCV (data[i]);
-                stored.append (parsed);
-            }
-        } else {
-            const parsed = this.parseOHLCV (data, market);
+        for (let i = 0; i < data.length; i++) {
+            const parsed = this.parseWsOHLCV (data[i]);
             stored.append (parsed);
         }
         const messageHash = 'kline' + ':' + timeframeId + ':' + symbol;
         client.resolve (stored, messageHash);
     }
 
-    parseWsContractOHLCV (ohlcv) {
+    parseWsOHLCV (ohlcv) {
         //
         //     {
         //         "start": 1670363160000,
