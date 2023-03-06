@@ -29,14 +29,14 @@ echo "NEXT_DEPLOY_TIME: ${NEXT_DEPLOY_TIME}";
 NEXT_DEPLOY_DATETIME=$(date -d @${NEXT_DEPLOY_TIME} +%c);
 echo "NEXT_DEPLOY_DATETIME: ${NEXT_DEPLOY_DATETIME}";
 
-SHOULD_DEPLOY="${SECONDS_SINCE_LAST_DEPLOY} -ge ${SECONDS_BEFORE_NEXT_DEPLOY}"
+SHOULD_DEPLOY="test ${SECONDS_SINCE_LAST_DEPLOY} -ge ${SECONDS_BEFORE_NEXT_DEPLOY}"
 
 if [[ "${TRAVIS_COMMIT_MESSAGE}" = *'[ci deploy]'* ]]; then
     echo "Detected the [ci deploy] tag, forcing deploy"
     SHOULD_DEPLOY=true
 fi
 
-if [ $SHOULD_DEPLOY ]; then
+if $SHOULD_DEPLOY; then
     echo "Publishing and writing ${CURRENT_DATETIME} to ${DEPLOY_CACHE}"
     echo "${CURRENT_DATETIME}" > ${DEPLOY_CACHE}
     exit 0
