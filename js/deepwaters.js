@@ -5,7 +5,6 @@ const { DECIMAL_PLACES } = require ('./base/functions/number');
 
 module.exports = class deepwaters extends Exchange {
     describe () {
-        this.nonce = 0;
         return this.deepExtend (super.describe (), {
             'id': 'deepwaters',
             'name': 'Deepwaters',
@@ -1004,7 +1003,7 @@ module.exports = class deepwaters extends Exchange {
                     body = params;
                     bodyString = JSON.stringify (body);
                 }
-                nonce = this.numberToString (this.nonce);
+                nonce = this.numberToString (this.getNonce ());
                 const postDeleteHeaders = {
                     'content-type': 'application/json',
                     'X-DW-NONCE': nonce,
@@ -1057,7 +1056,14 @@ module.exports = class deepwaters extends Exchange {
         if (!nonce) {
             throw new InvalidNonce ('Nonce could not be found');
         }
-        this.nonce = this.parseNumber (nonce);
+        this.dwnonce = this.parseNumber (nonce);
+    }
+
+    getNonce () {
+        if (!this.dwnonce) {
+            return 0;
+        }
+        return this.dwnonce;
     }
 
     handleError (response = {}) {
