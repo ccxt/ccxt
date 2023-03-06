@@ -1055,6 +1055,7 @@ module.exports = class bybit extends bybitRest {
          * @method
          * @name bybit#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -1066,8 +1067,7 @@ module.exports = class bybit extends bybitRest {
         await this.authenticate (url);
         const topicByMarket = {
             'spot': 'outboundAccountInfo',
-            'contract': 'user.wallet.contractAccount',
-            'unified': 'user.wallet.unifiedAccount',
+            'unified': 'wallet',
         };
         const topics = [ this.safeValue (topicByMarket, this.getPrivateType (url)) ];
         return await this.watchTopics (url, messageHash, topics, params);
@@ -1097,59 +1097,124 @@ module.exports = class bybit extends bybitRest {
         //            }
         //        ]
         //    }
-        // contract
-        //    {
-        //        "topic": "user.wallet.contractAccount",
-        //        "data": [
-        //            {
-        //                "coin": "USDT",
-        //                "equity": "610.3984319",
-        //                "walletBalance": "609.7384319",
-        //                "positionMargin": "4.7582882",
-        //                "availableBalance": "604.9801437",
-        //                "orderMargin": "0",
-        //                "unrealisedPnl": "0.66",
-        //                "cumRealisedPnl": "-0.2615681"
-        //            }
-        //        ]
-        //    }
         // unified
-        //    {
-        //        "id": "46bd0430-1d03-48f7-a503-c6c020d07536",
-        //        "topic": "user.wallet.unifiedAccount",
-        //        "ts": 1649150852199,
-        //        "data": {
-        //            "result": {
-        //                "accountIMRate": "0.0002",
-        //                "accountMMRate": "0.0000",
-        //                "totalEquity": "510444.50000000",
-        //                "totalWalletBalance": "510444.50000000",
-        //                "totalMarginBalance": "510444.50000000",
-        //                "totalAvailableBalance": "510333.52491801",
-        //                "totalPerpUPL": "0.00000000",
-        //                "totalInitialMargin": "110.97508199",
-        //                "totalMaintenanceMargin": "9.13733489",
-        //                "coin": [{
-        //                    "currencyCoin": "USDC",
-        //                    "equity": "0.00000000",
-        //                    "usdValue": "0.00000000",
-        //                    "walletBalance": "0.00000000",
-        //                    "marginBalance": "510444.50000000",
-        //                    "availableBalance": "510333.52491801",
-        //                    "marginBalanceWithoutConvert": "0.00000000",
-        //                    "availableBalanceWithoutConvert": "0.00000000",
-        //                    "borrowSize": "0.00000000",
-        //                    "availableToBorrow": "200000.00000000",
-        //                    "accruedInterest": "0.00000000",
-        //                    "totalOrderIM": "0.00000000",
-        //                    "totalPositionIM": "0.00000000",
-        //                    "totalPositionMM": "0.00000000"
-        //                }]
-        //            },
-        //            "version": 19
-        //        },
-        //        "type": "snapshot"
-        //    }
+        //     {
+        //         "id": "5923242c464be9-25ca-483d-a743-c60101fc656f",
+        //         "topic": "wallet",
+        //         "creationTime": 1672364262482,
+        //         "data": [
+        //             {
+        //                 "accountIMRate": "0.016",
+        //                 "accountMMRate": "0.003",
+        //                 "totalEquity": "12837.78330098",
+        //                 "totalWalletBalance": "12840.4045924",
+        //                 "totalMarginBalance": "12837.78330188",
+        //                 "totalAvailableBalance": "12632.05767702",
+        //                 "totalPerpUPL": "-2.62129051",
+        //                 "totalInitialMargin": "205.72562486",
+        //                 "totalMaintenanceMargin": "39.42876721",
+        //                 "coin": [
+        //                     {
+        //                         "coin": "USDC",
+        //                         "equity": "200.62572554",
+        //                         "usdValue": "200.62572554",
+        //                         "walletBalance": "201.34882644",
+        //                         "availableToWithdraw": "0",
+        //                         "availableToBorrow": "1500000",
+        //                         "borrowAmount": "0",
+        //                         "accruedInterest": "0",
+        //                         "totalOrderIM": "0",
+        //                         "totalPositionIM": "202.99874213",
+        //                         "totalPositionMM": "39.14289747",
+        //                         "unrealisedPnl": "74.2768991",
+        //                         "cumRealisedPnl": "-209.1544627",
+        //                         "bonus": "0"
+        //                     },
+        //                     {
+        //                         "coin": "BTC",
+        //                         "equity": "0.06488393",
+        //                         "usdValue": "1023.08402268",
+        //                         "walletBalance": "0.06488393",
+        //                         "availableToWithdraw": "0.06488393",
+        //                         "availableToBorrow": "2.5",
+        //                         "borrowAmount": "0",
+        //                         "accruedInterest": "0",
+        //                         "totalOrderIM": "0",
+        //                         "totalPositionIM": "0",
+        //                         "totalPositionMM": "0",
+        //                         "unrealisedPnl": "0",
+        //                         "cumRealisedPnl": "0",
+        //                         "bonus": "0"
+        //                     },
+        //                     {
+        //                         "coin": "ETH",
+        //                         "equity": "0",
+        //                         "usdValue": "0",
+        //                         "walletBalance": "0",
+        //                         "availableToWithdraw": "0",
+        //                         "availableToBorrow": "26",
+        //                         "borrowAmount": "0",
+        //                         "accruedInterest": "0",
+        //                         "totalOrderIM": "0",
+        //                         "totalPositionIM": "0",
+        //                         "totalPositionMM": "0",
+        //                         "unrealisedPnl": "0",
+        //                         "cumRealisedPnl": "0",
+        //                         "bonus": "0"
+        //                     },
+        //                     {
+        //                         "coin": "USDT",
+        //                         "equity": "11726.64664904",
+        //                         "usdValue": "11613.58597018",
+        //                         "walletBalance": "11728.54414904",
+        //                         "availableToWithdraw": "11723.92075829",
+        //                         "availableToBorrow": "2500000",
+        //                         "borrowAmount": "0",
+        //                         "accruedInterest": "0",
+        //                         "totalOrderIM": "0",
+        //                         "totalPositionIM": "2.72589075",
+        //                         "totalPositionMM": "0.28576575",
+        //                         "unrealisedPnl": "-1.8975",
+        //                         "cumRealisedPnl": "0.64782276",
+        //                         "bonus": "0"
+        //                     },
+        //                     {
+        //                         "coin": "EOS3L",
+        //                         "equity": "215.0570412",
+        //                         "usdValue": "0",
+        //                         "walletBalance": "215.0570412",
+        //                         "availableToWithdraw": "215.0570412",
+        //                         "availableToBorrow": "0",
+        //                         "borrowAmount": "0",
+        //                         "accruedInterest": "",
+        //                         "totalOrderIM": "0",
+        //                         "totalPositionIM": "0",
+        //                         "totalPositionMM": "0",
+        //                         "unrealisedPnl": "0",
+        //                         "cumRealisedPnl": "0",
+        //                         "bonus": "0"
+        //                     },
+        //                     {
+        //                         "coin": "BIT",
+        //                         "equity": "1.82",
+        //                         "usdValue": "0.48758257",
+        //                         "walletBalance": "1.82",
+        //                         "availableToWithdraw": "1.82",
+        //                         "availableToBorrow": "0",
+        //                         "borrowAmount": "0",
+        //                         "accruedInterest": "",
+        //                         "totalOrderIM": "0",
+        //                         "totalPositionIM": "0",
+        //                         "totalPositionMM": "0",
+        //                         "unrealisedPnl": "0",
+        //                         "cumRealisedPnl": "0",
+        //                         "bonus": "0"
+        //                     }
+        //                 ],
+        //                 "accountType": "UNIFIED"
+        //             }
+        //         ]
+        //     }
         //
         if (this.balance === undefined) {
             this.balance = {};
@@ -1166,15 +1231,13 @@ module.exports = class bybit extends bybitRest {
             }
             info = rawBalances;
         }
-        if (topic === 'user.wallet.contractAccount') {
-            rawBalances = this.safeValue (message, 'data', []);
-            info = rawBalances;
-        }
-        if (topic === 'user.wallet.unifiedAccount') {
+        if (topic === 'wallet') {
             const data = this.safeValue (message, 'data', {});
-            const result = this.safeValue (data, 'result', {});
-            rawBalances = this.safeValue (result, 'coin', []);
-            info = result;
+            for (let i = 0; i < data.length; i++) {
+                const result = this.safeValue (data, 0, {});
+                rawBalances = rawBalances.concat (this.safeValue (result, 'coin', []));
+            }
+            info = data;
         }
         for (let i = 0; i < rawBalances.length; i++) {
             this.parseWsBalance (rawBalances[i]);
@@ -1196,39 +1259,28 @@ module.exports = class bybit extends bybitRest {
         //        "f": "176.81254174",
         //        "l": "201.575"
         //    }
-        // contract
-        //    {
-        //        "coin": "USDT",
-        //        "equity": "610.3984319",
-        //        "walletBalance": "609.7384319",
-        //        "positionMargin": "4.7582882",
-        //        "availableBalance": "604.9801437",
-        //        "orderMargin": "0",
-        //        "unrealisedPnl": "0.66",
-        //        "cumRealisedPnl": "-0.2615681"
-        //    }
         // unified
-        //    {
-        //        "currencyCoin": "USDC",
-        //        "equity": "0.00000000",
-        //        "usdValue": "0.00000000",
-        //        "walletBalance": "0.00000000",
-        //        "marginBalance": "510444.50000000",
-        //        "availableBalance": "510333.52491801",
-        //        "marginBalanceWithoutConvert": "0.00000000",
-        //        "availableBalanceWithoutConvert": "0.00000000",
-        //        "borrowSize": "0.00000000",
-        //        "availableToBorrow": "200000.00000000",
-        //        "accruedInterest": "0.00000000",
-        //        "totalOrderIM": "0.00000000",
-        //        "totalPositionIM": "0.00000000",
-        //        "totalPositionMM": "0.00000000"
-        //    }
+        //     {
+        //         "coin": "BTC",
+        //         "equity": "0.06488393",
+        //         "usdValue": "1023.08402268",
+        //         "walletBalance": "0.06488393",
+        //         "availableToWithdraw": "0.06488393",
+        //         "availableToBorrow": "2.5",
+        //         "borrowAmount": "0",
+        //         "accruedInterest": "0",
+        //         "totalOrderIM": "0",
+        //         "totalPositionIM": "0",
+        //         "totalPositionMM": "0",
+        //         "unrealisedPnl": "0",
+        //         "cumRealisedPnl": "0",
+        //         "bonus": "0"
+        //     }
         //
         const account = this.account ();
-        const currencyId = this.safeStringN (balance, [ 'a', 'currencyCoin', 'coin' ]);
+        const currencyId = this.safeString2 (balance, 'a', 'coin');
         const code = this.safeCurrencyCode (currencyId);
-        account['free'] = this.safeStringN (balance, [ 'availableBalanceWithoutConvert', 'availableBalance', 'f' ]);
+        account['free'] = this.safeString2 (balance, 'availableToWithdraw', 'f');
         account['used'] = this.safeString (balance, 'l');
         account['total'] = this.safeString (balance, 'walletBalance');
         this.balance[code] = account;
