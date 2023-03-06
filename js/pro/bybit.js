@@ -426,6 +426,7 @@ module.exports = class bybit extends bybitRest {
          * @method
          * @name bybit#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return.
          * @param {object} params extra parameters specific to the bybit api endpoint
@@ -439,15 +440,15 @@ module.exports = class bybit extends bybitRest {
         const messageHash = 'orderbook' + ':' + symbol;
         if (limit === undefined) {
             if (market['spot']) {
-                limit = 40;
+                limit = 50;
             } else {
-                limit = 200;
+                limit = 500;
             }
         } else {
             if (!market['spot']) {
-                // bybit only support limit 1, 50 , 200 for contract
-                if ((limit !== 1) && (limit !== 50) && (limit !== 200)) {
-                    throw new BadRequest (this.id + ' watchOrderBook() can only use limit 1, 50 and 200.');
+                // bybit only support limit 1, 50, 200, 500 for contract
+                if ((limit !== 1) && (limit !== 50) && (limit !== 200) && (limit !== 500)) {
+                    throw new BadRequest (this.id + ' watchOrderBook() can only use limit 1, 50, 200 and 500.');
                 }
             }
         }
@@ -458,63 +459,41 @@ module.exports = class bybit extends bybitRest {
 
     handleOrderBook (client, message) {
         //
-        // spot snapshot
         //     {
+        //         "topic": "orderbook.50.BTCUSDT",
+        //         "type": "snapshot",
+        //         "ts": 1672304484978,
         //         "data": {
         //             "s": "BTCUSDT",
-        //             "t": 1661743689733,
         //             "b": [
+        //                 ...,
         //                 [
-        //                     "19721.9",
-        //                     "0.784806"
+        //                     "16493.50",
+        //                     "0.006"
         //                 ],
-        //                 ...
+        //                 [
+        //                     "16493.00",
+        //                     "0.100"
+        //                 ]
         //             ],
         //             "a": [
         //                 [
-        //                     "19721.91",
-        //                     "0.192687"
+        //                     "16611.00",
+        //                     "0.029"
         //                 ],
-        //                 ...
-        //             ]
-        //         },
-        //         "type": "delta", // docs say to ignore, always snapshot
-        //         "topic": "orderbook.40.BTCUSDT",
-        //         "ts": 1661743689735
+        //                 [
+        //                     "16612.00",
+        //                     "0.213"
+        //                 ],
+        //             ],
+        //             "u": 18521288,
+        //             "seq": 7961638724
+        //         }
         //     }
-        //
-        // contract
-        //    {
-        //        "topic": "orderbook.50.BTCUSDT",
-        //        "type": "snapshot",
-        //        "ts": 1668748553479,
-        //        "data": {
-        //            "s": "BTCUSDT",
-        //            "b": [
-        //                [
-        //                    "17053.00", //price
-        //                    "0.021" //size
-        //                ],
-        //                ....
-        //            ],
-        //            "a": [
-        //                [
-        //                    "17054.00",
-        //                    "6.288"
-        //                ],
-        //                ....
-        //            ],
-        //            "u": 3083181,
-        //            "seq": 7545268447
-        //        }
-        //    }
         //
         const isSpot = client.url.indexOf ('spot') >= 0;
         const type = this.safeString (message, 'type');
-        let isSnapshot = (type === 'snapshot');
-        if (isSpot) {
-            isSnapshot = true;
-        }
+        const isSnapshot = (type === 'snapshot');
         const data = this.safeValue (message, 'data', {});
         const marketId = this.safeString (data, 's');
         const marketType = isSpot ? 'spot' : 'contract';
