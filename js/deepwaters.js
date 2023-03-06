@@ -305,11 +305,12 @@ module.exports = class deepwaters extends Exchange {
         return result;
     }
 
-    async fetchCurrencies () {
+    async fetchCurrencies (params = {}) {
         /**
          * @method
          * @name deepwaters#fetchCurrencies
          * @description Fetches all available currencies an exchange and returns an associative dictionary of currencies.
+         * @param {object} params extra parameters specific to the deepwaters api endpoint
          * @returns {object} a dictionary of [currency structure]{@link https://docs.ccxt.com/en/latest/manual.html#currency-structure}
          */
         const response = await this.publicGetAssets ();
