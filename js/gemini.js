@@ -961,6 +961,19 @@ module.exports = class gemini extends Exchange {
         return this.parseBalance (response);
     }
 
+    async fetchEarns (params = {}) {
+        /**
+         * @method
+         * @name gemini#fetchEarns
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the gemini api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostV1BalancesEarn (params);
+        return this.parseBalance (response);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // createOrder (private)
@@ -1570,10 +1583,6 @@ module.exports = class gemini extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const apiKey = this.apiKey;
-            if (apiKey.indexOf ('account') < 0) {
-                throw new AuthenticationError (this.id + ' sign() requires an account-key, master-keys are not-supported');
-            }
             const nonce = this.nonce ();
             const request = this.extend ({
                 'request': url,
@@ -1582,12 +1591,17 @@ module.exports = class gemini extends Exchange {
             let payload = this.json (request);
             payload = this.stringToBase64 (payload);
             const signature = this.hmac (payload, this.encode (this.secret), 'sha384');
+            const apiKey = this.apiKey;
             headers = {
                 'Content-Type': 'text/plain',
-                'X-GEMINI-APIKEY': this.apiKey,
-                'X-GEMINI-PAYLOAD': this.decode (payload),
+                'X-GEMINI-APIKEY': apiKey,
                 'X-GEMINI-SIGNATURE': signature,
+                'X-GEMINI-PAYLOAD': this.decode (payload),
             };
+            if (apiKey.indexOf ('account') < 0) { // OAuth 2.0 Flow
+                const authorizationKey = 'Bearer ' + this.token;
+                headers['Authorization'] = authorizationKey;
+            }
         } else {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
