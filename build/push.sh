@@ -26,7 +26,7 @@ echo "Pushing to ccxt.wiki"
 
 cd build/ccxt.wiki
 cp -R ../../wiki/* .
-git commit -a -m ${COMMIT_MESSAGE} || true
+git commit -a -m "${COMMIT_MESSAGE}" || true
 git remote remove origin
 git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.wiki.git
 git push origin HEAD:master
