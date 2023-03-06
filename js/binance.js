@@ -69,6 +69,7 @@ module.exports = class binance extends Exchange {
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
+                'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -84,6 +85,7 @@ module.exports = class binance extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': undefined,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -6759,6 +6761,35 @@ module.exports = class binance extends Exchange {
         const result = this.parseAccountPositions (account);
         symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    async fetchPositionMode (symbol = undefined, params = {}) {
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositionMode', undefined, params);
+        const request = {};
+        let method = undefined;
+        if ((type === 'future') || (type === 'linear')) {
+            method = 'fapiPrivateGetPositionSideDual';
+            //
+            //     {
+            //         "dualSidePosition": true // "true": Hedge Mode; "false": One-way Mode
+            //     }
+            //
+        } else if ((type === 'delivery') || (type === 'inverse')) {
+            method = 'dapiPrivateGetPositionSideDual';
+            //
+            //     {
+            //         "dualSidePosition": true // "true": Hedge Mode; "false": One-way Mode
+            //     }
+            //
+        } else {
+            throw new NotSupported (this.id + ' fetchPositionMode() supports linear and inverse contracts only');
+        }
+        const response = await this[method] (this.extend (request, query));
+        const hedged = this.safeValue (response, 'dualSidePosition');
+        return {
+            'info': response,
+            'hedged': hedged,
+        };
     }
 
     async fetchPositionsRisk (symbols = undefined, params = {}) {
