@@ -4,6 +4,7 @@ set -e
 set -x
 
 # ---------------------------------------------------------------------------------
+# debug
 
 echo "Checking if HEAD hasn't changed on remote..."
 echo ""
