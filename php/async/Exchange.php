@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.9.4';
+$version = '2.9.5';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.9.4';
+    const VERSION = '2.9.5';
 
     public $browser;
     public $marketsLoading = null;
