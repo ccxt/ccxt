@@ -1385,7 +1385,8 @@ export default class bybit extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const active = this.safeInteger (market, 'status') === 1;
+            const status = this.safeString (market, 'status');
+            const active = (status === 'trading') || (status === '1'); // latter can be removed after 10/03
             const lotSizeFilter = this.safeValue (market, 'lotSizeFilter');
             const priceFilter = this.safeValue (market, 'priceFilter');
             const quotePrecision = this.safeNumber (lotSizeFilter, 'quotePrecision');

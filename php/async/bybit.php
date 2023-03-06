@@ -1401,7 +1401,8 @@ class bybit extends Exchange {
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
-                $active = $this->safe_integer($market, 'status') === 1;
+                $status = $this->safe_string($market, 'status');
+                $active = ($status === 'trading') || ($status === '1'); // latter can be removed after 10/03
                 $lotSizeFilter = $this->safe_value($market, 'lotSizeFilter');
                 $priceFilter = $this->safe_value($market, 'priceFilter');
                 $quotePrecision = $this->safe_number($lotSizeFilter, 'quotePrecision');
