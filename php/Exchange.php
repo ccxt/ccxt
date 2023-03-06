@@ -2900,9 +2900,6 @@ class Exchange {
         }
         $timestamp = $this->safe_integer($order, 'timestamp');
         $datetime = $this->safe_string($order, 'datetime');
-        if ($timestamp === null) {
-            $timestamp = $this->parse8601 ($timestamp);
-        }
         if ($datetime === null) {
             $datetime = $this->iso8601 ($timestamp);
         }

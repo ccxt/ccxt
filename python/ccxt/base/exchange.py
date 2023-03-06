@@ -2123,8 +2123,6 @@ class Exchange(object):
             postOnly = timeInForce == 'PO'
         timestamp = self.safe_integer(order, 'timestamp')
         datetime = self.safe_string(order, 'datetime')
-        if timestamp is None:
-            timestamp = self.parse8601(timestamp)
         if datetime is None:
             datetime = self.iso8601(timestamp)
         triggerPrice = self.parse_number(self.safe_string_2(order, 'triggerPrice', 'stopPrice'))
