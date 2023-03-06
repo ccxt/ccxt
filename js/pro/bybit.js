@@ -27,13 +27,10 @@ module.exports = class bybit extends bybitRest {
                 'api': {
                     'ws': {
                         'public': {
-                            'spot': 'wss://stream.{hostname}/spot/public/v3',
-                            'inverse': 'wss://stream.{hostname}/contract/inverse/public/v3',
-                            'usdt': 'wss://stream.{hostname}/contract/usdt/public/v3',
-                            'usdc': {
-                                'option': 'wss://stream.{hostname}/option/usdc/public/v3',
-                                'swap': 'wss://stream.{hostname}/contract/usdc/public/v3',
-                            },
+                            'spot': 'wss://stream.{hostname}/v5/public/spot',
+                            'inverse': 'wss://stream.{hostname}/v5/public/inverse',
+                            'option': 'wss://stream.{hostname}/v5/public/option',
+                            'linear': 'wss://stream.{hostname}/v5/public/linear',
                         },
                         'private': {
                             'spot': 'wss://stream.{hostname}/spot/private/v3',
@@ -47,13 +44,10 @@ module.exports = class bybit extends bybitRest {
                 'test': {
                     'ws': {
                         'public': {
-                            'spot': 'wss://stream-testnet.{hostname}/spot/public/v3',
-                            'inverse': 'wss://stream-testnet.{hostname}/contract/inverse/public/v3',
-                            'usdt': 'wss://stream-testnet.{hostname}/contract/usdt/public/v3',
-                            'usdc': {
-                                'option': 'wss://stream-testnet.{hostname}/option/usdc/public/v3',
-                                'swap': 'wss://stream-testnet.{hostname}/contract/usdc/public/v3',
-                            },
+                            'spot': 'wss://stream-testnet.{hostname}/v5/public/spot',
+                            'inverse': 'wss://stream-testnet.{hostname}/v5/public/inverse',
+                            'linear': 'wss://stream-testnet.{hostname}/v5/public/linear',
+                            'option': 'wss://stream-testnet.{hostname}/v5/public/option',
                         },
                         'private': {
                             'spot': 'wss://stream-testnet.{hostname}/spot/private/v3',
@@ -67,7 +61,7 @@ module.exports = class bybit extends bybitRest {
             },
             'options': {
                 'watchTicker': {
-                    'name': 'tickers', // 'tickers' for 24hr statistical ticker or 'bookticker' for Best bid price and best ask price
+                    'name': 'tickers', // 'tickers' for 24hr statistical ticker or 'tickers_lt' for leverage token ticker
                 },
                 'spot': {
                     'timeframes': {
@@ -125,26 +119,17 @@ module.exports = class bybit extends bybitRest {
 
     getUrlByMarketType (symbol = undefined, isPrivate = false, isUnifiedMargin = false, method = undefined, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
-        let isUsdcSettled = undefined;
         let isSpot = undefined;
         let type = undefined;
-        let isUsdtSettled = undefined;
         let market = undefined;
         let url = this.urls['api']['ws'];
         if (symbol !== undefined) {
             market = this.market (symbol);
-            isUsdcSettled = market['settle'] === 'USDC';
-            isUsdtSettled = market['settle'] === 'USDT';
-            isSpot = market['spot'];
             type = market['type'];
         } else {
             [ type, params ] = this.handleMarketTypeAndParams (method, undefined, params);
-            let defaultSettle = this.safeString (this.options, 'defaultSettle');
-            defaultSettle = this.safeString2 (params, 'settle', 'defaultSettle', defaultSettle);
-            isUsdcSettled = (defaultSettle === 'USDC');
-            isUsdtSettled = (defaultSettle === 'USDT');
-            isSpot = (type === 'spot');
         }
+        isSpot = (type === 'spot');
         if (isPrivate) {
             if (isSpot) {
                 url = url[accessibility]['spot'];
@@ -155,13 +140,13 @@ module.exports = class bybit extends bybitRest {
         } else {
             if (isSpot) {
                 url = url[accessibility]['spot'];
-            } else if (isUsdcSettled) {
-                url = url[accessibility]['usdc'][type];
-            } else if (isUsdtSettled) {
-                url = url[accessibility]['usdt'];
+            } else if (type === 'swap') {
+                let subType = undefined;
+                [ subType, params ] = this.handleSubTypeAndParams (method, market, params, 'linear');
+                url = url[accessibility][subType];
             } else {
-                // inverse
-                url = url[accessibility]['inverse'];
+                // option
+                url = url[accessibility]['option'];
             }
         }
         url = this.implodeHostname (url);
@@ -178,6 +163,8 @@ module.exports = class bybit extends bybitRest {
          * @method
          * @name bybit#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -199,67 +186,104 @@ module.exports = class bybit extends bybitRest {
 
     handleTicker (client, message) {
         //
-        //  spot - tickers
-        //    {
-        //        "data": {
-        //            "t": 1661742216005,
-        //            "s": "BTCUSDT",
-        //            "o": "19820",
-        //            "h": "20071.93",
-        //            "l": "19365.85",
-        //            "c": "19694.27",
-        //            "v": "9997.246174",
-        //            "qv": "197357775.97621786",
-        //            "m": "-0.0063"
-        //        },
-        //        "type": "delta",
-        //        "topic": "tickers.BTCUSDT",
-        //        "ts": 1661742216011
-        //    }
-        //  spot - bookticker
-        //    {
-        //        "data": {
-        //            "s": "BTCUSDT",
-        //            "bp": "19693.04",
-        //            "bq": "0.913957",
-        //            "ap": "19694.27",
-        //            "aq": "0.705447",
-        //            "t": 1661742216108
-        //        },
-        //        "type": "delta",
-        //        "topic": "bookticker.BTCUSDT",
-        //        "ts": 1661742216109
-        //    }
-        //  swap
-        //    {
-        //        "topic":"tickers.BTCUSDT",
-        //        "type":"snapshot",
-        //        "data":{
-        //            "symbol":"BTCUSDT",
-        //            "tickDirection":"ZeroMinusTick",
-        //            "price24hPcnt":"0.032786",
-        //            "lastPrice":"22019.00",
-        //            "prevPrice24h":"21320.00",
-        //            "highPrice24h":"22522.00",
-        //            "lowPrice24h":"20745.00",
-        //            "prevPrice1h":"22186.50",
-        //            "markPrice":"22010.11",
-        //            "indexPrice":"22009.01",
-        //            "openInterest":"44334.438",
-        //            "turnover24h":"4609010554.786498",
-        //            "volume24h":"213532.606",
-        //            "fundingRate":"0.0001",
-        //            "nextFundingTime":"2022-07-18T16:00:00Z",
-        //            "bid1Price":"22019.00",
-        //            "bid1Size":"41.530",
-        //            "ask1Price":"22019.50",
-        //            "ask1Size":"7.041",
-        //            "basisRate":"0",
-        //            "deliveryFeeRate":"0"
-        //        },
-        //        "cs":14236992078,
-        //        "ts":1663203915102
-        //    }
+        // linear
+        //     {
+        //         "topic": "tickers.BTCUSDT",
+        //         "type": "snapshot",
+        //         "data": {
+        //             "symbol": "BTCUSDT",
+        //             "tickDirection": "PlusTick",
+        //             "price24hPcnt": "0.017103",
+        //             "lastPrice": "17216.00",
+        //             "prevPrice24h": "16926.50",
+        //             "highPrice24h": "17281.50",
+        //             "lowPrice24h": "16915.00",
+        //             "prevPrice1h": "17238.00",
+        //             "markPrice": "17217.33",
+        //             "indexPrice": "17227.36",
+        //             "openInterest": "68744.761",
+        //             "openInterestValue": "1183601235.91",
+        //             "turnover24h": "1570383121.943499",
+        //             "volume24h": "91705.276",
+        //             "nextFundingTime": "1673280000000",
+        //             "fundingRate": "-0.000212",
+        //             "bid1Price": "17215.50",
+        //             "bid1Size": "84.489",
+        //             "ask1Price": "17216.00",
+        //             "ask1Size": "83.020"
+        //         },
+        //         "cs": 24987956059,
+        //         "ts": 1673272861686
+        //     }
+        //
+        // option
+        //     {
+        //         "id": "tickers.BTC-6JAN23-17500-C-2480334983-1672917511074",
+        //         "topic": "tickers.BTC-6JAN23-17500-C",
+        //         "ts": 1672917511074,
+        //         "data": {
+        //             "symbol": "BTC-6JAN23-17500-C",
+        //             "bidPrice": "0",
+        //             "bidSize": "0",
+        //             "bidIv": "0",
+        //             "askPrice": "10",
+        //             "askSize": "5.1",
+        //             "askIv": "0.514",
+        //             "lastPrice": "10",
+        //             "highPrice24h": "25",
+        //             "lowPrice24h": "5",
+        //             "markPrice": "7.86976724",
+        //             "indexPrice": "16823.73",
+        //             "markPriceIv": "0.4896",
+        //             "underlyingPrice": "16815.1",
+        //             "openInterest": "49.85",
+        //             "turnover24h": "446802.8473",
+        //             "volume24h": "26.55",
+        //             "totalVolume": "86",
+        //             "totalTurnover": "1437431",
+        //             "delta": "0.047831",
+        //             "gamma": "0.00021453",
+        //             "vega": "0.81351067",
+        //             "theta": "-19.9115368",
+        //             "predictedDeliveryPrice": "0",
+        //             "change24h": "-0.33333334"
+        //         },
+        //         "type": "snapshot"
+        //     }
+        //
+        // spot
+        //     {
+        //         "topic": "tickers.BTCUSDT",
+        //         "ts": 1673853746003,
+        //         "type": "snapshot",
+        //         "cs": 2588407389,
+        //         "data": {
+        //             "symbol": "BTCUSDT",
+        //             "lastPrice": "21109.77",
+        //             "highPrice24h": "21426.99",
+        //             "lowPrice24h": "20575",
+        //             "prevPrice24h": "20704.93",
+        //             "volume24h": "6780.866843",
+        //             "turnover24h": "141946527.22907118",
+        //             "price24hPcnt": "0.0196",
+        //             "usdIndexPrice": "21120.2400136"
+        //         }
+        //     }
+        //
+        // lt ticker
+        //     {
+        //         "topic": "tickers_lt.EOS3LUSDT",
+        //         "ts": 1672325446847,
+        //         "type": "snapshot",
+        //         "data": {
+        //             "symbol": "EOS3LUSDT",
+        //             "lastPrice": "0.41477848043290448",
+        //             "highPrice24h": "0.435285472510871305",
+        //             "lowPrice24h": "0.394601507960931382",
+        //             "prevPrice24h": "0.431502290172376349",
+        //             "price24hPcnt": "-0.0388"
+        //         }
+        //     }
         //
         const topic = this.safeString (message, 'topic', '');
         const updateType = this.safeString (message, 'type', '');
