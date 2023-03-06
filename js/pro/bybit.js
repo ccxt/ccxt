@@ -536,6 +536,7 @@ module.exports = class bybit extends bybitRest {
          * @method
          * @name bybit#watchTrades
          * @description watches information on multiple trades made in a market
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
@@ -548,17 +549,7 @@ module.exports = class bybit extends bybitRest {
         const url = this.getUrlByMarketType (symbol, false, false, params);
         params = this.cleanParams (params);
         const messageHash = 'trade:' + symbol;
-        let topic = undefined;
-        if (market['spot']) {
-            topic = 'trade.' + market['id'];
-        } else {
-            topic = 'publicTrade.';
-            if (market['option']) {
-                topic += market['baseId'];
-            } else {
-                topic += market['id'];
-            }
-        }
+        const topic = 'publicTrade.' + market['id'];
         const trades = await this.watchTopics (url, messageHash, [ topic ], params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -568,54 +559,32 @@ module.exports = class bybit extends bybitRest {
 
     handleTrades (client, message) {
         //
-        // swap
-        //    {
-        //        "topic": "publicTrade.BTCUSDT",
-        //        "type": "snapshot",
-        //        "ts": 1662694953823,
-        //        "data": [
-        //            {
-        //                "T": 1662694953819,
-        //                "s": "BTCUSDT",
-        //                "S": "Buy",
-        //                "v": "0.010",
-        //                "p": "19792.50",
-        //                "L": "PlusTick",
-        //                "i": "5c9ab13e-6010-522c-aecd-02c4d9c8db3d",
-        //                "BT": false
-        //            }
-        //        ]
-        //    }
-        //
-        // spot
-        //    {
-        //        "data": {
-        //            "v": "2100000000001992601",
-        //            "t": 1661742109857,
-        //            "p": "19706.87",
-        //            "q": "0.000158",
-        //            "m": true
-        //        },
-        //        "type": "delta",
-        //        "topic": "trade.BTCUSDT",
-        //        "ts": 1661742109863
-        //    }
+        //     {
+        //         "topic": "publicTrade.BTCUSDT",
+        //         "type": "snapshot",
+        //         "ts": 1672304486868,
+        //         "data": [
+        //             {
+        //                 "T": 1672304486865,
+        //                 "s": "BTCUSDT",
+        //                 "S": "Buy",
+        //                 "v": "0.001",
+        //                 "p": "16578.50",
+        //                 "L": "PlusTick",
+        //                 "i": "20f43950-d8dd-5b31-9112-a178eb6023af",
+        //                 "BT": false
+        //             }
+        //         ]
+        //     }
         //
         const data = this.safeValue (message, 'data', {});
         const topic = this.safeString (message, 'topic');
-        let trades = undefined;
+        const trades = data;
         const parts = topic.split ('.');
-        const tradeType = this.safeString (parts, 0);
-        const marketType = (tradeType === 'trade') ? 'spot' : 'contract';
+        const isSpot = client.url.indexOf ('spot') >= 0;
+        const marketType = (isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
-        if (Array.isArray (data)) {
-            // contract markets
-            trades = data;
-        } else {
-            // spot markets
-            trades = [ data ];
-        }
         const symbol = market['symbol'];
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -633,16 +602,16 @@ module.exports = class bybit extends bybitRest {
 
     parseWsTrade (trade, market = undefined) {
         //
-        // contract public
+        // public
         //    {
-        //         T: 1670198879981,
-        //         s: 'BTCUSDT',
-        //         S: 'Buy',
-        //         v: '0.001',
-        //         p: '17130.00',
-        //         L: 'ZeroPlusTick',
-        //         i: 'a807f4ee-2e8b-5f21-a02a-3e258ddbfdc9',
-        //         BT: false
+        //         "T": 1672304486865,
+        //         "s": "BTCUSDT",
+        //         "S": "Buy",
+        //         "v": "0.001",
+        //         "p": "16578.50",
+        //         "L": "PlusTick",
+        //         "i": "20f43950-d8dd-5b31-9112-a178eb6023af",
+        //         "BT": false
         //     }
         // contract private
         //
@@ -669,17 +638,6 @@ module.exports = class bybit extends bybitRest {
         //        "closedSize": "0"
         //    }
         //
-        // spot public
-        //
-        //    {
-        //      'symbol': 'BTCUSDT', // artificially added
-        //       v: '2290000000003002848', // trade id
-        //       t: 1652967602261,
-        //       p: '29698.82',
-        //       q: '0.189531',
-        //       m: true
-        //     }
-        //
         // spot private
         //     {
         //         "e": "ticketInfo",
@@ -700,7 +658,10 @@ module.exports = class bybit extends bybitRest {
         //
         const id = this.safeStringN (trade, [ 'i', 'T', 'v' ]);
         const isContract = ('BT' in trade);
-        const marketType = isContract ? 'contract' : 'spot';
+        let marketType = isContract ? 'contract' : 'spot';
+        if (market !== undefined) {
+            marketType = market['type'];
+        }
         const marketId = this.safeString (trade, 's');
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = market['symbol'];
