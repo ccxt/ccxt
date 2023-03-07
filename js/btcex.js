@@ -216,6 +216,7 @@ module.exports = class btcex extends Exchange {
                     '403': AuthenticationError, // ACCESS_DENIED_ERROR Access denied
                     '1000': ExchangeNotAvailable, // NO_SERVICE No service found
                     '1001': BadRequest, // BAD_REQUEST Bad requested
+                    '1005': DDoSProtection, // {"code":1005,"message":"Operate too frequently"}
                     '2000': AuthenticationError, // NEED_LOGIN Login is required
                     '2001': AuthenticationError, // ACCOUNT_NOT_MATCH Account information does not match
                     '2002': AuthenticationError, // ACCOUNT_NEED_ENABLE Account needs to be activated
