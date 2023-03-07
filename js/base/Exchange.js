@@ -2271,7 +2271,7 @@ module.exports = class Exchange {
             });
         }
         if (!('info' in this.status)) {
-            this.status['info'] = null;
+            this.status['info'] = undefined;
         }
         return this.status;
     }
