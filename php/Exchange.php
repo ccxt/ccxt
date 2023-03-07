@@ -3989,6 +3989,9 @@ class Exchange {
                 'updated' => $time,
             ));
         }
+        if (!(is_array($this->status) && array_key_exists('info', $this->status))) {
+            $this->status['info'] = null;
+        }
         return $this->status;
     }
 
