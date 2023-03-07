@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '2.9.6';
+$version = '2.9.7';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.9.6';
+    const VERSION = '2.9.7';
 
     public $browser;
     public $marketsLoading = null;
@@ -669,9 +669,6 @@ class Exchange extends \ccxt\Exchange {
         }
         $timestamp = $this->safe_integer($order, 'timestamp');
         $datetime = $this->safe_string($order, 'datetime');
-        if ($timestamp === null) {
-            $timestamp = $this->parse8601 ($timestamp);
-        }
         if ($datetime === null) {
             $datetime = $this->iso8601 ($timestamp);
         }

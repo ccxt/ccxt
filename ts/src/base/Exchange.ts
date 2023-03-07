@@ -1873,11 +1873,8 @@ export default class Exchange {
             // timeInForce is not undefined here
             postOnly = timeInForce === 'PO';
         }
-        let timestamp = this.safeInteger (order, 'timestamp');
+        const timestamp = this.safeInteger (order, 'timestamp');
         let datetime = this.safeString (order, 'datetime');
-        if (timestamp === undefined) {
-            timestamp = this.parse8601 (timestamp);
-        }
         if (datetime === undefined) {
             datetime = this.iso8601 (timestamp);
         }

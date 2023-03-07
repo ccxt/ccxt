@@ -313,6 +313,8 @@ class krakenfutures(Exchange):
             # swap == perpetual
             settle = None
             settleId = None
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'contractValueTradePrecision', '0')))
+            pricePrecision = self.safe_number(market, 'tickSize')
             contract = (swap or future)
             if contract:
                 exchangeType = self.safe_string(market, 'type')
@@ -355,8 +357,8 @@ class krakenfutures(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': None if index else self.parse_number('1'),
-                    'price': self.safe_number(market, 'tickSize'),
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
                 },
                 'limits': {
                     'leverage': {

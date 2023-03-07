@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.9.6';
+$version = '2.9.7';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.9.6';
+    const VERSION = '2.9.7';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2926,9 +2926,6 @@ class Exchange {
         }
         $timestamp = $this->safe_integer($order, 'timestamp');
         $datetime = $this->safe_string($order, 'datetime');
-        if ($timestamp === null) {
-            $timestamp = $this->parse8601 ($timestamp);
-        }
         if ($datetime === null) {
             $datetime = $this->iso8601 ($timestamp);
         }
