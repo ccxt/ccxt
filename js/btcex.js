@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, PermissionDenied, ExchangeNotAvailable, ArgumentsRequired } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -221,6 +221,7 @@ module.exports = class btcex extends Exchange {
                     '2001': AuthenticationError, // ACCOUNT_NOT_MATCH Account information does not match
                     '2002': AuthenticationError, // ACCOUNT_NEED_ENABLE Account needs to be activated
                     '2003': AuthenticationError, // ACCOUNT_NOT_AVAILABLE Account not available
+                    '2010': PermissionDenied, // {"code":2010,"message":"Access denied","data":{}}
                     '3000': AuthenticationError, // TEST user
                     '3002': AuthenticationError, // NICKNAME_EXIST Nicknames exist
                     '3003': AuthenticationError, // ACCOUNT_NOT_EXIST No account
@@ -285,6 +286,7 @@ module.exports = class btcex extends Exchange {
                     '5013': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_HIGH order price range is too high.
                     '5014': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
                     '5109': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
+                    '5119': InvalidOrder, // {"code":5119,"message":"Cannot be less than the minimum order value：10USDT, instrument: GXE/USDT","data":{"coinType":"USDT","amount":"10","instrumentName":"GXE/USDT"}}
                     '5135': InvalidOrder, // The quantity should be larger than: 0.01
                     '5901': InvalidOrder, // TRANSFER_RESULT transfer out success.
                     '5902': InvalidOrder, // ORDER_SUCCESS place order success.
