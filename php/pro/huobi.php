@@ -431,31 +431,36 @@ class huobi extends \ccxt\async\huobi {
 
     public function watch_order_book_snapshot($client, $message, $subscription) {
         return Async\async(function () use ($client, $message, $subscription) {
-            $symbol = $this->safe_string($subscription, 'symbol');
-            $limit = $this->safe_integer($subscription, 'limit');
-            $params = $this->safe_value($subscription, 'params');
-            $attempts = $this->safe_integer($subscription, 'numAttempts', 0);
             $messageHash = $this->safe_string($subscription, 'messageHash');
-            $market = $this->market($symbol);
-            $url = $this->get_url_by_market_type($market['type'], $market['linear']);
-            $requestId = $this->request_id();
-            $request = array(
-                'req' => $messageHash,
-                'id' => $requestId,
-            );
-            // this is a temporary $subscription by a specific $requestId
-            // it has a very short lifetime until the snapshot is received over ws
-            $snapshotSubscription = array(
-                'id' => $requestId,
-                'messageHash' => $messageHash,
-                'symbol' => $symbol,
-                'limit' => $limit,
-                'params' => $params,
-                'numAttempts' => $attempts,
-                'method' => array($this, 'handle_order_book_snapshot'),
-            );
-            $orderbook = Async\await($this->watch($url, $requestId, $request, $requestId, $snapshotSubscription));
-            return $orderbook->limit ();
+            try {
+                $symbol = $this->safe_string($subscription, 'symbol');
+                $limit = $this->safe_integer($subscription, 'limit');
+                $params = $this->safe_value($subscription, 'params');
+                $attempts = $this->safe_integer($subscription, 'numAttempts', 0);
+                $market = $this->market($symbol);
+                $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+                $requestId = $this->request_id();
+                $request = array(
+                    'req' => $messageHash,
+                    'id' => $requestId,
+                );
+                // this is a temporary $subscription by a specific $requestId
+                // it has a very short lifetime until the snapshot is received over ws
+                $snapshotSubscription = array(
+                    'id' => $requestId,
+                    'messageHash' => $messageHash,
+                    'symbol' => $symbol,
+                    'limit' => $limit,
+                    'params' => $params,
+                    'numAttempts' => $attempts,
+                    'method' => array($this, 'handle_order_book_snapshot'),
+                );
+                $orderbook = Async\await($this->watch($url, $requestId, $request, $requestId, $snapshotSubscription));
+                return $orderbook->limit ();
+            } catch (Exception $e) {
+                unset($client->subscriptions[$messageHash]);
+                $client->reject ($e, $messageHash);
+            }
         }) ();
     }
 
