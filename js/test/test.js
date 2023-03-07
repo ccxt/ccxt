@@ -68,6 +68,8 @@ Object.keys (errors)
         testFiles[error] = require (__dirname + '/errors/test.' + error + '.js');
     });
 
+const AuthenticationError = errors.AuthenticationError;
+
 // non-transpiled commons
 const targetDir = __dirname + '/../../';
 const envVars = process.env;
@@ -200,7 +202,7 @@ module.exports = class testMainClass extends emptyClass {
                 this.checkedPublicTests[methodNameInTest] = true;
             }
         } catch (e) {
-            const isAuthError = (e instanceof ccxt.AuthenticationError);
+            const isAuthError = (e instanceof AuthenticationError);
             if (isPublic && isAuthError) {
                 dump ('[Skipped private]', exchange.id, methodNameInTest, ' - method req' + 'uires authentication, skipped from public tests');
                 // do not throw exception from here, as it's public test and exception is destined to be thrown from private

@@ -70,8 +70,7 @@ function reviseCommonTimestamp (exchange, method, entry, nowToCheck = undefined,
         assert ((keyName in entry), 'timestamp key ' + keyName + ' is missing from structure' + logText);
     } else {
         // if index was provided (mostly from fetchOHLCV) then we check if it exists, as mandatory
-        const isUndefined = (entry[keyName] === undefined);
-        assert (!isUndefined, 'timestamp index ' + keyName + ' is undefined' + logText);
+        assert (!(entry[keyName] === undefined), 'timestamp index ' + keyName + ' is undefined' + logText);
     }
     const ts = entry[keyName];
     if (ts !== undefined) {
