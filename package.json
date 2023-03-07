@@ -192,6 +192,7 @@
   },
   "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
   "dependencies": {
+    "ast-transpiler": "^0.0.2",
     "ws": "^8.8.1"
   }
 }
