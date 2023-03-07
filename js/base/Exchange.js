@@ -2270,6 +2270,9 @@ module.exports = class Exchange {
                 'updated': time,
             });
         }
+        if (!('info' in this.status)) {
+            this.status['info'] = undefined;
+        }
         return this.status;
     }
 
