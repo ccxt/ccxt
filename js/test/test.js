@@ -168,17 +168,22 @@ module.exports = class testMainClass extends emptyClass {
             exit_script();
         }
         // 
-        this.skippedMethods = exchange.safeValue (exchangeSettings, 'skipMethods', []);
+        this.skippedMethods = exchange.safeValue (exchangeSettings, 'skipMethods', {});
+        this.checkedPublicTests = {};
         add_proxy_agent (exchange, exchangeSettings);
     }
 
-    async testMethod (methodName, exchange, args) {
+    async testMethod (methodName, exchange, args, isPublic) {
         const methodNameInTest = method_namer_in_test (methodName);
+        // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in exchange)
+        if (!isPublic && (methodNameInTest in this.checkedPublicTests) && (methodName !== 'fetchCurrencies')) {
+            return;
+        }
         let skipMessage = undefined;
         if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName])) {
             skipMessage = 'not supported';
-        } else if (exchange.inArray (methodName, this.skippedMethods)) {
-            skipMessage = 'test is skipped within keys.json';
+        } else if (methodName in this.skippedMethods) {
+            skipMessage = 'skipped within keys.json';
         } else if (!(methodNameInTest in testFiles)) {
             skipMessage = 'test not available';
         }
@@ -188,21 +193,26 @@ module.exports = class testMainClass extends emptyClass {
         }
         const argsStringified = '(' + args.join (',') + ')';
         dump ('[Testing]', exchange.id, methodNameInTest, argsStringified);
+        let result = null;
         try {
-            return await call_method (methodNameInTest, exchange, args);
+            result = await call_method (methodNameInTest, exchange, args);
+            if (isPublic) {
+                this.checkedPublicTests[methodNameInTest] = true;
+            }
         } catch (e) {
-            if (e instanceof ccxt.AuthenticationError) {
-                dump ('[Skipping]', exchange.id, methodNameInTest, ' - method requires authentication');
+            if (isPublic && (e instanceof ccxt.AuthenticationError)) {
+                dump ('[Skiped private]', exchange.id, methodNameInTest, ' - method requires authentication, skipped from public tests');
             } else {
                 dump (exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
                 throw e;
             }
         }
+        return result;
     }
 
-    async testSafe (methodName, exchange, args) {
+    async testSafe (methodName, exchange, args, isPublic) {
         try {
-            await this.testMethod(methodName, exchange, args);
+            await this.testMethod(methodName, exchange, args, isPublic);
             return true;
         } catch (e) {
             return false;
@@ -236,12 +246,13 @@ module.exports = class testMainClass extends emptyClass {
             tests['fetchMarkOHLCV'] = [symbol];
             tests['fetchPremiumIndexOHLCV'] = [symbol];
         }
+        this.publicTests = tests;
         const testNames = Object.keys (tests);
         const promises = [];
         for (let i = 0; i < testNames.length; i++) {
             const testName = testNames[i];
             const testArgs = tests[testName];
-            promises.push (this.testSafe (testName, exchange, testArgs));
+            promises.push (this.testSafe (testName, exchange, testArgs, true));
         }
         await Promise.all (promises);
     }
@@ -548,12 +559,13 @@ module.exports = class testMainClass extends emptyClass {
             tests['fetchFundingRateHistory'] = [exchange, symbol];
             tests['fetchFundingHistory'] = [exchange, symbol];
         }
-        const testNames = Object.keys (tests);
+        const combinedPublicPrivateTests = exchange.deepExtend (this.publicTests, tests);
+        const testNames = Object.keys (combinedPublicPrivateTests);
         const promises = [];
         for (let i = 0; i < testNames.length; i++) {
             const testName = testNames[i];
-            const testArgs = tests[testName];
-            promises.push (this.testSafe (testName, exchange, testArgs));
+            const testArgs = combinedPublicPrivateTests[testName];
+            promises.push (this.testSafe (testName, exchange, testArgs, false));
         }
         const results = await Promise.all (promises);
         const errors = [];

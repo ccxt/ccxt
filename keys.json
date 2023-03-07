@@ -1,5 +1,5 @@
 {
-    "ace":           { "skipMethods": ["fetchOrderBook", "fetchL2OrderBook"] },
+    "ace":           { "skipMethods": {"fetchOrderBook":"needs reversion of amount/price", "fetchL2OrderBook":"same reason"} },
     "alpaca":        { "skipWs": true },
     "binance":       { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
     "binanceusdm":   { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
@@ -17,7 +17,7 @@
     "okcoin":        { "skipWs": true },
     "poloniex":      { "skipWs": true },
     "zipmex":        { "skipWs": true },
-    "bequant":       { "skipWs": true },
+    "bequant":       { "skipWs": true, "skipMethods": {"fetchOHLCV": "timestamp incorrectly set"} },
     "bitopro":       { "skipWs": true },
     "bitvavo":       { "skipWs": true },
     "huobi":         { "skipWs": true },
