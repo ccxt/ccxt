@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const huobiRest = require ('../huobi.js');
-const { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError } = require ('../base/errors');
+const { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -375,6 +375,7 @@ module.exports = class huobi extends huobiRest {
         //
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = this.safeString (subscription, 'messageHash');
+        const id = this.safeString (message, 'id');
         try {
             const orderbook = this.orderbooks[symbol];
             const data = this.safeValue (message, 'data');
@@ -385,6 +386,9 @@ module.exports = class huobi extends huobiRest {
             const sequence = this.safeInteger (tick, 'seqNum');
             const nonce = this.safeInteger (data, 'seqNum');
             snapshot['nonce'] = nonce;
+            const snapshotLimit = this.safeInteger (subscription, 'limit');
+            const snapshotOrderBook = this.orderBook (snapshot, snapshotLimit);
+            client.resolve (snapshotOrderBook, id);
             if ((sequence !== undefined) && (nonce < sequence)) {
                 const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
@@ -1377,6 +1381,10 @@ module.exports = class huobi extends huobiRest {
         //     }
         //
         const channel = this.safeString (message, 'ch');
+        const timestamp = this.safeInteger (message, 'ts');
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601 (timestamp);
+        this.balance['info'] = this.safeValue (message, 'data');
         if (channel !== undefined) {
             // spot balance
             const data = this.safeValue (message, 'data', {});
@@ -1641,22 +1649,27 @@ module.exports = class huobi extends huobiRest {
         //     { action: 'ping', data: { ts: 1645108204665 } }
         //     { op: 'ping', ts: '1645202800015' }
         //
-        const ping = this.safeInteger (message, 'ping');
-        if (ping !== undefined) {
-            await client.send ({ 'pong': ping });
-            return;
-        }
-        const action = this.safeString (message, 'action');
-        if (action === 'ping') {
-            const data = this.safeValue (message, 'data');
-            const ping = this.safeInteger (data, 'ts');
-            await client.send ({ 'action': 'pong', 'data': { 'ts': ping }});
-            return;
-        }
-        const op = this.safeString (message, 'op');
-        if (op === 'ping') {
-            const ping = this.safeInteger (message, 'ts');
-            await client.send ({ 'op': 'pong', 'ts': ping });
+        try {
+            const ping = this.safeInteger (message, 'ping');
+            if (ping !== undefined) {
+                await client.send ({ 'pong': ping });
+                return;
+            }
+            const action = this.safeString (message, 'action');
+            if (action === 'ping') {
+                const data = this.safeValue (message, 'data');
+                const ping = this.safeInteger (data, 'ts');
+                await client.send ({ 'action': 'pong', 'data': { 'ts': ping }});
+                return;
+            }
+            const op = this.safeString (message, 'op');
+            if (op === 'ping') {
+                const ping = this.safeInteger (message, 'ts');
+                await client.send ({ 'op': 'pong', 'ts': ping });
+            }
+        } catch (e) {
+            const error = new NetworkError (this.id + ' pong failed ' + this.json (e));
+            client.reset (error);
         }
     }
 

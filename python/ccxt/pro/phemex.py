@@ -194,37 +194,38 @@ class phemex(Exchange, ccxt.async_support.phemex):
 
     def handle_balance(self, type, client, message):
         # spot
-        #  [
-        #     {
-        #         balanceEv: 0,
-        #         currency: 'BTC',
-        #         lastUpdateTimeNs: '1650442638722099092',
-        #         lockedTradingBalanceEv: 0,
-        #         lockedWithdrawEv: 0,
-        #         userID: 2647224
-        #       },
+        #    [
         #       {
-        #         balanceEv: 1154232337,
-        #         currency: 'USDT',
-        #         lastUpdateTimeNs: '1650442617610017597',
-        #         lockedTradingBalanceEv: 0,
-        #         lockedWithdrawEv: 0,
-        #         userID: 2647224
-        #       }
+        #           balanceEv: 0,
+        #           currency: 'BTC',
+        #           lastUpdateTimeNs: '1650442638722099092',
+        #           lockedTradingBalanceEv: 0,
+        #           lockedWithdrawEv: 0,
+        #           userID: 2647224
+        #         },
+        #         {
+        #           balanceEv: 1154232337,
+        #           currency: 'USDT',
+        #           lastUpdateTimeNs: '1650442617610017597',
+        #           lockedTradingBalanceEv: 0,
+        #           lockedWithdrawEv: 0,
+        #           userID: 2647224
+        #         }
         #    ]
         #
         # swap
-        #  [
-        #       {
-        #         accountBalanceEv: 0,
-        #         accountID: 26472240001,
-        #         bonusBalanceEv: 0,
-        #         currency: 'BTC',
-        #         totalUsedBalanceEv: 0,
-        #         userID: 2647224
-        #       }
-        #  ]
+        #    [
+        #         {
+        #           accountBalanceEv: 0,
+        #           accountID: 26472240001,
+        #           bonusBalanceEv: 0,
+        #           currency: 'BTC',
+        #           totalUsedBalanceEv: 0,
+        #           userID: 2647224
+        #         }
+        #    ]
         #
+        self.balance['info'] = message
         for i in range(0, len(message)):
             balance = message[i]
             currencyId = self.safe_string(balance, 'currency')

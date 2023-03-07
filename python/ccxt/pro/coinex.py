@@ -251,6 +251,7 @@ class coinex(Exchange, ccxt.async_support.coinex):
         #
         params = self.safe_value(message, 'params', [])
         first = self.safe_value(params, 0, {})
+        self.balance['info'] = first
         currencies = list(first.keys())
         for i in range(0, len(currencies)):
             currencyId = currencies[i]

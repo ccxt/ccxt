@@ -285,8 +285,8 @@ class bitopro extends \ccxt\async\bitopro {
         //
         //     {
         //         $event => 'ACCOUNT_BALANCE',
-        //         timestamp => 1650450505715,
-        //         datetime => '2022-04-20T10:28:25.715Z',
+        //         $timestamp => 1650450505715,
+        //         $datetime => '2022-04-20T10:28:25.715Z',
         //         $data => {
         //           ADA => array(
         //             $currency => 'ADA',
@@ -300,8 +300,14 @@ class bitopro extends \ccxt\async\bitopro {
         //
         $event = $this->safe_string($message, 'event');
         $data = $this->safe_value($message, 'data');
+        $timestamp = $this->safe_integer($message, 'timestamp');
+        $datetime = $this->safe_string($message, 'datetime');
         $currencies = is_array($data) ? array_keys($data) : array();
-        $result = array();
+        $result = array(
+            'info' => $data,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+        );
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $this->safe_string($currencies, $i);
             $balance = $this->safe_value($data, $currency);

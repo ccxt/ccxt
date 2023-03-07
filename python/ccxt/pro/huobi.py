@@ -12,6 +12,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import NetworkError
 from ccxt.base.errors import InvalidNonce
 
 
@@ -356,6 +357,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
         #
         symbol = self.safe_string(subscription, 'symbol')
         messageHash = self.safe_string(subscription, 'messageHash')
+        id = self.safe_string(message, 'id')
         try:
             orderbook = self.orderbooks[symbol]
             data = self.safe_value(message, 'data')
@@ -366,6 +368,9 @@ class huobi(Exchange, ccxt.async_support.huobi):
             sequence = self.safe_integer(tick, 'seqNum')
             nonce = self.safe_integer(data, 'seqNum')
             snapshot['nonce'] = nonce
+            snapshotLimit = self.safe_integer(subscription, 'limit')
+            snapshotOrderBook = self.order_book(snapshot, snapshotLimit)
+            client.resolve(snapshotOrderBook, id)
             if (sequence is not None) and (nonce < sequence):
                 maxAttempts = self.safe_integer(self.options, 'maxOrderBookSyncAttempts', 3)
                 numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
@@ -1296,6 +1301,10 @@ class huobi(Exchange, ccxt.async_support.huobi):
         #     }
         #
         channel = self.safe_string(message, 'ch')
+        timestamp = self.safe_integer(message, 'ts')
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
+        self.balance['info'] = self.safe_value(message, 'data')
         if channel is not None:
             # spot balance
             data = self.safe_value(message, 'data', {})
@@ -1535,20 +1544,24 @@ class huobi(Exchange, ccxt.async_support.huobi):
         #     {action: 'ping', data: {ts: 1645108204665}}
         #     {op: 'ping', ts: '1645202800015'}
         #
-        ping = self.safe_integer(message, 'ping')
-        if ping is not None:
-            await client.send({'pong': ping})
-            return
-        action = self.safe_string(message, 'action')
-        if action == 'ping':
-            data = self.safe_value(message, 'data')
-            ping = self.safe_integer(data, 'ts')
-            await client.send({'action': 'pong', 'data': {'ts': ping}})
-            return
-        op = self.safe_string(message, 'op')
-        if op == 'ping':
-            ping = self.safe_integer(message, 'ts')
-            await client.send({'op': 'pong', 'ts': ping})
+        try:
+            ping = self.safe_integer(message, 'ping')
+            if ping is not None:
+                await client.send({'pong': ping})
+                return
+            action = self.safe_string(message, 'action')
+            if action == 'ping':
+                data = self.safe_value(message, 'data')
+                ping = self.safe_integer(data, 'ts')
+                await client.send({'action': 'pong', 'data': {'ts': ping}})
+                return
+            op = self.safe_string(message, 'op')
+            if op == 'ping':
+                ping = self.safe_integer(message, 'ts')
+                await client.send({'op': 'pong', 'ts': ping})
+        except Exception as e:
+            error = NetworkError(self.id + ' pong failed ' + self.json(e))
+            client.reset(error)
 
     def handle_ping(self, client, message):
         self.spawn(self.pong, client, message)

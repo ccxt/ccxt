@@ -44,6 +44,9 @@ class binance(Exchange, ccxt.async_support.binance):
                     },
                 },
             },
+            'streaming': {
+                'keepAlive': 180000,
+            },
             'options': {
                 'streamLimits': {
                     'spot': 50,  # max 1024
@@ -105,16 +108,6 @@ class binance(Exchange, ccxt.async_support.binance):
             stream = self.number_to_string(normalizedIndex)
             self.options['streamBySubscriptionsHash'][subscriptionHash] = stream
         return stream
-
-    def on_error(self, client, error):
-        self.options['streamBySubscriptionsHash'] = {}
-        self.options['streamIndex'] = -1
-        super(binance, self).on_error(client, error)
-
-    def on_close(self, client, error):
-        self.options['streamBySubscriptionsHash'] = {}
-        self.options['streamIndex'] = -1
-        super(binance, self).on_close(client, error)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         """
@@ -198,44 +191,48 @@ class binance(Exchange, ccxt.async_support.binance):
         return orderbook.limit()
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
-        defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
-        type = self.safe_value(subscription, 'type')
-        symbol = self.safe_string(subscription, 'symbol')
         messageHash = self.safe_string(subscription, 'messageHash')
-        limit = self.safe_integer(subscription, 'limit', defaultLimit)
-        params = self.safe_value(subscription, 'params')
-        # 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-        # todo: self is a synch blocking call in ccxt.php - make it async
-        # default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        snapshot = await self.fetch_order_book(symbol, limit, params)
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            # if the orderbook is dropped before the snapshot is received
-            return
-        orderbook.reset(snapshot)
-        # unroll the accumulated deltas
-        messages = orderbook.cache
-        for i in range(0, len(messages)):
-            message = messages[i]
-            U = self.safe_integer(message, 'U')
-            u = self.safe_integer(message, 'u')
-            pu = self.safe_integer(message, 'pu')
-            if type == 'future':
-                # 4. Drop any event where u is < lastUpdateId in the snapshot
-                if u < orderbook['nonce']:
-                    continue
-                # 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                if (U <= orderbook['nonce']) and (u >= orderbook['nonce']) or (pu == orderbook['nonce']):
-                    self.handle_order_book_message(client, message, orderbook)
-            else:
-                # 4. Drop any event where u is <= lastUpdateId in the snapshot
-                if u <= orderbook['nonce']:
-                    continue
-                # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                if ((U - 1) <= orderbook['nonce']) and ((u - 1) >= orderbook['nonce']):
-                    self.handle_order_book_message(client, message, orderbook)
-        self.orderbooks[symbol] = orderbook
-        client.resolve(orderbook, messageHash)
+        symbol = self.safe_string(subscription, 'symbol')
+        try:
+            defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
+            type = self.safe_value(subscription, 'type')
+            limit = self.safe_integer(subscription, 'limit', defaultLimit)
+            params = self.safe_value(subscription, 'params')
+            # 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
+            # todo: self is a synch blocking call in ccxt.php - make it async
+            # default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
+            snapshot = await self.fetch_order_book(symbol, limit, params)
+            orderbook = self.safe_value(self.orderbooks, symbol)
+            if orderbook is None:
+                # if the orderbook is dropped before the snapshot is received
+                return
+            orderbook.reset(snapshot)
+            # unroll the accumulated deltas
+            messages = orderbook.cache
+            for i in range(0, len(messages)):
+                message = messages[i]
+                U = self.safe_integer(message, 'U')
+                u = self.safe_integer(message, 'u')
+                pu = self.safe_integer(message, 'pu')
+                if type == 'future':
+                    # 4. Drop any event where u is < lastUpdateId in the snapshot
+                    if u < orderbook['nonce']:
+                        continue
+                    # 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+                    if (U <= orderbook['nonce']) and (u >= orderbook['nonce']) or (pu == orderbook['nonce']):
+                        self.handle_order_book_message(client, message, orderbook)
+                else:
+                    # 4. Drop any event where u is <= lastUpdateId in the snapshot
+                    if u <= orderbook['nonce']:
+                        continue
+                    # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+                    if ((U - 1) <= orderbook['nonce']) and ((u - 1) >= orderbook['nonce']):
+                        self.handle_order_book_message(client, message, orderbook)
+            self.orderbooks[symbol] = orderbook
+            client.resolve(orderbook, messageHash)
+        except Exception as e:
+            del client.subscriptions[messageHash]
+            client.reject(e, messageHash)
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)

@@ -322,7 +322,7 @@ class cex(Exchange):
                 'active': active,
                 'deposit': None,
                 'withdraw': None,
-                'precision': self.parse_number(self.safe_string(currency, 'precision')),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'fee': None,
                 'limits': {
                     'amount': {

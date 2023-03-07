@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.8.24'
+__version__ = '2.9.6'
 
 # ----------------------------------------------------------------------------
 
@@ -146,6 +146,7 @@ from ccxt.independentreserve import independentreserve                # noqa: F4
 from ccxt.indodax import indodax                                      # noqa: F401
 from ccxt.itbit import itbit                                          # noqa: F401
 from ccxt.kraken import kraken                                        # noqa: F401
+from ccxt.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.kucoin import kucoin                                        # noqa: F401
 from ccxt.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.kuna import kuna                                            # noqa: F401
@@ -258,6 +259,7 @@ exchanges = [
     'indodax',
     'itbit',
     'kraken',
+    'krakenfutures',
     'kucoin',
     'kucoinfutures',
     'kuna',
