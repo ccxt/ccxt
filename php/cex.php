@@ -312,7 +312,7 @@ class cex extends Exchange {
                 'active' => $active,
                 'deposit' => null,
                 'withdraw' => null,
-                'precision' => $this->parse_number($this->safe_string($currency, 'precision')),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
                 'fee' => null,
                 'limits' => array(
                     'amount' => array(

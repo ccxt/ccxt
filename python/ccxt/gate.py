@@ -65,10 +65,12 @@ class gate(Exchange):
                     'public': {
                         'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
                     },
                     'private': {
                         'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
                     },
                 },
                 'referral': {
@@ -452,6 +454,7 @@ class gate(Exchange):
                 'X-Gate-Channel-Id': 'ccxt',
             },
             'options': {
+                'sandboxMode': False,
                 'createOrder': {
                     'expiration': 86400,  # for conditional orders
                 },
@@ -588,7 +591,7 @@ class gate(Exchange):
                     },
                 },
             },
-            # https://www.gate.io/docs/apiv4/en/index.html#label-list
+            # https://www.gate.io/docs/developers/apiv4/en/#label-list
             'exceptions': {
                 'exact': {
                     'INVALID_PARAM_VALUE': BadRequest,
@@ -681,10 +684,16 @@ class gate(Exchange):
                     'TOO_BUSY': ExchangeNotAvailable,
                     'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
                     'RISK_LIMIT_TOO_LOW': BadRequest,  # {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
+                    'AUTO_TRIGGER_PRICE_LESS_LAST': InvalidOrder,  # {"label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument: Trigger.Price must < last_price"}
+                    'AUTO_TRIGGER_PRICE_GREATE_LAST': InvalidOrder,  # {"label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument: Trigger.Price must > last_price"}
                 },
                 'broad': {},
             },
         })
+
+    def set_sandbox_mode(self, enable):
+        super(gate, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable
 
     def fetch_markets(self, params={}):
         """
@@ -692,14 +701,18 @@ class gate(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         promises = [
-            self.fetch_spot_markets(params),
             self.fetch_contract_markets(params),
             self.fetch_option_markets(params),
         ]
-        spotMarkets = promises[0]
-        contractMarkets = promises[1]
-        optionMarkets = promises[2]
+        if not sandboxMode:
+            # gate does not have a sandbox for spot markets
+            mainnetOnly = [self.fetch_spot_markets(params)]
+            promises = self.array_concat(promises, mainnetOnly)
+        spotMarkets = self.safe_value(promises, 0, [])
+        contractMarkets = self.safe_value(promises, 1, [])
+        optionMarkets = self.safe_value(promises, 2, [])
         markets = self.array_concat(spotMarkets, contractMarkets)
         return self.array_concat(markets, optionMarkets)
 
@@ -2825,6 +2838,8 @@ class gate(Exchange):
         if network is not None:
             request['chain'] = network
             params = self.omit(params, 'network')
+        else:
+            request['chain'] = currency['id']
         response = self.privateWithdrawalsPostWithdrawals(self.extend(request, params))
         #
         #    {
@@ -2882,21 +2897,23 @@ class gate(Exchange):
         #
         id = self.safe_string(transaction, 'id')
         type = None
-        amount = self.safe_string(transaction, 'amount')
+        amountString = self.safe_string(transaction, 'amount')
         if id is not None:
             if id[0] == 'b':
                 # GateCode handling
-                type = 'deposit' if Precise.string_gt(amount, '0') else 'withdrawal'
-                amount = Precise.string_abs(amount)
+                type = 'deposit' if Precise.string_gt(amountString, '0') else 'withdrawal'
+                amountString = Precise.string_abs(amountString)
             else:
                 type = self.parse_transaction_type(id[0])
+        feeCostString = self.safe_string(transaction, 'fee')
+        if type == 'withdrawal':
+            amountString = Precise.string_sub(amountString, feeCostString)
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         txid = self.safe_string(transaction, 'txid')
         rawStatus = self.safe_string(transaction, 'status')
         status = self.parse_transaction_status(rawStatus)
         address = self.safe_string(transaction, 'address')
-        fee = self.safe_number(transaction, 'fee')
         tag = self.safe_string(transaction, 'memo')
         timestamp = self.safe_timestamp(transaction, 'timestamp')
         return {
@@ -2904,7 +2921,7 @@ class gate(Exchange):
             'id': id,
             'txid': txid,
             'currency': code,
-            'amount': self.parse_number(amount),
+            'amount': self.parse_number(amountString),
             'network': None,
             'address': address,
             'addressTo': None,
@@ -2917,7 +2934,10 @@ class gate(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'updated': None,
-            'fee': fee,
+            'fee': {
+                'currency': code,
+                'cost': self.parse_number(feeCostString),
+            },
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):

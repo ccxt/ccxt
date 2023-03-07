@@ -30,6 +30,5 @@
     "zb":            { "skipWs": true },
     "wazirx":        { "skipWs": true },
     "deribit":       { "skipWs": true },
-    "coinbase":      { "skip": true, "//": "all endpoints are private" },
     "buda":          { "skip": true, "//": "exchange unavailable" }
 }

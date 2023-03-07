@@ -2468,7 +2468,7 @@ class digifinex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $addresses = $this->parse_deposit_addresses($data);
+        $addresses = $this->parse_deposit_addresses($data, [ $currency['code'] ]);
         $address = $this->safe_value($addresses, $code);
         if ($address === null) {
             throw new InvalidAddress($this->id . ' fetchDepositAddress() did not return an $address for ' . $code . ' - create the deposit $address in the user settings on the exchange website first.');

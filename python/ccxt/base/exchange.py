@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.8.24'
+__version__ = '2.9.6'
 
 # -----------------------------------------------------------------------------
 
@@ -2123,8 +2123,6 @@ class Exchange(object):
             postOnly = timeInForce == 'PO'
         timestamp = self.safe_integer(order, 'timestamp')
         datetime = self.safe_string(order, 'datetime')
-        if timestamp is None:
-            timestamp = self.parse8601(timestamp)
         if datetime is None:
             datetime = self.iso8601(timestamp)
         triggerPrice = self.parse_number(self.safe_string_2(order, 'triggerPrice', 'stopPrice'))
@@ -3157,6 +3155,9 @@ class Exchange(object):
 
     def fetch_ticker(self, symbol, params={}):
         if self.has['fetchTickers']:
+            self.load_markets()
+            market = self.market(symbol)
+            symbol = market['symbol']
             tickers = self.fetch_tickers([symbol], params)
             ticker = self.safe_value(tickers, symbol)
             if ticker is None:

@@ -89,6 +89,10 @@ class wazirx extends \ccxt\async\wazirx {
         //
         $data = $this->safe_value($message, 'data', array());
         $balances = $this->safe_value($data, 'B', array());
+        $timestamp = $this->safe_integer($data, 'E');
+        $this->balance['info'] = $balances;
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'a');

@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\NetworkError;
 use ccxt\InvalidNonce;
 use React\Async;
 
@@ -363,7 +364,7 @@ class huobi extends \ccxt\async\huobi {
     public function handle_order_book_snapshot($client, $message, $subscription) {
         //
         //     {
-        //         id => 1583473663565,
+        //         $id => 1583473663565,
         //         rep => 'market.btcusdt.mbp.150',
         //         status => 'ok',
         //         $data => {
@@ -383,6 +384,7 @@ class huobi extends \ccxt\async\huobi {
         //
         $symbol = $this->safe_string($subscription, 'symbol');
         $messageHash = $this->safe_string($subscription, 'messageHash');
+        $id = $this->safe_string($message, 'id');
         try {
             $orderbook = $this->orderbooks[$symbol];
             $data = $this->safe_value($message, 'data');
@@ -393,6 +395,9 @@ class huobi extends \ccxt\async\huobi {
             $sequence = $this->safe_integer($tick, 'seqNum');
             $nonce = $this->safe_integer($data, 'seqNum');
             $snapshot['nonce'] = $nonce;
+            $snapshotLimit = $this->safe_integer($subscription, 'limit');
+            $snapshotOrderBook = $this->order_book($snapshot, $snapshotLimit);
+            $client->resolve ($snapshotOrderBook, $id);
             if (($sequence !== null) && ($nonce < $sequence)) {
                 $maxAttempts = $this->safe_integer($this->options, 'maxOrderBookSyncAttempts', 3);
                 $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
@@ -1387,6 +1392,10 @@ class huobi extends \ccxt\async\huobi {
         //     }
         //
         $channel = $this->safe_string($message, 'ch');
+        $timestamp = $this->safe_integer($message, 'ts');
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance['info'] = $this->safe_value($message, 'data');
         if ($channel !== null) {
             // spot $balance
             $data = $this->safe_value($message, 'data', array());
@@ -1652,22 +1661,27 @@ class huobi extends \ccxt\async\huobi {
             //     array( $action => 'ping', $data => array( ts => 1645108204665 ) )
             //     array( $op => 'ping', ts => '1645202800015' )
             //
-            $ping = $this->safe_integer($message, 'ping');
-            if ($ping !== null) {
-                Async\await($client->send (array( 'pong' => $ping )));
-                return;
-            }
-            $action = $this->safe_string($message, 'action');
-            if ($action === 'ping') {
-                $data = $this->safe_value($message, 'data');
-                $ping = $this->safe_integer($data, 'ts');
-                Async\await($client->send (array( 'action' => 'pong', 'data' => array( 'ts' => $ping ))));
-                return;
-            }
-            $op = $this->safe_string($message, 'op');
-            if ($op === 'ping') {
-                $ping = $this->safe_integer($message, 'ts');
-                Async\await($client->send (array( 'op' => 'pong', 'ts' => $ping )));
+            try {
+                $ping = $this->safe_integer($message, 'ping');
+                if ($ping !== null) {
+                    Async\await($client->send (array( 'pong' => $ping )));
+                    return;
+                }
+                $action = $this->safe_string($message, 'action');
+                if ($action === 'ping') {
+                    $data = $this->safe_value($message, 'data');
+                    $ping = $this->safe_integer($data, 'ts');
+                    Async\await($client->send (array( 'action' => 'pong', 'data' => array( 'ts' => $ping ))));
+                    return;
+                }
+                $op = $this->safe_string($message, 'op');
+                if ($op === 'ping') {
+                    $ping = $this->safe_integer($message, 'ts');
+                    Async\await($client->send (array( 'op' => 'pong', 'ts' => $ping )));
+                }
+            } catch (Exception $e) {
+                $error = new NetworkError ($this->id . ' pong failed ' . $this->json($e));
+                $client->reset ($error);
             }
         }) ();
     }

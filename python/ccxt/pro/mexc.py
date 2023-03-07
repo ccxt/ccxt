@@ -970,6 +970,10 @@ class mexc(Exchange, ccxt.async_support.mexc):
         # }
         #
         data = self.safe_value(message, 'data')
+        timestamp = self.safe_integer(message, 'ts')
+        self.balance['info'] = data
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
         currencyId = self.safe_string(data, 'currency')
         code = self.safe_currency_code(currencyId)
         account = self.account()

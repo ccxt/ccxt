@@ -372,6 +372,10 @@ class hollaex(Exchange, ccxt.async_support.hollaex):
         messageHash = self.safe_string(message, 'topic')
         data = self.safe_value(message, 'data')
         keys = list(data.keys())
+        timestamp = self.safe_integer_product(message, 'time', 1000)
+        self.balance['info'] = data
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
         for i in range(0, len(keys)):
             key = keys[i]
             parts = key.split('_')

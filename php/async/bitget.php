@@ -1048,7 +1048,7 @@ class bitget extends Exchange {
             'inverse' => $inverse,
             'taker' => $this->safe_number($market, 'takerFeeRate'),
             'maker' => $this->safe_number($market, 'makerFeeRate'),
-            'contractSize' => $this->safe_number($market, 'sizeMultiplier'),
+            'contractSize' => 1,
             'expiry' => $expiry,
             'expiryDatetime' => $expiryDatetime,
             'strike' => null,
@@ -2073,24 +2073,23 @@ class bitget extends Exchange {
             if ($limit === null) {
                 $limit = 100;
             }
-            if ($market['type'] === 'spot') {
-                $timeframes = $this->options['timeframes']['spot'];
-                $request['period'] = $this->safe_string($timeframes, $timeframe, $timeframe);
+            $timeframes = $this->options['timeframes'][$marketType];
+            $selectedTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
+            $duration = $this->parse_timeframe($timeframe);
+            if ($market['spot']) {
+                $request['period'] = $selectedTimeframe;
                 $request['limit'] = $limit;
                 if ($since !== null) {
                     $request['after'] = $since;
                     if ($until === null) {
-                        $millisecondsPerTimeframe = $this->options['timeframes']['swap'][$timeframe] * 1000;
-                        $request['before'] = $this->sum($since, $millisecondsPerTimeframe * $limit);
+                        $request['before'] = $this->sum($since, $limit * $duration * 1000);
                     }
                 }
                 if ($until !== null) {
                     $request['before'] = $until;
                 }
-            } elseif ($market['type'] === 'swap') {
-                $timeframes = $this->options['timeframes']['swap'];
-                $request['granularity'] = $this->safe_string($timeframes, $timeframe, $timeframe);
-                $duration = $this->parse_timeframe($timeframe);
+            } elseif ($market['swap']) {
+                $request['granularity'] = $selectedTimeframe;
                 $now = $this->milliseconds();
                 if ($since === null) {
                     $request['startTime'] = $now - ($limit - 1) * ($duration * 1000);

@@ -294,8 +294,14 @@ module.exports = class bitopro extends bitoproRest {
         //
         const event = this.safeString (message, 'event');
         const data = this.safeValue (message, 'data');
+        const timestamp = this.safeInteger (message, 'timestamp');
+        const datetime = this.safeString (message, 'datetime');
         const currencies = Object.keys (data);
-        const result = {};
+        const result = {
+            'info': data,
+            'timestamp': timestamp,
+            'datetime': datetime,
+        };
         for (let i = 0; i < currencies.length; i++) {
             const currency = this.safeString (currencies, i);
             const balance = this.safeValue (data, currency);

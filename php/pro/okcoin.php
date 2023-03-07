@@ -606,6 +606,8 @@ class okcoin extends \ccxt\async\okcoin {
         //
         $table = $this->safe_string($message, 'table');
         $parts = explode('/', $table);
+        $data = $this->safe_value($message, 'data', array());
+        $this->balance['info'] = $data;
         $type = $this->safe_string($parts, 0);
         if ($type === 'spot') {
             $part1 = $this->safe_string($parts, 1);
@@ -613,7 +615,6 @@ class okcoin extends \ccxt\async\okcoin {
                 $type = 'margin';
             }
         }
-        $data = $this->safe_value($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $balance = $this->parseBalanceByType ($type, $data);
             $oldBalance = $this->safe_value($this->balance, $type, array());

@@ -46,6 +46,9 @@ class binance extends \ccxt\async\binance {
                     ),
                 ),
             ),
+            'streaming' => array(
+                'keepAlive' => 180000,
+            ),
             'options' => array(
                 'streamLimits' => array(
                     'spot' => 50, // max 1024
@@ -110,18 +113,6 @@ class binance extends \ccxt\async\binance {
             $this->options['streamBySubscriptionsHash'][$subscriptionHash] = $stream;
         }
         return $stream;
-    }
-
-    public function on_error($client, $error) {
-        $this->options['streamBySubscriptionsHash'] = array();
-        $this->options['streamIndex'] = -1;
-        parent::on_error($client, $error);
-    }
-
-    public function on_close($client, $error) {
-        $this->options['streamBySubscriptionsHash'] = array();
-        $this->options['streamIndex'] = -1;
-        parent::on_close($client, $error);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
@@ -213,51 +204,56 @@ class binance extends \ccxt\async\binance {
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {
         return Async\async(function () use ($client, $message, $subscription) {
-            $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
-            $type = $this->safe_value($subscription, 'type');
-            $symbol = $this->safe_string($subscription, 'symbol');
             $messageHash = $this->safe_string($subscription, 'messageHash');
-            $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
-            $params = $this->safe_value($subscription, 'params');
-            // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
-            // todo => this is a synch blocking call in ccxt.php - make it async
-            // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-            $snapshot = Async\await($this->fetch_order_book($symbol, $limit, $params));
-            $orderbook = $this->safe_value($this->orderbooks, $symbol);
-            if ($orderbook === null) {
-                // if the $orderbook is dropped before the $snapshot is received
-                return;
-            }
-            $orderbook->reset ($snapshot);
-            // unroll the accumulated deltas
-            $messages = $orderbook->cache;
-            for ($i = 0; $i < count($messages); $i++) {
-                $message = $messages[$i];
-                $U = $this->safe_integer($message, 'U');
-                $u = $this->safe_integer($message, 'u');
-                $pu = $this->safe_integer($message, 'pu');
-                if ($type === 'future') {
-                    // 4. Drop any event where $u is < lastUpdateId in the $snapshot
-                    if ($u < $orderbook['nonce']) {
-                        continue;
-                    }
-                    // 5. The first processed event should have $U <= lastUpdateId AND $u >= lastUpdateId
-                    if (($U <= $orderbook['nonce']) && ($u >= $orderbook['nonce']) || ($pu === $orderbook['nonce'])) {
-                        $this->handle_order_book_message($client, $message, $orderbook);
-                    }
-                } else {
-                    // 4. Drop any event where $u is <= lastUpdateId in the $snapshot
-                    if ($u <= $orderbook['nonce']) {
-                        continue;
-                    }
-                    // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1
-                    if ((($U - 1) <= $orderbook['nonce']) && (($u - 1) >= $orderbook['nonce'])) {
-                        $this->handle_order_book_message($client, $message, $orderbook);
+            $symbol = $this->safe_string($subscription, 'symbol');
+            try {
+                $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
+                $type = $this->safe_value($subscription, 'type');
+                $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
+                $params = $this->safe_value($subscription, 'params');
+                // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
+                // todo => this is a synch blocking call in ccxt.php - make it async
+                // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
+                $snapshot = Async\await($this->fetch_order_book($symbol, $limit, $params));
+                $orderbook = $this->safe_value($this->orderbooks, $symbol);
+                if ($orderbook === null) {
+                    // if the $orderbook is dropped before the $snapshot is received
+                    return;
+                }
+                $orderbook->reset ($snapshot);
+                // unroll the accumulated deltas
+                $messages = $orderbook->cache;
+                for ($i = 0; $i < count($messages); $i++) {
+                    $message = $messages[$i];
+                    $U = $this->safe_integer($message, 'U');
+                    $u = $this->safe_integer($message, 'u');
+                    $pu = $this->safe_integer($message, 'pu');
+                    if ($type === 'future') {
+                        // 4. Drop any event where $u is < lastUpdateId in the $snapshot
+                        if ($u < $orderbook['nonce']) {
+                            continue;
+                        }
+                        // 5. The first processed event should have $U <= lastUpdateId AND $u >= lastUpdateId
+                        if (($U <= $orderbook['nonce']) && ($u >= $orderbook['nonce']) || ($pu === $orderbook['nonce'])) {
+                            $this->handle_order_book_message($client, $message, $orderbook);
+                        }
+                    } else {
+                        // 4. Drop any event where $u is <= lastUpdateId in the $snapshot
+                        if ($u <= $orderbook['nonce']) {
+                            continue;
+                        }
+                        // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1
+                        if ((($U - 1) <= $orderbook['nonce']) && (($u - 1) >= $orderbook['nonce'])) {
+                            $this->handle_order_book_message($client, $message, $orderbook);
+                        }
                     }
                 }
+                $this->orderbooks[$symbol] = $orderbook;
+                $client->resolve ($orderbook, $messageHash);
+            } catch (Exception $e) {
+                unset($client->subscriptions[$messageHash]);
+                $client->reject ($e, $messageHash);
             }
-            $this->orderbooks[$symbol] = $orderbook;
-            $client->resolve ($orderbook, $messageHash);
         }) ();
     }
 
