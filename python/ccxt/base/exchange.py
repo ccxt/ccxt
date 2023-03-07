@@ -3014,6 +3014,8 @@ class Exchange(object):
             self.status = self.extend(self.status, {
                 'updated': time,
             })
+        if not ('info' in self.status):
+            self.status['info'] = None
         return self.status
 
     def fetch_funding_fee(self, code, params={}):
