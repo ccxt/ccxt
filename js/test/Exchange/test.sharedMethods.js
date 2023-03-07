@@ -69,7 +69,7 @@ function reviseCommonTimestamp (exchange, method, entry, nowToCheck = undefined,
     if (isDateTimeObject) {
         assert ((keyName in entry), 'timestamp key ' + keyName + ' is missing from structure' + logText);
     } else {
-        assert (typeof entry[keyName] !== 'undefined', 'timestamp index ' + keyName + ' is missing from structure' + logText);
+        assert (exchange.inArray (keyName, entry), 'timestamp index ' + keyName + ' is missing from structure' + logText);
     }
     const ts = entry[keyName];
     if (ts !== undefined) {

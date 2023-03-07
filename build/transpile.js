@@ -1907,7 +1907,7 @@ class Transpiler {
 
     // ============================================================================
 
-    transpileTest (test) {
+    async transpileTest (test) {
         const transpiler = new astTranspiler.Transpiler({
             'verbose': false,
             'python':{
