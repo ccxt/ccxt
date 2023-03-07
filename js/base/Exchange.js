@@ -182,7 +182,6 @@ module.exports = class Exchange {
                 'updated': undefined,
                 'eta': undefined,
                 'url': undefined,
-                'info': undefined,
             },
             'exceptions': undefined,
             'httpExceptions': {
@@ -2270,6 +2269,9 @@ module.exports = class Exchange {
             this.status = this.extend (this.status, {
                 'updated': time,
             });
+        }
+        if (!('info' in this.status)) {
+            this.status['info'] = null;
         }
         return this.status;
     }
