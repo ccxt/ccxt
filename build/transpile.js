@@ -1813,7 +1813,7 @@ class Transpiler {
 
     // ============================================================================
  
-    transpileExchangeTestsAuto () {
+    transpileExchangeTests () {
 
         this.transpileMainTests ({
             'jsFile': './js/test/test.js',
@@ -2014,11 +2014,11 @@ class Transpiler {
 
     transpileTests () {
 
-        // this.transpilePrecisionTests ()
-        // this.transpileDateTimeTests ()
-        // this.transpileCryptoTests ()
+        this.transpilePrecisionTests ()
+        this.transpileDateTimeTests ()
+        this.transpileCryptoTests ()
 
-        this.transpileExchangeTestsAuto ()
+        this.transpileExchangeTests ()
     }
 
     // ============================================================================
