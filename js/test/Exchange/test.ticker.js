@@ -55,9 +55,9 @@ function testTicker (exchange, method, entry, symbol) {
     const low = exchange.safeString (entry, 'low');
     if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined)) {
         const mulBaseVolLow = Precise.stringMul (baseVolume, low);
-        assert (Precise.Ge (quoteVolume, mulBaseVolLow), 'quoteVolume >= baseVolume * low' + logText);
+        assert (Precise.stringGe (quoteVolume, mulBaseVolLow), 'quoteVolume >= baseVolume * low' + logText);
         const mulBaseVolHigh = Precise.stringMul (baseVolume, high);
-        assert (Precise.Le (quoteVolume, mulBaseVolHigh), 'quoteVolume <= baseVolume * high' + logText);
+        assert (Precise.stringLe (quoteVolume, mulBaseVolHigh), 'quoteVolume <= baseVolume * high' + logText);
     }
     const vwap = exchange.safeString (entry, 'vwap');
     if (vwap !== undefined) {

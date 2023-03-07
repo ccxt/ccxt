@@ -171,6 +171,7 @@ def set_exchange_prop(exchange, prop, value):
 
 
 import asyncio
+from ccxt.base.errors import AuthenticationError
 
 
 class testMainClass(emptyClass):
@@ -183,9 +184,11 @@ class testMainClass(emptyClass):
         exchangeId = exchange.id
         keysGlobal = targetDir + 'keys.json'
         keysLocal = targetDir + 'keys.local.json'
-        fileExists = io_file_exists(keysLocal)
-        keysFile = keysLocal if fileExists else keysGlobal
-        allSettings = io_file_read(keysFile)
+        keysGlobalExists = io_file_exists(keysLocal)
+        keysLocalExists = io_file_exists(keysLocal)
+        globalSettings = io_file_read(keysGlobal) if keysGlobalExists else {}
+        localSettings = io_file_read(keysLocal) if keysLocalExists else {}
+        allSettings = exchange.deep_extend(globalSettings, localSettings)
         exchangeSettings = exchange.safe_value(allSettings, exchangeId, {})
         if exchangeSettings:
             settingKeys = list(exchangeSettings.keys())
@@ -213,6 +216,8 @@ class testMainClass(emptyClass):
         if exchange.alias:
             dump('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
+        # 
+        self.skippedMethods = exchange.safe_value(exchangeSettings, 'skipMethods', [])
         add_proxy_agent(exchange, exchangeSettings)
 
     async def test_method(self, methodName, exchange, args):
@@ -220,6 +225,8 @@ class testMainClass(emptyClass):
         skipMessage = None
         if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]):
             skipMessage = 'not supported'
+        elif exchange.in_array(methodName, self.skippedMethods):
+            skipMessage = 'test is skipped within keys.json'
         elif not (methodNameInTest in testFiles):
             skipMessage = 'test not available'
         if skipMessage:
@@ -230,8 +237,10 @@ class testMainClass(emptyClass):
         try:
             return await call_method(methodNameInTest, exchange, args)
         except Exception as e:
-            dump(exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
-            raise e
+            if isinstance(e, ccxt.AuthenticationError):
+            else:
+                dump(exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
+                raise e
 
     async def test_safe(self, methodName, exchange, args):
         try:

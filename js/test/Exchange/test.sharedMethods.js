@@ -39,7 +39,7 @@ function reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFo
             assert ((key in entry), keyStr + ' key is missing from structure' + logText);
             if (exchange.inArray (key, emptyNotAllowedFor)) {
                 // if it was in needed keys, then it should have value.
-                assert (entry[key] !== undefined, key + ' key is undefined, but is expected to be present' + logText);
+                assert (entry[key] !== undefined, key + ' key has an null value, but is expected to have a value' + logText);
             }
             assert (areSameTypes (exchange, entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
         }
@@ -69,7 +69,9 @@ function reviseCommonTimestamp (exchange, method, entry, nowToCheck = undefined,
     if (isDateTimeObject) {
         assert ((keyName in entry), 'timestamp key ' + keyName + ' is missing from structure' + logText);
     } else {
-        assert (exchange.inArray (keyName, entry), 'timestamp index ' + keyName + ' is missing from structure' + logText);
+        // if index was provided (mostly from fetchOHLCV) then we check if it exists, as mandatory
+        const isUndefined = (entry[keyName] === undefined);
+        assert (!isUndefined, 'timestamp index ' + keyName + ' is undefined' + logText);
     }
     const ts = entry[keyName];
     if (ts !== undefined) {

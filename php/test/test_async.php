@@ -141,6 +141,7 @@ function set_exchange_prop ($exchange, $prop, $value) {
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise;
 
@@ -157,9 +158,11 @@ class testMainClass extends emptyClass {
         $exchangeId = $exchange->id;
         $keysGlobal = targetDir . 'keys.json';
         $keysLocal = targetDir . 'keys.local.json';
-        $fileExists = io_file_exists ($keysLocal);
-        $keysFile = $fileExists ? $keysLocal : $keysGlobal;
-        $allSettings = io_file_read ($keysFile);
+        $keysGlobalExists = io_file_exists ($keysLocal);
+        $keysLocalExists = io_file_exists ($keysLocal);
+        $globalSettings = $keysGlobalExists ? io_file_read ($keysGlobal) : array();
+        $localSettings = $keysLocalExists ? io_file_read ($keysLocal) : array();
+        $allSettings = $exchange->deep_extend($globalSettings, $localSettings);
         $exchangeSettings = $exchange->safe_value($allSettings, $exchangeId, array());
         if ($exchangeSettings) {
             $settingKeys = is_array($exchangeSettings) ? array_keys($exchangeSettings) : array();
@@ -195,6 +198,8 @@ class testMainClass extends emptyClass {
             dump ('[Skipped] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script();
         }
+        // 
+        $this->skippedMethods = $exchange->safe_value($exchangeSettings, 'skipMethods', array());
         add_proxy_agent ($exchange, $exchangeSettings);
     }
 
@@ -204,6 +209,8 @@ class testMainClass extends emptyClass {
             $skipMessage = null;
             if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName])) {
                 $skipMessage = 'not supported';
+            } elseif ($exchange->in_array($methodName, $this->skippedMethods)) {
+                $skipMessage = 'test is skipped within keys.json';
             } elseif (!(is_array(testFiles) && array_key_exists($methodNameInTest, testFiles))) {
                 $skipMessage = 'test not available';
             }
@@ -216,8 +223,11 @@ class testMainClass extends emptyClass {
             try {
                 return Async\await(call_method ($methodNameInTest, $exchange, $args));
             } catch (Exception $e) {
-                dump (exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
-                throw $e;
+                if ($e instanceof ccxt.AuthenticationError) {
+                } else {
+                    dump (exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
+                    throw $e;
+                }
             }
         }) ();
     }
