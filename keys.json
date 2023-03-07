@@ -2,7 +2,7 @@
     "ace":           { "skipMethods": {"fetchOrderBook":"needs reversion of amount/price", "fetchL2OrderBook":"same reason"} },
     "ascendex":      { "skipMethods": {"fetchTicker":"bid might be 0", "fetchTickers":"same reason"} },
     "alpaca":        { "skipWs": true },
-    "binance":       { "skipWs": true, "httpProxy": "http://51.83.140.52:11230", "skipMethods": { "loadMarkets": "expiry not set for future markets" } },
+    "binance":       { "skipWs": true, "httpProxy": "http://51.83.140.52:11230", "skipMethods": { "loadMarkets": "expiry not set for future markets", "fetchTicker": "some symbols i.e. BTC/USD4 might have bid-ask value 0", "fetchTickers": "same" } },
     "binanceusdm":   { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
     "binancecoinm":  { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
     "bitbay":        { "skipMethods": { "loadMarkets": "expiry not set for future markets" } },
