@@ -200,8 +200,10 @@ module.exports = class testMainClass extends emptyClass {
                 this.checkedPublicTests[methodNameInTest] = true;
             }
         } catch (e) {
-            if (isPublic && (e instanceof ccxt.AuthenticationError)) {
-                dump ('[Skiped private]', exchange.id, methodNameInTest, ' - method requires authentication, skipped from public tests');
+            const isAuthError = (e instanceof ccxt.AuthenticationError);
+            if (isPublic && isAuthError) {
+                dump ('[Skipped private]', exchange.id, methodNameInTest, ' - method req' + 'uires authentication, skipped from public tests');
+                // do not throw exception from here, as it's public test and exception is destined to be thrown from private
             } else {
                 dump (exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
                 throw e;

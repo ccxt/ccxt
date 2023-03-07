@@ -217,16 +217,20 @@ class testMainClass(emptyClass):
             dump('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
         # 
-        self.skippedMethods = exchange.safe_value(exchangeSettings, 'skipMethods', [])
+        self.skippedMethods = exchange.safe_value(exchangeSettings, 'skipMethods', {})
+        self.checkedPublicTests = {}
         add_proxy_agent(exchange, exchangeSettings)
 
-    async def test_method(self, methodName, exchange, args):
+    async def test_method(self, methodName, exchange, args, isPublic):
         methodNameInTest = method_namer_in_test(methodName)
+        # if self is a private test, and the implementation was already tested in public, then no need to re-test it in private test(exception is fetchCurrencies, because our approach in exchange)
+        if not isPublic and (methodNameInTest in self.checkedPublicTests) and (methodName != 'fetchCurrencies'):
+            return
         skipMessage = None
         if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]):
             skipMessage = 'not supported'
-        elif exchange.in_array(methodName, self.skippedMethods):
-            skipMessage = 'test is skipped within keys.json'
+        elif methodName in self.skippedMethods:
+            skipMessage = 'skipped within keys.json'
         elif not (methodNameInTest in testFiles):
             skipMessage = 'test not available'
         if skipMessage:
@@ -234,17 +238,24 @@ class testMainClass(emptyClass):
             return
         argsStringified = '(' + ','.join(args) + ')'
         dump('[Testing]', exchange.id, methodNameInTest, argsStringified)
+        result = None
         try:
-            return await call_method(methodNameInTest, exchange, args)
+            result = await call_method(methodNameInTest, exchange, args)
+            if isPublic:
+                self.checkedPublicTests[methodNameInTest] = True
         except Exception as e:
-            if isinstance(e, ccxt.AuthenticationError):
+            isAuthError = (isinstance(e, ccxt.AuthenticationError))
+            if isPublic and isAuthError:
+                dump('[Skipped private]', exchange.id, methodNameInTest, ' - method req' + 'uires authentication, skipped from public tests')
+                # do not raise exception from here, as it's public test and exception is destined to be thrown from private
             else:
                 dump(exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
                 raise e
+        return result
 
-    async def test_safe(self, methodName, exchange, args):
+    async def test_safe(self, methodName, exchange, args, isPublic):
         try:
-            await self.test_method(methodName, exchange, args)
+            await self.test_method(methodName, exchange, args, isPublic)
             return True
         except Exception as e:
             return False
@@ -275,12 +286,13 @@ class testMainClass(emptyClass):
             tests['fetchIndexOHLCV'] = [symbol]
             tests['fetchMarkOHLCV'] = [symbol]
             tests['fetchPremiumIndexOHLCV'] = [symbol]
+        self.publicTests = tests
         testNames = list(tests.keys())
         promises = []
         for i in range(0, len(testNames)):
             testName = testNames[i]
             testArgs = tests[testName]
-            promises.append(self.test_safe(testName, exchange, testArgs))
+            promises.append(self.test_safe(testName, exchange, testArgs, True))
         await asyncio.gather(*promises)
 
     async def load_exchange(self, exchange):
@@ -549,12 +561,13 @@ class testMainClass(emptyClass):
             tests['fetchOpenInterestHistory'] = [exchange, symbol]
             tests['fetchFundingRateHistory'] = [exchange, symbol]
             tests['fetchFundingHistory'] = [exchange, symbol]
-        testNames = list(tests.keys())
+        combinedPublicPrivateTests = exchange.deep_extend(self.publicTests, tests)
+        testNames = list(combinedPublicPrivateTests.keys())
         promises = []
         for i in range(0, len(testNames)):
             testName = testNames[i]
-            testArgs = tests[testName]
-            promises.append(self.test_safe(testName, exchange, testArgs))
+            testArgs = combinedPublicPrivateTests[testName]
+            promises.append(self.test_safe(testName, exchange, testArgs, False))
         results = await asyncio.gather(*promises)
         errors = []
         for i in range(0, len(testNames)):

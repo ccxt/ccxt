@@ -200,17 +200,22 @@ class testMainClass extends emptyClass {
         }
         // 
         $this->skippedMethods = $exchange->safe_value($exchangeSettings, 'skipMethods', array());
+        $this->checkedPublicTests = array();
         add_proxy_agent ($exchange, $exchangeSettings);
     }
 
-    public function test_method($methodName, $exchange, $args) {
-        return Async\async(function () use ($methodName, $exchange, $args) {
+    public function test_method($methodName, $exchange, $args, $isPublic) {
+        return Async\async(function () use ($methodName, $exchange, $args, $isPublic) {
             $methodNameInTest = method_namer_in_test ($methodName);
+            // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in $exchange)
+            if (!$isPublic && (is_array($this->checkedPublicTests) && array_key_exists($methodNameInTest, $this->checkedPublicTests)) && ($methodName !== 'fetchCurrencies')) {
+                return;
+            }
             $skipMessage = null;
             if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName])) {
                 $skipMessage = 'not supported';
-            } elseif ($exchange->in_array($methodName, $this->skippedMethods)) {
-                $skipMessage = 'test is skipped within keys.json';
+            } elseif (is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) {
+                $skipMessage = 'skipped within keys.json';
             } elseif (!(is_array(testFiles) && array_key_exists($methodNameInTest, testFiles))) {
                 $skipMessage = 'test not available';
             }
@@ -220,22 +225,30 @@ class testMainClass extends emptyClass {
             }
             $argsStringified = '(' . implode(',', $args) . ')';
             dump ('[Testing]', $exchange->id, $methodNameInTest, $argsStringified);
+            $result = null;
             try {
-                return Async\await(call_method ($methodNameInTest, $exchange, $args));
+                $result = Async\await(call_method ($methodNameInTest, $exchange, $args));
+                if ($isPublic) {
+                    $this->checkedPublicTests[$methodNameInTest] = true;
+                }
             } catch (Exception $e) {
-                if ($e instanceof ccxt.AuthenticationError) {
+                $isAuthError = ($e instanceof ccxt.AuthenticationError);
+                if ($isPublic && $isAuthError) {
+                    dump ('[Skipped private]', $exchange->id, $methodNameInTest, ' - method req' . 'uires authentication, skipped from public tests');
+                    // do not throw exception from here, as it's public test and exception is destined to be thrown from private
                 } else {
                     dump (exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
                     throw $e;
                 }
             }
+            return $result;
         }) ();
     }
 
-    public function test_safe($methodName, $exchange, $args) {
-        return Async\async(function () use ($methodName, $exchange, $args) {
+    public function test_safe($methodName, $exchange, $args, $isPublic) {
+        return Async\async(function () use ($methodName, $exchange, $args, $isPublic) {
             try {
-                Async\await($this->test_method($methodName, $exchange, $args));
+                Async\await($this->test_method($methodName, $exchange, $args, $isPublic));
                 return true;
             } catch (Exception $e) {
                 return false;
@@ -271,12 +284,13 @@ class testMainClass extends emptyClass {
                 $tests['fetchMarkOHLCV'] = [$symbol];
                 $tests['fetchPremiumIndexOHLCV'] = [$symbol];
             }
+            $this->publicTests = $tests;
             $testNames = is_array($tests) ? array_keys($tests) : array();
             $promises = array();
             for ($i = 0; $i < count($testNames); $i++) {
                 $testName = $testNames[$i];
                 $testArgs = $tests[$testName];
-                $promises[] = $this->test_safe($testName, $exchange, $testArgs);
+                $promises[] = $this->test_safe($testName, $exchange, $testArgs, true);
             }
             Async\await(Promise\all($promises));
         }) ();
@@ -589,12 +603,13 @@ class testMainClass extends emptyClass {
                 $tests['fetchFundingRateHistory'] = [$exchange, $symbol];
                 $tests['fetchFundingHistory'] = [$exchange, $symbol];
             }
-            $testNames = is_array($tests) ? array_keys($tests) : array();
+            $combinedPublicPrivateTests = $exchange->deep_extend($this->publicTests, $tests);
+            $testNames = is_array($combinedPublicPrivateTests) ? array_keys($combinedPublicPrivateTests) : array();
             $promises = array();
             for ($i = 0; $i < count($testNames); $i++) {
                 $testName = $testNames[$i];
-                $testArgs = $tests[$testName];
-                $promises[] = $this->test_safe($testName, $exchange, $testArgs);
+                $testArgs = $combinedPublicPrivateTests[$testName];
+                $promises[] = $this->test_safe($testName, $exchange, $testArgs, false);
             }
             $results = Async\await(Promise\all($promises));
             $errors = array();
