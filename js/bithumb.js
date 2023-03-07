@@ -399,7 +399,7 @@ module.exports = class bithumb extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const result = [];
+        const result = {};
         const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
         for (let i = 0; i < quotes.length; i++) {
