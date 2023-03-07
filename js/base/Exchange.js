@@ -182,6 +182,7 @@ module.exports = class Exchange {
                 'updated': undefined,
                 'eta': undefined,
                 'url': undefined,
+                'info': undefined,
             },
             'exceptions': undefined,
             'httpExceptions': {
