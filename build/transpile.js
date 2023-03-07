@@ -1908,13 +1908,18 @@ class Transpiler {
     // ============================================================================
 
     async transpileTest (test) {
+        const parser = {
+            'LINES_BETWEEN_FILE_MEMBERS': 2
+        }
         const transpiler = new astTranspiler.Transpiler({
             'verbose': false,
             'python':{
                 'uncamelcaseIdentifiers': true,
+                'parser': parser
             },
             'php':{
                 'uncamelcaseIdentifiers': true,
+                'parser': parser
             }
         });
 
