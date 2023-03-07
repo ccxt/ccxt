@@ -35,8 +35,8 @@ function testOrderBook (exchange, method, entry, symbol) {
             const nextBidString = exchange.safeString (bids[nextI], 0);
             assert (Precise.stringGt (currentBidString, nextBidString), 'current bid should be > than the next one' + logText);
         }
-        testSharedMethods.Gt (exchange, method, bids[i], '0', '0');
-        testSharedMethods.Gt (exchange, method, bids[i], '1', '0');
+        testSharedMethods.Gt (exchange, method, bids[i], 0, '0');
+        testSharedMethods.Gt (exchange, method, bids[i], 1, '0');
     }
     const asks = entry['asks'];
     const asksLength = asks.length;
@@ -47,8 +47,8 @@ function testOrderBook (exchange, method, entry, symbol) {
             const nextAskString = exchange.safeString (asks[nextI], 0);
             assert (Precise.stringLt (currentAskString, nextAskString), 'current ask should be < than the next one' + logText);
         }
-        testSharedMethods.Gt (exchange, method, asks[i], '0', '0');
-        testSharedMethods.Gt (exchange, method, asks[i], '1', '0');
+        testSharedMethods.Gt (exchange, method, asks[i], 0, '0');
+        testSharedMethods.Gt (exchange, method, asks[i], 1, '0');
     }
     if (bidsLength && asksLength) {
         // check bid-ask spread

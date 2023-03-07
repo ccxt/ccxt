@@ -127,9 +127,11 @@ module.exports = class testMainClass extends emptyClass {
         const exchangeId = exchange.id;
         const keysGlobal = targetDir + 'keys.json';
         const keysLocal = targetDir + 'keys.local.json';
-        const fileExists = io_file_exists (keysLocal);
-        const keysFile = fileExists ? keysLocal : keysGlobal;
-        const allSettings = io_file_read (keysFile);
+        const keysGlobalExists = io_file_exists (keysLocal);
+        const keysLocalExists = io_file_exists (keysLocal);
+        const globalSettings = keysGlobalExists ? io_file_read (keysGlobal) : {};
+        const localSettings = keysLocalExists ? io_file_read (keysLocal) : {};
+        const allSettings = exchange.deepExtend (globalSettings, localSettings);
         const exchangeSettings = exchange.safeValue (allSettings, exchangeId, {});
         if (exchangeSettings) {
             const settingKeys = Object.keys (exchangeSettings);
@@ -165,6 +167,8 @@ module.exports = class testMainClass extends emptyClass {
             dump ('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
             exit_script();
         }
+        // 
+        this.skippedMethods = exchange.safeValue (exchangeSettings, 'skipMethods', []);
         add_proxy_agent (exchange, exchangeSettings);
     }
 
@@ -173,6 +177,8 @@ module.exports = class testMainClass extends emptyClass {
         let skipMessage = undefined;
         if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName])) {
             skipMessage = 'not supported';
+        } else if (exchange.inArray (methodName, this.skippedMethods)) {
+            skipMessage = 'test is skipped within keys.json';
         } else if (!(methodNameInTest in testFiles)) {
             skipMessage = 'test not available';
         }
@@ -185,8 +191,12 @@ module.exports = class testMainClass extends emptyClass {
         try {
             return await call_method (methodNameInTest, exchange, args);
         } catch (e) {
-            dump (exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
-            throw e;
+            if (e instanceof ccxt.AuthenticationError) {
+                dump ('[Skipping]', exchange.id, methodNameInTest, ' - method requires authentication');
+            } else {
+                dump (exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
+                throw e;
+            }
         }
     }
 
