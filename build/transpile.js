@@ -1970,9 +1970,9 @@ class Transpiler {
         }
 
         for (const subTestName of requiredSubTests) {
-            const snake_case = 'test_' + unCamelCase(subTestName);
+            const snake_case = unCamelCase(subTestName);
             // python
-            if (subTestName === 'sharedMethods') {
+            if (subTestName.includes ('SharedMethods')) {
                 pythonHeader.push (`from . import test_shared_methods  # noqa E402`)
             } else {
                 pythonHeader.push (`from .${snake_case} import ${snake_case}  # noqa E402`)
@@ -1987,10 +1987,11 @@ class Transpiler {
             pythonHeader.push ('', '')
         }
         const pythonPreamble = pythonCodingUtf8 + '\n\n' + pythonHeader.join ('\n') + '\n';
-        const phpPreambleSyncInit = this.getPHPPreamble (false) + phpHeaderSync.join ('\n') + "\n\n";
-        const phpPreambleAsyncInit = this.getPHPPreamble (false) + phpHeaderAsync.join ('\n') + "\n\n";
-        const phpPreambleAsync = phpPreambleAsyncInit.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;\nuse React\\\Async;\nuse React\\\Promise;');
-        const phpPreambleSync = phpPreambleSyncInit.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
+        const phpPreamble = this.getPHPPreamble (false)
+        let phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
+        let phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
+        phpPreambleSync = phpPreambleSync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
+        phpPreambleAsync = phpPreambleAsync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;\nuse React\\\Async;\nuse React\\\Promise;');
 
         const finalPhpContentAsync = phpPreambleAsync + phpAsync;
         const finalPhpContentSync = phpPreambleSync + phpSync;

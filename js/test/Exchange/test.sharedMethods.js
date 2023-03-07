@@ -73,7 +73,8 @@ function reviseCommonTimestamp (exchange, method, entry, nowToCheck = undefined,
     }
     const ts = entry[keyName];
     if (ts !== undefined) {
-        assert (typeof ts === 'number', 'timestamp is not a number' + logText);
+        assert (exchange.isInteger (ts), 'timestamp is not an integer' + logText);
+        assert (isInteger, 'timestamp is not an integer' + logText);
         assert (ts > 1230940800000, 'timestamp is impossible to be before 1230940800000 / 03.01.2009' + logText); // 03 Jan 2009 - first block
         assert (ts < 2147483648000, 'timestamp more than 2147483648000 / 19.01.2038' + logText); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         if (nowToCheck !== undefined) {
