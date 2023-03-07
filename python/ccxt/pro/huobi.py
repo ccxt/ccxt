@@ -397,31 +397,35 @@ class huobi(Exchange, ccxt.async_support.huobi):
             client.reject(e, messageHash)
 
     async def watch_order_book_snapshot(self, client, message, subscription):
-        symbol = self.safe_string(subscription, 'symbol')
-        limit = self.safe_integer(subscription, 'limit')
-        params = self.safe_value(subscription, 'params')
-        attempts = self.safe_integer(subscription, 'numAttempts', 0)
         messageHash = self.safe_string(subscription, 'messageHash')
-        market = self.market(symbol)
-        url = self.get_url_by_market_type(market['type'], market['linear'])
-        requestId = self.request_id()
-        request = {
-            'req': messageHash,
-            'id': requestId,
-        }
-        # self is a temporary subscription by a specific requestId
-        # it has a very short lifetime until the snapshot is received over ws
-        snapshotSubscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'limit': limit,
-            'params': params,
-            'numAttempts': attempts,
-            'method': self.handle_order_book_snapshot,
-        }
-        orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
-        return orderbook.limit()
+        try:
+            symbol = self.safe_string(subscription, 'symbol')
+            limit = self.safe_integer(subscription, 'limit')
+            params = self.safe_value(subscription, 'params')
+            attempts = self.safe_integer(subscription, 'numAttempts', 0)
+            market = self.market(symbol)
+            url = self.get_url_by_market_type(market['type'], market['linear'])
+            requestId = self.request_id()
+            request = {
+                'req': messageHash,
+                'id': requestId,
+            }
+            # self is a temporary subscription by a specific requestId
+            # it has a very short lifetime until the snapshot is received over ws
+            snapshotSubscription = {
+                'id': requestId,
+                'messageHash': messageHash,
+                'symbol': symbol,
+                'limit': limit,
+                'params': params,
+                'numAttempts': attempts,
+                'method': self.handle_order_book_snapshot,
+            }
+            orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
+            return orderbook.limit()
+        except Exception as e:
+            del client.subscriptions[messageHash]
+            client.reject(e, messageHash)
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
