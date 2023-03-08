@@ -24,6 +24,8 @@ const fs = require ('fs')
         replaceInFile,
         overwriteFile,
     } = require ('./fs.js')
+    , { Piscina } = require('piscina')
+    , path = require ('path')
     , baseExchangeJsFile = './js/base/Exchange.js'
     , Exchange = require ('.' + baseExchangeJsFile)
     , tsFilename = './ccxt.d.ts'
@@ -1812,7 +1814,15 @@ class Transpiler {
     }
 
     // ============================================================================
- 
+
+    async readFilesAsync(files) {
+        const promiseReadFile = promisify(fs.readFile);
+        const fileArray = await Promise.all(files.map(file => promiseReadFile(file)));
+        return fileArray.map( file => file.toString() );
+    }
+
+    // ============================================================================
+
     transpileExchangeTests () {
 
         this.transpileMainTests ({
@@ -1845,6 +1855,7 @@ class Transpiler {
             JsFilesToTranspile.push (filenameWithoutExt);
         }
         // transpile all collected files
+        const tests = [];
         for (const originalJsFileName of JsFilesToTranspile) {
             const unCamelCasedFileName = unCamelCase (originalJsFileName).replace (/\./g, '_');
             const prefix = ''; //'transpiled_';
@@ -1855,8 +1866,9 @@ class Transpiler {
                 pyFileAsync: baseFolders.py + prefix + unCamelCasedFileName + '_async.py',
                 phpFileAsync: baseFolders.php + prefix + unCamelCasedFileName + '_async.php',
             };
-            this.transpileTest (test);
+            tests.push(test);
         }
+        this.transpileTest (tests);
     }
 
     transpileMainTests (files) {
@@ -1907,30 +1919,11 @@ class Transpiler {
 
     // ============================================================================
 
-    async transpileTest (test) {
+    async transpileTest (tests) {
         const parser = {
             'LINES_BETWEEN_FILE_MEMBERS': 2
         }
-        const transpiler = new astTranspiler.Transpiler({
-            'verbose': false,
-            'python':{
-                'uncamelcaseIdentifiers': true,
-                'parser': parser
-            },
-            'php':{
-                'uncamelcaseIdentifiers': true,
-                'parser': parser
-            }
-        });
-
-        log.magenta ('Transpiling from', test.jsFile.yellow)
-        let js = fs.readFileSync (test.jsFile).toString ()
-
-        js = this.regexAll (js, [
-            [ /\'use strict\';?\s+/g, '' ],
-        ])
-
-        const config = [
+        const fileConfig = [
             {
                 language: "php",
                 async: true
@@ -1948,71 +1941,114 @@ class Transpiler {
                 async: true
             },
         ]
-        const replaceAsert = (str) => str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
-        const time = Date.now ();
-        const result = transpiler.transpileDifferentLanguages(config, js);
-        const elapsed = Date.now () - time;
-        const phpAsync = result[0].content;
-        const phpSync = result[1].content;
-        const pythonSync = replaceAsert(result[2].content);
-        const pythonAsync = replaceAsert(result[3].content);
-        
-
-        const imports = result[0].imports;
-        // const exports = result[0].exports;
-
-        const usesPrecise = imports.find(x => x.name.includes('Precise'));
-        const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
-
-        let pythonHeader = []
-        let phpHeaderSync = []
-        let phpHeaderAsync = []
-
-        if (pythonAsync.indexOf ('numbers.') >= 0) {
-            pythonHeader.push ('import numbers  # noqa E402')
-        }
-        if (usesPrecise) {
-            pythonHeader.push ('from ccxt.base.precise import Precise  # noqa E402')
-            //phpHeader.push ('use \\ccxt\\Precise;')
-        }
-
-        for (const subTestName of requiredSubTests) {
-            const snake_case = unCamelCase(subTestName);
-            // python
-            if (subTestName.includes ('SharedMethods')) {
-                pythonHeader.push (`from . import test_shared_methods  # noqa E402`)
-            } else {
-                pythonHeader.push (`from .${snake_case} import ${snake_case}  # noqa E402`)
+        const parserConfig = {
+            'verbose': false,
+            'python':{
+                'uncamelcaseIdentifiers': true,
+                'parser': parser
+            },
+            'php':{
+                'uncamelcaseIdentifiers': true,
+                'parser': parser
             }
-            // php
-            phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
-            phpHeaderAsync.push (`include_once __DIR__ . '/${snake_case}_async.php';`)
+        };
+
+        let allFiles = await this.readFilesAsync (tests.map(t => t.jsFile));
+
+        // apply regex to every file
+        allFiles = allFiles.map( file => this.regexAll (file, [
+            [ /\'use strict\';?\s+/g, '' ],
+        ]));
+
+        // create worker config
+        const workerConfigArray = allFiles.map( file => {
+            return {
+                content: file,
+                config: fileConfig
+            }
+        });
+
+        // create worker
+        const piscina = new Piscina({
+            filename: path.resolve(__dirname, './ast-transpiler-worker.js')
+        });
+
+        const chunkSize = 10;
+        const promises = [];
+        const now = Date.now();
+        for (let i = 0; i < workerConfigArray.length; i += chunkSize) {
+            const chunk = workerConfigArray.slice(i, i + chunkSize);
+            promises.push(piscina.run({transpilerConfig:parserConfig, filesConfig:chunk}));
         }
+        const workerResult = await Promise.all(promises);
+        const elapsed = Date.now() - now;
+        log.green ('[ast-transpiler] Transpiled', tests.length, 'tests in', elapsed, 'ms');
+        const flatResult = workerResult.flat();
+        for (let i = 0; i < flatResult.length; i++) {
+            const result = flatResult[i];
+            const test = tests[i];
 
-        if (pythonHeader.length > 0) {
-            pythonHeader.unshift ('')
-            pythonHeader.push ('', '')
+            const phpAsync = result[0].content;
+            const phpSync = result[1].content;
+            const pythonSync = result[2].content;
+            const pythonAsync = result[3].content;
+
+            const imports = result[0].imports;
+            // const exports = result[0].exports;
+
+            const usesPrecise = imports.find(x => x.name.includes('Precise'));
+            const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
+
+            let pythonHeader = []
+            let phpHeaderSync = []
+            let phpHeaderAsync = []
+
+            if (pythonAsync.indexOf ('numbers.') >= 0) {
+                pythonHeader.push ('import numbers  # noqa E402')
+            }
+            if (usesPrecise) {
+                pythonHeader.push ('from ccxt.base.precise import Precise  # noqa E402')
+                //phpHeader.push ('use \\ccxt\\Precise;')
+            }
+
+            for (const subTestName of requiredSubTests) {
+                const snake_case = unCamelCase(subTestName);
+                // python
+                if (subTestName.includes ('SharedMethods')) {
+                    pythonHeader.push (`from . import test_shared_methods  # noqa E402`)
+                } else {
+                    pythonHeader.push (`from .${snake_case} import ${snake_case}  # noqa E402`)
+                }
+                // php
+                phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
+                phpHeaderAsync.push (`include_once __DIR__ . '/${snake_case}_async.php';`)
+            }
+
+            if (pythonHeader.length > 0) {
+                pythonHeader.unshift ('')
+                pythonHeader.push ('', '')
+            }
+            const pythonPreamble = pythonCodingUtf8 + '\n\n' + pythonHeader.join ('\n') + '\n';
+            const phpPreamble = this.getPHPPreamble (false)
+            let phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
+            let phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
+            phpPreambleSync = phpPreambleSync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
+            phpPreambleAsync = phpPreambleAsync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;\nuse React\\\Async;\nuse React\\\Promise;');
+
+            const finalPhpContentAsync = phpPreambleAsync + phpAsync;
+            const finalPhpContentSync = phpPreambleSync + phpSync;
+            const finalPyContentAsync = pythonPreamble + pythonAsync;
+            const finalPyContentSync = pythonPreamble + pythonSync;
+
+            log.magenta ('→', test.pyFileAsync.yellow)
+            overwriteFile (test.pyFileAsync, finalPyContentAsync)
+            log.magenta ('→', test.phpFileAsync.yellow)
+            overwriteFile (test.phpFileAsync, finalPhpContentAsync)
+            log.magenta ('→', test.phpFile.yellow)
+            overwriteFile (test.phpFile, finalPhpContentSync)
+            log.magenta ('→', test.pyFile.yellow)
+            overwriteFile (test.pyFile, finalPyContentSync)
         }
-        const pythonPreamble = pythonCodingUtf8 + '\n\n' + pythonHeader.join ('\n') + '\n';
-        const phpPreamble = this.getPHPPreamble (false)
-        let phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
-        let phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
-        phpPreambleSync = phpPreambleSync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
-        phpPreambleAsync = phpPreambleAsync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;\nuse React\\\Async;\nuse React\\\Promise;');
-
-        const finalPhpContentAsync = phpPreambleAsync + phpAsync;
-        const finalPhpContentSync = phpPreambleSync + phpSync;
-        const finalPyContentAsync = pythonPreamble + pythonAsync;
-        const finalPyContentSync = pythonPreamble + pythonSync;
-
-        log.magenta ('→', test.pyFileAsync.yellow)
-        overwriteFile (test.pyFileAsync, finalPyContentAsync)
-        log.magenta ('→', test.phpFileAsync.yellow)
-        overwriteFile (test.phpFileAsync, finalPhpContentAsync)
-        log.magenta ('→', test.phpFile.yellow)
-        overwriteFile (test.phpFile, finalPhpContentSync)
-        log.magenta ('→', test.pyFile.yellow)
-        overwriteFile (test.pyFile, finalPyContentSync)
     }
 
     // ============================================================================
