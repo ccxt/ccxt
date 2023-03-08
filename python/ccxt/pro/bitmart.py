@@ -460,29 +460,31 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
             client.resolve(orderbook, messageHash)
         return message
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.implode_hostname(self.urls['api']['ws']['private'])
-        messageHash = 'login'
+        messageHash = 'authenticated'
         client = self.client(url)
         future = self.safe_value(client.subscriptions, messageHash)
         if future is None:
-            future = client.future('authenticated')
             timestamp = str(self.milliseconds())
             memo = self.uid
             path = 'bitmart.WebSocket'
             auth = timestamp + '#' + memo + '#' + path
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+            operation = 'login'
             request = {
-                'op': messageHash,
+                'op': operation,
                 'args': [
                     self.apiKey,
                     timestamp,
                     signature,
                 ],
             }
-            self.spawn(self.watch, url, messageHash, request, messageHash, future)
-        return await future
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future
 
     def handle_subscription_status(self, client, message):
         #
@@ -492,10 +494,10 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
 
     def handle_authenticate(self, client, message):
         #
-        #     {event: 'login', success: True}
+        #     {event: 'login'}
         #
-        client.resolve(message, 'authenticated')
-        return message
+        messageHash = 'authenticated'
+        client.resolve(message, messageHash)
 
     def handle_error_message(self, client, message):
         #
@@ -510,17 +512,17 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
                 messageString = self.safe_value(message, 'message')
                 if messageString is not None:
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
+            return False
         except Exception as e:
             if isinstance(e, AuthenticationError):
-                client.reject(e, 'authenticated')
-                method = 'login'
-                if method in client.subscriptions:
-                    del client.subscriptions[method]
-                return False
-        return message
+                messageHash = 'authenticated'
+                client.reject(e, messageHash)
+                if messageHash in client.subscriptions:
+                    del client.subscriptions[messageHash]
+            return True
 
     def handle_message(self, client, message):
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message):
             return
         #
         #     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}

@@ -406,10 +406,12 @@ class bitfinex2 extends Exchange {
         // https://docs.bitfinex.com/docs/introduction#$amount-precision
         // The $amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
+        $symbol = $this->safe_symbol($symbol);
         return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     public function price_to_precision($symbol, $price) {
+        $symbol = $this->safe_symbol($symbol);
         $price = $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
         // https://docs.bitfinex.com/docs/introduction#$price-precision
         // The precision level of all trading prices is based on significant figures.
@@ -1496,7 +1498,12 @@ class bitfinex2 extends Exchange {
         // $order types "limit" and "market" immediatley parsed "EXCHANGE LIMIT" and "EXCHANGE MARKET"
         // note => same $order types exist for margin $orders without the EXCHANGE prefix
         $orderTypes = $this->safe_value($this->options, 'orderTypes', array());
-        $orderType = $this->safe_string_upper($orderTypes, $type, $type);
+        $orderType = strtoupper($type);
+        if ($market['spot']) {
+            // although they claim that $type needs to be 'exchange limit' or 'exchange market'
+            // in fact that's not the case for swap markets
+            $orderType = $this->safe_string_upper($orderTypes, $type, $type);
+        }
         $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnlyParam = $this->safe_value($params, 'postOnly', false);

@@ -303,6 +303,8 @@ class bitstamp extends Exchange {
                         'near_address/' => 1,
                         'doge_withdrawal/' => 1,
                         'doge_address/' => 1,
+                        'flr_withdrawal/' => 1,
+                        'flr_address/' => 1,
                     ),
                 ),
             ),
@@ -1528,7 +1530,7 @@ class bitstamp extends Exchange {
         //         $amount => '0.29669259',
         //         $address => 'aaaaa',
         //         $type => 1,
-        //         $id => 111111,
+        //         id => 111111,
         //         transaction_id => 'xxxx',
         //     }
         //
@@ -1544,7 +1546,6 @@ class bitstamp extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($transaction, 'datetime'));
-        $id = $this->safe_string($transaction, 'id');
         $currencyId = $this->get_currency_id_from_transaction($transaction);
         $code = $this->safe_currency_code($currencyId, $currency);
         $feeCost = $this->safe_string($transaction, 'fee');
@@ -1580,7 +1581,6 @@ class bitstamp extends Exchange {
             // from fetchWithdrawals
             $type = 'withdrawal';
         }
-        $txid = $this->safe_string($transaction, 'transaction_id');
         $tag = null;
         $address = $this->safe_string($transaction, 'address');
         if ($address !== null) {
@@ -1592,11 +1592,11 @@ class bitstamp extends Exchange {
                 $tag = $addressParts[1];
             }
         }
-        $addressFrom = null;
-        $addressTo = $address;
-        $tagFrom = null;
-        $tagTo = $tag;
-        $fee = null;
+        $fee = array(
+            'currency' => null,
+            'cost' => null,
+            'rate' => null,
+        );
         if ($feeCost !== null) {
             $fee = array(
                 'currency' => $feeCurrency,
@@ -1606,22 +1606,23 @@ class bitstamp extends Exchange {
         }
         return array(
             'info' => $transaction,
-            'id' => $id,
-            'txid' => $txid,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'transaction_id'),
+            'type' => $type,
+            'currency' => $code,
+            'network' => null,
+            'amount' => $this->parse_number($amount),
+            'status' => $status,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => null,
-            'addressFrom' => $addressFrom,
-            'addressTo' => $addressTo,
             'address' => $address,
-            'tagFrom' => $tagFrom,
-            'tagTo' => $tagTo,
+            'addressFrom' => null,
+            'addressTo' => $address,
             'tag' => $tag,
-            'type' => $type,
-            'amount' => $this->parse_number($amount),
-            'currency' => $code,
-            'status' => $status,
+            'tagFrom' => null,
+            'tagTo' => $tag,
             'updated' => null,
+            'comment' => null,
             'fee' => $fee,
         );
     }
