@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.9.7';
+$version = '2.9.8';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.9.7';
+    const VERSION = '2.9.8';
 
     public $browser;
     public $marketsLoading = null;
@@ -1733,6 +1733,9 @@ class Exchange extends \ccxt\Exchange {
                 $this->status = array_merge($this->status, array(
                     'updated' => $time,
                 ));
+            }
+            if (!(is_array($this->status) && array_key_exists('info', $this->status))) {
+                $this->status['info'] = null;
             }
             return $this->status;
         }) ();
