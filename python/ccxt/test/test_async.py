@@ -216,7 +216,7 @@ class testMainClass(emptyClass):
         if exchange.alias:
             dump('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
-        # 
+        #
         self.skippedMethods = exchange.safe_value(exchangeSettings, 'skipMethods', {})
         self.checkedPublicTests = {}
         add_proxy_agent(exchange, exchangeSettings)
@@ -244,7 +244,7 @@ class testMainClass(emptyClass):
             if isPublic:
                 self.checkedPublicTests[methodNameInTest] = True
         except Exception as e:
-            isAuthError = (isinstance(e, ccxt.AuthenticationError))
+            isAuthError = (isinstance(e, AuthenticationError))
             if isPublic and isAuthError:
                 dump('[Skipped private]', exchange.id, methodNameInTest, ' - method req' + 'uires authentication, skipped from public tests')
                 # do not raise exception from here, as it's public test and exception is destined to be thrown from private

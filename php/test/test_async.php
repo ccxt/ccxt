@@ -198,7 +198,7 @@ class testMainClass extends emptyClass {
             dump ('[Skipped] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script();
         }
-        // 
+        //
         $this->skippedMethods = $exchange->safe_value($exchangeSettings, 'skipMethods', array());
         $this->checkedPublicTests = array();
         add_proxy_agent ($exchange, $exchangeSettings);
@@ -232,7 +232,7 @@ class testMainClass extends emptyClass {
                     $this->checkedPublicTests[$methodNameInTest] = true;
                 }
             } catch (Exception $e) {
-                $isAuthError = ($e instanceof ccxt.AuthenticationError);
+                $isAuthError = ($e instanceof AuthenticationError);
                 if ($isPublic && $isAuthError) {
                     dump ('[Skipped private]', $exchange->id, $methodNameInTest, ' - method req' . 'uires authentication, skipped from public tests');
                     // do not throw exception from here, as it's public test and exception is destined to be thrown from private
