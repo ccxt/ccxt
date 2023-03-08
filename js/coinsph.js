@@ -17,7 +17,7 @@ module.exports = class coinsph extends Exchange {
             'certified': false,
             'pro': false,
             'has': {
-                // 'CORS': undefined,
+                'CORS': undefined, // checkattheend
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -25,63 +25,63 @@ module.exports = class coinsph extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'borrowMargin': false,
-                // 'cancelAllOrders': true,
-                // 'cancelOrder': true,
-                // 'cancelOrders': undefined,
-                // 'createDepositAddress': false,
-                // 'createOrder': true,
-                // 'createPostOnlyOrder': true,
-                // 'createReduceOnlyOrder': true,
-                // 'createStopLimitOrder': true,
-                // 'createStopMarketOrder': false,
-                // 'createStopOrder': true,
-                // 'editOrder': true,
-                // 'fetchAccounts': undefined,
+                'cancelAllOrders': undefined, // checkattheend
+                'cancelOrder': undefined, // checkattheend
+                'cancelOrders': undefined, // checkattheend
+                'createDepositAddress': undefined, // checkattheend
+                'createOrder': undefined, // checkattheend
+                'createPostOnlyOrder': undefined, // checkattheend
+                'createReduceOnlyOrder': undefined, // checkattheend
+                'createStopLimitOrder': undefined, // checkattheend
+                'createStopMarketOrder': undefined, // checkattheend
+                'createStopOrder': undefined, // checkattheend
+                'editOrder': undefined, // checkattheend
+                'fetchAccounts': undefined, // checkattheend
                 'fetchBalance': true,
-                // 'fetchBidsAsks': true,
-                // 'fetchBorrowInterest': true,
-                // 'fetchBorrowRate': true,
-                // 'fetchBorrowRateHistories': false,
-                // 'fetchBorrowRateHistory': true,
-                // 'fetchBorrowRates': false,
-                // 'fetchBorrowRatesPerSymbol': false,
-                // 'fetchCanceledOrders': false,
-                // 'fetchClosedOrder': false,
-                // 'fetchClosedOrders': 'emulated',
+                'fetchBidsAsks': undefined, // checkattheend
+                'fetchBorrowInterest': undefined, // checkattheend
+                'fetchBorrowRate': undefined, // checkattheend
+                'fetchBorrowRateHistories': undefined, // checkattheend
+                'fetchBorrowRateHistory': undefined, // checkattheend
+                'fetchBorrowRates': undefined, // checkattheend
+                'fetchBorrowRatesPerSymbol': undefined, // checkattheend
+                'fetchCanceledOrders': undefined, // checkattheend
+                'fetchClosedOrder': undefined, // checkattheend
+                'fetchClosedOrders': 'undefined', // checkattheend
                 'fetchCurrencies': false,
-                // 'fetchDeposit': false,
-                // 'fetchDepositAddress': true,
-                // 'fetchDepositAddresses': false,
-                // 'fetchDepositAddressesByNetwork': false,
-                // 'fetchDeposits': true,
-                // 'fetchDepositWithdrawFee': 'emulated',
-                // 'fetchDepositWithdrawFees': true,
-                // 'fetchFundingHistory': true,
-                // 'fetchFundingRate': true,
-                // 'fetchFundingRateHistory': true,
-                // 'fetchFundingRates': true,
-                // 'fetchIndexOHLCV': true,
-                // 'fetchL3OrderBook': false,
-                // 'fetchLedger': undefined,
-                // 'fetchLeverage': false,
-                // 'fetchLeverageTiers': true,
-                // 'fetchMarketLeverageTiers': 'emulated',
+                'fetchDeposit': undefined, // checkattheend
+                'fetchDepositAddress': undefined, // checkattheend
+                'fetchDepositAddresses': undefined, // checkattheend
+                'fetchDepositAddressesByNetwork': undefined, // checkattheend
+                'fetchDeposits': undefined, // checkattheend
+                'fetchDepositWithdrawFee': undefined, // checkattheend
+                'fetchDepositWithdrawFees': undefined, // checkattheend
+                'fetchFundingHistory': undefined, // checkattheend
+                'fetchFundingRate': undefined, // checkattheend
+                'fetchFundingRateHistory': undefined, // checkattheend
+                'fetchFundingRates': undefined, // checkattheend
+                'fetchIndexOHLCV': undefined, // checkattheend
+                'fetchL3OrderBook': undefined, // checkattheend
+                'fetchLedger': undefined, // checkattheend
+                'fetchLeverage': undefined, // checkattheend
+                'fetchLeverageTiers': undefined, // checkattheend
+                'fetchMarketLeverageTiers': undefined, // checkattheend
                 'fetchMarkets': true,
-                // 'fetchMarkOHLCV': true,
-                // 'fetchMyTrades': true,
+                'fetchMarkOHLCV': undefined, // checkattheend
+                'fetchMyTrades': undefined, // checkattheend
                 'fetchOHLCV': true,
-                // 'fetchOpenInterestHistory': true,
-                // 'fetchOpenOrder': false,
-                // 'fetchOpenOrders': true,
-                // 'fetchOrder': true,
+                'fetchOpenInterestHistory': undefined, // checkattheend
+                'fetchOpenOrder': undefined, // checkattheend
+                'fetchOpenOrders': undefined, // checkattheend
+                'fetchOrder': undefined, // checkattheend
                 'fetchOrderBook': true,
-                // 'fetchOrderBooks': false,
-                // 'fetchOrders': true,
-                // 'fetchOrderTrades': true,
-                // 'fetchPosition': undefined,
-                // 'fetchPositions': true,
-                // 'fetchPositionsRisk': true,
-                // 'fetchPremiumIndexOHLCV': false,
+                'fetchOrderBooks': undefined, // checkattheend
+                'fetchOrders': undefined, // checkattheend
+                'fetchOrderTrades': undefined, // checkattheend
+                'fetchPosition': undefined, // checkattheend
+                'fetchPositions': undefined, // checkattheend
+                'fetchPositionsRisk': undefined, // checkattheend
+                'fetchPremiumIndexOHLCV': undefined, // checkattheend
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -89,23 +89,23 @@ module.exports = class coinsph extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                // 'fetchTradingLimits': undefined,
-                // 'fetchTransactionFee': undefined,
-                // 'fetchTransactionFees': true,
-                // 'fetchTransactions': false,
-                // 'fetchTransfers': true,
-                // 'fetchWithdrawal': false,
-                // 'fetchWithdrawals': true,
-                // 'fetchWithdrawalWhitelist': false,
-                // 'reduceMargin': true,
-                // 'repayMargin': true,
-                // 'setLeverage': true,
-                // 'setMargin': false,
-                // 'setMarginMode': true,
-                // 'setPositionMode': true,
-                // 'signIn': false,
-                // 'transfer': true,
-                // 'withdraw': true,
+                'fetchTradingLimits': undefined, // checkattheend
+                'fetchTransactionFee': undefined, // checkattheend
+                'fetchTransactionFees': undefined, // checkattheend
+                'fetchTransactions': undefined, // checkattheend
+                'fetchTransfers': undefined, // checkattheend
+                'fetchWithdrawal': undefined, // checkattheend
+                'fetchWithdrawals': undefined, // checkattheend
+                'fetchWithdrawalWhitelist': undefined, // checkattheend
+                'reduceMargin': undefined, // checkattheend
+                'repayMargin': undefined, // checkattheend
+                'setLeverage': undefined, // checkattheend
+                'setMargin': undefined, // checkattheend
+                'setMarginMode': undefined, // checkattheend
+                'setPositionMode': undefined, // checkattheend
+                'signIn': undefined, // checkattheend
+                'transfer': undefined, // checkattheend
+                'withdraw': undefined, // checkattheend
             },
             'timeframes': {
                 '1m': '1m',
@@ -125,14 +125,14 @@ module.exports = class coinsph extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': '', // to do
+                'logo': '', // todo
                 'api': {
                     'public': 'https://api.pro.coins.ph',
                     'private': 'https://api.pro.coins.ph',
                 },
                 'www': 'https://coins.ph/',
                 'referral': {
-                    // to do
+                    // todo
                 },
                 'doc': [
                     'https://coins-docs.github.io/rest-api',
@@ -145,25 +145,25 @@ module.exports = class coinsph extends Exchange {
                         // done =================================
                         'openapi/v1/ping': 1,
                         'openapi/v1/time': 1,
-                        // in progress ==========================
-                        'openapi/v1/exchangeInfo': 10,
                         // cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         // cost 20 if 'symbols' param is a list of 21-100 market symbols
                         // cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omited
-                        'openapi/quote/v1/ticker/24hr': { 'cost': 1, 'noSymbolAndNoSymbols': 40, 'bySymbolsAmount': [ [ 101, 40 ], [ 21, 20 ], [ 0, 1 ] ] },
-                        // cost 1 if limit <= 100; 5 if limit > 100.
-                        'openapi/quote/v1/depth': { 'cost': 1, 'byLimit': [ [ 101, 5 ], [ 0, 1 ] ] },
-                        'openapi/quote/v1/klines': 1, // default limit 500; max 1000.
-                        'openapi/quote/v1/trades': 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
-                        // ======================================
-                        'openapi/v1/pairs': 1, // to do: find method
-                        'openapi/quote/v1/avgPrice': 1, // to do: find method
+                        'openapi/quote/v1/ticker/24hr': { 'cost': 1, 'noSymbolAndNoSymbols': 40, 'byNumberOfSymbols': [ [ 101, 40 ], [ 21, 20 ], [ 0, 1 ] ] },
                         // cost 1 if 'symbol' param defined (one market symbol)
                         // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omited
                         'openapi/quote/v1/ticker/price': { 'cost': 1, 'noSymbol': 2 },
                         // cost 1 if 'symbol' param defined (one market symbol)
                         // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omited
                         'openapi/quote/v1/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                        // in progress ==========================
+                        'openapi/v1/exchangeInfo': 10,
+                        // cost 1 if limit <= 100; 5 if limit > 100.
+                        'openapi/quote/v1/depth': { 'cost': 1, 'byLimit': [ [ 101, 5 ], [ 0, 1 ] ] },
+                        'openapi/quote/v1/klines': 1, // default limit 500; max 1000.
+                        'openapi/quote/v1/trades': 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
+                        // ======================================
+                        'openapi/v1/pairs': 1,
+                        'openapi/quote/v1/avgPrice': 1,
                     },
                 },
                 'private': {
@@ -194,7 +194,7 @@ module.exports = class coinsph extends Exchange {
                 },
             },
             'fees': {
-                // to do: check bitfinex
+                // todo: check feeside
                 'trading': {
                     'feeSide': 'get',
                     'tierBased': true,
@@ -229,19 +229,20 @@ module.exports = class coinsph extends Exchange {
                     },
                 },
             },
-            'precisionMode': DECIMAL_PLACES, // to do: change to TICK_SIZE in fetchMarkets (see precisionFromString)
+            'precisionMode': DECIMAL_PLACES, // todo: change to TICK_SIZE in fetchMarkets (see precisionFromString)
             // exchange-specific options
             'options': {
-                // to do: check fetchTickersMethod
             },
             // https://coins-docs.github.io/errors/
             'exceptions': {
-                // to do
+                // todo
                 'exact': {
+                    '-10001': ArgumentsRequired, // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
+                    '-100012': ArgumentsRequired, // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
                     '-1004': ArgumentsRequired, // {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
                     '-1105': ArgumentsRequired, // {"code":-1105,"msg":"Parameter \u0027orderId and origClientOrderId\u0027 is empty."}
                     '-1140': InsufficientFunds, // {"code":-1140,"msg":"Transaction amount lower than the minimum."}
-                    '-2013': OrderNotFound, // {"code":-2013,"msg":"Order does not exist."} to do: is it right exception?
+                    '-2013': OrderNotFound, // {"code":-2013,"msg":"Order does not exist."}
                 },
                 'broad': {
                 },
@@ -250,16 +251,17 @@ module.exports = class coinsph extends Exchange {
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+        // todo: check if it's ok
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('noSymbolAndNoSymbols' in config) && !('symbol' in params) && !('symbols' in params)) {
             return config['noSymbolAndNoSymbols'];
-        } else if (('bySymbolsAmount' in config) && ('symbols' in params)) {
+        } else if (('byNumberOfSymbols' in config) && ('symbols' in params)) {
             const symbols = params['symbols'];
             const symbolsAmount = symbols.length;
-            const bySymbolsAmount = config['bySymbolsAmount'];
-            for (let i = 0; i < bySymbolsAmount.length; i++) {
-                const entry = bySymbolsAmount[i];
+            const byNumberOfSymbols = config['byNumberOfSymbols'];
+            for (let i = 0; i < byNumberOfSymbols.length; i++) {
+                const entry = byNumberOfSymbols[i];
                 if (symbolsAmount >= entry[0]) {
                     return entry[1];
                 }
@@ -469,7 +471,9 @@ module.exports = class coinsph extends Exchange {
             }
             request['symbols'] = ids;
         }
-        const tickers = await this.publicGetOpenapiQuoteV1Ticker24hr (this.extend (request, params));
+        const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
+        const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
+        const tickers = await this[method] (this.extend (request, params));
         return this.parseTickers (tickers, symbols, params);
     }
 
@@ -482,12 +486,18 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTicker() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const ticker = await this.publicGetOpenapiQuoteV1Ticker24hr (this.extend (request, params));
+        const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
+        // todo: check for fetchTickersMethod of fetchTickerMethod?
+        const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
+        const ticker = await this[method] (this.extend (request, params));
         return this.parseTicker (ticker, market, params);
     }
 
@@ -535,7 +545,7 @@ module.exports = class coinsph extends Exchange {
         let changePcnt = this.safeString (ticker, 'priceChangePercent');
         changePcnt = Precise.stringMul (changePcnt, '100');
         return this.safeTicker ({
-            'symbol': market['symbol'], // to do: should I use this.safeSymbol?
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'open': open,
@@ -567,6 +577,9 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -606,6 +619,9 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe);
@@ -647,7 +663,7 @@ module.exports = class coinsph extends Exchange {
         //         ]
         //     ]
         //
-        // to do: delete after check
+        // todo: delete after check
         // const first = response[0];
         // const last = response[response.length - 1];
         // console.log (first[0], '------------', this.iso8601 (first[0]));
@@ -678,6 +694,9 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -718,8 +737,11 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
-        // to do: write this method properly
+        // todo: recvWindow, write this method properly and check if symbol is mandatory
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -742,7 +764,7 @@ module.exports = class coinsph extends Exchange {
         //         price: '89685.8',
         //         id: '1365561108437680129',
         //         qty: '0.000004',
-        //         quoteQty: '0.000004000000000000', // to do: same as qty
+        //         quoteQty: '0.000004000000000000', // todo: compare to website
         //         time: '1677523569575',
         //         isBuyerMaker: false,
         //         isBestMatch: true
@@ -766,15 +788,15 @@ module.exports = class coinsph extends Exchange {
         //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol']; // to do: should I use this.safeSymbol?
+        const symbol = market['symbol'];
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'orderId');
-        const timestamp = this.safeString (trade, 'time');
+        const timestamp = this.safeInteger (trade, 'time');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
-        const fee = undefined; // to do
-        const type = undefined; // to do
-        // to do: check for side and takerOrMaker are good
+        const fee = undefined; // todo
+        const type = undefined; // todo
+        // todo: check for side and takerOrMaker are good in private trades
         const isBuyer = this.safeString2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
         let side = undefined;
         if (isBuyer !== undefined) {
@@ -785,7 +807,7 @@ module.exports = class coinsph extends Exchange {
         if (isMaker !== undefined) {
             takerOrMaker = (isMaker === 'true') ? 'maker' : 'taker';
         }
-        const costString = undefined; // to do
+        const costString = undefined; // todo
         return this.safeTrade ({
             'id': id,
             'order': orderId,
@@ -811,6 +833,7 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
+        // todo: recvWindow
         await this.loadMarkets ();
         const response = await this.privateGetOpenapiV1Account (params);
         //
@@ -870,6 +893,7 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        // todo: recvWindow and all types of orders
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderSide = (side === 'buy') ? 'BUY' : 'SELL';
@@ -879,7 +903,7 @@ module.exports = class coinsph extends Exchange {
             'type': 'LIMIT',
             'price': price,
             'quantity': amount,
-            'timeInForce': 'GTC',
+            'timeInForce': 'GTC', // the exchange requires this param
         };
         const response = await this.privatePostOpenapiV1Order (this.extend (request, params));
         return this.parseOrder (response, market);
@@ -896,7 +920,7 @@ module.exports = class coinsph extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        // to do: write this method
+        // todo: recvWindow and write this method
         const request = {
             'orderId': id,
         };
@@ -915,6 +939,7 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        // todo: recvWindow
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -938,7 +963,7 @@ module.exports = class coinsph extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        // to do: write this method
+        // todo: recvWindow and write this method
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -960,7 +985,7 @@ module.exports = class coinsph extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        // to do: write this method
+        // todo: recvWindow and write this method
         const request = {
             'orderId': id,
         };
@@ -978,24 +1003,24 @@ module.exports = class coinsph extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        // to do: write this method
+        // todo: recvWindow and write this method
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'], // to do: check if 'symbol' param is mandatory
+            'symbol': market['id'], // todo: check if 'symbol' param is mandatory
         };
         const response = this.privateGetOpenapiV1OpenOrders (this.extend (request, params));
         return this.parseOrders (response, market);
     }
 
     parseOrder (order, market = undefined) {
-        // to do: this is in progress
+        // todo: this is in progress
         //
         // createOrder POST /openapi/v1/order
         //     {
         //         "symbol": "BCHUSDT",
         //         "orderId": 1202289462787244800,
         //         "clientOrderId": "165806007267756",
-        //         "transactTime": 1656900365976, // to do: check - is it time of creating or last trade
+        //         "transactTime": 1656900365976, // todo: check - is it time of creating or last trade
         //         "price": "1",
         //         "origQty": "101",
         //         "executedQty": "101",
@@ -1067,25 +1092,25 @@ module.exports = class coinsph extends Exchange {
         const id = this.safeString (order, 'orderId');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger2 (order, 'time', 'transactTime'); // to do: check
+        const timestamp = this.safeInteger2 (order, 'time', 'transactTime'); // todo: check
         return this.safeOrder ({
             'id': id,
             'clientOrderId': this.safeString (order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined, // to do: is it updateTime and transactTime
+            'lastTradeTimestamp': undefined, // todo: is it updateTime and transactTime
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
-            'symbol': market['symbol'], // to do: should I use this.safeSymbol?
+            'symbol': market['symbol'],
             'type': this.parseOrderType (this.safeString (order, 'type')),
             'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'timeInForce')),
             'side': this.parseOrderSide (this.safeString (order, 'side')),
-            'price': this.safeNumber (order, 'price'),
-            'stopPrice': this.safeNumber2 (order, 'stopPrice', 'triggerPrice'), // to do: check stop limit
-            'triggerPrice': this.safeNumber2 (order, 'stopPrice', 'triggerPrice'), // to do: check stop limit
-            'average': undefined, // to do: check
-            'amount': this.safeNumber (order, 'origQty'),
-            'cost': this.safeNumber (order, 'cummulativeQuoteQty'), // to do: check
-            'filled': this.safeNumber (order, 'executedQty'),
+            'price': this.safeString (order, 'price'),
+            'stopPrice': this.safeString (order, 'stopPrice'), // todo: check stop limit and take profit limit
+            'triggerPrice': this.safeString (order, 'stopPrice'), // todo: check stop limit and take profit limit
+            'average': undefined,
+            'amount': this.safeString (order, 'origQty'),
+            'cost': this.safeString (order, 'cummulativeQuoteQty'), // todo: check
+            'filled': this.safeString (order, 'executedQty'),
             'remaining': undefined,
             'fee': undefined,
             'trades': undefined,
@@ -1102,7 +1127,6 @@ module.exports = class coinsph extends Exchange {
     }
 
     parseOrderType (status) {
-        // to do: check if it is right
         const statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -1145,6 +1169,10 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
+        // todo: recvWindow
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTradingFee() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1207,7 +1235,7 @@ module.exports = class coinsph extends Exchange {
         //
         const marketId = this.safeString (fee, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol']; // to do: should I use this.safeSymbol?
+        const symbol = market['symbol'];
         return {
             'info': fee,
             'symbol': symbol,
@@ -1228,11 +1256,11 @@ module.exports = class coinsph extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
-        // to do: write this method
+        // todo: recvWindow and write this method
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
-            currency = this.currencies[code]; // to do: make it right
+            currency = this.currency (code);
             request['coin'] = currency['id'];
         }
         const response = await this.privateGetOpenapiV1CapitalDepositHistory (this.extend (request, params));
@@ -1251,11 +1279,11 @@ module.exports = class coinsph extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
-        // to do: write this method
+        // todo: recvWindow and write this method
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
-            currency = this.currencies[code]; // to do: make it right
+            currency = this.currency (code);
             request['coin'] = currency['id'];
         }
         const response = await this.privateGetOpenapiV1CapitalWithdrawHistory (this.extend (request, params));
@@ -1296,11 +1324,11 @@ module.exports = class coinsph extends Exchange {
         //         "txId": "Internal Transfer",
         //         "applyTime": 1657967792000
         //     }
-
+        return {};
     }
 
     urlEncodeQuery (query = {}) {
-        // to do: check if it is good and make it transpilable
+        // todo: check if it is good
         let encodedArrayParams = '';
         const keys = Object.keys (query);
         for (let i = 0; i < keys.length; i++) {
