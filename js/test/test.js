@@ -490,7 +490,7 @@ module.exports = class testMainClass extends emptyClass {
 
     async runPrivateTests (exchange, symbol) {
         if (!exchange.checkRequiredCredentials (false)) {
-            dump ('[Skipped]', 'Keys not found, skipping private tests');
+            dump ('[Skipping private tests]', 'Keys not found');
             return;
         }
         const code = this.getExchangeCode (exchange);
