@@ -3776,28 +3776,34 @@ module.exports = class okx extends Exchange {
         if ((tag !== undefined) && (tag.length > 0)) {
             address = address + ':' + tag;
         }
-        const fee = this.safeString (params, 'fee');
-        if (fee === undefined) {
-            throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
-        }
         const request = {
             'ccy': currency['id'],
             'toAddr': address,
             'dest': '4', // 2 = OKCoin International, 3 = OKX 4 = others
             'amt': this.numberToString (amount),
-            'fee': this.numberToString (fee), // withdrawals to OKCoin or OKX are fee-free, please set 0
         };
-        if ('password' in params) {
-            request['pwd'] = params['password'];
-        } else if ('pwd' in params) {
-            request['pwd'] = params['pwd'];
-        }
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
             request['chain'] = currency['id'] + '-' + network;
             params = this.omit (params, 'network');
+        }
+        let fee = this.safeString (params, 'fee');
+        if (fee === undefined) {
+            const currencies = await this.fetchCurrencies ();
+            this.currencies = this.deepExtend (this.currencies, currencies);
+            const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (network), {});
+            fee = this.safeString (targetNetwork, 'fee');
+            if (fee === undefined) {
+                throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
+            }
+            request['fee'] = this.numberToString (fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
+        }
+        if ('password' in params) {
+            request['pwd'] = params['password'];
+        } else if ('pwd' in params) {
+            request['pwd'] = params['pwd'];
         }
         const query = this.omit (params, [ 'fee', 'password', 'pwd' ]);
         if (!('pwd' in request)) {
