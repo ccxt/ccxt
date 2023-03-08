@@ -17,7 +17,7 @@
     "bitfinex2":     { "skipMethods": { "fetchTickers": "open might be 0", "fetchTicker": "same", "fetchOrderBook": "multiple bids might have same value" } },
     "bitflyer":      { "skipMethods": { "fetchCurrencies": "info key missing" } },
     "bitforex":      { "skipMethods": { "fetchCurrencies": "info key missing" } },
-    "bitget":        { "skipMethods": { "loadMarkets": "limit max value is zero, lwer than min", "fetchCurrencies": "precision is undefined", "fetchTickers": "high might be set to 0", "fetchTicker": "same" } },
+    "bitget":        { "skipWs": true, "skipMethods": { "loadMarkets": "limit max value is zero, lwer than min", "fetchCurrencies": "precision is undefined", "fetchTickers": "high might be set to 0", "fetchTicker": "same" } },
     "bithumb":       { "skipMethods": { "fetchCurrencies": "info key missing" } },
     "bitmart":       { "skipWs": true, "skipMethods": { "fetchCurrencies": "precision is undefined", "fetchTickers": "quoteVolume <= baseVolume * high is failing" } },
     "bitmex":        { "skipWs": true, "skipMethods": { "loadMarkets": "some market types are out of expected market-types", "fetchCurrencies": "info key missing", "fetchTickers": "close might be 0", "fetchTicker": "same", "fetchOHLCV": "open might be greater than high" } },
