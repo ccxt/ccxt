@@ -495,7 +495,7 @@ module.exports = class coinsph extends Exchange {
             'symbol': market['id'],
         };
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-        // todo: check for fetchTickersMethod of fetchTickerMethod?
+        // todo: use check for fetchTickersMethod of fetchTickerMethod?
         const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
         const ticker = await this[method] (this.extend (request, params));
         return this.parseTicker (ticker, market, params);
@@ -689,7 +689,7 @@ module.exports = class coinsph extends Exchange {
          * @name coinsph#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} since not used by coinsph fetchTrades ()
          * @param {int|undefined} limit the maximum amount of trades to fetch (default 500, max 1000)
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
@@ -764,7 +764,7 @@ module.exports = class coinsph extends Exchange {
         //         price: '89685.8',
         //         id: '1365561108437680129',
         //         qty: '0.000004',
-        //         quoteQty: '0.000004000000000000', // todo: compare to website
+        //         quoteQty: '0.000004000000000000', // todo: reporte to exchange - this is wrong value
         //         time: '1677523569575',
         //         isBuyerMaker: false,
         //         isBestMatch: true
@@ -796,7 +796,7 @@ module.exports = class coinsph extends Exchange {
         const amountString = this.safeString (trade, 'qty');
         const fee = undefined; // todo
         const type = undefined; // todo
-        // todo: check for side and takerOrMaker are good in private trades
+        // todo: check for costString, side and takerOrMaker are good in private trades
         const isBuyer = this.safeString2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
         let side = undefined;
         if (isBuyer !== undefined) {
@@ -807,7 +807,10 @@ module.exports = class coinsph extends Exchange {
         if (isMaker !== undefined) {
             takerOrMaker = (isMaker === 'true') ? 'maker' : 'taker';
         }
-        const costString = undefined; // todo
+        let costString = undefined;
+        if (orderId !== undefined) {
+            costString = this.safeString (trade, 'quoteQty');
+        }
         return this.safeTrade ({
             'id': id,
             'order': orderId,
@@ -1328,7 +1331,6 @@ module.exports = class coinsph extends Exchange {
     }
 
     urlEncodeQuery (query = {}) {
-        // todo: check if it is good
         let encodedArrayParams = '';
         const keys = Object.keys (query);
         for (let i = 0; i < keys.length; i++) {
