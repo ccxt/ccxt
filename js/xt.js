@@ -20,43 +20,31 @@ module.exports = class xt extends Exchange {
             // 3 requests per second => 1000ms / 3 = 333.333 (get assets -> fetchMarkets & fetchCurrencies)
             // 1000 times per minute for each single IP -> Otherwise account locked for 10min
             'rateLimit': 100, // TODO: Is rate limit right? https://doc.xt.com/#documentationlimitRules
-            'version': '1',
+            'version': 'v4',
             'pro': false,
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': false,
+                'margin': undefined,
                 'swap': true,
                 'future': true,
-                'option': undefined,
+                'option': false,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
+                'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchOrderBook': true,
+                'fetchTime': true,
                 'fetchTrades': true,
             },
             'precisionMode': TICK_SIZE,
             'urls': {
                 'logo': '', // TODO: Add logo
                 'api': {
-                    'spot': {
-                        'public': 'https://api.xt.com',
-                        'private': 'https://api.xt.com',
-                    },
-                    'spot2': {
-                        'public': 'https://api.xt.pub',
-                        'private': 'https://api.xt.pub',
-                    },
-                    'usdt': {
-                        'public': 'https://fapi.xt.com',
-                        'private': 'https://fapi.xt.com',
-                    },
-                    'coin': {
-                        'public': 'https://dapi.xt.com',
-                        'private': 'https://dapi.xt.com',
-                    },
+                    'spot': 'https://sapi.xt.com',
+                    'linear': 'https://fapi.xt.com',
+                    'inverse': 'https://dapi.xt.com',
                 },
                 'www': 'https://xt.com',
                 'referral': '', // TODO: Add referral
@@ -68,89 +56,40 @@ module.exports = class xt extends Exchange {
                 ],
             },
             'api': {
-                'spot': {
-                    'get': {
-                        'data/api/v1/getCoinConfig': 333.33,
-                        'data/api/v1/getMarketConfig': 333.33,
-                        'data/api/v1/getKLine': 100,
-                        'data/api/v1/getTicker': 100,
-                        'data/api/v1/getTickers': 100,
-                        'data/api/v1/getDepth': 100,
-                        'data/api/v1/getTrades': 100,
-                        'trade/api/v1/getServerTime': 100,
-                        'data/getCoinConfig': 333.33,
-                        'data/getMarketConfig': 333.33,
-                        'data/getKLine': 100,
-                        'data/getTicker': 100,
-                        'data/getDepth': 100,
-                        'data/getTrades': 100,
-                        'trade/getServerTime': 100,
-                        'trade/api/v1/getBalance': 100,
-                        'trade/api/v1/getAccounts': 100,
-                        'trade/api/v1/getFunds': 100,
-                        'trade/api/v1/getOrder': 100,
-                        'trade/api/v1/getOpenOrders': 100,
-                        'trade/api/v1/getBatchOrders': 100,
-                        'trade/api/v1/myTrades': 100,
+                'public': {
+                    'spot': {
+                        'get': {
+                            'depth': 2,
+                            'kline': 1,
+                            'symbol': 1,
+                            'ticker/24h': 1,
+                            'time': 1,
+                            'trade/recent': 1,
+                            'wallet/support/currency': 1,
+                        },
                     },
-                    'post': {
-                        'trade/api/v1/order': 100,
-                        'trade/api/v1/batchOrder': 100,
+                    'linear': {
+                        'get': {
+                            'future/market/v1/public/q/agg-ticker': 1,
+                            'future/market/v1/public/q/agg-tickers': 1,
+                            'future/market/v1/public/q/deal': 1,
+                            'future/market/v1/public/q/depth': 1,
+                            'future/market/v1/public/q/kline': 1,
+                            'future/market/v1/public/symbol/coins': 3.33,
+                            'future/market/v1/public/symbol/list': 1,
+                        },
                     },
-                    'delete': {
-                        'trade/api/v1/cancel': 100,
-                        'trade/api/v1/batchCancel': 100,
+                    'inverse': {
+                        'get': {
+                            'future/market/v1/public/q/agg-ticker': 1,
+                            'future/market/v1/public/q/agg-tickers': 1,
+                            'future/market/v1/public/q/deal': 1,
+                            'future/market/v1/public/q/depth': 1,
+                            'future/market/v1/public/q/kline': 1,
+                            'future/market/v1/public/symbol/coins': 3.33,
+                            'future/market/v1/public/symbol/list': 1,
+                        },
                     },
-                },
-                'usdt': {
-                    'get': {
-                        'future/market/v1/public/symbol/coins': 333.33,
-                        'future/market/v1/public/symbol/detail': 333.33,
-                        'future/market/v1/public/symbol/list': 100,
-                        'future/market/v1/public/leverage/bracket/detail': 100,
-                        'future/market/v1/public/leverage/bracket/list': 100,
-                        'future/market/v1/public/q/ticker': 100,
-                        'future/market/v1/public/q/tickers': 100,
-                        'future/market/v1/public/q/deal': 100,
-                        'future/market/v1/public/q/depth': 100,
-                        'future/market/v1/public/q/symbol-index-price': 100,
-                        'future/market/v1/public/q/index-price': 100,
-                        'future/market/v1/public/q/symbol-mark-price': 100,
-                        'future/market/v1/public/q/mark-price': 100,
-                        'future/market/v1/public/q/kline': 100,
-                        'future/market/v1/public/q/agg-ticker': 100,
-                        'future/market/v1/public/q/agg-tickers': 100,
-                        'future/market/v1/public/q/funding-rate': 100,
-                        'future/market/v1/public/q/funding-rate-record': 100,
-                        'future/market/v1/public/contract/risk-balance': 100,
-                        'future/market/v1/public/contract/open-interest': 100,
-                    },
-                    // TODO: Add private methods
-                },
-                'coin': {
-                    'get': {
-                        'future/market/v1/public/symbol/coins': 333.33,
-                        'future/market/v1/public/symbol/detail': 333.33,
-                        'future/market/v1/public/symbol/list': 100,
-                        'future/market/v1/public/leverage/bracket/detail': 100,
-                        'future/market/v1/public/leverage/bracket/list': 100,
-                        'future/market/v1/public/q/ticker': 100,
-                        'future/market/v1/public/q/tickers': 100,
-                        'future/market/v1/public/q/deal': 100,
-                        'future/market/v1/public/q/depth': 100,
-                        'future/market/v1/public/q/symbol-index-price': 100,
-                        'future/market/v1/public/q/index-price': 100,
-                        'future/market/v1/public/q/symbol-mark-price': 100,
-                        'future/market/v1/public/q/mark-price': 100,
-                        'future/market/v1/public/q/kline': 100,
-                        'future/market/v1/public/q/agg-ticker': 100,
-                        'future/market/v1/public/q/agg-tickers': 100,
-                        'future/market/v1/public/q/funding-rate': 100,
-                        'future/market/v1/public/q/funding-rate-record': 100,
-                        'future/market/v1/public/contract/risk-balance': 100,
-                        'future/market/v1/public/contract/open-interest': 100,
-                    },
-                    // TODO: Add private methods
                 },
             },
             'fees': {
@@ -193,53 +132,316 @@ module.exports = class xt extends Exchange {
                     ],
                 },
             },
-            'timeframes': {
-                '1m': '1m', // spot, swap
-                '5m': '5m', // spot, swap
-                '15m': '15m', // spot, swap
-                '30m': '30m', // spot, swap
-                '1h': '1h', // spot, swap
-                '4h': '4h', // swap
-                '6h': '6h', // spot
-                '1d': '1d', // spot, swap
-                '1w': '1w', // spot, swap
-                '1M': '1M', // spot
-            },
             'exceptions': {
                 'exact': { // TODO: Error codes
                 },
                 'broad': {},
             },
+            'commonCurrencies': { // TODO: commonCurrencies
+            },
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h', // spot only
+                '2h': '2h', // spot only
+                '4h': '4h',
+                '6h': '6h', // spot only
+                '8h': '8h', // spot only
+                '1d': '1d',
+                '3d': '3d', // spot only
+                '1w': '1w',
+                '1M': '1M', // spot only
+            },
             'options': { // TODO: options
                 'networks': {
+                    'ERC20': 'Ethereum',
+                    'TRC20': 'Tron',
+                    'BEP20': 'BNB Smart Chain',
+                    'BEP2': 'BNB-BEP2',
+                    'BTC': 'Bitcoin',
+                    'FIO': 'FIO',
+                    'XT': 'XT Smart Chain',
+                    'ETC': 'Ethereum Classic',
+                    'EOS': 'EOS',
+                    'QTUM': 'QTUM',
+                    'HECO': 'HECO',
+                    'MATIC': 'Polygon',
+                    'METIS': 'METIS',
+                    'LTC': 'Litecoin',
+                    'BTS': 'BitShares',
+                    'XRP': 'Ripple',
+                    'XLM': 'Stellar Network',
+                    'ADA': 'Cardano',
+                    'DASH': 'DASH',
+                    'XEM': 'XEM',
+                    'XWC': 'XWC-XWC',
+                    'DOGE': 'dogecoin',
+                    'DCR': 'Decred',
+                    'SC': 'Siacoin',
+                    'XTZ': 'Tezos',
+                    'SCC': 'SCC',
+                    'BSV': 'BSV',
+                    'ZEC': 'Zcash',
+                    'VSYS': 'VSYS',
+                    'BTX': 'BTX',
+                    'XMR': 'Monero',
+                    'LSK': 'Lisk',
+                    'ATOM': 'Cosmos',
+                    'ONT': 'Ontology',
+                    'ALGO': 'Algorand',
+                    'RISE': 'RISE',
+                    'CSPR': 'CSPR',
+                    'SOL': 'SOL-SOL',
+                    'DOT': 'Polkadot',
+                    'KAVA': 'KAVA',
+                    'BEB': 'BEB',
+                    'ZEN': 'Horizen',
+                    'PC': 'PC',
+                    'FIL': 'Filecoin',
+                    'MARS': 'MARS',
+                    'BITCI': 'BITCI',
+                    'CHZ': 'chz',
+                    'XCH': 'XCH',
+                    'MMUI': 'MMUI',
+                    'ICP': 'Internet Computer',
+                    'MINA': 'MINA',
+                    'KSM': 'Kusama',
+                    'LUNA': 'Terra',
+                    'THETA': 'Theta Token',
+                    'FTM': 'Fantom',
+                    'FESS': 'FESS',
+                    'FRTS': 'FRTS',
+                    'TEC': 'TEC',
+                    'SWT': 'SWT',
+                    'TOMO': 'TOMO',
+                    'VET': 'VeChain',
+                    'DEL': 'DEL',
+                    'AVAX C-Chain': 'AVAX C-Chain',
+                    'CPH': 'CPH',
+                    'HDD': 'HDD',
+                    'NEAR': 'NEAR Protocol',
+                    'ONE': 'Harmony',
+                    'KLAY': 'Klaytn',
+                    'ABBC': 'ABBC',
+                    'LTNM': 'LTNM',
+                    'XDC': 'XDC',
+                    'PHAE': 'PHAE',
+                    'BLKC': 'BLKC',
+                    'CELO': 'CELO',
+                    'POKT': 'POKT',
+                    'WELUPS': 'WELUPS',
+                    'XDAI': 'XDAI',
+                    'XYM': 'XYM',
+                    'AR': 'Arweave',
+                    'CELT': 'OKT',
+                    'ROSE': 'ROSE',
+                    'EGLD': 'Elrond eGold',
+                    'WAXP': 'WAXP',
+                    'CRO': 'CRO-CRONOS',
+                    'BAR': 'BAR',
+                    'BCH': 'Bitcoin Cash',
+                    'DINGO': 'DINGO',
+                    'GLMR': 'Moonbeam',
+                    'ARB': 'ARB',
+                    'TFUEL': 'TFUEL',
+                    'BETH': 'BETH',
+                    'LOOP': 'LOOP-LRC',
+                    'KYCC': 'KYCC',
+                    'CLO': 'CLO',
+                    'XFL': 'XFL',
+                    'EGX': 'EGX',
+                    'WAVES': 'WAVES',
+                    'TKG': 'TKG',
+                    'REI': 'REI Network',
+                    'LYR': 'LYR',
+                    'ASTR': 'Astar Network',
+                    'IOST': 'IOST',
+                    'GAL(FT)': 'GAL(FT)',
+                    'WEMIX': 'WEMIX',
+                    'LUNC': 'LUNC',
+                    'OP': 'OPT',
+                    'HBAR': 'HBAR',
+                    'PLCUC': 'PLCUC',
+                    'CUBE': 'CUBE',
+                    'BND': 'BND',
+                    'MMT': 'MMT-MMT',
+                    'VXXL': 'VXXL',
+                    'BBC': 'BBC',
+                    'EVMOS': 'EVMOS',
+                    'REDLC': 'REDLC',
+                    'IVAR': 'IVAR',
+                    'QIE': 'QIE',
+                    'RVN': 'RVN',
+                    'unkown': 'unkown',
+                    'ETHW': 'ETHW',
+                    'ETHS': 'ETHS',
+                    'ETHF': 'ETHF',
+                    'TBC': 'TBC-TBC',
+                    'NEOX': 'NEOX',
+                    'OMAX': 'OMAX-OMAX CHAIN',
+                    'KUB': 'KUB',
+                    'AIPC': 'AIPC',
+                    'LAT': 'LAT',
+                    'ALEO(IOU)': 'ALEO(IOU)',
+                    'APT': 'APT',
+                    'PIRI': 'PIRI',
+                    'PETH': 'PETH',
+                    'MLXC': 'MLXC',
+                    'NXT': 'NXT',
+                    'PI': 'PI',
+                    'PLCU': 'PLCU',
+                    'GMMT': 'GMMT chain',
+                    'CORE': 'CORE',
+                    'BTC2': 'BTC2',
+                    'NEO': 'NEO',
+                    'ZIL': 'Zilliqa',
                 },
-                'accountsByType': {
+                'networksById': {
+                    'Ethereum': 'ERC20',
+                    'Tron': 'TRC20',
+                    'BNB Smart Chain': 'BEP20',
+                    'BNB-BEP2': 'BEP2',
+                    'Bitcoin': 'BTC',
+                    'FIO': 'FIO',
+                    'XT Smart Chain': 'XT',
+                    'Ethereum Classic': 'ETC',
+                    'EOS': 'EOS',
+                    'QTUM': 'QTUM',
+                    'HECO': 'HECO',
+                    'Polygon': 'MATIC',
+                    'METIS': 'METIS',
+                    'Litecoin': 'LTC',
+                    'BitShares': 'BTS',
+                    'Ripple': 'XRP',
+                    'Stellar Network': 'XLM',
+                    'Cardano': 'ADA',
+                    'DASH': 'DASH',
+                    'XEM': 'XEM',
+                    'XWC-XWC': 'XWC',
+                    'dogecoin': 'DOGE',
+                    'Decred': 'DCR',
+                    'Siacoin': 'SC',
+                    'Tezos': 'XTZ',
+                    'SCC': 'SCC',
+                    'BSV': 'BSV',
+                    'Zcash': 'ZEC',
+                    'VSYS': 'VSYS',
+                    'BTX': 'BTX',
+                    'Monero': 'XMR',
+                    'Lisk': 'LSK',
+                    'Cosmos': 'ATOM',
+                    'Ontology': 'ONT',
+                    'Algorand': 'ALGO',
+                    'RISE': 'RISE',
+                    'CSPR': 'CSPR',
+                    'SOL-SOL': 'SOL',
+                    'Polkadot': 'DOT',
+                    'KAVA': 'KAVA',
+                    'BEB': 'BEB',
+                    'Horizen': 'ZEN',
+                    'PC': 'PC',
+                    'Filecoin': 'FIL',
+                    'MARS': 'MARS',
+                    'BITCI': 'BITCI',
+                    'chz': 'CHZ',
+                    'XCH': 'XCH',
+                    'MMUI': 'MMUI',
+                    'Internet Computer': 'ICP',
+                    'MINA': 'MINA',
+                    'Kusama': 'KSM',
+                    'Terra': 'LUNA',
+                    'Theta Token': 'THETA',
+                    'Fantom': 'FTM',
+                    'FESS': 'FESS',
+                    'FRTS': 'FRTS',
+                    'TEC': 'TEC',
+                    'SWT': 'SWT',
+                    'TOMO': 'TOMO',
+                    'VeChain': 'VET',
+                    'DEL': 'DEL',
+                    'AVAX C-Chain': 'AVAX C-Chain',
+                    'CPH': 'CPH',
+                    'HDD': 'HDD',
+                    'NEAR Protocol': 'NEAR',
+                    'Harmony': 'ONE',
+                    'Klaytn': 'KLAY',
+                    'ABBC': 'ABBC',
+                    'LTNM': 'LTNM',
+                    'XDC': 'XDC',
+                    'PHAE': 'PHAE',
+                    'BLKC': 'BLKC',
+                    'CELO': 'CELO',
+                    'POKT': 'POKT',
+                    'WELUPS': 'WELUPS',
+                    'XDAI': 'XDAI',
+                    'XYM': 'XYM',
+                    'Arweave': 'AR',
+                    'OKT': 'CELT',
+                    'ROSE': 'ROSE',
+                    'Elrond eGold': 'EGLD',
+                    'WAXP': 'WAXP',
+                    'CRO-CRONOS': 'CRO',
+                    'CRONOS': 'CRO',
+                    'BAR': 'BAR',
+                    'Bitcoin Cash': 'BCH',
+                    'DINGO': 'DINGO',
+                    'Moonbeam': 'GLMR',
+                    'ARB': 'ARB',
+                    'TFUEL': 'TFUEL',
+                    'BETH': 'BETH',
+                    'LOOP-LRC': 'LOOP',
+                    'KYCC': 'KYCC',
+                    'CLO': 'CLO',
+                    'XFL': 'XFL',
+                    'EGX': 'EGX',
+                    'WAVES': 'WAVES',
+                    'TKG': 'TKG',
+                    'REI Network': 'REI',
+                    'LYR': 'LYR',
+                    'Astar Network': 'ASTR',
+                    'IOST': 'IOST',
+                    'GAL(FT)': 'GAL(FT)',
+                    'WEMIX': 'WEMIX',
+                    'LUNC': 'LUNC',
+                    'OPT': 'OP',
+                    'HBAR': 'HBAR',
+                    'PLCUC': 'PLCUC',
+                    'CUBE': 'CUBE',
+                    'BND': 'BND',
+                    'MMT-MMT': 'MMT',
+                    'VXXL': 'VXXL',
+                    'BBC': 'BBC',
+                    'EVMOS': 'EVMOS',
+                    'REDLC': 'REDLC',
+                    'IVAR': 'IVAR',
+                    'QIE': 'QIE',
+                    'RVN': 'RVN',
+                    'unkown': 'unkown',
+                    'ETHW': 'ETHW',
+                    'ETHS': 'ETHS',
+                    'ETHF': 'ETHF',
+                    'TBC-TBC': 'TBC',
+                    'NEOX': 'NEOX',
+                    'OMAX-OMAX CHAIN': 'OMAX',
+                    'KUB': 'KUB',
+                    'AIPC': 'AIPC',
+                    'LAT': 'LAT',
+                    'ALEO(IOU)': 'ALEO(IOU)',
+                    'APT': 'APT',
+                    'PIRI': 'PIRI',
+                    'PETH': 'PETH',
+                    'MLXC': 'MLXC',
+                    'NXT': 'NXT',
+                    'PI': 'PI',
+                    'PLCU': 'PLCU',
+                    'GMMT chain': 'GMMT',
+                    'CORE': 'CORE',
+                    'BTC2': 'BTC2',
+                    'NEO': 'NEO',
+                    'Zilliqa': 'ZIL',
                 },
-                'timeframes': {
-                    'spot': {
-                        '1m': '1min',
-                        '5m': '5min',
-                        '15m': '15min',
-                        '30m': '30min',
-                        '1h': '1hour',
-                        '6h': '6hour',
-                        '1d': '1day',
-                        '1w': '7day',
-                        '1M': '30day',
-                    },
-                    'swap': {
-                        '1m': '1m',
-                        '5m': '5m',
-                        '15m': '15m',
-                        '30m': '30m',
-                        '1h': '1h',
-                        '4h': '4h',
-                        '1d': '1day',
-                        '1w': '7day',
-                    },
-                },
-            },
-            'commonCurrencies': { // TODO: commonCurrencies
             },
         });
     }
@@ -248,49 +450,90 @@ module.exports = class xt extends Exchange {
         return this.milliseconds ();
     }
 
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name xt#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the xt server
+         * @see https://doc.xt.com/#market1serverInfo
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the xt server
+         */
+        const response = await this.publicSpotGetTime (params);
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {
+        //             "serverTime": 1677823301643
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result');
+        return this.safeInteger (data, 'serverTime');
+    }
+
     async fetchCurrencies (params = {}) {
         /**
          * @method
          * @name xt#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.spotGetDataApiV1GetCoinConfig (params);
+        const response = await this.publicSpotGetWalletSupportCurrency (params);
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": [
+        //             {
+        //                 "currency": "btc",
+        //                 "supportChains": [
+        //                     {
+        //                         "chain": "Bitcoin",
+        //                         "depositEnabled": true,
+        //                         "withdrawEnabled": true
+        //                     },
+        //                 ]
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const currencyId = this.safeString (entry, 'name');
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const name = this.safeString (entry, 'fullName');
-            const rawNetworks = this.safeValue (entry, 'chains', []);
+            const rawNetworks = this.safeValue (entry, 'supportChains', []);
             const networks = {};
             let depositEnabled = undefined;
             let withdrawEnabled = undefined;
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
-                const networkId = this.safeString (rawNetwork, 'name');
-                const network = this.safeNetwork (networkId);
-                const depositRaw = this.safeString (rawNetwork, 'deposit');
-                let deposit = false;
-                if (depositRaw === 1) {
-                    deposit = true;
-                    depositEnabled = true;
-                }
-                const withdrawRaw = this.safeString (rawNetwork, 'withdraw');
-                let withdraw = false;
-                if (withdrawRaw === 1) {
-                    withdraw = true;
-                    withdrawEnabled = true;
-                }
+                const networkId = this.safeString (rawNetwork, 'chain');
+                const network = this.networkIdToCode (networkId);
+                depositEnabled = this.safeValue (rawNetwork, 'depositEnabled');
+                withdrawEnabled = this.safeValue (rawNetwork, 'withdrawEnabled');
                 networks[network] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': network,
+                    'name': undefined,
+                    'active': undefined,
                     'fee': undefined,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
+                    'precision': undefined,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
                     'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                         'withdraw': {
                             'min': undefined,
                             'max': undefined,
@@ -304,17 +547,25 @@ module.exports = class xt extends Exchange {
             }
             result[code] = {
                 'info': entry,
-                'code': code,
                 'id': currencyId,
-                'precision': undefined,
-                'name': name,
+                'code': code,
+                'name': undefined,
                 'active': true,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'networks': networks,
                 'fee': undefined,
+                'precision': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'networks': networks,
                 'limits': {
                     'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
@@ -324,278 +575,366 @@ module.exports = class xt extends Exchange {
         return result;
     }
 
-    safeNetwork (networkId) {
-        if (networkId === undefined) {
-            return undefined;
-        } else {
-            return networkId.toLowerCase ();
-        }
-    }
-
     async fetchMarkets (params = {}) {
         /**
          * @method
          * @name xt#fetchMarkets
          * @description retrieves data on all markets for xt
-         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @see https://doc.xt.com/#market2symbol
+         * @see https://doc.xt.com/#futures_quotesgetSymbols
+         * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        const query = this.omit (params, 'type');
-        if (type === 'spot') {
-            // spot and swap ids are equal
-            // so they can't be loaded together
-            const spotMarkets = await this.fetchSpotMarkets (query);
-            return spotMarkets;
-        }
-        return this.fetchSwapAndFutureMarkets (query);
+        let promises = [
+            this.fetchSpotMarkets (params),
+            this.fetchSwapAndFutureMarkets (params),
+        ];
+        promises = await Promise.all (promises);
+        const spotMarkets = promises[0];
+        const swapAndFutureMarkets = promises[1];
+        return this.arrayConcat (spotMarkets, swapAndFutureMarkets);
     }
 
     async fetchSpotMarkets (params = {}) {
-        const response = await this.spotGetDataApiV1GetMarketConfig (params);
+        const response = await this.publicSpotGetSymbol (params);
         //
-        //    {
-        //      "raca_xt":
-        //      {
-        //      "minAmount": 1,
-        //      "pricePoint": 7,
-        //      "coinPoint": 0,
-        //      "maker": 0.002,
-        //      "minMoney": 0,
-        //      "taker": 0.002
-        //      }
-        //    }
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {
+        //             "time": 1677881368812,
+        //             "version": "abb101d1543e54bee40687b135411ba0",
+        //             "symbols": [
+        //                 {
+        //                     "id": 640,
+        //                     "symbol": "xt_usdt",
+        //                     "state": "ONLINE",
+        //                     "stateTime": 1554048000000,
+        //                     "tradingEnabled": true,
+        //                     "openapiEnabled": true,
+        //                     "nextStateTime": null,
+        //                     "nextState": null,
+        //                     "depthMergePrecision": 5,
+        //                     "baseCurrency": "xt",
+        //                     "baseCurrencyPrecision": 8,
+        //                     "baseCurrencyId": 128,
+        //                     "quoteCurrency": "usdt",
+        //                     "quoteCurrencyPrecision": 8,
+        //                     "quoteCurrencyId": 11,
+        //                     "pricePrecision": 4,
+        //                     "quantityPrecision": 2,
+        //                     "orderTypes": ["LIMIT","MARKET"],
+        //                     "timeInForces": ["GTC","IOC"],
+        //                     "displayWeight": 10002,
+        //                     "displayLevel": "FULL",
+        //                     "plates": [],
+        //                     "filters":[
+        //                         {
+        //                             "filter": "QUOTE_QTY",
+        //                             "min": "1"
+        //                         },
+        //                         {
+        //                             "filter": "PROTECTION_LIMIT",
+        //                             "buyMaxDeviation": "0.8",
+        //                             "sellMaxDeviation": "4"
+        //                         },
+        //                         {
+        //                             "filter": "PROTECTION_MARKET",
+        //                             "maxDeviation": "0.02"
+        //                         }
+        //                     ]
+        //                 },
+        //             ]
+        //         }
+        //     }
         //
-        const result = [];
-        const ids = Object.keys (response);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const market = this.safeValue (response, id);
-            const splitId = id.split ('_');
-            const baseId = this.safeString (splitId, 0);
-            const quoteId = this.safeString (splitId, 1);
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const pricePoint = this.safeNumber (market, 'pricePoint');
-            const coinPoint = this.safeNumber (market, 'coinPoint');
-            const minAmount = this.safeNumber (market, 'minAmount');
-            const minMoney = this.safeNumber (market, 'minMoney');
-            const symbol = base + '/' + quote;
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': quoteId,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.safeNumber (market, 'taker'),
-                'maker': this.safeNumber (market, 'maker'),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'feeCurrency': quote,
-                // TODO: Precision
-                'precision': {
-                    'amount': coinPoint,
-                    'price': pricePoint,
-                },
-                'limits': {
-                    'amount': {
-                        'min': minAmount,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': minMoney,
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            });
-        }
-        return result;
+        const data = this.safeValue (response, 'result', {});
+        const symbols = this.safeValue (data, 'symbols', []);
+        return this.parseMarkets (symbols);
     }
 
     async fetchSwapAndFutureMarkets (params = {}) {
-        const markets = await Promise.all ([ this.usdtGetFutureMarketV1PublicSymbolList (params), this.coinGetFutureMarketV1PublicSymbolList (params) ]);
-        // USDT
+        const markets = await Promise.all ([ this.publicLinearGetFutureMarketV1PublicSymbolList (params), this.publicInverseGetFutureMarketV1PublicSymbolList (params) ]);
         //
-        //    [
-        //      {
-        //         "symbol": "btc_usdt",
-        //         "contractType": "PERPETUAL",
-        //         "underlyingType": "U_BASED",
-        //         "contractSize": "0.0001",
-        //         "tradeSwitch": true,
-        //         "state": 0,
-        //         "initLeverage": 10,
-        //         "initPositionType": "CROSSED",
-        //         "baseCoin": "btc",
-        //         "quoteCoin": "usdt",
-        //         "baseCoinPrecision": 8,
-        //         "baseCoinDisplayPrecision": 8,
-        //         "quoteCoinPrecision": 8,
-        //         "quoteCoinD        let method = 'GetDataApiV1GetMarketConfig';rustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
-        //         "supportPositionType": "CROSSED,ISOLATED",
-        //         "minPrice": null,
-        //         "minQty": "1",
-        //         "minNotional": "5",
-        //         "maxNotional": "100000",
-        //         "multiplierDown": "0.005",
-        //         "multiplierUp": "0.005",
-        //         "maxOpenOrders": 200,
-        //         "maxEntrusts": 120,
-        //         "makerFee": "0.00015",
-        //         "takerFee": "0.0007",
-        //         "liquidationFee": "0.015",
-        //         "marketTakeBound": "0.005",
-        //         "depthPrecisionMerge": 5,
-        //         "labels": [
-        //         "HOT"
-        //         ],
-        //         "onboardDate": 1654857001000,
-        //         "enName": "BTCUSDT Perpetual",
-        //         "cnName": "BTCUSDT 永续",
-        //         "minStepPrice": "0.5"
-        //       },
-        //    ]
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": [
+        //             {
+        //                 "id": 52,
+        //                 "symbolGroupId": 71,
+        //                 "symbol": "xt_usdt",
+        //                 "pair": "xt_usdt",
+        //                 "contractType": "PERPETUAL",
+        //                 "productType": "perpetual",
+        //                 "predictEventType": null,
+        //                 "underlyingType": "U_BASED",
+        //                 "contractSize": "1",
+        //                 "tradeSwitch": true,
+        //                 "isDisplay": true,
+        //                 "isOpenApi": false,
+        //                 "state": 0,
+        //                 "initLeverage": 20,
+        //                 "initPositionType": "CROSSED",
+        //                 "baseCoin": "xt",
+        //                 "quoteCoin": "usdt",
+        //                 "baseCoinPrecision": 8,
+        //                 "baseCoinDisplayPrecision": 4,
+        //                 "quoteCoinPrecision": 8,
+        //                 "quoteCoinDisplayPrecision": 4,
+        //                 "quantityPrecision": 0,
+        //                 "pricePrecision": 4,
+        //                 "supportOrderType": "LIMIT,MARKET",
+        //                 "supportTimeInForce": "GTC,FOK,IOC,GTX",
+        //                 "supportEntrustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
+        //                 "supportPositionType": "CROSSED,ISOLATED",
+        //                 "minQty": "1",
+        //                 "minNotional": "5",
+        //                 "maxNotional": "20000000",
+        //                 "multiplierDown": "0.1",
+        //                 "multiplierUp": "0.1",
+        //                 "maxOpenOrders": 200,
+        //                 "maxEntrusts": 200,
+        //                 "makerFee": "0.0004",
+        //                 "takerFee": "0.0006",
+        //                 "liquidationFee": "0.01",
+        //                 "marketTakeBound": "0.1",
+        //                 "depthPrecisionMerge": 5,
+        //                 "labels": ["HOT"],
+        //                 "onboardDate": 1657101601000,
+        //                 "enName": "XTUSDT ",
+        //                 "cnName": "XTUSDT",
+        //                 "minStepPrice": "0.0001",
+        //                 "minPrice": null,
+        //                 "maxPrice": null,
+        //                 "deliveryDate": 1669879634000,
+        //                 "deliveryPrice": null,
+        //                 "deliveryCompletion": false,
+        //                 "cnDesc": null,
+        //                 "enDesc": null
+        //             },
+        //         ]
+        //     }
         //
-        // COIN
-        //
-        //  [
-        //    {
-        //      "symbol": "btc_usd",
-        //      "contractType": "PERPETUAL",
-        //      "underlyingType": "COIN_BASED",
-        //      "contractSize": "100",
-        //      "tradeSwitch": true,
-        //      "state": 0,
-        //      "initLeverage": 10,
-        //      "initPositionType": "CROSSED",
-        //      "baseCoin": "btc",
-        //      "quoteCoin": "usd",
-        //      "baseCoinPrecision": 8,
-        //      "baseCoinDisplayPrecision": 8,
-        //      "quoteCoinPrecision": 8,
-        //      "quoteCoinDisplayPrecision": 8,
-        //      "quantityPrecision": 0,response
-        //      "maxEntrusts": 120,
-        //      "makerFee": "0.00015",
-        //      "takerFee": "0.0007",
-        //      "liquidationFee": "0.015",
-        //      "marketTakeBound": "0.005",
-        //      "depthPrecisionMerge": 5,
-        //      "labels": [
-        //      "HOT"
-        //      ],
-        //      "onboardDate": 1654859400000,
-        //      "enName": "BTCUSD Perpetual",
-        //      "cnName": "BTCUSD 永续",
-        //      "minStepPrice": "0.5"
-        //    },
-        //  ]
-        //
-        const swapMarkets = this.arrayConcat (this.safeValue (markets[0], 'result', []), this.safeValue2 (markets[1], 'result', []));
-        return this.parseSwapAndFutureMarkets (swapMarkets);
+        const swapAndFutureMarkets = this.arrayConcat (this.safeValue (markets[0], 'result', []), this.safeValue2 (markets[1], 'result', []));
+        return this.parseMarkets (swapAndFutureMarkets);
     }
 
-    parseSwapAndFutureMarkets (data) {
+    parseMarkets (markets) {
         const result = [];
-        for (let i = 0; i < data.length; i++) {
-            const market = data[i];
-            const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'baseCoin');
-            const quoteId = this.safeString (market, 'quoteCoin');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const underlyingType = this.safeString (market, 'underlyingType', '');
-            let symbol = base + '/' + quote;
-            let linear = undefined;
-            let inverse = undefined;
-            if (underlyingType === 'U_BASED') {
-                symbol += ':' + quote;
-                linear = true;
-                inverse = false;
-            } else if (underlyingType === 'COIN_BASED') {
-                symbol += ':' + base;
-                linear = false;
-                inverse = true;
-            }
-            const stepString = this.safeString (market, 'pricePrecision');
-            const lotString = this.safeString (market, 'quantityPrecision');
-            const lot = this.parseNumber (lotString);
-            const step = this.parseNumber (stepString);
-            const minQtyString = this.safeString (market, 'minQty');
-            const minQty = this.parseNumber (minQtyString);
-            const contractSizeString = this.safeString (market, 'contractSize');
-            const contractSize = this.parseNumber (contractSizeString);
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': quoteId,
-                'type': 'swap',
-                'spot': false,
-                'margin': false,
-                'swap': true,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': true,
-                'linear': linear,
-                'inverse': inverse,
-                'taker': this.safeNumber (market, 'takerFee'),
-                'maker': this.safeNumber (market, 'makerFee'),
-                'contractSize': contractSize,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'feeCurrency': quote,
-                'precision': {
-                    'amount': lot,
-                    'price': step,
-                },
-                'limits': {
-                    'amount': {
-                        'min': minQty,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': step,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.parseNumber (Precise.stringMul (lotString, stepString)),
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            });
+        for (let i = 0; i < markets.length; i++) {
+            result.push (this.parseMarket (markets[i]));
         }
         return result;
+    }
+
+    parseMarket (market) {
+        //
+        // spot
+        //
+        //     {
+        //         "id": 640,
+        //         "symbol": "xt_usdt",
+        //         "state": "ONLINE",
+        //         "stateTime": 1554048000000,
+        //         "tradingEnabled": true,
+        //         "openapiEnabled": true,
+        //         "nextStateTime": null,
+        //         "nextState": null,
+        //         "depthMergePrecision": 5,
+        //         "baseCurrency": "xt",
+        //         "baseCurrencyPrecision": 8,
+        //         "baseCurrencyId": 128,
+        //         "quoteCurrency": "usdt",
+        //         "quoteCurrencyPrecision": 8,
+        //         "quoteCurrencyId": 11,
+        //         "pricePrecision": 4,
+        //         "quantityPrecision": 2,
+        //         "orderTypes": ["LIMIT","MARKET"],
+        //         "timeInForces": ["GTC","IOC"],
+        //         "displayWeight": 10002,
+        //         "displayLevel": "FULL",
+        //         "plates": [],
+        //         "filters":[
+        //             {
+        //                 "filter": "QUOTE_QTY",
+        //                 "min": "1"
+        //             },
+        //             {
+        //                 "filter": "PROTECTION_LIMIT",
+        //                 "buyMaxDeviation": "0.8",
+        //                 "sellMaxDeviation": "4"
+        //             },
+        //             {
+        //                 "filter": "PROTECTION_MARKET",
+        //                 "maxDeviation": "0.02"
+        //             }
+        //         ]
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "id": 52,
+        //         "symbolGroupId": 71,
+        //         "symbol": "xt_usdt",
+        //         "pair": "xt_usdt",
+        //         "contractType": "PERPETUAL",
+        //         "productType": "perpetual",
+        //         "predictEventType": null,
+        //         "underlyingType": "U_BASED",
+        //         "contractSize": "1",
+        //         "tradeSwitch": true,
+        //         "isDisplay": true,
+        //         "isOpenApi": false,
+        //         "state": 0,
+        //         "initLeverage": 20,
+        //         "initPositionType": "CROSSED",
+        //         "baseCoin": "xt",
+        //         "quoteCoin": "usdt",
+        //         "baseCoinPrecision": 8,
+        //         "baseCoinDisplayPrecision": 4,
+        //         "quoteCoinPrecision": 8,
+        //         "quoteCoinDisplayPrecision": 4,
+        //         "quantityPrecision": 0,
+        //         "pricePrecision": 4,
+        //         "supportOrderType": "LIMIT,MARKET",
+        //         "supportTimeInForce": "GTC,FOK,IOC,GTX",
+        //         "supportEntrustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
+        //         "supportPositionType": "CROSSED,ISOLATED",
+        //         "minQty": "1",
+        //         "minNotional": "5",
+        //         "maxNotional": "20000000",
+        //         "multiplierDown": "0.1",
+        //         "multiplierUp": "0.1",
+        //         "maxOpenOrders": 200,
+        //         "maxEntrusts": 200,
+        //         "makerFee": "0.0004",
+        //         "takerFee": "0.0006",
+        //         "liquidationFee": "0.01",
+        //         "marketTakeBound": "0.1",
+        //         "depthPrecisionMerge": 5,
+        //         "labels": ["HOT"],
+        //         "onboardDate": 1657101601000,
+        //         "enName": "XTUSDT ",
+        //         "cnName": "XTUSDT",
+        //         "minStepPrice": "0.0001",
+        //         "minPrice": null,
+        //         "maxPrice": null,
+        //         "deliveryDate": 1669879634000,
+        //         "deliveryPrice": null,
+        //         "deliveryCompletion": false,
+        //         "cnDesc": null,
+        //         "enDesc": null
+        //     }
+        //
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString2 (market, 'baseCurrency', 'baseCoin');
+        const quoteId = this.safeString2 (market, 'quoteCurrency', 'quoteCoin');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const state = this.safeString (market, 'state');
+        let symbol = base + '/' + quote;
+        const filters = this.safeValue (market, 'filters', []);
+        let minAmount = undefined;
+        for (let i = 0; i < filters.length; i++) {
+            const entry = filters[i];
+            const filter = this.safeString (entry, 'filter');
+            if (filter === 'QUOTE_QTY') {
+                minAmount = this.safeNumber (entry, 'min');
+            }
+        }
+        const underlyingType = this.safeString (market, 'underlyingType');
+        let linear = undefined;
+        let inverse = undefined;
+        let settleId = undefined;
+        let settle = undefined;
+        let expiry = undefined;
+        let future = false;
+        let swap = false;
+        let contract = false;
+        let spot = true;
+        let type = 'spot';
+        if (underlyingType === 'U_BASED') {
+            symbol = symbol + ':' + quote;
+            settleId = baseId;
+            settle = quote;
+            linear = true;
+            inverse = false;
+        } else if (underlyingType === 'COIN_BASED') {
+            symbol = symbol + ':' + base;
+            settleId = baseId;
+            settle = base;
+            linear = false;
+            inverse = true;
+        }
+        if (underlyingType !== undefined) {
+            expiry = this.safeInteger (market, 'deliveryDate');
+            const productType = this.safeString (market, 'productType');
+            if (productType !== 'perpetual') {
+                symbol = symbol + '-' + this.yymmdd (expiry);
+                type = 'future';
+                future = true;
+            } else {
+                type = 'swap';
+                swap = true;
+            }
+            minAmount = this.safeNumber (market, 'minQty');
+            contract = true;
+            spot = false;
+        }
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': spot,
+            'margin': undefined,
+            'swap': swap,
+            'future': future,
+            'option': false,
+            'active': (state === 'ONLINE') || (state === '0') ? true : false,
+            'contract': contract,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': this.safeNumber (market, 'takerFee'),
+            'maker': this.safeNumber (market, 'makerFee'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'price': this.safeNumber (market, 'pricePrecision'),
+                'amount': this.safeNumber (market, 'quantityPrecision'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': this.parseNumber ('1'),
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': minAmount,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': this.safeNumber (market, 'minPrice'),
+                    'max': this.safeNumber (market, 'maxPrice'),
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'minNotional'),
+                    'max': this.safeNumber (market, 'maxNotional'),
+                },
+            },
+            'info': market,
+        };
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -603,6 +942,8 @@ module.exports = class xt extends Exchange {
          * @method
          * @name xt#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://doc.xt.com/#market4kline
+         * @see https://doc.xt.com/#futures_quotesgetKLine
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -612,79 +953,194 @@ module.exports = class xt extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const options = this.safeValue (this.options, 'timeframes', {});
-        const timeframes = this.safeValue (options, market['type'], {});
-        const timeframeValue = this.safeString (timeframes, timeframe);
+        const request = {
+            'symbol': market['id'],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
+        };
+        let method = 'publicSpotGetKline';
+        if (market['linear']) {
+            method = 'publicLinearGetFutureMarketV1PublicQKline';
+        } else if (market['inverse']) {
+            method = 'publicInverseGetFutureMarketV1PublicQKline';
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
         // spot
         //
-        // [
-        //    [1664192520, 18821.83, 18822.29, 18815.38, 18817.11, 53.517610, 1007209.60968158]
-        // ]
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": [
+        //             {
+        //                 "t": 1678167720000,
+        //                 "o": "22467.85",
+        //                 "c": "22465.87",
+        //                 "h": "22468.86",
+        //                 "l": "22465.21",
+        //                 "q": "1.316656",
+        //                 "v": "29582.73018498"
+        //             },
+        //         ]
+        //     }
         //
-        // swap
-        // [
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": [
+        //             {
+        //                 "s": "btc_usdt",
+        //                 "p": "btc_usdt",
+        //                 "t": 1678168020000,
+        //                 "o": "22450.0",
+        //                 "c": "22441.5",
+        //                 "h": "22450.0",
+        //                 "l": "22441.5",
+        //                 "a": "312931",
+        //                 "v": "702461.58895"
+        //             },
+        //         ]
+        //     }
+        //
+        const ohlcvs = this.safeValue (response, 'result', []);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         "t": 1678167720000,
+        //         "o": "22467.85",
+        //         "c": "22465.87",
+        //         "h": "22468.86",
+        //         "l": "22465.21",
+        //         "q": "1.316656",
+        //         "v": "29582.73018498"
+        //     }
+        //
+        // swap and future
+        //
         //     {
         //         "s": "btc_usdt",
-        //         "t": 1664192160000,
-        //         "o": "18859.50",
-        //         "c": "18853.50",
-        //         "h": "18865.00",
-        //         "l": "18853.50",
-        //         "a": "851474",
-        //         "v": "1605870.53130"
-        //     },
-        // ]
+        //         "p": "btc_usdt",
+        //         "t": 1678168020000,
+        //         "o": "22450.0",
+        //         "c": "22441.5",
+        //         "h": "22450.0",
+        //         "l": "22441.5",
+        //         "a": "312931",
+        //         "v": "702461.58895"
+        //     }
         //
-        let request = undefined;
+        return [
+            this.safeInteger (ohlcv, 't'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber2 (ohlcv, 'a', 'v'),
+        ];
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchOrderBook
+         * @see https://doc.xt.com/#market3depth
+         * @see https://doc.xt.com/#futures_quotesgetDepth
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified market symbol to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
         let method = undefined;
         if (market['spot']) {
-            request = {
-                'market': market['id'],
-                'type': timeframeValue,
-            };
-            if (since !== undefined) {
-                request['since'] = this.iso8601 (since);
+            method = 'publicSpotGetDepth';
+            if (limit !== undefined) {
+                request['limit'] = limit;
             }
-            method = 'spotGetDataApiV1GetKLine';
-        } else if (market['swap']) {
-            request = {
-                'symbol': market['id'],
-                'interval': timeframeValue,
-            };
+        } else {
+            if (limit !== undefined) {
+                request['level'] = Math.min (limit, 50);
+            } else {
+                request['level'] = 50;
+            }
             if (market['linear']) {
-                method = 'usdtGetFutureMarketV1PublicQKline';
+                method = 'publicLinearGetFutureMarketV1PublicQDepth';
             } else if (market['inverse']) {
-                method = 'coinGetFutureMarketV1PublicQKline';
+                method = 'publicInverseGetFutureMarketV1PublicQDepth';
             }
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {
+        //             "timestamp": 1678169975184,
+        //             "lastUpdateId": 1675333221812,
+        //             "bids": [
+        //                 ["22444.51", "0.129887"],
+        //                 ["22444.49", "0.114245"],
+        //                 ["22444.30", "0.225956"]
+        //             ],
+        //             "asks": [
+        //                 ["22446.19", "0.095330"],
+        //                 ["22446.24", "0.224413"],
+        //                 ["22446.28", "0.329095"]
+        //             ]
+        //         }
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "t": 1678170311005,
+        //             "s": "btc_usdt",
+        //             "u": 471694545627,
+        //             "b": [
+        //                 ["22426", "198623"],
+        //                 ["22423.5", "80295"],
+        //                 ["22423", "163580"]
+        //             ],
+        //             "a": [
+        //                 ["22427", "3417"],
+        //                 ["22428.5", "43532"],
+        //                 ["22429", "119"]
+        //             ]
+        //         }
+        //     }
+        //
+        const orderBook = this.safeValue (response, 'result', {});
+        const timestamp = this.safeNumber2 (orderBook, 'timestamp', 't');
         if (market['spot']) {
-            const ohlcvs = this.safeValue (response, 'datas', []);
-            for (let i = 0; i < ohlcvs.length; i++) {
-                const ohlcv = ohlcvs[i];
-                ohlcvs[i][0] = this.safeTimestamp (ohlcv, 0);
-            }
-            return this.parseOHLCVs (ohlcvs, market, timeframe, since);
-        } else if (market['swap']) {
-            const ohlcvs = this.safeValue (response, 'result', []);
-            return this.parseSwapOhlcv (ohlcvs);
+            return this.parseOrderBook (orderBook, symbol, timestamp);
         }
-    }
-
-    parseSwapOhlcv (ohlcvs) {
-        const results = [];
-        for (let i = 0; i < ohlcvs.length; i++) {
-            const ohlcv = ohlcvs[i];
-            results.push ([
-                ohlcv['t'],
-                ohlcv['o'],
-                ohlcv['h'],
-                ohlcv['l'],
-                ohlcv['c'],
-                ohlcv['a'],
-            ]);
-        }
-        return results;
+        return this.parseOrderBook (orderBook, symbol, timestamp, 'b', 'a');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -692,235 +1148,228 @@ module.exports = class xt extends Exchange {
          * @method
          * @name xt#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @see https://doc.xt.com/#market10ticker24h
+         * @see https://doc.xt.com/#futures_quotesgetAggTicker
+         * @param {string} symbol unified market symbol to fetch the ticker for
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = 'publicSpotGetTicker24h';
+        if (market['linear']) {
+            method = 'publicLinearGetFutureMarketV1PublicQAggTicker';
+        } else if (market['inverse']) {
+            method = 'publicInverseGetFutureMarketV1PublicQAggTicker';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
         // spot
         //
-        // {
-        //     "high": 19947.54,
-        //     "low": 18155.82,
-        //     "rate": -0.0119,
-        //     "price": 18879.54,
-        //     "moneyVol": 3018816625.5354056,
-        //     "coinVol": 159370.590698,
-        //     "ask": 18885.67,
-        //     "bid": 18879.54,
-        //     "askVol": 0.810514,
-        //     "bidVol": 41.578905,
-        //     "depthTime": 1663860050134
-        // }
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": [
+        //             {
+        //                 "s": "btc_usdt",
+        //                 "t": 1678172693931,
+        //                 "cv": "34.00",
+        //                 "cr": "0.0015",
+        //                 "o": "22398.05",
+        //                 "l": "22323.72",
+        //                 "h": "22600.50",
+        //                 "c": "22432.05",
+        //                 "q": "7962.256931",
+        //                 "v": "178675209.47416856"
+        //             }
+        //         ]
+        //     }
         //
-        // swap
+        // swap and future
         //
-        // {
-        //     "high": 19315.95,
-        //     "low": 18635.03,
-        //     "rate": -0.0142,
-        //     "price": 18849.86,
-        //     "moneyVol": 3399733871.778236,
-        //     "coinVol": 178930.791303,
-        //     "ask": 18850.07,
-        //     "bid": 18846.76,
-        //     "askVol": 0.349282,
-        //     "bidVol": 9.356903,
-        //     "depthTime": 1664193429432
-        // }
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "t": 1678172848572,
+        //             "s": "btc_usdt",
+        //             "c": "22415.5",
+        //             "h": "22590.0",
+        //             "l": "22310.0",
+        //             "a": "623654031",
+        //             "v": "1399166074.31675",
+        //             "o": "22381.5",
+        //             "r": "0.0015",
+        //             "i": "22424.5",
+        //             "m": "22416.5",
+        //             "bp": "22415",
+        //             "ap": "22415.5"
+        //         }
+        //     }
         //
+        const ticker = this.safeValue (response, 'result');
         if (market['spot']) {
-            const request = {
-                'market': market['id'],
-            };
-            const response = await this.spotGetDataApiV1GetTicker (this.extend (request, params));
-            return this.parseTicker (response, market);
-        } else if (market['swap']) {
-            const request = {
-                'symbol': market['id'],
-            };
-            let method = undefined;
-            if (market['linear']) {
-                method = 'usdtGetFutureMarketV1PublicQAggTicker';
-            } else if (market['inverse']) {
-                method = 'coinGetFutureMarketV1PublicQAggTicker';
-            }
-            const response = await this[method] (this.extend (request, params));
-            return this.parseTicker (response, market);
+            return this.parseTicker (ticker[0], market);
         }
+        return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        const query = this.omit (params, 'type');
-        const result = [];
-        if (type === 'spot') {
-            const responseSpot = await this.spotGetDataApiV1GetTickers (query);
-            // spot
-            //
-            // {
-            //     "ltc_usdt": {
-            //       "high": 106.99,
-            //       "moneyVol": 1589953.528784,
-            //       "rate": 4.3400,
-            //       "low": 97.51,
-            //       "price": 105.52,
-            //       "ask": 105.61,
-            //       "bid": 105.46,
-            //       "coinVol": 15507.7052
-            //     }
-            // }
-            //
-            const idsSpot = Object.keys (responseSpot);
-            for (let i = 0; i < idsSpot.length; i++) {
-                const id = idsSpot[i];
-                const market = this.market (id);
-                const ticker = this.safeValue (responseSpot, id);
-                result.push (this.parseTicker (ticker, market));
+        /**
+         * @method
+         * @name xt#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://doc.xt.com/#market10ticker24h
+         * @see https://doc.xt.com/#futures_quotesgetAggTickers
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            market = this.market (symbols[0]);
+        }
+        const request = {};
+        let method = undefined;
+        if (market['spot']) {
+            method = 'publicSpotGetTicker24h';
+            request['symbols'] = symbols;
+        } else {
+            if (market['linear']) {
+                method = 'publicLinearGetFutureMarketV1PublicQAggTickers';
+            } else if (market['inverse']) {
+                method = 'publicInverseGetFutureMarketV1PublicQAggTickers';
             }
-            return result;
         }
-        const responseUSDT = await this.usdtGetFutureMarketV1PublicQAggTickers (params);
-        const responseCOIN = await this.coinGetFutureMarketV1PublicQAggTickers (params);
-        // swap
+        const response = await this[method] (this.extend (request, params));
         //
-        // [
-        //    {
-        //    "t": 1664276374733,
-        //    "s": "bch_usdt",
-        //    "c": "119.14",
-        //    "h": "119.99",
-        //    "l": "113.82",
-        //    "a": "2173861",
-        //    "v": "2542448.2328",
-        //    "o": "115.87",
-        //    "r": "0.0282",
-        //    "i": "119.18",
-        //    "m": "119.16",
-        //    "bp": "119.14",
-        //    "ap": "119.2"
-        //    }
-        // ]
+        // spot
         //
-        const tickers = this.arrayConcat (responseUSDT['result'], responseCOIN['result']);
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": [
+        //             {
+        //                 "s": "btc_usdt",
+        //                 "t": 1678172693931,
+        //                 "cv": "34.00",
+        //                 "cr": "0.0015",
+        //                 "o": "22398.05",
+        //                 "l": "22323.72",
+        //                 "h": "22600.50",
+        //                 "c": "22432.05",
+        //                 "q": "7962.256931",
+        //                 "v": "178675209.47416856"
+        //             }
+        //         ]
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "t": 1678172848572,
+        //             "s": "btc_usdt",
+        //             "c": "22415.5",
+        //             "h": "22590.0",
+        //             "l": "22310.0",
+        //             "a": "623654031",
+        //             "v": "1399166074.31675",
+        //             "o": "22381.5",
+        //             "r": "0.0015",
+        //             "i": "22424.5",
+        //             "m": "22416.5",
+        //             "bp": "22415",
+        //             "ap": "22415.5"
+        //         }
+        //     }
+        //
+        const tickers = this.safeValue (response, 'result', []);
+        const result = {};
         for (let i = 0; i < tickers.length; i++) {
-            const ticker = tickers[i];
-            const market = this.market (this.safeString (ticker, 's'));
-            result.push (this.parseTicker (ticker, market));
+            const ticker = this.parseTicker (tickers[i], market);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseTicker (ticker, market) {
-        const percentage = this.safeString2 (ticker, 'rate', 'r');
-        const marketId = this.safeString2 (ticker, 'symbol', 's');
-        market = this.safeMarket (marketId, market, '-');
+    parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker, fetchTickers: spot
+        //
+        //     {
+        //         "s": "btc_usdt",
+        //         "t": 1678172693931,
+        //         "cv": "34.00",
+        //         "cr": "0.0015",
+        //         "o": "22398.05",
+        //         "l": "22323.72",
+        //         "h": "22600.50",
+        //         "c": "22432.05",
+        //         "q": "7962.256931",
+        //         "v": "178675209.47416856"
+        //     }
+        //
+        // fetchTicker, fetchTickers: swap and future
+        //
+        //     {
+        //         "t": 1678172848572,
+        //         "s": "btc_usdt",
+        //         "c": "22415.5",
+        //         "h": "22590.0",
+        //         "l": "22310.0",
+        //         "a": "623654031",
+        //         "v": "1399166074.31675",
+        //         "o": "22381.5",
+        //         "r": "0.0015",
+        //         "i": "22424.5",
+        //         "m": "22416.5",
+        //         "bp": "22415",
+        //         "ap": "22415.5"
+        //     }
+        //
+        const marketId = this.safeString (ticker, 's');
+        let marketType = (market !== undefined) ? market['type'] : undefined;
+        if (marketType === undefined) {
+            marketType = ('cv' in ticker) ? 'spot' : 'contract';
+        }
+        market = this.safeMarket (marketId, market, '_', marketType);
         const symbol = market['symbol'];
-        const timestamp = this.safeNumber2 (ticker, 'depthTime', 't');
+        const timestamp = this.safeInteger (ticker, 't');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString2 (ticker, 'high', 'h'),
-            'low': this.safeString2 (ticker, 'low', 'l'),
-            'bid': this.safeString2 (ticker, 'bid', 'bp'),
-            'bidVolume': this.safeString (ticker, 'bidVol'),
-            'ask': this.safeString2 (ticker, 'ask', 'ap'),
-            'askVolume': this.safeString (ticker, 'askVol'),
+            'high': this.safeNumber (ticker, 'h'),
+            'low': this.safeNumber (ticker, 'l'),
+            'bid': this.safeNumber (ticker, 'bp'),
+            'bidVolume': undefined,
+            'ask': this.safeNumber (ticker, 'ap'),
+            'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString2 (ticker, 'open', 'o'),
-            'close': this.safeString2 (ticker, 'price', 'c'),
-            'last': this.safeString2 (ticker, 'price', 'c'),
+            'open': this.safeString (ticker, 'o'),
+            'close': this.safeString (ticker, 'c'),
+            'last': this.safeString (ticker, 'c'),
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': percentage,
-            'average': this.safeString (ticker, 'averagePrice'),
-            'baseVolume': this.safeString (ticker, 'coinVol'),
-            'quoteVolume': this.safeString2 (ticker, 'moneyVol', 'a'),
+            'change': this.safeNumber (ticker, 'cv'),
+            'percentage': this.safeNumber2 (ticker, 'cr', 'r'),
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': this.safeNumber2 (ticker, 'a', 'v'),
             'info': ticker,
         }, market);
-    }
-
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        // spot
-        //
-        // {
-        //     "time": 1663885993088,
-        //     "last": "19418.57",
-        //     "asks":
-        //      19418.57,
-        //      0.117057
-        //      ],
-        //     ],
-        //     "bids":
-        //     [
-        //      [
-        //      19413.67,
-        //      3.679209
-        //      ],
-        //     ]
-        // }
-        //
-        // swap
-        //
-        // "result": {
-        //     "t": 1664279607831,
-        //     "s": "btc_usdt",
-        //     "u": 145028995606381060,
-        //     "b": [
-        //     [
-        //     "20281.5",
-        //     "48914"
-        //     ],
-        //     "a": [
-        //     "20281.5",
-        //     "48914"
-        //     ]
-        //     ]
-        // }
-        //
-        let request = undefined;
-        let method = undefined;
-        if (market['spot']) {
-            request = {
-                'market': market['id'],
-            };
-            method = 'spotGetDataApiV1GetDepth';
-        } else if (market['swap']) {
-            request = {
-                'symbol': market['id'],
-            };
-            if (limit !== undefined) {
-                request['level'] = Math.min (limit, 50);
-            } else {
-                request['level'] = 50;
-            }
-            if (market['linear']) {
-                method = 'usdtGetFutureMarketV1PublicQDepth';
-            } else if (market['inverse']) {
-                method = 'coinGetFutureMarketV1PublicQDepth';
-            }
-        }
-        const response = await this[method] (this.extend (request, params));
-        const timestamp = this.safeNumber2 (response, 'time', 't');
-        if (market['spot']) {
-            return this.parseOrderBook (response, symbol, timestamp);
-        } else if (market['swap']) {
-            return this.parseOrderBook (this.safeValue (response, 'result'), symbol, timestamp, 'b', 'a');
-        }
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -928,7 +1377,9 @@ module.exports = class xt extends Exchange {
          * @method
          * @name xt#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @see https://doc.xt.com/#market5tradeRecent
+         * @see https://doc.xt.com/#futures_quotesgetDeal
+         * @param {string} symbol unified market symbol to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the xt api endpoint
@@ -937,38 +1388,123 @@ module.exports = class xt extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market['id'],
+            'symbol': market['id'],
         };
-        const trades = await this.spotGetDataApiV1GetTrades (this.extend (request, params));
+        let method = undefined;
+        if (market['spot']) {
+            method = 'publicSpotGetTradeRecent';
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            if (limit !== undefined) {
+                request['num'] = limit;
+            }
+            if (market['linear']) {
+                method = 'publicLinearGetFutureMarketV1PublicQDeal';
+            } else if (market['inverse']) {
+                method = 'publicInverseGetFutureMarketV1PublicQDeal';
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
         //
-        // [
-        //     [
-        //     1663887610712,
-        //     19391.17,
-        //     0.0032,
-        //     "bid",
-        //     "6978850460677441538"
-        //     ],
-        // ]
+        // spot
         //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": [
+        //             {
+        //                 "i": 203530723141917063,
+        //                 "t": 1678227505815,
+        //                 "p": "22038.81",
+        //                 "q": "0.000978",
+        //                 "v": "21.55395618",
+        //                 "b": true
+        //             },
+        //         ]
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": [
+        //             {
+        //                 "t": 1678227683897,
+        //                 "s": "btc_usdt",
+        //                 "p": "22031",
+        //                 "a": "1067",
+        //                 "m": "BID"
+        //             },
+        //         ]
+        //     }
+        //
+        const trades = this.safeValue (response, 'result', []);
         return this.parseTrades (trades, market);
     }
 
-    parseTrade (trade, market) {
-        const side = this.safeString (trade, 3) === 'bid' ? 'buy' : 'sell';
-        const timestamp = this.safeNumber (trade, 0);
-        const id = this.safeString (trade, 4);
+    parseTrade (trade, market = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         "i": 203530723141917063,
+        //         "t": 1678227505815,
+        //         "p": "22038.81",
+        //         "q": "0.000978",
+        //         "v": "21.55395618",
+        //         "b": true
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "t": 1678227683897,
+        //         "s": "btc_usdt",
+        //         "p": "22031",
+        //         "a": "1067",
+        //         "m": "BID"
+        //     }
+        //
+        const marketId = this.safeString (trade, 's');
+        let marketType = (market !== undefined) ? market['type'] : undefined;
+        if (marketType === undefined) {
+            marketType = ('b' in trade) ? 'spot' : 'contract';
+        }
+        market = this.safeMarket (marketId, market, '_', marketType);
+        const bidOrAsk = this.safeString (trade, 'm');
+        let side = undefined;
+        if (bidOrAsk !== undefined) {
+            side = (bidOrAsk === 'BID') ? 'buy' : 'sell';
+        }
+        const buyerMaker = this.safeValue (trade, 'b');
+        let takerOrMaker = undefined;
+        if (buyerMaker !== undefined) {
+            takerOrMaker = buyerMaker ? 'maker' : 'taker';
+        }
+        const timestamp = this.safeInteger (trade, 't');
         return {
             'info': trade,
-            'id': id,
+            'id': this.safeString (trade, 'i'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': id,
+            'order': undefined,
             'type': undefined,
             'side': side,
-            'price': this.safeNumber (trade, 1),
-            'amount': this.safeNumber (trade, 2),
+            'takerOrMaker': takerOrMaker,
+            'price': this.safeNumber (trade, 'p'),
+            'amount': this.safeNumber (trade, 'q'),
+            'cost': undefined,
+            'fee': {
+                'cost': undefined,
+                'currency': undefined,
+                'rate': undefined,
+            },
         };
     }
 
@@ -1001,42 +1537,49 @@ module.exports = class xt extends Exchange {
         }
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const query = this.omit (params, this.extractParams (path));
-        const implodedPath = this.implodeParams (path, params);
-        let url = this.urls['api'][api]['public'] + '/' + implodedPath;
-        let getRequest = undefined;
-        const keys = Object.keys (query);
-        const queryLength = keys.length;
-        headers = {
-            'Content-Type': 'application/json',
-        };
-        if (method === 'GET') {
-            if (queryLength) {
-                getRequest = '?' + this.urlencode (query);
-                url = url + getRequest;
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const signed = api[0] === 'private';
+        const endpoint = api[1];
+        const request = '/' + this.implodeParams (path, params);
+        let payload = undefined;
+        if (endpoint === 'spot') {
+            if (signed) {
+                payload = '/' + this.version + request;
+            } else {
+                payload = '/' + this.version + '/public' + request;
             }
         } else {
-            body = this.json (params);
+            payload = request;
         }
-        if (api === 'private') {
+        let url = this.urls['api'][endpoint] + payload;
+        const query = this.omit (params, this.extractParams (path));
+        const urlencoded = this.urlencode (this.keysort (query));
+        if (signed) {
             this.checkRequiredCredentials ();
+            body = this.json (params);
+            const implodedPath = this.implodeParams (path, params);
             const timestamp = this.nonce ().toString ();
             const payload = [ method, '/api/3/' + implodedPath ];
-            if (method === 'GET') {
-                if (getRequest !== undefined) {
-                    payload.push (getRequest);
-                }
-            } else {
-                payload.push (body);
-            }
+            payload.push (body);
             payload.push (timestamp);
             const payloadString = payload.join ('');
             const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), 'sha256', 'hex');
             const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
             const encoded = this.decode (this.stringToBase64 (secondPayload));
             headers['Authorization'] = 'HS256 ' + encoded;
+            headers = {
+                'ACCESS-KEY': this.apiKey,
+                'ACCESS-SIGN': signature,
+                'ACCESS-TIMESTAMP': timestamp,
+            };
+        } else {
+            if (urlencoded) {
+                url += '?' + urlencoded;
+            }
         }
+        headers = {
+            'Content-Type': 'application/json',
+        };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
