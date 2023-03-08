@@ -169,7 +169,7 @@ module.exports = class testMainClass extends emptyClass {
             dump ('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
             exit_script();
         }
-        // 
+        //
         this.skippedMethods = exchange.safeValue (exchangeSettings, 'skipMethods', {});
         this.checkedPublicTests = {};
         add_proxy_agent (exchange, exchangeSettings);

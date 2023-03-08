@@ -1,6 +1,6 @@
 {
-    "ace":           { "skipMethods": {"fetchOrderBook":"needs reversion of amount/price", "fetchL2OrderBook":"same reason"} },
-    "ascendex":      { "skipMethods": {"fetchTicker":"bid might be 0", "fetchTickers":"same reason"} },
+    "ace":           { "skipMethods": { "fetchOrderBook": "needs reversion of amount/price", "fetchL2OrderBook": "same" } },
+    "ascendex":      { "skipMethods": {"fetchTicker": "bid might be 0", "fetchTickers": "same"} },
     "alpaca":        { "skipWs": true },
     "binance":       { "skipWs": true, "httpProxy": "http://51.83.140.52:11230", "skipMethods": { "loadMarkets": "expiry not set for future markets", "fetchTicker": "some symbols i.e. BTC/USD4 might have bid-ask value 0", "fetchTickers": "same" } },
     "binanceusdm":   { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
@@ -18,6 +18,7 @@
     "bitpanda":      { "skipMethods": { "fetchOrderBook": "some bid might be lower than next bid" } },
     "bitmex":        { "skipWs": true, "skipMethods": { "loadMarkets": "some market types are out of expected market-types", "fetchCurrencies": "info key missing", "fetchTicker": "close might be 0", "fetchTickers": "same" } },
     "bitstamp":      { "skipWs": true, "skipMethods": { "fetchOrderBook": "bid/ask might be 0", "fetchL2OrderBook": "same" } },
+    "bitstamp1":     { "skipWs": true, "skipMethods": { "fetchCurrencies": "info key missing", "fetchOrderBook": "bid/ask might be 0", "fetchL2OrderBook": "same"  } },
     "bitso":         { "skipMethods": { "fetchCurrencies": "info key missing" } },
     "bitfinex":      { "skipWs": true, "skipMethods": { "loadMarkets": "linear and inverse values are same", "fetchCurrencies": "info key missing" }  },
     "bitforex":      { "skipMethods": { "fetchCurrencies": "info key missing" }  },
