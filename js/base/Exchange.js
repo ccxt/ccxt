@@ -863,8 +863,6 @@ module.exports = class Exchange {
         return {
             'info': undefined,
             'id': undefined,
-            'lowercaseId': undefined,
-            'uppercaseId': undefined,
             'numericId': undefined,
             'code': undefined,
             'precision': undefined,
