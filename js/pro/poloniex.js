@@ -100,10 +100,6 @@ module.exports = class poloniex extends poloniexRest {
         await this.loadMarkets ();
         const publicOrPrivate = isPrivate ? 'private' : 'public';
         const url = this.urls['api']['ws'][publicOrPrivate];
-        // if ('signature' in params) {
-        //     // need to distinguish between public trades and user trades
-        //     url = url + '?';
-        // }
         const subscribe = {
             'event': 'subscribe',
             'channel': [
