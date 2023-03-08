@@ -1287,7 +1287,7 @@ module.exports = class btcex extends Exchange {
             'instrument_name': market['id'],
             'type': type,
         };
-        if (side === 'sell' || market['spot']) {
+        if (side === 'sell' || type === 'limit') {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
         if (type === 'limit') {
