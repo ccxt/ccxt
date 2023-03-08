@@ -865,6 +865,7 @@ module.exports = class poloniex extends poloniexRest {
             'candles_day_3': this.handleOHLCV,
             'candles_week_1': this.handleOHLCV,
             'candles_month_1': this.handleOHLCV,
+            'book': this.handleOrderBook,
             'book_lv2': this.handleOrderBook,
             'ticker': this.handleTicker,
             'trades': this.handleTrade,
