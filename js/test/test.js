@@ -129,10 +129,8 @@ module.exports = class testMainClass extends emptyClass {
         const exchangeId = exchange.id;
         const keysGlobal = targetDir + 'keys.json';
         const keysLocal = targetDir + 'keys.local.json';
-        const keysGlobalExists = io_file_exists (keysLocal);
-        const keysLocalExists = io_file_exists (keysLocal);
-        const globalSettings = keysGlobalExists ? io_file_read (keysGlobal) : {};
-        const localSettings = keysLocalExists ? io_file_read (keysLocal) : {};
+        const globalSettings = io_file_exists (keysGlobal) ? io_file_read (keysGlobal) : {};
+        const localSettings = io_file_exists (keysLocal) ? io_file_read (keysLocal) : {};
         const allSettings = exchange.deepExtend (globalSettings, localSettings);
         const exchangeSettings = exchange.safeValue (allSettings, exchangeId, {});
         if (exchangeSettings) {
