@@ -136,7 +136,7 @@ module.exports = class poloniex extends poloniexRest {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the poloniex api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns [[int]] A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const channels = {
             '1m': 'candles_minute_1',
