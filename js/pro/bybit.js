@@ -37,7 +37,7 @@ module.exports = class bybit extends bybitRest {
                                 'unified': 'wss://stream.{hostname}/v5/private',
                                 'nonUnified': 'wss://stream.{hostname}/spot/private/v3',
                             },
-                            'contract':  'wss://stream.{hostname}/v5/private',
+                            'contract': 'wss://stream.{hostname}/v5/private',
                         },
                     },
                 },
