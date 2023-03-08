@@ -67,7 +67,7 @@ module.exports = class bitstamp1 extends Exchange {
                     'rest': 'https://www.bitstamp.net/api',
                 },
                 'www': 'https://www.bitstamp.net',
-                'doc': 'https://www.bitstamp.net/api',
+                'doc': 'https://www.bitstamp.net/api-deprecated/',
             },
             'requiredCredentials': {
                 'apiKey': true,
