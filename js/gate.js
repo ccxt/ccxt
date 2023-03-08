@@ -19,7 +19,7 @@ module.exports = class gate extends Exchange {
             'pro': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
-                'doc': 'https://www.gate.io/docs/apiv4/en/index.html',
+                'doc': 'https://www.gate.io/docs/developers/apiv4/en/',
                 'www': 'https://gate.io/',
                 'api': {
                     'public': {
