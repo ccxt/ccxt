@@ -3720,28 +3720,34 @@ class okx extends Exchange {
         if (($tag !== null) && (strlen($tag) > 0)) {
             $address = $address . ':' . $tag;
         }
-        $fee = $this->safe_string($params, 'fee');
-        if ($fee === null) {
-            throw new ArgumentsRequired($this->id . " withdraw() requires a 'fee' string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set '0'. Withdrawing to external digital asset $address requires $network $transaction $fee->");
-        }
         $request = array(
             'ccy' => $currency['id'],
             'toAddr' => $address,
             'dest' => '4', // 2 = OKCoin International, 3 = OKX 4 = others
             'amt' => $this->number_to_string($amount),
-            'fee' => $this->number_to_string($fee), // withdrawals to OKCoin or OKX are $fee-free, please set 0
         );
-        if (is_array($params) && array_key_exists('password', $params)) {
-            $request['pwd'] = $params['password'];
-        } elseif (is_array($params) && array_key_exists('pwd', $params)) {
-            $request['pwd'] = $params['pwd'];
-        }
         $networks = $this->safe_value($this->options, 'networks', array());
         $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ETH>ERC20 alias
         if ($network !== null) {
             $request['chain'] = $currency['id'] . '-' . $network;
             $params = $this->omit($params, 'network');
+        }
+        $fee = $this->safe_string($params, 'fee');
+        if ($fee === null) {
+            $currencies = $this->fetch_currencies();
+            $this->currencies = $this->deep_extend($this->currencies, $currencies);
+            $targetNetwork = $this->safe_value($currency['networks'], $this->network_id_to_code($network), array());
+            $fee = $this->safe_string($targetNetwork, 'fee');
+            if ($fee === null) {
+                throw new ArgumentsRequired($this->id . " withdraw() requires a 'fee' string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set '0'. Withdrawing to external digital asset $address requires $network $transaction $fee->");
+            }
+            $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are $fee-free, please set 0
+        }
+        if (is_array($params) && array_key_exists('password', $params)) {
+            $request['pwd'] = $params['password'];
+        } elseif (is_array($params) && array_key_exists('pwd', $params)) {
+            $request['pwd'] = $params['pwd'];
         }
         $query = $this->omit($params, array( 'fee', 'password', 'pwd' ));
         if (!(is_array($request) && array_key_exists('pwd', $request))) {
