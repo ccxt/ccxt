@@ -11,11 +11,11 @@ function testStatus (exchange, method, entry, now) {
         'url': undefined, // a link to a GitHub issue or to an exchange post on the subject
     };
     const emptyNotAllowedFor = [ 'status' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     //
     testSharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'ok', 'error', 'shutdown', 'maintenance' ]);
-    testSharedMethods.Gt (exchange, method, entry, 'updated', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'eta', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'updated', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'eta', '0');
 }
 
 module.exports = testStatus;

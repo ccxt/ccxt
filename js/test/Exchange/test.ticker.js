@@ -28,22 +28,22 @@ function testTicker (exchange, method, entry, symbol) {
         'quoteVolume': exchange.parseNumber ('1.234'), // volume of quote currency
     };
     const emptyNotAllowedFor = [ 'close', 'amount', 'currency' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.reviseCommonTimestamp (exchange, method, entry);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCommonTimestamp (exchange, method, entry);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
-    testSharedMethods.Gt (exchange, method, entry, 'open', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'high', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'low', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'close', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'ask', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'askVolume', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'bid', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'bidVolume', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'vwap', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'average', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'baseVolume', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'quoteVolume', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'open', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'high', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'low', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'close', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'ask', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'askVolume', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'bid', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'bidVolume', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'vwap', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'average', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'baseVolume', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'quoteVolume', '0');
     const existsFirst = ('first' in entry);
     assert (!existsFirst, '`first` field leftover' + logText);
     const lastString = exchange.safeString (entry, 'last');
@@ -77,7 +77,7 @@ function testTicker (exchange, method, entry, symbol) {
     if ((bid !== undefined) && (ask !== undefined)) {
         assert (Precise.stringGe  (ask, bid), entry['symbol'] + ' bid is greater than ask!' + logText);
     }
-    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
+    testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
 }
 
 module.exports = testTicker;

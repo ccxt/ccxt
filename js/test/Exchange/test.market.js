@@ -55,16 +55,16 @@ function testMarket (exchange, method, market) {
         'info': {}, // the original unparsed market info from the exchange
     };
     const emptyNotAllowedFor = [ 'id', 'symbol', 'base', 'quote', 'baseId', 'quoteId', 'precision', 'limits', 'type', 'spot', 'swap', 'future', 'contract' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, market, format, emptyNotAllowedFor);
-    testSharedMethods.reviseSymbol (exchange, method, market, 'symbol');
+    testSharedMethods.assertStructureKeys (exchange, method, market, format, emptyNotAllowedFor);
+    testSharedMethods.assertSymbol (exchange, method, market, 'symbol');
     const logText = testSharedMethods.logTemplate (exchange, method, market);
     //
-    testSharedMethods.Gt (exchange, method, market, 'contractSize', '0');
-    testSharedMethods.Gt (exchange, method, market, 'expiry', '0');
-    testSharedMethods.Gt (exchange, method, market, 'strike', '0');
+    testSharedMethods.assertGreater (exchange, method, market, 'contractSize', '0');
+    testSharedMethods.assertGreater (exchange, method, market, 'expiry', '0');
+    testSharedMethods.assertGreater (exchange, method, market, 'strike', '0');
     testSharedMethods.reviseAgainstArray (exchange, method, market, 'optionType', [ 'put', 'call' ]);
-    testSharedMethods.Gt (exchange, method, market, 'taker', '-100');
-    testSharedMethods.Gt (exchange, method, market, 'maker', '-100');
+    testSharedMethods.assertGreater (exchange, method, market, 'taker', '-100');
+    testSharedMethods.assertGreater (exchange, method, market, 'maker', '-100');
     if (market['contract']) {
         assert (market['linear'] !== market['inverse'], 'market linear and inverse must not be the same' + logText);
     } else {
@@ -103,15 +103,15 @@ function testMarket (exchange, method, market) {
     // check precisions
     for (let i = 0; i < targetKeys.length; i++) {
         const key = targetKeys[i];
-        // todo: should be migrated into Gt after TickSize handling is implemented
-        testSharedMethods.Ge (exchange, method, market['precision'], key, '0');
+        // todo: should be migrated into assertGreater after TickSize handling is implemented
+        testSharedMethods.assertGreaterOrEqual (exchange, method, market['precision'], key, '0');
     }
     // check limits
     for (let i = 0; i < targetKeys.length; i++) {
         const key = targetKeys[i];
         const limitEntry = market['limits'][key];
-        testSharedMethods.Ge (exchange, method, limitEntry, 'min', '0');
-        testSharedMethods.Gt (exchange, method, limitEntry, 'max', '0');
+        testSharedMethods.assertGreaterOrEqual (exchange, method, limitEntry, 'min', '0');
+        testSharedMethods.assertGreater (exchange, method, limitEntry, 'max', '0');
     }
 }
 

@@ -11,8 +11,8 @@ function testAccount (exchange, method, entry) {
         'id': '12345',
     };
     const emptyNotAllowedFor = [ 'type' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.reviseCurrencyCode (exchange, method, entry, entry['code']);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['code']);
 }
 
 module.exports = testAccount;

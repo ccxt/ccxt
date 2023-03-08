@@ -30,24 +30,24 @@ function testOrder (exchange, method, entry, symbol, now) {
     const emptyNotAllowedFor = [ 'id' ];
     // todo: skip some exchanges
     // const emptyNotAllowedFor = [ 'id', 'timestamp', 'symbol', 'type', 'side', 'price' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCommonTimestamp (exchange, method, entry, now);
     //
     testSharedMethods.reviseAgainstArray (exchange, method, entry, 'timeInForce', [ 'GTC', 'GTK', 'IOC', 'FOK' ]);
     testSharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'open', 'closed', 'canceled' ]);
     testSharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
     testSharedMethods.reviseAgainstArray (exchange, method, entry, 'postOnly', [ true, false ]);
-    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
-    testSharedMethods.Gt (exchange, method, entry, 'price', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'stopPrice', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'cost', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'average', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'average', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'filled', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'remaining', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'amount', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'amount', exchange.safeString (entry, 'remaining'));
-    testSharedMethods.Ge (exchange, method, entry, 'amount', exchange.safeString (entry, 'filled'));
+    testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
+    testSharedMethods.assertGreater (exchange, method, entry, 'price', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'stopPrice', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'cost', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'average', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'average', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'filled', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'remaining', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'amount', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'amount', exchange.safeString (entry, 'remaining'));
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'amount', exchange.safeString (entry, 'filled'));
     if (entry['trades'] !== undefined) {
         for (let i = 0; i < entry['trades'].length; i++) {
             testTrade (exchange, method, entry['trades'][i], symbol, now);

@@ -24,13 +24,13 @@ function testTransaction (exchange, method, entry, requestedCode, now) {
         'fee': {},
     };
     const emptyNotAllowedFor = [ 'type', 'amount', 'currency' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
-    testSharedMethods.reviseCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCommonTimestamp (exchange, method, entry, now);
+    testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
     //
     testSharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'failed', 'rejected', 'canceled' ]);
     testSharedMethods.reviseAgainstArray (exchange, method, entry, 'type', ['deposit', 'withdrawal']);
-    testSharedMethods.Ge (exchange, method, entry, 'amount', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'amount', '0');
     testSharedMethods.reviseFeeObject (exchange, method, entry['fee']);
 }
 

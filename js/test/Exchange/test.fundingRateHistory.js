@@ -11,9 +11,9 @@ function testFundingRateHistory (exchange, method, entry, symbol) {
         'fundingRate': exchange.parseNumber ('0.0006'),
     };
     const emptyNotAllowedFor = [ 'symbol', 'timestamp', 'fundingRate' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
-    testSharedMethods.reviseCommonTimestamp (exchange, method, entry);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
+    testSharedMethods.assertCommonTimestamp (exchange, method, entry);
 }
 
 module.exports = testFundingRateHistory;

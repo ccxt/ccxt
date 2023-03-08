@@ -27,26 +27,26 @@ function testPosition (exchange, method, entry, symbol, now) {
         'percentage': exchange.parseNumber ('1.234'),
     };
     const emptyNotAllowedFor = [ 'symbol', 'entryPrice', 'side', 'markPrice', 'contracts', 'contractSize', 'marginMode' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
-    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCommonTimestamp (exchange, method, entry, now);
+    testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
     testSharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'long', 'short' ]);
     testSharedMethods.reviseAgainstArray (exchange, method, entry, 'marginMode', [ 'cross', 'isolated' ]);
-    testSharedMethods.Gt (exchange, method, entry, 'leverage', '0');
-    testSharedMethods.Le (exchange, method, entry, 'leverage', '200');
-    testSharedMethods.Gt (exchange, method, entry, 'initialMargin', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'initialMarginPercentage', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'maintenanceMargin', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'maintenanceMarginPercentage', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'entryPrice', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'notional', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'contracts', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'contractSize', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'marginRatio', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'liquidationPrice', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'markPrice', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'collateral', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'percentage', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'leverage', '0');
+    testSharedMethods.assertLessOrEqual (exchange, method, entry, 'leverage', '200');
+    testSharedMethods.assertGreater (exchange, method, entry, 'initialMargin', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'initialMarginPercentage', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'maintenanceMargin', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'maintenanceMarginPercentage', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'entryPrice', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'notional', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'contracts', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'contractSize', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'marginRatio', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'liquidationPrice', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'markPrice', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'collateral', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'percentage', '0');
 }
 
 module.exports = testPosition;

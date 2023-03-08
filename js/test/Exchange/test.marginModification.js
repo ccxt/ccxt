@@ -13,14 +13,14 @@ function testMarginModification (exchange, method, entry) {
         'status': 'ok',
     };
     const emptyNotAllowedFor = [ 'type', 'status' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.reviseCurrencyCode (exchange, method, entry, entry['code']);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['code']);
     //
-    testSharedMethods.Ge (exchange, method, entry, 'amount', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'total', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'amount', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'total', '0');
     testSharedMethods.reviseAgainstArray (exchange, method, entry, 'type', [ 'add', 'reduce', 'set' ]);
     testSharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'canceled', 'failed' ]);
-    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol');
+    testSharedMethods.assertSymbol (exchange, method, entry, 'symbol');
 }
 
 module.exports = testMarginModification;

@@ -12,13 +12,13 @@ function testBalance (exchange, entry, method) {
         'info': {},
     };
     const emptyNotAllowedFor = [ 'free', 'used', 'total' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
     const codes = Object.keys (entry['total']);
     for (let i = 0; i < codes.length; i++) {
         const code = codes[i];
-        testSharedMethods.reviseCurrencyCode (exchange, method, entry, code);
+        testSharedMethods.assertCurrencyCode (exchange, method, entry, code);
         const total = exchange.safeString (entry['total'], code);
         const free = exchange.safeString (entry['free'], code);
         const used = exchange.safeString (entry['used'], code);

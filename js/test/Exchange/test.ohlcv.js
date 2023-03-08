@@ -13,8 +13,8 @@ function testOHLCV (exchange, method, entry, symbol, now) {
         exchange.parseNumber ('123.456'),
     ];
     const emptyNotAllowedFor = [ 0, 1, 2, 3, 4, 5 ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.reviseCommonTimestamp (exchange, method, entry, now, 0);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCommonTimestamp (exchange, method, entry, now, 0);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
     const length = entry.length;

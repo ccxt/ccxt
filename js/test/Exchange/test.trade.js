@@ -18,9 +18,9 @@ function testTrade (exchange, method, entry, symbol, now) {
     };
     // todo: add takeOrMaker as mandatory set
     const emptyNotAllowedFor = [ 'side', 'price', 'amount', 'cost' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
-    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol', symbol);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCommonTimestamp (exchange, method, entry, now);
+    testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
     //
     testSharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
     testSharedMethods.reviseAgainstArray (exchange, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);

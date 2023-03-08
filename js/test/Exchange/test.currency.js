@@ -24,18 +24,18 @@ function testCurrency (exchange, method, entry) {
         },
     };
     const emptyNotAllowedFor = [ 'id', 'code', 'precision' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.reviseCurrencyCode (exchange, method, entry, entry['code']);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['code']);
     //
-    testSharedMethods.Gt (exchange, method, entry, 'precision', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'fee', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'precision', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'fee', '0');
     const limits = exchange.safeValue (entry, 'limits', {});
     const withdrawLimits = exchange.safeValue (limits, 'withdraw', {});
     const depositLimits = exchange.safeValue (limits, 'deposit', {});
-    testSharedMethods.Ge (exchange, method, withdrawLimits, 'min', '0');
-    testSharedMethods.Ge (exchange, method, withdrawLimits, 'max', '0');
-    testSharedMethods.Ge (exchange, method, depositLimits, 'min', '0');
-    testSharedMethods.Ge (exchange, method, depositLimits, 'max', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, withdrawLimits, 'min', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, withdrawLimits, 'max', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, depositLimits, 'min', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, depositLimits, 'max', '0');
 }
 
 module.exports = testCurrency;

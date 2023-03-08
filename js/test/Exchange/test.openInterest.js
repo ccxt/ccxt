@@ -12,12 +12,12 @@ function testOpenInterest (exchange, method, entry) {
         'info': {},
     };
     const emptyNotAllowedFor = [ 'baseVolume' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.reviseSymbol (exchange, method, entry, 'symbol');
-    testSharedMethods.reviseCommonTimestamp (exchange, method, entry);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertSymbol (exchange, method, entry, 'symbol');
+    testSharedMethods.assertCommonTimestamp (exchange, method, entry);
     //
-    testSharedMethods.Gt (exchange, method, entry, 'quoteVolume', '0');
-    testSharedMethods.Gt (exchange, method, entry, 'baseVolume', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'quoteVolume', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'baseVolume', '0');
 }
 
 module.exports = testOpenInterest;

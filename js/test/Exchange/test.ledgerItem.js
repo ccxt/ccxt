@@ -21,16 +21,16 @@ function testLedgerItem (exchange, method, entry, requestedCode, now) {
         'type': 'deposit',
     };
     const emptyNotAllowedFor = [ 'id', 'currency', 'account', 'status', 'direction' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.reviseCommonTimestamp (exchange, method, entry, now);
-    testSharedMethods.reviseCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCommonTimestamp (exchange, method, entry, now);
+    testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
     //
     testSharedMethods.reviseAgainstArray (exchange, method, entry, 'direction', [ 'in', 'out' ]);
     // testSharedMethods.reviseAgainstArray (exchange, method, entry, 'type', ['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee',  ]);
     // testSharedMethods.reviseAgainstArray (exchange, method, entry, 'account', ['spot', 'swap', .. ]);
-    testSharedMethods.Ge (exchange, method, entry, 'amount', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'before', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'after', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'amount', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'before', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'after', '0');
     testSharedMethods.reviseFeeObject (exchange, method, entry['fee']);
 }
 

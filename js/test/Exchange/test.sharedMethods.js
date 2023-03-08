@@ -7,7 +7,7 @@ function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
 }
 
-function reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor = []) {
+function assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor = []) {
     // define common log text
     const logText = logTemplate (exchange, method, entry);
     // ensure item is not null/undefined/unset
@@ -25,7 +25,7 @@ function reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFo
             }
             // because of other langs, this is needed for arrays
             try {
-                assert (areSameTypes (exchange, entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
+                assert (areSameTypes (entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
             } catch (ex) {
                 assert (false, i.toString () + ' index is missing from structure' + logText);
             }
@@ -41,12 +41,12 @@ function reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFo
                 // if it was in needed keys, then it should have value.
                 assert (entry[key] !== undefined, key + ' key has an null value, but is expected to have a value' + logText);
             }
-            assert (areSameTypes (exchange, entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
+            assert (areSameTypes (entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
         }
     }
 }
 
-function areSameTypes (exchange, entry, key, format) {
+function areSameTypes (entry, key, format) {
     // because "typeof" string is not transpilable without === 'name', we list them manually at this moment
     const entryKeyVal = entry[key];
     const formatKeyVal = format[key];
@@ -61,7 +61,7 @@ function areSameTypes (exchange, entry, key, format) {
     return result;
 }
 
-function reviseCommonTimestamp (exchange, method, entry, nowToCheck = undefined, keyName = 'timestamp') {
+function assertCommonTimestamp (exchange, method, entry, nowToCheck = undefined, keyName = 'timestamp') {
     // define common log text
     const logText = logTemplate (exchange, method, entry);
     const isDateTimeObject = typeof keyName === 'string';
@@ -94,7 +94,7 @@ function reviseCommonTimestamp (exchange, method, entry, nowToCheck = undefined,
 }
 
 
-function reviseCurrencyCode (exchange, method, entry, actualCode, expectedCode = undefined) {
+function assertCurrencyCode (exchange, method, entry, actualCode, expectedCode = undefined) {
     const logText = logTemplate (exchange, method, entry);
     if (actualCode !== undefined) {
         assert (typeof actualCode === 'string', 'currency code should be either undefined or a string' + logText);
@@ -105,7 +105,7 @@ function reviseCurrencyCode (exchange, method, entry, actualCode, expectedCode =
     }
 }
 
-function reviseSymbol (exchange, method, entry, key, expectedSymbol = undefined) {
+function assertSymbol (exchange, method, entry, key, expectedSymbol = undefined) {
     const logText = logTemplate (exchange, method, entry);
     const actualSymbol = exchange.safeString (entry, key);
     if (actualSymbol !== undefined) {
@@ -117,7 +117,7 @@ function reviseSymbol (exchange, method, entry, key, expectedSymbol = undefined)
     }
 }
 
-function Gt (exchange, method, entry, key, compareTo) {
+function assertGreater (exchange, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
@@ -125,7 +125,7 @@ function Gt (exchange, method, entry, key, compareTo) {
     }
 }
 
-function Ge (exchange, method, entry, key, compareTo) {
+function assertGreaterOrEqual (exchange, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
@@ -133,7 +133,7 @@ function Ge (exchange, method, entry, key, compareTo) {
     }
 }
 
-function Lt (exchange, method, entry, key, compareTo) {
+function assertLess (exchange, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
@@ -141,7 +141,7 @@ function Lt (exchange, method, entry, key, compareTo) {
     }
 }
 
-function Le (exchange, method, entry, key, compareTo) {
+function assertLessOrEqual (exchange, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
@@ -162,9 +162,9 @@ function reviseFeeObject (exchange, method, entry) {
     const logText = logTemplate (exchange, method, entry);
     if (entry !== undefined) {
         assert (('cost' in entry), '"fee" should contain a "cost" key' + logText);
-        Ge (exchange, method, entry, 'cost', '0');
+        assertGreaterOrEqual (exchange, method, entry, 'cost', '0');
         assert (('currency' in entry), '"fee" should contain a "currency" key' + logText);
-        reviseCurrencyCode (exchange, method, entry, entry['currency']);
+        assertCurrencyCode (exchange, method, entry, entry['currency']);
     }
 }
 
@@ -191,16 +191,16 @@ function reviseSortedTimestamps (exchange, method, codeOrSymbol, items, ascendin
 
 module.exports = {
     logTemplate,
-    reviseCommonTimestamp,
-    reviseStructureKeys,
-    reviseSymbol,
-    reviseCurrencyCode,
+    assertCommonTimestamp,
+    assertStructureKeys,
+    assertSymbol,
+    assertCurrencyCode,
     reviseAgainstArray,
     reviseFeeObject,
     reviseFeesObject,
     reviseSortedTimestamps,
-    Gt,
-    Ge,
-    Lt,
-    Le,
+    assertGreater,
+    assertGreaterOrEqual,
+    assertLess,
+    assertLessOrEqual,
 };

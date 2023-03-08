@@ -13,12 +13,12 @@ function testBorrowRate (exchange, method, entry, requestedCode) {
         'period': 86400000, // Amount of time the interest rate is based on in milliseconds
     };
     const emptyNotAllowedFor = [ 'currency', 'rate' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.reviseCommonTimestamp (exchange, method, entry);
-    testSharedMethods.reviseCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCommonTimestamp (exchange, method, entry);
+    testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
     //
     // assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) // Milliseconds in an hour or a day
-    testSharedMethods.Gt (exchange, method, entry, 'rate', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'rate', '0');
 }
 
 module.exports = testBorrowRate;

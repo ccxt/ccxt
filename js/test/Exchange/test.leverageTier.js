@@ -12,13 +12,13 @@ function testLeverageTier (exchange, method, entry) {
         'info': {},
     };
     const emptyNotAllowedFor = [ 'maxLeverage', ' info' ];
-    testSharedMethods.reviseStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     //
-    testSharedMethods.Ge (exchange, method, entry, 'tier', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'minNotional', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'maxNotional', '0');
-    testSharedMethods.Ge (exchange, method, entry, 'maxLeverage', '1');
-    testSharedMethods.Le (exchange, method, entry, 'maintenanceMarginRate', '1');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'tier', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'minNotional', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'maxNotional', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'maxLeverage', '1');
+    testSharedMethods.assertLessOrEqual (exchange, method, entry, 'maintenanceMarginRate', '1');
 }
 
 module.exports = testLeverageTier;
