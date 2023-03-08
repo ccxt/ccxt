@@ -86,18 +86,19 @@ module.exports = class poloniex extends poloniexRest {
         return await this.watch (url, accessPath, request, accessPath);
     }
 
-    async subscribe (name, publicOrPrivate, symbols = undefined, params = {}) {
+    async subscribe (name, isPrivate, symbols = undefined, params = {}) {
         /**
          * @ignore
          * @method
          * @description Connects to a websocket channel
          * @param {String} name name of the channel
-         * @param {String} publicOrPrivate "public" or "private"
+         * @param {Bool} isPrivate true for the authenticated url, false for the public url
          * @param {[String]|undefined} symbols CCXT market symbols
          * @param {Object} params extra parameters specific to the poloniex api
          * @returns {Object} data from the websocket stream
          */
         await this.loadMarkets ();
+        const publicOrPrivate = isPrivate ? 'private' : 'public';
         const url = this.urls['api']['ws'][publicOrPrivate];
         // if ('signature' in params) {
         //     // need to distinguish between public trades and user trades
@@ -161,7 +162,7 @@ module.exports = class poloniex extends poloniexRest {
         if (channel === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
         }
-        const ohlcv = await this.subscribe (channel, 'public', [ symbol ], params);
+        const ohlcv = await this.subscribe (channel, false, [ symbol ], params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -179,7 +180,7 @@ module.exports = class poloniex extends poloniexRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const name = 'ticker';
-        return await this.subscribe (name, 'public', [ symbol ], params);
+        return await this.subscribe (name, false, [ symbol ], params);
     }
 
     async watchTickers (symbols, params = {}) {
@@ -196,7 +197,7 @@ module.exports = class poloniex extends poloniexRest {
         if (symbols === undefined) {
             symbols = [ 'all' ];
         }
-        return await this.subscribe (name, 'public', symbols, params);
+        return await this.subscribe (name, false, symbols, params);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -213,7 +214,7 @@ module.exports = class poloniex extends poloniexRest {
          */
         await this.loadMarkets ();
         const name = 'trades';
-        const trades = await this.subscribe (name, 'public', [ symbol ], params);
+        const trades = await this.subscribe (name, false, [ symbol ], params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -232,7 +233,7 @@ module.exports = class poloniex extends poloniexRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         const name = 'book_lv2';
-        const orderbook = await this.subscribe (name, 'public', [ symbol ], params);
+        const orderbook = await this.subscribe (name, false, [ symbol ], params);
         return orderbook.limit ();
     }
 
@@ -251,7 +252,7 @@ module.exports = class poloniex extends poloniexRest {
         await this.loadMarkets ();
         const name = 'orders';
         const authentication = this.authenticate ();
-        const orders = await this.subscribe (name, 'private', [ symbol ], this.extend (params, authentication));
+        const orders = await this.subscribe (name, true, [ symbol ], this.extend (params, authentication));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -272,7 +273,7 @@ module.exports = class poloniex extends poloniexRest {
          */
         const name = 'balances';
         const authentication = this.authenticate ();
-        const orders = await this.subscribe (name, 'private', undefined, this.extend (params, authentication));
+        const orders = await this.subscribe (name, true, undefined, this.extend (params, authentication));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
