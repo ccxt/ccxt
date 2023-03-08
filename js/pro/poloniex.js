@@ -242,8 +242,8 @@ module.exports = class poloniex extends poloniexRest {
          */
         await this.loadMarkets ();
         const name = 'orders';
-        const authentication = this.authenticate ();
-        const orders = await this.subscribe (name, true, [ symbol ], this.extend (params, authentication));
+        await this.authenticate ();
+        const orders = await this.subscribe (name, true, [ symbol ], params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -263,8 +263,8 @@ module.exports = class poloniex extends poloniexRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const name = 'balances';
-        const authentication = this.authenticate ();
-        const orders = await this.subscribe (name, true, undefined, this.extend (params, authentication));
+        await this.authenticate ();
+        const orders = await this.subscribe (name, true, undefined, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
