@@ -3793,7 +3793,7 @@ module.exports = class okx extends Exchange {
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies ();
             this.currencies = this.deepExtend (this.currencies, currencies);
-            const targetNetwork = this.safeValue (currency['networks'], network, {});
+            const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (network), {});
             fee = this.safeString (targetNetwork, 'fee');
             if (fee === undefined) {
                 throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
