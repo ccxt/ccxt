@@ -94,6 +94,7 @@
     "eslint-plugin-import": "2.25.4",
     "https-proxy-agent": "^5.0.1",
     "ololog": "1.1.155",
+    "piscina": "^3.2.0",
     "replace-in-file": "^6.3.5"
   },
   "author": {

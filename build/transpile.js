@@ -1984,14 +1984,15 @@ class Transpiler {
         const elapsed = Date.now() - now;
         log.green ('[ast-transpiler] Transpiled', tests.length, 'tests in', elapsed, 'ms');
         const flatResult = workerResult.flat();
+        const replaceAsert = (str) => str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
+    
         for (let i = 0; i < flatResult.length; i++) {
             const result = flatResult[i];
             const test = tests[i];
-
             const phpAsync = result[0].content;
             const phpSync = result[1].content;
-            const pythonSync = result[2].content;
-            const pythonAsync = result[3].content;
+            const pythonSync = replaceAsert (result[2].content);
+            const pythonAsync = replaceAsert (result[3].content);
 
             const imports = result[0].imports;
             // const exports = result[0].exports;
