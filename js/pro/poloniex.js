@@ -109,13 +109,9 @@ module.exports = class poloniex extends poloniexRest {
         };
         const marketIds = [ ];
         if (symbols !== undefined) {
-            if (symbols !== [ 'all' ]) {
-                for (let i = 0; i < symbols.length; i++) {
-                    const symbol = symbols[i];
-                    marketIds.push (this.marketId (symbol));
-                }
-            } else {
-                marketIds.push ('all');
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                marketIds.push (this.marketId (symbol));
             }
             subscribe['symbols'] = marketIds;
         } else {
@@ -191,9 +187,6 @@ module.exports = class poloniex extends poloniexRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const name = 'ticker';
-        if (symbols === undefined) {
-            symbols = [ 'all' ];
-        }
         return await this.subscribe (name, false, symbols, params);
     }
 
