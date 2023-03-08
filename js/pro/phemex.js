@@ -208,37 +208,38 @@ module.exports = class phemex extends phemexRest {
 
     handleBalance (type, client, message) {
         // spot
-        //  [
-        //     {
-        //         balanceEv: 0,
-        //         currency: 'BTC',
-        //         lastUpdateTimeNs: '1650442638722099092',
-        //         lockedTradingBalanceEv: 0,
-        //         lockedWithdrawEv: 0,
-        //         userID: 2647224
-        //       },
+        //    [
         //       {
-        //         balanceEv: 1154232337,
-        //         currency: 'USDT',
-        //         lastUpdateTimeNs: '1650442617610017597',
-        //         lockedTradingBalanceEv: 0,
-        //         lockedWithdrawEv: 0,
-        //         userID: 2647224
-        //       }
+        //           balanceEv: 0,
+        //           currency: 'BTC',
+        //           lastUpdateTimeNs: '1650442638722099092',
+        //           lockedTradingBalanceEv: 0,
+        //           lockedWithdrawEv: 0,
+        //           userID: 2647224
+        //         },
+        //         {
+        //           balanceEv: 1154232337,
+        //           currency: 'USDT',
+        //           lastUpdateTimeNs: '1650442617610017597',
+        //           lockedTradingBalanceEv: 0,
+        //           lockedWithdrawEv: 0,
+        //           userID: 2647224
+        //         }
         //    ]
         //
         // swap
-        //  [
-        //       {
-        //         accountBalanceEv: 0,
-        //         accountID: 26472240001,
-        //         bonusBalanceEv: 0,
-        //         currency: 'BTC',
-        //         totalUsedBalanceEv: 0,
-        //         userID: 2647224
-        //       }
-        //  ]
+        //    [
+        //         {
+        //           accountBalanceEv: 0,
+        //           accountID: 26472240001,
+        //           bonusBalanceEv: 0,
+        //           currency: 'BTC',
+        //           totalUsedBalanceEv: 0,
+        //           userID: 2647224
+        //         }
+        //    ]
         //
+        this.balance['info'] = message;
         for (let i = 0; i < message.length; i++) {
             const balance = message[i];
             const currencyId = this.safeString (balance, 'currency');

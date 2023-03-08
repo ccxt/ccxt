@@ -279,6 +279,7 @@ class bittrex(Exchange, ccxt.async_support.bittrex):
         #     }
         #
         delta = self.safe_value(message, 'delta', {})
+        self.balance['info'] = delta
         currencyId = self.safe_string(delta, 'currencySymbol')
         code = self.safe_currency_code(currencyId)
         account = self.account()

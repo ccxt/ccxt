@@ -186,7 +186,7 @@ module.exports = class gate extends gateRest {
         const marketId = this.safeString (delta, 's');
         const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
         const messageHash = 'orderbook:' + symbol;
-        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
+        const storedOrderBook = this.safeValue (this.orderbooks, symbol, this.orderBook ({}));
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
             let cacheLength = 0;
@@ -209,6 +209,8 @@ module.exports = class gate extends gateRest {
             this.handleDelta (storedOrderBook, delta);
         } else {
             const error = new InvalidNonce (this.id + ' orderbook update has a nonce bigger than u');
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
             client.reject (error, messageHash);
         }
         client.resolve (storedOrderBook, messageHash);
@@ -699,6 +701,10 @@ module.exports = class gate extends gateRest {
         //   }
         //
         const result = this.safeValue (message, 'result', []);
+        const timestamp = this.safeInteger (message, 'time');
+        this.balance['info'] = result;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601 (timestamp);
         for (let i = 0; i < result.length; i++) {
             const rawBalance = result[i];
             const account = this.account ();
@@ -752,7 +758,7 @@ module.exports = class gate extends gateRest {
         });
         const channel = typeId + '.orders';
         let messageHash = 'orders';
-        let payload = [ '!all' ];
+        let payload = [ '!' + 'all' ];
         if (symbol !== undefined) {
             messageHash += ':' + market['id'];
             payload = [ market['id'] ];

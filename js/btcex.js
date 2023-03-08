@@ -1596,19 +1596,18 @@ module.exports = class btcex extends Exchange {
             // 'end_id': 0, // The ID number of the last trade to be returned
             // 'sorting': '', // Direction of results sorting,default: desc
             // 'self_trade': false, // If not set, query all
+            // 'start_timestamp': false // The trade time of the first trade to be returned
+            // 'end_timestamp': false // The trade time of the last trade to be returned
         };
-        let method = undefined;
         const market = this.market (symbol);
         request['instrument_name'] = market['id'];
-        if (since === undefined) {
-            method = 'privateGetGetUserTradesByInstrument';
-        } else {
-            method = 'privateGetGetUserTradesByInstrumentAndTime';
-        }
         if (limit !== undefined) {
             request['count'] = limit; // default 20
         }
-        const response = await this[method] (this.extend (request, params));
+        if (since !== undefined) {
+            request['start_timestamp'] = since;
+        }
+        const response = await this.privateGetGetUserTradesByInstrument (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {

@@ -142,6 +142,7 @@ class bitrue(Exchange, ccxt.async_support.bitrue):
         #         t: 1657799510000
         #     }]
         #
+        self.balance['info'] = balances
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'a')

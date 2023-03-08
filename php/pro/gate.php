@@ -192,7 +192,7 @@ class gate extends \ccxt\async\gate {
         $marketId = $this->safe_string($delta, 's');
         $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
         $messageHash = 'orderbook:' . $symbol;
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
+        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol, $this->order_book(array()));
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
             $cacheLength = 0;
@@ -215,6 +215,8 @@ class gate extends \ccxt\async\gate {
             $this->handle_delta($storedOrderBook, $delta);
         } else {
             $error = new InvalidNonce ($this->id . ' orderbook update has a $nonce bigger than u');
+            unset($client->subscriptions[$messageHash]);
+            unset($this->orderbooks[$symbol]);
             $client->reject ($error, $messageHash);
         }
         $client->resolve ($storedOrderBook, $messageHash);
@@ -652,7 +654,7 @@ class gate extends \ccxt\async\gate {
         //       event => 'update',
         //       $result => array(
         //         {
-        //           timestamp => '1653664351',
+        //           $timestamp => '1653664351',
         //           timestamp_ms => '1653664351017',
         //           user => '10406147',
         //           currency => 'LTC',
@@ -705,6 +707,10 @@ class gate extends \ccxt\async\gate {
         //   }
         //
         $result = $this->safe_value($message, 'result', array());
+        $timestamp = $this->safe_integer($message, 'time');
+        $this->balance['info'] = $result;
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
         for ($i = 0; $i < count($result); $i++) {
             $rawBalance = $result[$i];
             $account = $this->account();
@@ -757,7 +763,7 @@ class gate extends \ccxt\async\gate {
             ));
             $channel = $typeId . '.orders';
             $messageHash = 'orders';
-            $payload = array( '!all' );
+            $payload = array( '!' . 'all' );
             if ($symbol !== null) {
                 $messageHash .= ':' . $market['id'];
                 $payload = [ $market['id'] ];

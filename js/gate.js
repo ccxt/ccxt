@@ -46,10 +46,12 @@ module.exports = class gate extends Exchange {
                     'public': {
                         'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
                     },
                     'private': {
                         'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
                     },
                 },
                 'referral': {
@@ -433,6 +435,7 @@ module.exports = class gate extends Exchange {
                 'X-Gate-Channel-Id': 'ccxt',
             },
             'options': {
+                'sandboxMode': false,
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
@@ -569,7 +572,7 @@ module.exports = class gate extends Exchange {
                     },
                 },
             },
-            // https://www.gate.io/docs/apiv4/en/index.html#label-list
+            // https://www.gate.io/docs/developers/apiv4/en/#label-list
             'exceptions': {
                 'exact': {
                     'INVALID_PARAM_VALUE': BadRequest,
@@ -662,10 +665,17 @@ module.exports = class gate extends Exchange {
                     'TOO_BUSY': ExchangeNotAvailable,
                     'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
                     'RISK_LIMIT_TOO_LOW': BadRequest, // {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
+                    'AUTO_TRIGGER_PRICE_LESS_LAST': InvalidOrder,  // {"label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument: Trigger.Price must < last_price"}
+                    'AUTO_TRIGGER_PRICE_GREATE_LAST': InvalidOrder, // {"label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument: Trigger.Price must > last_price"}
                 },
                 'broad': {},
             },
         });
+    }
+
+    setSandboxMode (enable) {
+        super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
     }
 
     async fetchMarkets (params = {}) {
@@ -676,15 +686,20 @@ module.exports = class gate extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         let promises = [
-            this.fetchSpotMarkets (params),
             this.fetchContractMarkets (params),
             this.fetchOptionMarkets (params),
         ];
+        if (!sandboxMode) {
+            // gate does not have a sandbox for spot markets
+            const mainnetOnly = [ this.fetchSpotMarkets (params) ];
+            promises = this.arrayConcat (promises, mainnetOnly);
+        }
         promises = await Promise.all (promises);
-        const spotMarkets = promises[0];
-        const contractMarkets = promises[1];
-        const optionMarkets = promises[2];
+        const spotMarkets = this.safeValue (promises, 0, []);
+        const contractMarkets = this.safeValue (promises, 1, []);
+        const optionMarkets = this.safeValue (promises, 2, []);
         const markets = this.arrayConcat (spotMarkets, contractMarkets);
         return this.arrayConcat (markets, optionMarkets);
     }
@@ -2986,6 +3001,8 @@ module.exports = class gate extends Exchange {
         if (network !== undefined) {
             request['chain'] = network;
             params = this.omit (params, 'network');
+        } else {
+            request['chain'] = currency['id'];
         }
         const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, params));
         //
@@ -3047,15 +3064,19 @@ module.exports = class gate extends Exchange {
         //
         const id = this.safeString (transaction, 'id');
         let type = undefined;
-        let amount = this.safeString (transaction, 'amount');
+        let amountString = this.safeString (transaction, 'amount');
         if (id !== undefined) {
             if (id[0] === 'b') {
                 // GateCode handling
-                type = Precise.stringGt (amount, '0') ? 'deposit' : 'withdrawal';
-                amount = Precise.stringAbs (amount);
+                type = Precise.stringGt (amountString, '0') ? 'deposit' : 'withdrawal';
+                amountString = Precise.stringAbs (amountString);
             } else {
                 type = this.parseTransactionType (id[0]);
             }
+        }
+        const feeCostString = this.safeString (transaction, 'fee');
+        if (type === 'withdrawal') {
+            amountString = Precise.stringSub (amountString, feeCostString);
         }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
@@ -3063,7 +3084,6 @@ module.exports = class gate extends Exchange {
         const rawStatus = this.safeString (transaction, 'status');
         const status = this.parseTransactionStatus (rawStatus);
         const address = this.safeString (transaction, 'address');
-        const fee = this.safeNumber (transaction, 'fee');
         const tag = this.safeString (transaction, 'memo');
         const timestamp = this.safeTimestamp (transaction, 'timestamp');
         return {
@@ -3071,7 +3091,7 @@ module.exports = class gate extends Exchange {
             'id': id,
             'txid': txid,
             'currency': code,
-            'amount': this.parseNumber (amount),
+            'amount': this.parseNumber (amountString),
             'network': undefined,
             'address': address,
             'addressTo': undefined,
@@ -3084,7 +3104,10 @@ module.exports = class gate extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'updated': undefined,
-            'fee': fee,
+            'fee': {
+                'currency': code,
+                'cost': this.parseNumber (feeCostString),
+            },
         };
     }
 
@@ -3647,7 +3670,7 @@ module.exports = class gate extends Exchange {
         let filledString = Precise.stringSub (amount, remainingString);
         let cost = this.safeString (order, 'filled_total');
         let rawStatus = undefined;
-        let average = this.safeNumber (order, 'fill_price');
+        let average = this.safeNumber2 (order, 'avg_deal_price', 'fill_price');
         if (put) {
             remainingString = amount;
             filledString = '0';

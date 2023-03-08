@@ -2367,7 +2367,7 @@ class digifinex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        addresses = self.parse_deposit_addresses(data)
+        addresses = self.parse_deposit_addresses(data, [currency['code']])
         address = self.safe_value(addresses, code)
         if address is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.')

@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.8.17';
+$version = '2.9.7';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.8.17';
+    const VERSION = '2.9.7';
 
     public $browser;
     public $marketsLoading = null;
@@ -636,9 +636,6 @@ class Exchange extends \ccxt\Exchange {
         }
         $timestamp = $this->safe_integer($order, 'timestamp');
         $datetime = $this->safe_string($order, 'datetime');
-        if ($timestamp === null) {
-            $timestamp = $this->parse8601 ($timestamp);
-        }
         if ($datetime === null) {
             $datetime = $this->iso8601 ($timestamp);
         }
@@ -1737,6 +1734,9 @@ class Exchange extends \ccxt\Exchange {
                     'updated' => $time,
                 ));
             }
+            if (!(is_array($this->status) && array_key_exists('info', $this->status))) {
+                $this->status['info'] = null;
+            }
             return $this->status;
         }) ();
     }
@@ -1928,6 +1928,9 @@ class Exchange extends \ccxt\Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             if ($this->has['fetchTickers']) {
+                Async\await($this->load_markets());
+                $market = $this->market ($symbol);
+                $symbol = $market['symbol'];
                 $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
                 $ticker = $this->safe_value($tickers, $symbol);
                 if ($ticker === null) {

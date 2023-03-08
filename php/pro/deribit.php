@@ -140,6 +140,7 @@ class deribit extends \ccxt\async\deribit {
         //
         $params = $this->safe_value($message, 'params', array());
         $data = $this->safe_value($params, 'data', array());
+        $this->balance['info'] = $data;
         $currencyId = $this->safe_string($data, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId);
         $balance = $this->parse_balance($data);
