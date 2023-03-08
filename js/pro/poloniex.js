@@ -855,28 +855,20 @@ module.exports = class poloniex extends poloniexRest {
 
     handleMessage (client, message) {
         const type = this.safeString (message, 'channel');
-        const methods = {
-            'candles_minute_1': this.handleOHLCV,
-            'candles_minute_5': this.handleOHLCV,
-            'candles_minute_10': this.handleOHLCV,
-            'candles_minute_15': this.handleOHLCV,
-            'candles_minute_30': this.handleOHLCV,
-            'candles_hour_1': this.handleOHLCV,
-            'candles_hour_2': this.handleOHLCV,
-            'candles_hour_4': this.handleOHLCV,
-            'candles_hour_6': this.handleOHLCV,
-            'candles_hour_12': this.handleOHLCV,
-            'candles_day_1': this.handleOHLCV,
-            'candles_day_3': this.handleOHLCV,
-            'candles_week_1': this.handleOHLCV,
-            'candles_month_1': this.handleOHLCV,
-            'book_lv2': this.handleOrderBook,
-            'ticker': this.handleTicker,
-            'trades': this.handleTrade,
-            'orders': this.handleOrder,
-            'balances': this.handleBalance,
-        };
-        const method = this.safeValue (methods, type);
+        let method = undefined;
+        if (type.indexOf ('candles_') >= 0) {
+            method = this.handleOHLCV;
+        } else {
+            const methods = {
+                'book_lv2': this.handleOrderBook,
+                'book': this.handleOrderBook,
+                'ticker': this.handleTicker,
+                'trades': this.handleTrade,
+                'orders': this.handleOrder,
+                'balances': this.handleBalance,
+            };
+            method = this.safeValue (methods, type);
+        }
         return method.call (this, client, message);
     }
 };
