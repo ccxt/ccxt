@@ -160,11 +160,11 @@ module.exports = class testMainClass extends emptyClass {
         }
         // others
         if (exchangeSettings && exchange.safeValue (exchangeSettings, 'skip')) {
-            dump ('[Skipped]', 'exchange', exchangeId, 'symbol', symbol);
+            dump ('[SKIPPED]', 'exchange', exchangeId, 'symbol', symbol);
             exit_script();
         }
         if (exchange.alias) {
-            dump ('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
+            dump ('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
             exit_script();
         }
         //
