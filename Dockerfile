@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 # Supresses unwanted user interaction (like "Please select the geographic area" when installing tzdata)
 ENV DEBIAN_FRONTEND=noninteractive
@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends php8.1 php8.1-c
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get update && apt-get install -y nodejs
 # Python 3
-RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip
+RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip python-is-python3
 RUN pip3 install 'idna==2.9' --force-reinstall
 RUN pip3 install --upgrade setuptools==65.7.0
 RUN pip3 install tox
