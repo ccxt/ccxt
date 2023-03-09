@@ -82,7 +82,7 @@ if (callRegex.test (exchangeId)) {
 }
 
 try {
-    if (ccxt.pro.exchanges.includes(exchangeId)) {
+    if ((ccxt.pro as any).exchanges.includes(exchangeId)) {
         exchange = new (ccxt.pro)[exchangeId] ({ timeout, httpsAgent, ... settings })
     } else {
         exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
