@@ -184,7 +184,7 @@ class testMainClass(emptyClass):
         exchangeId = exchange.id
         keysGlobal = targetDir + 'keys.json'
         keysLocal = targetDir + 'keys.local.json'
-        keysGlobalExists = io_file_exists(keysLocal)
+        keysGlobalExists = io_file_exists(keysGlobal)
         keysLocalExists = io_file_exists(keysLocal)
         globalSettings = io_file_read(keysGlobal) if keysGlobalExists else {}
         localSettings = io_file_read(keysLocal) if keysLocalExists else {}
@@ -211,10 +211,10 @@ class testMainClass(emptyClass):
                     set_exchange_prop(exchange, credential, credentialValue)
         # others
         if exchangeSettings and exchange.safe_value(exchangeSettings, 'skip'):
-            dump('[Skipped]', 'exchange', exchangeId, 'symbol', symbol)
+            dump('[SKIPPED]', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
         if exchange.alias:
-            dump('[Skipped] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
+            dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
         #
         self.skippedMethods = exchange.safe_value(exchangeSettings, 'skipMethods', {})
@@ -492,7 +492,7 @@ class testMainClass(emptyClass):
 
     async def run_private_tests(self, exchange, symbol):
         if not exchange.check_required_credentials(False):
-            dump('[Skipped]', 'Keys not found, skipping private tests')
+            dump('[Skipping private tests]', 'Keys not found')
             return
         code = self.get_exchange_code(exchange)
         # if exchange.extendedTest:

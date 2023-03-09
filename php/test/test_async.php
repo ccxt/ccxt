@@ -158,7 +158,7 @@ class testMainClass extends emptyClass {
         $exchangeId = $exchange->id;
         $keysGlobal = targetDir . 'keys.json';
         $keysLocal = targetDir . 'keys.local.json';
-        $keysGlobalExists = io_file_exists ($keysLocal);
+        $keysGlobalExists = io_file_exists ($keysGlobal);
         $keysLocalExists = io_file_exists ($keysLocal);
         $globalSettings = $keysGlobalExists ? io_file_read ($keysGlobal) : array();
         $localSettings = $keysLocalExists ? io_file_read ($keysLocal) : array();
@@ -191,11 +191,11 @@ class testMainClass extends emptyClass {
         }
         // others
         if ($exchangeSettings && $exchange->safe_value($exchangeSettings, 'skip')) {
-            dump ('[Skipped]', 'exchange', $exchangeId, 'symbol', $symbol);
+            dump ('[SKIPPED]', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script();
         }
         if ($exchange->alias) {
-            dump ('[Skipped] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
+            dump ('[SKIPPED] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script();
         }
         //
@@ -532,7 +532,7 @@ class testMainClass extends emptyClass {
     public function run_private_tests($exchange, $symbol) {
         return Async\async(function () use ($exchange, $symbol) {
             if (!$exchange->check_required_credentials(false)) {
-                dump ('[Skipped]', 'Keys not found, skipping private tests');
+                dump ('[Skipping private $tests]', 'Keys not found');
                 return;
             }
             $code = $this->get_exchange_code($exchange);

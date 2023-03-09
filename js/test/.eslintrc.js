@@ -10,7 +10,7 @@ module.exports = {
   },
   "extends": ["eslint:recommended"],
   "rules": {
-      "semi": ["error", "never"],
+      "semi": ["never"],
       "no-unused-vars": ["off"],
       "quotes": ["off", "single"],
       "func-call-spacing": ["error", "always"],
