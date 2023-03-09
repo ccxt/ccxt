@@ -1,771 +1,515 @@
-declare module 'ccxt' {
-
-    /**
-     * Represents an associative array of a same type.
-     */
-    interface Dictionary<T> {
-        [key: string]: T;
-    }
-
-    // errors.js -----------------------------------------
-
-    export class BaseError extends Error {
-        constructor(message: string);
-    }
-
-    export class ExchangeError extends BaseError {}
-    export class AuthenticationError extends ExchangeError {}
-    export class PermissionDenied extends AuthenticationError {}
-    export class AccountNotEnabled extends PermissionDenied {}
-    export class AccountSuspended extends AuthenticationError {}
-    export class ArgumentsRequired extends ExchangeError {}
-    export class BadRequest extends ExchangeError {}
-    export class BadSymbol extends BadRequest {}
-    export class MarginModeAlreadySet extends BadRequest {}
-    export class BadResponse extends ExchangeError {}
-    export class NullResponse extends BadResponse {}
-    export class InsufficientFunds extends ExchangeError {}
-    export class InvalidAddress extends ExchangeError {}
-    export class AddressPending extends InvalidAddress {}
-    export class InvalidOrder extends ExchangeError {}
-    export class OrderNotFound extends InvalidOrder {}
-    export class OrderNotCached extends InvalidOrder {}
-    export class CancelPending extends InvalidOrder {}
-    export class OrderImmediatelyFillable extends InvalidOrder {}
-    export class OrderNotFillable extends InvalidOrder {}
-    export class DuplicateOrderId extends InvalidOrder {}
-    export class NotSupported extends ExchangeError {}
-    export class NetworkError extends BaseError {}
-    export class DDoSProtection extends NetworkError {}
-    export class RateLimitExceeded extends DDoSProtection {}
-    export class ExchangeNotAvailable extends NetworkError {}
-    export class OnMaintenance extends ExchangeNotAvailable {}
-    export class InvalidNonce extends NetworkError {}
-    export class RequestTimeout extends NetworkError {}
-
-    // -----------------------------------------------
-
-    export const version: string;
-    export const exchanges: string[];
-
-    export interface MinMax {
-        min: number | undefined;
-        max: number | undefined;
-    }
-
-    export interface Market {
-        id: string;
-        symbol: string;
-        base: string;
-        quote: string;
-        baseId: string;
-        quoteId: string;
-        active?: boolean | undefined;
-        type?: string;
-        spot?: boolean;
-        margin?: boolean;
-        swap?: boolean;
-        future?: boolean;
-        option?: boolean;
-        contract?: boolean;
-        settle?: string | undefined;
-        settleId?: string | undefined;
-        contractSize?: number | undefined;
-        linear?: boolean | undefined;
-        inverse?: boolean | undefined;
-        expiry?: number | undefined;
-        expiryDatetime?: string | undefined;
-        strike?: number | undefined;
-        optionType?: string | undefined;
-        taker?: number | undefined;
-        maker?: number | undefined;
-        percentage?: boolean | undefined;
-        tierBased?: boolean | undefined;
-        feeSide?: string | undefined;
-        precision: {
-            amount: number | undefined,
-            price: number | undefined
-        };
-        limits: {
-            amount?: MinMax,
-            cost?: MinMax,
-            leverage?: MinMax,
-            price?: MinMax,
-        };
-        info: any;
-    }
-
-    export interface Order {
-        id: string;
-        clientOrderId: string;
-        datetime: string;
-        timestamp: number;
-        lastTradeTimestamp: number;
-        status: 'open' | 'closed' | 'canceled';
-        symbol: string;
-        type: string;
-        timeInForce?: string;
-        side: 'buy' | 'sell';
-        price: number;
-        average?: number;
-        amount: number;
-        filled: number;
-        remaining: number;
-        cost: number;
-        trades: Trade[];
-        fee: Fee;
-        info: any;
-    }
-
-    export interface OrderBook {
-        asks: [number, number][];
-        bids: [number, number][];
-        datetime: string;
-        timestamp: number;
-        nonce: number;
-    }
-
-    export interface Trade {
-        amount: number;                  // amount of base currency
-        datetime: string;                // ISO8601 datetime with milliseconds;
-        id: string;                      // string trade id
-        info: any;                        // the original decoded JSON as is
-        order?: string;                  // string order id or undefined/None/null
-        price: number;                   // float price in quote currency
-        timestamp: number;               // Unix timestamp in milliseconds
-        type?: string;                   // order type, 'market', 'limit', ... or undefined/None/null
-        side: 'buy' | 'sell';            // direction of the trade, 'buy' or 'sell'
-        symbol: string;                  // symbol in CCXT format
-        takerOrMaker: 'taker' | 'maker'; // string, 'taker' or 'maker'
-        cost: number;                    // total cost (including fees), `price * amount`
-        fee: Fee;
-    }
-
-    export interface Ticker {
-        symbol: string;
-        info: any;
-        timestamp: number;
-        datetime: string;
-        high: number;
-        low: number;
-        bid: number;
-        bidVolume?: number;
-        ask: number;
-        askVolume?: number;
-        vwap?: number;
-        open?: number;
-        close?: number;
-        last?: number;
-        previousClose?: number;
-        change?: number;
-        percentage?: number;
-        average?: number;
-        quoteVolume?: number;
-        baseVolume?: number;
-    }
-
-    export interface Transaction {
-        info: any;
-        id: string;
-        txid?: string;
-        timestamp: number;
-        datetime: string;
-        address: string;
-        type: "deposit" | "withdrawal";
-        amount: number;
-        currency: string;
-        status: "pending" | "ok";
-        updated: number;
-        fee: Fee;
-    }
-
-    export interface Tickers extends Dictionary<Ticker> {
-        info: any;
-    }
-
-    export interface Currency {
-        id: string;
-        code: string;
-        numericId?: number;
-        precision: number;
-    }
-
-    export interface Balance {
-        free: number;
-        used: number;
-        total: number;
-    }
-
-    export interface PartialBalances extends Dictionary<number> {
-    }
-
-    export interface Balances extends Dictionary<Balance> {
-        info: any;
-    }
-
-    export interface DepositAddress {
-        currency: string;
-        address: string;
-        status: string;
-        info: any;
-    }
-
-    export interface Fee {
-        type: 'taker' | 'maker';
-        currency: string;
-        rate: number;
-        cost: number;
-    }
-
-    export interface WithdrawalResponse {
-        info: any;
-        id: string;
-    }
-
-    export interface DepositAddressResponse {
-        currency: string;
-        address: string;
-        info: any;
-        tag?: string;
-    }
-
-    export interface Transfer {
-        info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
-    }
-
-    /** [ timestamp, open, high, low, close, volume ] */
-    export type OHLCV = [number, number, number, number, number, number];
-
-    /** Request parameters */
-    type Params = Dictionary<string | number | boolean | string[]>;
-
-    export class Exchange {
-        constructor(config?: {[key in keyof Exchange]?: Exchange[key]});
-        // allow dynamic keys
-        [key: string]: any;
-        // properties
-        version: string;
-        apiKey: string;
-        secret: string;
-        password: string;
-        uid: string;
-        requiredCredentials: {
-            apiKey: boolean;
-            secret: boolean;
-            uid: boolean;
-            login: boolean;
-            password: boolean;
-            twofa: boolean;
-            privateKey: boolean;
-            walletAddress: boolean;
-            token: boolean;
-        };
-        options: {
-            [key: string]: any;
-        };
-        urls: {
-            logo: string;
-            api: string | Dictionary<string>;
-            test: string | Dictionary<string>;
-            www: string;
-            doc: string[];
-            api_management?: string;
-            fees: string;
-            referral: string;
-        };
-        precisionMode: number;
-        hash: any;
-        hmac: any;
-        jwt: any;
-        binaryConcat: any;
-        stringToBinary: any;
-        stringToBase64: any;
-        base64ToBinary: any;
-        base64ToString: any;
-        binaryToString: any;
-        utf16ToBase64: any;
-        urlencode: any;
-        pluck: any;
-        unique: any;
-        extend: any;
-        deepExtend: any;
-        flatten: any;
-        groupBy: any;
-        indexBy: any;
-        sortBy: any;
-        keysort: any;
-        decimal: any;
-        safeFloat: any;
-        safeString: any;
-        safeInteger: any;
-        safeValue: any;
-        capitalize: any;
-        json: JSON["stringify"]
-        sum: any;
-        ordered: any;
-        aggregate: any;
-        truncate: any;
-        name: string;
-        // nodeVersion: string;
-        fees: object;
-        enableRateLimit: boolean;
-        countries: string[];
-        // set by loadMarkets
-        markets: Dictionary<Market>;
-        markets_by_id: Dictionary<Market>;
-        currencies: Dictionary<Currency>;
-        ids: string[];
-        symbols: string[];
-        id: string;
-        proxy: string;
-        parse8601: typeof Date.parse
-        milliseconds: typeof Date.now;
-        rateLimit: number;  // milliseconds = seconds * 1000
-        timeout: number; // milliseconds
-        verbose: boolean;
-        twofa: boolean;// two-factor authentication
-        substituteCommonCurrencyCodes: boolean;
-        timeframes: Dictionary<number | string>;
-        has: Dictionary<boolean | 'emulated'>; // https://github.com/ccxt/ccxt/pull/1984
-        balance: object;
-        orderbooks: object;
-        orders: object;
-        trades: object;
-        userAgent: { 'User-Agent': string } | false;
-        limits: { amount: MinMax, price: MinMax, cost: MinMax };
-        hasCancelAllOrders: boolean;
-        hasCancelOrder: boolean;
-        hasCancelOrders: boolean;
-        hasCORS: boolean;
-        hasCreateDepositAddress: boolean;
-        hasCreateLimitOrder: boolean;
-        hasCreateMarketOrder: boolean;
-        hasCreateOrder: boolean;
-        hasDeposit: boolean;
-        hasEditOrder: boolean;
-        hasFetchBalance: boolean;
-        hasFetchBidsAsks: boolean;
-        hasFetchClosedOrders: boolean;
-        hasFetchCurrencies: boolean;
-        hasFetchDepositAddress: boolean;
-        hasFetchDeposits: boolean;
-        hasFetchFundingFees: boolean;
-        hasFetchL2OrderBook: boolean;
-        hasFetchLedger: boolean;
-        hasFetchMarkets: boolean;
-        hasFetchMyTrades: boolean;
-        hasFetchOHLCV: boolean;
-        hasFetchOpenOrders: boolean;
-        hasFetchOrder: boolean;
-        hasFetchOrderBook: boolean;
-        hasFetchOrderBooks: boolean;
-        hasFetchOrders: boolean;
-        hasFetchStatus: boolean;
-        hasFetchTicker: boolean;
-        hasFetchTickers: boolean;
-        hasFetchTime: boolean;
-        hasFetchTrades: boolean;
-        hasFetchTradingFee: boolean;
-        hasFetchTradingFees: boolean;
-        hasFetchTradingLimits: boolean;
-        hasFetchTransactions: boolean;
-        hasFetchWithdrawals: boolean;
-        hasPrivateAPI: boolean;
-        hasPublicAPI: boolean;
-        hasWithdraw: boolean;
-
-        // methods
-        account (): Balance;
-        cancelAllOrders (...args: any): Promise<any>; // TODO: add function signatures
-        cancelOrder (id: string, symbol?: string, params?: Params): Promise<Order>;
-        cancelOrders (...args: any): Promise<any>; // TODO: add function signatures
-        checkRequiredCredentials (): void;
-        commonCurrencyCode (currency: string): string;
-        createDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
-        createLimitOrder (symbol: string, side: Order['side'], amount: number, price: number, params?: Params): Promise<Order>;
-        createLimitBuyOrder (symbol: string, amount: number, price: number, params?: Params): Promise<Order>;
-        createLimitSellOrder (symbol: string, amount: number, price: number, params?: Params): Promise<Order>;
-        createMarketOrder (symbol: string, side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
-        createMarketBuyOrder (symbol: string, amount: number, params?: Params): Promise<Order>;
-        createMarketSellOrder (symbol: string, amount: number, params?: Params): Promise<Order>;
-        createOrder (symbol: string, type: Order['type'], side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
-        decode (str: string): string;
-        defaults (): any;
-        defineRestApi (api: any, methodName: any, options?: Dictionary<any>): void;
-        deposit (...args: any): Promise<any>; // TODO: add function signatures
-        describe (): any;
-        editOrder (id: string, symbol: string, type: Order['type'], side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
-        encode (str: string): string;
-        encodeURIComponent (...args: any[]): string;
-        extractParams (str: string): string[];
-        fetch (url: string, method?: string, headers?: any, body?: any): Promise<any>;
-        fetch2 (path: any, api?: string, method?: string, params?: Params, headers?: any, body?: any): Promise<any>;
-        fetchBalance (params?: Params): Promise<Balances>;
-        fetchBidsAsks (symbols?: string[], params?: Params): Promise<any>;
-        fetchClosedOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
-        fetchCurrencies (params?: Params): Promise<Dictionary<Currency>>;
-        fetchDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
-        fetchDeposits (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
-        fetchFreeBalance (params?: Params): Promise<PartialBalances>;
-        fetchFundingFees (...args: any): Promise<any>; // TODO: add function signatures
-        fetchL2OrderBook (...args: any): Promise<any>; // TODO: add function signatures
-        fetchLedger (...args: any): Promise<any>; // TODO: add function signatures
-        fetchMarkets (params?: Params): Promise<Market[]>;
-        fetchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<Trade[]>;
-        fetchOHLCV (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
-        fetchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
-        fetchOrder (id: string, symbol: string, params?: Params): Promise<Order>;
-        fetchOrderBook (symbol: string, limit?: number, params?: Params): Promise<OrderBook>;
-        fetchOrderBooks (...args: any): Promise<any>; // TODO: add function signatures
-        fetchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
-        fetchOrderStatus (id: string, market: string): Promise<string>;
-        fetchPosition (symbol: string, params?: Params): Promise<any>;  // TODO: add function signatures
-        fetchPositions (symbols?: string[], params?: Params): Promise<any>;  // TODO: add function signatures
-        fetchPositionsRisk (symbols?: string[], params?: Params): Promise<any>;  // TODO: add function signatures
-        fetchStatus (...args: any): Promise<any>; // TODO: add function signatures
-        fetchTicker (symbol: string, params?: Params): Promise<Ticker>;
-        fetchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
-        fetchTime (params?: Params): Promise<number>;
-        fetchTotalBalance (params?: Params): Promise<PartialBalances>;
-        fetchTrades (symbol: string, since?: number, limit?: number, params?: Params): Promise<Trade[]>;
-        fetchTradingFee (...args: any): Promise<any>; // TODO: add function signatures
-        fetchTradingFees (...args: any): Promise<any>; // TODO: add function signatures
-        fetchTradingLimits (...args: any): Promise<any>; // TODO: add function signatures
-        fetchTransactions (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
-        fetchUsedBalance (params?: Params): Promise<PartialBalances>;
-        fetchWithdrawals (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
-        getMarket (symbol: string): Market;
-        initRestRateLimiter (): void;
-        iso8601 (timestamp: number | string): string;
-        loadMarkets (reload?: boolean): Promise<Dictionary<Market>>;
-        market (symbol: string): Market;
-        marketId (symbol: string): string;
-        marketIds (symbols: string[]): string[];
-        microseconds (): number;
-        nonce (): number;
-        parseTimeframe (timeframe: string): number;
-        purgeCachedOrders (timestamp: number): void;
-        request (path: string, api?: string, method?: string, params?: Params, headers?: any, body?: any): Promise<any>;
-        seconds (): number;
-        setMarkets (markets: Market[], currencies?: Currency[]): Dictionary<Market>;
-        setSandboxMode (enabled: boolean): void;
-        symbol (symbol: string): string;
-        withdraw (currency: string, amount: number, address: string, tag?: string, params?: Params): Promise<WithdrawalResponse>;
-        YmdHMS (timestamp: string, infix: string) : string;
-        setLeverage (leverage:number, symbol:string, params?: Params): Promise<any>;
-        transfer (code: string, amount: number, fromAccount: string, toAccount: string, params?: Params): Promise<Transfer>;
-    }
-    
-    /* tslint:disable */
-
-    export class ace extends Exchange {}
-    export class alpaca extends Exchange {}
-    export class ascendex extends Exchange {}
-    export class bequant extends hitbtc {}
-    export class bigone extends Exchange {}
-    export class binance extends Exchange {}
-    export class binancecoinm extends binance {}
-    export class binanceus extends binance {}
-    export class binanceusdm extends binance {}
-    export class bit2c extends Exchange {}
-    export class bitbank extends Exchange {}
-    export class bitbay extends zonda {}
-    export class bitbns extends Exchange {}
-    export class bitcoincom extends fmfwio {}
-    export class bitfinex extends Exchange {}
-    export class bitfinex2 extends Exchange {}
-    export class bitflyer extends Exchange {}
-    export class bitforex extends Exchange {}
-    export class bitget extends Exchange {}
-    export class bithumb extends Exchange {}
-    export class bitmart extends Exchange {}
-    export class bitmex extends Exchange {}
-    export class bitopro extends Exchange {}
-    export class bitpanda extends Exchange {}
-    export class bitrue extends Exchange {}
-    export class bitso extends Exchange {}
-    export class bitstamp extends Exchange {}
-    export class bitstamp1 extends Exchange {}
-    export class bittrex extends Exchange {}
-    export class bitvavo extends Exchange {}
-    export class bkex extends Exchange {}
-    export class bl3p extends Exchange {}
-    export class blockchaincom extends Exchange {}
-    export class btcalpha extends Exchange {}
-    export class btcbox extends Exchange {}
-    export class btcex extends Exchange {}
-    export class btcmarkets extends Exchange {}
-    export class btctradeua extends Exchange {}
-    export class btcturk extends Exchange {}
-    export class buda extends Exchange {}
-    export class bybit extends Exchange {}
-    export class cex extends Exchange {}
-    export class coinbase extends Exchange {}
-    export class coinbaseprime extends coinbasepro {}
-    export class coinbasepro extends Exchange {}
-    export class coincheck extends Exchange {}
-    export class coinex extends Exchange {}
-    export class coinfalcon extends Exchange {}
-    export class coinmate extends Exchange {}
-    export class coinone extends Exchange {}
-    export class coinspot extends Exchange {}
-    export class cryptocom extends Exchange {}
-    export class currencycom extends Exchange {}
-    export class delta extends Exchange {}
-    export class deribit extends Exchange {}
-    export class digifinex extends Exchange {}
-    export class exmo extends Exchange {}
-    export class flowbtc extends ndax {}
-    export class fmfwio extends hitbtc {}
-    export class gate extends Exchange {}
-    export class gateio extends gate {}
-    export class gemini extends Exchange {}
-    export class hitbtc extends Exchange {}
-    export class hitbtc3 extends Exchange {}
-    export class hollaex extends Exchange {}
-    export class huobi extends Exchange {}
-    export class huobijp extends Exchange {}
-    export class huobipro extends huobi {}
-    export class idex extends Exchange {}
-    export class independentreserve extends Exchange {}
-    export class indodax extends Exchange {}
-    export class itbit extends Exchange {}
-    export class kraken extends Exchange {}
-    export class krakenfutures extends Exchange {}
-    export class kucoin extends Exchange {}
-    export class kucoinfutures extends kucoin {}
-    export class kuna extends Exchange {}
-    export class latoken extends Exchange {}
-    export class lbank extends Exchange {}
-    export class lbank2 extends Exchange {}
-    export class luno extends Exchange {}
-    export class lykke extends Exchange {}
-    export class mercado extends Exchange {}
-    export class mexc extends Exchange {}
-    export class mexc3 extends Exchange {}
-    export class ndax extends Exchange {}
-    export class novadax extends Exchange {}
-    export class oceanex extends Exchange {}
-    export class okcoin extends Exchange {}
-    export class okex extends okx {}
-    export class okex5 extends okex {}
-    export class okx extends Exchange {}
-    export class paymium extends Exchange {}
-    export class phemex extends Exchange {}
-    export class poloniex extends Exchange {}
-    export class poloniexfutures extends Exchange {}
-    export class probit extends Exchange {}
-    export class ripio extends Exchange {}
-    export class stex extends Exchange {}
-    export class tidex extends Exchange {}
-    export class timex extends Exchange {}
-    export class tokocrypto extends Exchange {}
-    export class upbit extends Exchange {}
-    export class wavesexchange extends Exchange {}
-    export class wazirx extends Exchange {}
-    export class whitebit extends Exchange {}
-    export class woo extends Exchange {}
-    export class yobit extends Exchange {}
-    export class zaif extends Exchange {}
-    export class zb extends Exchange {}
-    export class zonda extends Exchange {}
-
-    
-    /* tslint:enable */
-
-    export type ExchangeId =
-        | 'ace'
-        | 'alpaca'
-        | 'ascendex'
-        | 'bequant'
-        | 'bigone'
-        | 'binance'
-        | 'binancecoinm'
-        | 'binanceus'
-        | 'binanceusdm'
-        | 'bit2c'
-        | 'bitbank'
-        | 'bitbay'
-        | 'bitbns'
-        | 'bitcoincom'
-        | 'bitfinex'
-        | 'bitfinex2'
-        | 'bitflyer'
-        | 'bitforex'
-        | 'bitget'
-        | 'bithumb'
-        | 'bitmart'
-        | 'bitmex'
-        | 'bitopro'
-        | 'bitpanda'
-        | 'bitrue'
-        | 'bitso'
-        | 'bitstamp'
-        | 'bitstamp1'
-        | 'bittrex'
-        | 'bitvavo'
-        | 'bkex'
-        | 'bl3p'
-        | 'blockchaincom'
-        | 'btcalpha'
-        | 'btcbox'
-        | 'btcex'
-        | 'btcmarkets'
-        | 'btctradeua'
-        | 'btcturk'
-        | 'buda'
-        | 'bybit'
-        | 'cex'
-        | 'coinbase'
-        | 'coinbaseprime'
-        | 'coinbasepro'
-        | 'coincheck'
-        | 'coinex'
-        | 'coinfalcon'
-        | 'coinmate'
-        | 'coinone'
-        | 'coinspot'
-        | 'cryptocom'
-        | 'currencycom'
-        | 'delta'
-        | 'deribit'
-        | 'digifinex'
-        | 'exmo'
-        | 'flowbtc'
-        | 'fmfwio'
-        | 'gate'
-        | 'gateio'
-        | 'gemini'
-        | 'hitbtc'
-        | 'hitbtc3'
-        | 'hollaex'
-        | 'huobi'
-        | 'huobijp'
-        | 'huobipro'
-        | 'idex'
-        | 'independentreserve'
-        | 'indodax'
-        | 'itbit'
-        | 'kraken'
-        | 'krakenfutures'
-        | 'kucoin'
-        | 'kucoinfutures'
-        | 'kuna'
-        | 'latoken'
-        | 'lbank'
-        | 'lbank2'
-        | 'luno'
-        | 'lykke'
-        | 'mercado'
-        | 'mexc'
-        | 'mexc3'
-        | 'ndax'
-        | 'novadax'
-        | 'oceanex'
-        | 'okcoin'
-        | 'okex'
-        | 'okex5'
-        | 'okx'
-        | 'paymium'
-        | 'phemex'
-        | 'poloniex'
-        | 'poloniexfutures'
-        | 'probit'
-        | 'ripio'
-        | 'stex'
-        | 'tidex'
-        | 'timex'
-        | 'tokocrypto'
-        | 'upbit'
-        | 'wavesexchange'
-        | 'wazirx'
-        | 'whitebit'
-        | 'woo'
-        | 'yobit'
-        | 'zaif'
-        | 'zb'
-        | 'zonda'
-        
-
-    // Pro related exports
-    class ExchangePro extends Exchange {
-        watchTicker (symbol: string, params?: Params): Promise<Ticker>;
-        watchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
-        watchOrderBook (symbol: string, limit?: number, params?: Params): Promise<OrderBook>;
-        watchOHLCV (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
-        watchTrades (symbol: string, since?: number, limit?: number, params?: Params): Promise<Trade[]>;
-        watchBalance (params?: Params): Promise<Balances>;
-        watchOrder (id: string, symbol: string, params?: Params): Promise<Order>;
-        watchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
-        watchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
-        watchClosedOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
-        watchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<Trade[]>;
-    }
-
-    export namespace pro {
-        export const exchanges: string[]
-        class Exchange  extends ExchangePro {}
-        class alpaca extends Exchange {}
-        class ascendex extends Exchange {}
-        class bequant extends Exchange {}
-        class binance extends Exchange {}
-        class binancecoinm extends Exchange {}
-        class binanceus extends Exchange {}
-        class binanceusdm extends Exchange {}
-        class bitcoincom extends Exchange {}
-        class bitfinex extends Exchange {}
-        class bitfinex2 extends Exchange {}
-        class bitget extends Exchange {}
-        class bitmart extends Exchange {}
-        class bitmex extends Exchange {}
-        class bitopro extends Exchange {}
-        class bitrue extends Exchange {}
-        class bitstamp extends Exchange {}
-        class bittrex extends Exchange {}
-        class bitvavo extends Exchange {}
-        class btcex extends Exchange {}
-        class bybit extends Exchange {}
-        class cex extends Exchange {}
-        class coinbaseprime extends Exchange {}
-        class coinbasepro extends Exchange {}
-        class coinex extends Exchange {}
-        class cryptocom extends Exchange {}
-        class currencycom extends Exchange {}
-        class deribit extends Exchange {}
-        class exmo extends Exchange {}
-        class gate extends Exchange {}
-        class gateio extends Exchange {}
-        class gemini extends Exchange {}
-        class hitbtc extends Exchange {}
-        class hollaex extends Exchange {}
-        class huobi extends Exchange {}
-        class huobijp extends Exchange {}
-        class huobipro extends Exchange {}
-        class idex extends Exchange {}
-        class independentreserve extends Exchange {}
-        class kraken extends Exchange {}
-        class kucoin extends Exchange {}
-        class kucoinfutures extends Exchange {}
-        class luno extends Exchange {}
-        class mexc extends Exchange {}
-        class ndax extends Exchange {}
-        class okcoin extends Exchange {}
-        class okex extends Exchange {}
-        class okx extends Exchange {}
-        class phemex extends Exchange {}
-        class ripio extends Exchange {}
-        class upbit extends Exchange {}
-        class wazirx extends Exchange {}
-        class whitebit extends Exchange {}
-        class woo extends Exchange {}
-        class zb extends Exchange {}
-    }
-}
+import { Exchange } from './src/base/Exchange.js';
+import { Precise } from './src/base/Precise.js';
+import * as functions from './src/base/functions.js';
+import * as errors from './src/base/errors.js';
+declare const version = "2.8.80";
+import ace from './src/ace.js';
+import alpaca from './src/alpaca.js';
+import ascendex from './src/ascendex.js';
+import bequant from './src/bequant.js';
+import bigone from './src/bigone.js';
+import binance from './src/binance.js';
+import binancecoinm from './src/binancecoinm.js';
+import binanceus from './src/binanceus.js';
+import binanceusdm from './src/binanceusdm.js';
+import bit2c from './src/bit2c.js';
+import bitbank from './src/bitbank.js';
+import bitbay from './src/bitbay.js';
+import bitbns from './src/bitbns.js';
+import bitcoincom from './src/bitcoincom.js';
+import bitfinex from './src/bitfinex.js';
+import bitfinex2 from './src/bitfinex2.js';
+import bitflyer from './src/bitflyer.js';
+import bitforex from './src/bitforex.js';
+import bitget from './src/bitget.js';
+import bithumb from './src/bithumb.js';
+import bitmart from './src/bitmart.js';
+import bitmex from './src/bitmex.js';
+import bitopro from './src/bitopro.js';
+import bitpanda from './src/bitpanda.js';
+import bitrue from './src/bitrue.js';
+import bitso from './src/bitso.js';
+import bitstamp from './src/bitstamp.js';
+import bitstamp1 from './src/bitstamp1.js';
+import bittrex from './src/bittrex.js';
+import bitvavo from './src/bitvavo.js';
+import bkex from './src/bkex.js';
+import bl3p from './src/bl3p.js';
+import blockchaincom from './src/blockchaincom.js';
+import btcalpha from './src/btcalpha.js';
+import btcbox from './src/btcbox.js';
+import btcex from './src/btcex.js';
+import btcmarkets from './src/btcmarkets.js';
+import btctradeua from './src/btctradeua.js';
+import btcturk from './src/btcturk.js';
+import buda from './src/buda.js';
+import bybit from './src/bybit.js';
+import cex from './src/cex.js';
+import coinbase from './src/coinbase.js';
+import coinbaseprime from './src/coinbaseprime.js';
+import coinbasepro from './src/coinbasepro.js';
+import coincheck from './src/coincheck.js';
+import coinex from './src/coinex.js';
+import coinfalcon from './src/coinfalcon.js';
+import coinmate from './src/coinmate.js';
+import coinone from './src/coinone.js';
+import coinspot from './src/coinspot.js';
+import cryptocom from './src/cryptocom.js';
+import currencycom from './src/currencycom.js';
+import delta from './src/delta.js';
+import deribit from './src/deribit.js';
+import digifinex from './src/digifinex.js';
+import exmo from './src/exmo.js';
+import flowbtc from './src/flowbtc.js';
+import fmfwio from './src/fmfwio.js';
+import gate from './src/gate.js';
+import gateio from './src/gateio.js';
+import gemini from './src/gemini.js';
+import hitbtc from './src/hitbtc.js';
+import hitbtc3 from './src/hitbtc3.js';
+import hollaex from './src/hollaex.js';
+import huobi from './src/huobi.js';
+import huobijp from './src/huobijp.js';
+import huobipro from './src/huobipro.js';
+import idex from './src/idex.js';
+import independentreserve from './src/independentreserve.js';
+import indodax from './src/indodax.js';
+import itbit from './src/itbit.js';
+import kraken from './src/kraken.js';
+import krakenfutures from './src/krakenfutures.js';
+import kucoin from './src/kucoin.js';
+import kucoinfutures from './src/kucoinfutures.js';
+import kuna from './src/kuna.js';
+import latoken from './src/latoken.js';
+import lbank from './src/lbank.js';
+import lbank2 from './src/lbank2.js';
+import luno from './src/luno.js';
+import lykke from './src/lykke.js';
+import mercado from './src/mercado.js';
+import mexc from './src/mexc.js';
+import mexc3 from './src/mexc3.js';
+import ndax from './src/ndax.js';
+import novadax from './src/novadax.js';
+import oceanex from './src/oceanex.js';
+import okcoin from './src/okcoin.js';
+import okex from './src/okex.js';
+import okex5 from './src/okex5.js';
+import okx from './src/okx.js';
+import paymium from './src/paymium.js';
+import phemex from './src/phemex.js';
+import poloniex from './src/poloniex.js';
+import poloniexfutures from './src/poloniexfutures.js';
+import probit from './src/probit.js';
+import ripio from './src/ripio.js';
+import stex from './src/stex.js';
+import tidex from './src/tidex.js';
+import timex from './src/timex.js';
+import tokocrypto from './src/tokocrypto.js';
+import upbit from './src/upbit.js';
+import wavesexchange from './src/wavesexchange.js';
+import wazirx from './src/wazirx.js';
+import whitebit from './src/whitebit.js';
+import woo from './src/woo.js';
+import yobit from './src/yobit.js';
+import zaif from './src/zaif.js';
+import zb from './src/zb.js';
+import zonda from './src/zonda.js';
+import alpacaPro from './src/pro/alpaca.js';
+import ascendexPro from './src/pro/ascendex.js';
+import bequantPro from './src/pro/bequant.js';
+import binancePro from './src/pro/binance.js';
+import binancecoinmPro from './src/pro/binancecoinm.js';
+import binanceusPro from './src/pro/binanceus.js';
+import binanceusdmPro from './src/pro/binanceusdm.js';
+import bitcoincomPro from './src/pro/bitcoincom.js';
+import bitfinexPro from './src/pro/bitfinex.js';
+import bitfinex2Pro from './src/pro/bitfinex2.js';
+import bitgetPro from './src/pro/bitget.js';
+import bitmartPro from './src/pro/bitmart.js';
+import bitmexPro from './src/pro/bitmex.js';
+import bitoproPro from './src/pro/bitopro.js';
+import bitruePro from './src/pro/bitrue.js';
+import bitstampPro from './src/pro/bitstamp.js';
+import bittrexPro from './src/pro/bittrex.js';
+import bitvavoPro from './src/pro/bitvavo.js';
+import btcexPro from './src/pro/btcex.js';
+import bybitPro from './src/pro/bybit.js';
+import cexPro from './src/pro/cex.js';
+import coinbaseprimePro from './src/pro/coinbaseprime.js';
+import coinbaseproPro from './src/pro/coinbasepro.js';
+import coinexPro from './src/pro/coinex.js';
+import cryptocomPro from './src/pro/cryptocom.js';
+import currencycomPro from './src/pro/currencycom.js';
+import deribitPro from './src/pro/deribit.js';
+import exmoPro from './src/pro/exmo.js';
+import gatePro from './src/pro/gate.js';
+import gateioPro from './src/pro/gateio.js';
+import geminiPro from './src/pro/gemini.js';
+import hitbtcPro from './src/pro/hitbtc.js';
+import hollaexPro from './src/pro/hollaex.js';
+import huobiPro from './src/pro/huobi.js';
+import huobijpPro from './src/pro/huobijp.js';
+import huobiproPro from './src/pro/huobipro.js';
+import idexPro from './src/pro/idex.js';
+import independentreservePro from './src/pro/independentreserve.js';
+import krakenPro from './src/pro/kraken.js';
+import kucoinPro from './src/pro/kucoin.js';
+import kucoinfuturesPro from './src/pro/kucoinfutures.js';
+import lunoPro from './src/pro/luno.js';
+import mexcPro from './src/pro/mexc.js';
+import ndaxPro from './src/pro/ndax.js';
+import okcoinPro from './src/pro/okcoin.js';
+import okexPro from './src/pro/okex.js';
+import okxPro from './src/pro/okx.js';
+import phemexPro from './src/pro/phemex.js';
+import ripioPro from './src/pro/ripio.js';
+import upbitPro from './src/pro/upbit.js';
+import wazirxPro from './src/pro/wazirx.js';
+import whitebitPro from './src/pro/whitebit.js';
+import wooPro from './src/pro/woo.js';
+import zbPro from './src/pro/zb.js';
+declare const exchanges: {
+    ace: typeof ace;
+    alpaca: typeof alpaca;
+    ascendex: typeof ascendex;
+    bequant: typeof bequant;
+    bigone: typeof bigone;
+    binance: typeof binance;
+    binancecoinm: typeof binancecoinm;
+    binanceus: typeof binanceus;
+    binanceusdm: typeof binanceusdm;
+    bit2c: typeof bit2c;
+    bitbank: typeof bitbank;
+    bitbay: typeof bitbay;
+    bitbns: typeof bitbns;
+    bitcoincom: typeof bitcoincom;
+    bitfinex: typeof bitfinex;
+    bitfinex2: typeof bitfinex2;
+    bitflyer: typeof bitflyer;
+    bitforex: typeof bitforex;
+    bitget: typeof bitget;
+    bithumb: typeof bithumb;
+    bitmart: typeof bitmart;
+    bitmex: typeof bitmex;
+    bitopro: typeof bitopro;
+    bitpanda: typeof bitpanda;
+    bitrue: typeof bitrue;
+    bitso: typeof bitso;
+    bitstamp: typeof bitstamp;
+    bitstamp1: typeof bitstamp1;
+    bittrex: typeof bittrex;
+    bitvavo: typeof bitvavo;
+    bkex: typeof bkex;
+    bl3p: typeof bl3p;
+    blockchaincom: typeof blockchaincom;
+    btcalpha: typeof btcalpha;
+    btcbox: typeof btcbox;
+    btcex: typeof btcex;
+    btcmarkets: typeof btcmarkets;
+    btctradeua: typeof btctradeua;
+    btcturk: typeof btcturk;
+    buda: typeof buda;
+    bybit: typeof bybit;
+    cex: typeof cex;
+    coinbase: typeof coinbase;
+    coinbaseprime: typeof coinbaseprime;
+    coinbasepro: typeof coinbasepro;
+    coincheck: typeof coincheck;
+    coinex: typeof coinex;
+    coinfalcon: typeof coinfalcon;
+    coinmate: typeof coinmate;
+    coinone: typeof coinone;
+    coinspot: typeof coinspot;
+    cryptocom: typeof cryptocom;
+    currencycom: typeof currencycom;
+    delta: typeof delta;
+    deribit: typeof deribit;
+    digifinex: typeof digifinex;
+    exmo: typeof exmo;
+    flowbtc: typeof flowbtc;
+    fmfwio: typeof fmfwio;
+    gate: typeof gate;
+    gateio: typeof gateio;
+    gemini: typeof gemini;
+    hitbtc: typeof hitbtc;
+    hitbtc3: typeof hitbtc3;
+    hollaex: typeof hollaex;
+    huobi: typeof huobi;
+    huobijp: typeof huobijp;
+    huobipro: typeof huobipro;
+    idex: typeof idex;
+    independentreserve: typeof independentreserve;
+    indodax: typeof indodax;
+    itbit: typeof itbit;
+    kraken: typeof kraken;
+    krakenfutures: typeof krakenfutures;
+    kucoin: typeof kucoin;
+    kucoinfutures: typeof kucoinfutures;
+    kuna: typeof kuna;
+    latoken: typeof latoken;
+    lbank: typeof lbank;
+    lbank2: typeof lbank2;
+    luno: typeof luno;
+    lykke: typeof lykke;
+    mercado: typeof mercado;
+    mexc: typeof mexc;
+    mexc3: typeof mexc3;
+    ndax: typeof ndax;
+    novadax: typeof novadax;
+    oceanex: typeof oceanex;
+    okcoin: typeof okcoin;
+    okex: typeof okex;
+    okex5: typeof okex5;
+    okx: typeof okx;
+    paymium: typeof paymium;
+    phemex: typeof phemex;
+    poloniex: typeof poloniex;
+    poloniexfutures: typeof poloniexfutures;
+    probit: typeof probit;
+    ripio: typeof ripio;
+    stex: typeof stex;
+    tidex: typeof tidex;
+    timex: typeof timex;
+    tokocrypto: typeof tokocrypto;
+    upbit: typeof upbit;
+    wavesexchange: typeof wavesexchange;
+    wazirx: typeof wazirx;
+    whitebit: typeof whitebit;
+    woo: typeof woo;
+    yobit: typeof yobit;
+    zaif: typeof zaif;
+    zb: typeof zb;
+    zonda: typeof zonda;
+};
+declare const pro: {
+    alpaca: typeof alpacaPro;
+    ascendex: typeof ascendexPro;
+    bequant: typeof bequantPro;
+    binance: typeof binancePro;
+    binancecoinm: typeof binancecoinmPro;
+    binanceus: typeof binanceusPro;
+    binanceusdm: typeof binanceusdmPro;
+    bitcoincom: typeof bitcoincomPro;
+    bitfinex: typeof bitfinexPro;
+    bitfinex2: typeof bitfinex2Pro;
+    bitget: typeof bitgetPro;
+    bitmart: typeof bitmartPro;
+    bitmex: typeof bitmexPro;
+    bitopro: typeof bitoproPro;
+    bitrue: typeof bitruePro;
+    bitstamp: typeof bitstampPro;
+    bittrex: typeof bittrexPro;
+    bitvavo: typeof bitvavoPro;
+    btcex: typeof btcexPro;
+    bybit: typeof bybitPro;
+    cex: typeof cexPro;
+    coinbaseprime: typeof coinbaseprimePro;
+    coinbasepro: typeof coinbaseproPro;
+    coinex: typeof coinexPro;
+    cryptocom: typeof cryptocomPro;
+    currencycom: typeof currencycomPro;
+    deribit: typeof deribitPro;
+    exmo: typeof exmoPro;
+    gate: typeof gatePro;
+    gateio: typeof gateioPro;
+    gemini: typeof geminiPro;
+    hitbtc: typeof hitbtcPro;
+    hollaex: typeof hollaexPro;
+    huobi: typeof huobiPro;
+    huobijp: typeof huobijpPro;
+    huobipro: typeof huobiproPro;
+    idex: typeof idexPro;
+    independentreserve: typeof independentreservePro;
+    kraken: typeof krakenPro;
+    kucoin: typeof kucoinPro;
+    kucoinfutures: typeof kucoinfuturesPro;
+    luno: typeof lunoPro;
+    mexc: typeof mexcPro;
+    ndax: typeof ndaxPro;
+    okcoin: typeof okcoinPro;
+    okex: typeof okexPro;
+    okx: typeof okxPro;
+    phemex: typeof phemexPro;
+    ripio: typeof ripioPro;
+    upbit: typeof upbitPro;
+    wazirx: typeof wazirxPro;
+    whitebit: typeof whitebitPro;
+    woo: typeof wooPro;
+    zb: typeof zbPro;
+};
+declare const ccxt: {
+    version: string;
+    Exchange: typeof Exchange;
+    Precise: typeof Precise;
+    exchanges: string[];
+    pro: {
+        alpaca: typeof alpacaPro;
+        ascendex: typeof ascendexPro;
+        bequant: typeof bequantPro;
+        binance: typeof binancePro;
+        binancecoinm: typeof binancecoinmPro;
+        binanceus: typeof binanceusPro;
+        binanceusdm: typeof binanceusdmPro;
+        bitcoincom: typeof bitcoincomPro;
+        bitfinex: typeof bitfinexPro;
+        bitfinex2: typeof bitfinex2Pro;
+        bitget: typeof bitgetPro;
+        bitmart: typeof bitmartPro;
+        bitmex: typeof bitmexPro;
+        bitopro: typeof bitoproPro;
+        bitrue: typeof bitruePro;
+        bitstamp: typeof bitstampPro;
+        bittrex: typeof bittrexPro;
+        bitvavo: typeof bitvavoPro;
+        btcex: typeof btcexPro;
+        bybit: typeof bybitPro;
+        cex: typeof cexPro;
+        coinbaseprime: typeof coinbaseprimePro;
+        coinbasepro: typeof coinbaseproPro;
+        coinex: typeof coinexPro;
+        cryptocom: typeof cryptocomPro;
+        currencycom: typeof currencycomPro;
+        deribit: typeof deribitPro;
+        exmo: typeof exmoPro;
+        gate: typeof gatePro;
+        gateio: typeof gateioPro;
+        gemini: typeof geminiPro;
+        hitbtc: typeof hitbtcPro;
+        hollaex: typeof hollaexPro;
+        huobi: typeof huobiPro;
+        huobijp: typeof huobijpPro;
+        huobipro: typeof huobiproPro;
+        idex: typeof idexPro;
+        independentreserve: typeof independentreservePro;
+        kraken: typeof krakenPro;
+        kucoin: typeof kucoinPro;
+        kucoinfutures: typeof kucoinfuturesPro;
+        luno: typeof lunoPro;
+        mexc: typeof mexcPro;
+        ndax: typeof ndaxPro;
+        okcoin: typeof okcoinPro;
+        okex: typeof okexPro;
+        okx: typeof okxPro;
+        phemex: typeof phemexPro;
+        ripio: typeof ripioPro;
+        upbit: typeof upbitPro;
+        wazirx: typeof wazirxPro;
+        whitebit: typeof whitebitPro;
+        woo: typeof wooPro;
+        zb: typeof zbPro;
+    };
+} & {
+    ace: typeof ace;
+    alpaca: typeof alpaca;
+    ascendex: typeof ascendex;
+    bequant: typeof bequant;
+    bigone: typeof bigone;
+    binance: typeof binance;
+    binancecoinm: typeof binancecoinm;
+    binanceus: typeof binanceus;
+    binanceusdm: typeof binanceusdm;
+    bit2c: typeof bit2c;
+    bitbank: typeof bitbank;
+    bitbay: typeof bitbay;
+    bitbns: typeof bitbns;
+    bitcoincom: typeof bitcoincom;
+    bitfinex: typeof bitfinex;
+    bitfinex2: typeof bitfinex2;
+    bitflyer: typeof bitflyer;
+    bitforex: typeof bitforex;
+    bitget: typeof bitget;
+    bithumb: typeof bithumb;
+    bitmart: typeof bitmart;
+    bitmex: typeof bitmex;
+    bitopro: typeof bitopro;
+    bitpanda: typeof bitpanda;
+    bitrue: typeof bitrue;
+    bitso: typeof bitso;
+    bitstamp: typeof bitstamp;
+    bitstamp1: typeof bitstamp1;
+    bittrex: typeof bittrex;
+    bitvavo: typeof bitvavo;
+    bkex: typeof bkex;
+    bl3p: typeof bl3p;
+    blockchaincom: typeof blockchaincom;
+    btcalpha: typeof btcalpha;
+    btcbox: typeof btcbox;
+    btcex: typeof btcex;
+    btcmarkets: typeof btcmarkets;
+    btctradeua: typeof btctradeua;
+    btcturk: typeof btcturk;
+    buda: typeof buda;
+    bybit: typeof bybit;
+    cex: typeof cex;
+    coinbase: typeof coinbase;
+    coinbaseprime: typeof coinbaseprime;
+    coinbasepro: typeof coinbasepro;
+    coincheck: typeof coincheck;
+    coinex: typeof coinex;
+    coinfalcon: typeof coinfalcon;
+    coinmate: typeof coinmate;
+    coinone: typeof coinone;
+    coinspot: typeof coinspot;
+    cryptocom: typeof cryptocom;
+    currencycom: typeof currencycom;
+    delta: typeof delta;
+    deribit: typeof deribit;
+    digifinex: typeof digifinex;
+    exmo: typeof exmo;
+    flowbtc: typeof flowbtc;
+    fmfwio: typeof fmfwio;
+    gate: typeof gate;
+    gateio: typeof gateio;
+    gemini: typeof gemini;
+    hitbtc: typeof hitbtc;
+    hitbtc3: typeof hitbtc3;
+    hollaex: typeof hollaex;
+    huobi: typeof huobi;
+    huobijp: typeof huobijp;
+    huobipro: typeof huobipro;
+    idex: typeof idex;
+    independentreserve: typeof independentreserve;
+    indodax: typeof indodax;
+    itbit: typeof itbit;
+    kraken: typeof kraken;
+    krakenfutures: typeof krakenfutures;
+    kucoin: typeof kucoin;
+    kucoinfutures: typeof kucoinfutures;
+    kuna: typeof kuna;
+    latoken: typeof latoken;
+    lbank: typeof lbank;
+    lbank2: typeof lbank2;
+    luno: typeof luno;
+    lykke: typeof lykke;
+    mercado: typeof mercado;
+    mexc: typeof mexc;
+    mexc3: typeof mexc3;
+    ndax: typeof ndax;
+    novadax: typeof novadax;
+    oceanex: typeof oceanex;
+    okcoin: typeof okcoin;
+    okex: typeof okex;
+    okex5: typeof okex5;
+    okx: typeof okx;
+    paymium: typeof paymium;
+    phemex: typeof phemex;
+    poloniex: typeof poloniex;
+    poloniexfutures: typeof poloniexfutures;
+    probit: typeof probit;
+    ripio: typeof ripio;
+    stex: typeof stex;
+    tidex: typeof tidex;
+    timex: typeof timex;
+    tokocrypto: typeof tokocrypto;
+    upbit: typeof upbit;
+    wavesexchange: typeof wavesexchange;
+    wazirx: typeof wazirx;
+    whitebit: typeof whitebit;
+    woo: typeof woo;
+    yobit: typeof yobit;
+    zaif: typeof zaif;
+    zb: typeof zb;
+    zonda: typeof zonda;
+} & typeof functions & typeof errors;
+export { version, Exchange, exchanges, pro, Precise, functions, errors, ace, alpaca, ascendex, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bit2c, bitbank, bitbay, bitbns, bitcoincom, bitfinex, bitfinex2, bitflyer, bitforex, bitget, bithumb, bitmart, bitmex, bitopro, bitpanda, bitrue, bitso, bitstamp, bitstamp1, bittrex, bitvavo, bkex, bl3p, blockchaincom, btcalpha, btcbox, btcex, btcmarkets, btctradeua, btcturk, buda, bybit, cex, coinbase, coinbaseprime, coinbasepro, coincheck, coinex, coinfalcon, coinmate, coinone, coinspot, cryptocom, currencycom, delta, deribit, digifinex, exmo, flowbtc, fmfwio, gate, gateio, gemini, hitbtc, hitbtc3, hollaex, huobi, huobijp, huobipro, idex, independentreserve, indodax, itbit, kraken, krakenfutures, kucoin, kucoinfutures, kuna, latoken, lbank, lbank2, luno, lykke, mercado, mexc, mexc3, ndax, novadax, oceanex, okcoin, okex, okex5, okx, paymium, phemex, poloniex, poloniexfutures, probit, ripio, stex, tidex, timex, tokocrypto, upbit, wavesexchange, wazirx, whitebit, woo, yobit, zaif, zb, zonda, };
+export default ccxt;

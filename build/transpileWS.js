@@ -249,14 +249,6 @@ class CCXTProTranspiler extends Transpiler {
 
     // -----------------------------------------------------------------------
 
-    async exportTypeScriptDeclarations (file, jsFolder) {
-
-        const classes = await this.getTSClassDeclarationsAllFiles (wsExchangeIds, jsFolder);
-        this.exportTypeScriptClassNames (file, classes)
-    }
-
-    // -----------------------------------------------------------------------
-
     async transpileEverything (force = false, child = false) {
 
         // default pattern is '.js'
@@ -287,10 +279,6 @@ class CCXTProTranspiler extends Transpiler {
             log.bright.yellow ('0 files transpiled.')
             return;
         }
-
-        // HINT: if we're going to support specific class definitions
-        // this process won't work anymore as it will override the definitions
-        await this.exportTypeScriptDeclarations (tsFilename, jsFolder)
 
         //*/
 

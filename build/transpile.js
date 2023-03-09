@@ -1542,14 +1542,6 @@ class Transpiler {
         replaceInFile (file, regex, replacement)
     }
 
-    async exportTypeScriptDeclarations (file, jsFolder) {
-
-        const classes = await this.getTSClassDeclarationsAllFiles (exchangeIds, jsFolder);
-
-        this.exportTypeScriptClassNames (file, classes)
-        this.exportTypeScriptExchangeIds (file, classes)
-    }
-
     // ========================================================================
 
     transpileErrorHierarchy ({ tsFilename }) {
@@ -2056,9 +2048,6 @@ class Transpiler {
         }
 
         this.transpileBaseMethods ()
-        // HINT: if we're going to support specific class definitions
-        // this process won't work anymore as it will override the definitions
-        await this.exportTypeScriptDeclarations (tsFilename, jsFolder)
 
         //*/
 
