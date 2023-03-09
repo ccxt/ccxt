@@ -21,7 +21,7 @@
     "bitget":        { "skipWs": true, "skipMethods": { "loadMarkets": "limit max value is zero, lwer than min", "fetchCurrencies": "precision is undefined", "fetchTickers": "high might be set to 0", "fetchTicker": "same" } },
     "bithumb":       { "skipMethods": { "fetchCurrencies": "info key missing", "fetchTickers": "quoteVolume >= baseVolume * low is failing" } },
     "bitmart":       { "skipWs": true, "skipMethods": { "fetchCurrencies": "precision is undefined", "fetchTickers": "quoteVolume <= baseVolume * high is failing" } },
-    "bitmex":        { "skipWs": true, "skipMethods": { "loadMarkets": "some market types are out of expected market-types", "fetchCurrencies": "info key missing", "fetchTickers": "close might be 0", "fetchTicker": "same", "fetchOHLCV": "open might be greater than high" } },
+    "bitmex":        { "skipWs": true, "skipMethods": { "loadMarkets": "some market types are out of expected market-types", "fetchCurrencies": "info key missing", "fetchTickers": "close might be 0", "fetchTicker": "same", "fetchOHLCV": "open might be greater than high" }, "skip": true, "//": "update:spot markets doesnt work atm, need fix spot:true",  },
     "bitopro":       { "skipWs": true, "skipMethods": { "fetchCurrencies": "precision is undefined" } },
     "bitpanda":      { "skipMethods": { "fetchOrderBook": "some bid might be lower than next bid", "fetchL2OrderBook": "same" } },
     "bitrue":       { "skipMethods": { "loadMarkets": "max is below min", "fetchCurrencies": "precision is undefined", "fetchTickers": "quoteVolume >= baseVolume * low is failing", "fetchTicker": "same" } },

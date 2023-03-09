@@ -348,24 +348,24 @@ module.exports = class testMainClass extends emptyClass {
         return code;
     }
 
-    getSymbolsFromExchange (exchange, spot = true) {
-        let res = [];
+    getMarketsFromExchange (exchange, spot = true) {
+        let res = {};
         let markets = exchange.markets;
         const keys = Object.keys(markets);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const market = markets[key];
             if (spot && market['spot']) {
-                res.push(market);
+                res[market['symbol']] = market;
             } else if (!spot && !market['spot']) {
-                res.push(market);
+                res[market['symbol']] = market;
             }
         }
         return res;
     }
 
     getValidSymbol (exchange, spot = true) {
-        const exchangeMarkets = this.getSymbolsFromExchange(exchange, spot);
+        const currentTypeMarkets = this.getMarketsFromExchange (exchange, spot);
         const codes = [
             'BTC',
             'ETH',
@@ -429,7 +429,7 @@ module.exports = class testMainClass extends emptyClass {
         if (symbol === undefined) {
             for (let i = 0; i < codes.length; i++) {
                 const currentCode = codes[i];
-                const marketsArrayForCurrentCode = exchange.filterBy (exchangeMarkets, 'base', currentCode);
+                const marketsArrayForCurrentCode = exchange.filterBy (currentTypeMarkets, 'base', currentCode);
                 const indexedMkts = exchange.indexBy (marketsArrayForCurrentCode, 'symbol');
                 const symbolsArrayForCurrentCode = Object.keys (indexedMkts);
                 if (symbolsArrayForCurrentCode.length) {
@@ -440,12 +440,13 @@ module.exports = class testMainClass extends emptyClass {
         }
         // if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if (symbol === undefined) {
-            const activeMarkets = exchange.filterBy (exchangeMarkets, 'active', true);
+            const activeMarkets = exchange.filterBy (currentTypeMarkets, 'active', true);
             const activeSymbols = Object.keys (activeMarkets);
             symbol = this.getTestSymbol (exchange, spot, activeSymbols);
         }
         if (symbol === undefined) {
-            const first = exchangeMarkets[0];
+            const values = Object.values (currentTypeMarkets);
+            const first = values[0];
             if (first !== undefined) {
                 symbol = first['symbol'];
             }
