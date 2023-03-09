@@ -2016,9 +2016,10 @@ class Transpiler {
                 const snake_case = unCamelCase(subTestName);
                 // python
                 if (subTestName.includes ('SharedMethods')) {
-                    pythonHeader.push (`from . import test_shared_methods  # noqa E402`)
+                    // pythonHeader.push (`from . import test_shared_methods  # noqa E402`)
+                    pythonHeader.push (`import test_shared_methods  # noqa E402`)
                 } else {
-                    pythonHeader.push (`from .${snake_case} import ${snake_case}  # noqa E402`)
+                    pythonHeader.push (`import ${snake_case}  # noqa E402`)
                 }
                 // php
                 phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)

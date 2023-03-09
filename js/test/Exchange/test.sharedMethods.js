@@ -24,11 +24,7 @@ function assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFo
                 assert ((entry[i] !== undefined), i.toString () + ' index is undefined, but is is was expected to be set' + logText);
             }
             // because of other langs, this is needed for arrays
-            try {
-                assert (areSameTypes (entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
-            } catch (ex) {
-                assert (false, i.toString () + ' index is missing from structure' + logText);
-            }
+            assert (areSameTypes (exchange, entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
         }
     } else {
         assert (typeof entry === 'object', 'entry is not an object' + logText);
@@ -41,15 +37,15 @@ function assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFo
                 // if it was in needed keys, then it should have value.
                 assert (entry[key] !== undefined, key + ' key has an null value, but is expected to have a value' + logText);
             }
-            assert (areSameTypes (entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
+            assert (areSameTypes (exchange, entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
         }
     }
 }
 
-function areSameTypes (entry, key, format) {
+function areSameTypes (exchange, entry, key, format) {
     // because "typeof" string is not transpilable without === 'name', we list them manually at this moment
-    const entryKeyVal = entry[key];
-    const formatKeyVal = format[key];
+    const entryKeyVal = exchange.safeValue (entry, key);
+    const formatKeyVal = exchange.safeValue (format, key);
     const same_string = (typeof entryKeyVal === 'string') && (typeof formatKeyVal === 'string');
     const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
     // todo: the below is correct, but is not being transpiled into python correctly: (x == False) instead of (x is False)

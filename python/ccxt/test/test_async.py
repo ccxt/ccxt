@@ -209,15 +209,19 @@ class testMainClass(emptyClass):
                 credentialValue = envVars[credentialEnvName]
                 if credentialValue:
                     set_exchange_prop(exchange, credential, credentialValue)
+        # skipped tests
+        skippedFile = targetDir + 'skip-tests.json'
+        skippedSettings = io_file_read(skippedFile)
+        skippedSettingsForExchange = exchange.safe_value(skippedSettings, exchangeId, {})
         # others
-        if exchangeSettings and exchange.safe_value(exchangeSettings, 'skip'):
+        if exchange.safe_value(skippedSettingsForExchange, 'skip'):
             dump('[SKIPPED]', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
         if exchange.alias:
             dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
         #
-        self.skippedMethods = exchange.safe_value(exchangeSettings, 'skipMethods', {})
+        self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
         add_proxy_agent(exchange, exchangeSettings)
 

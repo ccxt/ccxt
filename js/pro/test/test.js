@@ -79,6 +79,8 @@ const keysGlobal = 'keys.json'
     , keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
     // eslint-disable-next-line import/no-dynamic-require, no-path-concat
     , settings = require (__dirname + '/../../../' + keysFile)[exchangeId]
+    , skipFile = 'skip-tests.json'
+    , skipSettings = require (__dirname + '/../../../' + skipFile)[exchangeId]
 
 if (settings) {
     for (const key in settings) {
@@ -90,7 +92,7 @@ if (settings) {
 
 Object.assign (exchange, settings)
 
-if (settings && (settings.skip || settings.skipWs)) {
+if (skipSettings && (skipSettings.skip || skipSettings.skipWs)) {
     log.error.bright ('[Skipped]', { exchangeId, symbol })
     process.exit ()
 }

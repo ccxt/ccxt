@@ -189,8 +189,12 @@ class testMainClass extends emptyClass {
                 }
             }
         }
+        // skipped tests
+        $skippedFile = targetDir . 'skip-tests.json';
+        $skippedSettings = io_file_read ($skippedFile);
+        $skippedSettingsForExchange = $exchange->safe_value($skippedSettings, $exchangeId, array());
         // others
-        if ($exchangeSettings && $exchange->safe_value($exchangeSettings, 'skip')) {
+        if ($exchange->safe_value($skippedSettingsForExchange, 'skip')) {
             dump ('[SKIPPED]', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script();
         }
@@ -199,7 +203,7 @@ class testMainClass extends emptyClass {
             exit_script();
         }
         //
-        $this->skippedMethods = $exchange->safe_value($exchangeSettings, 'skipMethods', array());
+        $this->skippedMethods = $exchange->safe_value($skippedSettingsForExchange, 'skipMethods', array());
         $this->checkedPublicTests = array();
         add_proxy_agent ($exchange, $exchangeSettings);
     }

@@ -75,12 +75,14 @@ sys.excepthook = handle_all_unhandled_exceptions
 # -----------------------------------------------------------------------------
 
 config = {}
+skip_settings = {}
 
 # prefer local testing keys to global keys
 keys_folder = os.path.dirname(root)
 keys_global = os.path.join(keys_folder, 'keys.json')
 keys_local = os.path.join(keys_folder, 'keys.local.json')
 keys_file = keys_local if os.path.exists(keys_local) else keys_global
+skip_file = os.path.join(keys_folder, 'skip-tests.json')
 
 
 # load the api keys from config
@@ -88,6 +90,9 @@ if os.path.exists(keys_file):
     with open(keys_file) as file:
         config = json.load(file)
 
+if os.path.exists(skip_file):
+    with open(skip_file) as file:
+        skip_settings = json.load(file)
 
 # -----------------------------------------------------------------------------
 
@@ -232,7 +237,8 @@ async def test():
         'enableRateLimit': True,
     }, apiKeys))
 
-    if (hasattr(exchange, 'skip') and exchange.skip) or (hasattr(exchange, 'skipWs') and exchange.skipWs):
+    exchange_skips = exchange.safe_value(skip_settings, exchange.id, {})
+    if (hasattr(exchange_skips, 'skip') and exchange_skips.skip) or (hasattr(exchange_skips, 'skipWs') and exchange_skips.skipWs):
         sys.stdout.write(exchange.id + ' [Skipped]\n')
         sys.stdout.flush()
     elif (hasattr(exchange, 'alias') and exchange.alias):

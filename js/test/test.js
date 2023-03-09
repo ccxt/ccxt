@@ -160,8 +160,12 @@ module.exports = class testMainClass extends emptyClass {
                 }
             }
         }
+        // skipped tests
+        const skippedFile = targetDir + 'skip-tests.json';
+        const skippedSettings = io_file_read (skippedFile);
+        const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
         // others
-        if (exchangeSettings && exchange.safeValue (exchangeSettings, 'skip')) {
+        if (exchange.safeValue (skippedSettingsForExchange, 'skip')) {
             dump ('[SKIPPED]', 'exchange', exchangeId, 'symbol', symbol);
             exit_script();
         }
@@ -170,7 +174,7 @@ module.exports = class testMainClass extends emptyClass {
             exit_script();
         }
         //
-        this.skippedMethods = exchange.safeValue (exchangeSettings, 'skipMethods', {});
+        this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
         add_proxy_agent (exchange, exchangeSettings);
     }
