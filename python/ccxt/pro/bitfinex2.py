@@ -779,7 +779,7 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
     def authenticate(self, params={}):
         url = self.urls['api']['ws']['private']
         client = self.client(url)
-        messageHash = 'authenticate'
+        messageHash = 'authenticated'
         future = self.safe_value(client.subscriptions, messageHash)
         if future is None:
             nonce = self.milliseconds()
@@ -891,12 +891,14 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
         else:
             parsed = self.parse_ws_order(data)
             orders.append(parsed)
+            symbol = parsed['symbol']
+            symbolIds[symbol] = True
         name = 'orders'
         client.resolve(self.orders, name)
         keys = list(symbolIds.keys())
         for i in range(0, len(keys)):
             symbol = keys[i]
-            market = self.safe_market(symbol)
+            market = self.market(symbol)
             messageHash = name + ':' + market['id']
             client.resolve(self.orders, messageHash)
 
@@ -950,7 +952,7 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
         clientOrderId = self.safe_string(order, 1)
         marketId = self.safe_string(order, 3)
         symbol = self.safe_symbol(marketId)
-        market = self.safe_market(symbol)
+        market = self.safe_market(marketId)
         amount = self.safe_number(order, 7)
         side = 'buy'
         if amount < 0:
