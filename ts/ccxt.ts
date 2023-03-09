@@ -37,7 +37,7 @@ import * as errors   from './src/base/errors.js'
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '2.8.24';
+const version = '2.8.80';
 
 (Exchange as any).ccxtVersion = version
 
@@ -116,6 +116,7 @@ import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
 import itbit from  './src/itbit.js'
 import kraken from  './src/kraken.js'
+import krakenfutures from  './src/krakenfutures.js'
 import kucoin from  './src/kucoin.js'
 import kucoinfutures from  './src/kucoinfutures.js'
 import kuna from  './src/kuna.js'
@@ -285,6 +286,7 @@ const exchanges = {
     'indodax':                indodax,
     'itbit':                  itbit,
     'kraken':                 kraken,
+    'krakenfutures':          krakenfutures,
     'kucoin':                 kucoin,
     'kucoinfutures':          kucoinfutures,
     'kuna':                   kuna,
@@ -477,6 +479,7 @@ export {
     indodax,
     itbit,
     kraken,
+    krakenfutures,
     kucoin,
     kucoinfutures,
     kuna,
