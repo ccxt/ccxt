@@ -2965,10 +2965,14 @@ export default class bybit extends Exchange {
                 // use this endpoint only we have no other choice
                 // because it requires transfer permission
                 method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery';
-                request['accountType'] = unifiedType;
             } else {
-                method = 'privateGetContractV3PrivateAccountWalletBalance';
+                if (enableUnifiedAccount) {
+                    method = 'privateGetV5AccountWalletBalance';
+                } else {
+                    method = 'privateGetContractV3PrivateAccountWalletBalance';
+                }
             }
+            request['accountType'] = unifiedType;
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -3497,6 +3501,14 @@ export default class bybit extends Exchange {
     async createSpotOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const upperCaseType = type.toUpperCase ();
+        const request = {
+            'symbol': market['id'],
+            'side': this.capitalize (side),
+            'orderType': upperCaseType, // limit, market or limit_maker
+            'timeInForce': 'GTC', // FOK, IOC
+            // 'orderLinkId': 'string', // unique client order id, max 36 characters
+        };
         if ((type === 'market') && (side === 'buy')) {
             // for market buy it requires the amount of quote currency to spend
             if (this.options['createMarketBuyOrderRequiresPrice']) {
@@ -3509,18 +3521,12 @@ export default class bybit extends Exchange {
                     const priceString = this.numberToString (price);
                     const quoteAmount = Precise.stringMul (amountString, priceString);
                     amount = (cost !== undefined) ? cost : this.parseNumber (quoteAmount);
+                    request['orderQty'] = this.costToPrecision (symbol, amount);
                 }
             }
+        } else {
+            request['orderQty'] = this.amountToPrecision (symbol, amount);
         }
-        const upperCaseType = type.toUpperCase ();
-        const request = {
-            'symbol': market['id'],
-            'side': this.capitalize (side),
-            'orderType': upperCaseType, // limit, market or limit_maker
-            'timeInForce': 'GTC', // FOK, IOC
-            'orderQty': this.amountToPrecision (symbol, amount),
-            // 'orderLinkId': 'string', // unique client order id, max 36 characters
-        };
         if ((upperCaseType === 'LIMIT') || (upperCaseType === 'LIMIT_MAKER')) {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder requires a price argument for a ' + type + ' order');
