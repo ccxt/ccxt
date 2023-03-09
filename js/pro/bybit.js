@@ -38,6 +38,7 @@ module.exports = class bybit extends bybitRest {
                                 'nonUnified': 'wss://stream.{hostname}/spot/private/v3',
                             },
                             'contract': 'wss://stream.{hostname}/v5/private',
+                            'usdc': 'wss://stream.{hostname}/trade/option/usdc/private/v1',
                         },
                     },
                 },
@@ -55,6 +56,7 @@ module.exports = class bybit extends bybitRest {
                                 'nonUnified': 'wss://stream-testnet.{hostname}/spot/private/v3',
                             },
                             'contract': 'wss://stream-testnet.{hostname}/v5/private',
+                            'usdc': 'wss://stream-testnet.{hostname}/trade/option/usdc/private/v1',
                         },
                     },
                 },
@@ -119,15 +121,20 @@ module.exports = class bybit extends bybitRest {
 
     getUrlByMarketType (symbol = undefined, isPrivate = false, isUnifiedMargin = false, method = undefined, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
+        let isUsdcSettled = undefined;
         let isSpot = undefined;
         let type = undefined;
         let market = undefined;
         let url = this.urls['api']['ws'];
         if (symbol !== undefined) {
             market = this.market (symbol);
+            isUsdcSettled = market['settle'] === 'USDC';
             type = market['type'];
         } else {
             [ type, params ] = this.handleMarketTypeAndParams (method, undefined, params);
+            let defaultSettle = this.safeString (this.options, 'defaultSettle');
+            defaultSettle = this.safeString2 (params, 'settle', 'defaultSettle', defaultSettle);
+            isUsdcSettled = (defaultSettle === 'USDC');
         }
         isSpot = (type === 'spot');
         if (isPrivate) {
@@ -135,7 +142,7 @@ module.exports = class bybit extends bybitRest {
                 const margin = isUnifiedMargin ? 'unified' : 'nonUnified';
                 url = url[accessibility]['spot'][margin];
             } else {
-                url = url[accessibility]['contract'];
+                url = (isUsdcSettled) ? url[accessibility]['usdc'] : url[accessibility]['contract'];
             }
         } else {
             if (isSpot) {
@@ -676,6 +683,8 @@ module.exports = class bybit extends bybitRest {
             return 'spot';
         } else if (url.indexOf ('v5/private') >= 0) {
             return 'unified';
+        } else {
+            return 'usdc';
         }
     }
 
@@ -706,6 +715,7 @@ module.exports = class bybit extends bybitRest {
         const topicByMarket = {
             'spot': 'ticketInfo',
             'unified': 'execution',
+            'usdc': 'user.openapi.perp.trade',
         };
         const topic = this.safeValue (topicByMarket, this.getPrivateType (url));
         const trades = await this.watchTopics (url, messageHash, [ topic ], params);
@@ -780,7 +790,10 @@ module.exports = class bybit extends bybitRest {
         //
         const topic = this.safeString (message, 'topic');
         const spot = topic === 'ticketInfo';
-        const data = this.safeValue (message, 'data', []);
+        let data = this.safeValue (message, 'data', []);
+        if (!Array.isArray (data)) {
+            data = this.safeValue (data, 'result', []);
+        }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
@@ -826,11 +839,12 @@ module.exports = class bybit extends bybitRest {
         }
         const unified = await this.isUnifiedEnabled ();
         const isUnifiedMargin = this.safeValue (unified, 0, false);
-        const url = this.getUrlByMarketType (undefined, true, isUnifiedMargin, method, params);
+        const url = this.getUrlByMarketType (symbol, true, isUnifiedMargin, method, params);
         await this.authenticate (url);
         const topicsByMarket = {
             'spot': [ 'order', 'stopOrder' ],
             'unified': [ 'order' ],
+            'usdc': [ 'user.openapi.perp.order' ],
         };
         const topics = this.safeValue (topicsByMarket, this.getPrivateType (url));
         const orders = await this.watchTopics (url, messageHash, topics, params);
@@ -1058,9 +1072,7 @@ module.exports = class bybit extends bybitRest {
          */
         const method = 'watchBalance';
         const messageHash = 'balances';
-        const unified = await this.isUnifiedEnabled ();
-        const isUnifiedMargin = this.safeValue (unified, 0, false);
-        const url = this.getUrlByMarketType (undefined, true, isUnifiedMargin, method, params);
+        const url = this.getUrlByMarketType (undefined, true, true, method, params);
         await this.authenticate (url);
         const topicByMarket = {
             'spot': 'outboundAccountInfo',
@@ -1416,7 +1428,13 @@ module.exports = class bybit extends bybitRest {
             'outboundAccountInfo': this.handleBalance,
             'execution': this.handleMyTrades,
             'ticketInfo': this.handleMyTrades,
+            'user.openapi.perp.trade': this.handleMyTrades,
         };
+        const exacMethod = this.safeValue (methods, topic);
+        if (exacMethod !== undefined) {
+            exacMethod.call (this, client, message);
+            return;
+        }
         const keys = Object.keys (methods);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
