@@ -51,6 +51,7 @@
     "cli.js": "node ./examples/js/cli.js",
     "cli.py": "python3 ./examples/py/cli.py",
     "cli.php": "php ./examples/php/cli.php",
+    "cli.ts": "node --loader ts-node/esm examples/ts/cli.ts",
     "export-exchanges": "node build/export-exchanges",
     "export-docs": "python3 build/export-docs.py",
     "capabilities": "node ./examples/js/exchange-capabilities.js",
