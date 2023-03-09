@@ -841,7 +841,7 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
     authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
-        const messageHash = 'authenticate';
+        const messageHash = 'authenticated';
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             const nonce = this.milliseconds ();
