@@ -84,7 +84,7 @@ function io_file_exists (path) {
 }
 
 function io_file_read (path, decode = true) {
-    const content = fs.readFileSync(path);
+    const content = fs.readFileSync(path, 'utf8');
     return decode ? JSON.parse(content) : content;
 }
 

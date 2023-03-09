@@ -90,9 +90,11 @@ if os.path.exists(keys_file):
     with open(keys_file) as file:
         config = json.load(file)
 
+
 if os.path.exists(skip_file):
     with open(skip_file) as file:
         skip_settings = json.load(file)
+
 
 # -----------------------------------------------------------------------------
 

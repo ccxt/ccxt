@@ -13,7 +13,7 @@
     "bitbay":        { "skipMethods": { "loadMarkets": "expiry not set for future markets" } },
     "bitbns":        { "skipMethods": { "fetchCurrencies": "info key missing", "fetchTickers": "unknown symbol might be returned", "fetchTicker": "same" } },
     "bitcoincom":    { "skipWs": true },
-    "bitfinex":      { "skipWs": true, "skipMethods": { "loadMarkets": "linear and inverse values are same", "fetchCurrencies": "info key missing", "fetchTickers": "high might be 0", "fetchTicker": "same",  } },
+    "bitfinex":      { "skipWs": true, "skipMethods": { "loadMarkets": "linear and inverse values are same", "fetchCurrencies": "info key missing", "fetchTickers": "high might be 0", "fetchTicker": "same" } },
     "bitfinex2":     { "skipWs": true, "skipMethods": { "fetchTickers": "open might be 0", "fetchTicker": "same", "fetchOrderBook": "multiple bids might have same value", "fetchL2OrderBook": "same" } },
     "bitflyer":      { "skipMethods": { "fetchCurrencies": "info key missing" } },
     "bitforex":      { "skipMethods": { "fetchCurrencies": "info key missing" } },
