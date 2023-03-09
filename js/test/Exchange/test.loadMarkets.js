@@ -4,11 +4,6 @@ const testMarket = require ('./test.market.js')
 
 async function testLoadMarkets (exchange) {
     const method = 'loadMarkets';
-    const skippedExchanges = [];
-    if (exchange.inArray(exchange.id, skippedExchanges)) {
-        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
-        return;
-    }
     const markets = await exchange[method] ();
     const marketValues = Object.values (markets);
     console.log (exchange.id, method, 'fetched', marketValues.length, 'entries, asserting each ...');

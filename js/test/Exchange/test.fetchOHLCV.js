@@ -5,11 +5,6 @@ const testOHLCV = require ('./test.ohlcv.js');
 
 async function testFetchOHLCV (exchange, symbol) {
     const method = 'fetchOHLCV';
-    const skippedExchanges = [];
-    if (exchange.inArray(exchange.id, skippedExchanges)) {
-        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
-        return;
-    }
     const timeframes = Object.keys (exchange.timeframes);
     const timeframe = timeframes[0];
     const limit = 10;

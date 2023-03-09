@@ -6,11 +6,6 @@ const testLeverageTier = require ('./test.leverageTier.js');
 
 async function testFetchLeverageTiers (exchange, symbol) {
     const method = 'fetchLeverageTiers';
-    const skippedExchanges = [];
-    if (exchange.inArray(exchange.id, skippedExchanges)) {
-        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
-        return;
-    }
     const tiers = await exchange[method] (symbol);
     // const format = {
     //     'RAY/USDT': [

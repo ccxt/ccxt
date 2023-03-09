@@ -6,11 +6,6 @@ const testLedgerItem = require ('./test.ledgerItem.js');
 
 async function testFetchLedger (exchange, code) {
     const method = 'fetchLedger';
-    const skippedExchanges = [];
-    if (exchange.inArray(exchange.id, skippedExchanges)) {
-        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
-        return;
-    }
     const items = await exchange[method] (code);
     assert (Array.isArray (items), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json(items));
     const now = exchange.milliseconds ();

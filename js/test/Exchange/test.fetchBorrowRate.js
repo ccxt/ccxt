@@ -4,11 +4,6 @@ const testBorrowRate = require ('./test.borrowRate.js');
 
 async function testFetchBorrowRate (exchange, code) {
     const method = 'fetchBorrowRate';
-    const skippedExchanges = [];
-    if (exchange.inArray(exchange.id, skippedExchanges)) {
-        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
-        return;
-    }
     let borrowRate = undefined;
     try {
         borrowRate = await exchange[method] (code);

@@ -6,11 +6,6 @@ const testSharedMethods = require ('./test.sharedMethods.js');
 
 async function testFetchFundingRateHistory (exchange, symbol) {
     const method = 'fetchFundingRateHistory';
-    const skippedExchanges = [];
-    if (exchange.inArray(exchange.id, skippedExchanges)) {
-        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
-        return;
-    }
     const fundingRatesHistory = await exchange[method] (symbol);
     assert (Array.isArray (fundingRatesHistory), exchange.id + ' ' + method + ' ' + symbol + ' must return an array, returned ' + exchange.json (fundingRatesHistory));
     console.log (exchange.id, method, 'fetched', fundingRatesHistory.length, 'entries, asserting each ...');

@@ -6,11 +6,6 @@ const testSharedMethods = require ('./test.sharedMethods.js');
 
 async function testFetchPositions (exchange, symbol) {
     const method = 'fetchPositions';
-    const skippedExchanges = [];
-    if (exchange.inArray(exchange.id, skippedExchanges)) {
-        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
-        return;
-    }
     const now = exchange.milliseconds ();
     // without symbol
     const positions = await exchange[method] ();

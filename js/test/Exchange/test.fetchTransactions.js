@@ -6,11 +6,6 @@ const testSharedMethods = require ('./test.sharedMethods.js');
 
 async function testFetchTransactions (exchange, code) {
     const method = 'fetchTransactions';
-    const skippedExchanges = [];
-    if (exchange.inArray(exchange.id, skippedExchanges)) {
-        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
-        return;
-    }
     const transactions = await exchange[method] (code);
     assert (Array.isArray(transactions), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json(transactions));
     console.log (exchange.id, method, 'fetched', transactions.length, 'entries, asserting each ...');

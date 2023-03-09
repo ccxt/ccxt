@@ -5,11 +5,6 @@ const testTicker = require ('./test.ticker.js');
 
 async function testFetchTickers (exchange, symbol) {
     const method = 'fetchTickers';
-    const skippedExchanges = [];
-    if (exchange.inArray(exchange.id, skippedExchanges)) {
-        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
-        return;
-    }
     // log ('fetching all tickers at once...')
     let tickers = undefined;
     let checkedSymbol = undefined;

@@ -4,11 +4,6 @@ const testOrderBook = require ('./test.orderBook.js');
 
 async function testFetchOrderBooks (exchange) {
     const method = 'fetchOrderBooks';
-    const skippedExchanges = [];
-    if (exchange.inArray(exchange.id, skippedExchanges)) {
-        console.log (exchange.id, method, 'found in ignored exchanges, skipping ...');
-        return;
-    }
     const symbol = exchange.symbols[0];
     const orderBooks = await exchange[method] (symbol);
     assert (typeof orderBooks === 'object', exchange.id + ' ' + method + ' must return an object. ' + exchange.json (orderBooks));
