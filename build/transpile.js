@@ -19,7 +19,6 @@ import { fork } from 'child_process'
 import * as url from 'node:url';
 ansi.nice
 
-const tsFilename = './ccxt.d.ts'
 const pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
 const baseExchangeJsFile = './ts/src/base/Exchange.ts'
 
@@ -1544,7 +1543,7 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileErrorHierarchy ({ tsFilename }) {
+    transpileErrorHierarchy () {
 
         const errorHierarchyFilename = './js/src/base/errorHierarchy.js'
         const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
@@ -1637,26 +1636,6 @@ class Transpiler {
             const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
             replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
         }
-
-        // TypeScript ---------------------------------------------------------
-
-        function declareTsErrorClass (name, parent) {
-            return 'export class ' + name + ' extends ' + parent + ' {}'
-        }
-
-        const tsBaseError = [
-            'export class BaseError extends Error {',
-            '    constructor(message: string);',
-            '}',
-        ].join ('\n    ')
-
-        const tsErrors = intellisense (root, 'BaseError', declareTsErrorClass)
-
-        const tsBodyIntellisense = tsBaseError + '\n\n    ' + tsErrors.join ('\n    ') + '\n\n'
-
-        log.bright.cyan (message, tsFilename.yellow)
-        const regex = /export class BaseError[^}]+\}[\n][\n](?:\s+export class [a-zA-Z]+ extends [a-zA-Z]+ \{\}[\n])+[\n]/m
-        replaceInFile (tsFilename, regex, tsBodyIntellisense)
     }
 
     //-----------------------------------------------------------------------------
@@ -2051,7 +2030,7 @@ class Transpiler {
 
         //*/
 
-        this.transpileErrorHierarchy ({ tsFilename })
+        this.transpileErrorHierarchy ()
 
         this.transpileTests ()
 

@@ -21,7 +21,6 @@ const wsExchangeIds = exchanges.ws;
 
 const { unCamelCase, precisionConstants, safeString, unique } = ccxt;
 
-const tsFilename = './ccxt.d.ts'
 ansi.nice
 // ============================================================================
 
