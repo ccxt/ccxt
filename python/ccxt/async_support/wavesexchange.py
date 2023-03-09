@@ -26,7 +26,7 @@ class wavesexchange(Exchange):
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': ['CH'],  # Switzerland
-            'certified': False,
+            'certified': True,
             'pro': False,
             'has': {
                 'CORS': None,
@@ -744,17 +744,31 @@ class wavesexchange(Exchange):
         #           "timestamp":1640232379124
         #       }
         #
+        #  fetch ticker
+        #
+        #       {
+        #           firstPrice: '21749',
+        #           lastPrice: '22000',
+        #           volume: '0.73747149',
+        #           quoteVolume: '16409.44564928645471',
+        #           high: '23589.999941',
+        #           low: '21010.000845',
+        #           weightedAveragePrice: '22250.955964',
+        #           txsCount: '148',
+        #           volumeWaves: '0.0000000000680511203072'
+        #       }
+        #
         timestamp = self.safe_integer(ticker, 'timestamp')
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '/')
         symbol = market['symbol']
-        last = self.safe_string(ticker, '24h_close')
-        low = self.safe_string(ticker, '24h_low')
-        high = self.safe_string(ticker, '24h_high')
-        vwap = self.safe_string(ticker, '24h_vwap')
-        baseVolume = self.safe_string(ticker, '24h_volume')
-        quoteVolume = self.safe_string(ticker, '24h_priceVolume')
-        open = self.safe_string(ticker, '24h_open')
+        last = self.safe_string_2(ticker, '24h_close', 'lastPrice')
+        low = self.safe_string_2(ticker, '24h_low', 'low')
+        high = self.safe_string_2(ticker, '24h_high', 'high')
+        vwap = self.safe_string_2(ticker, '24h_vwap', 'weightedAveragePrice')
+        baseVolume = self.safe_string_2(ticker, '24h_volume', 'volume')
+        quoteVolume = self.safe_string_2(ticker, '24h_priceVolume', 'quoteVolume')
+        open = self.safe_string_2(ticker, '24h_open', 'firstPrice')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -816,14 +830,15 @@ class wavesexchange(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         ticker = self.safe_value(data, 0, {})
-        return self.parse_ticker(ticker, market)
+        dataTicker = self.safe_value(ticker, 'data', {})
+        return self.parse_ticker(dataTicker, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the aax api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         response = await self.marketGetTickers(params)
@@ -872,7 +887,7 @@ class wavesexchange(Exchange):
         request = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         allowedCandles = self.safe_integer(self.options, 'allowedCandles', 1440)
         if limit is None:

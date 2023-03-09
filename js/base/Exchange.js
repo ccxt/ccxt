@@ -96,6 +96,7 @@ module.exports = class Exchange {
                 'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': undefined,
                 'fetchL2OrderBook': true,
+                'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': undefined,
@@ -1194,11 +1195,8 @@ module.exports = class Exchange {
             // timeInForce is not undefined here
             postOnly = timeInForce === 'PO';
         }
-        let timestamp = this.safeInteger (order, 'timestamp');
+        const timestamp = this.safeInteger (order, 'timestamp');
         let datetime = this.safeString (order, 'datetime');
-        if (timestamp === undefined) {
-            timestamp = this.parse8601 (timestamp);
-        }
         if (datetime === undefined) {
             datetime = this.iso8601 (timestamp);
         }
@@ -1206,8 +1204,8 @@ module.exports = class Exchange {
         return this.extend (order, {
             'id': this.safeString (order, 'id'),
             'clientOrderId': this.safeString (order, 'clientOrderId'),
-            'timestamp': datetime,
-            'datetime': timestamp,
+            'timestamp': timestamp,
+            'datetime': datetime,
             'symbol': symbol,
             'type': this.safeString (order, 'type'),
             'side': side,
@@ -2272,6 +2270,9 @@ module.exports = class Exchange {
                 'updated': time,
             });
         }
+        if (!('info' in this.status)) {
+            this.status['info'] = undefined;
+        }
         return this.status;
     }
 
@@ -2452,6 +2453,9 @@ module.exports = class Exchange {
 
     async fetchTicker (symbol, params = {}) {
         if (this.has['fetchTickers']) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            symbol = market['symbol'];
             const tickers = await this.fetchTickers ([ symbol ], params);
             const ticker = this.safeValue (tickers, symbol);
             if (ticker === undefined) {
@@ -2764,6 +2768,45 @@ module.exports = class Exchange {
         return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
     }
 
+    parseLastPrices (pricesData, symbols = undefined, params = {}) {
+        //
+        // the value of tickers is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'marketId1': { ... },
+        //         'marketId2': { ... },
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     [
+        //         { 'market': 'marketId1', ... },
+        //         { 'market': 'marketId2', ... },
+        //         ...
+        //     ]
+        //
+        const results = [];
+        if (Array.isArray (pricesData)) {
+            for (let i = 0; i < pricesData.length; i++) {
+                const priceData = this.extend (this.parseLastPrice (pricesData[i]), params);
+                results.push (priceData);
+            }
+        } else {
+            const marketIds = Object.keys (pricesData);
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const market = this.safeMarket (marketId);
+                const priceData = this.extend (this.parseLastPrice (pricesData[marketId], market), params);
+                results.push (priceData);
+            }
+        }
+        symbols = this.marketSymbols (symbols);
+        return this.filterByArray (results, 'symbol', symbols);
+    }
+
     parseTickers (tickers, symbols = undefined, params = {}) {
         //
         // the value of tickers is either a dict or a list
@@ -2891,6 +2934,10 @@ module.exports = class Exchange {
         } else {
             return false;
         }
+    }
+
+    async fetchLastPrices (params = {}) {
+        throw new NotSupported (this.id + ' fetchLastPrices() is not supported yet');
     }
 
     async fetchTradingFees (params = {}) {
@@ -3053,7 +3100,8 @@ module.exports = class Exchange {
          * @param {[string]} options a list of options that the argument can be
          * @returns {undefined}
          */
-        if ((argument === undefined) || ((options.length > 0) && (!(this.inArray (argument, options))))) {
+        const optionsLength = options.length;
+        if ((argument === undefined) || ((optionsLength > 0) && (!(this.inArray (argument, options))))) {
             const messageOptions = options.join (', ');
             let message = this.id + ' ' + methodName + '() requires a ' + argumentName + ' argument';
             if (messageOptions !== '') {
@@ -3157,5 +3205,35 @@ module.exports = class Exchange {
             }
         }
         return fee;
+    }
+
+    parseIncomes (incomes, market = undefined, since = undefined, limit = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description parses funding fee info from exchange response
+         * @param {[object]} incomes each item describes once instance of currency being received or paid
+         * @param {object|undefined} market ccxt market
+         * @param {int|undefined} since when defined, the response items are filtered to only include items after this timestamp
+         * @param {int|undefined} limit limits the number of items in the response
+         * @returns {[object]} an array of [funding history structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         */
+        const result = [];
+        for (let i = 0; i < incomes.length; i++) {
+            const entry = incomes[i];
+            const parsed = this.parseIncome (entry, market);
+            result.push (parsed);
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit);
+    }
+
+    getMarketFromSymbols (symbols = undefined) {
+        if (symbols === undefined) {
+            return undefined;
+        }
+        const firstMarket = this.safeString (symbols, 0);
+        const market = this.market (firstMarket);
+        return market;
     }
 };

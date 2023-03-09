@@ -279,6 +279,7 @@ class bittrex(Exchange, ccxt.async_support.bittrex):
         #     }
         #
         delta = self.safe_value(message, 'delta', {})
+        self.balance['info'] = delta
         currencyId = self.safe_string(delta, 'currencySymbol')
         code = self.safe_currency_code(currencyId)
         account = self.account()
@@ -384,7 +385,7 @@ class bittrex(Exchange, ccxt.async_support.bittrex):
     async def subscribe_to_ohlcv(self, negotiation, symbol, timeframe='1m', params={}):
         await self.load_markets()
         market = self.market(symbol)
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candle'
         messageHash = name + '_' + market['id'] + '_' + interval
         subscription = {

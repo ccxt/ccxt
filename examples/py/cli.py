@@ -105,7 +105,7 @@ async def main():
     keys_file = keys_local if os.path.exists(keys_local) else keys_global
 
     # load the api keys and other settings from a JSON config
-    with open(keys_file) as file:
+    with open(keys_file, encoding="utf-8") as file:
         keys = json.load(file)
 
     config = {

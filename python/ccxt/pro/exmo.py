@@ -144,6 +144,7 @@ class exmo(Exchange, ccxt.async_support.exmo):
         #
         event = self.safe_string(message, 'event')
         data = self.safe_value(message, 'data')
+        self.balance['info'] = data
         if event == 'snapshot':
             balances = self.safe_value(data, 'balances', {})
             reserved = self.safe_value(data, 'reserved', {})
@@ -182,6 +183,7 @@ class exmo(Exchange, ccxt.async_support.exmo):
         #     }
         #
         data = self.safe_value(message, 'data')
+        self.balance['info'] = data
         currencies = list(data.keys())
         for i in range(0, len(currencies)):
             currencyId = currencies[i]

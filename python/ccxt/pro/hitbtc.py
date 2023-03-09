@@ -267,7 +267,7 @@ class hitbtc(Exchange, ccxt.async_support.hitbtc):
         # if limit is None:
         #     limit = 100
         # }
-        period = self.timeframes[timeframe]
+        period = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
             'params': {
                 'period': period,

@@ -83,6 +83,10 @@ class wazirx(Exchange, ccxt.async_support.wazirx):
         #
         data = self.safe_value(message, 'data', {})
         balances = self.safe_value(data, 'B', [])
+        timestamp = self.safe_integer(data, 'E')
+        self.balance['info'] = balances
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'a')
@@ -182,7 +186,7 @@ class wazirx(Exchange, ccxt.async_support.wazirx):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         see https://docs.wazirx.com/#all-market-tickers-stream
-        :param Array symbols: unified symbol of the market to fetch the ticker for
+        :param [str] symbols: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the wazirx api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """

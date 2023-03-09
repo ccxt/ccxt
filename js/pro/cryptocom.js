@@ -279,7 +279,7 @@ module.exports = class cryptocom extends cryptocomRest {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' watchOHLCV() supports spot markets only');
         }
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = 'candlestick' + '.' + interval + '.' + market['id'];
         const ohlcv = await this.watchPublic (messageHash, params);
         if (this.newUpdates) {
@@ -433,6 +433,7 @@ module.exports = class cryptocom extends cryptocomRest {
         //
         const messageHash = this.safeString (message, 'subscription');
         const data = this.safeValue (message, 'data');
+        this.balance['info'] = data;
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency');

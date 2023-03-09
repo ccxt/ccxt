@@ -30,20 +30,19 @@ module.exports = class gemini extends Exchange {
                 'addMargin': false,
                 'cancelOrder': true,
                 'createDepositAddress': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
-                'fetchBidsAsks': undefined,
+                'fetchBidsAsks': false,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchClosedOrders': undefined,
+                'fetchClosedOrders': false,
                 'fetchDepositAddress': undefined, // TODO
                 'fetchDepositAddressesByNetwork': true,
-                'fetchDeposits': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -60,7 +59,7 @@ module.exports = class gemini extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': undefined,
+                'fetchOrders': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -72,7 +71,6 @@ module.exports = class gemini extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
-                'fetchWithdrawals': undefined,
                 'postOnly': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -418,6 +416,9 @@ module.exports = class gemini extends Exchange {
     async fetchUSDTMarkets (params = {}) {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
+        if ('test' in this.urls) {
+            return []; // sandbox does not have usdt markets
+        }
         const fetchUsdtMarkets = this.safeValue (this.options, 'fetchUsdtMarkets', []);
         const result = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
@@ -641,6 +642,7 @@ module.exports = class gemini extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the gemini api endpoint
+         * @param {object} params.fetchTickerMethod 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const method = this.safeValue (this.options, 'fetchTickerMethod', 'fetchTickerV1');
@@ -748,7 +750,7 @@ module.exports = class gemini extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the gemini api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetV1Pricefeed (params);
@@ -1215,8 +1217,9 @@ module.exports = class gemini extends Exchange {
          * @method
          * @name gemini#createOrder
          * @description create a trade order
+         * @see https://docs.gemini.com/rest-api/#new-order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -1544,6 +1547,7 @@ module.exports = class gemini extends Exchange {
 
     async fetchDepositAddressesByNetwork (code, params = {}) {
         await this.loadMarkets ();
+        const currency = this.currency (code);
         const network = this.safeString (params, 'network');
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddressesByNetwork() requires a network parameter');
@@ -1557,7 +1561,7 @@ module.exports = class gemini extends Exchange {
             'network': networkId,
         };
         const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
-        const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
+        const results = this.parseDepositAddresses (response, [ currency['code'] ], false, { 'network': networkCode, 'currency': code });
         return this.groupBy (results, 'network');
     }
 

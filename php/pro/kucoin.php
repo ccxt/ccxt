@@ -33,6 +33,7 @@ class kucoin extends \ccxt\async\kucoin {
                 ),
                 'watchOrderBook' => array(
                     'snapshotDelay' => 5,
+                    'maxRetries' => 3,
                 ),
             ),
             'streaming' => array(
@@ -234,7 +235,7 @@ class kucoin extends \ccxt\async\kucoin {
             $url = Async\await($this->negotiate(false));
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $period = $this->timeframes[$timeframe];
+            $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $topic = '/market/candles:' . $market['id'] . '_' . $period;
             $messageHash = 'candles:' . $symbol . ':' . $timeframe;
             $ohlcv = Async\await($this->subscribe($url, $messageHash, $topic, null, $params));
@@ -797,6 +798,10 @@ class kucoin extends \ccxt\async\kucoin {
         if (!(is_array($this->balance) && array_key_exists($uniformType, $this->balance))) {
             $this->balance[$uniformType] = array();
         }
+        $this->balance[$uniformType]['info'] = $data;
+        $timestamp = $this->safe_integer($data, 'time');
+        $this->balance[$uniformType]['timestamp'] = $timestamp;
+        $this->balance[$uniformType]['datetime'] = $this->iso8601($timestamp);
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();
         $account['free'] = $this->safe_string($data, 'available');

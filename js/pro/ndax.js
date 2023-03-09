@@ -212,7 +212,7 @@ module.exports = class ndax extends ndaxRest {
         const payload = {
             'OMSId': omsId,
             'InstrumentId': parseInt (market['id']), // conditionally optional
-            'Interval': parseInt (this.timeframes[timeframe]),
+            'Interval': parseInt (this.safeString (this.timeframes, timeframe, timeframe)),
             'IncludeLastCount': 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
         };
         const request = {
@@ -266,7 +266,7 @@ module.exports = class ndax extends ndaxRest {
             const keys = Object.keys (this.timeframes);
             for (let j = 0; j < keys.length; j++) {
                 const timeframe = keys[j];
-                const interval = this.timeframes[timeframe];
+                const interval = this.safeString (this.timeframes, timeframe, timeframe);
                 const duration = parseInt (interval) * 1000;
                 const timestamp = this.safeInteger (ohlcv, 0);
                 const parsed = [

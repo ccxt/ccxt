@@ -532,20 +532,22 @@ class coinbasepro(Exchange, ccxt.async_support.coinbasepro):
         #
         #     {
         #         type: 'ticker',
-        #         sequence: 12042642428,
-        #         product_id: 'BTC-USD',
-        #         price: '9380.55',
-        #         open_24h: '9450.81000000',
-        #         volume_24h: '9611.79166047',
-        #         low_24h: '9195.49000000',
-        #         high_24h: '9475.19000000',
-        #         volume_30d: '327812.00311873',
-        #         best_bid: '9380.54',
-        #         best_ask: '9380.55',
-        #         side: 'buy',
-        #         time: '2020-02-01T01:40:16.253563Z',
-        #         trade_id: 82062566,
-        #         last_size: '0.41969131'
+        #         sequence: 7388547310,
+        #         product_id: 'BTC-USDT',
+        #         price: '22345.67',
+        #         open_24h: '22308.13',
+        #         volume_24h: '470.21123644',
+        #         low_24h: '22150',
+        #         high_24h: '22495.15',
+        #         volume_30d: '25713.98401605',
+        #         best_bid: '22345.67',
+        #         best_bid_size: '0.10647825',
+        #         best_ask: '22349.68',
+        #         best_ask_size: '0.03131702',
+        #         side: 'sell',
+        #         time: '2023-03-04T03:37:20.799258Z',
+        #         trade_id: 11586478,
+        #         last_size: '0.00352175'
         #     }
         #
         type = self.safe_string(ticker, 'type')
@@ -562,9 +564,9 @@ class coinbasepro(Exchange, ccxt.async_support.coinbasepro):
             'high': self.safe_number(ticker, 'high_24h'),
             'low': self.safe_number(ticker, 'low_24h'),
             'bid': self.safe_number(ticker, 'best_bid'),
-            'bidVolume': None,
+            'bidVolume': self.safe_number(ticker, 'best_bid_size'),
             'ask': self.safe_number(ticker, 'best_ask'),
-            'askVolume': None,
+            'askVolume': self.safe_number(ticker, 'best_ask_size'),
             'vwap': None,
             'open': self.safe_number(ticker, 'open_24h'),
             'close': last,

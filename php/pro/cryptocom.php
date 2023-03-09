@@ -285,7 +285,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' watchOHLCV() supports spot markets only');
             }
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageHash = 'candlestick' . '.' . $interval . '.' . $market['id'];
             $ohlcv = Async\await($this->watch_public($messageHash, $params));
             if ($this->newUpdates) {
@@ -440,6 +440,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         //
         $messageHash = $this->safe_string($message, 'subscription');
         $data = $this->safe_value($message, 'data');
+        $this->balance['info'] = $data;
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'currency');

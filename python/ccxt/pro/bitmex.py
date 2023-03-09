@@ -34,9 +34,9 @@ class bitmex(Exchange, ccxt.async_support.bitmex):
                     'ws': 'wss://ws.bitmex.com/realtime',
                 },
             },
-            'versions': {
-                'ws': '0.2.0',
-            },
+            # 'versions': {
+            #     'ws': '0.2.0',
+            # },
             'options': {
                 'watchOrderBookLevel': 'orderBookL2',  # 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
                 'tradesLimit': 1000,
@@ -568,14 +568,13 @@ class bitmex(Exchange, ccxt.async_support.bitmex):
                 client.reject(e, 'authenticated')
                 if action in client.subscriptions:
                     del client.subscriptions[action]
-        return await future
+        return future
 
     def handle_authentication_message(self, client, message):
         authenticated = self.safe_value(message, 'success', False)
         if authenticated:
             # we resolve the future here permanently so authentication only happens once
-            future = self.safe_value(client.futures, 'authenticated')
-            future.resolve(True)
+            client.resolve(message, 'authenticated')
         else:
             error = AuthenticationError(self.json(message))
             client.reject(error, 'authenticated')
@@ -942,7 +941,7 @@ class bitmex(Exchange, ccxt.async_support.bitmex):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        table = 'tradeBin' + self.timeframes[timeframe]
+        table = 'tradeBin' + self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = table + ':' + market['id']
         url = self.urls['api']['ws']
         request = {

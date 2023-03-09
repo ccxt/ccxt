@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, PermissionDenied, ExchangeNotAvailable, ArgumentsRequired } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -44,7 +44,16 @@ module.exports = class btcex extends Exchange {
                 'option': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createLimitBuyOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
+                'createMarketSellOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -56,15 +65,20 @@ module.exports = class btcex extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
+                'fetchLeverage': true,
+                'fetchLeverageTiers': true,
                 'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -83,7 +97,10 @@ module.exports = class btcex extends Exchange {
                 'fetchTransactionFees': undefined,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
+                'setMarginMode': true,
                 'signIn': true,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -126,6 +143,8 @@ module.exports = class btcex extends Exchange {
                         'coin_gecko_market_trades',
                         'coin_gecko_contracts',
                         'coin_gecko_contract_orderbook',
+                        'get_perpetual_leverage_bracket',
+                        'get_perpetual_leverage_bracket_all',
                     ],
                     'post': [
                         'auth',
@@ -147,6 +166,7 @@ module.exports = class btcex extends Exchange {
                         'get_user_trades_by_currency',
                         'get_user_trades_by_instrument',
                         'get_user_trades_by_order',
+                        'get_perpetual_user_config',
                     ],
                     'post': [
                         // auth
@@ -161,6 +181,9 @@ module.exports = class btcex extends Exchange {
                         'cancel_all_by_currency',
                         'cancel_all_by_instrument',
                         'close_position',
+                        'adjust_perpetual_leverage',
+                        'adjust_perpetual_margin_type',
+                        'submit_transfer',
                     ],
                     'delete': [],
                 },
@@ -193,10 +216,12 @@ module.exports = class btcex extends Exchange {
                     '403': AuthenticationError, // ACCESS_DENIED_ERROR Access denied
                     '1000': ExchangeNotAvailable, // NO_SERVICE No service found
                     '1001': BadRequest, // BAD_REQUEST Bad requested
+                    '1005': DDoSProtection, // {"code":1005,"message":"Operate too frequently"}
                     '2000': AuthenticationError, // NEED_LOGIN Login is required
                     '2001': AuthenticationError, // ACCOUNT_NOT_MATCH Account information does not match
                     '2002': AuthenticationError, // ACCOUNT_NEED_ENABLE Account needs to be activated
                     '2003': AuthenticationError, // ACCOUNT_NOT_AVAILABLE Account not available
+                    '2010': PermissionDenied, // {"code":2010,"message":"Access denied","data":{}}
                     '3000': AuthenticationError, // TEST user
                     '3002': AuthenticationError, // NICKNAME_EXIST Nicknames exist
                     '3003': AuthenticationError, // ACCOUNT_NOT_EXIST No account
@@ -261,6 +286,7 @@ module.exports = class btcex extends Exchange {
                     '5013': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_HIGH order price range is too high.
                     '5014': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
                     '5109': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
+                    '5119': InvalidOrder, // {"code":5119,"message":"Cannot be less than the minimum order value：10USDT, instrument: GXE/USDT","data":{"coinType":"USDT","amount":"10","instrumentName":"GXE/USDT"}}
                     '5135': InvalidOrder, // The quantity should be larger than: 0.01
                     '5901': InvalidOrder, // TRANSFER_RESULT transfer out success.
                     '5902': InvalidOrder, // ORDER_SUCCESS place order success.
@@ -296,6 +322,7 @@ module.exports = class btcex extends Exchange {
                     'BTC': 'BTC',
                     'ETH': 'ETH',
                 },
+                'createMarketBuyOrderRequiresPrice': true,
             },
             'commonCurrencies': {
             },
@@ -605,7 +632,7 @@ module.exports = class btcex extends Exchange {
             limit = 10;
         }
         const request = {
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             // 'start_timestamp': 0,
             // 'end_timestamp': 0,
         };
@@ -1138,13 +1165,6 @@ module.exports = class btcex extends Exchange {
         const averageString = this.safeString (order, 'average_price');
         const amountString = this.safeString (order, 'amount');
         const filledString = this.safeString (order, 'filled_amount');
-        let lastTradeTimestamp = undefined;
-        if (filledString !== undefined) {
-            const isFilledPositive = Precise.stringGt (filledString, '0');
-            if (isFilledPositive) {
-                lastTradeTimestamp = lastUpdate;
-            }
-        }
         const status = this.parseOrderStatus (this.safeString (order, 'order_state'));
         const marketId = this.safeString (order, 'instrument_name');
         market = this.safeMarket (marketId, market);
@@ -1158,27 +1178,26 @@ module.exports = class btcex extends Exchange {
                 'currency': market['base'],
             };
         }
-        const type = this.safeString (order, 'order_type');
         // injected in createOrder
         const trades = this.safeValue (order, 'trades');
-        const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
-        const stopPrice = this.safeValue (order, 'trigger_price');
-        const postOnly = this.safeValue (order, 'post_only');
+        const stopPrice = this.safeNumber (order, 'trigger_price');
         return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': lastUpdate,
             'symbol': market['symbol'],
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
+            'type': this.safeString (order, 'order_type'),
+            'timeInForce': this.parseTimeInForce (this.safeString (order, 'time_in_force')),
+            'postOnly': this.safeValue (order, 'post_only'),
             'side': side,
-            'price': priceString,
+            'price': this.parseNumber (priceString),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'stopLossPrice': this.safeNumber (order, 'stop_loss_price'),
+            'takeProfitPrice': this.safeNumber (order, 'take_profit_price'),
             'amount': amountString,
             'cost': undefined,
             'average': averageString,
@@ -1191,6 +1210,7 @@ module.exports = class btcex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.signIn ();
         await this.loadMarkets ();
         const request = {
             'order_id': id,
@@ -1231,26 +1251,77 @@ module.exports = class btcex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * ----------------- Exchange Specific Parameters -----------------
+         * @param {float|undefined} params.cost amount in USDT to spend for market orders
+         * @param {float|undefined} params.triggerPrice price to trigger stop orders
+         * @param {float|undefined} params.stopPrice price to trigger stop orders
+         * @param {float|undefined} params.stopLossPrice price to trigger stop-loss orders (only for perpetuals)
+         * @param {float|undefined} params.takeProfitPrice price to trigger take-profit orders (only for perpetuals)
+         * @param {object|undefined} params.stopLoss for setting a stop-loss attached to an order, set the value of the stopLoss key 'price' (only for perpetuals)
+         * @param {object|undefined} params.takeProfit for setting a take-profit attached to an order, set the value of the takeProfit key 'price' (only for perpetuals)
+         * @param {int|undefined} params.trigger_price_type 1: mark-price, 2: last-price. (only for perpetuals)
+         * @param {int|undefined} params.stop_loss_type 1: mark-price, 2: last-price (only for perpetuals)
+         * @param {int|undefined} params.take_profit_type 1: mark-price, 2: last-price (only for perpetuals)
+         * @param {bool|undefined} params.market_amount_order if set to true，then the amount field means USDT value (only for perpetuals)
+         * @param {string|undefined} params.condition_type 'NORMAL', 'STOP', 'TRAILING', 'IF_TOUCHED'
+         * @param {string|undefined} params.position_side 'BOTH', for one-way mode 'LONG' or 'SHORT', for hedge-mode
+         * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'FOK'
+         * @param {bool|undefined} params.postOnly
+         * @param {bool|undefined} params.reduceOnly
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.signIn ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
-            'amount': this.amountToPrecision (symbol, amount),
-            'type': type, // limit, market, default is limit
-            // 'price': this.priceToPrecision (symbol, 123.45), // The order price for limit order. When adding options order with advanced=iv, the field price should be a value of implied volatility in percentages. For example, price=100, means implied volatility of 100%
-            // 'time_in_force' : 'good_til_cancelled', // good_til_cancelled, good_til_date, fill_or_kill, immediate_or_cancel Specifies how long the order remains in effect, default: good_til_cancelled
-            // 'post_only': false, // If true, the order is considered post-only, default: false
-            // 'reduce_only': false, // If true, the order is considered reduce-only which is intended to only reduce a current position. default: false
-            // 'condition_type': '', // NORMAL, STOP, TRAILING, IF_TOUCHED, Condition sheet policy, the default is NORMAL. Available when kind is future
-            // 'trigger_price': 'index_price', // trigger price. Available when condition_type is STOP or IF_TOUCHED
-            // 'trail_price': false, // trail price, Tracking price change Delta. Available when condition_type is TRAILING
-            // 'advanced': 'usd', // Advanced option order type, (Only for options), default: usdt. If set to iv，then the price field means iv value
+            'type': type,
         };
+        if (side === 'sell' || type === 'limit') {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
+        } else {
+            const costParam = this.safeNumber (params, 'cost');
+            const amountString = this.numberToString (amount);
+            const priceString = this.numberToString (price);
+            const cost = this.parseNumber (Precise.stringMul (amountString, priceString), costParam);
+            if (market['swap']) {
+                if (cost !== undefined) {
+                    request['amount'] = this.priceToPrecision (symbol, cost);
+                    request['market_amount_order'] = true;
+                } else {
+                    request['market_amount_order'] = false;
+                    request['amount'] = this.amountToPrecision (symbol, amount);
+                }
+            } else {
+                if (side === 'buy') {
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    if (createMarketBuyOrderRequiresPrice) {
+                        if (cost === undefined) {
+                            throw new InvalidOrder (this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                        } else {
+                            request['amount'] = this.priceToPrecision (symbol, cost);
+                        }
+                    } else {
+                        request['amount'] = this.priceToPrecision (symbol, amount);
+                    }
+                }
+            }
+            params = this.omit (params, 'cost');
         }
-        if (market['contract']) {
+        if (market['swap']) {
             const timeInForce = this.safeStringUpper (params, 'timeInForce');
             if (timeInForce === 'GTC') {
                 request['time_in_force'] = 'good_till_cancelled';
@@ -1269,7 +1340,43 @@ module.exports = class btcex extends Exchange {
             if (reduceOnly) {
                 request['reduce_only'] = true;
             }
-            params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly' ]);
+            if (side === 'buy') {
+                const requestType = (reduceOnly) ? 'SHORT' : 'LONG';
+                request['position_side'] = requestType;
+            } else {
+                const requestType = (reduceOnly) ? 'LONG' : 'SHORT';
+                request['position_side'] = requestType;
+            }
+            const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+            let stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+            let takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+            const isStopLoss = this.safeValue (params, 'stopLoss');
+            const isTakeProfit = this.safeValue (params, 'takeProfit');
+            if (stopPrice) {
+                request['condition_type'] = 'STOP';
+                request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
+                request['trigger_price_type'] = 1;
+            } else if (stopLossPrice || takeProfitPrice) {
+                request['condition_type'] = 'STOP';
+                if (stopLossPrice) {
+                    request['trigger_price'] = this.priceToPrecision (symbol, stopLossPrice);
+                } else {
+                    request['trigger_price'] = this.priceToPrecision (symbol, takeProfitPrice);
+                }
+                request['reduce_only'] = true;
+                request['trigger_price_type'] = 1;
+            } else if (isStopLoss || isTakeProfit) {
+                if (isStopLoss) {
+                    stopLossPrice = this.safeNumber (isStopLoss, 'price');
+                    request['stop_loss_price'] = this.priceToPrecision (symbol, stopLossPrice);
+                    request['stop_loss_type'] = 1;
+                } else {
+                    takeProfitPrice = this.safeNumber (isTakeProfit, 'price');
+                    request['take_profit_price'] = this.priceToPrecision (symbol, takeProfitPrice);
+                    request['take_profit_type'] = 1;
+                }
+            }
+            params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
         }
         const method = 'privatePost' + this.capitalize (side);
         const response = await this[method] (this.extend (request, params));
@@ -1492,19 +1599,18 @@ module.exports = class btcex extends Exchange {
             // 'end_id': 0, // The ID number of the last trade to be returned
             // 'sorting': '', // Direction of results sorting,default: desc
             // 'self_trade': false, // If not set, query all
+            // 'start_timestamp': false // The trade time of the first trade to be returned
+            // 'end_timestamp': false // The trade time of the last trade to be returned
         };
-        let method = undefined;
         const market = this.market (symbol);
         request['instrument_name'] = market['id'];
-        if (since === undefined) {
-            method = 'privateGetGetUserTradesByInstrument';
-        } else {
-            method = 'privateGetGetUserTradesByInstrumentAndTime';
-        }
         if (limit !== undefined) {
             request['count'] = limit; // default 20
         }
-        const response = await this[method] (this.extend (request, params));
+        if (since !== undefined) {
+            request['start_timestamp'] = since;
+        }
+        const response = await this.privateGetGetUserTradesByInstrument (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
@@ -1882,6 +1988,607 @@ module.exports = class btcex extends Exchange {
         const records = this.filterBy (result, 'id', id);
         const record = this.safeValue (records, 0);
         return this.parseTransaction (record, currency);
+    }
+
+    async fetchLeverage (symbol, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchLeverage
+         * @see https://docs.btcex.com/#get-perpetual-instrument-config
+         * @description fetch the set leverage for a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure}
+         */
+        await this.signIn ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.privateGetGetPerpetualUserConfig (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674182494283,
+        //         "usOut": 1674182494294,
+        //         "usDiff": 11,
+        //         "result": {
+        //             "margin_type": "cross",
+        //             "leverage": "20",
+        //             "instrument_name": "BTC-USDT-PERPETUAL",
+        //             "time": "1674182494293"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        return this.safeNumber (data, 'leverage');
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchMarketLeverageTiers
+         * @see https://docs.btcex.com/#get-perpetual-instrument-leverage-config
+         * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.publicGetGetPerpetualLeverageBracket (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674184074454,
+        //         "usOut": 1674184074457,
+        //         "usDiff": 3,
+        //         "result": [
+        //             {
+        //                 "bracket": 1,
+        //                 "initialLeverage": 125,
+        //                 "maintenanceMarginRate": "0.004",
+        //                 "notionalCap": "50000",
+        //                 "notionalFloor": "0",
+        //                 "cum": "0"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        return this.parseMarketLeverageTiers (data, market);
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        //
+        //     [
+        //         {
+        //             "bracket": 1,
+        //             "initialLeverage": 125,
+        //             "maintenanceMarginRate": "0.004",
+        //             "notionalCap": "50000",
+        //             "notionalFloor": "0",
+        //             "cum": "0"
+        //         },
+        //         ...
+        //     ]
+        //
+        const tiers = [];
+        const brackets = info;
+        for (let i = 0; i < brackets.length; i++) {
+            const tier = brackets[i];
+            tiers.push ({
+                'tier': this.safeInteger (tier, 'bracket'),
+                'currency': market['settle'],
+                'minNotional': this.safeNumber (tier, 'notionalFloor'),
+                'maxNotional': this.safeNumber (tier, 'notionalCap'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMarginRate'),
+                'maxLeverage': this.safeNumber (tier, 'initialLeverage'),
+                'info': tier,
+            });
+        }
+        return tiers;
+    }
+
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchLeverageTiers
+         * @see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
+         * @description retrieve information on the maximum leverage, for different trade sizes
+         * @param {[string]|undefined} symbols a list of unified market symbols
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetGetPerpetualLeverageBracketAll (params);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674183578745,
+        //         "usOut": 1674183578752,
+        //         "usDiff": 7,
+        //         "result": {
+        //             "WAVES-USDT-PERPETUAL": [
+        //                 {
+        //                     "bracket": 1,
+        //                     "initialLeverage": 50,
+        //                     "maintenanceMarginRate": "0.01",
+        //                     "notionalCap": "50000",
+        //                     "notionalFloor": "0",
+        //                     "cum": "0"
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        symbols = this.marketSymbols (symbols);
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+        //
+        //     {
+        //         "WAVES-USDT-PERPETUAL": [
+        //             {
+        //                 "bracket": 1,
+        //                 "initialLeverage": 50,
+        //                 "maintenanceMarginRate": "0.01",
+        //                 "notionalCap": "50000",
+        //                 "notionalFloor": "0",
+        //                 "cum": "0"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const tiers = {};
+        const result = {};
+        const marketIds = Object.keys (response);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const entry = response[marketId];
+            const market = this.safeMarket (marketId);
+            const symbol = this.safeSymbol (marketId, market);
+            let symbolsLength = 0;
+            tiers[symbol] = this.parseMarketLeverageTiers (entry, market);
+            if (symbols !== undefined) {
+                symbolsLength = symbols.length;
+                if (this.inArray (symbol, symbols)) {
+                    result[symbol] = this.parseMarketLeverageTiers (entry, market);
+                }
+            }
+            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbol, symbols))) {
+                result[symbol] = this.parseMarketLeverageTiers (entry, market);
+            }
+        }
+        return result;
+    }
+
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#setMarginMode
+         * @description set margin mode to 'cross' or 'isolated'
+         * @see https://docs.btcex.com/#modify-perpetual-instrument-margin-type
+         * @param {string} marginMode 'cross' or 'isolated'
+         * @param {string|undefined} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} response from the exchange
+         */
+        this.checkRequiredSymbol ('setMarginMode', symbol);
+        await this.signIn ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' setMarginMode() supports swap contracts only');
+        }
+        if ((marginMode !== 'isolated') && (marginMode !== 'isolate') && (marginMode !== 'cross')) {
+            throw new BadRequest (this.id + ' marginMode must be either isolated or cross');
+        }
+        marginMode = (marginMode === 'isolated') ? 'isolate' : 'cross';
+        const request = {
+            'instrument_name': market['id'],
+            'margin_type': marginMode,
+        };
+        const result = await this.privatePostAdjustPerpetualMarginType (this.extend (request, params));
+        //
+        //     {
+        //         "id": "1674857919",
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674857920070,
+        //         "usOut": 1674857920079,
+        //         "usDiff": 9,
+        //         "result": "ok"
+        //     }
+        //
+        return result;
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#setLeverage
+         * @description set the leverage amount for a market
+         * @see https://docs.btcex.com/#modify-perpetual-instrument-leverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.signIn ();
+        await this.loadMarkets ();
+        this.checkRequiredSymbol ('setLeverage', symbol);
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' setLeverage() supports swap contracts only');
+        }
+        if ((leverage < 1) || (leverage > 125)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 125');
+        }
+        const request = {
+            'instrument_name': market['id'],
+            'leverage': leverage,
+        };
+        const response = await this.privatePostAdjustPerpetualLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "id": "1674856410",
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674856410930,
+        //         "usOut": 1674856410988,
+        //         "usDiff": 58,
+        //         "result": "ok"
+        //     }
+        //
+        return response;
+    }
+
+    async fetchFundingRates (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchFundingRates
+         * @description fetch the current funding rates
+         * @see https://docs.btcex.com/#contracts
+         * @param {[string]} symbols unified market symbols
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetCoinGeckoContracts (params);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674803585896,
+        //         "usOut": 1674803585943,
+        //         "usDiff": 47,
+        //         "result": [
+        //             {
+        //                 "ticker_id": "BTC-USDT-PERPETUAL",
+        //                 "base_currency": "BTC",
+        //                 "target_currency": "USDT",
+        //                 "last_price": "23685",
+        //                 "base_volume": "167011.37199999999999989",
+        //                 "target_volume": "3837763191.33800288010388613",
+        //                 "bid": "23684.5",
+        //                 "ask": "23685",
+        //                 "high": "23971.5",
+        //                 "low": "23156",
+        //                 "product_type": "perpetual",
+        //                 "open_interest": "24242.36",
+        //                 "index_price": "23686.4",
+        //                 "index_name": "BTC-USDT",
+        //                 "index_currency": "BTC",
+        //                 "start_timestamp": 1631004005882,
+        //                 "funding_rate": "0.000187",
+        //                 "next_funding_rate_timestamp": 1675065600000,
+        //                 "contract_type": "Quanto",
+        //                 "contract_price": "23685",
+        //                 "contract_price_currency": "USDT"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'ticker_id');
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            if (symbols !== undefined) {
+                if (this.inArray (symbol, symbols)) {
+                    result[symbol] = this.parseFundingRate (entry, market);
+                }
+            } else {
+                result[symbol] = this.parseFundingRate (entry, market);
+            }
+        }
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://docs.btcex.com/#contracts
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const response = await this.publicGetCoinGeckoContracts (params);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674803585896,
+        //         "usOut": 1674803585943,
+        //         "usDiff": 47,
+        //         "result": [
+        //             {
+        //                 "ticker_id": "BTC-USDT-PERPETUAL",
+        //                 "base_currency": "BTC",
+        //                 "target_currency": "USDT",
+        //                 "last_price": "23685",
+        //                 "base_volume": "167011.37199999999999989",
+        //                 "target_volume": "3837763191.33800288010388613",
+        //                 "bid": "23684.5",
+        //                 "ask": "23685",
+        //                 "high": "23971.5",
+        //                 "low": "23156",
+        //                 "product_type": "perpetual",
+        //                 "open_interest": "24242.36",
+        //                 "index_price": "23686.4",
+        //                 "index_name": "BTC-USDT",
+        //                 "index_currency": "BTC",
+        //                 "start_timestamp": 1631004005882,
+        //                 "funding_rate": "0.000187",
+        //                 "next_funding_rate_timestamp": 1675065600000,
+        //                 "contract_type": "Quanto",
+        //                 "contract_price": "23685",
+        //                 "contract_price_currency": "USDT"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'ticker_id');
+            if (marketId === market['id']) {
+                return this.parseFundingRate (entry, market);
+            }
+        }
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "ticker_id": "BTC-USDT-PERPETUAL",
+        //         "base_currency": "BTC",
+        //         "target_currency": "USDT",
+        //         "last_price": "23685",
+        //         "base_volume": "167011.37199999999999989",
+        //         "target_volume": "3837763191.33800288010388613",
+        //         "bid": "23684.5",
+        //         "ask": "23685",
+        //         "high": "23971.5",
+        //         "low": "23156",
+        //         "product_type": "perpetual",
+        //         "open_interest": "24242.36",
+        //         "index_price": "23686.4",
+        //         "index_name": "BTC-USDT",
+        //         "index_currency": "BTC",
+        //         "start_timestamp": 1631004005882,
+        //         "funding_rate": "0.000187",
+        //         "next_funding_rate_timestamp": 1675065600000,
+        //         "contract_type": "Quanto",
+        //         "contract_price": "23685",
+        //         "contract_price_currency": "USDT"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'ticker_id');
+        const fundingTimestamp = this.safeInteger (contract, 'next_funding_rate_timestamp');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market),
+            'markPrice': undefined,
+            'indexPrice': this.safeNumber (contract, 'index_price'),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'funding_rate'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name btcex#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://docs.btcex.com/#asset-transfer
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        await this.signIn ();
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const request = {
+            'coin_type': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'from': fromId, // WALLET, SPOT, PERPETUAL
+            'to': toId, // WALLET, SPOT, PERPETUAL
+        };
+        const response = await this.privatePostSubmitTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "id": "1674937273",
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674937274762,
+        //         "usOut": 1674937274774,
+        //         "usDiff": 12,
+        //         "result": "ok"
+        //     }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "id": "1674937273",
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674937274762,
+        //         "usOut": 1674937274774,
+        //         "usDiff": 12,
+        //         "result": "ok"
+        //     }
+        //
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+        };
+    }
+
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchOpenInterest
+         * @description fetch the open interest of a market
+         * @see https://docs.btcex.com/#contracts
+         * @param {string} symbol unified CCXT market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const response = await this.publicGetCoinGeckoContracts (params);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674803585896,
+        //         "usOut": 1674803585943,
+        //         "usDiff": 47,
+        //         "result": [
+        //             {
+        //                 "ticker_id": "BTC-USDT-PERPETUAL",
+        //                 "base_currency": "BTC",
+        //                 "target_currency": "USDT",
+        //                 "last_price": "23685",
+        //                 "base_volume": "167011.37199999999999989",
+        //                 "target_volume": "3837763191.33800288010388613",
+        //                 "bid": "23684.5",
+        //                 "ask": "23685",
+        //                 "high": "23971.5",
+        //                 "low": "23156",
+        //                 "product_type": "perpetual",
+        //                 "open_interest": "24242.36",
+        //                 "index_price": "23686.4",
+        //                 "index_name": "BTC-USDT",
+        //                 "index_currency": "BTC",
+        //                 "start_timestamp": 1631004005882,
+        //                 "funding_rate": "0.000187",
+        //                 "next_funding_rate_timestamp": 1675065600000,
+        //                 "contract_type": "Quanto",
+        //                 "contract_price": "23685",
+        //                 "contract_price_currency": "USDT"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'ticker_id');
+            if (marketId === market['id']) {
+                return this.parseOpenInterest (entry, market);
+            }
+        }
+        return this.parseOpenInterest (data, market);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //     {
+        //         "ticker_id": "BTC-USDT-PERPETUAL",
+        //         "base_currency": "BTC",
+        //         "target_currency": "USDT",
+        //         "last_price": "23685",
+        //         "base_volume": "167011.37199999999999989",
+        //         "target_volume": "3837763191.33800288010388613",
+        //         "bid": "23684.5",
+        //         "ask": "23685",
+        //         "high": "23971.5",
+        //         "low": "23156",
+        //         "product_type": "perpetual",
+        //         "open_interest": "24242.36",
+        //         "index_price": "23686.4",
+        //         "index_name": "BTC-USDT",
+        //         "index_currency": "BTC",
+        //         "start_timestamp": 1631004005882,
+        //         "funding_rate": "0.000187",
+        //         "next_funding_rate_timestamp": 1675065600000,
+        //         "contract_type": "Quanto",
+        //         "contract_price": "23685",
+        //         "contract_price_currency": "USDT"
+        //     }
+        //
+        const marketId = this.safeString (interest, 'ticker_id');
+        market = this.safeMarket (marketId, market);
+        const openInterest = this.safeNumber (interest, 'open_interest');
+        return {
+            'info': interest,
+            'symbol': market['symbol'],
+            'baseVolume': openInterest,
+            'quoteVolume': undefined,
+            'openInterestAmount': openInterest, // in base currency
+            'openInterestValue': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

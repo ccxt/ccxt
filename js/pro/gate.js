@@ -60,6 +60,7 @@ module.exports = class gate extends gateRest {
                 'watchOrderBook': {
                     'interval': '100ms',
                     'snapshotDelay': 10, // how many deltas to cache before fetching a snapshot
+                    'maxRetries': 3,
                 },
                 'watchBalance': {
                     'settle': 'usdt', // or btc
@@ -185,15 +186,18 @@ module.exports = class gate extends gateRest {
         const marketId = this.safeString (delta, 's');
         const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
         const messageHash = 'orderbook:' + symbol;
-        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
+        const storedOrderBook = this.safeValue (this.orderbooks, symbol, this.orderBook ({}));
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            let cacheLength = 0;
+            if (storedOrderBook !== undefined) {
+                cacheLength = storedOrderBook.cache.length;
+            }
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
             const waitAmount = isSpot ? snapshotDelay : 0;
             if (cacheLength === waitAmount) {
                 // max limit is 100
-                const subscription = client.subscriptions[channel];
+                const subscription = client.subscriptions[messageHash];
                 const limit = this.safeInteger (subscription, 'limit');
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
@@ -205,6 +209,8 @@ module.exports = class gate extends gateRest {
             this.handleDelta (storedOrderBook, delta);
         } else {
             const error = new InvalidNonce (this.id + ' orderbook update has a nonce bigger than u');
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
             client.reject (error, messageHash);
         }
         client.resolve (storedOrderBook, messageHash);
@@ -281,7 +287,7 @@ module.exports = class gate extends gateRest {
          * @method
          * @name gate#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {Array} symbols unified symbol of the market to fetch the ticker for
+         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -442,7 +448,7 @@ module.exports = class gate extends gateRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.candlesticks';
         const messageHash = 'candles:' + interval + ':' + market['symbol'];
@@ -695,6 +701,10 @@ module.exports = class gate extends gateRest {
         //   }
         //
         const result = this.safeValue (message, 'result', []);
+        const timestamp = this.safeInteger (message, 'time');
+        this.balance['info'] = result;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601 (timestamp);
         for (let i = 0; i < result.length; i++) {
             const rawBalance = result[i];
             const account = this.account ();
@@ -748,7 +758,7 @@ module.exports = class gate extends gateRest {
         });
         const channel = typeId + '.orders';
         let messageHash = 'orders';
-        let payload = [ '!all' ];
+        let payload = [ '!' + 'all' ];
         if (symbol !== undefined) {
             messageHash += ':' + market['id'];
             payload = [ market['id'] ];
@@ -870,7 +880,7 @@ module.exports = class gate extends gateRest {
         }
     }
 
-    handleBalanceSubscription (client, message) {
+    handleBalanceSubscription (client, message, subscription = undefined) {
         this.balance = {};
     }
 
@@ -880,7 +890,7 @@ module.exports = class gate extends gateRest {
             'balance': this.handleBalanceSubscription,
             'order_book': this.handleOrderBookSubscription,
         };
-        const id = this.safeString (message, 'id');
+        const id = this.safeInteger (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, id);
         if (subscription !== undefined) {

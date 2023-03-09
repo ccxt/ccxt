@@ -77,6 +77,8 @@ class okx(Exchange):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -223,6 +225,7 @@ class okx(Exchange):
                         'account/account-position-risk': 2,
                         'account/balance': 2,
                         'account/positions': 2,
+                        'account/positions-history': 2,
                         'account/bills': 5 / 3,
                         'account/bills-archive': 5 / 3,
                         'account/config': 4,
@@ -263,6 +266,7 @@ class okx(Exchange):
                         'trade/fills-history': 2,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
+                        'trade/order-algo': 1,
                         'account/subaccount/balances': 10,
                         'asset/subaccount/bills': 5 / 3,
                         'users/subaccount/list': 10,
@@ -321,6 +325,7 @@ class okx(Exchange):
                         'account/borrow-repay': 5 / 3,
                         'account/quick-margin-borrow-repay': 4,
                         'account/activate-option': 4,
+                        'account/set-auto-loan': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/purchase_redempt': 5 / 3,
@@ -341,8 +346,8 @@ class okx(Exchange):
                         'users/subaccount/delete-apikey': 10,
                         'users/subaccount/modify-apikey': 10,
                         'users/subaccount/apikey': 10,
+                        'users/subaccount/set-transfer-out': 10,
                         'asset/subaccount/transfer': 10,
-                        'asset/subaccount/set-transfer-out': 10,
                         # broker
                         'broker/nd/create-subaccount': 10,
                         'broker/nd/delete-subaccount': 10,
@@ -638,6 +643,8 @@ class okx(Exchange):
                     '58117': ExchangeError,  # Account assets are abnormal, please deal with negative assets before transferring
                     '58125': BadRequest,  # Non-tradable assets can only be transferred from sub-accounts to main accounts
                     '58126': BadRequest,  # Non-tradable assets can only be transferred between funding accounts
+                    '58127': BadRequest,  # Main account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
+                    '58128': BadRequest,  # Sub-account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
                     '58200': ExchangeError,  # Withdrawal from {0} to {1} is unavailable for self currency
                     '58201': ExchangeError,  # Withdrawal amount exceeds the daily limit
                     '58202': ExchangeError,  # The minimum withdrawal amount for NEO is 1, and the amount must be an integer
@@ -727,16 +734,24 @@ class okx(Exchange):
             'options': {
                 'defaultNetwork': 'ERC20',
                 'networks': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
+                    'BTC': 'Bitcoin',
                     'OMNI': 'Omni',
-                    'SOLANA': 'Solana',
-                    'POLYGON': 'Polygon',
-                    'OEC': 'OEC',
-                    'ALGO': 'ALGO',  # temporarily unavailable
-                    'OPTIMISM': 'Optimism',
-                    'ARBITRUM': 'Arbitrum one',
-                    'AVALANCHE': 'Avalanche C-Chain',
+                    'SOL': 'Solana',
+                    'LTC': 'Litecoin',
+                    'MATIC': 'Polygon',
+                    'OP': 'Optimism',
+                    'ARB': 'Arbitrum one',
+                    'AVAX': 'Avalanche C-Chain',
+                },
+                'networksById': {
+                    'Bitcoin': 'BTC',
+                    'Omni': 'OMNI',
+                    'Solana': 'SOL',
+                    'Litecoin': 'LTC',
+                    'Polygon': 'MATIC',
+                    'Optimism': 'OP',
+                    'Arbitrum one': 'ARB',
+                    'Avalanche C-Chain': 'AVAX',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -751,6 +766,9 @@ class okx(Exchange):
                 'fetchOHLCV': {
                     # 'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                     'timezone': 'UTC',  # UTC, HK
+                },
+                'fetchPositions': {
+                    'method': 'privateGetAccountPositions',  # privateGetAccountPositions or privateGetAccountPositionsHistory
                 },
                 'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': False,
@@ -1173,6 +1191,7 @@ class okx(Exchange):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
+        see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
         :param dict params: extra parameters specific to the okx api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -1495,7 +1514,7 @@ class okx(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1652,7 +1671,7 @@ class okx(Exchange):
         if limit is None:
             limit = 100  # default 100, max 100
         duration = self.parse_timeframe(timeframe)
-        bar = self.timeframes[timeframe]
+        bar = self.safe_string(self.timeframes, timeframe, timeframe)
         if (timezone == 'UTC') and (duration >= 21600):  # if utc and timeframe >= 6h
             bar += timezone.lower()
         request = {
@@ -2491,13 +2510,17 @@ class okx(Exchange):
         method = self.safe_string(params, 'method', defaultMethod)
         stop = self.safe_value(params, 'stop')
         if stop:
-            raise NotSupported(self.id + ' fetchOrder() does not support stop orders, use fetchOpenOrders() fetchCanceledOrders() or fetchClosedOrders()')
+            method = 'privateGetTradeOrderAlgo'
+            if clientOrderId is not None:
+                request['algoClOrdId'] = clientOrderId
+            else:
+                request['algoId'] = id
         else:
             if clientOrderId is not None:
                 request['clOrdId'] = clientOrderId
             else:
                 request['ordId'] = id
-        query = self.omit(params, ['method', 'clOrdId', 'clientOrderId'])
+        query = self.omit(params, ['method', 'clOrdId', 'clientOrderId', 'stop'])
         response = getattr(self, method)(self.extend(request, query))
         #
         # Spot and Swap
@@ -2541,6 +2564,58 @@ class okx(Exchange):
         #             }
         #         ],
         #         "msg": ""
+        #     }
+        #
+        # Algo order
+        #     {
+        #         "code":"0",
+        #         "msg":"",
+        #         "data":[
+        #             {
+        #                 "instType":"FUTURES",
+        #                 "instId":"BTC-USD-200329",
+        #                 "ordId":"123445",
+        #                 "ccy":"BTC",
+        #                 "clOrdId":"",
+        #                 "algoId":"1234",
+        #                 "sz":"999",
+        #                 "closeFraction":"",
+        #                 "ordType":"oco",
+        #                 "side":"buy",
+        #                 "posSide":"long",
+        #                 "tdMode":"cross",
+        #                 "tgtCcy": "",
+        #                 "state":"effective",
+        #                 "lever":"20",
+        #                 "tpTriggerPx":"",
+        #                 "tpTriggerPxType":"",
+        #                 "tpOrdPx":"",
+        #                 "slTriggerPx":"",
+        #                 "slTriggerPxType":"",
+        #                 "triggerPx":"99",
+        #                 "triggerPxType":"last",
+        #                 "ordPx":"12",
+        #                 "actualSz":"",
+        #                 "actualPx":"",
+        #                 "actualSide":"",
+        #                 "pxVar":"",
+        #                 "pxSpread":"",
+        #                 "pxLimit":"",
+        #                 "szLimit":"",
+        #                 "tag": "adadadadad",
+        #                 "timeInterval":"",
+        #                 "callbackRatio":"",
+        #                 "callbackSpread":"",
+        #                 "activePx":"",
+        #                 "moveTriggerPx":"",
+        #                 "reduceOnly": "false",
+        #                 "triggerTime":"1597026383085",
+        #                 "last": "16012",
+        #                 "failCode": "",
+        #                 "algoClOrdId": "",
+        #                 "cTime":"1597026383000"
+        #             }
+        #         ]
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -3449,7 +3524,7 @@ class okx(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         filtered = self.filter_by(data, 'selected', True)
-        parsed = self.parse_deposit_addresses(filtered, [code], False)
+        parsed = self.parse_deposit_addresses(filtered, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
     def fetch_deposit_address(self, code, params={}):
@@ -3500,26 +3575,31 @@ class okx(Exchange):
         currency = self.currency(code)
         if (tag is not None) and (len(tag) > 0):
             address = address + ':' + tag
-        fee = self.safe_string(params, 'fee')
-        if fee is None:
-            raise ArgumentsRequired(self.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
         request = {
             'ccy': currency['id'],
             'toAddr': address,
             'dest': '4',  # 2 = OKCoin International, 3 = OKX 4 = others
             'amt': self.number_to_string(amount),
-            'fee': self.number_to_string(fee),  # withdrawals to OKCoin or OKX are fee-free, please set 0
         }
-        if 'password' in params:
-            request['pwd'] = params['password']
-        elif 'pwd' in params:
-            request['pwd'] = params['pwd']
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH>ERC20 alias
         if network is not None:
             request['chain'] = currency['id'] + '-' + network
             params = self.omit(params, 'network')
+        fee = self.safe_string(params, 'fee')
+        if fee is None:
+            currencies = self.fetch_currencies()
+            self.currencies = self.deep_extend(self.currencies, currencies)
+            targetNetwork = self.safe_value(currency['networks'], self.network_id_to_code(network), {})
+            fee = self.safe_string(targetNetwork, 'fee')
+            if fee is None:
+                raise ArgumentsRequired(self.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
+            request['fee'] = self.number_to_string(fee)  # withdrawals to OKCoin or OKX are fee-free, please set 0
+        if 'password' in params:
+            request['pwd'] = params['password']
+        elif 'pwd' in params:
+            request['pwd'] = params['pwd']
         query = self.omit(params, ['fee', 'password', 'pwd'])
         if not ('pwd' in request):
             raise ExchangeError(self.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase')
@@ -3919,7 +3999,7 @@ class okx(Exchange):
         }
         if type is not None:
             request['instType'] = self.convert_to_instrument_type(type)
-        response = self.privateGetAccountPositions(query)
+        response = self.privateGetAccountPositions(self.extend(request, query))
         #
         #     {
         #         "code": "0",
@@ -3993,9 +4073,12 @@ class okx(Exchange):
                 entry = symbols[i]
                 market = self.market(entry)
                 marketIds.append(market['id'])
-            if len(marketIds) > 0:
+            marketIdsLength = len(marketIds)
+            if marketIdsLength > 0:
                 request['instId'] = ','.join(marketIds)
-        response = self.privateGetAccountPositions(self.extend(request, params))
+        fetchPositionsOptions = self.safe_value(self.options, 'fetchPositions', {})
+        method = self.safe_string(fetchPositionsOptions, 'method', 'privateGetAccountPositions')
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -4105,6 +4188,8 @@ class okx(Exchange):
                 parsedCurrency = self.safe_currency_code(posCcy)
                 if parsedCurrency is not None:
                     side = 'long' if (market['base'] == parsedCurrency) else 'short'
+            if side is None:
+                side = self.safe_string(position, 'direction')
         else:
             if pos is not None:
                 if side == 'net':
@@ -4114,7 +4199,7 @@ class okx(Exchange):
                         side = 'short'
                     else:
                         side = None
-        contractSize = self.safe_value(market, 'contractSize')
+        contractSize = self.safe_number(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         markPriceString = self.safe_string(position, 'markPx')
         notionalString = self.safe_string(position, 'notionalUsd')
@@ -4603,8 +4688,8 @@ class okx(Exchange):
         if marginMode == 'isolated':
             if posSide is None:
                 raise ArgumentsRequired(self.id + ' setLeverage() requires a posSide argument for isolated margin')
-            if posSide != 'long' and posSide != 'short':
-                raise BadRequest(self.id + ' setLeverage() requires the posSide argument to be either "long" or "short"')
+            if posSide != 'long' and posSide != 'short' and posSide != 'net':
+                raise BadRequest(self.id + ' setLeverage() requires the posSide argument to be either "long", "short" or "net"')
         response = self.privatePostAccountSetLeverage(self.extend(request, params))
         #
         #     {
@@ -5360,6 +5445,119 @@ class okx(Exchange):
             self.headers['x-simulated-trading'] = '1'
         elif 'x-simulated-trading' in self.headers:
             self.headers = self.omit(self.headers, 'x-simulated-trading')
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.privateGetAssetCurrencies(params)
+        #
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "canDep": True,
+        #                "canInternal": False,
+        #                "canWd": True,
+        #                "ccy": "USDT",
+        #                "chain": "USDT-TRC20",
+        #                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        #                "mainNet": False,
+        #                "maxFee": "1.6",
+        #                "maxWd": "8852150",
+        #                "minFee": "0.8",
+        #                "minWd": "2",
+        #                "name": "Tether",
+        #                "usedWdQuota": "0",
+        #                "wdQuota": "500",
+        #                "wdTickSz": "3"
+        #            },
+        #            {
+        #                "canDep": True,
+        #                "canInternal": False,
+        #                "canWd": True,
+        #                "ccy": "USDT",
+        #                "chain": "USDT-ERC20",
+        #                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        #                "mainNet": False,
+        #                "maxFee": "16",
+        #                "maxWd": "8852150",
+        #                "minFee": "8",
+        #                "minWd": "2",
+        #                "name": "Tether",
+        #                "usedWdQuota": "0",
+        #                "wdQuota": "500",
+        #                "wdTickSz": "3"
+        #            },
+        #            ...
+        #        ],
+        #        "msg": ""
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes)
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        #
+        # [
+        #   {
+        #       "canDep": True,
+        #       "canInternal": False,
+        #       "canWd": True,
+        #       "ccy": "USDT",
+        #       "chain": "USDT-TRC20",
+        #       "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        #       "mainNet": False,
+        #       "maxFee": "1.6",
+        #       "maxWd": "8852150",
+        #       "minFee": "0.8",
+        #       "minWd": "2",
+        #       "name": "Tether",
+        #       "usedWdQuota": "0",
+        #       "wdQuota": "500",
+        #       "wdTickSz": "3"
+        #   }
+        # ]
+        #
+        depositWithdrawFees = {}
+        codes = self.market_codes(codes)
+        for i in range(0, len(response)):
+            feeInfo = response[i]
+            currencyId = self.safe_string(feeInfo, 'ccy')
+            code = self.safe_currency_code(currencyId)
+            if (codes is None) or (self.in_array(code, codes)):
+                depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
+                if depositWithdrawFee is None:
+                    depositWithdrawFees[code] = self.deposit_withdraw_fee({})
+                depositWithdrawFees[code]['info'][currencyId] = feeInfo
+                chain = self.safe_string(feeInfo, 'chain')
+                chainSplit = chain.split('-')
+                networkId = self.safe_value(chainSplit, 1)
+                withdrawFee = self.safe_number(feeInfo, 'minFee')
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': False if (withdrawFee is not None) else None,
+                }
+                depositResult = {
+                    'fee': None,
+                    'percentage': None,
+                }
+                networkCode = self.network_id_to_code(networkId, code)
+                depositWithdrawFees[code]['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': depositResult,
+                }
+        depositWithdrawCodes = list(depositWithdrawFees.keys())
+        for i in range(0, len(depositWithdrawCodes)):
+            code = depositWithdrawCodes[i]
+            currency = self.currency(code)
+            depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
+        return depositWithdrawFees
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

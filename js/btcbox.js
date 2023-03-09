@@ -53,7 +53,7 @@ module.exports = class btcbox extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
-                'fetchTickers': undefined,
+                'fetchTickers': false,
                 'fetchTrades': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,

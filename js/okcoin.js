@@ -1318,7 +1318,7 @@ module.exports = class okcoin extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the okcoin api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         symbols = this.marketSymbols (symbols);
         const first = this.safeString (symbols, 0);
@@ -1561,7 +1561,7 @@ module.exports = class okcoin extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const request = {
             'instrument_id': market['id'],
-            'granularity': this.timeframes[timeframe],
+            'granularity': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
         const defaultType = this.safeString (options, 'type', 'Candles'); // Candles or HistoryCandles
@@ -2574,7 +2574,7 @@ module.exports = class okcoin extends Exchange {
         //         }
         //     ]
         //
-        const addressesByCode = this.parseDepositAddresses (response);
+        const addressesByCode = this.parseDepositAddresses (response, [ currency['code'] ]);
         const address = this.safeValue (addressesByCode, code);
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');

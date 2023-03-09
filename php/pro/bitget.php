@@ -46,6 +46,7 @@ class bitget extends \ccxt\async\bitget {
                     '30m' => '30m',
                     '1h' => '1H',
                     '4h' => '4H',
+                    '6h' => '6H',
                     '12h' => '12H',
                     '1d' => '1D',
                     '1w' => '1W',
@@ -68,10 +69,15 @@ class bitget extends \ccxt\async\bitget {
     public function get_ws_market_id($market) {
         // WS don't use the same 'id'
         // as the rest version
+        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         if ($market['spot']) {
             return $market['info']['symbolName'];
         } else {
-            return str_replace('_UMCBL', '', $market['id']);
+            if (!$sandboxMode) {
+                return str_replace('_UMCBL', '', $market['id']);
+            } else {
+                return str_replace('_SUMCBL', '', $market['id']);
+            }
         }
     }
 
@@ -80,11 +86,16 @@ class bitget extends \ccxt\async\bitget {
         // array( $arg => { $instType => 'sp', channel => 'ticker', instId => 'BTCUSDT' )
         //
         $instType = $this->safe_string($arg, 'instType');
+        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $marketId = $this->safe_string($arg, 'instId');
         if ($instType === 'sp') {
             $marketId .= '_SPBL';
         } else {
-            $marketId .= '_UMCBL';
+            if (!$sandboxMode) {
+                $marketId .= '_UMCBL';
+            } else {
+                $marketId .= '_SUMCBL';
+            }
         }
         return $marketId;
     }
@@ -593,7 +604,17 @@ class bitget extends \ccxt\async\bitget {
             if (($type === 'spot') && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument for ' . $type . ' markets.');
             }
-            $instType = ($type === 'spot') ? 'spbl' : 'umcbl';
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $instType = null;
+            if ($type === 'spot') {
+                $instType = 'spbl';
+            } else {
+                if (!$sandboxMode) {
+                    $instType = 'UMCBL';
+                } else {
+                    $instType = 'SUMCBL';
+                }
+            }
             $instId = ($type === 'spot') ? $marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
             $args = array(
                 'instType' => $instType,
@@ -638,7 +659,8 @@ class bitget extends \ccxt\async\bitget {
         //
         $arg = $this->safe_value($message, 'arg', array());
         $instType = $this->safe_string($arg, 'instType');
-        $isContractUpdate = $instType === 'umcbl';
+        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+        $isContractUpdate = (!$sandboxMode) ? ($instType === 'umcbl') : ($instType === 'sumcbl');
         $data = $this->safe_value($message, 'data', array());
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -830,9 +852,10 @@ class bitget extends \ccxt\async\bitget {
             if ($type === 'spot') {
                 throw new NotSupported($this->id . ' watchMyTrades is not supported for ' . $type . ' markets.');
             }
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             $subscriptionHash = 'order:trades';
             $args = array(
-                'instType' => 'umcbl',
+                'instType' => (!$sandboxMode) ? 'umcbl' : 'sumcbl',
                 'channel' => 'orders',
                 'instId' => 'default',
             );
@@ -971,18 +994,26 @@ class bitget extends \ccxt\async\bitget {
              */
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', null, $params);
-            $instType = ($type === 'spot') ? 'spbl' : 'umcbl';
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $instType = 'spbl';
+            if ($type === 'swap') {
+                $instType = 'UMCBL';
+                if ($sandboxMode) {
+                    $instType = 'S' . $instType;
+                }
+            }
             $args = array(
                 'instType' => $instType,
                 'channel' => 'account',
                 'instId' => 'default',
             );
-            $messageHash = 'balance:' . $instType;
+            $messageHash = 'balance:' . strtolower($instType);
             return Async\await($this->watch_private($messageHash, $messageHash, $args, $params));
         }) ();
     }
 
     public function handle_balance($client, $message) {
+        // spot
         //
         //    {
         //        action => 'snapshot',
@@ -993,13 +1024,35 @@ class bitget extends \ccxt\async\bitget {
         //        )
         //    }
         //
+        // swap
+        //    {
+        //      "action" => "snapshot",
+        //      "arg" => array(
+        //        "instType" => "umcbl",
+        //        "channel" => "account",
+        //        "instId" => "default"
+        //      ),
+        //      "data" => array(
+        //        {
+        //          "marginCoin" => "USDT",
+        //          "locked" => "0.00000000",
+        //          "available" => "3384.58046492",
+        //          "maxOpenPosAvailable" => "3384.58046492",
+        //          "maxTransferOut" => "3384.58046492",
+        //          "equity" => "3384.58046492",
+        //          "usdtEquity" => "3384.580464925690"
+        //        }
+        //      )
+        //    }
+        //
         $data = $this->safe_value($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $rawBalance = $data[$i];
-            $currencyId = $this->safe_string($rawBalance, 'coinName');
+            $currencyId = $this->safe_string_2($rawBalance, 'coinName', 'marginCoin');
             $code = $this->safe_currency_code($currencyId);
             $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
             $account['free'] = $this->safe_string($rawBalance, 'available');
+            $account['total'] = $this->safe_string($rawBalance, 'equity');
             $this->balance[$code] = $account;
         }
         $this->balance = $this->safe_balance($this->balance);

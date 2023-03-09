@@ -936,7 +936,7 @@ class digifinex(Exchange):
         see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tickers
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the digifinex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1443,7 +1443,7 @@ class digifinex(Exchange):
                 request['limit'] = limit
         else:
             request['symbol'] = market['id']
-            request['period'] = self.timeframes[timeframe]
+            request['period'] = self.safe_string(self.timeframes, timeframe, timeframe)
             if since is not None:
                 startTime = int(since / 1000)
                 request['start_time'] = startTime
@@ -2365,7 +2365,7 @@ class digifinex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        addresses = self.parse_deposit_addresses(data)
+        addresses = self.parse_deposit_addresses(data, [currency['code']])
         address = self.safe_value(addresses, code)
         if address is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.')
@@ -2577,13 +2577,7 @@ class digifinex(Exchange):
         #         "code": 0
         #     }
         #
-        transfer = self.parse_transfer(response, currency)
-        return self.extend(transfer, {
-            'amount': amount,
-            'currency': code,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        })
+        return self.parse_transfer(response, currency)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         """

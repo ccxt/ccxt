@@ -165,12 +165,12 @@ class coinex extends Exchange {
                         'margin/transfer/history' => 40,
                         'order/deals' => 40,
                         'order/finished' => 40,
-                        'order/pending' => 4,
-                        'order/status' => 4,
-                        'order/status/batch' => 4,
+                        'order/pending' => 8,
+                        'order/status' => 8,
+                        'order/status/batch' => 8,
                         'order/user/deals' => 40,
                         'order/stop/finished' => 40,
-                        'order/stop/pending' => 4,
+                        'order/stop/pending' => 8,
                         'order/user/trade/fee' => 1,
                         'order/market/trade/info' => 1,
                         'sub_account/balance' => 1,
@@ -183,14 +183,14 @@ class coinex extends Exchange {
                         'margin/flat' => 40,
                         'margin/loan' => 40,
                         'margin/transfer' => 40,
-                        'order/limit/batch' => 13.334,
-                        'order/ioc' => 6.667,
-                        'order/limit' => 6.667,
-                        'order/market' => 6.667,
-                        'order/modify' => 6.667,
-                        'order/stop/limit' => 6.667,
-                        'order/stop/market' => 6.667,
-                        'order/stop/modify' => 6.667,
+                        'order/limit/batch' => 40,
+                        'order/ioc' => 13.334,
+                        'order/limit' => 13.334,
+                        'order/market' => 13.334,
+                        'order/modify' => 13.334,
+                        'order/stop/limit' => 13.334,
+                        'order/stop/market' => 13.334,
+                        'order/stop/modify' => 13.334,
                         'sub_account/transfer' => 40,
                         'sub_account/register' => 1,
                         'sub_account/unfrozen' => 40,
@@ -204,9 +204,9 @@ class coinex extends Exchange {
                     ),
                     'delete' => array(
                         'balance/coin/withdraw' => 40,
-                        'order/pending/batch' => 13.334,
-                        'order/pending' => 6.667,
-                        'order/stop/pending' => 13.334,
+                        'order/pending/batch' => 40,
+                        'order/pending' => 13.334,
+                        'order/stop/pending' => 40,
                         'order/stop/pending/{id}' => 13.334,
                         'sub_account/auth/api/{user_auth_id}' => 40,
                     ),
@@ -229,35 +229,35 @@ class coinex extends Exchange {
                 'perpetualPrivate' => array(
                     'get' => array(
                         'asset/query' => 40,
-                        'order/pending' => 4,
+                        'order/pending' => 8,
                         'order/finished' => 40,
                         'order/stop_finished' => 40,
-                        'order/stop_pending' => 4,
-                        'order/status' => 4,
-                        'order/stop_status' => 4,
+                        'order/stop_pending' => 8,
+                        'order/status' => 8,
+                        'order/stop_status' => 8,
                         'position/pending' => 40,
                         'position/funding' => 40,
                     ),
                     'post' => array(
                         'market/adjust_leverage' => 1,
                         'market/position_expect' => 1,
-                        'order/put_limit' => 10,
-                        'order/put_market' => 10,
-                        'order/put_stop_limit' => 10,
-                        'order/put_stop_market' => 10,
-                        'order/modify' => 10,
-                        'order/modify_stop' => 10,
-                        'order/cancel' => 10,
-                        'order/cancel_all' => 20,
-                        'order/cancel_batch' => 20,
-                        'order/cancel_stop' => 10,
-                        'order/cancel_stop_all' => 20,
-                        'order/close_limit' => 10,
-                        'order/close_market' => 10,
-                        'position/adjust_margin' => 10,
-                        'position/stop_loss' => 10,
-                        'position/take_profit' => 10,
-                        'position/market_close' => 10,
+                        'order/put_limit' => 20,
+                        'order/put_market' => 20,
+                        'order/put_stop_limit' => 20,
+                        'order/put_stop_market' => 20,
+                        'order/modify' => 20,
+                        'order/modify_stop' => 20,
+                        'order/cancel' => 20,
+                        'order/cancel_all' => 40,
+                        'order/cancel_batch' => 40,
+                        'order/cancel_stop' => 20,
+                        'order/cancel_stop_all' => 40,
+                        'order/close_limit' => 20,
+                        'order/close_market' => 20,
+                        'position/adjust_margin' => 20,
+                        'position/stop_loss' => 20,
+                        'position/take_profit' => 20,
+                        'position/market_close' => 20,
                     ),
                 ),
             ),
@@ -535,8 +535,8 @@ class coinex extends Exchange {
                 $fees = $this->fees;
                 $leverages = $this->safe_value($entry, 'leverages', array());
                 $subType = $this->safe_integer($entry, 'type');
-                $linear = ($subType === 1) ? true : false;
-                $inverse = ($subType === 2) ? true : false;
+                $linear = ($subType === 1);
+                $inverse = ($subType === 2);
                 $id = $this->safe_string($entry, 'name');
                 $baseId = $this->safe_string($entry, 'stock');
                 $quoteId = $this->safe_string($entry, 'money');
@@ -567,22 +567,22 @@ class coinex extends Exchange {
                     'inverse' => $inverse,
                     'taker' => $fees['trading']['taker'],
                     'maker' => $fees['trading']['maker'],
-                    'contractSize' => null,
+                    'contractSize' => $this->safe_number($entry, 'multiplier'),
                     'expiry' => null,
                     'expiryDatetime' => null,
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'stock_prec'))),
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'amount_prec'))),
                         'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'money_prec'))),
                     ),
                     'limits' => array(
                         'leverage' => array(
-                            'min' => $this->safe_string($leverages, 0),
-                            'max' => $this->safe_string($leverages, $leveragesLength - 1),
+                            'min' => $this->safe_number($leverages, 0),
+                            'max' => $this->safe_number($leverages, $leveragesLength - 1),
                         ),
                         'amount' => array(
-                            'min' => $this->safe_string($entry, 'amount_min'),
+                            'min' => $this->safe_number($entry, 'amount_min'),
                             'max' => null,
                         ),
                         'price' => array(
@@ -751,7 +751,7 @@ class coinex extends Exchange {
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1009,7 +1009,7 @@ class coinex extends Exchange {
         $marketId = $this->safe_string($trade, 'market');
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, null, $defaultType);
         $costString = $this->safe_string($trade, 'deal_money');
         $fee = null;
         $feeCostString = $this->safe_string_2($trade, 'fee', 'deal_fee');
@@ -1226,7 +1226,7 @@ class coinex extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
-                'type' => $this->timeframes[$timeframe],
+                'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($limit !== null) {
                 $request['limit'] = $limit;
@@ -2637,7 +2637,8 @@ class coinex extends Exchange {
     public function safe_network($networkId, $currency = null) {
         $networks = $this->safe_value($currency, 'networks', array());
         $networksCodes = is_array($networks) ? array_keys($networks) : array();
-        if ($networkId === null && strlen($networksCodes) === 1) {
+        $networksCodesLength = count($networksCodes);
+        if ($networkId === null && $networksCodesLength === 1) {
             return $networks[$networksCodes[0]];
         }
         return array(
@@ -2662,7 +2663,8 @@ class coinex extends Exchange {
         $parts = explode(':', $coinAddress);
         $address = null;
         $tag = null;
-        if (strlen($parts) > 1) {
+        $partsLength = count($parts);
+        if ($partsLength > 1) {
             $address = $parts[0];
             $tag = $parts[1];
         } else {
@@ -3564,9 +3566,9 @@ class coinex extends Exchange {
             /**
              *  @method
              * fetch the current funding rates
-             * @param {array} $symbols unified $market $symbols
+             * @param {[string]} $symbols unified $market $symbols
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
+             * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);

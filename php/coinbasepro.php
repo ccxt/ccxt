@@ -35,7 +35,7 @@ class coinbasepro extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchDepositAddress' => null, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchDepositAddress' => false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits' => true,
                 'fetchLedger' => true,
                 'fetchMarginMode' => false,
@@ -172,8 +172,8 @@ class coinbasepro extends Exchange {
                 'trading' => array(
                     'tierBased' => true, // complicated tier system per coin
                     'percentage' => true,
-                    'maker' => 0.4 / 100, // highest fee of all tiers
-                    'taker' => 0.6 / 100, // highest fee of all tiers
+                    'maker' => $this->parse_number('0.004'), // highest fee of all tiers
+                    'taker' => $this->parse_number('0.006'), // highest fee of all tiers
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -607,7 +607,7 @@ class coinbasepro extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the coinbasepro api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -871,7 +871,7 @@ class coinbasepro extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $granularity = $this->timeframes[$timeframe];
+        $granularity = $this->safe_integer($this->timeframes, $timeframe, $timeframe);
         $request = array(
             'id' => $market['id'],
             'granularity' => $granularity,

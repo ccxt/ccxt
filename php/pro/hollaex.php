@@ -409,6 +409,10 @@ class hollaex extends \ccxt\async\hollaex {
         $messageHash = $this->safe_string($message, 'topic');
         $data = $this->safe_value($message, 'data');
         $keys = is_array($data) ? array_keys($data) : array();
+        $timestamp = $this->safe_integer_product($message, 'time', 1000);
+        $this->balance['info'] = $data;
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $parts = explode('_', $key);

@@ -158,12 +158,12 @@ module.exports = class coinex extends Exchange {
                         'margin/transfer/history': 40,
                         'order/deals': 40,
                         'order/finished': 40,
-                        'order/pending': 4,
-                        'order/status': 4,
-                        'order/status/batch': 4,
+                        'order/pending': 8,
+                        'order/status': 8,
+                        'order/status/batch': 8,
                         'order/user/deals': 40,
                         'order/stop/finished': 40,
-                        'order/stop/pending': 4,
+                        'order/stop/pending': 8,
                         'order/user/trade/fee': 1,
                         'order/market/trade/info': 1,
                         'sub_account/balance': 1,
@@ -176,14 +176,14 @@ module.exports = class coinex extends Exchange {
                         'margin/flat': 40,
                         'margin/loan': 40,
                         'margin/transfer': 40,
-                        'order/limit/batch': 13.334,
-                        'order/ioc': 6.667,
-                        'order/limit': 6.667,
-                        'order/market': 6.667,
-                        'order/modify': 6.667,
-                        'order/stop/limit': 6.667,
-                        'order/stop/market': 6.667,
-                        'order/stop/modify': 6.667,
+                        'order/limit/batch': 40,
+                        'order/ioc': 13.334,
+                        'order/limit': 13.334,
+                        'order/market': 13.334,
+                        'order/modify': 13.334,
+                        'order/stop/limit': 13.334,
+                        'order/stop/market': 13.334,
+                        'order/stop/modify': 13.334,
                         'sub_account/transfer': 40,
                         'sub_account/register': 1,
                         'sub_account/unfrozen': 40,
@@ -197,9 +197,9 @@ module.exports = class coinex extends Exchange {
                     },
                     'delete': {
                         'balance/coin/withdraw': 40,
-                        'order/pending/batch': 13.334,
-                        'order/pending': 6.667,
-                        'order/stop/pending': 13.334,
+                        'order/pending/batch': 40,
+                        'order/pending': 13.334,
+                        'order/stop/pending': 40,
                         'order/stop/pending/{id}': 13.334,
                         'sub_account/auth/api/{user_auth_id}': 40,
                     },
@@ -222,35 +222,35 @@ module.exports = class coinex extends Exchange {
                 'perpetualPrivate': {
                     'get': {
                         'asset/query': 40,
-                        'order/pending': 4,
+                        'order/pending': 8,
                         'order/finished': 40,
                         'order/stop_finished': 40,
-                        'order/stop_pending': 4,
-                        'order/status': 4,
-                        'order/stop_status': 4,
+                        'order/stop_pending': 8,
+                        'order/status': 8,
+                        'order/stop_status': 8,
                         'position/pending': 40,
                         'position/funding': 40,
                     },
                     'post': {
                         'market/adjust_leverage': 1,
                         'market/position_expect': 1,
-                        'order/put_limit': 10,
-                        'order/put_market': 10,
-                        'order/put_stop_limit': 10,
-                        'order/put_stop_market': 10,
-                        'order/modify': 10,
-                        'order/modify_stop': 10,
-                        'order/cancel': 10,
-                        'order/cancel_all': 20,
-                        'order/cancel_batch': 20,
-                        'order/cancel_stop': 10,
-                        'order/cancel_stop_all': 20,
-                        'order/close_limit': 10,
-                        'order/close_market': 10,
-                        'position/adjust_margin': 10,
-                        'position/stop_loss': 10,
-                        'position/take_profit': 10,
-                        'position/market_close': 10,
+                        'order/put_limit': 20,
+                        'order/put_market': 20,
+                        'order/put_stop_limit': 20,
+                        'order/put_stop_market': 20,
+                        'order/modify': 20,
+                        'order/modify_stop': 20,
+                        'order/cancel': 20,
+                        'order/cancel_all': 40,
+                        'order/cancel_batch': 40,
+                        'order/cancel_stop': 20,
+                        'order/cancel_stop_all': 40,
+                        'order/close_limit': 20,
+                        'order/close_market': 20,
+                        'position/adjust_margin': 20,
+                        'position/stop_loss': 20,
+                        'position/take_profit': 20,
+                        'position/market_close': 20,
                     },
                 },
             },
@@ -523,8 +523,8 @@ module.exports = class coinex extends Exchange {
             const fees = this.fees;
             const leverages = this.safeValue (entry, 'leverages', []);
             const subType = this.safeInteger (entry, 'type');
-            const linear = (subType === 1) ? true : false;
-            const inverse = (subType === 2) ? true : false;
+            const linear = (subType === 1);
+            const inverse = (subType === 2);
             const id = this.safeString (entry, 'name');
             const baseId = this.safeString (entry, 'stock');
             const quoteId = this.safeString (entry, 'money');
@@ -555,22 +555,22 @@ module.exports = class coinex extends Exchange {
                 'inverse': inverse,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
-                'contractSize': undefined,
+                'contractSize': this.safeNumber (entry, 'multiplier'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'stock_prec'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'amount_prec'))),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'money_prec'))),
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.safeString (leverages, 0),
-                        'max': this.safeString (leverages, leveragesLength - 1),
+                        'min': this.safeNumber (leverages, 0),
+                        'max': this.safeNumber (leverages, leveragesLength - 1),
                     },
                     'amount': {
-                        'min': this.safeString (entry, 'amount_min'),
+                        'min': this.safeNumber (entry, 'amount_min'),
                         'max': undefined,
                     },
                     'price': {
@@ -739,7 +739,7 @@ module.exports = class coinex extends Exchange {
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -996,7 +996,7 @@ module.exports = class coinex extends Exchange {
         const marketId = this.safeString (trade, 'market');
         const defaultType = this.safeString (this.options, 'defaultType');
         market = this.safeMarket (marketId, market, undefined, defaultType);
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, undefined, defaultType);
         const costString = this.safeString (trade, 'deal_money');
         let fee = undefined;
         const feeCostString = this.safeString2 (trade, 'fee', 'deal_fee');
@@ -1214,7 +1214,7 @@ module.exports = class coinex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'type': this.timeframes[timeframe],
+            'type': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2616,7 +2616,8 @@ module.exports = class coinex extends Exchange {
     safeNetwork (networkId, currency = undefined) {
         const networks = this.safeValue (currency, 'networks', {});
         const networksCodes = Object.keys (networks);
-        if (networkId === undefined && networksCodes.length === 1) {
+        const networksCodesLength = networksCodes.length;
+        if (networkId === undefined && networksCodesLength === 1) {
             return networks[networksCodes[0]];
         }
         return {
@@ -2641,7 +2642,8 @@ module.exports = class coinex extends Exchange {
         const parts = coinAddress.split (':');
         let address = undefined;
         let tag = undefined;
-        if (parts.length > 1) {
+        const partsLength = parts.length;
+        if (partsLength > 1) {
             address = parts[0];
             tag = parts[1];
         } else {
@@ -3541,9 +3543,9 @@ module.exports = class coinex extends Exchange {
          *  @method
          * @name coinex#fetchFundingRates
          * @description fetch the current funding rates
-         * @param {array} symbols unified market symbols
+         * @param {[string]} symbols unified market symbols
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {array} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);

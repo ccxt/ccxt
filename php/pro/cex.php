@@ -95,7 +95,9 @@ class cex extends \ccxt\async\cex {
         $data = $this->safe_value($message, 'data', array());
         $freeBalance = $this->safe_value($data, 'balance', array());
         $usedBalance = $this->safe_value($data, 'obalance', array());
-        $result = array();
+        $result = array(
+            'info' => $data,
+        );
         $currencyIds = is_array($freeBalance) ? array_keys($freeBalance) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
@@ -276,7 +278,7 @@ class cex extends \ccxt\async\cex {
              * watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -864,7 +866,8 @@ class cex extends \ccxt\async\cex {
         }
         $this->orders = $myOrders;
         $messageHash = 'orders:' . $symbol;
-        if (strlen($myOrders) > 0) {
+        $ordersLength = count($myOrders);
+        if ($ordersLength > 0) {
             $client->resolve ($myOrders, $messageHash);
         }
     }
@@ -1140,7 +1143,8 @@ class cex extends \ccxt\async\cex {
             ];
             $stored->append ($ohlcv);
         }
-        if (strlen($data) > 0) {
+        $dataLength = count($data);
+        if ($dataLength > 0) {
             $client->resolve ($stored, $messageHash);
         }
     }

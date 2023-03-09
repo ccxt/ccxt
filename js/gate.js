@@ -46,10 +46,12 @@ module.exports = class gate extends Exchange {
                     'public': {
                         'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
                     },
                     'private': {
                         'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
                     },
                 },
                 'referral': {
@@ -433,6 +435,7 @@ module.exports = class gate extends Exchange {
                 'X-Gate-Channel-Id': 'ccxt',
             },
             'options': {
+                'sandboxMode': false,
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
@@ -569,7 +572,7 @@ module.exports = class gate extends Exchange {
                     },
                 },
             },
-            // https://www.gate.io/docs/apiv4/en/index.html#label-list
+            // https://www.gate.io/docs/developers/apiv4/en/#label-list
             'exceptions': {
                 'exact': {
                     'INVALID_PARAM_VALUE': BadRequest,
@@ -662,10 +665,17 @@ module.exports = class gate extends Exchange {
                     'TOO_BUSY': ExchangeNotAvailable,
                     'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
                     'RISK_LIMIT_TOO_LOW': BadRequest, // {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
+                    'AUTO_TRIGGER_PRICE_LESS_LAST': InvalidOrder,  // {"label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument: Trigger.Price must < last_price"}
+                    'AUTO_TRIGGER_PRICE_GREATE_LAST': InvalidOrder, // {"label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument: Trigger.Price must > last_price"}
                 },
+                'broad': {},
             },
-            'broad': {},
         });
+    }
+
+    setSandboxMode (enable) {
+        super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
     }
 
     async fetchMarkets (params = {}) {
@@ -676,14 +686,22 @@ module.exports = class gate extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         let promises = [
-            this.fetchSpotMarkets (params),
             this.fetchContractMarkets (params),
+            this.fetchOptionMarkets (params),
         ];
+        if (!sandboxMode) {
+            // gate does not have a sandbox for spot markets
+            const mainnetOnly = [ this.fetchSpotMarkets (params) ];
+            promises = this.arrayConcat (promises, mainnetOnly);
+        }
         promises = await Promise.all (promises);
-        const spotMarkets = promises[0];
-        const contractMarkets = promises[1];
-        return this.arrayConcat (spotMarkets, contractMarkets);
+        const spotMarkets = this.safeValue (promises, 0, []);
+        const contractMarkets = this.safeValue (promises, 1, []);
+        const optionMarkets = this.safeValue (promises, 2, []);
+        const markets = this.arrayConcat (spotMarkets, contractMarkets);
+        return this.arrayConcat (markets, optionMarkets);
     }
 
     async fetchSpotMarkets (params = {}) {
@@ -2173,7 +2191,7 @@ module.exports = class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -2406,7 +2424,7 @@ module.exports = class gate extends Exchange {
         const price = this.safeString (params, 'price');
         let request = {};
         [ request, params ] = this.prepareRequest (market, undefined, params);
-        request['interval'] = this.timeframes[timeframe];
+        request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
         let method = 'publicSpotGetCandlesticks';
         let maxLimit = 1000;
         if (market['contract']) {
@@ -2983,6 +3001,8 @@ module.exports = class gate extends Exchange {
         if (network !== undefined) {
             request['chain'] = network;
             params = this.omit (params, 'network');
+        } else {
+            request['chain'] = currency['id'];
         }
         const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, params));
         //
@@ -3044,15 +3064,19 @@ module.exports = class gate extends Exchange {
         //
         const id = this.safeString (transaction, 'id');
         let type = undefined;
-        let amount = this.safeString (transaction, 'amount');
+        let amountString = this.safeString (transaction, 'amount');
         if (id !== undefined) {
             if (id[0] === 'b') {
                 // GateCode handling
-                type = Precise.stringGt (amount, '0') ? 'deposit' : 'withdrawal';
-                amount = Precise.stringAbs (amount);
+                type = Precise.stringGt (amountString, '0') ? 'deposit' : 'withdrawal';
+                amountString = Precise.stringAbs (amountString);
             } else {
                 type = this.parseTransactionType (id[0]);
             }
+        }
+        const feeCostString = this.safeString (transaction, 'fee');
+        if (type === 'withdrawal') {
+            amountString = Precise.stringSub (amountString, feeCostString);
         }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
@@ -3060,7 +3084,6 @@ module.exports = class gate extends Exchange {
         const rawStatus = this.safeString (transaction, 'status');
         const status = this.parseTransactionStatus (rawStatus);
         const address = this.safeString (transaction, 'address');
-        const fee = this.safeNumber (transaction, 'fee');
         const tag = this.safeString (transaction, 'memo');
         const timestamp = this.safeTimestamp (transaction, 'timestamp');
         return {
@@ -3068,7 +3091,7 @@ module.exports = class gate extends Exchange {
             'id': id,
             'txid': txid,
             'currency': code,
-            'amount': this.parseNumber (amount),
+            'amount': this.parseNumber (amountString),
             'network': undefined,
             'address': address,
             'addressTo': undefined,
@@ -3081,7 +3104,10 @@ module.exports = class gate extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'updated': undefined,
-            'fee': fee,
+            'fee': {
+                'currency': code,
+                'cost': this.parseNumber (feeCostString),
+            },
         };
     }
 
@@ -3107,6 +3133,7 @@ module.exports = class gate extends Exchange {
          * @param {bool|undefined} params.reduceOnly *contract only* Indicates if this order is to reduce the size of a position
          * @param {bool|undefined} params.close *contract only* Set as true to close the position, with size set to 0
          * @param {bool|undefined} params.auto_size *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+         * @param {int|undefined} params.price_type *contract only* 0 latest deal price, 1 mark price, 2 index price
          * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -3261,9 +3288,14 @@ module.exports = class gate extends Exchange {
                         rule = (side === 'buy') ? 2 : 1;
                         triggerOrderPrice = this.priceToPrecision (symbol, takeProfitPrice);
                     }
+                    const priceType = this.safeInteger (params, 'price_type', 0);
+                    if (priceType < 0 || priceType > 2) {
+                        throw new BadRequest (this.id + ' createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price');
+                    }
+                    params = this.omit (params, [ 'price_type' ]);
                     request['trigger'] = {
                         // 'strategy_type': 0, // 0 = by price, 1 = by price gap, only 0 is supported currently
-                        'price_type': 0, // 0 latest deal price, 1 mark price, 2 index price
+                        'price_type': priceType, // 0 latest deal price, 1 mark price, 2 index price
                         'price': this.priceToPrecision (symbol, triggerOrderPrice), // price or gap
                         'rule': rule, // 1 means price_type >= price, 2 means price_type <= price
                         // 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
@@ -3638,7 +3670,7 @@ module.exports = class gate extends Exchange {
         let filledString = Precise.stringSub (amount, remainingString);
         let cost = this.safeString (order, 'filled_total');
         let rawStatus = undefined;
-        let average = this.safeNumber (order, 'fill_price');
+        let average = this.safeNumber2 (order, 'avg_deal_price', 'fill_price');
         if (put) {
             remainingString = amount;
             filledString = '0';
@@ -3693,14 +3725,16 @@ module.exports = class gate extends Exchange {
         let remaining = this.parseNumber (Precise.stringAbs (remainingString));
         // handle spot market buy
         const account = this.safeString (order, 'account'); // using this instead of market type because of the conflicting ids
-        if ((account === 'spot') && (type === 'market') && (side === 'buy')) {
+        if (account === 'spot') {
             const averageString = this.safeString (order, 'avg_deal_price');
             average = this.parseNumber (averageString);
-            filled = Precise.stringDiv (filledString, averageString);
-            remaining = Precise.stringDiv (remainingString, averageString);
-            price = undefined; // arrives as 0
-            cost = amount;
-            amount = Precise.stringDiv (amount, averageString);
+            if ((type === 'market') && (side === 'buy')) {
+                filled = Precise.stringDiv (filledString, averageString);
+                remaining = Precise.stringDiv (remainingString, averageString);
+                price = undefined; // arrives as 0
+                cost = amount;
+                amount = Precise.stringDiv (amount, averageString);
+            }
         }
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
@@ -4194,12 +4228,7 @@ module.exports = class gate extends Exchange {
         //        "currency_pair": "BTC_USDT"
         //    }
         //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'amount': this.parseNumber (truncated),
-        });
+        return this.parseTransfer (response, currency);
     }
 
     parseTransfer (transfer, currency = undefined) {
@@ -5054,7 +5083,7 @@ module.exports = class gate extends Exchange {
         const request = {
             'contract': market['id'],
             'settle': market['settleId'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
