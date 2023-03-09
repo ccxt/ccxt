@@ -34,8 +34,6 @@ class huobijp(Exchange):
             'userAgent': self.userAgents['chrome39'],
             'certified': False,
             'version': 'v1',
-            'accounts': None,
-            'accountsById': None,
             'hostname': 'api-cloud.huobi.co.jp',
             'pro': True,
             'has': {
@@ -696,7 +694,7 @@ class huobijp(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the huobijp api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)

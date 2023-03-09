@@ -396,44 +396,47 @@ module.exports = class bithumb extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bithumb api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetTickerAll (params);
-        //
-        //     {
-        //         "status":"0000",
-        //         "data":{
-        //             "BTC":{
-        //                 "opening_price":"9045000",
-        //                 "closing_price":"9132000",
-        //                 "min_price":"8938000",
-        //                 "max_price":"9168000",
-        //                 "units_traded":"4619.79967497",
-        //                 "acc_trade_value":"42021363832.5187",
-        //                 "prev_closing_price":"9041000",
-        //                 "units_traded_24H":"8793.5045804",
-        //                 "acc_trade_value_24H":"78933458515.4962",
-        //                 "fluctate_24H":"530000",
-        //                 "fluctate_rate_24H":"6.16"
-        //             },
-        //             "date":"1587710878669"
-        //         }
-        //     }
-        //
         const result = {};
-        const data = this.safeValue (response, 'data', {});
-        const timestamp = this.safeInteger (data, 'date');
-        const tickers = this.omit (data, 'date');
-        const ids = Object.keys (tickers);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const market = this.safeMarket (id);
-            const symbol = market['symbol'];
-            const ticker = tickers[id];
-            const isArray = Array.isArray (ticker);
-            if (!isArray) {
+        const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
+        const quotes = Object.keys (quoteCurrencies);
+        for (let i = 0; i < quotes.length; i++) {
+            const quote = quotes[i];
+            const method = 'publicGetTickerALL' + quote;
+            const response = await this[method] (params);
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":{
+            //             "BTC":{
+            //                 "opening_price":"9045000",
+            //                 "closing_price":"9132000",
+            //                 "min_price":"8938000",
+            //                 "max_price":"9168000",
+            //                 "units_traded":"4619.79967497",
+            //                 "acc_trade_value":"42021363832.5187",
+            //                 "prev_closing_price":"9041000",
+            //                 "units_traded_24H":"8793.5045804",
+            //                 "acc_trade_value_24H":"78933458515.4962",
+            //                 "fluctate_24H":"530000",
+            //                 "fluctate_rate_24H":"6.16"
+            //             },
+            //             "date":"1587710878669"
+            //         }
+            //     }
+            //
+            const data = this.safeValue (response, 'data', {});
+            const timestamp = this.safeInteger (data, 'date');
+            const tickers = this.omit (data, 'date');
+            const currencyIds = Object.keys (tickers);
+            for (let j = 0; j < currencyIds.length; j++) {
+                const currencyId = currencyIds[j];
+                const ticker = data[currencyId];
+                const base = this.safeCurrencyCode (currencyId);
+                const symbol = base + '/' + quote;
+                const market = this.safeMarket (symbol);
                 ticker['date'] = timestamp;
                 result[symbol] = this.parseTicker (ticker, market);
             }

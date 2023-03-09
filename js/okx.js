@@ -204,6 +204,7 @@ module.exports = class okx extends Exchange {
                         'account/account-position-risk': 2,
                         'account/balance': 2,
                         'account/positions': 2,
+                        'account/positions-history': 2,
                         'account/bills': 5 / 3,
                         'account/bills-archive': 5 / 3,
                         'account/config': 4,
@@ -244,6 +245,7 @@ module.exports = class okx extends Exchange {
                         'trade/fills-history': 2,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
+                        'trade/order-algo': 1,
                         'account/subaccount/balances': 10,
                         'asset/subaccount/bills': 5 / 3,
                         'users/subaccount/list': 10,
@@ -302,6 +304,7 @@ module.exports = class okx extends Exchange {
                         'account/borrow-repay': 5 / 3,
                         'account/quick-margin-borrow-repay': 4,
                         'account/activate-option': 4,
+                        'account/set-auto-loan': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/purchase_redempt': 5 / 3,
@@ -619,6 +622,8 @@ module.exports = class okx extends Exchange {
                     '58117': ExchangeError, // Account assets are abnormal, please deal with negative assets before transferring
                     '58125': BadRequest, // Non-tradable assets can only be transferred from sub-accounts to main accounts
                     '58126': BadRequest, // Non-tradable assets can only be transferred between funding accounts
+                    '58127': BadRequest, // Main account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
+                    '58128': BadRequest, // Sub-account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
                     '58200': ExchangeError, // Withdrawal from {0} to {1} is unavailable for this currency
                     '58201': ExchangeError, // Withdrawal amount exceeds the daily limit
                     '58202': ExchangeError, // The minimum withdrawal amount for NEO is 1, and the amount must be an integer
@@ -740,6 +745,9 @@ module.exports = class okx extends Exchange {
                 'fetchOHLCV': {
                     // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                     'timezone': 'UTC', // UTC, HK
+                },
+                'fetchPositions': {
+                    'method': 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
@@ -1541,7 +1549,7 @@ module.exports = class okx extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the okx api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -2630,10 +2638,15 @@ module.exports = class okx extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         const options = this.safeValue (this.options, 'fetchOrder', {});
         const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrder');
-        const method = this.safeString (params, 'method', defaultMethod);
+        let method = this.safeString (params, 'method', defaultMethod);
         const stop = this.safeValue (params, 'stop');
         if (stop) {
-            throw new NotSupported (this.id + ' fetchOrder() does not support stop orders, use fetchOpenOrders() fetchCanceledOrders() or fetchClosedOrders()');
+            method = 'privateGetTradeOrderAlgo';
+            if (clientOrderId !== undefined) {
+                request['algoClOrdId'] = clientOrderId;
+            } else {
+                request['algoId'] = id;
+            }
         } else {
             if (clientOrderId !== undefined) {
                 request['clOrdId'] = clientOrderId;
@@ -2641,7 +2654,7 @@ module.exports = class okx extends Exchange {
                 request['ordId'] = id;
             }
         }
-        const query = this.omit (params, [ 'method', 'clOrdId', 'clientOrderId' ]);
+        const query = this.omit (params, [ 'method', 'clOrdId', 'clientOrderId', 'stop' ]);
         const response = await this[method] (this.extend (request, query));
         //
         // Spot and Swap
@@ -2685,6 +2698,58 @@ module.exports = class okx extends Exchange {
         //             }
         //         ],
         //         "msg": ""
+        //     }
+        //
+        // Algo order
+        //     {
+        //         "code":"0",
+        //         "msg":"",
+        //         "data":[
+        //             {
+        //                 "instType":"FUTURES",
+        //                 "instId":"BTC-USD-200329",
+        //                 "ordId":"123445",
+        //                 "ccy":"BTC",
+        //                 "clOrdId":"",
+        //                 "algoId":"1234",
+        //                 "sz":"999",
+        //                 "closeFraction":"",
+        //                 "ordType":"oco",
+        //                 "side":"buy",
+        //                 "posSide":"long",
+        //                 "tdMode":"cross",
+        //                 "tgtCcy": "",
+        //                 "state":"effective",
+        //                 "lever":"20",
+        //                 "tpTriggerPx":"",
+        //                 "tpTriggerPxType":"",
+        //                 "tpOrdPx":"",
+        //                 "slTriggerPx":"",
+        //                 "slTriggerPxType":"",
+        //                 "triggerPx":"99",
+        //                 "triggerPxType":"last",
+        //                 "ordPx":"12",
+        //                 "actualSz":"",
+        //                 "actualPx":"",
+        //                 "actualSide":"",
+        //                 "pxVar":"",
+        //                 "pxSpread":"",
+        //                 "pxLimit":"",
+        //                 "szLimit":"",
+        //                 "tag": "adadadadad",
+        //                 "timeInterval":"",
+        //                 "callbackRatio":"",
+        //                 "callbackSpread":"",
+        //                 "activePx":"",
+        //                 "moveTriggerPx":"",
+        //                 "reduceOnly": "false",
+        //                 "triggerTime":"1597026383085",
+        //                 "last": "16012",
+        //                 "failCode": "",
+        //                 "algoClOrdId": "",
+        //                 "cTime":"1597026383000"
+        //             }
+        //         ]
         //     }
         //
         const data = this.safeValue (response, 'data', []);
@@ -3647,7 +3712,7 @@ module.exports = class okx extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const filtered = this.filterBy (data, 'selected', true);
-        const parsed = this.parseDepositAddresses (filtered, [ code ], false);
+        const parsed = this.parseDepositAddresses (filtered, [ currency['code'] ], false);
         return this.indexBy (parsed, 'network');
     }
 
@@ -3711,28 +3776,34 @@ module.exports = class okx extends Exchange {
         if ((tag !== undefined) && (tag.length > 0)) {
             address = address + ':' + tag;
         }
-        const fee = this.safeString (params, 'fee');
-        if (fee === undefined) {
-            throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
-        }
         const request = {
             'ccy': currency['id'],
             'toAddr': address,
             'dest': '4', // 2 = OKCoin International, 3 = OKX 4 = others
             'amt': this.numberToString (amount),
-            'fee': this.numberToString (fee), // withdrawals to OKCoin or OKX are fee-free, please set 0
         };
-        if ('password' in params) {
-            request['pwd'] = params['password'];
-        } else if ('pwd' in params) {
-            request['pwd'] = params['pwd'];
-        }
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
             request['chain'] = currency['id'] + '-' + network;
             params = this.omit (params, 'network');
+        }
+        let fee = this.safeString (params, 'fee');
+        if (fee === undefined) {
+            const currencies = await this.fetchCurrencies ();
+            this.currencies = this.deepExtend (this.currencies, currencies);
+            const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (network), {});
+            fee = this.safeString (targetNetwork, 'fee');
+            if (fee === undefined) {
+                throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
+            }
+            request['fee'] = this.numberToString (fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
+        }
+        if ('password' in params) {
+            request['pwd'] = params['password'];
+        } else if ('pwd' in params) {
+            request['pwd'] = params['pwd'];
         }
         const query = this.omit (params, [ 'fee', 'password', 'pwd' ]);
         if (!('pwd' in request)) {
@@ -4167,7 +4238,7 @@ module.exports = class okx extends Exchange {
         if (type !== undefined) {
             request['instType'] = this.convertToInstrumentType (type);
         }
-        const response = await this.privateGetAccountPositions (query);
+        const response = await this.privateGetAccountPositions (this.extend (request, query));
         //
         //     {
         //         "code": "0",
@@ -4251,7 +4322,9 @@ module.exports = class okx extends Exchange {
                 request['instId'] = marketIds.join (',');
             }
         }
-        const response = await this.privateGetAccountPositions (this.extend (request, params));
+        const fetchPositionsOptions = this.safeValue (this.options, 'fetchPositions', {});
+        const method = this.safeString (fetchPositionsOptions, 'method', 'privateGetAccountPositions');
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -4365,6 +4438,9 @@ module.exports = class okx extends Exchange {
                     side = (market['base'] === parsedCurrency) ? 'long' : 'short';
                 }
             }
+            if (side === undefined) {
+                side = this.safeString (position, 'direction');
+            }
         } else {
             if (pos !== undefined) {
                 if (side === 'net') {
@@ -4378,7 +4454,7 @@ module.exports = class okx extends Exchange {
                 }
             }
         }
-        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSize = this.safeNumber (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
         const markPriceString = this.safeString (position, 'markPx');
         let notionalString = this.safeString (position, 'notionalUsd');
@@ -4904,8 +4980,8 @@ module.exports = class okx extends Exchange {
             if (posSide === undefined) {
                 throw new ArgumentsRequired (this.id + ' setLeverage() requires a posSide argument for isolated margin');
             }
-            if (posSide !== 'long' && posSide !== 'short') {
-                throw new BadRequest (this.id + ' setLeverage() requires the posSide argument to be either "long" or "short"');
+            if (posSide !== 'long' && posSide !== 'short' && posSide !== 'net') {
+                throw new BadRequest (this.id + ' setLeverage() requires the posSide argument to be either "long", "short" or "net"');
             }
         }
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));

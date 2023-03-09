@@ -750,7 +750,7 @@ module.exports = class gemini extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the gemini api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetV1Pricefeed (params);
@@ -1547,6 +1547,7 @@ module.exports = class gemini extends Exchange {
 
     async fetchDepositAddressesByNetwork (code, params = {}) {
         await this.loadMarkets ();
+        const currency = this.currency (code);
         const network = this.safeString (params, 'network');
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddressesByNetwork() requires a network parameter');
@@ -1560,7 +1561,7 @@ module.exports = class gemini extends Exchange {
             'network': networkId,
         };
         const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
-        const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
+        const results = this.parseDepositAddresses (response, [ currency['code'] ], false, { 'network': networkCode, 'currency': code });
         return this.groupBy (results, 'network');
     }
 

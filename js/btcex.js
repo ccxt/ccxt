@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, PermissionDenied, ExchangeNotAvailable, ArgumentsRequired } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -44,7 +44,16 @@ module.exports = class btcex extends Exchange {
                 'option': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createLimitBuyOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
+                'createMarketSellOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -207,10 +216,12 @@ module.exports = class btcex extends Exchange {
                     '403': AuthenticationError, // ACCESS_DENIED_ERROR Access denied
                     '1000': ExchangeNotAvailable, // NO_SERVICE No service found
                     '1001': BadRequest, // BAD_REQUEST Bad requested
+                    '1005': DDoSProtection, // {"code":1005,"message":"Operate too frequently"}
                     '2000': AuthenticationError, // NEED_LOGIN Login is required
                     '2001': AuthenticationError, // ACCOUNT_NOT_MATCH Account information does not match
                     '2002': AuthenticationError, // ACCOUNT_NEED_ENABLE Account needs to be activated
                     '2003': AuthenticationError, // ACCOUNT_NOT_AVAILABLE Account not available
+                    '2010': PermissionDenied, // {"code":2010,"message":"Access denied","data":{}}
                     '3000': AuthenticationError, // TEST user
                     '3002': AuthenticationError, // NICKNAME_EXIST Nicknames exist
                     '3003': AuthenticationError, // ACCOUNT_NOT_EXIST No account
@@ -275,6 +286,7 @@ module.exports = class btcex extends Exchange {
                     '5013': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_HIGH order price range is too high.
                     '5014': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
                     '5109': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
+                    '5119': InvalidOrder, // {"code":5119,"message":"Cannot be less than the minimum order value：10USDT, instrument: GXE/USDT","data":{"coinType":"USDT","amount":"10","instrumentName":"GXE/USDT"}}
                     '5135': InvalidOrder, // The quantity should be larger than: 0.01
                     '5901': InvalidOrder, // TRANSFER_RESULT transfer out success.
                     '5902': InvalidOrder, // ORDER_SUCCESS place order success.
@@ -310,6 +322,7 @@ module.exports = class btcex extends Exchange {
                     'BTC': 'BTC',
                     'ETH': 'ETH',
                 },
+                'createMarketBuyOrderRequiresPrice': true,
             },
             'commonCurrencies': {
             },
@@ -1152,13 +1165,6 @@ module.exports = class btcex extends Exchange {
         const averageString = this.safeString (order, 'average_price');
         const amountString = this.safeString (order, 'amount');
         const filledString = this.safeString (order, 'filled_amount');
-        let lastTradeTimestamp = undefined;
-        if (filledString !== undefined) {
-            const isFilledPositive = Precise.stringGt (filledString, '0');
-            if (isFilledPositive) {
-                lastTradeTimestamp = lastUpdate;
-            }
-        }
         const status = this.parseOrderStatus (this.safeString (order, 'order_state'));
         const marketId = this.safeString (order, 'instrument_name');
         market = this.safeMarket (marketId, market);
@@ -1172,27 +1178,26 @@ module.exports = class btcex extends Exchange {
                 'currency': market['base'],
             };
         }
-        const type = this.safeString (order, 'order_type');
         // injected in createOrder
         const trades = this.safeValue (order, 'trades');
-        const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
-        const stopPrice = this.safeValue (order, 'trigger_price');
-        const postOnly = this.safeValue (order, 'post_only');
+        const stopPrice = this.safeNumber (order, 'trigger_price');
         return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': lastUpdate,
             'symbol': market['symbol'],
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
+            'type': this.safeString (order, 'order_type'),
+            'timeInForce': this.parseTimeInForce (this.safeString (order, 'time_in_force')),
+            'postOnly': this.safeValue (order, 'post_only'),
             'side': side,
-            'price': priceString,
+            'price': this.parseNumber (priceString),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'stopLossPrice': this.safeNumber (order, 'stop_loss_price'),
+            'takeProfitPrice': this.safeNumber (order, 'take_profit_price'),
             'amount': amountString,
             'cost': undefined,
             'average': averageString,
@@ -1205,6 +1210,7 @@ module.exports = class btcex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.signIn ();
         await this.loadMarkets ();
         const request = {
             'order_id': id,
@@ -1245,26 +1251,77 @@ module.exports = class btcex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * ----------------- Exchange Specific Parameters -----------------
+         * @param {float|undefined} params.cost amount in USDT to spend for market orders
+         * @param {float|undefined} params.triggerPrice price to trigger stop orders
+         * @param {float|undefined} params.stopPrice price to trigger stop orders
+         * @param {float|undefined} params.stopLossPrice price to trigger stop-loss orders (only for perpetuals)
+         * @param {float|undefined} params.takeProfitPrice price to trigger take-profit orders (only for perpetuals)
+         * @param {object|undefined} params.stopLoss for setting a stop-loss attached to an order, set the value of the stopLoss key 'price' (only for perpetuals)
+         * @param {object|undefined} params.takeProfit for setting a take-profit attached to an order, set the value of the takeProfit key 'price' (only for perpetuals)
+         * @param {int|undefined} params.trigger_price_type 1: mark-price, 2: last-price. (only for perpetuals)
+         * @param {int|undefined} params.stop_loss_type 1: mark-price, 2: last-price (only for perpetuals)
+         * @param {int|undefined} params.take_profit_type 1: mark-price, 2: last-price (only for perpetuals)
+         * @param {bool|undefined} params.market_amount_order if set to true，then the amount field means USDT value (only for perpetuals)
+         * @param {string|undefined} params.condition_type 'NORMAL', 'STOP', 'TRAILING', 'IF_TOUCHED'
+         * @param {string|undefined} params.position_side 'BOTH', for one-way mode 'LONG' or 'SHORT', for hedge-mode
+         * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'FOK'
+         * @param {bool|undefined} params.postOnly
+         * @param {bool|undefined} params.reduceOnly
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.signIn ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
-            'amount': this.amountToPrecision (symbol, amount),
-            'type': type, // limit, market, default is limit
-            // 'price': this.priceToPrecision (symbol, 123.45), // The order price for limit order. When adding options order with advanced=iv, the field price should be a value of implied volatility in percentages. For example, price=100, means implied volatility of 100%
-            // 'time_in_force' : 'good_til_cancelled', // good_til_cancelled, good_til_date, fill_or_kill, immediate_or_cancel Specifies how long the order remains in effect, default: good_til_cancelled
-            // 'post_only': false, // If true, the order is considered post-only, default: false
-            // 'reduce_only': false, // If true, the order is considered reduce-only which is intended to only reduce a current position. default: false
-            // 'condition_type': '', // NORMAL, STOP, TRAILING, IF_TOUCHED, Condition sheet policy, the default is NORMAL. Available when kind is future
-            // 'trigger_price': 'index_price', // trigger price. Available when condition_type is STOP or IF_TOUCHED
-            // 'trail_price': false, // trail price, Tracking price change Delta. Available when condition_type is TRAILING
-            // 'advanced': 'usd', // Advanced option order type, (Only for options), default: usdt. If set to iv，then the price field means iv value
+            'type': type,
         };
+        if (side === 'sell' || type === 'limit') {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
+        } else {
+            const costParam = this.safeNumber (params, 'cost');
+            const amountString = this.numberToString (amount);
+            const priceString = this.numberToString (price);
+            const cost = this.parseNumber (Precise.stringMul (amountString, priceString), costParam);
+            if (market['swap']) {
+                if (cost !== undefined) {
+                    request['amount'] = this.priceToPrecision (symbol, cost);
+                    request['market_amount_order'] = true;
+                } else {
+                    request['market_amount_order'] = false;
+                    request['amount'] = this.amountToPrecision (symbol, amount);
+                }
+            } else {
+                if (side === 'buy') {
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    if (createMarketBuyOrderRequiresPrice) {
+                        if (cost === undefined) {
+                            throw new InvalidOrder (this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                        } else {
+                            request['amount'] = this.priceToPrecision (symbol, cost);
+                        }
+                    } else {
+                        request['amount'] = this.priceToPrecision (symbol, amount);
+                    }
+                }
+            }
+            params = this.omit (params, 'cost');
         }
-        if (market['contract']) {
+        if (market['swap']) {
             const timeInForce = this.safeStringUpper (params, 'timeInForce');
             if (timeInForce === 'GTC') {
                 request['time_in_force'] = 'good_till_cancelled';
@@ -1283,7 +1340,43 @@ module.exports = class btcex extends Exchange {
             if (reduceOnly) {
                 request['reduce_only'] = true;
             }
-            params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly' ]);
+            if (side === 'buy') {
+                const requestType = (reduceOnly) ? 'SHORT' : 'LONG';
+                request['position_side'] = requestType;
+            } else {
+                const requestType = (reduceOnly) ? 'LONG' : 'SHORT';
+                request['position_side'] = requestType;
+            }
+            const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+            let stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+            let takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+            const isStopLoss = this.safeValue (params, 'stopLoss');
+            const isTakeProfit = this.safeValue (params, 'takeProfit');
+            if (stopPrice) {
+                request['condition_type'] = 'STOP';
+                request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
+                request['trigger_price_type'] = 1;
+            } else if (stopLossPrice || takeProfitPrice) {
+                request['condition_type'] = 'STOP';
+                if (stopLossPrice) {
+                    request['trigger_price'] = this.priceToPrecision (symbol, stopLossPrice);
+                } else {
+                    request['trigger_price'] = this.priceToPrecision (symbol, takeProfitPrice);
+                }
+                request['reduce_only'] = true;
+                request['trigger_price_type'] = 1;
+            } else if (isStopLoss || isTakeProfit) {
+                if (isStopLoss) {
+                    stopLossPrice = this.safeNumber (isStopLoss, 'price');
+                    request['stop_loss_price'] = this.priceToPrecision (symbol, stopLossPrice);
+                    request['stop_loss_type'] = 1;
+                } else {
+                    takeProfitPrice = this.safeNumber (isTakeProfit, 'price');
+                    request['take_profit_price'] = this.priceToPrecision (symbol, takeProfitPrice);
+                    request['take_profit_type'] = 1;
+                }
+            }
+            params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
         }
         const method = 'privatePost' + this.capitalize (side);
         const response = await this[method] (this.extend (request, params));
@@ -1506,19 +1599,18 @@ module.exports = class btcex extends Exchange {
             // 'end_id': 0, // The ID number of the last trade to be returned
             // 'sorting': '', // Direction of results sorting,default: desc
             // 'self_trade': false, // If not set, query all
+            // 'start_timestamp': false // The trade time of the first trade to be returned
+            // 'end_timestamp': false // The trade time of the last trade to be returned
         };
-        let method = undefined;
         const market = this.market (symbol);
         request['instrument_name'] = market['id'];
-        if (since === undefined) {
-            method = 'privateGetGetUserTradesByInstrument';
-        } else {
-            method = 'privateGetGetUserTradesByInstrumentAndTime';
-        }
         if (limit !== undefined) {
             request['count'] = limit; // default 20
         }
-        const response = await this[method] (this.extend (request, params));
+        if (since !== undefined) {
+            request['start_timestamp'] = since;
+        }
+        const response = await this.privateGetGetUserTradesByInstrument (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
@@ -2171,9 +2263,9 @@ module.exports = class btcex extends Exchange {
          * @name btcex#fetchFundingRates
          * @description fetch the current funding rates
          * @see https://docs.btcex.com/#contracts
-         * @param {array} symbols unified market symbols
+         * @param {[string]} symbols unified market symbols
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {array} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);

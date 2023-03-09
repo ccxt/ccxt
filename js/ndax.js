@@ -2004,8 +2004,9 @@ module.exports = class ndax extends Exchange {
          * @method
          * @name ndax#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://apidoc.ndax.io/#getdeposits
          * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} since not used by ndax fetchDeposits
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the ndax api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
@@ -2026,26 +2027,36 @@ module.exports = class ndax extends Exchange {
         };
         const response = await this.privateGetGetDeposits (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "OMSId":1,
-        //             "DepositId":44,
-        //             "AccountId":449,
-        //             "SubAccountId":0,
-        //             "ProductId":4,
-        //             "Amount":200.00000000000000000000000000,
-        //             "LastUpdateTimeStamp":637431291261187806,
-        //             "ProductType":"CryptoCurrency",
-        //             "TicketStatus":"FullyProcessed",
-        //             "DepositInfo":"{}",
-        //             "DepositCode":"ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-        //             "TicketNumber":71,
-        //             "NotionalProductId":13,
-        //             "NotionalValue":200.00000000000000000000000000,
-        //             "FeeAmount":0.0000000000000000000000000000,
-        //         },
-        //     ]
+        //    "[
+        //        {
+        //            "OMSId": 1,
+        //            "DepositId": 44,
+        //            "AccountId": 449,
+        //            "SubAccountId": 0,
+        //            "ProductId": 4,
+        //            "Amount": 200.00000000000000000000000000,
+        //            "LastUpdateTimeStamp": 637431291261187806,
+        //            "ProductType": "CryptoCurrency",
+        //            "TicketStatus": "FullyProcessed",
+        //            "DepositInfo": "{
+        //                "AccountProviderId":42,
+        //                "AccountProviderName":"USDT_BSC",
+        //                "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
+        //                "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
+        //                "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
+        //            },",
+        //            "DepositCode": "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        //            "TicketNumber": 71,
+        //            "NotionalProductId": 13,
+        //            "NotionalValue": 200.00000000000000000000000000,
+        //            "FeeAmount": 0.0000000000000000000000000000,
+        //        },
+        //        ...
+        //    ]"
         //
+        if (typeof response === 'string') {
+            return this.parseTransactions (JSON.parse (response), currency, since, limit);
+        }
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -2155,22 +2166,28 @@ module.exports = class ndax extends Exchange {
         //
         // fetchDeposits
         //
-        //     {
-        //         "OMSId":1,
-        //         "DepositId":44,
-        //         "AccountId":449,
-        //         "SubAccountId":0,
-        //         "ProductId":4,
-        //         "Amount":200.00000000000000000000000000,
-        //         "LastUpdateTimeStamp":637431291261187806,
-        //         "ProductType":"CryptoCurrency",
-        //         "TicketStatus":"FullyProcessed",
-        //         "DepositInfo":"{}",
-        //         "DepositCode":"ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-        //         "TicketNumber":71,
-        //         "NotionalProductId":13,
-        //         "NotionalValue":200.00000000000000000000000000,
-        //         "FeeAmount":0.0000000000000000000000000000,
+        //    {
+        //        "OMSId": 1,
+        //        "DepositId": 44,
+        //        "AccountId": 449,
+        //        "SubAccountId": 0,
+        //        "ProductId": 4,
+        //        "Amount": 200.00000000000000000000000000,
+        //        "LastUpdateTimeStamp": 637431291261187806,
+        //        "ProductType": "CryptoCurrency",
+        //        "TicketStatus": "FullyProcessed",
+        //        "DepositInfo": "{
+        //            "AccountProviderId":42,
+        //            "AccountProviderName":"USDT_BSC",
+        //            "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
+        //            "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
+        //            "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
+        //        }",
+        //        "DepositCode": "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        //        "TicketNumber": 71,
+        //        "NotionalProductId": 13,
+        //        "NotionalValue": 200.00000000000000000000000000,
+        //        "FeeAmount": 0.0000000000000000000000000000,
         //     }
         //
         // fetchWithdrawals
@@ -2197,10 +2214,8 @@ module.exports = class ndax extends Exchange {
         //     }
         //
         let id = undefined;
-        let txid = undefined;
         const currencyId = this.safeString (transaction, 'ProductId');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let timestamp = undefined;
         let type = undefined;
         if ('DepositId' in transaction) {
             id = this.safeString (transaction, 'DepositId');
@@ -2209,20 +2224,15 @@ module.exports = class ndax extends Exchange {
             id = this.safeString (transaction, 'WithdrawId');
             type = 'withdrawal';
         }
-        const templateFormString = this.safeString (transaction, 'TemplateForm');
-        let address = undefined;
+        const templateForm = this.parseJson (this.safeValue2 (transaction, 'TemplateForm', 'DepositInfo'));
         let updated = this.safeInteger (transaction, 'LastUpdateTimeStamp');
-        if (templateFormString !== undefined) {
-            const templateForm = JSON.parse (templateFormString);
-            address = this.safeString (templateForm, 'ExternalAddress');
-            txid = this.safeString (templateForm, 'TxId');
-            timestamp = this.safeInteger (templateForm, 'TimeSubmitted');
+        if (templateForm !== undefined) {
             updated = this.safeInteger (templateForm, 'LastUpdated', updated);
         }
-        const addressTo = address;
-        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'TicketStatus'), type);
-        const amount = this.safeNumber (transaction, 'Amount');
+        const address = this.safeString2 (templateForm, 'ExternalAddress', 'ToAddress');
+        const timestamp = this.safeInteger (templateForm, 'TimeSubmitted');
         const feeCost = this.safeNumber (transaction, 'FeeAmount');
+        const transactionStatus = this.safeString (transaction, 'TicketStatus');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
@@ -2230,19 +2240,19 @@ module.exports = class ndax extends Exchange {
         return {
             'info': transaction,
             'id': id,
-            'txid': txid,
+            'txid': this.safeString2 (templateForm, 'TxId', 'TXId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
-            'addressTo': addressTo,
-            'addressFrom': undefined,
+            'addressTo': address,
+            'addressFrom': this.safeString (templateForm, 'FromAddress'),
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
-            'amount': amount,
+            'amount': this.safeNumber (transaction, 'Amount'),
             'currency': code,
-            'status': status,
+            'status': this.parseTransactionStatusByType (transactionStatus, type),
             'updated': updated,
             'fee': fee,
         };

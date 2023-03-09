@@ -16,6 +16,7 @@ class independentreserve(Exchange):
             'name': 'Independent Reserve',
             'countries': ['AU', 'NZ'],  # Australia, New Zealand
             'rateLimit': 1000,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -539,7 +540,7 @@ class independentreserve(Exchange):
                 side = 'buy'
             elif side.find('Offer') >= 0:
                 side = 'sell'
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -553,7 +554,7 @@ class independentreserve(Exchange):
             'amount': amount,
             'cost': cost,
             'fee': None,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """

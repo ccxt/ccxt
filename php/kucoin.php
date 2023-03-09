@@ -1012,7 +1012,7 @@ class kucoin extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the kucoin api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -2255,7 +2255,7 @@ class kucoin extends Exchange {
     public function parse_transaction_status($status) {
         $statuses = array(
             'SUCCESS' => 'ok',
-            'PROCESSING' => 'ok',
+            'PROCESSING' => 'pending',
             'FAILURE' => 'failed',
         );
         return $this->safe_string($statuses, $status);
@@ -3446,6 +3446,9 @@ class kucoin extends Exchange {
         $version = $this->safe_string($params, 'version', $defaultVersion);
         $params = $this->omit($params, 'version');
         $endpoint = '/api/' . $version . '/' . $this->implode_params($path, $params);
+        if ($api === 'webFront') {
+            $endpoint = '/' . $this->implode_params($path, $params);
+        }
         $query = $this->omit($params, $this->extract_params($path));
         $endpart = '';
         $headers = ($headers !== null) ? $headers : array();

@@ -740,7 +740,7 @@ class gemini extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the gemini api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $response = $this->publicGetV1Pricefeed ($params);
@@ -1517,6 +1517,7 @@ class gemini extends Exchange {
 
     public function fetch_deposit_addresses_by_network($code, $params = array ()) {
         $this->load_markets();
+        $currency = $this->currency($code);
         $network = $this->safe_string($params, 'network');
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddressesByNetwork() requires a $network parameter');
@@ -1530,7 +1531,7 @@ class gemini extends Exchange {
             'network' => $networkId,
         );
         $response = $this->privatePostV1AddressesNetwork (array_merge($request, $params));
-        $results = $this->parse_deposit_addresses($response, array( $code ), false, array( 'network' => $networkCode, 'currency' => $code ));
+        $results = $this->parse_deposit_addresses($response, [ $currency['code'] ], false, array( 'network' => $networkCode, 'currency' => $code ));
         return $this->group_by($results, 'network');
     }
 

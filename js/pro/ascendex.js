@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ascendexRest = require ('../ascendex.js');
-const { AuthenticationError } = require ('../base/errors');
+const { AuthenticationError, NetworkError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -483,6 +483,7 @@ module.exports = class ascendex extends ascendexRest {
         /**
          * @method
          * @name ascendex#watchOrders
+         * @see https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
          * @description watches information on multiple orders made by the user
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
@@ -499,7 +500,7 @@ module.exports = class ascendex extends ascendexRest {
         const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let messageHash = undefined;
         let channel = undefined;
-        if (type !== 'spot') {
+        if (type !== 'spot' && type !== 'margin') {
             channel = 'futures-order';
             messageHash = 'order:FUTURES';
         } else {
@@ -934,15 +935,20 @@ module.exports = class ascendex extends ascendexRest {
         await client.send ({ 'op': 'pong', 'hp': this.safeInteger (message, 'hp') });
     }
 
-    handlePing (client, message) {
-        this.spawn (this.pong, client, message);
+    async handlePing (client, message) {
+        try {
+            await this.spawn (this.pong, client, message);
+        } catch (e) {
+            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.json (e));
+            client.reset (error);
+        }
     }
 
     authenticate (url, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
-        let future = this.safeValue (client.futures, messageHash);
+        let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             const timestamp = this.milliseconds ().toString ();
             const urlParts = url.split ('/');

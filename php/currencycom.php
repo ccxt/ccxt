@@ -350,7 +350,6 @@ class currencycom extends Exchange {
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
-                'address' => $this->safe_string($currency, 'baseAddress'),
                 'type' => $this->safe_string_lower($currency, 'type'),
                 'name' => $this->safe_string($currency, 'name'),
                 'active' => null,
@@ -893,7 +892,7 @@ class currencycom extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the currencycom api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $response = $this->publicGetV2Ticker24hr ($params);

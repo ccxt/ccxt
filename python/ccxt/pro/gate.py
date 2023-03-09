@@ -67,6 +67,7 @@ class gate(Exchange, ccxt.async_support.gate):
                 'watchOrderBook': {
                     'interval': '100ms',
                     'snapshotDelay': 10,  # how many deltas to cache before fetching a snapshot
+                    'maxRetries': 3,
                 },
                 'watchBalance': {
                     'settle': 'usdt',  # or btc
@@ -185,7 +186,7 @@ class gate(Exchange, ccxt.async_support.gate):
         marketId = self.safe_string(delta, 's')
         symbol = self.safe_symbol(marketId, None, '_', marketType)
         messageHash = 'orderbook:' + symbol
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
+        storedOrderBook = self.safe_value(self.orderbooks, symbol, self.order_book({}))
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
             cacheLength = 0
@@ -206,6 +207,8 @@ class gate(Exchange, ccxt.async_support.gate):
             self.handle_delta(storedOrderBook, delta)
         else:
             error = InvalidNonce(self.id + ' orderbook update has a nonce bigger than u')
+            del client.subscriptions[messageHash]
+            del self.orderbooks[symbol]
             client.reject(error, messageHash)
         client.resolve(storedOrderBook, messageHash)
 
@@ -267,7 +270,7 @@ class gate(Exchange, ccxt.async_support.gate):
     async def watch_tickers(self, symbols=None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :param Array symbols: unified symbol of the market to fetch the ticker for
+        :param [str] symbols: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
@@ -644,6 +647,10 @@ class gate(Exchange, ccxt.async_support.gate):
         #   }
         #
         result = self.safe_value(message, 'result', [])
+        timestamp = self.safe_integer(message, 'time')
+        self.balance['info'] = result
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
         for i in range(0, len(result)):
             rawBalance = result[i]
             account = self.account()
@@ -692,7 +699,7 @@ class gate(Exchange, ccxt.async_support.gate):
         })
         channel = typeId + '.orders'
         messageHash = 'orders'
-        payload = ['not all']
+        payload = ['!' + 'all']
         if symbol is not None:
             messageHash += ':' + market['id']
             payload = [market['id']]

@@ -76,7 +76,6 @@ module.exports = class kraken extends Exchange {
                 'setMarginMode': false, // Kraken only supports cross margin
                 'withdraw': true,
             },
-            'marketsByAltname': {},
             'timeframes': {
                 '1m': 1,
                 '5m': 5,
@@ -205,6 +204,7 @@ module.exports = class kraken extends Exchange {
                 'XDG': 'DOGE',
             },
             'options': {
+                'marketsByAltname': {},
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
@@ -481,7 +481,7 @@ module.exports = class kraken extends Exchange {
             });
         }
         result = this.appendInactiveMarkets (result);
-        this.marketsByAltname = this.indexBy (result, 'altname');
+        this.options['marketsByAltname'] = this.indexBy (result, 'altname');
         return result;
     }
 
@@ -768,7 +768,7 @@ module.exports = class kraken extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -860,7 +860,7 @@ module.exports = class kraken extends Exchange {
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
-            'interval': this.safeNumber (this.timeframes, timeframe, timeframe),
+            'interval': this.safeInteger (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['since'] = parseInt ((since - 1) / 1000);
@@ -1266,8 +1266,9 @@ module.exports = class kraken extends Exchange {
     }
 
     findMarketByAltnameOrId (id) {
-        if (id in this.marketsByAltname) {
-            return this.marketsByAltname[id];
+        const marketsByAltname = this.safeValue (this.options, 'marketsByAltname', {});
+        if (id in marketsByAltname) {
+            return marketsByAltname[id];
         } else {
             return this.safeMarket (id);
         }

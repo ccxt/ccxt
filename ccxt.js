@@ -37,13 +37,14 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '2.7.32'
+const version = '2.9.8'
 
 Exchange.ccxtVersion = version
 
 //-----------------------------------------------------------------------------
 
 const exchanges = {
+    'ace':                     require ('./js/ace.js'),
     'alpaca':                  require ('./js/alpaca.js'),
     'ascendex':                require ('./js/ascendex.js'),
     'bequant':                 require ('./js/bequant.js'),
@@ -116,6 +117,7 @@ const exchanges = {
     'indodax':                 require ('./js/indodax.js'),
     'itbit':                   require ('./js/itbit.js'),
     'kraken':                  require ('./js/kraken.js'),
+    'krakenfutures':           require ('./js/krakenfutures.js'),
     'kucoin':                  require ('./js/kucoin.js'),
     'kucoinfutures':           require ('./js/kucoinfutures.js'),
     'kuna':                    require ('./js/kuna.js'),
@@ -141,7 +143,6 @@ const exchanges = {
     'probit':                  require ('./js/probit.js'),
     'ripio':                   require ('./js/ripio.js'),
     'stex':                    require ('./js/stex.js'),
-    'therock':                 require ('./js/therock.js'),
     'tidex':                   require ('./js/tidex.js'),
     'timex':                   require ('./js/timex.js'),
     'tokocrypto':              require ('./js/tokocrypto.js'),
@@ -194,6 +195,7 @@ const pro = {
     'huobijp':                 require ('./js/pro/huobijp.js'),
     'huobipro':                require ('./js/pro/huobipro.js'),
     'idex':                    require ('./js/pro/idex.js'),
+    'independentreserve':      require ('./js/pro/independentreserve.js'),
     'kraken':                  require ('./js/pro/kraken.js'),
     'kucoin':                  require ('./js/pro/kucoin.js'),
     'kucoinfutures':           require ('./js/pro/kucoinfutures.js'),

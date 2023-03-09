@@ -145,6 +145,7 @@ module.exports = class bitrue extends bitrueRest {
         //         t: 1657799510000
         //     }]
         //
+        this.balance['info'] = balances;
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'a');
@@ -175,7 +176,7 @@ module.exports = class bitrue extends bitrueRest {
          * @name bitrue#watchOrders
          * @description watches information on user orders
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-         * @param {Array} symbols unified symbols of the market to watch the orders for
+         * @param {[string]} symbols unified symbols of the market to watch the orders for
          * @param {int|undefined} since timestamp in ms of the earliest order
          * @param {int|undefined} limit the maximum amount of orders to return
          * @param {object} params extra parameters specific to the bitrue api endpoint

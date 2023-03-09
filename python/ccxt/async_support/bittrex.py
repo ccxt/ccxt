@@ -270,25 +270,6 @@ class bittrex(Exchange):
                 },
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
-                # With certain currencies, like
-                # AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
-                # an additional tag / memo / payment id is usually required by exchanges.
-                # With Bittrex some currencies imply the "base address + tag" logic.
-                # The base address for depositing is stored on self.currencies[code]
-                # The base address identifies the exchange as the recipient
-                # while the tag identifies the user account within the exchange
-                # and the tag is retrieved with fetchDepositAddress.
-                'tag': {
-                    'NXT': True,  # NXT, BURST
-                    'CRYPTO_NOTE_PAYMENTID': True,  # AEON, XMR
-                    'BITSHAREX': True,  # BTS
-                    'RIPPLE': True,  # XRP
-                    'NEM': True,  # XEM
-                    'STELLAR': True,  # XLM
-                    'STEEM': True,  # SBD, GOLOS
-                    # https://github.com/ccxt/ccxt/issues/4794
-                    # 'LISK': True,  # LSK
-                },
                 'subaccountId': None,
                 # see the implementation of fetchClosedOrdersV3 below
                 # 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
@@ -494,7 +475,6 @@ class bittrex(Exchange):
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': self.safe_string(currency, 'baseAddress'),
                 'info': currency,
                 'type': self.safe_string(currency, 'coinType'),
                 'name': self.safe_string(currency, 'name'),
@@ -573,7 +553,7 @@ class bittrex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -661,7 +641,7 @@ class bittrex(Exchange):
         fetches the bid and ask price and volume for multiple markets
         :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict params: extra parameters specific to the binance api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         response = await self.publicGetMarketsTickers(params)
@@ -1866,15 +1846,12 @@ class bittrex(Exchange):
         message = self.safe_string(response, 'status')
         if not address or message == 'REQUESTED':
             raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
-        tag = self.safe_string(response, 'cryptoAddressTag')
-        if (tag is None) and (currency['type'] in self.options['tag']):
-            tag = address
-            address = currency['address']
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': self.safe_string(response, 'cryptoAddressTag'),
+            'network': None,
             'info': response,
         }
 
@@ -1903,15 +1880,11 @@ class bittrex(Exchange):
         message = self.safe_string(response, 'status')
         if not address or message == 'REQUESTED':
             raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
-        tag = self.safe_string(response, 'cryptoAddressTag')
-        if (tag is None) and (currency['type'] in self.options['tag']):
-            tag = address
-            address = currency['address']
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': self.safe_string(response, 'cryptoAddressTag'),
             'network': None,
             'info': response,
         }

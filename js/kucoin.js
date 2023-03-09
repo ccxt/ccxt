@@ -1029,7 +1029,7 @@ module.exports = class kucoin extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -2308,7 +2308,7 @@ module.exports = class kucoin extends Exchange {
     parseTransactionStatus (status) {
         const statuses = {
             'SUCCESS': 'ok',
-            'PROCESSING': 'ok',
+            'PROCESSING': 'pending',
             'FAILURE': 'failed',
         };
         return this.safeString (statuses, status);
@@ -3517,6 +3517,9 @@ module.exports = class kucoin extends Exchange {
         const version = this.safeString (params, 'version', defaultVersion);
         params = this.omit (params, 'version');
         let endpoint = '/api/' + version + '/' + this.implodeParams (path, params);
+        if (api === 'webFront') {
+            endpoint = '/' + this.implodeParams (path, params);
+        }
         const query = this.omit (params, this.extractParams (path));
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};

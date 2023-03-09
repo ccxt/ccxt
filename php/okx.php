@@ -203,6 +203,7 @@ class okx extends Exchange {
                         'account/account-position-risk' => 2,
                         'account/balance' => 2,
                         'account/positions' => 2,
+                        'account/positions-history' => 2,
                         'account/bills' => 5 / 3,
                         'account/bills-archive' => 5 / 3,
                         'account/config' => 4,
@@ -243,6 +244,7 @@ class okx extends Exchange {
                         'trade/fills-history' => 2,
                         'trade/orders-algo-pending' => 1,
                         'trade/orders-algo-history' => 1,
+                        'trade/order-algo' => 1,
                         'account/subaccount/balances' => 10,
                         'asset/subaccount/bills' => 5 / 3,
                         'users/subaccount/list' => 10,
@@ -301,6 +303,7 @@ class okx extends Exchange {
                         'account/borrow-repay' => 5 / 3,
                         'account/quick-margin-borrow-repay' => 4,
                         'account/activate-option' => 4,
+                        'account/set-auto-loan' => 4,
                         'asset/transfer' => 10,
                         'asset/withdrawal' => 5 / 3,
                         'asset/purchase_redempt' => 5 / 3,
@@ -618,6 +621,8 @@ class okx extends Exchange {
                     '58117' => '\\ccxt\\ExchangeError', // Account assets are abnormal, please deal with negative assets before transferring
                     '58125' => '\\ccxt\\BadRequest', // Non-tradable assets can only be transferred from sub-accounts to main accounts
                     '58126' => '\\ccxt\\BadRequest', // Non-tradable assets can only be transferred between funding accounts
+                    '58127' => '\\ccxt\\BadRequest', // Main account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
+                    '58128' => '\\ccxt\\BadRequest', // Sub-account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
                     '58200' => '\\ccxt\\ExchangeError', // Withdrawal from {0} to {1} is unavailable for this currency
                     '58201' => '\\ccxt\\ExchangeError', // Withdrawal amount exceeds the daily limit
                     '58202' => '\\ccxt\\ExchangeError', // The minimum withdrawal amount for NEO is 1, and the amount must be an integer
@@ -739,6 +744,9 @@ class okx extends Exchange {
                 'fetchOHLCV' => array(
                     // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                     'timezone' => 'UTC', // UTC, HK
+                ),
+                'fetchPositions' => array(
+                    'method' => 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
                 ),
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice' => false,
@@ -1523,7 +1531,7 @@ class okx extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the okx api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -2595,7 +2603,12 @@ class okx extends Exchange {
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $stop = $this->safe_value($params, 'stop');
         if ($stop) {
-            throw new NotSupported($this->id . ' fetchOrder() does not support $stop orders, use fetchOpenOrders() fetchCanceledOrders() or fetchClosedOrders()');
+            $method = 'privateGetTradeOrderAlgo';
+            if ($clientOrderId !== null) {
+                $request['algoClOrdId'] = $clientOrderId;
+            } else {
+                $request['algoId'] = $id;
+            }
         } else {
             if ($clientOrderId !== null) {
                 $request['clOrdId'] = $clientOrderId;
@@ -2603,7 +2616,7 @@ class okx extends Exchange {
                 $request['ordId'] = $id;
             }
         }
-        $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId' ));
+        $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId', 'stop' ));
         $response = $this->$method (array_merge($request, $query));
         //
         // Spot and Swap
@@ -2647,6 +2660,58 @@ class okx extends Exchange {
         //             }
         //         ),
         //         "msg" => ""
+        //     }
+        //
+        // Algo $order
+        //     {
+        //         "code":"0",
+        //         "msg":"",
+        //         "data":array(
+        //             {
+        //                 "instType":"FUTURES",
+        //                 "instId":"BTC-USD-200329",
+        //                 "ordId":"123445",
+        //                 "ccy":"BTC",
+        //                 "clOrdId":"",
+        //                 "algoId":"1234",
+        //                 "sz":"999",
+        //                 "closeFraction":"",
+        //                 "ordType":"oco",
+        //                 "side":"buy",
+        //                 "posSide":"long",
+        //                 "tdMode":"cross",
+        //                 "tgtCcy" => "",
+        //                 "state":"effective",
+        //                 "lever":"20",
+        //                 "tpTriggerPx":"",
+        //                 "tpTriggerPxType":"",
+        //                 "tpOrdPx":"",
+        //                 "slTriggerPx":"",
+        //                 "slTriggerPxType":"",
+        //                 "triggerPx":"99",
+        //                 "triggerPxType":"last",
+        //                 "ordPx":"12",
+        //                 "actualSz":"",
+        //                 "actualPx":"",
+        //                 "actualSide":"",
+        //                 "pxVar":"",
+        //                 "pxSpread":"",
+        //                 "pxLimit":"",
+        //                 "szLimit":"",
+        //                 "tag" => "adadadadad",
+        //                 "timeInterval":"",
+        //                 "callbackRatio":"",
+        //                 "callbackSpread":"",
+        //                 "activePx":"",
+        //                 "moveTriggerPx":"",
+        //                 "reduceOnly" => "false",
+        //                 "triggerTime":"1597026383085",
+        //                 "last" => "16012",
+        //                 "failCode" => "",
+        //                 "algoClOrdId" => "",
+        //                 "cTime":"1597026383000"
+        //             }
+        //         )
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -3595,7 +3660,7 @@ class okx extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $filtered = $this->filter_by($data, 'selected', true);
-        $parsed = $this->parse_deposit_addresses($filtered, array( $code ), false);
+        $parsed = $this->parse_deposit_addresses($filtered, [ $currency['code'] ], false);
         return $this->index_by($parsed, 'network');
     }
 
@@ -3655,28 +3720,34 @@ class okx extends Exchange {
         if (($tag !== null) && (strlen($tag) > 0)) {
             $address = $address . ':' . $tag;
         }
-        $fee = $this->safe_string($params, 'fee');
-        if ($fee === null) {
-            throw new ArgumentsRequired($this->id . " withdraw() requires a 'fee' string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set '0'. Withdrawing to external digital asset $address requires $network $transaction $fee->");
-        }
         $request = array(
             'ccy' => $currency['id'],
             'toAddr' => $address,
             'dest' => '4', // 2 = OKCoin International, 3 = OKX 4 = others
             'amt' => $this->number_to_string($amount),
-            'fee' => $this->number_to_string($fee), // withdrawals to OKCoin or OKX are $fee-free, please set 0
         );
-        if (is_array($params) && array_key_exists('password', $params)) {
-            $request['pwd'] = $params['password'];
-        } elseif (is_array($params) && array_key_exists('pwd', $params)) {
-            $request['pwd'] = $params['pwd'];
-        }
         $networks = $this->safe_value($this->options, 'networks', array());
         $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ETH>ERC20 alias
         if ($network !== null) {
             $request['chain'] = $currency['id'] . '-' . $network;
             $params = $this->omit($params, 'network');
+        }
+        $fee = $this->safe_string($params, 'fee');
+        if ($fee === null) {
+            $currencies = $this->fetch_currencies();
+            $this->currencies = $this->deep_extend($this->currencies, $currencies);
+            $targetNetwork = $this->safe_value($currency['networks'], $this->network_id_to_code($network), array());
+            $fee = $this->safe_string($targetNetwork, 'fee');
+            if ($fee === null) {
+                throw new ArgumentsRequired($this->id . " withdraw() requires a 'fee' string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set '0'. Withdrawing to external digital asset $address requires $network $transaction $fee->");
+            }
+            $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are $fee-free, please set 0
+        }
+        if (is_array($params) && array_key_exists('password', $params)) {
+            $request['pwd'] = $params['password'];
+        } elseif (is_array($params) && array_key_exists('pwd', $params)) {
+            $request['pwd'] = $params['pwd'];
         }
         $query = $this->omit($params, array( 'fee', 'password', 'pwd' ));
         if (!(is_array($request) && array_key_exists('pwd', $request))) {
@@ -4099,7 +4170,7 @@ class okx extends Exchange {
         if ($type !== null) {
             $request['instType'] = $this->convert_to_instrument_type($type);
         }
-        $response = $this->privateGetAccountPositions ($query);
+        $response = $this->privateGetAccountPositions (array_merge($request, $query));
         //
         //     {
         //         "code" => "0",
@@ -4181,7 +4252,9 @@ class okx extends Exchange {
                 $request['instId'] = implode(',', $marketIds);
             }
         }
-        $response = $this->privateGetAccountPositions (array_merge($request, $params));
+        $fetchPositionsOptions = $this->safe_value($this->options, 'fetchPositions', array());
+        $method = $this->safe_string($fetchPositionsOptions, 'method', 'privateGetAccountPositions');
+        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -4295,6 +4368,9 @@ class okx extends Exchange {
                     $side = ($market['base'] === $parsedCurrency) ? 'long' : 'short';
                 }
             }
+            if ($side === null) {
+                $side = $this->safe_string($position, 'direction');
+            }
         } else {
             if ($pos !== null) {
                 if ($side === 'net') {
@@ -4308,7 +4384,7 @@ class okx extends Exchange {
                 }
             }
         }
-        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSize = $this->safe_number($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPx');
         $notionalString = $this->safe_string($position, 'notionalUsd');
@@ -4826,8 +4902,8 @@ class okx extends Exchange {
             if ($posSide === null) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a $posSide argument for isolated margin');
             }
-            if ($posSide !== 'long' && $posSide !== 'short') {
-                throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long" or "short"');
+            if ($posSide !== 'long' && $posSide !== 'short' && $posSide !== 'net') {
+                throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long", "short" or "net"');
             }
         }
         $response = $this->privatePostAccountSetLeverage (array_merge($request, $params));

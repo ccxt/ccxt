@@ -724,7 +724,7 @@ class gemini(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the gemini api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         response = await self.publicGetV1Pricefeed(params)
@@ -1457,6 +1457,7 @@ class gemini(Exchange):
 
     async def fetch_deposit_addresses_by_network(self, code, params={}):
         await self.load_markets()
+        currency = self.currency(code)
         network = self.safe_string(params, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddressesByNetwork() requires a network parameter')
@@ -1469,7 +1470,7 @@ class gemini(Exchange):
             'network': networkId,
         }
         response = await self.privatePostV1AddressesNetwork(self.extend(request, params))
-        results = self.parse_deposit_addresses(response, [code], False, {'network': networkCode, 'currency': code})
+        results = self.parse_deposit_addresses(response, [currency['code']], False, {'network': networkCode, 'currency': code})
         return self.group_by(results, 'network')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

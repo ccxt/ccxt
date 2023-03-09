@@ -127,7 +127,7 @@ class tokocrypto(Exchange):
                 'setPositionMode': False,
                 'signIn': False,
                 'transfer': False,
-                'withdraw': False,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1114,7 +1114,7 @@ class tokocrypto(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the tokocrypto api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         defaultMethod = 'binanceGetTicker24hr'
@@ -1145,7 +1145,7 @@ class tokocrypto(Exchange):
         fetches the bid and ask price and volume for multiple markets
         :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict params: extra parameters specific to the tokocrypto api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         response = self.binanceGetTickerBookTicker(params)
@@ -2063,6 +2063,17 @@ class tokocrypto(Exchange):
         #         "createTime": 1659521314413
         #     }
         #
+        # withdraw
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "成功",
+        #         "data": {
+        #             "withdrawId":"12"
+        #         },
+        #         "timestamp": 1571745049095
+        #     }
+        #
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')  # set but unused
         if tag is not None:
@@ -2075,7 +2086,7 @@ class tokocrypto(Exchange):
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None
         insertTime = self.safe_integer(transaction, 'insertTime')
-        createTime = self.safe_integer(transaction, 'createTime')
+        createTime = self.safe_integer_2(transaction, 'createTime', 'timestamp')
         type = self.safe_string(transaction, 'type')
         if type is None:
             if (insertTime is not None) and (createTime is None):
@@ -2096,9 +2107,14 @@ class tokocrypto(Exchange):
         internal = self.safe_integer(transaction, 'transferType')
         if internal is not None:
             internal = True if internal else False
+        id = self.safe_string(transaction, 'id')
+        if id is None:
+            data = self.safe_value(transaction, 'data', {})
+            id = self.safe_string(data, 'withdrawId')
+            type = 'withdrawal'
         return {
             'info': transaction,
-            'id': self.safe_string(transaction, 'id'),
+            'id': id,
             'txid': txid,
             'type': type,
             'currency': code,
@@ -2118,6 +2134,47 @@ class tokocrypto(Exchange):
             'internal': internal,
             'fee': fee,
         }
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.load_markets()
+        self.check_address(address)
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+            # 'clientId': 'string',  # # client's custom id for withdraw order, server does not check it's uniqueness, automatically generated if not sent
+            # 'network': 'string',
+            'address': address,
+            # 'addressTag': 'string',  # for coins like XRP, XMR, etc
+            'amount': self.number_to_string(amount),
+        }
+        if tag is not None:
+            request['addressTag'] = tag
+        networkCode, query = self.handle_network_code_and_params(params)
+        networkId = self.network_code_to_id(networkCode)
+        if networkId is not None:
+            request['network'] = networkId.upper()
+        response = self.privatePostOpenV1Withdraws(self.extend(request, query))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "成功",
+        #         "data": {
+        #             "withdrawId":"12"
+        #         },
+        #         "timestamp": 1571745049095
+        #     }
+        #
+        return self.parse_transaction(response, currency)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if not (api in self.urls['api']['rest']):

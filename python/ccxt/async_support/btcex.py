@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -56,7 +57,16 @@ class btcex(Exchange):
                 'option': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'createLimitBuyOrder': True,
+                'createLimitSellOrder': True,
+                'createMarketBuyOrder': True,
+                'createMarketSellOrder': True,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
+                'createReduceOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -219,10 +229,12 @@ class btcex(Exchange):
                     '403': AuthenticationError,  # ACCESS_DENIED_ERROR Access denied
                     '1000': ExchangeNotAvailable,  # NO_SERVICE No service found
                     '1001': BadRequest,  # BAD_REQUEST Bad requested
+                    '1005': DDoSProtection,  # {"code":1005,"message":"Operate too frequently"}
                     '2000': AuthenticationError,  # NEED_LOGIN Login is required
                     '2001': AuthenticationError,  # ACCOUNT_NOT_MATCH Account information does not match
                     '2002': AuthenticationError,  # ACCOUNT_NEED_ENABLE Account needs to be activated
                     '2003': AuthenticationError,  # ACCOUNT_NOT_AVAILABLE Account not available
+                    '2010': PermissionDenied,  # {"code":2010,"message":"Access denied","data":{}}
                     '3000': AuthenticationError,  # TEST user
                     '3002': AuthenticationError,  # NICKNAME_EXIST Nicknames exist
                     '3003': AuthenticationError,  # ACCOUNT_NOT_EXIST No account
@@ -287,6 +299,7 @@ class btcex(Exchange):
                     '5013': InvalidOrder,  # ORDER_PRICE_RANGE_IS_TOO_HIGH order price range is too high.
                     '5014': InvalidOrder,  # ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
                     '5109': InvalidOrder,  # ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
+                    '5119': InvalidOrder,  # {"code":5119,"message":"Cannot be less than the minimum order value：10USDT, instrument: GXE/USDT","data":{"coinType":"USDT","amount":"10","instrumentName":"GXE/USDT"}}
                     '5135': InvalidOrder,  # The quantity should be larger than: 0.01
                     '5901': InvalidOrder,  # TRANSFER_RESULT transfer out success.
                     '5902': InvalidOrder,  # ORDER_SUCCESS place order success.
@@ -322,6 +335,7 @@ class btcex(Exchange):
                     'BTC': 'BTC',
                     'ETH': 'ETH',
                 },
+                'createMarketBuyOrderRequiresPrice': True,
             },
             'commonCurrencies': {
             },
@@ -1127,11 +1141,6 @@ class btcex(Exchange):
         averageString = self.safe_string(order, 'average_price')
         amountString = self.safe_string(order, 'amount')
         filledString = self.safe_string(order, 'filled_amount')
-        lastTradeTimestamp = None
-        if filledString is not None:
-            isFilledPositive = Precise.string_gt(filledString, '0')
-            if isFilledPositive:
-                lastTradeTimestamp = lastUpdate
         status = self.parse_order_status(self.safe_string(order, 'order_state'))
         marketId = self.safe_string(order, 'instrument_name')
         market = self.safe_market(marketId, market)
@@ -1144,27 +1153,26 @@ class btcex(Exchange):
                 'cost': feeCostString,
                 'currency': market['base'],
             }
-        type = self.safe_string(order, 'order_type')
         # injected in createOrder
         trades = self.safe_value(order, 'trades')
-        timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
-        stopPrice = self.safe_value(order, 'trigger_price')
-        postOnly = self.safe_value(order, 'post_only')
+        stopPrice = self.safe_number(order, 'trigger_price')
         return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': lastUpdate,
             'symbol': market['symbol'],
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
+            'type': self.safe_string(order, 'order_type'),
+            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'time_in_force')),
+            'postOnly': self.safe_value(order, 'post_only'),
             'side': side,
-            'price': priceString,
+            'price': self.parse_number(priceString),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'stopLossPrice': self.safe_number(order, 'stop_loss_price'),
+            'takeProfitPrice': self.safe_number(order, 'take_profit_price'),
             'amount': amountString,
             'cost': None,
             'average': averageString,
@@ -1176,6 +1184,7 @@ class btcex(Exchange):
         }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        await self.sign_in()
         await self.load_markets()
         request = {
             'order_id': id,
@@ -1215,25 +1224,68 @@ class btcex(Exchange):
         return self.parse_order(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of the base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the btcex api endpoint
+         * ----------------- Exchange Specific Parameters -----------------
+        :param float|None params['cost']: amount in USDT to spend for market orders
+        :param float|None params['triggerPrice']: price to trigger stop orders
+        :param float|None params['stopPrice']: price to trigger stop orders
+        :param float|None params['stopLossPrice']: price to trigger stop-loss orders(only for perpetuals)
+        :param float|None params['takeProfitPrice']: price to trigger take-profit orders(only for perpetuals)
+        :param dict|None params['stopLoss']: for setting a stop-loss attached to an order, set the value of the stopLoss key 'price'(only for perpetuals)
+        :param dict|None params['takeProfit']: for setting a take-profit attached to an order, set the value of the takeProfit key 'price'(only for perpetuals)
+        :param int|None params['trigger_price_type']: 1: mark-price, 2: last-price.(only for perpetuals)
+        :param int|None params['stop_loss_type']: 1: mark-price, 2: last-price(only for perpetuals)
+        :param int|None params['take_profit_type']: 1: mark-price, 2: last-price(only for perpetuals)
+        :param bool|None params['market_amount_order']: if set to True，then the amount field means USDT value(only for perpetuals)
+        :param str|None params['condition_type']: 'NORMAL', 'STOP', 'TRAILING', 'IF_TOUCHED'
+        :param str|None params['position_side']: 'BOTH', for one-way mode 'LONG' or 'SHORT', for hedge-mode
+        :param str|None params['timeInForce']: 'GTC', 'IOC', 'FOK'
+        :param bool|None params.postOnly:
+        :param bool|None params.reduceOnly:
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.sign_in()
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
-            'amount': self.amount_to_precision(symbol, amount),
-            'type': type,  # limit, market, default is limit
-            # 'price': self.price_to_precision(symbol, 123.45),  # The order price for limit order. When adding options order with advanced=iv, the field price should be a value of implied volatility in percentages. For example, price=100, means implied volatility of 100%
-            # 'time_in_force' : 'good_til_cancelled',  # good_til_cancelled, good_til_date, fill_or_kill, immediate_or_cancel Specifies how long the order remains in effect, default: good_til_cancelled
-            # 'post_only': False,  # If True, the order is considered post-only, default: False
-            # 'reduce_only': False,  # If True, the order is considered reduce-only which is intended to only reduce a current position. default: False
-            # 'condition_type': '',  # NORMAL, STOP, TRAILING, IF_TOUCHED, Condition sheet policy, the default is NORMAL. Available when kind is future
-            # 'trigger_price': 'index_price',  # trigger price. Available when condition_type is STOP or IF_TOUCHED
-            # 'trail_price': False,  # trail price, Tracking price change Delta. Available when condition_type is TRAILING
-            # 'advanced': 'usd',  # Advanced option order type,(Only for options), default: usdt. If set to iv，then the price field means iv value
+            'type': type,
         }
+        if side == 'sell' or type == 'limit':
+            request['amount'] = self.amount_to_precision(symbol, amount)
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
-        if market['contract']:
+        else:
+            costParam = self.safe_number(params, 'cost')
+            amountString = self.number_to_string(amount)
+            priceString = self.number_to_string(price)
+            cost = self.parse_number(Precise.string_mul(amountString, priceString), costParam)
+            if market['swap']:
+                if cost is not None:
+                    request['amount'] = self.price_to_precision(symbol, cost)
+                    request['market_amount_order'] = True
+                else:
+                    request['market_amount_order'] = False
+                    request['amount'] = self.amount_to_precision(symbol, amount)
+            else:
+                if side == 'buy':
+                    createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
+                    if createMarketBuyOrderRequiresPrice:
+                        if cost is None:
+                            raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                        else:
+                            request['amount'] = self.price_to_precision(symbol, cost)
+                    else:
+                        request['amount'] = self.price_to_precision(symbol, amount)
+            params = self.omit(params, 'cost')
+        if market['swap']:
             timeInForce = self.safe_string_upper(params, 'timeInForce')
             if timeInForce == 'GTC':
                 request['time_in_force'] = 'good_till_cancelled'
@@ -1249,7 +1301,39 @@ class btcex(Exchange):
             reduceOnly = self.safe_value(params, 'reduceOnly', False)
             if reduceOnly:
                 request['reduce_only'] = True
-            params = self.omit(params, ['timeInForce', 'postOnly', 'reduceOnly'])
+            if side == 'buy':
+                requestType = 'SHORT' if (reduceOnly) else 'LONG'
+                request['position_side'] = requestType
+            else:
+                requestType = 'LONG' if (reduceOnly) else 'SHORT'
+                request['position_side'] = requestType
+            stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+            stopLossPrice = self.safe_number(params, 'stopLossPrice')
+            takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
+            isStopLoss = self.safe_value(params, 'stopLoss')
+            isTakeProfit = self.safe_value(params, 'takeProfit')
+            if stopPrice:
+                request['condition_type'] = 'STOP'
+                request['trigger_price'] = self.price_to_precision(symbol, stopPrice)
+                request['trigger_price_type'] = 1
+            elif stopLossPrice or takeProfitPrice:
+                request['condition_type'] = 'STOP'
+                if stopLossPrice:
+                    request['trigger_price'] = self.price_to_precision(symbol, stopLossPrice)
+                else:
+                    request['trigger_price'] = self.price_to_precision(symbol, takeProfitPrice)
+                request['reduce_only'] = True
+                request['trigger_price_type'] = 1
+            elif isStopLoss or isTakeProfit:
+                if isStopLoss:
+                    stopLossPrice = self.safe_number(isStopLoss, 'price')
+                    request['stop_loss_price'] = self.price_to_precision(symbol, stopLossPrice)
+                    request['stop_loss_type'] = 1
+                else:
+                    takeProfitPrice = self.safe_number(isTakeProfit, 'price')
+                    request['take_profit_price'] = self.price_to_precision(symbol, takeProfitPrice)
+                    request['take_profit_type'] = 1
+            params = self.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit'])
         method = 'privatePost' + self.capitalize(side)
         response = await getattr(self, method)(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
@@ -1458,17 +1542,16 @@ class btcex(Exchange):
             # 'end_id': 0,  # The ID number of the last trade to be returned
             # 'sorting': '',  # Direction of results sorting,default: desc
             # 'self_trade': False,  # If not set, query all
+            # 'start_timestamp': False  # The trade time of the first trade to be returned
+            # 'end_timestamp': False  # The trade time of the last trade to be returned
         }
-        method = None
         market = self.market(symbol)
         request['instrument_name'] = market['id']
-        if since is None:
-            method = 'privateGetGetUserTradesByInstrument'
-        else:
-            method = 'privateGetGetUserTradesByInstrumentAndTime'
         if limit is not None:
             request['count'] = limit  # default 20
-        response = await getattr(self, method)(self.extend(request, params))
+        if since is not None:
+            request['start_timestamp'] = since
+        response = await self.privateGetGetUserTradesByInstrument(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         #
         #     {
@@ -2079,9 +2162,9 @@ class btcex(Exchange):
         """
         fetch the current funding rates
         see https://docs.btcex.com/#contracts
-        :param array symbols: unified market symbols
+        :param [str] symbols: unified market symbols
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns array: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)

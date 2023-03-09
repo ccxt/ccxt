@@ -88,7 +88,6 @@ class kraken extends Exchange {
                 'setMarginMode' => false, // Kraken only supports cross margin
                 'withdraw' => true,
             ),
-            'marketsByAltname' => array(),
             'timeframes' => array(
                 '1m' => 1,
                 '5m' => 5,
@@ -217,6 +216,7 @@ class kraken extends Exchange {
                 'XDG' => 'DOGE',
             ),
             'options' => array(
+                'marketsByAltname' => array(),
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
@@ -492,7 +492,7 @@ class kraken extends Exchange {
                 );
             }
             $result = $this->append_inactive_markets($result);
-            $this->marketsByAltname = $this->index_by($result, 'altname');
+            $this->options['marketsByAltname'] = $this->index_by($result, 'altname');
             return $result;
         }) ();
     }
@@ -779,7 +779,7 @@ class kraken extends Exchange {
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the kraken api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -871,7 +871,7 @@ class kraken extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
-                'interval' => $this->safe_number($this->timeframes, $timeframe, $timeframe),
+                'interval' => $this->safe_integer($this->timeframes, $timeframe, $timeframe),
             );
             if ($since !== null) {
                 $request['since'] = intval(($since - 1) / 1000);
@@ -1282,8 +1282,9 @@ class kraken extends Exchange {
     }
 
     public function find_market_by_altname_or_id($id) {
-        if (is_array($this->marketsByAltname) && array_key_exists($id, $this->marketsByAltname)) {
-            return $this->marketsByAltname[$id];
+        $marketsByAltname = $this->safe_value($this->options, 'marketsByAltname', array());
+        if (is_array($marketsByAltname) && array_key_exists($id, $marketsByAltname)) {
+            return $marketsByAltname[$id];
         } else {
             return $this->safe_market($id);
         }

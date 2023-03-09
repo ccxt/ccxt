@@ -142,26 +142,26 @@ module.exports = class delta extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.15 / 100,
-                    'maker': 0.10 / 100,
+                    'taker': this.parseNumber ('0.0015'),
+                    'maker': this.parseNumber ('0.0010'),
                     'tiers': {
                         'taker': [
-                            [ 0, 0.15 / 100 ],
-                            [ 100, 0.13 / 100 ],
-                            [ 250, 0.13 / 100 ],
-                            [ 1000, 0.1 / 100 ],
-                            [ 5000, 0.09 / 100 ],
-                            [ 10000, 0.075 / 100 ],
-                            [ 20000, 0.065 / 100 ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('100'), this.parseNumber ('0.0013') ],
+                            [ this.parseNumber ('250'), this.parseNumber ('0.0013') ],
+                            [ this.parseNumber ('1000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('5000'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.00075') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.00065') ],
                         ],
                         'maker': [
-                            [ 0, 0.1 / 100 ],
-                            [ 100, 0.1 / 100 ],
-                            [ 250, 0.09 / 100 ],
-                            [ 1000, 0.075 / 100 ],
-                            [ 5000, 0.06 / 100 ],
-                            [ 10000, 0.05 / 100 ],
-                            [ 20000, 0.05 / 100 ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('100'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('250'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('1000'), this.parseNumber ('0.00075') ],
+                            [ this.parseNumber ('5000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.0005') ],
                         ],
                     },
                 },
@@ -181,7 +181,7 @@ module.exports = class delta extends Exchange {
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
-                'secret': false,
+                'secret': true,
             },
             'exceptions': {
                 'exact': {
@@ -788,7 +788,7 @@ module.exports = class delta extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -1145,7 +1145,7 @@ module.exports = class delta extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return result;
+        return this.parsePosition (result, market);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -1163,21 +1163,93 @@ module.exports = class delta extends Exchange {
         //     {
         //         "success": true,
         //         "result": [
-        //             {
-        //                 "user_id": 0,
-        //                 "size": 0,
-        //                 "entry_price": "string",
-        //                 "margin": "string",
-        //                 "liquidation_price": "string",
-        //                 "bankruptcy_price": "string",
-        //                 "adl_level": 0,
-        //                 "product_id": 0
-        //             }
+        //           {
+        //             "user_id": 0,
+        //             "size": 0,
+        //             "entry_price": "string",
+        //             "margin": "string",
+        //             "liquidation_price": "string",
+        //             "bankruptcy_price": "string",
+        //             "adl_level": 0,
+        //             "product_id": 0,
+        //             "product_symbol": "string",
+        //             "commission": "string",
+        //             "realized_pnl": "string",
+        //             "realized_funding": "string"
+        //           }
         //         ]
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        return result;
+        return this.parsePositions (result, symbols);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        // fetchPosition
+        //
+        //     {
+        //         "entry_price":null,
+        //         "size":0,
+        //         "timestamp":1605454074268079
+        //     }
+        //
+        //
+        // fetchPositions
+        //
+        //     {
+        //         "user_id": 0,
+        //         "size": 0,
+        //         "entry_price": "string",
+        //         "margin": "string",
+        //         "liquidation_price": "string",
+        //         "bankruptcy_price": "string",
+        //         "adl_level": 0,
+        //         "product_id": 0,
+        //         "product_symbol": "string",
+        //         "commission": "string",
+        //         "realized_pnl": "string",
+        //         "realized_funding": "string"
+        //     }
+        //
+        const marketId = this.safeString (position, 'product_symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const timestamp = this.safeIntegerProduct (position, 'timestamp', 0.001);
+        const sizeString = this.safeString (position, 'size');
+        let side = undefined;
+        if (sizeString !== undefined) {
+            if (Precise.stringGt (sizeString, '0')) {
+                side = 'buy';
+            } else if (Precise.stringLt (sizeString, '0')) {
+                side = 'sell';
+            }
+        }
+        return {
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'notional': undefined,
+            'marginMode': undefined,
+            'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
+            'entryPrice': this.safeNumber (position, 'entry_price'),
+            'unrealizedPnl': undefined, // todo - realized_pnl ?
+            'percentage': undefined,
+            'contracts': this.parseNumber (sizeString),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'markPrice': undefined,
+            'side': side,
+            'hedged': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+        };
     }
 
     parseOrderStatus (status) {

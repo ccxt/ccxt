@@ -40,6 +40,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                 'tradesLimit' => 1000,
                 'watchOrderBook' => array(
                     'snapshotDelay' => 20,
+                    'maxRetries' => 3,
                 ),
                 'watchTicker' => array(
                     'name' => 'contractMarket/tickerV2', // market/ticker
@@ -583,6 +584,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         //    }
         //
         $data = $this->safe_value($message, 'data', array());
+        $this->balance['info'] = $data;
         $currencyId = $this->safe_string($data, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();
@@ -647,6 +649,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                     $this->balance[$code] = $snapshot[$code];
                 }
             }
+            $this->balance['info'] = $this->safe_value($snapshot, 'info', array());
             $client->resolve ($this->balance, $messageHash);
         }) ();
     }

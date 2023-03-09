@@ -954,7 +954,7 @@ module.exports = class digifinex extends Exchange {
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tickers
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the digifinex api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -2508,7 +2508,7 @@ module.exports = class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const addresses = this.parseDepositAddresses (data);
+        const addresses = this.parseDepositAddresses (data, [ currency['code'] ]);
         const address = this.safeValue (addresses, code);
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.');
@@ -2739,13 +2739,7 @@ module.exports = class digifinex extends Exchange {
         //         "code": 0
         //     }
         //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'amount': amount,
-            'currency': code,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        });
+        return this.parseTransfer (response, currency);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

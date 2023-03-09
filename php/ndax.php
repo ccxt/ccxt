@@ -1961,8 +1961,9 @@ class ndax extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
+         * @see https://apidoc.ndax.io/#getdeposits
          * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $since not used by ndax fetchDeposits
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the ndax api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
@@ -1983,26 +1984,36 @@ class ndax extends Exchange {
         );
         $response = $this->privateGetGetDeposits (array_merge($request, $params));
         //
-        //     array(
-        //         array(
-        //             "OMSId":1,
-        //             "DepositId":44,
-        //             "AccountId":449,
-        //             "SubAccountId":0,
-        //             "ProductId":4,
-        //             "Amount":200.00000000000000000000000000,
-        //             "LastUpdateTimeStamp":637431291261187806,
-        //             "ProductType":"CryptoCurrency",
-        //             "TicketStatus":"FullyProcessed",
-        //             "DepositInfo":"array()",
-        //             "DepositCode":"ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-        //             "TicketNumber":71,
-        //             "NotionalProductId":13,
-        //             "NotionalValue":200.00000000000000000000000000,
-        //             "FeeAmount":0.0000000000000000000000000000,
-        //         ),
-        //     )
+        //    "array(
+        //        array(
+        //            "OMSId" => 1,
+        //            "DepositId" => 44,
+        //            "AccountId" => 449,
+        //            "SubAccountId" => 0,
+        //            "ProductId" => 4,
+        //            "Amount" => 200.00000000000000000000000000,
+        //            "LastUpdateTimeStamp" => 637431291261187806,
+        //            "ProductType" => "CryptoCurrency",
+        //            "TicketStatus" => "FullyProcessed",
+        //            "DepositInfo" => "array(
+        //                "AccountProviderId":42,
+        //                "AccountProviderName":"USDT_BSC",
+        //                "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
+        //                "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
+        //                "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
+        //            ),",
+        //            "DepositCode" => "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        //            "TicketNumber" => 71,
+        //            "NotionalProductId" => 13,
+        //            "NotionalValue" => 200.00000000000000000000000000,
+        //            "FeeAmount" => 0.0000000000000000000000000000,
+        //        ),
+        //        ...
+        //    )"
         //
+        if (gettype($response) === 'string') {
+            return $this->parse_transactions(json_decode($response, $as_associative_array = true), $currency, $since, $limit);
+        }
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
@@ -2110,22 +2121,28 @@ class ndax extends Exchange {
         //
         // fetchDeposits
         //
-        //     {
-        //         "OMSId":1,
-        //         "DepositId":44,
-        //         "AccountId":449,
-        //         "SubAccountId":0,
-        //         "ProductId":4,
-        //         "Amount":200.00000000000000000000000000,
-        //         "LastUpdateTimeStamp":637431291261187806,
-        //         "ProductType":"CryptoCurrency",
-        //         "TicketStatus":"FullyProcessed",
-        //         "DepositInfo":"array()",
-        //         "DepositCode":"ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-        //         "TicketNumber":71,
-        //         "NotionalProductId":13,
-        //         "NotionalValue":200.00000000000000000000000000,
-        //         "FeeAmount":0.0000000000000000000000000000,
+        //    {
+        //        "OMSId" => 1,
+        //        "DepositId" => 44,
+        //        "AccountId" => 449,
+        //        "SubAccountId" => 0,
+        //        "ProductId" => 4,
+        //        "Amount" => 200.00000000000000000000000000,
+        //        "LastUpdateTimeStamp" => 637431291261187806,
+        //        "ProductType" => "CryptoCurrency",
+        //        "TicketStatus" => "FullyProcessed",
+        //        "DepositInfo" => "array(
+        //            "AccountProviderId":42,
+        //            "AccountProviderName":"USDT_BSC",
+        //            "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
+        //            "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
+        //            "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
+        //        )",
+        //        "DepositCode" => "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        //        "TicketNumber" => 71,
+        //        "NotionalProductId" => 13,
+        //        "NotionalValue" => 200.00000000000000000000000000,
+        //        "FeeAmount" => 0.0000000000000000000000000000,
         //     }
         //
         // fetchWithdrawals
@@ -2152,10 +2169,8 @@ class ndax extends Exchange {
         //     }
         //
         $id = null;
-        $txid = null;
         $currencyId = $this->safe_string($transaction, 'ProductId');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $timestamp = null;
         $type = null;
         if (is_array($transaction) && array_key_exists('DepositId', $transaction)) {
             $id = $this->safe_string($transaction, 'DepositId');
@@ -2164,20 +2179,15 @@ class ndax extends Exchange {
             $id = $this->safe_string($transaction, 'WithdrawId');
             $type = 'withdrawal';
         }
-        $templateFormString = $this->safe_string($transaction, 'TemplateForm');
-        $address = null;
+        $templateForm = $this->parse_json($this->safe_value_2($transaction, 'TemplateForm', 'DepositInfo'));
         $updated = $this->safe_integer($transaction, 'LastUpdateTimeStamp');
-        if ($templateFormString !== null) {
-            $templateForm = json_decode($templateFormString, $as_associative_array = true);
-            $address = $this->safe_string($templateForm, 'ExternalAddress');
-            $txid = $this->safe_string($templateForm, 'TxId');
-            $timestamp = $this->safe_integer($templateForm, 'TimeSubmitted');
+        if ($templateForm !== null) {
             $updated = $this->safe_integer($templateForm, 'LastUpdated', $updated);
         }
-        $addressTo = $address;
-        $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'TicketStatus'), $type);
-        $amount = $this->safe_number($transaction, 'Amount');
+        $address = $this->safe_string_2($templateForm, 'ExternalAddress', 'ToAddress');
+        $timestamp = $this->safe_integer($templateForm, 'TimeSubmitted');
         $feeCost = $this->safe_number($transaction, 'FeeAmount');
+        $transactionStatus = $this->safe_string($transaction, 'TicketStatus');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
@@ -2185,19 +2195,19 @@ class ndax extends Exchange {
         return array(
             'info' => $transaction,
             'id' => $id,
-            'txid' => $txid,
+            'txid' => $this->safe_string_2($templateForm, 'TxId', 'TXId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'address' => $address,
-            'addressTo' => $addressTo,
-            'addressFrom' => null,
+            'addressTo' => $address,
+            'addressFrom' => $this->safe_string($templateForm, 'FromAddress'),
             'tag' => null,
             'tagTo' => null,
             'tagFrom' => null,
             'type' => $type,
-            'amount' => $amount,
+            'amount' => $this->safe_number($transaction, 'Amount'),
             'currency' => $code,
-            'status' => $status,
+            'status' => $this->parse_transaction_status_by_type($transactionStatus, $type),
             'updated' => $updated,
             'fee' => $fee,
         );

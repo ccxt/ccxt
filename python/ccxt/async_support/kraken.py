@@ -96,7 +96,6 @@ class kraken(Exchange):
                 'setMarginMode': False,  # Kraken only supports cross margin
                 'withdraw': True,
             },
-            'marketsByAltname': {},
             'timeframes': {
                 '1m': 1,
                 '5m': 5,
@@ -225,6 +224,7 @@ class kraken(Exchange):
                 'XDG': 'DOGE',
             },
             'options': {
+                'marketsByAltname': {},
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
@@ -494,7 +494,7 @@ class kraken(Exchange):
                 'info': market,
             })
         result = self.append_inactive_markets(result)
-        self.marketsByAltname = self.index_by(result, 'altname')
+        self.options['marketsByAltname'] = self.index_by(result, 'altname')
         return result
 
     def safe_currency(self, currencyId, currency=None):
@@ -755,7 +755,7 @@ class kraken(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         request = {}
@@ -835,7 +835,7 @@ class kraken(Exchange):
         market = self.market(symbol)
         request = {
             'pair': market['id'],
-            'interval': self.safe_number(self.timeframes, timeframe, timeframe),
+            'interval': self.safe_integer(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             request['since'] = int((since - 1) / 1000)
@@ -1204,8 +1204,9 @@ class kraken(Exchange):
         return self.parse_order(result)
 
     def find_market_by_altname_or_id(self, id):
-        if id in self.marketsByAltname:
-            return self.marketsByAltname[id]
+        marketsByAltname = self.safe_value(self.options, 'marketsByAltname', {})
+        if id in marketsByAltname:
+            return marketsByAltname[id]
         else:
             return self.safe_market(id)
 

@@ -29,6 +29,7 @@ module.exports = class kucoin extends kucoinRest {
                 },
                 'watchOrderBook': {
                     'snapshotDelay': 5,
+                    'maxRetries': 3,
                 },
             },
             'streaming': {
@@ -789,6 +790,10 @@ module.exports = class kucoin extends kucoinRest {
         if (!(uniformType in this.balance)) {
             this.balance[uniformType] = {};
         }
+        this.balance[uniformType]['info'] = data;
+        const timestamp = this.safeInteger (data, 'time');
+        this.balance[uniformType]['timestamp'] = timestamp;
+        this.balance[uniformType]['datetime'] = this.iso8601 (timestamp);
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
         account['free'] = this.safeString (data, 'available');

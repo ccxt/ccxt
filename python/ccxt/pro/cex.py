@@ -88,7 +88,9 @@ class cex(Exchange, ccxt.async_support.cex):
         data = self.safe_value(message, 'data', {})
         freeBalance = self.safe_value(data, 'balance', {})
         usedBalance = self.safe_value(data, 'obalance', {})
-        result = {}
+        result = {
+            'info': data,
+        }
         currencyIds = list(freeBalance.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -248,7 +250,7 @@ class cex(Exchange, ccxt.async_support.cex):
         watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the cex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
