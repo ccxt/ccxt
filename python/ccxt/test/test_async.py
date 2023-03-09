@@ -348,7 +348,7 @@ class testMainClass(emptyClass):
                 resultMsg = ', '.join(resultSymbols)
         dump('Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg)
 
-    def get_test_symbol(self, exchange, symbols):
+    def get_test_symbol(self, exchange, isSpot, symbols):
         symbol = None
         for i in range(0, len(symbols)):
             s = symbols[i]
@@ -383,6 +383,7 @@ class testMainClass(emptyClass):
         return res
 
     def get_valid_symbol(self, exchange, spot=True):
+        exchangeMarkets = self.get_symbols_from_exchange(exchange, spot)
         codes = [
             'BTC',
             'ETH',
@@ -441,8 +442,7 @@ class testMainClass(emptyClass):
             'ETH/USD:ETH',
         ]
         targetSymbols = spotSymbols if spot else swapSymbols
-        symbol = self.get_test_symbol(exchange, targetSymbols)
-        exchangeMarkets = self.get_symbols_from_exchange(exchange, spot)
+        symbol = self.get_test_symbol(exchange, spot, targetSymbols)
         # if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if symbol is None:
             for i in range(0, len(codes)):
@@ -456,7 +456,7 @@ class testMainClass(emptyClass):
         if symbol is None:
             activeMarkets = exchange.filter_by(exchangeMarkets, 'active', True)
             activeSymbols = list(activeMarkets.keys())
-            symbol = self.get_test_symbol(exchange, activeSymbols)
+            symbol = self.get_test_symbol(exchange, spot, activeSymbols)
         if symbol is None:
             first = exchangeMarkets[0]
             if first is not None:
@@ -473,8 +473,10 @@ class testMainClass(emptyClass):
             else:
                 swapSymbol = providedSymbol
         else:
-            spotSymbol = self.get_valid_symbol(exchange, True)
-            swapSymbol = self.get_valid_symbol(exchange, False)
+            if exchange.has['spot']:
+                spotSymbol = self.get_valid_symbol(exchange, True)
+            if exchange.has['swap']:
+                swapSymbol = self.get_valid_symbol(exchange, False)
         if spotSymbol is not None:
             dump('Selected SPOT SYMBOL:', spotSymbol)
         if swapSymbol is not None:

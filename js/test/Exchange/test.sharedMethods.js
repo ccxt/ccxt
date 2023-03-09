@@ -145,7 +145,7 @@ function assertLessOrEqual (exchange, method, entry, key, compareTo) {
     }
 }
 
-function reviseAgainstArray (exchange, method, entry, key, expectedArray) {
+function assertAgainstArray (exchange, method, entry, key, expectedArray) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeValue (entry, key);
     if (value !== undefined) {
@@ -191,7 +191,7 @@ module.exports = {
     assertStructureKeys,
     assertSymbol,
     assertCurrencyCode,
-    reviseAgainstArray,
+    assertAgainstArray,
     reviseFeeObject,
     reviseFeesObject,
     reviseSortedTimestamps,

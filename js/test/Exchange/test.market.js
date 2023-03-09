@@ -62,7 +62,7 @@ function testMarket (exchange, method, market) {
     testSharedMethods.assertGreater (exchange, method, market, 'contractSize', '0');
     testSharedMethods.assertGreater (exchange, method, market, 'expiry', '0');
     testSharedMethods.assertGreater (exchange, method, market, 'strike', '0');
-    testSharedMethods.reviseAgainstArray (exchange, method, market, 'optionType', [ 'put', 'call' ]);
+    testSharedMethods.assertAgainstArray (exchange, method, market, 'optionType', [ 'put', 'call' ]);
     testSharedMethods.assertGreater (exchange, method, market, 'taker', '-100');
     testSharedMethods.assertGreater (exchange, method, market, 'maker', '-100');
     if (market['contract']) {
@@ -75,10 +75,10 @@ function testMarket (exchange, method, market) {
         assert (market['optionType'] !== undefined, '"optionType" must be defined when "option" is true' + logText);
     }
     const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option' ];
-    testSharedMethods.reviseAgainstArray (exchange, method, market, 'type', validTypes);
+    testSharedMethods.assertAgainstArray (exchange, method, market, 'type', validTypes);
     const types = validTypes;
     for (let i = 0; i < types.length; i++) {
-        testSharedMethods.reviseAgainstArray (exchange, method, market, types[i], [ true, false, undefined ]);
+        testSharedMethods.assertAgainstArray (exchange, method, market, types[i], [ true, false, undefined ]);
     }
     if (market['future']) {
         assert (!market['swap'] && !market['option'], 'market swap and option must be false when "future" is true' + logText);

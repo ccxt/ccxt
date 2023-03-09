@@ -22,8 +22,8 @@ function testTrade (exchange, method, entry, symbol, now) {
     testSharedMethods.assertCommonTimestamp (exchange, method, entry, now);
     testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
     //
-    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
-    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);
     testSharedMethods.reviseFeeObject (exchange, method, entry['fee']);
     testSharedMethods.reviseFeesObject (exchange, method, entry['fees']);
 }

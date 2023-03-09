@@ -33,10 +33,10 @@ function testOrder (exchange, method, entry, symbol, now) {
     testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     testSharedMethods.assertCommonTimestamp (exchange, method, entry, now);
     //
-    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'timeInForce', [ 'GTC', 'GTK', 'IOC', 'FOK' ]);
-    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'open', 'closed', 'canceled' ]);
-    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
-    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'postOnly', [ true, false ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'timeInForce', [ 'GTC', 'GTK', 'IOC', 'FOK' ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'status', [ 'open', 'closed', 'canceled' ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'postOnly', [ true, false ]);
     testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
     testSharedMethods.assertGreater (exchange, method, entry, 'price', '0');
     testSharedMethods.assertGreater (exchange, method, entry, 'stopPrice', '0');

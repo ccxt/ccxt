@@ -28,8 +28,8 @@ function testTransaction (exchange, method, entry, requestedCode, now) {
     testSharedMethods.assertCommonTimestamp (exchange, method, entry, now);
     testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
     //
-    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'failed', 'rejected', 'canceled' ]);
-    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'type', ['deposit', 'withdrawal']);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'failed', 'rejected', 'canceled' ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'type', ['deposit', 'withdrawal']);
     testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'amount', '0');
     testSharedMethods.reviseFeeObject (exchange, method, entry['fee']);
 }

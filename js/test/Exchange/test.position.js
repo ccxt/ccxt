@@ -30,8 +30,8 @@ function testPosition (exchange, method, entry, symbol, now) {
     testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     testSharedMethods.assertCommonTimestamp (exchange, method, entry, now);
     testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
-    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'side', [ 'long', 'short' ]);
-    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'marginMode', [ 'cross', 'isolated' ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'side', [ 'long', 'short' ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'marginMode', [ 'cross', 'isolated' ]);
     testSharedMethods.assertGreater (exchange, method, entry, 'leverage', '0');
     testSharedMethods.assertLessOrEqual (exchange, method, entry, 'leverage', '200');
     testSharedMethods.assertGreater (exchange, method, entry, 'initialMargin', '0');

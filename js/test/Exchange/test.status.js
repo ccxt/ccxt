@@ -13,7 +13,7 @@ function testStatus (exchange, method, entry, now) {
     const emptyNotAllowedFor = [ 'status' ];
     testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
     //
-    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'ok', 'error', 'shutdown', 'maintenance' ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'status', [ 'ok', 'error', 'shutdown', 'maintenance' ]);
     testSharedMethods.assertGreater (exchange, method, entry, 'updated', '0');
     testSharedMethods.assertGreater (exchange, method, entry, 'eta', '0');
 }

@@ -52,6 +52,7 @@ function vssEverything () {
         'package.json',
         'LICENSE.txt',
         'keys.json',
+        'skip-tests.json',
         'README.md',
     ]
 

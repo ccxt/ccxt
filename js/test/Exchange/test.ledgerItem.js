@@ -25,9 +25,9 @@ function testLedgerItem (exchange, method, entry, requestedCode, now) {
     testSharedMethods.assertCommonTimestamp (exchange, method, entry, now);
     testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
     //
-    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'direction', [ 'in', 'out' ]);
-    // testSharedMethods.reviseAgainstArray (exchange, method, entry, 'type', ['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee',  ]);
-    // testSharedMethods.reviseAgainstArray (exchange, method, entry, 'account', ['spot', 'swap', .. ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'direction', [ 'in', 'out' ]);
+    // testSharedMethods.assertAgainstArray (exchange, method, entry, 'type', ['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee',  ]);
+    // testSharedMethods.assertAgainstArray (exchange, method, entry, 'account', ['spot', 'swap', .. ]);
     testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'amount', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'before', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'after', '0');

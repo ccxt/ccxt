@@ -319,7 +319,7 @@ module.exports = class testMainClass extends emptyClass {
         dump ('Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg);
     }
 
-    getTestSymbol (exchange, symbols) {
+    getTestSymbol (exchange, isSpot, symbols) {
         let symbol = undefined;
         for (let i = 0; i < symbols.length; i++) {
             const s = symbols[i];
@@ -365,6 +365,7 @@ module.exports = class testMainClass extends emptyClass {
     }
 
     getValidSymbol (exchange, spot = true) {
+        const exchangeMarkets = this.getSymbolsFromExchange(exchange, spot);
         const codes = [
             'BTC',
             'ETH',
@@ -423,8 +424,7 @@ module.exports = class testMainClass extends emptyClass {
             'ETH/USD:ETH',
         ];
         const targetSymbols = spot ? spotSymbols : swapSymbols;
-        let symbol = this.getTestSymbol (exchange, targetSymbols);
-        const exchangeMarkets = this.getSymbolsFromExchange(exchange, spot);
+        let symbol = this.getTestSymbol (exchange, spot, targetSymbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if (symbol === undefined) {
             for (let i = 0; i < codes.length; i++) {
@@ -441,7 +441,7 @@ module.exports = class testMainClass extends emptyClass {
         if (symbol === undefined) {
             const activeMarkets = exchange.filterBy (exchangeMarkets, 'active', true);
             const activeSymbols = Object.keys (activeMarkets);
-            symbol = this.getTestSymbol (exchange, activeSymbols);
+            symbol = this.getTestSymbol (exchange, spot, activeSymbols);
         }
         if (symbol === undefined) {
             const first = exchangeMarkets[0];
@@ -463,8 +463,12 @@ module.exports = class testMainClass extends emptyClass {
                 swapSymbol = providedSymbol;
             }
         } else {
-            spotSymbol = this.getValidSymbol (exchange, true);
-            swapSymbol = this.getValidSymbol (exchange, false);
+            if (exchange.has['spot']) {
+                spotSymbol = this.getValidSymbol (exchange, true);
+            }
+            if (exchange.has['swap']) {
+                swapSymbol = this.getValidSymbol (exchange, false);
+            } 
         }
         if (spotSymbol !== undefined) {
             dump ('Selected SPOT SYMBOL:', spotSymbol);

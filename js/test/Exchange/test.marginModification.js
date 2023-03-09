@@ -18,8 +18,8 @@ function testMarginModification (exchange, method, entry) {
     //
     testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'amount', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'total', '0');
-    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'type', [ 'add', 'reduce', 'set' ]);
-    testSharedMethods.reviseAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'canceled', 'failed' ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'type', [ 'add', 'reduce', 'set' ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'canceled', 'failed' ]);
     testSharedMethods.assertSymbol (exchange, method, entry, 'symbol');
 }
 

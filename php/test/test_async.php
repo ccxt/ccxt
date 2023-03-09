@@ -356,7 +356,7 @@ class testMainClass extends emptyClass {
         }) ();
     }
 
-    public function get_test_symbol($exchange, $symbols) {
+    public function get_test_symbol($exchange, $isSpot, $symbols) {
         $symbol = null;
         for ($i = 0; $i < count($symbols); $i++) {
             $s = $symbols[$i];
@@ -402,6 +402,7 @@ class testMainClass extends emptyClass {
     }
 
     public function get_valid_symbol($exchange, $spot = true) {
+        $exchangeMarkets = $this->get_symbols_from_exchange($exchange, $spot);
         $codes = array(
             'BTC',
             'ETH',
@@ -460,8 +461,7 @@ class testMainClass extends emptyClass {
             'ETH/USD:ETH',
         );
         $targetSymbols = $spot ? $spotSymbols : $swapSymbols;
-        $symbol = $this->get_test_symbol($exchange, $targetSymbols);
-        $exchangeMarkets = $this->get_symbols_from_exchange($exchange, $spot);
+        $symbol = $this->get_test_symbol($exchange, $spot, $targetSymbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any $symbol which has our target hardcoded 'base' code
         if ($symbol === null) {
             for ($i = 0; $i < count($codes); $i++) {
@@ -478,7 +478,7 @@ class testMainClass extends emptyClass {
         if ($symbol === null) {
             $activeMarkets = $exchange->filter_by($exchangeMarkets, 'active', true);
             $activeSymbols = is_array($activeMarkets) ? array_keys($activeMarkets) : array();
-            $symbol = $this->get_test_symbol($exchange, $activeSymbols);
+            $symbol = $this->get_test_symbol($exchange, $spot, $activeSymbols);
         }
         if ($symbol === null) {
             $first = $exchangeMarkets[0];
@@ -501,8 +501,12 @@ class testMainClass extends emptyClass {
                     $swapSymbol = $providedSymbol;
                 }
             } else {
-                $spotSymbol = $this->get_valid_symbol($exchange, true);
-                $swapSymbol = $this->get_valid_symbol($exchange, false);
+                if ($exchange->has['spot']) {
+                    $spotSymbol = $this->get_valid_symbol($exchange, true);
+                }
+                if ($exchange->has['swap']) {
+                    $swapSymbol = $this->get_valid_symbol($exchange, false);
+                } 
             }
             if ($spotSymbol !== null) {
                 dump ('Selected SPOT SYMBOL:', $spotSymbol);
