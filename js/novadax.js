@@ -41,6 +41,7 @@ module.exports = class novadax extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchDepositAddresses': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -125,6 +126,7 @@ module.exports = class novadax extends Exchange {
                         'account/subs/balance': 3,
                         'account/subs/transfer/record': 3,
                         'wallet/query/deposit-withdraw': 3,
+                        'wallet/crypto/chain/{code}': 3,
                     },
                     'post': {
                         'orders/create': 3,
@@ -1475,6 +1477,95 @@ module.exports = class novadax extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchDepositAddressesByNetwork (code, params = {}) {
+        /**
+         * @method
+         * @name novadax#fetchDepositAddressesByNetwork
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://doc.novadax.com/en-US/#chain-network-search
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @param {string|undefined} params.network the blockchain network name
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'code': currency['id'],
+        };
+        const response = await this.privateGetWalletCryptoChainCode (this.extend (request, params));
+        //
+        //    {
+        //        code: 'A10000',
+        //        data: [
+        //            {
+        //                accountState: '1',
+        //                accountCode: 'USDT',
+        //                accountType: 'DIGITAL',
+        //                accountPrecision: '6',
+        //                accountOrder: '9976',
+        //                tokens: [
+        //                    {
+        //                        chainAlias: 'ETH',
+        //                        chainName: 'Ethereum (ERC20)',
+        //                        codeAccount: 'USDT',
+        //                        chainAddressURL: 'https://ethplorer.io/address/{addr}',
+        //                        useMemo: '0',
+        //                        chainHashURL: 'https://ethplorer.io/tx/{txid}',
+        //                        officialURL: '-',
+        //                        useDynamicSendFee: '1',
+        //                        useFirst: '1',
+        //                        chainURL: 'https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7',
+        //                        minConf: '12',
+        //                        state: '1',
+        //                        mainAddr: ''
+        //                    },
+        //                    ...
+        //                ]
+        //            }
+        //        ],
+        //        message: 'Success'
+        //    }
+        //
+        let data = this.safeValue (response, 'data', {});
+        data = this.safeValue (data, 0);
+        const tokens = this.safeValue (data, 'tokens', []);
+        const parsed = this.parseDepositAddresses (tokens, [ currency['code'] ], false);
+        return this.indexBy (parsed, 'network');
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //    {
+        //        chainAlias: 'ETH',
+        //        chainName: 'Ethereum (ERC20)',
+        //        codeAccount: 'USDT',
+        //        chainAddressURL: 'https://ethplorer.io/address/{addr}',
+        //        useMemo: '0',
+        //        chainHashURL: 'https://ethplorer.io/tx/{txid}',
+        //        officialURL: '-',
+        //        useDynamicSendFee: '1',
+        //        useFirst: '1',
+        //        chainURL: 'https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7',
+        //        minConf: '12',
+        //        state: '1',
+        //        mainAddr: ''
+        //    },
+        //
+        const currencyId = this.safeString (depositAddress, 'codeAccount');
+        const networkId = this.safeString (depositAddress, 'chainAlias');
+        const chainURL = this.safeString (depositAddress, 'chainURL');
+        const splitChainURL = chainURL.split ('/');
+        const splitChainURLLength = splitChainURL.length;
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'address': splitChainURL[splitChainURLLength - 1],
+            'tag': this.safeString (depositAddress, 'mainAddr'),
+            'network': this.networkIdToCode (networkId),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
