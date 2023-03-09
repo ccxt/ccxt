@@ -1978,11 +1978,11 @@ class Transpiler {
 
     addGeneratedHeaderToJs (jsFolder, force = false) {
 
-        // add it to every file inside the folder
+        // add it to every .js file inside the folder
         let jsFiles = [];
         this.getAllFilesRecursively(jsFolder, jsFiles);
 
-        jsFiles.map (jsFilePath => {
+        jsFiles.filter(f => !f.includes(".d.ts")).map (jsFilePath => {
             let contents = [
                 this.getJsPreamble(),
                 fs.readFileSync (jsFilePath, 'utf8')
