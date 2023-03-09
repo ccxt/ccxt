@@ -795,7 +795,7 @@ module.exports = class okx extends Exchange {
                 },
                 'accountsById': {
                     '6': 'funding',
-                    '18': 'spot', // unified trading account
+                    '18': 'trading', // unified trading account
                 },
                 'exchangeType': {
                     'spot': 'SPOT',
