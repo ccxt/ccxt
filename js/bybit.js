@@ -2965,10 +2965,14 @@ module.exports = class bybit extends Exchange {
                 // use this endpoint only we have no other choice
                 // because it requires transfer permission
                 method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery';
-                request['accountType'] = unifiedType;
             } else {
-                method = 'privateGetContractV3PrivateAccountWalletBalance';
+                if (enableUnifiedAccount) {
+                    method = 'privateGetV5AccountWalletBalance';
+                } else {
+                    method = 'privateGetContractV3PrivateAccountWalletBalance';
+                }
             }
+            request['accountType'] = unifiedType;
         }
         const response = await this[method] (this.extend (request, params));
         //
