@@ -1,8 +1,8 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-// const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } = require ('./base/errors');
-const { ArgumentsRequired, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+// const { ExchangeError, ExchangeNotAvailable, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } = require ('./base/errors');
+const { ArgumentsRequired, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 const { DECIMAL_PLACES } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -232,6 +232,7 @@ module.exports = class coinsph extends Exchange {
             'precisionMode': DECIMAL_PLACES, // todo: change to TICK_SIZE in fetchMarkets (see precisionFromString)
             // exchange-specific options
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
             },
             // https://coins-docs.github.io/errors/
             'exceptions': {
@@ -897,17 +898,69 @@ module.exports = class coinsph extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         // todo: recvWindow and all types of orders
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const orderSide = (side === 'buy') ? 'BUY' : 'SELL';
+        let orderType = this.safeString (params, 'type', type);
+        orderType = orderType.toUpperCase ();
+        const orderSide = side.toUpperCase ();
         const request = {
             'symbol': market['id'],
+            'type': orderType,
             'side': orderSide,
-            'type': 'LIMIT',
-            'price': price,
-            'quantity': amount,
-            'timeInForce': 'GTC', // the exchange requires this param
         };
+        if (orderType === 'LIMIT' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT_LIMIT' || orderType === 'LIMIT_MAKER') {
+            // todo: check this block (maybe we should use 'GTC' as default value of timeInForce?)
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder () with ' + orderType + ' order requires a price argument');
+            }
+            request['price'] = this.priceToPrecision (symbol, price);
+            if (amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder () with ' + orderType + ' order requires an amount argument');
+            }
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+            if (orderType !== 'LIMIT_MAKER') {
+                const timeInForce = this.safeString (params, 'timeInForce');
+                if (timeInForce === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder () with ' + orderType + ' order requires a timeInForce param');
+                }
+            }
+        } else if (orderType === 'MARKET' || orderType === 'STOP_LOSS' || orderType === 'TAKE_PROFIT') {
+            if (orderSide === 'SELL') {
+                if (amount === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder () with ' + orderType + ' ' + orderSide + ' order requires an amount argument');
+                }
+                request['quantity'] = this.amountToPrecision (symbol, amount);
+            } else if (orderSide === 'BUY') {
+                const quoteOrderQty = this.safeNumber (params, 'quoteOrderQty');
+                if (quoteOrderQty !== undefined) {
+                    amount = quoteOrderQty;
+                } else if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const quoteAmount = Precise.stringMul (amountString, priceString);
+                        amount = this.parseNumber (quoteAmount);
+                    }
+                }
+                request['quoteOrderQty'] = amount; // todo: should we use priceToPrecision and omit quoteOrderQty from params?
+            }
+        // if orderType is unknown
+        } else {
+            throw new InvalidOrder (this.id + ' createOrder () does not supports ' + orderType + ' order type');
+        }
+        if (orderType === 'STOP_LOSS' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT' || orderType === 'TAKE_PROFIT_LIMIT') {
+            const stopPrice = this.safeString (params, 'stopPrice');
+            if (stopPrice === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder () with ' + orderType + ' order requires a stopPrice param');
+            }
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+        }
+        params = this.omit (params, 'price', 'stopPrice', 'quantity', 'quoteOrderQty');
         const response = await this.privatePostOpenapiV1Order (this.extend (request, params));
         return this.parseOrder (response, market);
     }
