@@ -1072,7 +1072,9 @@ module.exports = class bybit extends bybitRest {
          */
         const method = 'watchBalance';
         const messageHash = 'balances';
-        const url = this.getUrlByMarketType (undefined, true, true, method, params);
+        const unified = await this.isUnifiedEnabled ();
+        const isUnifiedMargin = this.safeValue (unified, 0, false);
+        const url = this.getUrlByMarketType (undefined, true, isUnifiedMargin, method, params);
         await this.authenticate (url);
         const topicByMarket = {
             'spot': 'outboundAccountInfo',
@@ -1289,8 +1291,8 @@ module.exports = class bybit extends bybitRest {
         const account = this.account ();
         const currencyId = this.safeString2 (balance, 'a', 'coin');
         const code = this.safeCurrencyCode (currencyId);
-        account['free'] = this.safeString2 (balance, 'availableToWithdraw', 'f');
-        account['used'] = this.safeString (balance, 'l');
+        account['free'] = this.safeStringN (balance, [ 'availableToWithdraw', 'f', 'free' ]);
+        account['used'] = this.safeString2 (balance, 'l', 'locked');
         account['total'] = this.safeString (balance, 'walletBalance');
         this.balance[code] = account;
     }
