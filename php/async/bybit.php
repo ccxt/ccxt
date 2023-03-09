@@ -3519,6 +3519,14 @@ class bybit extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $upperCaseType = strtoupper($type);
+            $request = array(
+                'symbol' => $market['id'],
+                'side' => $this->capitalize($side),
+                'orderType' => $upperCaseType, // limit, $market or limit_maker
+                'timeInForce' => 'GTC', // FOK, IOC
+                // 'orderLinkId' => 'string', // unique client $order id, max 36 characters
+            );
             if (($type === 'market') && ($side === 'buy')) {
                 // for $market buy it requires the $amount of quote currency to spend
                 if ($this->options['createMarketBuyOrderRequiresPrice']) {
@@ -3531,18 +3539,12 @@ class bybit extends Exchange {
                         $priceString = $this->number_to_string($price);
                         $quoteAmount = Precise::string_mul($amountString, $priceString);
                         $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
+                        $request['orderQty'] = $this->cost_to_precision($symbol, $amount);
                     }
                 }
+            } else {
+                $request['orderQty'] = $this->amount_to_precision($symbol, $amount);
             }
-            $upperCaseType = strtoupper($type);
-            $request = array(
-                'symbol' => $market['id'],
-                'side' => $this->capitalize($side),
-                'orderType' => $upperCaseType, // limit, $market or limit_maker
-                'timeInForce' => 'GTC', // FOK, IOC
-                'orderQty' => $this->amount_to_precision($symbol, $amount),
-                // 'orderLinkId' => 'string', // unique client $order id, max 36 characters
-            );
             if (($upperCaseType === 'LIMIT') || ($upperCaseType === 'LIMIT_MAKER')) {
                 if ($price === null) {
                     throw new InvalidOrder($this->id . ' createOrder requires a $price argument for a ' . $type . ' order');
