@@ -24,7 +24,7 @@
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
-    "tsBuild": "tsc && npm run fixTSBug",
+    "tsBuild": "tsc",
     "build": "npm run export-exchanges && npm run tsBuild && npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
     "force-build": "npm run export-exchanges &&  npm run tsBuild && npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
     "force-build-slow": "npm run export-exchanges &&  npm run tsBuild && npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
@@ -113,7 +113,7 @@
     "ololog": "1.1.155",
     "replace-in-file": "^6.3.5",
     "rollup": "^2.70.1",
-    "typescript": "^4.9.4"
+    "typescript": "4.7.4"
   },
   "author": {
     "name": "Igor Kroitor",

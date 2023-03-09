@@ -2,7 +2,7 @@
 // check this for context
 // https://github.com/microsoft/TypeScript/issues/50647
 
-
+// Only required for TS > 4.4.7
 import fs from 'fs'
 import { join } from 'path'
 import { replaceInFile } from './fsLocal.js'
