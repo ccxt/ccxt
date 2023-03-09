@@ -356,9 +356,9 @@ module.exports = class testMainClass extends emptyClass {
             const key = keys[i];
             const market = markets[key];
             if (spot && market['spot']) {
-                res.push(key);
+                res.push(market);
             } else if (!spot && !market['spot']) {
-                res.push(key);
+                res.push(market);
             }
         }
         return res;
@@ -429,10 +429,11 @@ module.exports = class testMainClass extends emptyClass {
         if (symbol === undefined) {
             for (let i = 0; i < codes.length; i++) {
                 const currentCode = codes[i];
-                const marketsForCurrentCode = exchange.filterBy (exchangeMarkets, 'base', currentCode);
-                const symbolsForCurrentCode = Object.keys (marketsForCurrentCode);
-                if (symbolsForCurrentCode.length) {
-                    symbol = this.getTestSymbol (exchange, symbolsForCurrentCode);
+                const marketsArrayForCurrentCode = exchange.filterBy (exchangeMarkets, 'base', currentCode);
+                const indexedMkts = exchange.indexBy (marketsArrayForCurrentCode, 'symbol');
+                const symbolsArrayForCurrentCode = Object.keys (indexedMkts);
+                if (symbolsArrayForCurrentCode.length) {
+                    symbol = this.getTestSymbol (exchange, spot, symbolsArrayForCurrentCode);
                     break;
                 }
             }

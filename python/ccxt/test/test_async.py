@@ -377,9 +377,9 @@ class testMainClass(emptyClass):
             key = keys[i]
             market = markets[key]
             if spot and market['spot']:
-                res.append(key)
+                res.append(market)
             elif not spot and not market['spot']:
-                res.append(key)
+                res.append(market)
         return res
 
     def get_valid_symbol(self, exchange, spot=True):
@@ -447,10 +447,11 @@ class testMainClass(emptyClass):
         if symbol is None:
             for i in range(0, len(codes)):
                 currentCode = codes[i]
-                marketsForCurrentCode = exchange.filter_by(exchangeMarkets, 'base', currentCode)
-                symbolsForCurrentCode = list(marketsForCurrentCode.keys())
-                if len(symbolsForCurrentCode):
-                    symbol = self.get_test_symbol(exchange, symbolsForCurrentCode)
+                marketsArrayForCurrentCode = exchange.filter_by(exchangeMarkets, 'base', currentCode)
+                indexedMkts = exchange.index_by(marketsArrayForCurrentCode, 'symbol')
+                symbolsArrayForCurrentCode = list(indexedMkts.keys())
+                if len(symbolsArrayForCurrentCode):
+                    symbol = self.get_test_symbol(exchange, spot, symbolsArrayForCurrentCode)
                     break
         # if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if symbol is None:

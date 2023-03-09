@@ -5,6 +5,7 @@
     "bequant":       { "skipWs": true, "skipMethods": { "fetchTickers": "close might have null value", "fetchTicker": "same"}  },
     "bigone":        { "skipMethods": { "fetchCurrencies": "info key is missing", "fetchTickers": "open value can be 0", "fetchTicker": "same"} },
     "binance":       { "skipWs": true, "skipMethods": { "loadMarkets": "expiry not set for future markets", "fetchTickers": "some symbols i.e. BTC/USD4 might have bid-ask value 0", "fetchTicker": "same" } },
+    "bit2c":         { "skipMethods": { "fetchCurrencies": "info key is missing" } },
     "binanceus":     { "skipWs": true, "skipMethods": { "loadMarkets": "expiry not set for future markets", "fetchTickers": "some symbols i.e. BTC/USD4 might have bid-ask value 0", "fetchTicker": "same" } },
     "binancecoinm":  { "skipWs": true },
     "binanceusdm":   { "skipWs": true },

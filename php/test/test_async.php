@@ -393,9 +393,9 @@ class testMainClass extends emptyClass {
             $key = $keys[$i];
             $market = $markets[$key];
             if ($spot && $market['spot']) {
-                $res[] = $key;
+                $res[] = $market;
             } elseif (!$spot && !$market['spot']) {
-                $res[] = $key;
+                $res[] = $market;
             }
         }
         return $res;
@@ -466,10 +466,11 @@ class testMainClass extends emptyClass {
         if ($symbol === null) {
             for ($i = 0; $i < count($codes); $i++) {
                 $currentCode = $codes[$i];
-                $marketsForCurrentCode = $exchange->filter_by($exchangeMarkets, 'base', $currentCode);
-                $symbolsForCurrentCode = is_array($marketsForCurrentCode) ? array_keys($marketsForCurrentCode) : array();
-                if (strlen($symbolsForCurrentCode)) {
-                    $symbol = $this->get_test_symbol($exchange, $symbolsForCurrentCode);
+                $marketsArrayForCurrentCode = $exchange->filter_by($exchangeMarkets, 'base', $currentCode);
+                $indexedMkts = $exchange->index_by($marketsArrayForCurrentCode, 'symbol');
+                $symbolsArrayForCurrentCode = is_array($indexedMkts) ? array_keys($indexedMkts) : array();
+                if (strlen($symbolsArrayForCurrentCode)) {
+                    $symbol = $this->get_test_symbol($exchange, $spot, $symbolsArrayForCurrentCode);
                     break;
                 }
             }
