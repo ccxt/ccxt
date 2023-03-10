@@ -1070,8 +1070,13 @@ module.exports = class bybit extends bybitRest {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
+        await this.loadMarkets ();
         const method = 'watchBalance';
         let messageHash = 'balances';
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
         const unified = await this.isUnifiedEnabled ();
         const isUnifiedMargin = this.safeValue (unified, 0, false);
         const isUnifiedAccount = this.safeValue (unified, 1, false);
@@ -1082,12 +1087,31 @@ module.exports = class bybit extends bybitRest {
             'unified': 'wallet',
         };
         if (isUnifiedAccount) {
-            let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
+            // unified account
             if (subType === 'inverse') {
                 messageHash += ':contract';
             } else {
                 messageHash += ':unified';
+            }
+        }
+        if (!isUnifiedMargin && !isUnifiedAccount) {
+            // normal account using v5
+            if (type === 'spot') {
+                messageHash += ':spot';
+            } else {
+                messageHash += ':contract';
+            }
+        }
+        if (isUnifiedMargin) {
+            // unified margin account using v5
+            if (type === 'spot') {
+                messageHash += ':spot';
+            } else {
+                if (subType === 'linear') {
+                    messageHash += ':unified';
+                } else {
+                    messageHash += ':contract';
+                }
             }
         }
         const topics = [ this.safeValue (topicByMarket, this.getPrivateType (url)) ];
@@ -1246,6 +1270,7 @@ module.exports = class bybit extends bybitRest {
         let rawBalances = [];
         let account = undefined;
         if (topic === 'outboundAccountInfo') {
+            account = 'spot';
             const data = this.safeValue (message, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const B = this.safeValue (data[i], 'B', []);
@@ -1266,7 +1291,7 @@ module.exports = class bybit extends bybitRest {
             this.parseWsBalance (rawBalances[i], account);
         }
         if (account !== undefined) {
-            if (this.balance[account] === undefined) {
+            if (this.safeValue (this.balance, account) === undefined) {
                 this.balance[account] = {};
             }
             this.balance[account]['info'] = info;
@@ -1320,7 +1345,7 @@ module.exports = class bybit extends bybitRest {
         account['used'] = this.safeString2 (balance, 'l', 'locked');
         account['total'] = this.safeString (balance, 'walletBalance');
         if (accountType !== undefined) {
-            if (this.balance[accountType] === undefined) {
+            if (this.safeValue (this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};
             }
             this.balance[accountType][code] = account;
