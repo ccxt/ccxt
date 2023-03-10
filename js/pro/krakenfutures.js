@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const krakenfuturesRest = require ('../krakenfutures.js');
-const { BadSymbol, BadRequest } = require ('../base/errors');
+const { AuthenticationError, BadSymbol, BadRequest, ExchangeError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -326,7 +326,85 @@ module.exports = class krakenfutures extends krakenfuturesRest {
         client.resolve (stored, messageHash);
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSystemStatus (client, message) {
+        //
+        // todo: answer the question whether handleSystemStatus should be renamed
+        // and unified as handleStatus for any usage pattern that
+        // involves system status and maintenance updates
+        //
+        //     {
+        //         connectionID: 15527282728335292000,
+        //         event: 'systemStatus',
+        //         status: 'online', // online|maintenance|(custom status tbd)
+        //         version: '0.2.0'
+        //     }
+        //
+        return message;
+    }
+
+    async challenge () {
+        //
+        // Sample Sent Message
+        // {
+        //  "event": "challenge",
+        //  "api_key": "CMl2SeSn09Tz+2tWuzPfdaJdsahq6qv5UaexXuQ3SnahDQU/gO3aT+"
+        // }
+        //
+        const messageHash = 'challenge';
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const challenge = this.safeString (client.subscriptions, messageHash);
+        if (challenge !== undefined) {
+            return challenge;
+        }
+        const request = {
+            'event': 'challenge',
+            'api_key': this.apiKey,
+        };
+        const future = client.future (messageHash);
+        await client.send (request);
+        await future;
+        const new_challenge = this.safeString (client.subscriptions, messageHash);
+        if (new_challenge !== undefined) {
+            return new_challenge;
+        }
+        throw new AuthenticationError (this.id + ' failed to challenge');
+    }
+
+    handleChallenge (client, message) {
+        //
+        // Sample Return if Successful
+        // {
+        //  "event": "challenge",
+        //  "message": "226aee50-88fc-4618-a42a-34f7709570b2"
+        // }
+        //
+        client.subscriptions['challenge'] = this.safeString (message, 'message');
+    }
+
+    async authenticate (params = {}) {
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const authenticated = 'authenticated';
+        let subscription = this.safeValue (client.subscriptions, authenticated);
+        if (subscription === undefined) {
+            const response = await this.privatePostGetWebSocketsToken (params);
+            //
+            //     {
+            //         "error":[],
+            //         "result":{
+            //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+            //             "expires":900
+            //         }
+            //     }
+            //
+            subscription = this.safeValue (response, 'result');
+            client.subscriptions[authenticated] = subscription;
+        }
+        return this.safeString (subscription, 'token');
+    }
+
+    handleSubscribed (client, message) {
         //
         // public
         //
@@ -351,30 +429,42 @@ module.exports = class krakenfutures extends krakenfuturesRest {
         client.subscriptions[message['feed']] = message;
     }
 
-    handleErrorMessage (client, message) {
+    handleError (client, message) {
         //
-        //   {
-        //     "event": "error",
-        //     "message": "Invalid product id"
-        //   }
+        // Sample Return if Unsuccessful
+        // {
+        //  "event": "error",
+        //  "message": "Json Error"
+        // }
         //
-        // TODO: handle error message
-        return true;
+        const errorMessage = this.safeValue (message, 'message');
+        throw new ExchangeError (this.id + ' ' + errorMessage);
     }
 
     handleMessage (client, message) {
-        const name = message['feed'];
         const event = this.safeValue (message, 'event');
         if (event !== undefined) {
-            return this.handleSubscriptionStatus (client, message);
+            const methods = {
+                'error': this.handleError,
+                'challenge': this.handleChallenge,
+                'subscribed': this.handleSubscribed,
+            };
+            const method = this.safeValue (methods, event);
+            if (method === undefined) {
+                return message;
+            } else {
+                return method.call (this, client, message);
+            }
         }
         const methods = {
             // public
+            'challenge': this.handleChallenge,
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
             'book_snapshot': this.handleOrderBook,
             'book': this.handleOrderBook,
         };
+        const name = message['feed'];
         const method = this.safeValue (methods, name);
         if (method === undefined) {
             return message;
