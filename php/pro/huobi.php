@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
+use ccxt\NetworkError;
 use ccxt\InvalidNonce;
 use React\Async;
 
@@ -22,11 +24,11 @@ class huobi extends \ccxt\async\huobi {
                 'ws' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
-                'watchTickers' => false, // for now
+                'watchTickers' => false,
                 'watchTicker' => true,
                 'watchTrades' => true,
                 'watchMyTrades' => true,
-                'watchBalance' => true, // for now
+                'watchBalance' => true,
                 'watchOHLCV' => true,
             ),
             'urls' => array(
@@ -96,6 +98,9 @@ class huobi extends \ccxt\async\huobi {
                 'ws' => array(
                     'gunzip' => true,
                 ),
+                'watchTicker' => array(
+                    'name' => 'market.{marketId}.detail', // 'market.{marketId}.bbo' or 'market.{marketId}.ticker'
+                ),
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -129,7 +134,12 @@ class huobi extends \ccxt\async\huobi {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $messageHash = 'market.' . $market['id'] . '.detail';
+            $options = $this->safe_value($this->options, 'watchTicker', array());
+            $topic = $this->safe_string($options, 'name', 'market.{marketId}.detail');
+            if ($topic === 'market.{marketId}.ticker' && $market['type'] !== 'spot') {
+                throw new BadRequest($this->id . ' watchTicker() with name $market->{marketId}.ticker is only allowed for spot markets, use $market->{marketId}.detail instead');
+            }
+            $messageHash = $this->implode_params($topic, array( 'marketId' => $market['id'] ));
             $url = $this->get_url_by_market_type($market['type'], $market['linear']);
             return Async\await($this->subscribe_public($url, $symbol, $messageHash, null, $params));
         }) ();
@@ -137,6 +147,7 @@ class huobi extends \ccxt\async\huobi {
 
     public function handle_ticker($client, $message) {
         //
+        // 'market.btcusdt.detail'
         //     {
         //         $ch => 'market.btcusdt.detail',
         //         ts => 1583494163784,
@@ -150,6 +161,20 @@ class huobi extends \ccxt\async\huobi {
         //             amount => 26184.202558551195,
         //             version => 209988464418,
         //             count => 265673
+        //         }
+        //     }
+        // 'market.btcusdt.bbo'
+        //     {
+        //         $ch => 'market.btcusdt.bbo',
+        //         ts => 1671941599613,
+        //         $tick => {
+        //             seqId => 161499562790,
+        //             ask => 16829.51,
+        //             askSize => 0.707776,
+        //             bid => 16829.5,
+        //             bidSize => 1.685945,
+        //             quoteTime => 1671941599612,
+        //             $symbol => 'btcusdt'
         //         }
         //     }
         //
@@ -247,7 +272,7 @@ class huobi extends \ccxt\async\huobi {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
             $url = $this->get_url_by_market_type($market['type'], $market['linear']);
             $ohlcv = Async\await($this->subscribe_public($url, $symbol, $messageHash, null, $params));
@@ -298,20 +323,27 @@ class huobi extends \ccxt\async\huobi {
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-$market-depth-data
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-$market-depth-data
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-$market-depth-data
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the huobi api endpoint
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
              */
-            if (($limit !== null) && ($limit !== 150)) {
-                throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            // only supports a $limit of 150 at this time
+            $allowedSpotLimits = array( 150 );
+            $allowedSwapLimits = array( 20, 150 );
             $limit = ($limit === null) ? 150 : $limit;
+            if ($market['spot'] && !$this->in_array($limit, $allowedSpotLimits)) {
+                throw new ExchangeError($this->id . ' watchOrderBook spot $market accepts limits of 150 only');
+            }
+            if (!$market['spot'] && !$this->in_array($limit, $allowedSwapLimits)) {
+                throw new ExchangeError($this->id . ' watchOrderBook swap $market accepts limits of 20 and 150 only');
+            }
             $messageHash = null;
             if ($market['spot']) {
                 $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limit;
@@ -319,10 +351,12 @@ class huobi extends \ccxt\async\huobi {
                 $messageHash = 'market.' . $market['id'] . '.depth.size_' . (string) $limit . '.high_freq';
             }
             $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+            $method = array($this, 'handle_order_book_subscription');
             if (!$market['spot']) {
                 $params['data_type'] = 'incremental';
+                $method = null;
             }
-            $orderbook = Async\await($this->subscribe_public($url, $symbol, $messageHash, array($this, 'handle_order_book_subscription'), $params));
+            $orderbook = Async\await($this->subscribe_public($url, $symbol, $messageHash, $method, $params));
             return $orderbook->limit ();
         }) ();
     }
@@ -330,7 +364,7 @@ class huobi extends \ccxt\async\huobi {
     public function handle_order_book_snapshot($client, $message, $subscription) {
         //
         //     {
-        //         id => 1583473663565,
+        //         $id => 1583473663565,
         //         rep => 'market.btcusdt.mbp.150',
         //         status => 'ok',
         //         $data => {
@@ -350,6 +384,7 @@ class huobi extends \ccxt\async\huobi {
         //
         $symbol = $this->safe_string($subscription, 'symbol');
         $messageHash = $this->safe_string($subscription, 'messageHash');
+        $id = $this->safe_string($message, 'id');
         try {
             $orderbook = $this->orderbooks[$symbol];
             $data = $this->safe_value($message, 'data');
@@ -360,6 +395,9 @@ class huobi extends \ccxt\async\huobi {
             $sequence = $this->safe_integer($tick, 'seqNum');
             $nonce = $this->safe_integer($data, 'seqNum');
             $snapshot['nonce'] = $nonce;
+            $snapshotLimit = $this->safe_integer($subscription, 'limit');
+            $snapshotOrderBook = $this->order_book($snapshot, $snapshotLimit);
+            $client->resolve ($snapshotOrderBook, $id);
             if (($sequence !== null) && ($nonce < $sequence)) {
                 $maxAttempts = $this->safe_integer($this->options, 'maxOrderBookSyncAttempts', 3);
                 $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
@@ -393,77 +431,34 @@ class huobi extends \ccxt\async\huobi {
 
     public function watch_order_book_snapshot($client, $message, $subscription) {
         return Async\async(function () use ($client, $message, $subscription) {
-            $symbol = $this->safe_string($subscription, 'symbol');
-            $limit = $this->safe_integer($subscription, 'limit');
-            $params = $this->safe_value($subscription, 'params');
-            $attempts = $this->safe_integer($subscription, 'numAttempts', 0);
-            $messageHash = $this->safe_string($subscription, 'messageHash');
-            $market = $this->market($symbol);
-            $url = $this->get_url_by_market_type($market['type'], $market['linear']);
-            $requestId = $this->request_id();
-            $request = array(
-                'req' => $messageHash,
-                'id' => $requestId,
-            );
-            // this is a temporary $subscription by a specific $requestId
-            // it has a very short lifetime until the snapshot is received over ws
-            $snapshotSubscription = array(
-                'id' => $requestId,
-                'messageHash' => $messageHash,
-                'symbol' => $symbol,
-                'limit' => $limit,
-                'params' => $params,
-                'numAttempts' => $attempts,
-                'method' => array($this, 'handle_order_book_snapshot'),
-            );
-            $orderbook = Async\await($this->watch($url, $requestId, $request, $requestId, $snapshotSubscription));
-            return $orderbook->limit ();
-        }) ();
-    }
-
-    public function fetch_order_book_snapshot($client, $message, $subscription) {
-        return Async\async(function () use ($client, $message, $subscription) {
-            $symbol = $this->safe_string($subscription, 'symbol');
-            $limit = $this->safe_integer($subscription, 'limit');
             $messageHash = $this->safe_string($subscription, 'messageHash');
             try {
-                $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
-                $orderbook = $this->orderbooks[$symbol];
-                $messages = $orderbook->cache;
-                $firstMessage = $this->safe_value($messages, 0, array());
-                $tick = $this->safe_value($firstMessage, 'tick');
-                $sequence = $this->safe_integer($tick, 'seqNum');
-                $nonce = $this->safe_integer($snapshot, 'nonce');
-                // if the received $snapshot is earlier than the first cached delta
-                // then we cannot align it with the cached deltas and we need to
-                // retry synchronizing in $maxAttempts
-                if (($sequence !== null) && ($nonce < $sequence)) {
-                    $maxAttempts = $this->safe_integer($this->options, 'maxOrderBookSyncAttempts', 3);
-                    $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
-                    // retry to syncrhonize if we haven't reached $maxAttempts yet
-                    if ($numAttempts < $maxAttempts) {
-                        // safety guard
-                        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-                            $numAttempts = $this->sum($numAttempts, 1);
-                            $subscription['numAttempts'] = $numAttempts;
-                            $client->subscriptions[$messageHash] = $subscription;
-                            $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
-                        }
-                    } else {
-                        // throw upon failing to synchronize in $maxAttempts
-                        throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
-                    }
-                } else {
-                    $orderbook->reset ($snapshot);
-                    // unroll the accumulated deltas
-                    for ($i = 0; $i < count($messages); $i++) {
-                        $message = $messages[$i];
-                        $this->handle_order_book_message($client, $message, $orderbook);
-                    }
-                    $this->orderbooks[$symbol] = $orderbook;
-                    $client->resolve ($orderbook, $messageHash);
-                }
+                $symbol = $this->safe_string($subscription, 'symbol');
+                $limit = $this->safe_integer($subscription, 'limit');
+                $params = $this->safe_value($subscription, 'params');
+                $attempts = $this->safe_integer($subscription, 'numAttempts', 0);
+                $market = $this->market($symbol);
+                $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+                $requestId = $this->request_id();
+                $request = array(
+                    'req' => $messageHash,
+                    'id' => $requestId,
+                );
+                // this is a temporary $subscription by a specific $requestId
+                // it has a very short lifetime until the snapshot is received over ws
+                $snapshotSubscription = array(
+                    'id' => $requestId,
+                    'messageHash' => $messageHash,
+                    'symbol' => $symbol,
+                    'limit' => $limit,
+                    'params' => $params,
+                    'numAttempts' => $attempts,
+                    'method' => array($this, 'handle_order_book_snapshot'),
+                );
+                $orderbook = Async\await($this->watch($url, $requestId, $request, $requestId, $snapshotSubscription));
+                return $orderbook->limit ();
             } catch (Exception $e) {
+                unset($client->subscriptions[$messageHash]);
                 $client->reject ($e, $messageHash);
             }
         }) ();
@@ -485,7 +480,7 @@ class huobi extends \ccxt\async\huobi {
         // spot markets
         //
         //     {
-        //         ch => "market.btcusdt.mbp.150",
+        //         $ch => "market.btcusdt.mbp.150",
         //         ts => 1583472025885,
         //         $tick => {
         //             $seqNum => 104998984994,
@@ -503,7 +498,7 @@ class huobi extends \ccxt\async\huobi {
         //         }
         //     }
         //
-        // non-spot market
+        // non-spot market update
         //
         //     {
         //         "ch":"market.BTC220218.depth.size_150.high_freq",
@@ -523,17 +518,51 @@ class huobi extends \ccxt\async\huobi {
         //         ),
         //         "ts":1645023376098
         //     }
+        // non-spot market $snapshot
         //
+        //     {
+        //         "ch":"market.BTC220218.depth.size_150.high_freq",
+        //         "tick":array(
+        //             "asks":[
+        //                 [43445.74,1],
+        //                 [43444.48,0 ],
+        //                 [40593.92,9]
+        //             ],
+        //             "bids":[
+        //                 [43445.74,1],
+        //                 [43444.48,0 ],
+        //                 [40593.92,9]
+        //             ],
+        //             "ch":"market.BTC220218.depth.size_150.high_freq",
+        //             "event":"snapshot",
+        //             "id":152727500274,
+        //             "mrid":152727500274,
+        //             "ts":1645023376098,
+        //             "version":37536690
+        //         ),
+        //         "ts":1645023376098
+        //     }
+        //
+        $ch = $this->safe_value($message, 'ch');
+        $parts = explode('.', $ch);
+        $marketId = $this->safe_string($parts, 1);
+        $symbol = $this->safe_symbol($marketId);
         $tick = $this->safe_value($message, 'tick', array());
-        $seqNum = $this->safe_integer_2($tick, 'seqNum', 'id');
+        $seqNum = $this->safe_integer_2($tick, 'seqNum', 'version');
         $prevSeqNum = $this->safe_integer($tick, 'prevSeqNum');
+        $event = $this->safe_string($tick, 'event');
+        $timestamp = $this->safe_integer($message, 'ts');
+        if ($event === 'snapshot') {
+            $snapshot = $this->parse_order_book($tick, $symbol, $timestamp);
+            $orderbook->reset ($snapshot);
+            $orderbook['nonce'] = $seqNum;
+        }
         if (($prevSeqNum === null || $prevSeqNum <= $orderbook['nonce']) && ($seqNum > $orderbook['nonce'])) {
             $asks = $this->safe_value($tick, 'asks', array());
             $bids = $this->safe_value($tick, 'bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['nonce'] = $seqNum;
-            $timestamp = $this->safe_integer($message, 'ts');
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }
@@ -549,7 +578,7 @@ class huobi extends \ccxt\async\huobi {
         //     {
         //         $ch => "market.btcusdt.mbp.150",
         //         ts => 1583472025885,
-        //         tick => {
+        //         $tick => {
         //             seqNum => 104998984994,
         //             prevSeqNum => 104998984977,
         //             bids => [
@@ -586,6 +615,8 @@ class huobi extends \ccxt\async\huobi {
         //         "ts":1645023376098
         //     }
         //
+        $tick = $this->safe_value($message, 'tick', array());
+        $event = $this->safe_string($tick, 'event');
         $messageHash = $this->safe_string($message, 'ch');
         $ch = $this->safe_value($message, 'ch');
         $parts = explode('.', $ch);
@@ -595,13 +626,14 @@ class huobi extends \ccxt\async\huobi {
         if ($orderbook === null) {
             $size = $this->safe_string($parts, 3);
             $sizeParts = explode('_', $size);
-            $limit = $this->safe_number($sizeParts, 1);
+            $limit = $this->safe_integer($sizeParts, 1);
             $orderbook = $this->order_book(array(), $limit);
         }
         if ($orderbook['nonce'] === null) {
             $orderbook->cache[] = $message;
-        } else {
-            $this->handle_order_book_message($client, $message, $orderbook);
+        }
+        if ($event !== null || $orderbook['nonce'] !== null) {
+            $this->orderbooks[$symbol] = $this->handle_order_book_message($client, $message, $orderbook);
             $client->resolve ($orderbook, $messageHash);
         }
     }
@@ -615,8 +647,6 @@ class huobi extends \ccxt\async\huobi {
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         if ($this->markets[$symbol]['spot'] === true) {
             $this->spawn(array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
-        } else {
-            $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
         }
     }
 
@@ -1367,6 +1397,10 @@ class huobi extends \ccxt\async\huobi {
         //     }
         //
         $channel = $this->safe_string($message, 'ch');
+        $timestamp = $this->safe_integer($message, 'ts');
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance['info'] = $this->safe_value($message, 'data');
         if ($channel !== null) {
             // spot $balance
             $data = $this->safe_value($message, 'data', array());
@@ -1387,7 +1421,7 @@ class huobi extends \ccxt\async\huobi {
             }
             $first = $this->safe_value($data, 0, array());
             $messageHash = $this->safe_string($message, 'topic');
-            $subscription = $this->safe_value($client->subscriptions, $messageHash);
+            $subscription = $this->safe_value_2($client->subscriptions, $messageHash, $messageHash . '.*');
             if ($subscription === null) {
                 // if $subscription not found means that we subscribed to a specific currency/symbol
                 // and we use the $first $data entry to find it
@@ -1419,7 +1453,7 @@ class huobi extends \ccxt\async\huobi {
                             // we skip it if the $market was delisted
                             if ($code !== null) {
                                 $account = $this->account();
-                                $account['free'] = $this->safe_string($balance, 'margin_balance');
+                                $account['free'] = $this->safe_string_2($balance, 'margin_balance', 'margin_available');
                                 $account['used'] = $this->safe_string($balance, 'margin_frozen');
                                 $accountsByCode = array();
                                 $accountsByCode[$code] = $account;
@@ -1585,6 +1619,8 @@ class huobi extends \ccxt\async\huobi {
                 'depth' => array($this, 'handle_order_book'),
                 'mbp' => array($this, 'handle_order_book'),
                 'detail' => array($this, 'handle_ticker'),
+                'bbo' => array($this, 'handle_ticker'),
+                'ticker' => array($this, 'handle_ticker'),
                 'trade' => array($this, 'handle_trades'),
                 'kline' => array($this, 'handle_ohlcv'),
             );
@@ -1630,22 +1666,27 @@ class huobi extends \ccxt\async\huobi {
             //     array( $action => 'ping', $data => array( ts => 1645108204665 ) )
             //     array( $op => 'ping', ts => '1645202800015' )
             //
-            $ping = $this->safe_integer($message, 'ping');
-            if ($ping !== null) {
-                Async\await($client->send (array( 'pong' => $ping )));
-                return;
-            }
-            $action = $this->safe_string($message, 'action');
-            if ($action === 'ping') {
-                $data = $this->safe_value($message, 'data');
-                $ping = $this->safe_integer($data, 'ts');
-                Async\await($client->send (array( 'action' => 'pong', 'data' => array( 'ts' => $ping ))));
-                return;
-            }
-            $op = $this->safe_string($message, 'op');
-            if ($op === 'ping') {
-                $ping = $this->safe_integer($message, 'ts');
-                Async\await($client->send (array( 'op' => 'pong', 'ts' => $ping )));
+            try {
+                $ping = $this->safe_integer($message, 'ping');
+                if ($ping !== null) {
+                    Async\await($client->send (array( 'pong' => $ping )));
+                    return;
+                }
+                $action = $this->safe_string($message, 'action');
+                if ($action === 'ping') {
+                    $data = $this->safe_value($message, 'data');
+                    $ping = $this->safe_integer($data, 'ts');
+                    Async\await($client->send (array( 'action' => 'pong', 'data' => array( 'ts' => $ping ))));
+                    return;
+                }
+                $op = $this->safe_string($message, 'op');
+                if ($op === 'ping') {
+                    $ping = $this->safe_integer($message, 'ts');
+                    Async\await($client->send (array( 'op' => 'pong', 'ts' => $ping )));
+                }
+            } catch (Exception $e) {
+                $error = new NetworkError ($this->id . ' pong failed ' . $this->json($e));
+                $client->reset ($error);
             }
         }) ();
     }

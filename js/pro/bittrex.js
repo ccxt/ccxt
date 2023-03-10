@@ -305,6 +305,7 @@ module.exports = class bittrex extends bittrexRest {
         //     }
         //
         const delta = this.safeValue (message, 'delta', {});
+        this.balance['info'] = delta;
         const currencyId = this.safeString (delta, 'currencySymbol');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
@@ -423,7 +424,7 @@ module.exports = class bittrex extends bittrexRest {
     async subscribeToOHLCV (negotiation, symbol, timeframe = '1m', params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'candle';
         const messageHash = name + '_' + market['id'] + '_' + interval;
         const subscription = {

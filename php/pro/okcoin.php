@@ -276,7 +276,7 @@ class okcoin extends \ccxt\async\okcoin {
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $name = 'candle' . $interval . 's';
             $ohlcv = Async\await($this->subscribe($name, $symbol, $params));
             if ($this->newUpdates) {
@@ -534,16 +534,8 @@ class okcoin extends \ccxt\async\okcoin {
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $marketId = $this->safe_string($params, 'instrument_id');
             $symbol = $this->safe_string($params, 'symbol');
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            } elseif ($marketId !== null) {
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                }
-            }
+            $market = $this->market($symbol);
             $marketUndefined = ($market === null);
             $currencyUndefined = ($currency === null);
             if ($type === 'spot') {
@@ -614,6 +606,8 @@ class okcoin extends \ccxt\async\okcoin {
         //
         $table = $this->safe_string($message, 'table');
         $parts = explode('/', $table);
+        $data = $this->safe_value($message, 'data', array());
+        $this->balance['info'] = $data;
         $type = $this->safe_string($parts, 0);
         if ($type === 'spot') {
             $part1 = $this->safe_string($parts, 1);
@@ -621,7 +615,6 @@ class okcoin extends \ccxt\async\okcoin {
                 $type = 'margin';
             }
         }
-        $data = $this->safe_value($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $balance = $this->parseBalanceByType ($type, $data);
             $oldBalance = $this->safe_value($this->balance, $type, array());

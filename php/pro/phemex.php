@@ -212,37 +212,38 @@ class phemex extends \ccxt\async\phemex {
 
     public function handle_balance($type, $client, $message) {
         // spot
-        //  array(
-        //     array(
-        //         balanceEv => 0,
-        //         $currency => 'BTC',
-        //         lastUpdateTimeNs => '1650442638722099092',
-        //         $lockedTradingBalanceEv => 0,
-        //         $lockedWithdrawEv => 0,
-        //         userID => 2647224
-        //       ),
-        //       {
-        //         balanceEv => 1154232337,
-        //         $currency => 'USDT',
-        //         lastUpdateTimeNs => '1650442617610017597',
-        //         $lockedTradingBalanceEv => 0,
-        //         $lockedWithdrawEv => 0,
-        //         userID => 2647224
-        //       }
+        //    array(
+        //       array(
+        //           balanceEv => 0,
+        //           $currency => 'BTC',
+        //           lastUpdateTimeNs => '1650442638722099092',
+        //           $lockedTradingBalanceEv => 0,
+        //           $lockedWithdrawEv => 0,
+        //           userID => 2647224
+        //         ),
+        //         {
+        //           balanceEv => 1154232337,
+        //           $currency => 'USDT',
+        //           lastUpdateTimeNs => '1650442617610017597',
+        //           $lockedTradingBalanceEv => 0,
+        //           $lockedWithdrawEv => 0,
+        //           userID => 2647224
+        //         }
         //    )
         //
         // swap
-        //  array(
-        //       {
-        //         accountBalanceEv => 0,
-        //         accountID => 26472240001,
-        //         bonusBalanceEv => 0,
-        //         $currency => 'BTC',
-        //         totalUsedBalanceEv => 0,
-        //         userID => 2647224
-        //       }
-        //  )
+        //    array(
+        //         {
+        //           accountBalanceEv => 0,
+        //           accountID => 26472240001,
+        //           bonusBalanceEv => 0,
+        //           $currency => 'BTC',
+        //           totalUsedBalanceEv => 0,
+        //           userID => 2647224
+        //         }
+        //    )
         //
+        $this->balance['info'] = $message;
         for ($i = 0; $i < count($message); $i++) {
             $balance = $message[$i];
             $currencyId = $this->safe_string($balance, 'currency');
@@ -604,17 +605,14 @@ class phemex extends \ccxt\async\phemex {
         for ($i = 0; $i < count($message); $i++) {
             $rawTrade = $message[$i];
             $marketId = $this->safe_string($rawTrade, 'symbol');
-            // skip delisted  markets
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $parsed = $this->parse_trade($rawTrade);
-                $cachedTrades->append ($parsed);
-                $symbol = $parsed['symbol'];
-                $market = $this->market($symbol);
-                if ($type === null) {
-                    $type = $market['type'];
-                }
-                $marketIds[$symbol] = true;
+            $market = $this->safe_market($marketId);
+            $parsed = $this->parse_trade($rawTrade);
+            $cachedTrades->append ($parsed);
+            $symbol = $parsed['symbol'];
+            if ($type === null) {
+                $type = $market['type'];
             }
+            $marketIds[$symbol] = true;
         }
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -760,31 +758,22 @@ class phemex extends \ccxt\async\phemex {
             if ($ordersLength === 0) {
                 return;
             }
-            $fills = $this->safe_value($message, 'fills', array());
-            $trades = $fills;
+            $trades = $this->safe_value($message, 'fills', array());
             for ($i = 0; $i < count($orders); $i++) {
                 $rawOrder = $orders[$i];
-                $marketId = $this->safe_string($rawOrder, 'symbol');
-                // skip delisted spot markets
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $parsedOrder = $this->parse_order($rawOrder);
-                    $parsedOrders[] = $parsedOrder;
-                }
+                $parsedOrder = $this->parse_order($rawOrder);
+                $parsedOrders[] = $parsedOrder;
             }
         } else {
             for ($i = 0; $i < count($message); $i++) {
                 $update = $message[$i];
-                $marketId = $this->safe_string($update, 'symbol');
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    // skip delisted swap markets
-                    $action = $this->safe_string($update, 'action');
-                    if (($action !== null) && ($action !== 'Cancel')) {
-                        // order . trade info together
-                        $trades[] = $update;
-                    }
-                    $parsedOrder = $this->parse_ws_swap_order($update);
-                    $parsedOrders[] = $parsedOrder;
+                $action = $this->safe_string($update, 'action');
+                if (($action !== null) && ($action !== 'Cancel')) {
+                    // order . trade info together
+                    $trades[] = $update;
                 }
+                $parsedOrder = $this->parse_ws_swap_order($update);
+                $parsedOrders[] = $parsedOrder;
             }
         }
         $this->handle_my_trades($client, $trades);
@@ -912,6 +901,7 @@ class phemex extends \ccxt\async\phemex {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,

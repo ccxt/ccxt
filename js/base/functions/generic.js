@@ -131,7 +131,7 @@ module.exports = {
 
         Returns an array:
         [
-            value1: { someKey: 'value1', anotherKey: 'anotherValue1' },
+            { someKey: 'value1', anotherKey: 'anotherValue1' },
         ]
     */
 

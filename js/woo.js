@@ -18,6 +18,7 @@ module.exports = class woo extends Exchange {
             'rateLimit': 100,
             'version': 'v1',
             'certified': false,
+            'pro': true,
             'hostname': 'woo.org',
             'has': {
                 'CORS': undefined,
@@ -84,7 +85,7 @@ module.exports = class woo extends Exchange {
                 'setLeverage': true,
                 'setMargin': false,
                 'transfer': true,
-                'withdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },
             'timeframes': {
                 '1m': '1m',
@@ -125,6 +126,7 @@ module.exports = class woo extends Exchange {
                     'pub': {
                         'get': {
                             'hist/kline': 10,
+                            'hist/trades': 1,
                         },
                     },
                     'public': {
@@ -154,7 +156,7 @@ module.exports = class woo extends Exchange {
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
                             'client/info': 60,
-                            'asset/deposit': 120,
+                            'asset/deposit': 10,
                             'asset/history': 60,
                             'sub_account/all': 60,
                             'sub_account/assets': 60,
@@ -169,7 +171,7 @@ module.exports = class woo extends Exchange {
                         'post': {
                             'order': 5, // 2 requests per 1 second per symbol
                             'asset/main_sub_transfer': 30, // 20 requests per 60 seconds
-                            'asset/withdraw': 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/withdraw': 30,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                             'interest/repay': 60,
                             'client/account_mode': 120,
                             'client/leverage': 120,
@@ -194,9 +196,19 @@ module.exports = class woo extends Exchange {
                         'get': {
                             'algo/order/{oid}': 1,
                             'algo/orders': 1,
+                            'balances': 1,
+                            'accountinfo': 60,
+                            'positions': 3.33,
+                            'buypower': 1,
                         },
                         'post': {
                             'algo/order': 5,
+                        },
+                        'put': {
+                            'order/{oid}': 2,
+                            'order/client/{oid}': 2,
+                            'algo/order/{oid}': 2,
+                            'algo/order/client/{oid}': 2,
                         },
                         'delete': {
                             'algo/order/{oid}': 1,
@@ -223,6 +235,12 @@ module.exports = class woo extends Exchange {
                     'OMG': 'ERC20',
                     'UATOM': 'ATOM',
                     'ZRX': 'ZRX',
+                },
+                'networks': {
+                    'TRX': 'TRON',
+                    'TRC20': 'TRON',
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
                 },
                 // override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies': {
@@ -510,35 +528,43 @@ module.exports = class woo extends Exchange {
          * @method
          * @name woo#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://docs.woo.org/#get-account-information-new
          * @param {object} params extra parameters specific to the woo api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.v1PrivateGetClientInfo (params);
+        const response = await this.v3PrivateGetAccountinfo (params);
         //
         //     {
-        //         "application":{
-        //             "id":45585,
-        //             "leverage":3.00,
-        //             "otpauth":false,
-        //             "alias":"email@address.com",
-        //             "application_id":"c2cc4d74-c8cb-4e10-84db-af2089b8c68a",
-        //             "account":"email@address.com",
-        //             "account_mode":"PURE_SPOT",
-        //             "taker_fee_rate":5.00,
-        //             "maker_fee_rate":2.00,
-        //             "interest_rate":0.00,
-        //             "futures_leverage":1.00,
-        //             "futures_taker_fee_rate":5.00,
-        //             "futures_maker_fee_rate":2.00
+        //         "success": true,
+        //         "data": {
+        //             "applicationId": "dsa",
+        //             "account": "dsa",
+        //             "alias": "haha",
+        //             "accountMode": "MARGIN",
+        //             "leverage": 1,
+        //             "takerFeeRate": 1,
+        //             "makerFeeRate": 1,
+        //             "interestRate": 1,
+        //             "futuresTakerFeeRate": 1,
+        //             "futuresMakerFeeRate": 1,
+        //             "otpauth": true,
+        //             "marginRatio": 1,
+        //             "openMarginRatio": 1,
+        //             "initialMarginRatio": 1,
+        //             "maintenanceMarginRatio": 1,
+        //             "totalCollateral": 1,
+        //             "freeCollateral": 1,
+        //             "totalAccountValue": 1,
+        //             "totalVaultValue": 1,
+        //             "totalStakingValue": 1
         //         },
-        //         "margin_rate":1000,
-        //         "success":true
+        //         "timestamp": 1673323685109
         //     }
         //
-        const application = this.safeValue (response, 'application', {});
-        const maker = this.safeString (application, 'maker_fee_rate');
-        const taker = this.safeString (application, 'taker_fee_rate');
+        const data = this.safeValue (response, 'data', {});
+        const maker = this.safeString (data, 'makerFeeRate');
+        const taker = this.safeString (data, 'takerFeeRate');
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
@@ -673,6 +699,8 @@ module.exports = class woo extends Exchange {
                 'active': undefined,
                 'fee': undefined,
                 'networks': resultingNetworks,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'limits': {
                     'deposit': {
                         'min': undefined,
@@ -717,15 +745,25 @@ module.exports = class woo extends Exchange {
             'order_type': orderType, // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
             'side': orderSide,
         };
+        const isMarket = orderType === 'MARKET';
+        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarket, undefined, params);
+        if (postOnly) {
+            request['order_type'] = 'POST_ONLY';
+        } else if (timeInForce === 'fok') {
+            request['order_type'] = 'FOK';
+        } else if (timeInForce === 'ioc') {
+            request['order_type'] = 'IOC';
+        }
         if (reduceOnly) {
             request['reduce_only'] = reduceOnly;
         }
         if (price !== undefined) {
             request['order_price'] = this.priceToPrecision (symbol, price);
         }
-        if (orderType === 'MARKET') {
+        if (isMarket) {
             // for market buy it requires the amount of quote currency to spend
-            if (orderSide === 'BUY') {
+            if (market['spot'] && orderSide === 'BUY') {
                 const cost = this.safeNumber (params, 'cost');
                 if (this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true)) {
                     if (cost === undefined) {
@@ -740,6 +778,8 @@ module.exports = class woo extends Exchange {
                     } else {
                         request['order_amount'] = this.costToPrecision (symbol, cost);
                     }
+                } else {
+                    request['order_amount'] = this.costToPrecision (symbol, amount);
                 }
             } else {
                 request['order_quantity'] = this.amountToPrecision (symbol, amount);
@@ -751,7 +791,7 @@ module.exports = class woo extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ]);
         const response = await this.v1PrivatePostOrder (this.extend (request, params));
         // {
         //     success: true,
@@ -767,6 +807,50 @@ module.exports = class woo extends Exchange {
             this.parseOrder (response, market),
             { 'type': type }
         );
+    }
+
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#editOrder
+         * @description edit a trade order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the woo api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'oid': id,
+            // 'quantity': this.amountToPrecision (symbol, amount),
+            // 'price': this.priceToPrecision (symbol, price),
+        };
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (amount !== undefined) {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        const response = await this.v3PrivatePutOrderOid (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "status": "string",
+        //             "success": true
+        //         },
+        //         "message": "string",
+        //         "success": true,
+        //         "timestamp": 0
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -955,6 +1039,15 @@ module.exports = class woo extends Exchange {
         return this.parseOrders (data, market, since, limit, params);
     }
 
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            'ioc': 'IOC',
+            'fok': 'FOK',
+            'post_only': 'PO',
+        };
+        return this.safeString (timeInForces, timeInForce, undefined);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // Possible input functions:
@@ -989,12 +1082,13 @@ module.exports = class woo extends Exchange {
             'status': this.parseOrderStatus (status),
             'symbol': symbol,
             'type': orderType,
-            'timeInForce': undefined,
+            'timeInForce': this.parseTimeInForce (orderType),
             'postOnly': undefined, // TO_DO
             'reduceOnly': this.safeValue (order, 'reduce_only'),
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': undefined,
             'amount': amount,
             'filled': filled,
@@ -1083,7 +1177,7 @@ module.exports = class woo extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'type': this.timeframes[timeframe],
+            'type': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
@@ -1279,35 +1373,37 @@ module.exports = class woo extends Exchange {
          * @method
          * @name woo#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.woo.org/#get-current-holding-get-balance-new
          * @param {object} params extra parameters specific to the woo api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v2PrivateGetClientHolding (params);
+        const response = await this.v3PrivateGetBalances (params);
         //
-        // {
-        //     holding: [
-        //       {
-        //         token: 'USDT',
-        //         holding: '23.56', // free balance
-        //         frozen: '888.0', // i.e. if in processing withdrawal
-        //         interest: '0.0',
-        //         outstanding_holding: '-56.7', // this value is set (negative number) if there is an open limit order, and this is QUOTE currency of order
-        //         pending_exposure: '333.45', //  this value is set  (positive number) if there is an open limit order, and this is BASE currency of order
-        //         opening_cost: '0.00000000',
-        //         holding_cost: '0.00000000',
-        //         realised_pnl: '0.00000000',
-        //         settled_pnl: '0.00000000',
-        //         fee_24_h: '0',
-        //         settled_pnl_24_h: '0',
-        //         updated_time: '1641370779'
-        //       },
-        //       ...
-        //     ],
-        //     success: true
-        // }
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "holding": [
+        //                 {
+        //                     "token": "0_token",
+        //                     "holding": 1,
+        //                     "frozen": 0,
+        //                     "staked": 0,
+        //                     "unbonding": 0,
+        //                     "vault": 0,
+        //                     "interest": 0,
+        //                     "pendingShortQty": 0,
+        //                     "pendingLongQty": 0,
+        //                     "availableBalance": 0,
+        //                     "updatedTime": 312321.121
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1673323746259
+        //     }
         //
-        return this.parseBalance (response);
+        const data = this.safeValue (response, 'data');
+        return this.parseBalance (data);
     }
 
     parseBalance (response) {
@@ -1320,8 +1416,7 @@ module.exports = class woo extends Exchange {
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
-            const used = this.safeString (balance, 'outstanding_holding');
-            account['used'] = Precise.stringNeg (used);
+            account['free'] = this.safeString (balance, 'availableBalance');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1561,12 +1656,11 @@ module.exports = class woo extends Exchange {
             movementDirection = 'withdrawal';
         }
         const fee = this.parseTokenAndFeeTemp (transaction, 'fee_token', 'fee_amount');
-        fee['rate'] = undefined;
         const addressTo = this.safeString (transaction, 'target_address');
         const addressFrom = this.safeString (transaction, 'source_address');
         const timestamp = this.safeTimestamp (transaction, 'created_time');
         return {
-            'id': this.safeString (transaction, 'id'),
+            'id': this.safeString2 (transaction, 'id', 'withdraw_id'),
             'txid': this.safeString (transaction, 'tx_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1725,6 +1819,49 @@ module.exports = class woo extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#withdraw
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the woo api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        const request = {
+            'amount': amount,
+            'address': address,
+        };
+        if (tag !== undefined) {
+            request['extra'] = tag;
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        const currencyNetworks = this.safeValue (currency, 'networks', {});
+        const network = this.safeStringUpper (params, 'network');
+        const networkId = this.safeString (networks, network, network);
+        const coinNetwork = this.safeValue (currencyNetworks, networkId, {});
+        const coinNetworkId = this.safeString (coinNetwork, 'id');
+        if (coinNetworkId === undefined) {
+            throw new BadRequest (this.id + ' withdraw() require network parameter');
+        }
+        request['token'] = coinNetworkId;
+        const response = await this.v1PrivatePostAssetWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "withdraw_id": "20200119145703654"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
     async repayMargin (code, amount, symbol = undefined, params = {}) {
         /**
          * @method
@@ -1785,39 +1922,49 @@ module.exports = class woo extends Exchange {
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = section[0];
         const access = section[1];
+        const pathWithParams = this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][access]);
         url += '/' + version + '/';
-        path = this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         if (access === 'public') {
-            url += access + '/' + path;
+            url += access + '/' + pathWithParams;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
-            url += path;
+            let auth = '';
             const ts = this.nonce ().toString ();
-            let auth = this.urlencode (params);
-            if (version === 'v3' && (method === 'POST')) {
-                body = auth;
-                auth = ts + method + '/' + version + '/' + path + body;
+            url += pathWithParams;
+            headers = {
+                'x-api-key': this.apiKey,
+                'x-api-timestamp': ts,
+            };
+            if (version === 'v3') {
+                auth = ts + method + '/' + version + '/' + pathWithParams;
+                if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+                    body = this.json (params);
+                    auth += body;
+                } else {
+                    if (Object.keys (params).length) {
+                        const query = this.urlencode (params);
+                        url += '?' + query;
+                        auth += '?' + query;
+                    }
+                }
+                headers['content-type'] = 'application/json';
             } else {
-                if (method === 'POST' || method === 'DELETE') {
+                auth = this.urlencode (params);
+                if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                     body = auth;
                 } else {
                     url += '?' + auth;
                 }
                 auth += '|' + ts;
+                headers['content-type'] = 'application/x-www-form-urlencoded';
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
-            headers = {
-                'x-api-key': this.apiKey,
-                'x-api-signature': signature,
-                'x-api-timestamp': ts,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
+            headers['x-api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -1869,17 +2016,6 @@ module.exports = class woo extends Exchange {
             'amount': amount,
             'rate': rate,
         };
-    }
-
-    parseIncomes (incomes, market = undefined, since = undefined, limit = undefined) {
-        const result = [];
-        for (let i = 0; i < incomes.length; i++) {
-            const entry = incomes[i];
-            const parsed = this.parseIncome (entry, market);
-            result.push (parsed);
-        }
-        const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySinceLimit (sorted, since, limit, 'timestamp');
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1981,7 +2117,7 @@ module.exports = class woo extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    async fetchFundingRates (symbols, params = {}) {
+    async fetchFundingRates (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.v1PublicGetFundingRates (params);
@@ -2057,28 +2193,36 @@ module.exports = class woo extends Exchange {
 
     async fetchLeverage (symbol, params = {}) {
         await this.loadMarkets ();
-        const response = await this.v1PrivateGetClientInfo (params);
+        const response = await this.v3PrivateGetAccountinfo (params);
         //
         //     {
         //         "success": true,
-        //         "application": {
-        //             "application_id": "8935820a-6600-4c2c-9bc3-f017d89aa173",
-        //             "account": "CLIENT_ACCOUNT_01",
-        //             "alias": "CLIENT_ACCOUNT_01",
-        //             "account_mode":"FUTURES" //account mode
-        //             "leverage": 5,
-        //             "taker_fee_rate": 0,
-        //             "maker_fee_rate": 0,
-        //             "interest_rate": 0,
-        //             "futures_leverage": 5,
-        //             "futures_taker_fee_rate": 0,
-        //             "futures_maker_fee_rate": 0,
-        //             "otpauth": false
+        //         "data": {
+        //             "applicationId": "dsa",
+        //             "account": "dsa",
+        //             "alias": "haha",
+        //             "accountMode": "MARGIN",
+        //             "leverage": 1,
+        //             "takerFeeRate": 1,
+        //             "makerFeeRate": 1,
+        //             "interestRate": 1,
+        //             "futuresTakerFeeRate": 1,
+        //             "futuresMakerFeeRate": 1,
+        //             "otpauth": true,
+        //             "marginRatio": 1,
+        //             "openMarginRatio": 1,
+        //             "initialMarginRatio": 1,
+        //             "maintenanceMarginRatio": 1,
+        //             "totalCollateral": 1,
+        //             "freeCollateral": 1,
+        //             "totalAccountValue": 1,
+        //             "totalVaultValue": 1,
+        //             "totalStakingValue": 1
         //         },
-        //         "margin_rate": 1000
+        //         "timestamp": 1673323685109
         //     }
         //
-        const result = this.safeValue (response, 'application');
+        const result = this.safeValue (response, 'data');
         const leverage = this.safeNumber (result, 'leverage');
         return {
             'info': response,
@@ -2124,46 +2268,49 @@ module.exports = class woo extends Exchange {
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.v1PrivateGetPositions (params);
+        const response = await this.v3PrivateGetPositions (params);
         //
         //     {
-        //         "positions":[
-        //             {
-        //                 "symbol":"PERP_ETC_USDT",
-        //                 "holding":0.0,
-        //                 "pending_long_qty":0.0,
-        //                 "pending_short_qty":0.0,
-        //                 "settle_price":0.0,
-        //                 "average_open_price":0,
-        //                 "timestamp":"1652231044.920",
-        //                 "mark_price":22.68,
-        //                 "pnl_24_h":0,
-        //                 "fee_24_h":0
-        //             }
-        //         ],
-        //         "initial_margin_ratio":1000,
-        //         "current_margin_ratio":1000,
-        //         "maintenance_margin_ratio":1000,
-        //         "success":true
+        //         "success": true,
+        //         "data": {
+        //             "positions": [
+        //                 {
+        //                     "symbol": "0_symbol",
+        //                     "holding": 1,
+        //                     "pendingLongQty": 0,
+        //                     "pendingShortQty": 1,
+        //                     "settlePrice": 1,
+        //                     "averageOpenPrice": 1,
+        //                     "pnl24H": 1,
+        //                     "fee24H": 1,
+        //                     "markPrice": 1,
+        //                     "estLiqPrice": 1,
+        //                     "timestamp": 12321321
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1673323880342
         //     }
         //
-        const result = this.safeValue (response, 'positions', []);
-        return this.parsePositions (result, symbols);
+        const result = this.safeValue (response, 'data', {});
+        const positions = this.safeValue (result, 'positions', []);
+        return this.parsePositions (positions, symbols);
     }
 
     parsePosition (position, market = undefined) {
         //
         //     {
-        //         "symbol":"PERP_ETC_USDT",
-        //         "holding":0.0,
-        //         "pending_long_qty":0.0,
-        //         "pending_short_qty":0.0,
-        //         "settle_price":0.0,
-        //         "average_open_price":0,
-        //         "timestamp":"1652231044.920",
-        //         "mark_price":22.68,
-        //         "pnl_24_h":0,
-        //         "fee_24_h":0
+        //         "symbol": "0_symbol",
+        //         "holding": 1,
+        //         "pendingLongQty": 0,
+        //         "pendingShortQty": 1,
+        //         "settlePrice": 1,
+        //         "averageOpenPrice": 1,
+        //         "pnl24H": 1,
+        //         "fee24H": 1,
+        //         "markPrice": 1,
+        //         "estLiqPrice": 1,
+        //         "timestamp": 12321321
         //     }
         //
         const contract = this.safeString (position, 'symbol');
@@ -2176,9 +2323,9 @@ module.exports = class woo extends Exchange {
             side = 'short';
         }
         const contractSize = this.safeString (market, 'contractSize');
-        const markPrice = this.safeString (position, 'mark_price');
+        const markPrice = this.safeString (position, 'markPrice');
         const timestamp = this.safeTimestamp (position, 'timestamp');
-        const entryPrice = this.safeString (position, 'average_open_price');
+        const entryPrice = this.safeString (position, 'averageOpenPrice');
         const priceDifference = Precise.stringSub (markPrice, entryPrice);
         const unrealisedPnl = Precise.stringMul (priceDifference, size);
         size = Precise.stringAbs (size);
@@ -2200,7 +2347,7 @@ module.exports = class woo extends Exchange {
             'contracts': this.parseNumber (size),
             'contractSize': this.parseNumber (contractSize),
             'marginRatio': undefined,
-            'liquidationPrice': this.safeNumber (position, 'est_liq_price'),
+            'liquidationPrice': this.safeNumber (position, 'estLiqPrice'),
             'markPrice': this.parseNumber (markPrice),
             'collateral': undefined,
             'marginMode': 'cross',

@@ -271,8 +271,14 @@ class bitopro(Exchange, ccxt.async_support.bitopro):
         #
         event = self.safe_string(message, 'event')
         data = self.safe_value(message, 'data')
+        timestamp = self.safe_integer(message, 'timestamp')
+        datetime = self.safe_string(message, 'datetime')
         currencies = list(data.keys())
-        result = {}
+        result = {
+            'info': data,
+            'timestamp': timestamp,
+            'datetime': datetime,
+        }
         for i in range(0, len(currencies)):
             currency = self.safe_string(currencies, i)
             balance = self.safe_value(data, currency)

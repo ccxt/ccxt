@@ -104,7 +104,7 @@ module.exports = class tokocrypto extends Exchange {
                 'setPositionMode': false,
                 'signIn': false,
                 'transfer': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1126,7 +1126,7 @@ module.exports = class tokocrypto extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the tokocrypto api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const defaultMethod = 'binanceGetTicker24hr';
@@ -1164,7 +1164,7 @@ module.exports = class tokocrypto extends Exchange {
          * @description fetches the bid and ask price and volume for multiple markets
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} params extra parameters specific to the tokocrypto api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.binanceGetTickerBookTicker (params);
@@ -1241,7 +1241,7 @@ module.exports = class tokocrypto extends Exchange {
         params = this.omit (params, [ 'price', 'until' ]);
         limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const request = {
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limit,
         };
         if (price === 'index') {
@@ -1501,6 +1501,7 @@ module.exports = class tokocrypto extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -2135,36 +2136,46 @@ module.exports = class tokocrypto extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "id":5167969,
-        //         "asset":"BIDR",
-        //         "network":"BSC",
-        //         "address":"0x101a925704f6ff13295ab8dd7a60988d116aaedf",
-        //         "addressTag":"",
-        //         "txId":"113409337867",
-        //         "amount":"15000",
-        //         "transferType":1,
-        //         "status":1,
-        //         "insertTime":"1659429390000"
+        //         "id": 5167969,
+        //         "asset": "BIDR",
+        //         "network": "BSC",
+        //         "address": "0x101a925704f6ff13295ab8dd7a60988d116aaedf",
+        //         "addressTag": "",
+        //         "txId": "113409337867",
+        //         "amount": "15000",
+        //         "transferType": 1,
+        //         "status": 1,
+        //         "insertTime": "1659429390000"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "id":4245859,
-        //         "clientId":"198",
-        //         "asset":"BIDR",
-        //         "network":"BSC",
-        //         "address":"0xff1c75149cc492e7d5566145b859fcafc900b6e9",
-        //         "addressTag":"",
-        //         "amount":"10000",
-        //         "fee":"0",
-        //         "txId":"113501794501",
-        //         "transferType":1,
-        //         "status":10,
-        //         "createTime":1659521314413
+        //         "id": 4245859,
+        //         "clientId": "198",
+        //         "asset": "BIDR",
+        //         "network": "BSC",
+        //         "address": "0xff1c75149cc492e7d5566145b859fcafc900b6e9",
+        //         "addressTag": "",
+        //         "amount": "10000",
+        //         "fee": "0",
+        //         "txId": "113501794501",
+        //         "transferType": 1,
+        //         "status": 10,
+        //         "createTime": 1659521314413
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        // withdraw
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "成功",
+        //         "data": {
+        //             "withdrawId":"12"
+        //         },
+        //         "timestamp": 1571745049095
+        //     }
+        //
         const address = this.safeString (transaction, 'address');
         let tag = this.safeString (transaction, 'addressTag'); // set but unused
         if (tag !== undefined) {
@@ -2180,7 +2191,7 @@ module.exports = class tokocrypto extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
         const insertTime = this.safeInteger (transaction, 'insertTime');
-        const createTime = this.safeInteger (transaction, 'createTime');
+        const createTime = this.safeInteger2 (transaction, 'createTime', 'timestamp');
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
             if ((insertTime !== undefined) && (createTime === undefined)) {
@@ -2191,40 +2202,94 @@ module.exports = class tokocrypto extends Exchange {
                 timestamp = createTime;
             }
         }
-        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
-        const amount = this.safeNumber (transaction, 'amount');
         const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
-        let fee = undefined;
+        const fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         if (feeCost !== undefined) {
-            fee = { 'currency': code, 'cost': feeCost };
+            fee['currency'] = code;
+            fee['cost'] = feeCost;
         }
-        const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let internal = this.safeInteger (transaction, 'transferType');
         if (internal !== undefined) {
             internal = internal ? true : false;
         }
-        const network = this.safeString (transaction, 'network');
+        let id = this.safeString (transaction, 'id');
+        if (id === undefined) {
+            const data = this.safeValue (transaction, 'data', {});
+            id = this.safeString (data, 'withdrawId');
+            type = 'withdrawal';
+        }
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': this.safeString (transaction, 'network'),
+            'amount': this.safeNumber (transaction, 'amount'),
+            'status': this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': network,
             'address': address,
-            'addressTo': address,
             'addressFrom': undefined,
+            'addressTo': address,
             'tag': tag,
-            'tagTo': tag,
             'tagFrom': undefined,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
-            'updated': updated,
+            'tagTo': tag,
+            'updated': this.safeInteger2 (transaction, 'successTime', 'updateTime'),
+            'comment': undefined,
             'internal': internal,
             'fee': fee,
         };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#withdraw
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            // 'clientId': 'string', // // client's custom id for withdraw order, server does not check it's uniqueness, automatically generated if not sent
+            // 'network': 'string',
+            'address': address,
+            // 'addressTag': 'string', // for coins like XRP, XMR, etc
+            'amount': this.numberToString (amount),
+        };
+        if (tag !== undefined) {
+            request['addressTag'] = tag;
+        }
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
+        if (networkId !== undefined) {
+            request['network'] = networkId.toUpperCase ();
+        }
+        const response = await this.privatePostOpenV1Withdraws (this.extend (request, query));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "成功",
+        //         "data": {
+        //             "withdrawId":"12"
+        //         },
+        //         "timestamp": 1571745049095
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

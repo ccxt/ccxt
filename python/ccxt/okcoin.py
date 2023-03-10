@@ -1148,7 +1148,7 @@ class okcoin(Exchange):
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': None,  # todo: redesign
-                    'precision': self.parse_number('0.00000001'),
+                    'precision': self.parse_number('1e-8'),  # todo: fix
                     'limits': {
                         'amount': {'min': None, 'max': None},
                         'withdraw': {
@@ -1300,11 +1300,15 @@ class okcoin(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the okcoin api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType')
-        type = self.safe_string(params, 'type', defaultType)
         symbols = self.market_symbols(symbols)
+        first = self.safe_string(symbols, 0)
+        market = None
+        if first is not None:
+            market = self.market(first)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         return self.fetch_tickers_by_type(type, symbols, self.omit(params, 'type'))
 
     def parse_trade(self, trade, market=None):
@@ -1525,7 +1529,7 @@ class okcoin(Exchange):
         duration = self.parse_timeframe(timeframe)
         request = {
             'instrument_id': market['id'],
-            'granularity': self.timeframes[timeframe],
+            'granularity': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         options = self.safe_value(self.options, 'fetchOHLCV', {})
         defaultType = self.safe_string(options, 'type', 'Candles')  # Candles or HistoryCandles
@@ -2177,6 +2181,7 @@ class okcoin(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -2458,7 +2463,7 @@ class okcoin(Exchange):
         #         }
         #     ]
         #
-        addressesByCode = self.parse_deposit_addresses(response)
+        addressesByCode = self.parse_deposit_addresses(response, [currency['code']])
         address = self.safe_value(addressesByCode, code)
         if address is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')

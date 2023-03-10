@@ -270,7 +270,7 @@ module.exports = class okcoin extends okcoinRest {
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'candle' + interval + 's';
         const ohlcv = await this.subscribe (name, symbol, params);
         if (this.newUpdates) {
@@ -524,16 +524,8 @@ module.exports = class okcoin extends okcoinRest {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const marketId = this.safeString (params, 'instrument_id');
         const symbol = this.safeString (params, 'symbol');
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        } else if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
+        const market = this.market (symbol);
         const marketUndefined = (market === undefined);
         const currencyUndefined = (currency === undefined);
         if (type === 'spot') {
@@ -603,6 +595,8 @@ module.exports = class okcoin extends okcoinRest {
         //
         const table = this.safeString (message, 'table');
         const parts = table.split ('/');
+        const data = this.safeValue (message, 'data', []);
+        this.balance['info'] = data;
         let type = this.safeString (parts, 0);
         if (type === 'spot') {
             const part1 = this.safeString (parts, 1);
@@ -610,7 +604,6 @@ module.exports = class okcoin extends okcoinRest {
                 type = 'margin';
             }
         }
-        const data = this.safeValue (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = this.parseBalanceByType (type, data);
             const oldBalance = this.safeValue (this.balance, type, {});

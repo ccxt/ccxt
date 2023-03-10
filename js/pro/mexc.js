@@ -950,6 +950,7 @@ module.exports = class mexc extends mexcRest {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': avgPrice,
             'amount': amount,
             'cost': cost,
@@ -1034,6 +1035,10 @@ module.exports = class mexc extends mexcRest {
         // }
         //
         const data = this.safeValue (message, 'data');
+        const timestamp = this.safeInteger (message, 'ts');
+        this.balance['info'] = data;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601 (timestamp);
         const currencyId = this.safeString (data, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();

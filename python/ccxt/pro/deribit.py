@@ -133,6 +133,7 @@ class deribit(Exchange, ccxt.async_support.deribit):
         #
         params = self.safe_value(message, 'params', {})
         data = self.safe_value(params, 'data', {})
+        self.balance['info'] = data
         currencyId = self.safe_string(data, 'currency')
         currencyCode = self.safe_currency_code(currencyId)
         balance = self.parse_balance(data)
@@ -556,7 +557,7 @@ class deribit(Exchange, ccxt.async_support.deribit):
         channel = self.safe_string(params, 'channel', '')
         data = self.safe_value(params, 'data', {})
         orders = []
-        if self.is_array(data):
+        if isinstance(data, list):
             orders = self.parse_orders(data)
         else:
             order = self.parse_order(data)

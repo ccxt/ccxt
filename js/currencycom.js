@@ -355,7 +355,6 @@ module.exports = class currencycom extends Exchange {
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': this.safeString (currency, 'baseAddress'),
                 'type': this.safeStringLower (currency, 'type'),
                 'name': this.safeString (currency, 'name'),
                 'active': undefined,
@@ -912,7 +911,7 @@ module.exports = class currencycom extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetV2Ticker24hr (params);
@@ -974,7 +973,7 @@ module.exports = class currencycom extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['startTime'] = since;
@@ -1208,6 +1207,7 @@ module.exports = class currencycom extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': undefined,
@@ -1549,58 +1549,72 @@ module.exports = class currencycom extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         //
-        //     [
-        //       {
-        //         "id": "616769213",
-        //         "balance": "2.088",
-        //         "amount": "1.304",   // negative for 'withdrawal'
-        //         "currency": "CAKE",
-        //         "type": "deposit",
-        //         "timestamp": "1645282121023",
-        //         "paymentMethod": "BLOCKCHAIN",
-        //         "blockchainTransactionHash": "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
-        //         "status": "PROCESSED",
-        //         "commission": "0.14", // this property only exists in withdrawal
-        //       },
-        //     ]
+        //    [
+        //        {
+        //            "id": "616769213",
+        //            "balance": "2.088",
+        //            "amount": "1.304",   // negative for 'withdrawal'
+        //            "currency": "CAKE",
+        //            "type": "deposit",
+        //            "timestamp": "1645282121023",
+        //            "paymentMethod": "BLOCKCHAIN",
+        //            "blockchainTransactionHash": "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
+        //            "status": "PROCESSED",
+        //            "commission": "0.14", // this property only exists in withdrawal
+        //        },
+        //    ]
         //
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
     parseTransaction (transaction, currency = undefined) {
-        const id = this.safeString (transaction, 'id');
-        const txHash = this.safeString (transaction, 'blockchainTransactionHash');
-        const amount = this.safeNumber (transaction, 'amount');
+        //
+        //    {
+        //        "id": "616769213",
+        //        "balance": "2.088",
+        //        "amount": "1.304",   // negative for 'withdrawal'
+        //        "currency": "CAKE",
+        //        "type": "deposit",
+        //        "timestamp": "1645282121023",
+        //        "paymentMethod": "BLOCKCHAIN",
+        //        "blockchainTransactionHash": "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
+        //        "status": "PROCESSED",
+        //        "commission": "0.14", // this property only exists in withdrawal
+        //    }
+        //
         const timestamp = this.safeInteger (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const state = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         const feeCost = this.safeString (transaction, 'commission');
-        let fee = undefined;
+        const fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         if (feeCost !== undefined) {
-            fee = { 'currency': code, 'cost': feeCost };
+            fee['currency'] = code;
+            fee['cost'] = feeCost;
         }
         const result = {
-            'id': id,
-            'txid': txHash,
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'blockchainTransactionHash'),
+            'type': this.parseTransactionType (this.safeString (transaction, 'type')),
+            'currency': code,
+            'network': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'state')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
-            'addressFrom': undefined,
             'address': undefined,
+            'addressFrom': undefined,
             'addressTo': undefined,
-            'tagFrom': undefined,
             'tag': undefined,
+            'tagFrom': undefined,
             'tagTo': undefined,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': state,
             'updated': undefined,
             'comment': undefined,
             'fee': fee,
-            'info': transaction,
         };
         return result;
     }

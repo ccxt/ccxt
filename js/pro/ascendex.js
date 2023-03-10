@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ascendexRest = require ('../ascendex.js');
-const { AuthenticationError } = require ('../base/errors');
+const { AuthenticationError, NetworkError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -92,7 +92,7 @@ module.exports = class ascendex extends ascendexRest {
         if ((limit === undefined) || (limit > 1440)) {
             limit = 100;
         }
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const channel = 'bar' + ':' + interval + ':' + market['id'];
         params = {
             'ch': channel,
@@ -483,6 +483,7 @@ module.exports = class ascendex extends ascendexRest {
         /**
          * @method
          * @name ascendex#watchOrders
+         * @see https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
          * @description watches information on multiple orders made by the user
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
@@ -499,7 +500,7 @@ module.exports = class ascendex extends ascendexRest {
         const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let messageHash = undefined;
         let channel = undefined;
-        if (type !== 'spot') {
+        if (type !== 'spot' && type !== 'margin') {
             channel = 'futures-order';
             messageHash = 'order:FUTURES';
         } else {
@@ -672,6 +673,7 @@ module.exports = class ascendex extends ascendexRest {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,
@@ -702,32 +704,31 @@ module.exports = class ascendex extends ascendexRest {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 }
             }
+            return false;
         } catch (e) {
             if (e instanceof AuthenticationError) {
-                client.reject (e, 'authenticated');
-                const method = 'auth';
-                if (method in client.subscriptions) {
-                    delete client.subscriptions[method];
+                const messageHash = 'authenticated';
+                client.reject (e, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
                 }
-                return false;
             } else {
                 client.reject (e);
             }
+            return true;
         }
-        return message;
     }
 
     handleAuthenticate (client, message) {
         //
         //     { m: 'auth', id: '1647605234', code: 0 }
         //
-        const future = client.futures['authenticated'];
-        future.resolve (1);
-        return message;
+        const messageHash = 'authenticated';
+        client.resolve (message, messageHash);
     }
 
     handleMessage (client, message) {
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message)) {
             return;
         }
         //
@@ -934,18 +935,21 @@ module.exports = class ascendex extends ascendexRest {
         await client.send ({ 'op': 'pong', 'hp': this.safeInteger (message, 'hp') });
     }
 
-    handlePing (client, message) {
-        this.spawn (this.pong, client, message);
+    async handlePing (client, message) {
+        try {
+            await this.spawn (this.pong, client, message);
+        } catch (e) {
+            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.json (e));
+            client.reset (error);
+        }
     }
 
-    async authenticate (url, params = {}) {
+    authenticate (url, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
-        let future = this.safeValue (client.futures, messageHash);
+        let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
-            future = client.future ('authenticated');
-            client.future (messageHash);
             const timestamp = this.milliseconds ().toString ();
             const urlParts = url.split ('/');
             const partsLength = urlParts.length;
@@ -961,8 +965,9 @@ module.exports = class ascendex extends ascendexRest {
                 'key': this.apiKey,
                 'sig': signature,
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params));
+            future = this.watch (url, messageHash, this.extend (request, params));
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 };

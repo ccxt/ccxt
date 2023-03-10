@@ -62,7 +62,7 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
         checksum = self.safe_value(self.options, 'checksum', True)
         if checksum and not client.subscriptions[messageHash]['checksum'] and (channel == 'book'):
             client.subscriptions[messageHash]['checksum'] = True
-            client.send({
+            await client.send({
                 'event': 'conf',
                 'flags': 131072,
             })
@@ -87,7 +87,7 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         channel = 'candles'
         key = 'trade:' + interval + ':' + market['id']
         messageHash = channel + ':' + interval + ':' + market['id']
@@ -224,7 +224,7 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
         """
         return await self.subscribe('ticker', symbol, params)
 
-    def handle_my_trade(self, client, message):
+    def handle_my_trade(self, client, message, subscription={}):
         #
         # trade execution
         # [
@@ -776,39 +776,40 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
         client.subscriptions[channelId] = message
         return message
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
         url = self.urls['api']['ws']['private']
         client = self.client(url)
-        future = client.future('authenticated')
-        method = 'auth'
-        authenticated = self.safe_value(client.subscriptions, method)
-        if authenticated is None:
+        messageHash = 'authenticated'
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
             nonce = self.milliseconds()
             payload = 'AUTH' + str(nonce)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384, 'hex')
+            event = 'auth'
             request = {
                 'apiKey': self.apiKey,
                 'authSig': signature,
                 'authNonce': nonce,
                 'authPayload': payload,
-                'event': method,
+                'event': event,
             }
-            self.spawn(self.watch, url, method, request, 1)
-        return await future
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future
 
     def handle_authentication_message(self, client, message):
+        messageHash = 'authenticated'
         status = self.safe_string(message, 'status')
         if status == 'OK':
             # we resolve the future here permanently so authentication only happens once
-            future = self.safe_value(client.futures, 'authenticated')
-            future.resolve(True)
+            client.resolve(message, messageHash)
         else:
             error = AuthenticationError(self.json(message))
-            client.reject(error, 'authenticated')
+            client.reject(error, messageHash)
             # allows further authentication attempts
-            method = self.safe_string(message, 'event')
-            if method in client.subscriptions:
-                del client.subscriptions[method]
+            if messageHash in client.subscriptions:
+                del client.subscriptions[messageHash]
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -890,12 +891,14 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
         else:
             parsed = self.parse_ws_order(data)
             orders.append(parsed)
+            symbol = parsed['symbol']
+            symbolIds[symbol] = True
         name = 'orders'
         client.resolve(self.orders, name)
         keys = list(symbolIds.keys())
         for i in range(0, len(keys)):
             symbol = keys[i]
-            market = self.safe_market(symbol)
+            market = self.market(symbol)
             messageHash = name + ':' + market['id']
             client.resolve(self.orders, messageHash)
 
@@ -949,7 +952,7 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
         clientOrderId = self.safe_string(order, 1)
         marketId = self.safe_string(order, 3)
         symbol = self.safe_symbol(marketId)
-        market = self.safe_market(symbol)
+        market = self.safe_market(marketId)
         amount = self.safe_number(order, 7)
         side = 'buy'
         if amount < 0:
@@ -981,6 +984,7 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'average': average,
             'amount': amount,
             'remaining': remaining,

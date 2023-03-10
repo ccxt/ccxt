@@ -30,7 +30,8 @@ module.exports = class bitstamp extends bitstampRest {
                 'userId': '',
                 'wsSessionToken': '',
                 'watchOrderBook': {
-                    'type': 'order_book', // detail_order_book, diff_order_book
+                    'snapshotDelay': 6,
+                    'maxRetries': 3,
                 },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -56,80 +57,18 @@ module.exports = class bitstamp extends bitstampRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const type = this.safeString (options, 'type', 'order_book');
-        const messageHash = type + '_' + market['id'];
+        const messageHash = 'orderbook:' + symbol;
+        const channel = 'diff_order_book_' + market['id'];
         const url = this.urls['api']['ws'];
         const request = {
             'event': 'bts:subscribe',
             'data': {
-                'channel': messageHash,
+                'channel': channel,
             },
         };
-        const subscription = {
-            'messageHash': messageHash,
-            'type': type,
-            'symbol': symbol,
-            'method': this.handleOrderBookSubscription,
-            'limit': limit,
-            'params': params,
-        };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
+        const orderbook = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
-    }
-
-    async fetchOrderBookSnapshot (client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
-        const params = this.safeValue (subscription, 'params');
-        const messageHash = this.safeString (subscription, 'messageHash');
-        // todo: this is a synch blocking call in ccxt.php - make it async
-        const snapshot = await this.fetchOrderBook (symbol, limit, params);
-        const orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook !== undefined) {
-            orderbook.reset (snapshot);
-            // unroll the accumulated deltas
-            const messages = orderbook.cache;
-            for (let i = 0; i < messages.length; i++) {
-                const message = messages[i];
-                this.handleOrderBookMessage (client, message, orderbook);
-            }
-            this.orderbooks[symbol] = orderbook;
-            client.resolve (orderbook, messageHash);
-        }
-    }
-
-    handleDelta (bookside, delta) {
-        const price = this.safeFloat (delta, 0);
-        const amount = this.safeFloat (delta, 1);
-        const id = this.safeString (delta, 2);
-        if (id === undefined) {
-            bookside.store (price, amount);
-        } else {
-            bookside.store (price, amount, id);
-        }
-    }
-
-    handleDeltas (bookside, deltas) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
-        }
-    }
-
-    handleOrderBookMessage (client, message, orderbook, nonce = undefined) {
-        const data = this.safeValue (message, 'data', {});
-        const microtimestamp = this.safeInteger (data, 'microtimestamp');
-        if ((nonce !== undefined) && (microtimestamp <= nonce)) {
-            return orderbook;
-        }
-        this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
-        this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
-        orderbook['nonce'] = microtimestamp;
-        const timestamp = parseInt (microtimestamp / 1000);
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601 (timestamp);
-        return orderbook;
     }
 
     handleOrderBook (client, message) {
@@ -153,48 +92,71 @@ module.exports = class bitstamp extends bitstampRest {
         //             ],
         //         },
         //         event: 'data',
-        //         channel: 'detail_order_book_btcusd'
+        //         channel: 'diff_order_book_btcusd'
         //     }
         //
         const channel = this.safeString (message, 'channel');
-        const subscription = this.safeValue (client.subscriptions, channel);
-        const symbol = this.safeString (subscription, 'symbol');
-        const type = this.safeString (subscription, 'type');
-        const orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            return message;
+        const parts = channel.split ('_');
+        const marketId = this.safeString (parts, 3);
+        const symbol = this.safeSymbol (marketId);
+        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
+        const nonce = this.safeValue (storedOrderBook, 'nonce');
+        const delta = this.safeValue (message, 'data');
+        const deltaNonce = this.safeInteger (delta, 'microtimestamp');
+        const messageHash = 'orderbook:' + symbol;
+        if (nonce === undefined) {
+            const cacheLength = storedOrderBook.cache.length;
+            // the rest API is very delayed
+            // usually it takes at least 4-5 deltas to resolve
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 6);
+            if (cacheLength === snapshotDelay) {
+                this.spawn (this.loadOrderBook, client, messageHash, symbol);
+            }
+            storedOrderBook.cache.push (delta);
+            return;
+        } else if (nonce >= deltaNonce) {
+            return;
         }
-        if (type === 'order_book') {
-            orderbook.reset ({});
-            this.handleOrderBookMessage (client, message, orderbook);
-            client.resolve (orderbook, channel);
-            // replace top bids and asks
-        } else if (type === 'detail_order_book') {
-            orderbook.reset ({});
-            this.handleOrderBookMessage (client, message, orderbook);
-            client.resolve (orderbook, channel);
-            // replace top bids and asks
-        } else if (type === 'diff_order_book') {
-            // process incremental deltas
-            const nonce = this.safeInteger (orderbook, 'nonce');
-            if (nonce === undefined) {
-                // buffer the events you receive from the stream
-                orderbook.cache.push (message);
-            } else {
-                try {
-                    this.handleOrderBookMessage (client, message, orderbook, nonce);
-                    client.resolve (orderbook, channel);
-                } catch (e) {
-                    if (symbol in this.orderbooks) {
-                        delete this.orderbooks[symbol];
-                    }
-                    if (channel in client.subscriptions) {
-                        delete client.subscriptions[channel];
-                    }
-                    client.reject (e, channel);
-                }
+        this.handleDelta (storedOrderBook, delta);
+        client.resolve (storedOrderBook, messageHash);
+    }
+
+    handleDelta (orderbook, delta) {
+        const timestamp = this.safeTimestamp (delta, 'timestamp');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = this.safeInteger (delta, 'microtimestamp');
+        const bids = this.safeValue (delta, 'bids', []);
+        const asks = this.safeValue (delta, 'asks', []);
+        const storedBids = orderbook['bids'];
+        const storedAsks = orderbook['asks'];
+        this.handleBidAsks (storedBids, bids);
+        this.handleBidAsks (storedAsks, asks);
+    }
+
+    handleBidAsks (bookSide, bidAsks) {
+        for (let i = 0; i < bidAsks.length; i++) {
+            const bidAsk = this.parseBidAsk (bidAsks[i]);
+            bookSide.storeArray (bidAsk);
+        }
+    }
+
+    getCacheIndex (orderbook, deltas) {
+        // we will consider it a fail
+        const firstElement = deltas[0];
+        const firstElementNonce = this.safeInteger (firstElement, 'microtimestamp');
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        if (nonce < firstElementNonce) {
+            return -1;
+        }
+        for (let i = 0; i < deltas.length; i++) {
+            const delta = deltas[i];
+            const deltaNonce = this.safeInteger (delta, 'microtimestamp');
+            if (deltaNonce === nonce) {
+                return i + 1;
             }
         }
+        return deltas.length;
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -211,32 +173,24 @@ module.exports = class bitstamp extends bitstampRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const options = this.safeValue (this.options, 'watchTrades', {});
-        const type = this.safeString (options, 'type', 'live_trades');
-        const messageHash = type + '_' + market['id'];
+        const messageHash = 'trades:' + symbol;
         const url = this.urls['api']['ws'];
+        const channel = 'live_trades_' + market['id'];
         const request = {
             'event': 'bts:subscribe',
             'data': {
-                'channel': messageHash,
+                'channel': channel,
             },
         };
-        const subscription = {
-            'messageHash': messageHash,
-            'type': type,
-            'symbol': symbol,
-            'limit': limit,
-            'params': params,
-        };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash, subscription);
+        const trades = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseWsTrade (trade, market = undefined) {
         //
         //     {
         //         buy_order_id: 1211625836466176,
@@ -252,28 +206,14 @@ module.exports = class bitstamp extends bitstampRest {
         //     }
         //
         const microtimestamp = this.safeInteger (trade, 'microtimestamp');
-        if (microtimestamp === undefined) {
-            return super.parseTrade (trade, market);
-        }
         const id = this.safeString (trade, 'id');
         const timestamp = parseInt (microtimestamp / 1000);
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
-        let symbol = undefined;
-        const marketId = this.safeString (trade, 's');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'amount');
+        const symbol = market['symbol'];
         let side = this.safeInteger (trade, 'type');
         side = (side === 0) ? 'buy' : 'sell';
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -285,9 +225,9 @@ module.exports = class bitstamp extends bitstampRest {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     handleTrade (client, message) {
@@ -312,11 +252,13 @@ module.exports = class bitstamp extends bitstampRest {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         const channel = this.safeString (message, 'channel');
+        const parts = channel.split ('_');
+        const marketId = this.safeString (parts, 2);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const messageHash = 'trades:' + symbol;
         const data = this.safeValue (message, 'data');
-        const subscription = this.safeValue (client.subscriptions, channel);
-        const symbol = this.safeString (subscription, 'symbol');
-        const market = this.market (symbol);
-        const trade = this.parseTrade (data, market);
+        const trade = this.parseWsTrade (data, market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -324,7 +266,7 @@ module.exports = class bitstamp extends bitstampRest {
             this.trades[symbol] = tradesArray;
         }
         tradesArray.append (trade);
-        client.resolve (tradesArray, channel);
+        client.resolve (tradesArray, messageHash);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -410,7 +352,7 @@ module.exports = class bitstamp extends bitstampRest {
         const price = this.safeString (order, 'price_str');
         const amount = this.safeString (order, 'amount_str');
         const side = (orderType === '1') ? 'sell' : 'buy';
-        const timestamp = this.safeIntegerProduct (order, 'datetime', 1000);
+        const timestamp = this.safeTimestamp (order, 'datetime');
         market = this.safeMarket (undefined, market);
         const symbol = market['symbol'];
         return this.safeOrder ({
@@ -427,6 +369,7 @@ module.exports = class bitstamp extends bitstampRest {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': undefined,
@@ -438,24 +381,12 @@ module.exports = class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
-        const type = this.safeString (subscription, 'type');
-        const symbol = this.safeString (subscription, 'symbol');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
-        }
-        if (type === 'order_book') {
-            const limit = this.safeInteger (subscription, 'limit', 100);
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
-        } else if (type === 'detail_order_book') {
-            const limit = this.safeInteger (subscription, 'limit', 100);
-            this.orderbooks[symbol] = this.indexedOrderBook ({}, limit);
-        } else if (type === 'diff_order_book') {
-            const limit = this.safeInteger (subscription, 'limit');
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
-            // fetch the snapshot in a separate async call
-            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
-        }
+    handleOrderBookSubscription (client, message) {
+        const channel = this.safeString (message, 'channel');
+        const parts = channel.split ('_');
+        const marketId = this.safeString (parts, 3);
+        const symbol = this.safeSymbol (marketId);
+        this.orderbooks[symbol] = this.orderBook ();
     }
 
     handleSubscriptionStatus (client, message) {
@@ -472,12 +403,9 @@ module.exports = class bitstamp extends bitstampRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
-        const subscription = this.safeValue (client.subscriptions, channel, {});
-        const method = this.safeValue (subscription, 'method');
-        if (method !== undefined) {
-            method.call (this, client, message, subscription);
+        if (channel.indexOf ('order_book') > -1) {
+            this.handleOrderBookSubscription (client, message);
         }
-        return message;
     }
 
     handleSubject (client, message) {
@@ -518,21 +446,18 @@ module.exports = class bitstamp extends bitstampRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
-        const subscription = this.safeValue (client.subscriptions, channel);
-        const type = this.safeString (subscription, 'type');
         const methods = {
             'live_trades': this.handleTrade,
-            // 'live_orders': this.handleOrderBook,
-            'order_book': this.handleOrderBook,
-            'detail_order_book': this.handleOrderBook,
             'diff_order_book': this.handleOrderBook,
             'private-my_orders': this.handleOrders,
         };
-        const method = this.safeValue (methods, type);
-        if (method === undefined) {
-            return message;
-        } else {
-            return method.call (this, client, message);
+        const keys = Object.keys (methods);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (channel.indexOf (key) > -1) {
+                const method = methods[key];
+                method.call (this, client, message);
+            }
         }
     }
 
@@ -600,7 +525,7 @@ module.exports = class bitstamp extends bitstampRest {
         this.checkRequiredCredentials ();
         const time = this.milliseconds ();
         const expiresIn = this.safeInteger (this.options, 'expiresIn');
-        if (time > expiresIn) {
+        if ((expiresIn === undefined) || (time > expiresIn)) {
             const response = await this.privatePostWebsocketsToken (params);
             //
             // {

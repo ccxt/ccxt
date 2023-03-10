@@ -40,7 +40,7 @@ class bitbns extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => null,
+                'fetchOHLCV' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -59,14 +59,13 @@ class bitbns extends Exchange {
                 'transfer' => false,
                 'withdraw' => false,
             ),
-            'timeframes' => array(
-            ),
+            'hostname' => 'bitbns.com',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
                 'api' => array(
-                    'www' => 'https://bitbns.com',
-                    'v1' => 'https://api.bitbns.com/api/trade/v1',
-                    'v2' => 'https://api.bitbns.com/api/trade/v2',
+                    'www' => 'https://{hostname}',
+                    'v1' => 'https://api.{hostname}/api/trade/v1',
+                    'v2' => 'https://api.{hostname}/api/trade/v2',
                 ),
                 'www' => 'https://bitbns.com',
                 'referral' => 'https://ref.bitbns.com/1090961',
@@ -380,7 +379,7 @@ class bitbns extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bitbns api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $response = $this->wwwGetOrderFetchTickers ($params);
@@ -570,6 +569,7 @@ class bitbns extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

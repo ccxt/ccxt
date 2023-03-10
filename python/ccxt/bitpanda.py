@@ -92,8 +92,6 @@ class bitpanda(Exchange):
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
-                'privateAPI': True,
-                'publicAPI': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
@@ -344,6 +342,8 @@ class bitpanda(Exchange):
                 'active': None,
                 'fee': None,
                 'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
+                'withdraw': None,
+                'deposit': None,
                 'limits': {
                     'amount': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
@@ -636,7 +636,7 @@ class bitpanda(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitpanda api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1409,6 +1409,7 @@ class bitpanda(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': None,
             'average': None,

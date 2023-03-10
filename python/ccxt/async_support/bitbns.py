@@ -48,7 +48,7 @@ class bitbns(Exchange):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
-                'fetchOHLCV': None,
+                'fetchOHLCV': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -67,14 +67,13 @@ class bitbns(Exchange):
                 'transfer': False,
                 'withdraw': False,
             },
-            'timeframes': {
-            },
+            'hostname': 'bitbns.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
                 'api': {
-                    'www': 'https://bitbns.com',
-                    'v1': 'https://api.bitbns.com/api/trade/v1',
-                    'v2': 'https://api.bitbns.com/api/trade/v2',
+                    'www': 'https://{hostname}',
+                    'v1': 'https://api.{hostname}/api/trade/v1',
+                    'v2': 'https://api.{hostname}/api/trade/v2',
                 },
                 'www': 'https://bitbns.com',
                 'referral': 'https://ref.bitbns.com/1090961',
@@ -381,7 +380,7 @@ class bitbns(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitbns api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         response = await self.wwwGetOrderFetchTickers(params)
@@ -562,6 +561,7 @@ class bitbns(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': cost,
             'average': average,

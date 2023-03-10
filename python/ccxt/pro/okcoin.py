@@ -248,7 +248,7 @@ class okcoin(Exchange, ccxt.async_support.okcoin):
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candle' + interval + 's'
         ohlcv = await self.subscribe(name, symbol, params)
         if self.newUpdates:
@@ -477,14 +477,8 @@ class okcoin(Exchange, ccxt.async_support.okcoin):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        marketId = self.safe_string(params, 'instrument_id')
         symbol = self.safe_string(params, 'symbol')
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        elif marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+        market = self.market(symbol)
         marketUndefined = (market is None)
         currencyUndefined = (currency is None)
         if type == 'spot':
@@ -548,12 +542,13 @@ class okcoin(Exchange, ccxt.async_support.okcoin):
         #
         table = self.safe_string(message, 'table')
         parts = table.split('/')
+        data = self.safe_value(message, 'data', [])
+        self.balance['info'] = data
         type = self.safe_string(parts, 0)
         if type == 'spot':
             part1 = self.safe_string(parts, 1)
             if part1 == 'margin_account':
                 type = 'margin'
-        data = self.safe_value(message, 'data', [])
         for i in range(0, len(data)):
             balance = self.parseBalanceByType(type, data)
             oldBalance = self.safe_value(self.balance, type, {})

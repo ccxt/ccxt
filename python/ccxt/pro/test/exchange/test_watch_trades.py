@@ -14,8 +14,11 @@ async def test_watch_trades(exchange, symbol):
         'dsx',
         'currencycom',
         'idex2',  # rinkeby testnet, trades too rare
+        'luno',  # requires authentication for watch_trades
         'ripio',
         'coinflex',  # too illiquid
+        'woo',
+        'independentreserve',  # too illiquid
     ]
 
     if exchange.id in skipped_exchanges:

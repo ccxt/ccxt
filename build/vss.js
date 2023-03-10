@@ -14,11 +14,12 @@ const fs           = require ('fs')
 
 //-----------------------------------------------------------------------------
 
-function vss (filename, template, version) {
+function vss (filename, template, version, global = false) {
+    const flag = global ? 'g' : ''
     log.bright.cyan ('Single-sourcing version', version, './package.json → ' + filename.yellow)
     const content = fs.readFileSync (filename, 'utf8')
     const regexp  = new RegExp (template.replace (/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') // escape string for use in regexp
-                                        .replace ('\\{version\\}', '\\d+\\.\\d+\\.\\d+'), 'g')
+                                        .replace ('\\{version\\}', '\\d+\\.\\d+\\.\\d+'), flag)
     fs.truncateSync  (filename)
     fs.writeFileSync (filename, content.replace (regexp, template.replace ('{version}', version)))
 }
@@ -32,6 +33,7 @@ function vssEverything () {
     log.bright ('New version: '.cyan, version)
 
     vss ('./ccxt.js',                                    "const version = '{version}'", version)
+    vss ('./dist/ccxt.browser.js',                       "const version = '{version}'", version)
     vss ('./php/Exchange.php',                           "$version = '{version}'",      version)
     vss ('./php/async/Exchange.php',                     "VERSION = '{version}'",       version)
     vss ('./php/async/Exchange.php',                     "$version = '{version}'",      version)
@@ -43,8 +45,8 @@ function vssEverything () {
     vss ('./python/ccxt/pro/__init__.py',                "__version__ = '{version}'",   version)
     vss ('./python/ccxt/pro/base/exchange.py',           "__version__ = '{version}'",   version)
 
-    vss ('./README.md',       "ccxt@{version}", version)
-    vss ('./wiki/Install.md', "ccxt@{version}", version)
+    vss ('./README.md',       "ccxt@{version}", version, true)
+    vss ('./wiki/Install.md', "ccxt@{version}", version, true)
 
     const pythonFiles = [
         'package.json',

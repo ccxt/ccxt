@@ -140,6 +140,7 @@ class deribit extends \ccxt\async\deribit {
         //
         $params = $this->safe_value($message, 'params', array());
         $data = $this->safe_value($params, 'data', array());
+        $this->balance['info'] = $data;
         $currencyId = $this->safe_string($data, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId);
         $balance = $this->parse_balance($data);
@@ -602,7 +603,7 @@ class deribit extends \ccxt\async\deribit {
         $channel = $this->safe_string($params, 'channel', '');
         $data = $this->safe_value($params, 'data', array());
         $orders = array();
-        if ($this->is_array($data)) {
+        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             $orders = $this->parse_orders($data);
         } else {
             $order = $this->parse_order($data);

@@ -956,6 +956,7 @@ class mexc extends \ccxt\async\mexc {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => $avgPrice,
             'amount' => $amount,
             'cost' => $cost,
@@ -1040,6 +1041,10 @@ class mexc extends \ccxt\async\mexc {
         // }
         //
         $data = $this->safe_value($message, 'data');
+        $timestamp = $this->safe_integer($message, 'ts');
+        $this->balance['info'] = $data;
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
         $currencyId = $this->safe_string($data, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();

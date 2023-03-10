@@ -41,7 +41,7 @@ module.exports = class bitbns extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
-                'fetchOHLCV': undefined,
+                'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -60,14 +60,13 @@ module.exports = class bitbns extends Exchange {
                 'transfer': false,
                 'withdraw': false,
             },
-            'timeframes': {
-            },
+            'hostname': 'bitbns.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
                 'api': {
-                    'www': 'https://bitbns.com',
-                    'v1': 'https://api.bitbns.com/api/trade/v1',
-                    'v2': 'https://api.bitbns.com/api/trade/v2',
+                    'www': 'https://{hostname}',
+                    'v1': 'https://api.{hostname}/api/trade/v1',
+                    'v2': 'https://api.{hostname}/api/trade/v2',
                 },
                 'www': 'https://bitbns.com',
                 'referral': 'https://ref.bitbns.com/1090961',
@@ -389,7 +388,7 @@ module.exports = class bitbns extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitbns api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.wwwGetOrderFetchTickers (params);
@@ -581,6 +580,7 @@ module.exports = class bitbns extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': average,

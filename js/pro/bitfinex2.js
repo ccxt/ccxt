@@ -58,7 +58,7 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
         const checksum = this.safeValue (this.options, 'checksum', true);
         if (checksum && !client.subscriptions[messageHash]['checksum'] && (channel === 'book')) {
             client.subscriptions[messageHash]['checksum'] = true;
-            client.send ({
+            await client.send ({
                 'event': 'conf',
                 'flags': 131072,
             });
@@ -88,7 +88,7 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const channel = 'candles';
         const key = 'trade:' + interval + ':' + market['id'];
         const messageHash = channel + ':' + interval + ':' + market['id'];
@@ -243,7 +243,7 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
         return await this.subscribe ('ticker', symbol, params);
     }
 
-    handleMyTrade (client, message) {
+    handleMyTrade (client, message, subscription = {}) {
         //
         // trade execution
         // [
@@ -838,41 +838,42 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
         return message;
     }
 
-    async authenticate (params = {}) {
+    authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
-        const future = client.future ('authenticated');
-        const method = 'auth';
-        const authenticated = this.safeValue (client.subscriptions, method);
-        if (authenticated === undefined) {
+        const messageHash = 'authenticated';
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
             const nonce = this.milliseconds ();
             const payload = 'AUTH' + nonce.toString ();
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha384', 'hex');
+            const event = 'auth';
             const request = {
                 'apiKey': this.apiKey,
                 'authSig': signature,
                 'authNonce': nonce,
                 'authPayload': payload,
-                'event': method,
+                'event': event,
             };
-            this.spawn (this.watch, url, method, request, 1);
+            const message = this.extend (request, params);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 
     handleAuthenticationMessage (client, message) {
+        const messageHash = 'authenticated';
         const status = this.safeString (message, 'status');
         if (status === 'OK') {
             // we resolve the future here permanently so authentication only happens once
-            const future = this.safeValue (client.futures, 'authenticated');
-            future.resolve (true);
+            client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.json (message));
-            client.reject (error, 'authenticated');
+            client.reject (error, messageHash);
             // allows further authentication attempts
-            const method = this.safeString (message, 'event');
-            if (method in client.subscriptions) {
-                delete client.subscriptions[method];
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions[messageHash];
             }
         }
     }
@@ -965,13 +966,15 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
         } else {
             const parsed = this.parseWsOrder (data);
             orders.append (parsed);
+            const symbol = parsed['symbol'];
+            symbolIds[symbol] = true;
         }
         const name = 'orders';
         client.resolve (this.orders, name);
         const keys = Object.keys (symbolIds);
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
-            const market = this.safeMarket (symbol);
+            const market = this.market (symbol);
             const messageHash = name + ':' + market['id'];
             client.resolve (this.orders, messageHash);
         }
@@ -1028,7 +1031,7 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
         const clientOrderId = this.safeString (order, 1);
         const marketId = this.safeString (order, 3);
         const symbol = this.safeSymbol (marketId);
-        market = this.safeMarket (symbol);
+        market = this.safeMarket (marketId);
         let amount = this.safeNumber (order, 7);
         let side = 'buy';
         if (amount < 0) {
@@ -1062,6 +1065,7 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'average': average,
             'amount': amount,
             'remaining': remaining,

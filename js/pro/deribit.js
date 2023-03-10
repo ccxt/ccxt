@@ -135,6 +135,7 @@ module.exports = class deribit extends deribitRest {
         //
         const params = this.safeValue (message, 'params', {});
         const data = this.safeValue (params, 'data', {});
+        this.balance['info'] = data;
         const currencyId = this.safeString (data, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
         const balance = this.parseBalance (data);
@@ -597,7 +598,7 @@ module.exports = class deribit extends deribitRest {
         const channel = this.safeString (params, 'channel', '');
         const data = this.safeValue (params, 'data', {});
         let orders = [];
-        if (this.isArray (data)) {
+        if (Array.isArray (data)) {
             orders = this.parseOrders (data);
         } else {
             const order = this.parseOrder (data);
