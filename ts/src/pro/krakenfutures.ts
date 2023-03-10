@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import krakenfuturesRest from '../krakenfutures.js';
-import { BadSymbol, BadRequest } from '../base/errors.js';
+import { BadSymbol, BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -324,7 +324,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (stored, messageHash);
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscribed (client, message) {
         //
         // public
         //
@@ -349,22 +349,31 @@ export default class krakenfutures extends krakenfuturesRest {
         client.subscriptions[message['feed']] = message;
     }
 
-    handleErrorMessage (client, message) {
+    handleError (client, message) {
         //
-        //   {
-        //     "event": "error",
-        //     "message": "Invalid product id"
-        //   }
+        // Sample Return if Unsuccessful
+        // {
+        //  "event": "error",
+        //  "message": "Json Error"
+        // }
         //
-        // TODO: handle error message
-        return true;
+        const errorMessage = this.safeValue (message, 'message');
+        throw new ExchangeError (this.id + ' ' + errorMessage);
     }
 
     handleMessage (client, message) {
-        const name = message['feed'];
         const event = this.safeValue (message, 'event');
         if (event !== undefined) {
-            return this.handleSubscriptionStatus (client, message);
+            const methods = {
+                'error': this.handleError,
+                'subscribed': this.handleSubscribed,
+            };
+            const method = this.safeValue (methods, event);
+            if (method === undefined) {
+                return message;
+            } else {
+                return method.call (this, client, message);
+            }
         }
         const methods = {
             // public
@@ -373,6 +382,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'book_snapshot': this.handleOrderBook,
             'book': this.handleOrderBook,
         };
+        const name = message['feed'];
         const method = this.safeValue (methods, name);
         if (method === undefined) {
             return message;
