@@ -119,7 +119,7 @@ module.exports = class bybit extends bybitRest {
         return requestId;
     }
 
-    getUrlByMarketType (symbol = undefined, isPrivate = false, isUnifiedMargin = false, method = undefined, params = {}) {
+    getUrlByMarketType (symbol = undefined, isPrivate = false, method = undefined, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
         let isUsdcSettled = undefined;
         let isSpot = undefined;
@@ -138,12 +138,7 @@ module.exports = class bybit extends bybitRest {
         }
         isSpot = (type === 'spot');
         if (isPrivate) {
-            if (isSpot) {
-                const margin = isUnifiedMargin ? 'unified' : 'nonUnified';
-                url = url[accessibility]['spot'][margin];
-            } else {
-                url = (isUsdcSettled) ? url[accessibility]['usdc'] : url[accessibility]['contract'];
-            }
+            url = (isUsdcSettled) ? url[accessibility]['usdc'] : url[accessibility]['contract'];
         } else {
             if (isSpot) {
                 url = url[accessibility]['spot'];
@@ -179,7 +174,7 @@ module.exports = class bybit extends bybitRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
-        const url = this.getUrlByMarketType (symbol, false, false, params);
+        const url = this.getUrlByMarketType (symbol, false, params);
         params = this.cleanParams (params);
         const options = this.safeValue (this.options, 'watchTicker', {});
         let topic = this.safeString (options, 'name', 'tickers');
@@ -338,7 +333,7 @@ module.exports = class bybit extends bybitRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const url = this.getUrlByMarketType (symbol, false, false, params);
+        const url = this.getUrlByMarketType (symbol, false, params);
         params = this.cleanParams (params);
         let ohlcv = undefined;
         const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
@@ -442,7 +437,7 @@ module.exports = class bybit extends bybitRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const url = this.getUrlByMarketType (symbol, false, false, params);
+        const url = this.getUrlByMarketType (symbol, false, params);
         params = this.cleanParams (params);
         const messageHash = 'orderbook' + ':' + symbol;
         if (limit === undefined) {
@@ -553,7 +548,7 @@ module.exports = class bybit extends bybitRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const url = this.getUrlByMarketType (symbol, false, false, params);
+        const url = this.getUrlByMarketType (symbol, false, params);
         params = this.cleanParams (params);
         const messageHash = 'trade:' + symbol;
         const topic = 'publicTrade.' + market['id'];
@@ -708,9 +703,7 @@ module.exports = class bybit extends bybitRest {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
-        const unified = await this.isUnifiedEnabled ();
-        const isUnifiedMargin = this.safeValue (unified, 0, false);
-        const url = this.getUrlByMarketType (symbol, true, isUnifiedMargin, method, params);
+        const url = this.getUrlByMarketType (symbol, true, method, params);
         await this.authenticate (url);
         const topicByMarket = {
             'spot': 'ticketInfo',
@@ -837,9 +830,7 @@ module.exports = class bybit extends bybitRest {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
-        const unified = await this.isUnifiedEnabled ();
-        const isUnifiedMargin = this.safeValue (unified, 0, false);
-        const url = this.getUrlByMarketType (symbol, true, isUnifiedMargin, method, params);
+        const url = this.getUrlByMarketType (symbol, true, method, params);
         await this.authenticate (url);
         const topicsByMarket = {
             'spot': [ 'order', 'stopOrder' ],
@@ -1080,7 +1071,7 @@ module.exports = class bybit extends bybitRest {
         const unified = await this.isUnifiedEnabled ();
         const isUnifiedMargin = this.safeValue (unified, 0, false);
         const isUnifiedAccount = this.safeValue (unified, 1, false);
-        const url = this.getUrlByMarketType (undefined, true, isUnifiedMargin, method, params);
+        const url = this.getUrlByMarketType (undefined, true, method, params);
         await this.authenticate (url);
         const topicByMarket = {
             'spot': 'outboundAccountInfo',
