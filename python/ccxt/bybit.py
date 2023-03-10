@@ -1346,7 +1346,7 @@ class bybit(Exchange):
         #                     "baseCoin": "BTC",
         #                     "quoteCoin": "USDT",
         #                     "innovation": "0",
-        #                     "status": "1",
+        #                     "status": "Trading",
         #                     "lotSizeFilter": {
         #                         "basePrecision": "0.000001",
         #                         "quotePrecision": "0.00000001",
@@ -1379,7 +1379,7 @@ class bybit(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             status = self.safe_string(market, 'status')
-            active = (status == 'trading') or (status == '1')  # latter can be removed after 10/03
+            active = (status == 'Trading')
             lotSizeFilter = self.safe_value(market, 'lotSizeFilter')
             priceFilter = self.safe_value(market, 'priceFilter')
             quotePrecision = self.safe_number(lotSizeFilter, 'quotePrecision')
