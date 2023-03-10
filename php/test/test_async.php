@@ -385,7 +385,7 @@ class testMainClass extends emptyClass {
         return $code;
     }
 
-    public function get_symbols_from_exchange($exchange, $spot = true) {
+    public function get_markets_from_exchange($exchange, $spot = true) {
         $res = array();
         $markets = $exchange->markets;
         $keys = is_array($markets) ? array_keys($markets) : array();
@@ -393,16 +393,16 @@ class testMainClass extends emptyClass {
             $key = $keys[$i];
             $market = $markets[$key];
             if ($spot && $market['spot']) {
-                $res[] = $market;
+                $res[$market['symbol']] = $market;
             } elseif (!$spot && !$market['spot']) {
-                $res[] = $market;
+                $res[$market['symbol']] = $market;
             }
         }
         return $res;
     }
 
     public function get_valid_symbol($exchange, $spot = true) {
-        $exchangeMarkets = $this->get_symbols_from_exchange($exchange, $spot);
+        $currentTypeMarkets = $this->get_markets_from_exchange($exchange, $spot);
         $codes = array(
             'BTC',
             'ETH',
@@ -466,7 +466,7 @@ class testMainClass extends emptyClass {
         if ($symbol === null) {
             for ($i = 0; $i < count($codes); $i++) {
                 $currentCode = $codes[$i];
-                $marketsArrayForCurrentCode = $exchange->filter_by($exchangeMarkets, 'base', $currentCode);
+                $marketsArrayForCurrentCode = $exchange->filter_by($currentTypeMarkets, 'base', $currentCode);
                 $indexedMkts = $exchange->index_by($marketsArrayForCurrentCode, 'symbol');
                 $symbolsArrayForCurrentCode = is_array($indexedMkts) ? array_keys($indexedMkts) : array();
                 if (strlen($symbolsArrayForCurrentCode)) {
@@ -477,12 +477,13 @@ class testMainClass extends emptyClass {
         }
         // if there wasn't found any $symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if ($symbol === null) {
-            $activeMarkets = $exchange->filter_by($exchangeMarkets, 'active', true);
+            $activeMarkets = $exchange->filter_by($currentTypeMarkets, 'active', true);
             $activeSymbols = is_array($activeMarkets) ? array_keys($activeMarkets) : array();
             $symbol = $this->get_test_symbol($exchange, $spot, $activeSymbols);
         }
         if ($symbol === null) {
-            $first = $exchangeMarkets[0];
+            $values = is_array($currentTypeMarkets) ? array_values($currentTypeMarkets) : array();
+            $first = $values[0];
             if ($first !== null) {
                 $symbol = $first['symbol'];
             }

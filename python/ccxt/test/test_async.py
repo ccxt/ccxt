@@ -369,21 +369,21 @@ class testMainClass(emptyClass):
                 return codes[i]
         return code
 
-    def get_symbols_from_exchange(self, exchange, spot=True):
-        res = []
+    def get_markets_from_exchange(self, exchange, spot=True):
+        res = {}
         markets = exchange.markets
         keys = list(markets.keys())
         for i in range(0, len(keys)):
             key = keys[i]
             market = markets[key]
             if spot and market['spot']:
-                res.append(market)
+                res[market['symbol']] = market
             elif not spot and not market['spot']:
-                res.append(market)
+                res[market['symbol']] = market
         return res
 
     def get_valid_symbol(self, exchange, spot=True):
-        exchangeMarkets = self.get_symbols_from_exchange(exchange, spot)
+        currentTypeMarkets = self.get_markets_from_exchange(exchange, spot)
         codes = [
             'BTC',
             'ETH',
@@ -447,7 +447,7 @@ class testMainClass(emptyClass):
         if symbol is None:
             for i in range(0, len(codes)):
                 currentCode = codes[i]
-                marketsArrayForCurrentCode = exchange.filter_by(exchangeMarkets, 'base', currentCode)
+                marketsArrayForCurrentCode = exchange.filter_by(currentTypeMarkets, 'base', currentCode)
                 indexedMkts = exchange.index_by(marketsArrayForCurrentCode, 'symbol')
                 symbolsArrayForCurrentCode = list(indexedMkts.keys())
                 if len(symbolsArrayForCurrentCode):
@@ -455,11 +455,12 @@ class testMainClass(emptyClass):
                     break
         # if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if symbol is None:
-            activeMarkets = exchange.filter_by(exchangeMarkets, 'active', True)
+            activeMarkets = exchange.filter_by(currentTypeMarkets, 'active', True)
             activeSymbols = list(activeMarkets.keys())
             symbol = self.get_test_symbol(exchange, spot, activeSymbols)
         if symbol is None:
-            first = exchangeMarkets[0]
+            values = list(currentTypeMarkets.values())
+            first = values[0]
             if first is not None:
                 symbol = first['symbol']
         return symbol

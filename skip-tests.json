@@ -51,7 +51,12 @@
 		}
 	},
 	"binancecoinm": {
-		"skipWs": true
+		"skipWs": true,
+		"skipMethods": {
+			"loadMarkets": "expiry not set for future markets",
+			"fetchTickers": "some symbols i.e. BTC/USD4 might have bid-ask value 0. aslo quoteVolume >= baseVolume * low is incorrect",
+			"fetchTicker": "same"
+		}
 	},
 	"binanceusdm": {
 		"skipWs": true
@@ -278,6 +283,17 @@
 	"coinbaseprime": {
 		"skipWs": true
 	},
+	"coinspot": {
+		"skipMethods": {
+			"fetchCurrencies": "info is undefined"
+		}
+	},
+	"coinone": {
+		"skipMethods": {
+			"fetchCurrencies": "info is undefined",
+			"fetchTickers": "close might be 0"
+		}
+	},
 	"buda": {
 		"skip": true,
 		"//": "exchange unavailable"
@@ -322,7 +338,17 @@
 		}
 	},
 	"currencycom": {
-		"skipWs": true
+		"skipWs": true,
+		"skipMethods": {
+			"loadMarkets": "unexpected market type"
+		}
+	},
+	"delta": {
+		"skipMethods": {
+			"loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
+			"fetchTickers": "quoteVolume >= baseVolume * low is incorrect, also quoteVolume <= baseVolume * high",
+			"fetchTicker": "same"
+		}
 	},
 	"deribit": {
 		"skipWs": true,
@@ -331,6 +357,13 @@
 			"fetchCurrencies": "info key is missing",
 			"fetchTickers": "close key is undefined",
 			"fetchTicker": "same"
+		}
+	},
+	"flowbtc": {
+		"skipMethods": {
+			"fetchTickers": "open might be set to 0",
+			"fetchTicker": "same",
+			"fetchTrades": "timestamp is more than current utc timestamp"
 		}
 	},
 	"gemini": {
@@ -413,7 +446,11 @@
 		}
 	},
 	"idex": {
-		"skipWs": true
+		"skipWs": true,
+		"skipMethods": {
+			"fetchTickers": "close key is undefined",
+			"fetchTicker": "same"
+		}
 	},
 	"itbit": {
 		"skipMethods": {
@@ -454,7 +491,9 @@
 		"skipMethods": {
 			"fetchCurrencies": "info key is missing",
 			"fetchOrderBook": "bid should be greater than next bid",
-			"fetchL2OrderBook": "same"
+			"fetchL2OrderBook": "same",
+			"fetchTickers": "ask might be 0",
+			"fetchTicker": "same"
 		}
 	},
 	"lbank": {
@@ -485,6 +524,11 @@
 			"fetchTicker": "same"
 		}
 	},
+	"mercado": {
+		"skipMethods": {
+			"fetchCurrencies": "info key is missing"
+		}
+	},
 	"novadax": {
 		"skipMethods": {
 			"fetchCurrencies": "info key is missing",
@@ -509,7 +553,9 @@
 	"mexc3": {
 		"skipWs": true,
 		"skipMethods": {
-			"fetchTrades": "side is not buy/sell"
+			"fetchTrades": "side is not buy/sell",
+			"fetchTickers": "quoteVolume >= baseVolume * low  is incorrect",
+			"fetchTrades": "same"
 		}
 	},
 	"oceanex": {
