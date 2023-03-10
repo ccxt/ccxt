@@ -2584,7 +2584,7 @@ module.exports = class okx extends Exchange {
         }
         const stopLossPrice = this.safeNumber2 (order, 'slTriggerPx', 'slOrdPx');
         const takeProfitPrice = this.safeNumber2 (order, 'tpTriggerPx', 'tpOrdPx');
-        const stopPrice = this.safeNumberN (order, [ 'tpTriggerPx', 'triggerPx', 'slTriggerPx', 'slOrdPx', 'tpOrdPx' ]);
+        const stopPrice = this.safeNumberN (order, [ 'triggerPx', 'moveTriggerPx' ]);
         let reduceOnly = this.safeString (order, 'reduceOnly');
         if (reduceOnly !== undefined) {
             reduceOnly = (reduceOnly === 'true');
