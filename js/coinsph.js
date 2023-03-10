@@ -2,8 +2,8 @@
 
 const Exchange = require ('./base/Exchange');
 // const { ExchangeError, ExchangeNotAvailable, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } = require ('./base/errors');
-const { ArgumentsRequired, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
-const { DECIMAL_PLACES } = require ('./base/functions/number');
+const { ArgumentsRequired, BadRequest, ExchangeError, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class coinsph extends Exchange {
@@ -184,6 +184,7 @@ module.exports = class coinsph extends Exchange {
                     'post': {
                         'openapi/v1/order/test': 1,
                         'openapi/v1/order': 1,
+                        // todo: should we implement withdraw and deposit endpoints?
                         'openapi/v1/capital/withdraw/apply': 1,
                         'openapi/v1/capital/deposit/apply': 1,
                     },
@@ -195,6 +196,7 @@ module.exports = class coinsph extends Exchange {
             },
             'fees': {
                 // todo: check feeside
+                // todo: comissions for ETH and BTC markets are 0?
                 'trading': {
                     'feeSide': 'get',
                     'tierBased': true,
@@ -229,7 +231,7 @@ module.exports = class coinsph extends Exchange {
                     },
                 },
             },
-            'precisionMode': DECIMAL_PLACES, // todo: change to TICK_SIZE in fetchMarkets (see precisionFromString)
+            'precisionMode': TICK_SIZE, // todo: change to TICK_SIZE in fetchMarkets (see precisionFromString)
             // exchange-specific options
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
@@ -240,10 +242,16 @@ module.exports = class coinsph extends Exchange {
                 'exact': {
                     '-10001': ArgumentsRequired, // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
                     '-100012': ArgumentsRequired, // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
+                    '-1001': BadRequest, // {"code":-1001,"msg":"Internal error."} // todo: check if it is good (send recvWindow as float)
                     '-1004': ArgumentsRequired, // {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
                     '-1105': ArgumentsRequired, // {"code":-1105,"msg":"Parameter \u0027orderId and origClientOrderId\u0027 is empty."}
-                    '-1140': InsufficientFunds, // {"code":-1140,"msg":"Transaction amount lower than the minimum."}
+                    '-1024': BadRequest, // {"code":-1024,"msg":"recvWindow is not valid."} // todo: check if it is good
+                    '-1025': BadRequest, // {"code":-1025,"msg":"recvWindow cannot be greater than 60000"} // todo: check if it is good
+                    '-1131': InsufficientFunds, // {"code":-1131,"msg":"Balance insufficient "}
+                    '-1140': InvalidOrder, // {"code":-1140,"msg":"Transaction amount lower than the minimum."}
                     '-2013': OrderNotFound, // {"code":-2013,"msg":"Order does not exist."}
+                    '-3127': InvalidOrder, // {"code":-3127,"msg":"Order price higher than 1523.192"}
+                    '403': ExchangeNotAvailable,
                 },
                 'broad': {
                 },
@@ -252,7 +260,6 @@ module.exports = class coinsph extends Exchange {
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
-        // todo: check if it's ok
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('noSymbolAndNoSymbols' in config) && !('symbol' in params) && !('symbols' in params)) {
@@ -392,8 +399,6 @@ module.exports = class coinsph extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const isActive = this.safeString (market, 'status') === 'TRADING';
             const limits = this.indexBy (this.safeValue (market, 'filters'), 'filterType');
-            const precisionPrice = this.safeValue (limits, 'PRICE_FILTER', {});
-            const precisionAmount = this.safeValue (limits, 'LOT_SIZE', {});
             const amountLimits = this.safeValue (limits, 'LOT_SIZE', {});
             const priceLimits = this.safeValue (limits, 'PRICE_FILTER', {});
             const costLimits = this.safeValue (limits, 'NOTIONAL', {});
@@ -424,8 +429,8 @@ module.exports = class coinsph extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.safeString (precisionPrice, 'tickSize')),
-                    'price': this.parseNumber (this.safeString (precisionAmount, 'stepSize')),
+                    'amount': this.parseNumber (this.safeString (amountLimits, 'stepSize')),
+                    'price': this.parseNumber (this.safeString (priceLimits, 'tickSize')),
                 },
                 'limits': {
                     'leverage': {
@@ -625,7 +630,7 @@ module.exports = class coinsph extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const interval = this.safeString (this.timeframes, timeframe);
+        const interval = this.safeString (this.timeframes, timeframe); // todo: should we check if interval is valid?
         const request = {
             'symbol': market['id'],
             'interval': interval,
@@ -704,6 +709,7 @@ module.exports = class coinsph extends Exchange {
             'symbol': market['id'],
         };
         if (since !== undefined) {
+        // todo: the exchange returns only last 'limit' trades
             request['limit'] = 1000;
         } else {
             if (limit !== undefined) {
@@ -738,21 +744,21 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
+        // todo: should we check and use params (orderId, endTime, fromId)?
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
-        // todo: recvWindow, write this method properly and check if symbol is mandatory
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
+            request['startTime'] = since;
+            // todo: check if limit works as in fetchOHLCV
             request['limit'] = 1000;
-        } else {
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
+        } else if (limit !== undefined) {
+            request['limit'] = limit;
         }
         const response = await this.privateGetOpenapiV1MyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -765,7 +771,7 @@ module.exports = class coinsph extends Exchange {
         //         price: '89685.8',
         //         id: '1365561108437680129',
         //         qty: '0.000004',
-        //         quoteQty: '0.000004000000000000', // todo: reporte to exchange - this is wrong value
+        //         quoteQty: '0.000004000000000000', // todo: report to exchange - this is not quote quantity, this is base quantity
         //         time: '1677523569575',
         //         isBuyerMaker: false,
         //         isBestMatch: true
@@ -795,9 +801,14 @@ module.exports = class coinsph extends Exchange {
         const timestamp = this.safeInteger (trade, 'time');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
-        const fee = undefined; // todo
-        const type = undefined; // todo
-        // todo: check for costString, side and takerOrMaker are good in private trades
+        const type = undefined;
+        // todo: check for fee, costString, side and takerOrMaker are good in private trades
+        const fee = {};
+        const feeCost = this.safeString (trade, 'commission');
+        if (feeCost !== undefined) {
+            fee['cost'] = feeCost;
+            fee['currency'] = this.safeString (trade, 'commissionAsset');
+        }
         const isBuyer = this.safeString2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
         let side = undefined;
         if (isBuyer !== undefined) {
@@ -837,7 +848,6 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
-        // todo: recvWindow
         await this.loadMarkets ();
         const response = await this.privateGetOpenapiV1Account (params);
         //
@@ -897,9 +907,15 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        // todo: recvWindow and all types of orders
+        // todo: add test order
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a symbol argument');
+        }
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -911,6 +927,7 @@ module.exports = class coinsph extends Exchange {
             'type': orderType,
             'side': orderSide,
         };
+        // if limit order
         if (orderType === 'LIMIT' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT_LIMIT' || orderType === 'LIMIT_MAKER') {
             // todo: check this block (maybe we should use 'GTC' as default value of timeInForce?)
             if (price === undefined) {
@@ -927,6 +944,7 @@ module.exports = class coinsph extends Exchange {
                     throw new InvalidOrder (this.id + ' createOrder () with ' + orderType + ' order requires a timeInForce param');
                 }
             }
+        // if market order
         } else if (orderType === 'MARKET' || orderType === 'STOP_LOSS' || orderType === 'TAKE_PROFIT') {
             if (orderSide === 'SELL') {
                 if (amount === undefined) {
@@ -976,10 +994,16 @@ module.exports = class coinsph extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        // todo: recvWindow and write this method
-        const request = {
-            'orderId': id,
-        };
+        // todo: orderId takes presedence over origClientOrderId, should we check it?
+        const request = {};
+        if (id !== undefined) {
+            request['orderId'] = id;
+        } else {
+            const origClientOrderId = this.safeString (params, 'origClientOrderId');
+            if (origClientOrderId === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument or origClientOrderId param');
+            }
+        }
         const response = await this.privateGetOpenapiV1Order (this.extend (request, params));
         return this.parseOrder (response);
     }
@@ -990,12 +1014,11 @@ module.exports = class coinsph extends Exchange {
          * @name coinsph#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {int|undefined} since not used by coinsph fetchOpenOrders ()
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve (default 500, max 1000)
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        // todo: recvWindow
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -1014,17 +1037,24 @@ module.exports = class coinsph extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve (default 500, max 1000)
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        // todo: recvWindow and write this method
+        // todo: should we check and use params (orderId, endTime)?
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            // todo: check if limit works as fetchOHLCV
+            request['limit'] = 1000;
+        } else if (limit !== undefined) {
+            request[limit] = limit;
         }
         const response = this.privateGetOpenapiV1HistoryOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
@@ -1036,15 +1066,21 @@ module.exports = class coinsph extends Exchange {
          * @name coinsph#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string|undefined} symbol not used by coinsph fetchOrder ()
+         * @param {string|undefined} symbol not used by coinsph cancelOrder ()
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        // todo: recvWindow and write this method
-        const request = {
-            'orderId': id,
-        };
+        // todo: orderId takes presedence over origClientOrderId, should we check it?
+        const request = {};
+        if (id !== undefined) {
+            request['orderId'] = id;
+        } else {
+            const origClientOrderId = this.safeString (params, 'origClientOrderId');
+            if (origClientOrderId === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument or origClientOrderId param');
+            }
+        }
         const response = await this.privateDeleteOpenapiV1Order (this.extend (request, params));
         return this.parseOrder (response);
     }
@@ -1059,11 +1095,12 @@ module.exports = class coinsph extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        // todo: recvWindow and write this method
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'], // todo: check if 'symbol' param is mandatory
-        };
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id']; // todo: check if 'symbol' param is mandatory
+        }
         const response = this.privateGetOpenapiV1OpenOrders (this.extend (request, params));
         return this.parseOrders (response, market);
     }
@@ -1225,7 +1262,6 @@ module.exports = class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
-        // todo: recvWindow
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTradingFee() requires a symbol argument');
         }
@@ -1312,12 +1348,19 @@ module.exports = class coinsph extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
-        // todo: recvWindow and write this method
+        // todo: should we use and check params (depositOrderId, status, offset, endTime)?
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            // todo: check if default limit is 1000 and find out how limit and offset work together
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
         const response = await this.privateGetOpenapiV1CapitalDepositHistory (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
@@ -1335,18 +1378,26 @@ module.exports = class coinsph extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
-        // todo: recvWindow and write this method
+        // todo: should we use and check params (withdrawOrderId, status, offset, endTime)?
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
         }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            // todo: check if default limit is 1000 and find out how limit and offset work together
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.privateGetOpenapiV1CapitalWithdrawHistory (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransaction () {
+    parseTransaction (transaction, currency = undefined) {
+        //
         // fetchDeposits
         //     {
         //         "coin": "PHP",
@@ -1380,7 +1431,76 @@ module.exports = class coinsph extends Exchange {
         //         "txId": "Internal Transfer",
         //         "applyTime": 1657967792000
         //     }
-        return {};
+        //
+        // todo: check this method with Igor
+        const id = this.safeString (transaction, 'id');
+        const address = this.safeString (transaction, 'address');
+        let tag = this.safeString (transaction, 'addressTag');
+        if (tag !== undefined) {
+            if (tag.length < 1) {
+                tag = undefined;
+            }
+        }
+        const txid = this.safeString (transaction, 'txId'); // todo: check this!!!
+        const currencyId = this.safeString (transaction, 'coin');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        let timestamp = undefined;
+        timestamp = this.safeInteger2 (transaction, 'insertTime', 'applyTime');
+        const updated = undefined;
+        let type = undefined;
+        const withdrawOrderId = this.safeString (transaction, 'withdrawOrderId');
+        const depositOrderId = this.safeString (transaction, 'depositOrderId');
+        if (withdrawOrderId !== undefined) {
+            type = 'withdrawal';
+        } else if (depositOrderId !== undefined) {
+            type = 'deposit';
+        }
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const amount = this.safeNumber (transaction, 'amount');
+        const feeCost = this.safeNumber (transaction, 'transactionFee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = { 'currency': code, 'cost': feeCost };
+        }
+        let internal = this.safeInteger (transaction, 'transferType');
+        if (internal !== undefined) {
+            internal = internal ? true : false;
+        }
+        const network = this.safeString (transaction, 'network');
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': network,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'internal': internal,
+            'fee': fee,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            '0': 'pending', // Email Sent
+            '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
+            '2': 'pending', // Awaiting Approval
+            '3': 'failed', // Rejected
+            '4': 'pending', // Processing
+            '5': 'failed', // Failure
+            '6': 'ok', // Completed
+        };
+        return this.safeString (statuses, status, status);
     }
 
     urlEncodeQuery (query = {}) {
@@ -1421,9 +1541,15 @@ module.exports = class coinsph extends Exchange {
         url = url + '/' + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            query = this.extend ({
-                'timestamp': this.milliseconds (),
-            }, query);
+            query['timestamp'] = this.milliseconds ();
+            // todo: check recvWindow
+            const recvWindow = this.safeInteger (query, 'recvWindow');
+            if (recvWindow === undefined) {
+                const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
+                if (defaultRecvWindow !== undefined) {
+                    query['recvWindow'] = defaultRecvWindow;
+                }
+            }
             query = this.urlEncodeQuery (query);
             const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
             url = url + '?' + query + '&signature=' + signature;
@@ -1437,5 +1563,19 @@ module.exports = class coinsph extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        // todo: check this with Igor
+        if (response === undefined) {
+            return;
+        }
+        const responseCode = this.safeString (response, 'code', undefined);
+        if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
+            const feedback = this.id + ' ' + body;
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
+            throw new ExchangeError (feedback);
+        }
     }
 };
