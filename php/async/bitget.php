@@ -142,6 +142,7 @@ class bitget extends Exchange {
                             'market/fills' => 1,
                             'market/candles' => 1,
                             'market/depth' => 1,
+                            'market/spot-vip-level' => 2,
                         ),
                     ),
                     'mix' => array(
@@ -159,6 +160,7 @@ class bitget extends Exchange {
                             'market/open-interest' => 1,
                             'market/mark-price' => 1,
                             'market/symbol-leverage' => 1,
+                            'market/contract-vip-level' => 2,
                         ),
                     ),
                 ),
