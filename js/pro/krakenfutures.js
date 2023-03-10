@@ -26,9 +26,7 @@ module.exports = class krakenfutures extends krakenfuturesRest {
             },
             'urls': {
                 'api': {
-                    'ws': {
-                        'public': 'wss://futures.kraken.com/ws/v1',
-                    },
+                    'ws': 'wss://futures.kraken.com/ws/v1',
                 },
             },
             // 'versions': {
@@ -121,7 +119,7 @@ module.exports = class krakenfutures extends krakenfuturesRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = name + ':' + market['symbol'];
-        const url = this.urls['api']['ws']['public'];
+        const url = this.urls['api']['ws'];
         const subscribe = {
             'event': 'subscribe',
             'feed': name,
@@ -261,7 +259,7 @@ module.exports = class krakenfutures extends krakenfuturesRest {
     async watchHeartbeat (params = {}) {
         await this.loadMarkets ();
         const event = 'heartbeat';
-        const url = this.urls['api']['ws']['public'];
+        const url = this.urls['api']['ws'];
         return await this.watch (url, event);
     }
 
