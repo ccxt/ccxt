@@ -25,63 +25,63 @@ module.exports = class coinsph extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'borrowMargin': false,
-                'cancelAllOrders': undefined, // checkattheend
-                'cancelOrder': undefined, // checkattheend
-                'cancelOrders': undefined, // checkattheend
-                'createDepositAddress': undefined, // checkattheend
-                'createOrder': undefined, // checkattheend
-                'createPostOnlyOrder': undefined, // checkattheend
-                'createReduceOnlyOrder': undefined, // checkattheend
-                'createStopLimitOrder': undefined, // checkattheend
-                'createStopMarketOrder': undefined, // checkattheend
-                'createStopOrder': undefined, // checkattheend
-                'editOrder': undefined, // checkattheend
-                'fetchAccounts': undefined, // checkattheend
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'cancelOrders': false, // checkattheend
+                'createDepositAddress': false, // checkattheend
+                'createOrder': true,
+                'createPostOnlyOrder': false, // checkattheend
+                'createReduceOnlyOrder': false, // checkattheend
+                'createStopLimitOrder': true, // checkattheend
+                'createStopMarketOrder': true, // checkattheend
+                'createStopOrder': true, // checkattheend
+                'editOrder': false, // checkattheend
+                'fetchAccounts': false, // checkattheend
                 'fetchBalance': true,
-                'fetchBidsAsks': undefined, // checkattheend
-                'fetchBorrowInterest': undefined, // checkattheend
-                'fetchBorrowRate': undefined, // checkattheend
-                'fetchBorrowRateHistories': undefined, // checkattheend
-                'fetchBorrowRateHistory': undefined, // checkattheend
-                'fetchBorrowRates': undefined, // checkattheend
-                'fetchBorrowRatesPerSymbol': undefined, // checkattheend
-                'fetchCanceledOrders': undefined, // checkattheend
+                'fetchBidsAsks': false, // checkattheend
+                'fetchBorrowInterest': false, // checkattheend
+                'fetchBorrowRate': false, // checkattheend
+                'fetchBorrowRateHistories': false, // checkattheend
+                'fetchBorrowRateHistory': false, // checkattheend
+                'fetchBorrowRates': false, // checkattheend
+                'fetchBorrowRatesPerSymbol': false, // checkattheend
+                'fetchCanceledOrders': false, // checkattheend
                 'fetchClosedOrder': undefined, // checkattheend
-                'fetchClosedOrders': 'undefined', // checkattheend
+                'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchDeposit': undefined, // checkattheend
-                'fetchDepositAddress': undefined, // checkattheend
-                'fetchDepositAddresses': undefined, // checkattheend
-                'fetchDepositAddressesByNetwork': undefined, // checkattheend
-                'fetchDeposits': undefined, // checkattheend
-                'fetchDepositWithdrawFee': undefined, // checkattheend
-                'fetchDepositWithdrawFees': undefined, // checkattheend
-                'fetchFundingHistory': undefined, // checkattheend
-                'fetchFundingRate': undefined, // checkattheend
-                'fetchFundingRateHistory': undefined, // checkattheend
-                'fetchFundingRates': undefined, // checkattheend
-                'fetchIndexOHLCV': undefined, // checkattheend
-                'fetchL3OrderBook': undefined, // checkattheend
-                'fetchLedger': undefined, // checkattheend
-                'fetchLeverage': undefined, // checkattheend
-                'fetchLeverageTiers': undefined, // checkattheend
-                'fetchMarketLeverageTiers': undefined, // checkattheend
+                'fetchDepositAddress': false, // checkattheend
+                'fetchDepositAddresses': false, // checkattheend
+                'fetchDepositAddressesByNetwork': false, // checkattheend
+                'fetchDeposits': true,
+                'fetchDepositWithdrawFee': false, // checkattheend
+                'fetchDepositWithdrawFees': false, // checkattheend
+                'fetchFundingHistory': false, // checkattheend
+                'fetchFundingRate': false, // checkattheend
+                'fetchFundingRateHistory': false, // checkattheend
+                'fetchFundingRates': false, // checkattheend
+                'fetchIndexOHLCV': false, // checkattheend
+                'fetchL3OrderBook': false, // checkattheend
+                'fetchLedger': false, // checkattheend
+                'fetchLeverage': false, // checkattheend
+                'fetchLeverageTiers': false, // checkattheend
+                'fetchMarketLeverageTiers': false, // checkattheend
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': undefined, // checkattheend
-                'fetchMyTrades': undefined, // checkattheend
+                'fetchMarkOHLCV': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterestHistory': undefined, // checkattheend
+                'fetchOpenInterestHistory': false, // checkattheend
                 'fetchOpenOrder': undefined, // checkattheend
-                'fetchOpenOrders': undefined, // checkattheend
+                'fetchOpenOrders': true,
                 'fetchOrder': undefined, // checkattheend
                 'fetchOrderBook': true,
-                'fetchOrderBooks': undefined, // checkattheend
-                'fetchOrders': undefined, // checkattheend
+                'fetchOrderBooks': false, // checkattheend
+                'fetchOrders': false, // checkattheend
                 'fetchOrderTrades': undefined, // checkattheend
-                'fetchPosition': undefined, // checkattheend
-                'fetchPositions': undefined, // checkattheend
-                'fetchPositionsRisk': undefined, // checkattheend
-                'fetchPremiumIndexOHLCV': undefined, // checkattheend
+                'fetchPosition': false, // checkattheend
+                'fetchPositions': false, // checkattheend
+                'fetchPositionsRisk': false, // checkattheend
+                'fetchPremiumIndexOHLCV': false, // checkattheend
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -89,23 +89,23 @@ module.exports = class coinsph extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTradingLimits': undefined, // checkattheend
-                'fetchTransactionFee': undefined, // checkattheend
-                'fetchTransactionFees': undefined, // checkattheend
-                'fetchTransactions': undefined, // checkattheend
-                'fetchTransfers': undefined, // checkattheend
+                'fetchTradingLimits': false, // checkattheend
+                'fetchTransactionFee': false, // checkattheend
+                'fetchTransactionFees': false, // checkattheend
+                'fetchTransactions': false, // checkattheend
+                'fetchTransfers': false, // checkattheend
                 'fetchWithdrawal': undefined, // checkattheend
-                'fetchWithdrawals': undefined, // checkattheend
-                'fetchWithdrawalWhitelist': undefined, // checkattheend
-                'reduceMargin': undefined, // checkattheend
-                'repayMargin': undefined, // checkattheend
-                'setLeverage': undefined, // checkattheend
-                'setMargin': undefined, // checkattheend
-                'setMarginMode': undefined, // checkattheend
-                'setPositionMode': undefined, // checkattheend
-                'signIn': undefined, // checkattheend
-                'transfer': undefined, // checkattheend
-                'withdraw': undefined, // checkattheend
+                'fetchWithdrawals': true, // checkattheend
+                'fetchWithdrawalWhitelist': false, // checkattheend
+                'reduceMargin': false, // checkattheend
+                'repayMargin': false, // checkattheend
+                'setLeverage': false, // checkattheend
+                'setMargin': false, // checkattheend
+                'setMarginMode': false, // checkattheend
+                'setPositionMode': false, // checkattheend
+                'signIn': false, // checkattheend
+                'transfer': false, // checkattheend
+                'withdraw': false, // checkattheend
             },
             'timeframes': {
                 '1m': '1m',
