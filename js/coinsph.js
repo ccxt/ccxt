@@ -2,7 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 // const { ExchangeError, ExchangeNotAvailable, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } = require ('./base/errors');
-const { ArgumentsRequired, BadRequest, ExchangeError, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -142,7 +142,6 @@ module.exports = class coinsph extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        // done =================================
                         'openapi/v1/ping': 1,
                         'openapi/v1/time': 1,
                         // cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
@@ -155,25 +154,23 @@ module.exports = class coinsph extends Exchange {
                         // cost 1 if 'symbol' param defined (one market symbol)
                         // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omited
                         'openapi/quote/v1/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                        // in progress ==========================
                         'openapi/v1/exchangeInfo': 10,
                         // cost 1 if limit <= 100; 5 if limit > 100.
                         'openapi/quote/v1/depth': { 'cost': 1, 'byLimit': [ [ 101, 5 ], [ 0, 1 ] ] },
                         'openapi/quote/v1/klines': 1, // default limit 500; max 1000.
                         'openapi/quote/v1/trades': 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
-                        // ======================================
+                        // not implemented =============
                         'openapi/v1/pairs': 1,
                         'openapi/quote/v1/avgPrice': 1,
+                        // =============================
                     },
                 },
                 'private': {
                     'get': {
-                        // in progress ==========================
                         'openapi/v1/account': 10,
                         // cost 3 for a single symbol; 40 when the symbol parameter is omitted
                         'openapi/v1/openOrders': { 'cost': 3, 'noSymbol': 40 },
                         'openapi/v1/asset/tradeFee': 1,
-                        // ======================================
                         'openapi/v1/order': 2,
                         // cost 10 with symbol, 40 when the symbol parameter is omitted;
                         'openapi/v1/historyOrders': { 'cost': 10, 'noSymbol': 40 },
@@ -240,17 +237,24 @@ module.exports = class coinsph extends Exchange {
             'exceptions': {
                 // todo
                 'exact': {
-                    '-10001': ArgumentsRequired, // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
-                    '-100012': ArgumentsRequired, // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
                     '-1001': BadRequest, // {"code":-1001,"msg":"Internal error."} // todo: check if it is good (send recvWindow as float)
                     '-1004': ArgumentsRequired, // {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
+                    '-1115': ArgumentsRequired, // {"code":-1115,"msg":"Invalid timeInForce."}
+                    '-1021': BadRequest, // {"code":-1021,"msg":"Timestamp for this request is outside of the recvWindow."}
+                    '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                    '-1024': BadRequest, // {"code":-1024,"msg":"recvWindow is not valid."}
+                    '-1025': BadRequest, // {"code":-1025,"msg":"recvWindow cannot be greater than 60000"}
                     '-1105': ArgumentsRequired, // {"code":-1105,"msg":"Parameter \u0027orderId and origClientOrderId\u0027 is empty."}
-                    '-1024': BadRequest, // {"code":-1024,"msg":"recvWindow is not valid."} // todo: check if it is good
-                    '-1025': BadRequest, // {"code":-1025,"msg":"recvWindow cannot be greater than 60000"} // todo: check if it is good
+                    '-1116': InvalidOrder, // {"code":-1116,"msg":"Invalid orderType."}
+                    '-1117': InvalidOrder, // {"code":-1117,"msg":"Invalid side."}
                     '-1131': InsufficientFunds, // {"code":-1131,"msg":"Balance insufficient "}
                     '-1140': InvalidOrder, // {"code":-1140,"msg":"Transaction amount lower than the minimum."}
                     '-2013': OrderNotFound, // {"code":-2013,"msg":"Order does not exist."}
+                    '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                     '-3127': InvalidOrder, // {"code":-3127,"msg":"Order price higher than 1523.192"}
+                    '-10001': ArgumentsRequired, // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
+                    '-100011': BadSymbol, // {"code":-100011,"msg":"Not supported symbols"}
+                    '-100012': BadSymbol, // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
                     '403': ExchangeNotAvailable,
                 },
                 'broad': {
@@ -709,7 +713,7 @@ module.exports = class coinsph extends Exchange {
             'symbol': market['id'],
         };
         if (since !== undefined) {
-        // todo: the exchange returns only last 'limit' trades
+        // todo: the exchange returns only last 'limit' trades (the same problem as with fetchOHLCV)
             request['limit'] = 1000;
         } else {
             if (limit !== undefined) {
