@@ -344,30 +344,35 @@ module.exports = class huobijp extends huobijpRest {
     }
 
     async watchOrderBookSnapshot (client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
-        const params = this.safeValue (subscription, 'params');
         const messageHash = this.safeString (subscription, 'messageHash');
-        const api = this.safeString (this.options, 'api', 'api');
-        const hostname = { 'hostname': this.hostname };
-        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
-        const requestId = this.requestId ();
-        const request = {
-            'req': messageHash,
-            'id': requestId,
-        };
-        // this is a temporary subscription by a specific requestId
-        // it has a very short lifetime until the snapshot is received over ws
-        const snapshotSubscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'limit': limit,
-            'params': params,
-            'method': this.handleOrderBookSnapshot,
-        };
-        const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
-        return orderbook.limit ();
+        try {
+            const symbol = this.safeString (subscription, 'symbol');
+            const limit = this.safeInteger (subscription, 'limit');
+            const params = this.safeValue (subscription, 'params');
+            const api = this.safeString (this.options, 'api', 'api');
+            const hostname = { 'hostname': this.hostname };
+            const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
+            const requestId = this.requestId ();
+            const request = {
+                'req': messageHash,
+                'id': requestId,
+            };
+            // this is a temporary subscription by a specific requestId
+            // it has a very short lifetime until the snapshot is received over ws
+            const snapshotSubscription = {
+                'id': requestId,
+                'messageHash': messageHash,
+                'symbol': symbol,
+                'limit': limit,
+                'params': params,
+                'method': this.handleOrderBookSnapshot,
+            };
+            const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
+            return orderbook.limit ();
+        } catch (e) {
+            delete client.subscriptions[messageHash];
+            client.reject (e, messageHash);
+        }
     }
 
     handleDelta (bookside, delta) {

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.8.99'
+__version__ = '2.9.11'
 
 # -----------------------------------------------------------------------------
 
@@ -609,8 +609,6 @@ class Exchange(BaseExchange):
             postOnly = timeInForce == 'PO'
         timestamp = self.safe_integer(order, 'timestamp')
         datetime = self.safe_string(order, 'datetime')
-        if timestamp is None:
-            timestamp = self.parse8601(timestamp)
         if datetime is None:
             datetime = self.iso8601(timestamp)
         triggerPrice = self.parse_number(self.safe_string_2(order, 'triggerPrice', 'stopPrice'))
@@ -1502,6 +1500,8 @@ class Exchange(BaseExchange):
             self.status = self.extend(self.status, {
                 'updated': time,
             })
+        if not ('info' in self.status):
+            self.status['info'] = None
         return self.status
 
     async def fetch_funding_fee(self, code, params={}):

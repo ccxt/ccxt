@@ -134,6 +134,7 @@ module.exports = class bitget extends Exchange {
                             'market/fills': 1,
                             'market/candles': 1,
                             'market/depth': 1,
+                            'market/spot-vip-level': 2,
                         },
                     },
                     'mix': {
@@ -151,6 +152,7 @@ module.exports = class bitget extends Exchange {
                             'market/open-interest': 1,
                             'market/mark-price': 1,
                             'market/symbol-leverage': 1,
+                            'market/contract-vip-level': 2,
                         },
                     },
                 },
@@ -1795,18 +1797,18 @@ module.exports = class bitget extends Exchange {
         // private
         //
         //     {
-        //         accountId: '6394957606',
-        //         symbol: 'LTCUSDT_SPBL',
-        //         orderId: '864752115272552448',
-        //         fillId: '864752115685969921',
+        //         accountId: '4383649766',
+        //         symbol: 'ETHBTC_SPBL',
+        //         orderId: '1009402341131468800',
+        //         fillId: '1009402351489581068',
         //         orderType: 'limit',
-        //         side: 'buy',
-        //         fillPrice: '127.92000000',
-        //         fillQuantity: '0.10000000',
-        //         fillTotalAmount: '12.79200000',
-        //         feeCcy: 'LTC',
-        //         fees: '0.00000000',
-        //         cTime: '1641898891373'
+        //         side: 'sell',
+        //         fillPrice: '0.06997800',
+        //         fillQuantity: '0.04120000',
+        //         fillTotalAmount: '0.00288309',
+        //         feeCcy: 'BTC',
+        //         fees: '-0.00000288',
+        //         cTime: '1676386195060'
         //     }
         //
         //     {
@@ -1840,7 +1842,7 @@ module.exports = class bitget extends Exchange {
             fee = {
                 'code': currencyCode, // kept here for backward-compatibility, but will be removed soon
                 'currency': currencyCode,
-                'cost': feeAmount,
+                'cost': Precise.stringNeg (feeAmount),
             };
         }
         const datetime = this.iso8601 (timestamp);
@@ -2064,24 +2066,23 @@ module.exports = class bitget extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
-        if (market['type'] === 'spot') {
-            const timeframes = this.options['timeframes']['spot'];
-            request['period'] = this.safeString (timeframes, timeframe, timeframe);
+        const timeframes = this.options['timeframes'][marketType];
+        const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
+        const duration = this.parseTimeframe (timeframe);
+        if (market['spot']) {
+            request['period'] = selectedTimeframe;
             request['limit'] = limit;
             if (since !== undefined) {
                 request['after'] = since;
                 if (until === undefined) {
-                    const millisecondsPerTimeframe = this.options['timeframes']['swap'][timeframe] * 1000;
-                    request['before'] = this.sum (since, millisecondsPerTimeframe * limit);
+                    request['before'] = this.sum (since, limit * duration * 1000);
                 }
             }
             if (until !== undefined) {
                 request['before'] = until;
             }
-        } else if (market['type'] === 'swap') {
-            const timeframes = this.options['timeframes']['swap'];
-            request['granularity'] = this.safeString (timeframes, timeframe, timeframe);
-            const duration = this.parseTimeframe (timeframe);
+        } else if (market['swap']) {
+            request['granularity'] = selectedTimeframe;
             const now = this.milliseconds ();
             if (since === undefined) {
                 request['startTime'] = now - (limit - 1) * (duration * 1000);

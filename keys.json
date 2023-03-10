@@ -17,7 +17,7 @@
     "bithumb":       { "skip": true },
     "bitmart":       { "skipWs": true },
     "bitmex":        { "skipWs": true },
-    "bitfinex":      { "skipWs": true },
+    "bitfinex":      { "skip": true, "skipWs": true },
     "bittrex":       { "skipWs": true },
     "btcalpha":      { "skip": true },
     "cdax":          { "skipWs": true },

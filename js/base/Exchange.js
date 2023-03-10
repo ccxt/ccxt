@@ -1195,11 +1195,8 @@ module.exports = class Exchange {
             // timeInForce is not undefined here
             postOnly = timeInForce === 'PO';
         }
-        let timestamp = this.safeInteger (order, 'timestamp');
+        const timestamp = this.safeInteger (order, 'timestamp');
         let datetime = this.safeString (order, 'datetime');
-        if (timestamp === undefined) {
-            timestamp = this.parse8601 (timestamp);
-        }
         if (datetime === undefined) {
             datetime = this.iso8601 (timestamp);
         }
@@ -2272,6 +2269,9 @@ module.exports = class Exchange {
             this.status = this.extend (this.status, {
                 'updated': time,
             });
+        }
+        if (!('info' in this.status)) {
+            this.status['info'] = undefined;
         }
         return this.status;
     }

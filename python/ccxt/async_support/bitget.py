@@ -155,6 +155,7 @@ class bitget(Exchange):
                             'market/fills': 1,
                             'market/candles': 1,
                             'market/depth': 1,
+                            'market/spot-vip-level': 2,
                         },
                     },
                     'mix': {
@@ -172,6 +173,7 @@ class bitget(Exchange):
                             'market/open-interest': 1,
                             'market/mark-price': 1,
                             'market/symbol-leverage': 1,
+                            'market/contract-vip-level': 2,
                         },
                     },
                 },
@@ -1749,18 +1751,18 @@ class bitget(Exchange):
         # private
         #
         #     {
-        #         accountId: '6394957606',
-        #         symbol: 'LTCUSDT_SPBL',
-        #         orderId: '864752115272552448',
-        #         fillId: '864752115685969921',
+        #         accountId: '4383649766',
+        #         symbol: 'ETHBTC_SPBL',
+        #         orderId: '1009402341131468800',
+        #         fillId: '1009402351489581068',
         #         orderType: 'limit',
-        #         side: 'buy',
-        #         fillPrice: '127.92000000',
-        #         fillQuantity: '0.10000000',
-        #         fillTotalAmount: '12.79200000',
-        #         feeCcy: 'LTC',
-        #         fees: '0.00000000',
-        #         cTime: '1641898891373'
+        #         side: 'sell',
+        #         fillPrice: '0.06997800',
+        #         fillQuantity: '0.04120000',
+        #         fillTotalAmount: '0.00288309',
+        #         feeCcy: 'BTC',
+        #         fees: '-0.00000288',
+        #         cTime: '1676386195060'
         #     }
         #
         #     {
@@ -1794,7 +1796,7 @@ class bitget(Exchange):
             fee = {
                 'code': currencyCode,  # kept here for backward-compatibility, but will be removed soon
                 'currency': currencyCode,
-                'cost': feeAmount,
+                'cost': Precise.string_neg(feeAmount),
             }
         datetime = self.iso8601(timestamp)
         return self.safe_trade({
@@ -2000,21 +2002,20 @@ class bitget(Exchange):
         until = self.safe_integer_2(query, 'until', 'till')
         if limit is None:
             limit = 100
-        if market['type'] == 'spot':
-            timeframes = self.options['timeframes']['spot']
-            request['period'] = self.safe_string(timeframes, timeframe, timeframe)
+        timeframes = self.options['timeframes'][marketType]
+        selectedTimeframe = self.safe_string(timeframes, timeframe, timeframe)
+        duration = self.parse_timeframe(timeframe)
+        if market['spot']:
+            request['period'] = selectedTimeframe
             request['limit'] = limit
             if since is not None:
                 request['after'] = since
                 if until is None:
-                    millisecondsPerTimeframe = self.options['timeframes']['swap'][timeframe] * 1000
-                    request['before'] = self.sum(since, millisecondsPerTimeframe * limit)
+                    request['before'] = self.sum(since, limit * duration * 1000)
             if until is not None:
                 request['before'] = until
-        elif market['type'] == 'swap':
-            timeframes = self.options['timeframes']['swap']
-            request['granularity'] = self.safe_string(timeframes, timeframe, timeframe)
-            duration = self.parse_timeframe(timeframe)
+        elif market['swap']:
+            request['granularity'] = selectedTimeframe
             now = self.milliseconds()
             if since is None:
                 request['startTime'] = now - (limit - 1) * (duration * 1000)

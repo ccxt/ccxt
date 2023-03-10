@@ -300,6 +300,8 @@ module.exports = class krakenfutures extends Exchange {
             // swap == perpetual
             let settle = undefined;
             let settleId = undefined;
+            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'contractValueTradePrecision', '0')));
+            const pricePrecision = this.safeNumber (market, 'tickSize');
             const contract = (swap || future);
             if (contract) {
                 const exchangeType = this.safeString (market, 'type');
@@ -345,8 +347,8 @@ module.exports = class krakenfutures extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': index ? undefined : this.parseNumber ('1'),
-                    'price': this.safeNumber (market, 'tickSize'),
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
                 },
                 'limits': {
                     'leverage': {
