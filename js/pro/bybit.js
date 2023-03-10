@@ -1274,7 +1274,7 @@ module.exports = class bybit extends bybitRest {
             for (let i = 0; i < data.length; i++) {
                 const result = this.safeValue (data, 0, {});
                 account = this.safeStringLower (result, 'accountType');
-                rawBalances = this.arrayConcat (rawBalances, (this.safeValue (result, 'coin', [])));
+                rawBalances = this.arrayConcat (rawBalances, this.safeValue (result, 'coin', []));
             }
             info = data;
         }
