@@ -2388,6 +2388,10 @@ class bybit(Exchange):
         marketType = 'contract'
         if market is not None:
             marketType = market['type']
+        category = self.safe_string(trade, 'category')
+        if category is not None:
+            if category == 'spot':
+                marketType = 'spot'
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         amountString = self.safe_string_n(trade, ['execQty', 'orderQty', 'size'])
@@ -3043,6 +3047,10 @@ class bybit(Exchange):
         marketType = 'contract'
         if market is not None:
             marketType = market['type']
+        category = self.safe_string(order, 'category')
+        if category is not None:
+            if category == 'spot':
+                marketType = 'spot'
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer(order, 'createdTime')

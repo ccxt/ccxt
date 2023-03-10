@@ -2433,6 +2433,12 @@ class bybit extends Exchange {
         if ($market !== null) {
             $marketType = $market['type'];
         }
+        $category = $this->safe_string($trade, 'category');
+        if ($category !== null) {
+            if ($category === 'spot') {
+                $marketType = 'spot';
+            }
+        }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
         $amountString = $this->safe_string_n($trade, array( 'execQty', 'orderQty', 'size' ));
@@ -3125,6 +3131,12 @@ class bybit extends Exchange {
         $marketType = 'contract';
         if ($market !== null) {
             $marketType = $market['type'];
+        }
+        $category = $this->safe_string($order, 'category');
+        if ($category !== null) {
+            if ($category === 'spot') {
+                $marketType = 'spot';
+            }
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];

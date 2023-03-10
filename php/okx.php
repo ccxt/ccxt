@@ -2546,7 +2546,9 @@ class okx extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
-        $stopPrice = $this->safe_number_n($order, array( 'tpTriggerPx', 'triggerPx', 'slTriggerPx' ));
+        $stopLossPrice = $this->safe_number_2($order, 'slTriggerPx', 'slOrdPx');
+        $takeProfitPrice = $this->safe_number_2($order, 'tpTriggerPx', 'tpOrdPx');
+        $stopPrice = $this->safe_number_n($order, array( 'triggerPx', 'moveTriggerPx' ));
         $reduceOnly = $this->safe_string($order, 'reduceOnly');
         if ($reduceOnly !== null) {
             $reduceOnly = ($reduceOnly === 'true');
@@ -2564,6 +2566,8 @@ class okx extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopLossPrice' => $stopLossPrice,
+            'takeProfitPrice' => $takeProfitPrice,
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
             'average' => $average,
