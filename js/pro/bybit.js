@@ -1071,15 +1071,25 @@ module.exports = class bybit extends bybitRest {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         const method = 'watchBalance';
-        const messageHash = 'balances';
+        let messageHash = 'balances';
         const unified = await this.isUnifiedEnabled ();
         const isUnifiedMargin = this.safeValue (unified, 0, false);
+        const isUnifiedAccount = this.safeValue (unified, 1, false);
         const url = this.getUrlByMarketType (undefined, true, isUnifiedMargin, method, params);
         await this.authenticate (url);
         const topicByMarket = {
             'spot': 'outboundAccountInfo',
             'unified': 'wallet',
         };
+        if (isUnifiedAccount) {
+            let subType = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
+            if (subType === 'inverse') {
+                messageHash += ':contract';
+            } else {
+                messageHash += ':unified';
+            }
+        }
         const topics = [ this.safeValue (topicByMarket, this.getPrivateType (url)) ];
         return await this.watchTopics (url, messageHash, topics, params);
     }
@@ -1234,6 +1244,7 @@ module.exports = class bybit extends bybitRest {
         const topic = this.safeValue (message, 'topic');
         let info = undefined;
         let rawBalances = [];
+        let account = undefined;
         if (topic === 'outboundAccountInfo') {
             const data = this.safeValue (message, 'data', []);
             for (let i = 0; i < data.length; i++) {
@@ -1246,23 +1257,37 @@ module.exports = class bybit extends bybitRest {
             const data = this.safeValue (message, 'data', {});
             for (let i = 0; i < data.length; i++) {
                 const result = this.safeValue (data, 0, {});
-                rawBalances = rawBalances.concat (this.safeValue (result, 'coin', []));
+                account = this.safeStringLower (result, 'accountType');
+                rawBalances = this.arrayConcat (rawBalances, (this.safeValue (result, 'coin', [])));
             }
             info = data;
         }
         for (let i = 0; i < rawBalances.length; i++) {
-            this.parseWsBalance (rawBalances[i]);
+            this.parseWsBalance (rawBalances[i], account);
         }
-        this.balance['info'] = info;
-        const timestamp = this.safeInteger (message, 'ts');
-        this.balance['timestamp'] = timestamp;
-        this.balance['datetime'] = this.iso8601 (timestamp);
-        this.balance = this.safeBalance (this.balance);
-        messageHash = 'balances';
-        client.resolve (this.balance, messageHash);
+        if (account !== undefined) {
+            if (this.balance[account] === undefined) {
+                this.balance[account] = {};
+            }
+            this.balance[account]['info'] = info;
+            const timestamp = this.safeInteger (message, 'ts');
+            this.balance[account]['timestamp'] = timestamp;
+            this.balance[account]['datetime'] = this.iso8601 (timestamp);
+            this.balance[account] = this.safeBalance (this.balance[account]);
+            messageHash = 'balances:' + account;
+            client.resolve (this.balance[account], messageHash);
+        } else {
+            this.balance['info'] = info;
+            const timestamp = this.safeInteger (message, 'ts');
+            this.balance['timestamp'] = timestamp;
+            this.balance['datetime'] = this.iso8601 (timestamp);
+            this.balance = this.safeBalance (this.balance);
+            messageHash = 'balances';
+            client.resolve (this.balance, messageHash);
+        }
     }
 
-    parseWsBalance (balance) {
+    parseWsBalance (balance, accountType = undefined) {
         //
         // spot
         //    {
@@ -1291,10 +1316,17 @@ module.exports = class bybit extends bybitRest {
         const account = this.account ();
         const currencyId = this.safeString2 (balance, 'a', 'coin');
         const code = this.safeCurrencyCode (currencyId);
-        account['free'] = this.safeStringN (balance, [ 'availableToWithdraw', 'f', 'free' ]);
+        account['free'] = this.safeStringN (balance, [ 'availableToWithdraw', 'f', 'free', 'availableToWithdraw' ]);
         account['used'] = this.safeString2 (balance, 'l', 'locked');
         account['total'] = this.safeString (balance, 'walletBalance');
-        this.balance[code] = account;
+        if (accountType !== undefined) {
+            if (this.balance[accountType] === undefined) {
+                this.balance[accountType] = {};
+            }
+            this.balance[accountType][code] = account;
+        } else {
+            this.balance[code] = account;
+        }
     }
 
     async watchTopics (url, messageHash, topics = [], params = {}) {
