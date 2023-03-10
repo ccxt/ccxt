@@ -2442,7 +2442,7 @@ module.exports = class okx extends Exchange {
         const marketId = this.safeString (order, 'instId');
         const symbol = this.safeSymbol (marketId, market, '-');
         const filled = this.safeString (order, 'accFillSz');
-        const price = this.safeStringN (order, [ 'px', 'ordPx', 'slOrdPx', 'tpOrdPx' ]);
+        const price = this.safeString2 (order, 'px', 'ordPx');
         const average = this.safeString (order, 'avgPx');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const feeCostString = this.safeString (order, 'fee');
@@ -2474,7 +2474,7 @@ module.exports = class okx extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopPrice = this.safeNumberN (order, [ 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ]);
+        const stopPrice = this.safeNumberN (order, [ 'triggerPx', 'slTriggerPx', 'tpTriggerPx', 'slOrdPx', 'tpOrdPx' ]);
         let reduceOnly = this.safeString (order, 'reduceOnly');
         if (reduceOnly !== undefined) {
             reduceOnly = (reduceOnly === 'true');
