@@ -1414,7 +1414,7 @@ module.exports = class binance extends binanceRest {
         }
         let fee = undefined;
         const feeCost = this.safeString (order, 'n');
-        if ((feeCost !== undefined) && (Precise.stringGt (feeCost, 0))) {
+        if ((feeCost !== undefined) && (Precise.stringGt (feeCost, '0'))) {
             const feeCurrencyId = this.safeString (order, 'N');
             const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             fee = {
