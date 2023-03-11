@@ -1353,7 +1353,7 @@ export default class bybit extends Exchange {
         //                     "baseCoin": "BTC",
         //                     "quoteCoin": "USDT",
         //                     "innovation": "0",
-        //                     "status": "1",
+        //                     "status": "Trading",
         //                     "lotSizeFilter": {
         //                         "basePrecision": "0.000001",
         //                         "quotePrecision": "0.00000001",
@@ -1386,7 +1386,7 @@ export default class bybit extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const status = this.safeString (market, 'status');
-            const active = (status === 'trading') || (status === '1'); // latter can be removed after 10/03
+            const active = (status === 'Trading');
             const lotSizeFilter = this.safeValue (market, 'lotSizeFilter');
             const priceFilter = this.safeValue (market, 'priceFilter');
             const quotePrecision = this.safeNumber (lotSizeFilter, 'quotePrecision');
@@ -2450,6 +2450,12 @@ export default class bybit extends Exchange {
         if (market !== undefined) {
             marketType = market['type'];
         }
+        const category = this.safeString (trade, 'category');
+        if (category !== undefined) {
+            if (category === 'spot') {
+                marketType = 'spot';
+            }
+        }
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = market['symbol'];
         const amountString = this.safeStringN (trade, [ 'execQty', 'orderQty', 'size' ]);
@@ -3148,6 +3154,12 @@ export default class bybit extends Exchange {
         let marketType = 'contract';
         if (market !== undefined) {
             marketType = market['type'];
+        }
+        const category = this.safeString (order, 'category');
+        if (category !== undefined) {
+            if (category === 'spot') {
+                marketType = 'spot';
+            }
         }
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = market['symbol'];

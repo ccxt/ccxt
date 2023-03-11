@@ -2581,10 +2581,12 @@ export default class okx extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopPrice = this.safeNumberN (order, [ 'tpTriggerPx', 'triggerPx', 'slTriggerPx' ]);
+        const stopLossPrice = this.safeNumber2 (order, 'slTriggerPx', 'slOrdPx');
+        const takeProfitPrice = this.safeNumber2 (order, 'tpTriggerPx', 'tpOrdPx');
+        const stopPrice = this.safeNumberN (order, [ 'triggerPx', 'moveTriggerPx' ]);
         const reduceOnlyRaw = this.safeString (order, 'reduceOnly');
-        let reduceOnly = undefined;
-        if (reduceOnlyRaw !== undefined) {
+        let reduceOnly = false;
+        if (reduceOnly !== undefined) {
             reduceOnly = (reduceOnlyRaw === 'true');
         }
         return this.safeOrder ({
@@ -2600,6 +2602,8 @@ export default class okx extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'average': average,

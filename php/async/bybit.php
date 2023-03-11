@@ -1369,7 +1369,7 @@ class bybit extends Exchange {
             //                     "baseCoin" => "BTC",
             //                     "quoteCoin" => "USDT",
             //                     "innovation" => "0",
-            //                     "status" => "1",
+            //                     "status" => "Trading",
             //                     "lotSizeFilter" => array(
             //                         "basePrecision" => "0.000001",
             //                         "quotePrecision" => "0.00000001",
@@ -1402,7 +1402,7 @@ class bybit extends Exchange {
                 $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
                 $status = $this->safe_string($market, 'status');
-                $active = ($status === 'trading') || ($status === '1'); // latter can be removed after 10/03
+                $active = ($status === 'Trading');
                 $lotSizeFilter = $this->safe_value($market, 'lotSizeFilter');
                 $priceFilter = $this->safe_value($market, 'priceFilter');
                 $quotePrecision = $this->safe_number($lotSizeFilter, 'quotePrecision');
@@ -2469,6 +2469,12 @@ class bybit extends Exchange {
         if ($market !== null) {
             $marketType = $market['type'];
         }
+        $category = $this->safe_string($trade, 'category');
+        if ($category !== null) {
+            if ($category === 'spot') {
+                $marketType = 'spot';
+            }
+        }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
         $amountString = $this->safe_string_n($trade, array( 'execQty', 'orderQty', 'size' ));
@@ -3167,6 +3173,12 @@ class bybit extends Exchange {
         $marketType = 'contract';
         if ($market !== null) {
             $marketType = $market['type'];
+        }
+        $category = $this->safe_string($order, 'category');
+        if ($category !== null) {
+            if ($category === 'spot') {
+                $marketType = 'spot';
+            }
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];

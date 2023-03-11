@@ -1346,7 +1346,7 @@ class bybit(Exchange):
         #                     "baseCoin": "BTC",
         #                     "quoteCoin": "USDT",
         #                     "innovation": "0",
-        #                     "status": "1",
+        #                     "status": "Trading",
         #                     "lotSizeFilter": {
         #                         "basePrecision": "0.000001",
         #                         "quotePrecision": "0.00000001",
@@ -1379,7 +1379,7 @@ class bybit(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             status = self.safe_string(market, 'status')
-            active = (status == 'trading') or (status == '1')  # latter can be removed after 10/03
+            active = (status == 'Trading')
             lotSizeFilter = self.safe_value(market, 'lotSizeFilter')
             priceFilter = self.safe_value(market, 'priceFilter')
             quotePrecision = self.safe_number(lotSizeFilter, 'quotePrecision')
@@ -2386,6 +2386,10 @@ class bybit(Exchange):
         marketType = 'contract'
         if market is not None:
             marketType = market['type']
+        category = self.safe_string(trade, 'category')
+        if category is not None:
+            if category == 'spot':
+                marketType = 'spot'
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         amountString = self.safe_string_n(trade, ['execQty', 'orderQty', 'size'])
@@ -3041,6 +3045,10 @@ class bybit(Exchange):
         marketType = 'contract'
         if market is not None:
             marketType = market['type']
+        category = self.safe_string(order, 'category')
+        if category is not None:
+            if category == 'spot':
+                marketType = 'spot'
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer(order, 'createdTime')

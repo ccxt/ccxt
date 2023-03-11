@@ -2456,7 +2456,9 @@ class okx(Exchange):
         clientOrderId = self.safe_string(order, 'clOrdId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
-        stopPrice = self.safe_number_n(order, ['tpTriggerPx', 'triggerPx', 'slTriggerPx'])
+        stopLossPrice = self.safe_number_2(order, 'slTriggerPx', 'slOrdPx')
+        takeProfitPrice = self.safe_number_2(order, 'tpTriggerPx', 'tpOrdPx')
+        stopPrice = self.safe_number_n(order, ['triggerPx', 'moveTriggerPx'])
         reduceOnly = self.safe_string(order, 'reduceOnly')
         if reduceOnly is not None:
             reduceOnly = (reduceOnly == 'true')
@@ -2473,6 +2475,8 @@ class okx(Exchange):
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'average': average,
