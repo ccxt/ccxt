@@ -972,10 +972,12 @@ module.exports = class cex extends cexRest {
         const pair = this.safeString (data, 'pair', '');
         const symbol = this.pairToSymbol (pair);
         const storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (incrementalId !== storedOrderBook['nonce'] + 1) {
-            throw new ExchangeError (this.id + ' watchOrderBook() skipped a message');
-        }
         const messageHash = 'orderbook:' + symbol;
+        if (incrementalId !== storedOrderBook['nonce'] + 1) {
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
+            client.reject (this.id + ' watchOrderBook() skipped a message', messageHash);
+        }
         const timestamp = this.safeInteger (data, 'time');
         const asks = this.safeValue (data, 'asks', []);
         const bids = this.safeValue (data, 'bids', []);
