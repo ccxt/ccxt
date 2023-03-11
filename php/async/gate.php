@@ -435,7 +435,6 @@ class gate extends Exchange {
                 'RAI' => 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC' => 'Super Bitcoin',
                 'TNC' => 'Trinity Network Credit',
-                'TON' => 'TONToken',
                 'VAI' => 'VAIOT',
             ),
             'requiredCredentials' => array(
