@@ -5,8 +5,8 @@
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
-const { ExchangeError } = require ('./base/errors');
-// ^^^ BadSymbol, BadRequest, OnMaintenance, InvalidOrder, ArgumentsRequired AccountSuspended, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, AuthenticationError
+const { ExchangeError, InvalidOrder, AuthenticationError } = require ('./base/errors');
+// ^^^ BadSymbol, BadRequest, OnMaintenance, ArgumentsRequired, AccountSuspended, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds
 
 //  ---------------------------------------------------------------------------
 
@@ -55,6 +55,7 @@ module.exports = class xt extends Exchange {
                 'fees': [
                 ],
             },
+            // TODO: Add all available endpoints
             'api': {
                 'public': {
                     'spot': {
@@ -88,6 +89,33 @@ module.exports = class xt extends Exchange {
                             'future/market/v1/public/q/kline': 1,
                             'future/market/v1/public/symbol/coins': 3.33,
                             'future/market/v1/public/symbol/list': 1,
+                        },
+                    },
+                },
+                'private': {
+                    'spot': {
+                        'get': {
+                            'order/{orderId}': 1,
+                            'order': 1,
+                        },
+                        'post': {
+                            'order': 0.5,
+                        },
+                    },
+                    'linear': {
+                        'get': {
+                            'future/trade/v1/order/trade-list': 1,
+                        },
+                        'post': {
+                            'future/trade/v1/order/create': 0.5,
+                        },
+                    },
+                    'inverse': {
+                        'get': {
+                            'future/trade/v1/order/trade-list': 1,
+                        },
+                        'post': {
+                            'future/trade/v1/order/create': 0.5,
                         },
                     },
                 },
@@ -133,7 +161,20 @@ module.exports = class xt extends Exchange {
                 },
             },
             'exceptions': {
-                'exact': { // TODO: Error codes
+                'exact': { // TODO: Error codes, https://doc.xt.com/#documentationerrorCode
+                    'AUTH_001': AuthenticationError, // missing request header xt-validate-appkey
+                    'AUTH_002': AuthenticationError, // missing request header xt-validate-timestamp
+                    'AUTH_003': AuthenticationError, // missing request header xt-validate-recvwindow
+                    'AUTH_004': AuthenticationError, // bad request header xt-validate-recvwindow
+                    'AUTH_005': AuthenticationError, // missing request header xt-validate-algorithms
+                    'AUTH_006': AuthenticationError, // bad request header xt-validate-algorithms
+                    'AUTH_007': AuthenticationError, // missing request header xt-validate-signature
+                    'AUTH_101': AuthenticationError, // ApiKey does not exist
+                    'AUTH_102': AuthenticationError, // ApiKey is not activated
+                    'AUTH_103': AuthenticationError, // Signature error, {"rc":1,"mc":"AUTH_103","ma":[],"result":null}
+                    'AUTH_104': AuthenticationError, // Unbound IP request
+                    'AUTH_105': AuthenticationError, // outdated message
+                    'AUTH_106': AuthenticationError, // Exceeded apikey permission
                 },
                 'broad': {},
             },
@@ -154,7 +195,7 @@ module.exports = class xt extends Exchange {
                 '1w': '1w',
                 '1M': '1M', // spot only
             },
-            'options': { // TODO: options
+            'options': {
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
@@ -442,6 +483,8 @@ module.exports = class xt extends Exchange {
                     'NEO': 'NEO',
                     'Zilliqa': 'ZIL',
                 },
+                'createMarketBuyOrderRequiresPrice': true,
+                'recvWindow': 5000, // in milliseconds, spot only
             },
         });
     }
@@ -911,9 +954,9 @@ module.exports = class xt extends Exchange {
             'expiryDatetime': this.iso8601 (expiry),
             'strike': undefined,
             'optionType': undefined,
-            'precision': {
+            'precision': { // TODO: correct precision and limits
                 'price': this.safeNumber (market, 'pricePrecision'),
-                'amount': this.safeNumber (market, 'quantityPrecision'),
+                'amount': undefined,
             },
             'limits': {
                 'leverage': {
@@ -1508,29 +1551,188 @@ module.exports = class xt extends Exchange {
         };
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#createOrder
+         * @description create a trade order
+         * @see https://doc.xt.com/#orderorderPost
+         * @see https://doc.xt.com/#futures_ordercreate
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float|undefined} price the price to fulfill the order, in units of the quote currency, can be ignored in market orders
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @param {float|undefined} params.stopPrice price to trigger stop orders
+         * @param {float|undefined} params.triggerPrice price to trigger stop orders
+         * @param {float|undefined} params.stopLossPrice price to trigger stop-loss orders
+         * @param {float|undefined} params.takeProfitPrice price to trigger take-profit orders
+         * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'FOK' or 'GTX'
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        let method = undefined;
+        if (market['spot']) {
+            method = 'privateSpotPostOrder';
+            request['side'] = side.toUpperCase ();
+            request['type'] = type.toUpperCase ();
+            request['timeInForce'] = this.safeStringUpper (params, 'timeInForce', 'GTC');
+            request['bizType'] = (marketType === 'margin') ? 'LEVER' : 'SPOT';
+            if (type === 'market') {
+                if (side === 'buy') {
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    if (createMarketBuyOrderRequiresPrice) {
+                        if (price === undefined) {
+                            throw new InvalidOrder (this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                        } else {
+                            const amountString = this.numberToString (amount);
+                            const priceString = this.numberToString (price);
+                            const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
+                            request['quoteQty'] = this.amountToPrecision (symbol, cost);
+                        }
+                    } else {
+                        request['quantity'] = this.amountToPrecision (symbol, amount);
+                    }
+                } else {
+                    request['quantity'] = this.amountToPrecision (symbol, amount);
+                }
+            } else {
+                request['price'] = price; // this.priceToPrecision (symbol, price);
+                request['quantity'] = amount; // this.amountToPrecision (symbol, amount);
+            }
+        } else {
+            if (market['linear']) {
+                method = 'privateLinearPostFutureTradeV1OrderCreate';
+            } else if (market['inverse']) {
+                method = 'privateInversePostFutureTradeV1OrderCreate';
+            }
+            request['orderSide'] = side.toUpperCase ();
+            request['orderType'] = type.toUpperCase ();
+            request['origQty'] = amount; // this.amountToPrecision (symbol, amount);
+            if (price !== undefined) {
+                request['price'] = price; // this.priceToPrecision (symbol, price);
+            }
+            const timeInForce = this.safeStringUpper (params, 'timeInForce');
+            if (timeInForce !== undefined) {
+                request['timeInForce'] = timeInForce;
+            }
+            const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+            if (side === 'buy') {
+                const requestType = (reduceOnly) ? 'SHORT' : 'LONG';
+                request['positionSide'] = requestType;
+            } else {
+                const requestType = (reduceOnly) ? 'LONG' : 'SHORT';
+                request['positionSide'] = requestType;
+            }
+            // TODO: add stop, stopLoss and takeProfit orders
+        }
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'postOnly' ]);
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {
+        //             "orderId": "204371980095156544"
+        //         }
+        //     }
+        //
+        // swap and future
+        //
+        //
+        const order = this.safeValue (response, 'result', {});
+        return this.parseOrder (order, market);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         "orderId": "204371980095156544"
+        //     }
+        //
+        // swap and future
+        //
+        //
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': undefined,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': undefined,
+            'price': undefined,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'amount': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'status': undefined,
+            'fee': {
+                'cost': undefined,
+                'currency': undefined,
+            },
+            'trades': undefined,
+        }, market);
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        // TODO: Handle errors
+        // TODO: finish handleErrors, spot api and linear/inverse, private and public, apis check the different error formats
+        //
+        // spot
         //
         //     {
-        //       "error": {
-        //         "code": 20001,
-        //         "message": "Insufficient funds",
-        //         "description": "Check that the funds are sufficient, given commissions"
-        //       }
+        //         "rc": 1,
+        //         "mc": "AUTH_103",
+        //         "ma": [],
+        //         "result": null
         //     }
         //
         //     {
-        //       "error": {
-        //         "code": "600",
-        //         "message": "Action not allowed"
-        //       }
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": []
         //     }
         //
-        const error = this.safeValue (response, 'error');
-        const errorCode = this.safeString (error, 'code');
-        if (errorCode !== undefined) {
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 1,
+        //         "msgInfo": "failure",
+        //         "error": {
+        //             "code": "403",
+        //             "msg": "invalid signature"
+        //         },
+        //         "result": null
+        //     }
+        //
+        const status = this.safeStringUpper2 (response, 'msgInfo', 'mc');
+        if (status !== 'SUCCESS') {
             const feedback = this.id + ' ' + body;
-            const message = this.safeString2 (error, 'message', 'description');
+            const error = this.safeValue (response, 'error', {});
+            const spotErrorCode = this.safeString (response, 'mc');
+            const errorCode = this.safeString (error, 'code', spotErrorCode);
+            const spotMessage = this.safeString (response, 'msgInfo');
+            const message = this.safeString (error, 'msg', spotMessage);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);
@@ -1556,30 +1758,51 @@ module.exports = class xt extends Exchange {
         const urlencoded = this.urlencode (this.keysort (query));
         if (signed) {
             this.checkRequiredCredentials ();
-            body = this.json (params);
-            const implodedPath = this.implodeParams (path, params);
-            const timestamp = this.nonce ().toString ();
-            const payload = [ method, '/api/3/' + implodedPath ];
-            payload.push (body);
-            payload.push (timestamp);
-            const payloadString = payload.join ('');
-            const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), 'sha256', 'hex');
-            const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
-            const encoded = this.decode (this.stringToBase64 (secondPayload));
-            headers['Authorization'] = 'HS256 ' + encoded;
-            headers = {
-                'ACCESS-KEY': this.apiKey,
-                'ACCESS-SIGN': signature,
-                'ACCESS-TIMESTAMP': timestamp,
-            };
+            const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
+            const recvWindow = this.safeInteger (params, 'recvWindow', defaultRecvWindow);
+            const timestamp = this.numberToString (this.nonce ());
+            body = params;
+            if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create')) {
+                body['clientMedia'] = 'CCXT';
+            }
+            body = (method === 'GET') ? undefined : this.json (body);
+            let payloadString = undefined;
+            if (endpoint === 'spot') {
+                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + this.numberToString (recvWindow) + '&xt-validate-timestamp=' + timestamp;
+                if (method === 'GET') {
+                    payloadString = payloadString + '#' + method + '#' + payload;
+                } else {
+                    payloadString = payloadString + '#' + method + '#' + payload + '#' + body;
+                }
+                headers = {
+                    'xt-validate-algorithms': 'HmacSHA256',
+                    'xt-validate-recvwindow': this.numberToString (recvWindow),
+                    'Content-Type': 'application/json',
+                };
+            } else {
+                payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-timestamp=' + timestamp;
+                if (method === 'GET') {
+                    payloadString = payloadString + '#' + payload;
+                } else {
+                    payloadString = payloadString + '#' + payload + '#' + body;
+                }
+                headers = {
+                    'Content-Type': 'application/json',
+                    // 'Content-Type': 'application/x-www-form-urlencoded',
+                };
+            }
+            const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), 'sha256');
+            headers['xt-validate-appkey'] = this.apiKey;
+            headers['xt-validate-timestamp'] = timestamp;
+            headers['xt-validate-signature'] = signature;
         } else {
             if (urlencoded) {
                 url += '?' + urlencoded;
             }
+            headers = {
+                'Content-Type': 'application/json',
+            };
         }
-        headers = {
-            'Content-Type': 'application/json',
-        };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
