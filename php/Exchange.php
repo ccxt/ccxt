@@ -552,6 +552,7 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
         'getDefaultOptions' => 'get_default_options',
+        'calculateRateLimitTokenBucket' => 'calculate_rate_limit_token_bucket',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'setMarkets' => 'set_markets',
         'safeBalance' => 'safe_balance',
@@ -1471,6 +1472,7 @@ class Exchange {
             $this->set_markets($this->markets);
         }
     }
+
 
     public function set_sandbox_mode($enabled) {
         if ($enabled) {
@@ -2514,6 +2516,20 @@ class Exchange {
                 'CRO' => array( 'CRC20' => 'CRONOS' ),
             ),
         );
+    }
+
+    public function calculate_rate_limit_token_bucket($rateLimitConfig) {
+        $rateLimit = $this->safe_number($rateLimitConfig, 'rateLimit');
+        $refillRate = ($rateLimit !== null) ? (1 / $rateLimit) : PHP_INT_MAX;
+        $tokenBucket = $this->safe_value($rateLimitConfig, 'tokenBucket', array());
+        $config = array_merge(array(
+            'delay' => 0.001,
+            'capacity' => 1,
+            'cost' => 1,
+            'maxCapacity' => 1000,
+            'refillRate' => $refillRate,
+        ), $tokenBucket);
+        return $config;
     }
 
     public function safe_ledger_entry($entry, $currency = null) {

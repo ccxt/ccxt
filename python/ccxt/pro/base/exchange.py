@@ -14,6 +14,8 @@ from ccxt import NotSupported, ExchangeError, BaseError
 from ccxt.pro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 from ccxt.async_support.base.throttler import Throttler
 import asyncio
+import time
+
 
 # -----------------------------------------------------------------------------
 
@@ -26,6 +28,8 @@ __all__ = [
 
 
 class Exchange(BaseExchange):
+
+    lastNewConnectionTimestamp = 0
 
     clients = {}
 
@@ -59,20 +63,40 @@ class Exchange(BaseExchange):
     def counted_order_book(self, snapshot={}, depth=None):
         return CountedOrderBook(snapshot, depth)
 
+    def throttleNewWsConnections(self):
+        ws_options = self.safe_value(self.options, 'ws', {})
+        rate_limits = self.safe_value(ws_options, 'rateLimits', {})
+        default_rate_limit_config = self.safe_value(rate_limits, 'default', self.tokenBucket)
+        # get new connections rl config if not fallback to ws default if not fallback to exchange rl
+        new_connections_rate_limit_config = self.safe_value(rate_limits, 'newConnections')
+        now = float(self.milliseconds())
+        elapsed = now - self.lastNewConnectionTimestamp
+        sleep_time = self.safe_number(new_connections_rate_limit_config, 'rateLimit', self.safe_number(default_rate_limit_config, 'rateLimit', self.rateLimit))
+        if elapsed < sleep_time:
+            delay = sleep_time - elapsed
+            time.sleep(delay / 1000.0)
+
     def client(self, url):
-        self.clients = self.clients or {}
+        ws_options = self.safe_value(self.options, 'ws', {})
+        # get ws rl config
+        rate_limits = self.safe_value(ws_options, 'rateLimits', {})
+        # get ws rl config, if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
+        default_rate_limit_config = self.safe_value(rate_limits, 'default', self.tokenBucket)
         if url not in self.clients:
+            self.lastNewConnectionTimestamp = self.milliseconds()
             on_message = self.handle_message
             on_error = self.on_error
             on_close = self.on_close
             on_connected = self.on_connected
+            # allowing specify rate limits per url, if not specified use default
+            rate_limit_config = self.safe_value(rate_limits, url, default_rate_limit_config)
+            rate_limit_token_bucket = self.calculate_rate_limit_token_bucket(rate_limit_config)
             # decide client type here: aiohttp ws / websockets / signalr / socketio
-            ws_options = self.safe_value(self.options, 'ws', {})
             options = self.extend(self.streaming, {
                 'log': getattr(self, 'log'),
                 'ping': getattr(self, 'ping', None),
                 'verbose': self.verbose,
-                'throttle': Throttler(self.tokenBucket, self.asyncio_loop),
+                'throttle': Throttler(rate_limit_token_bucket, self.asyncio_loop),
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
@@ -106,8 +130,15 @@ class Exchange(BaseExchange):
 
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
-        connected = client.connected if client.connected.done() \
-            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+        connected = None
+        if client.connected.done():
+            connected = client.connected
+        else:
+            async def connect():
+                if self.enableRateLimit:
+                    self.throttleNewWsConnections()
+                return await client.connect(self.session, backoff_delay)
+            connected = asyncio.ensure_future(connect())
 
         def after(fut):
             if subscribe_hash not in client.subscriptions:

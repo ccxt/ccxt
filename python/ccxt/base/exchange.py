@@ -425,7 +425,6 @@ class Exchange(object):
                     setattr(cls, camelcase, getattr(cls, name))
                 else:
                     setattr(self, camelcase, attr)
-
         self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
             'delay': 0.001,
@@ -1807,6 +1806,19 @@ class Exchange(object):
                 'CRO': {'CRC20': 'CRONOS'},
             },
         }
+
+    def calculate_rate_limit_token_bucket(self, rateLimitConfig):
+        rateLimit = self.safe_number(rateLimitConfig, 'rateLimit')
+        refillRate = (1 / rateLimit) if (rateLimit is not None) else float('inf')
+        tokenBucket = self.safe_value(rateLimitConfig, 'tokenBucket', {})
+        config = self.extend({
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': refillRate,
+        }, tokenBucket)
+        return config
 
     def safe_ledger_entry(self, entry, currency=None):
         currency = self.safe_currency(None, currency)

@@ -43,19 +43,40 @@ module.exports = class Exchange extends BaseExchange {
     }
 
     client (url) {
-        this.clients = this.clients || {};
+        const wsOptions = this.safeValue (this.options, 'ws', {});
+        // get ws rl config
+        const rateLimits = this.safeValue (wsOptions, 'rateLimits', {});
+        // get ws rl config, if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
+        const defaultRateLimitConfig = this.safeValue (rateLimits, 'default', this);
+        const defaultTokenBucket = this.calculateRateLimitTokenBucket (defaultRateLimitConfig);
+        if (!this.clients) {
+            // get new connections rl config if not fallback to default
+            let newConnectionsRateLimitConfig = this.safeValue (rateLimits, 'newConnections');
+            if (newConnectionsRateLimitConfig === undefined) {
+                newConnectionsRateLimitConfig = {
+                    'tokenBucket': defaultTokenBucket,
+                }
+            }
+            const newConnectionsTockenBucket = this.calculateRateLimitTokenBucket (newConnectionsRateLimitConfig);
+            const throttleInstance = throttle (newConnectionsTockenBucket);
+            this.clients = {
+                'throttle': throttleInstance
+            };
+        }
         if (!this.clients[url]) {
             const onMessage = this.handleMessage.bind (this);
             const onError = this.onError.bind (this);
             const onClose = this.onClose.bind (this);
             const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
-            const wsOptions = this.safeValue (this.options, 'ws', {});
+            // allowing specify rate limits per url, if not specified use default
+            const rateLimitConfig = this.safeValue (rateLimits, url, defaultRateLimitConfig);
+            const rateLimitTokenBucket = this.calculateRateLimitTokenBucket (rateLimitConfig);
             const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
                 'verbose': this.verbose,
-                'throttle': throttle (this.tokenBucket),
+                'throttle': throttle (rateLimitTokenBucket),
                 // add support for proxies
                 'options': {
                     'agent': this.agent || this.httpsAgent || this.httpAgent,
@@ -72,9 +93,9 @@ module.exports = class Exchange extends BaseExchange {
         return future
     }
 
-    delay (timeout, method, ... args) {
+    delay (timeout, method, ...args) {
         setTimeout (() => {
-            this.spawn (method, ... args)
+            this.spawn (method, ...args)
         }, timeout);
     }
 
@@ -85,7 +106,12 @@ module.exports = class Exchange extends BaseExchange {
         //     const client = this.client (url)
         //     const backoffDelay = 0
         //     const future = client.future (messageHash)
-        //     const connected = client.connect (backoffDelay)
+        //     let connected = undefined;
+        //     if (this.enableRateLimit) {
+        //         connected = this.throttle ().then (() => client.connect (backoffDelay));
+        //     } else {
+        //         connected = client.connect (backoffDelay);
+        //     }
         //     connected.then (() => {
         //         if (message && !client.subscriptions[subscribeHash]) {
         //             client.subscriptions[subscribeHash] = true
@@ -115,7 +141,12 @@ module.exports = class Exchange extends BaseExchange {
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
-        const connected = client.connect (backoffDelay);
+        let connected = undefined;
+        if (this.enableRateLimit && this.clients.throttle && !client.startedConnecting) {
+            connected = this.clients.throttle ().then (() => client.connect (backoffDelay));
+        } else {
+            connected = client.connect (backoffDelay);
+        }
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
         // (connection established successfully)

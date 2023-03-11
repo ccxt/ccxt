@@ -408,7 +408,7 @@ module.exports = class Exchange {
         if (this.rateLimit === undefined) {
             throw new Error (this.id + '.rateLimit property is not configured');
         }
-        this.tokenBucket = this.extend ({
+        this.tokenBucket = this.extend ({  // TODO: change to use calculateRateLimitTokenBucket
             delay: 0.001,
             capacity: 1,
             cost: 1,
@@ -811,6 +811,20 @@ module.exports = class Exchange {
                 'CRO': { 'CRC20': 'CRONOS' },
             },
         };
+    }
+
+    calculateRateLimitTokenBucket (rateLimitConfig) {
+        const rateLimit = this.safeNumber (rateLimitConfig, 'rateLimit');
+        const refillRate = (rateLimit !== undefined) ? (1 / rateLimit) : Number.MAX_SAFE_INTEGER;
+        const tokenBucket = this.safeValue (rateLimitConfig, 'tokenBucket', {});
+        const config = this.extend ({
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': refillRate,
+        }, tokenBucket);
+        return config;
     }
 
     safeLedgerEntry (entry, currency = undefined) {
