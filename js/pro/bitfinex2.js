@@ -841,7 +841,7 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
     authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
-        const messageHash = 'authenticate';
+        const messageHash = 'authenticated';
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             const nonce = this.milliseconds ();
@@ -966,13 +966,15 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
         } else {
             const parsed = this.parseWsOrder (data);
             orders.append (parsed);
+            const symbol = parsed['symbol'];
+            symbolIds[symbol] = true;
         }
         const name = 'orders';
         client.resolve (this.orders, name);
         const keys = Object.keys (symbolIds);
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
-            const market = this.safeMarket (symbol);
+            const market = this.market (symbol);
             const messageHash = name + ':' + market['id'];
             client.resolve (this.orders, messageHash);
         }
@@ -1029,7 +1031,7 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
         const clientOrderId = this.safeString (order, 1);
         const marketId = this.safeString (order, 3);
         const symbol = this.safeSymbol (marketId);
-        market = this.safeMarket (symbol);
+        market = this.safeMarket (marketId);
         let amount = this.safeNumber (order, 7);
         let side = 'buy';
         if (amount < 0) {

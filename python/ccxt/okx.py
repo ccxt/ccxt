@@ -2456,7 +2456,9 @@ class okx(Exchange):
         clientOrderId = self.safe_string(order, 'clOrdId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
-        stopPrice = self.safe_number_n(order, ['tpTriggerPx', 'triggerPx', 'slTriggerPx'])
+        stopLossPrice = self.safe_number_2(order, 'slTriggerPx', 'slOrdPx')
+        takeProfitPrice = self.safe_number_2(order, 'tpTriggerPx', 'tpOrdPx')
+        stopPrice = self.safe_number_n(order, ['triggerPx', 'moveTriggerPx'])
         reduceOnly = self.safe_string(order, 'reduceOnly')
         if reduceOnly is not None:
             reduceOnly = (reduceOnly == 'true')
@@ -2473,6 +2475,8 @@ class okx(Exchange):
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'average': average,
@@ -3575,26 +3579,31 @@ class okx(Exchange):
         currency = self.currency(code)
         if (tag is not None) and (len(tag) > 0):
             address = address + ':' + tag
-        fee = self.safe_string(params, 'fee')
-        if fee is None:
-            raise ArgumentsRequired(self.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
         request = {
             'ccy': currency['id'],
             'toAddr': address,
             'dest': '4',  # 2 = OKCoin International, 3 = OKX 4 = others
             'amt': self.number_to_string(amount),
-            'fee': self.number_to_string(fee),  # withdrawals to OKCoin or OKX are fee-free, please set 0
         }
-        if 'password' in params:
-            request['pwd'] = params['password']
-        elif 'pwd' in params:
-            request['pwd'] = params['pwd']
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH>ERC20 alias
         if network is not None:
             request['chain'] = currency['id'] + '-' + network
             params = self.omit(params, 'network')
+        fee = self.safe_string(params, 'fee')
+        if fee is None:
+            currencies = self.fetch_currencies()
+            self.currencies = self.deep_extend(self.currencies, currencies)
+            targetNetwork = self.safe_value(currency['networks'], self.network_id_to_code(network), {})
+            fee = self.safe_string(targetNetwork, 'fee')
+            if fee is None:
+                raise ArgumentsRequired(self.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
+            request['fee'] = self.number_to_string(fee)  # withdrawals to OKCoin or OKX are fee-free, please set 0
+        if 'password' in params:
+            request['pwd'] = params['password']
+        elif 'pwd' in params:
+            request['pwd'] = params['pwd']
         query = self.omit(params, ['fee', 'password', 'pwd'])
         if not ('pwd' in request):
             raise ExchangeError(self.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase')

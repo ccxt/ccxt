@@ -20,7 +20,7 @@ class gate extends Exchange {
             'pro' => true,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
-                'doc' => 'https://www.gate.io/docs/apiv4/en/index.html',
+                'doc' => 'https://www.gate.io/docs/developers/apiv4/en/',
                 'www' => 'https://gate.io/',
                 'api' => array(
                     'public' => array(
@@ -682,6 +682,11 @@ class gate extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for gate
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currency-pairs-supported                                     // spot
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         // margin
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts                                            // swap
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2                                          // future
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time  // option
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing market data
          */
@@ -2372,10 +2377,14 @@ class gate extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#$market-candlesticks       // spot
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-futures-candlesticks  // swap
+         * @see https://www.gate.io/docs/developers/apiv4/en/#$market-candlesticks       // future
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-options-candlesticks  // option
          * @param {string} $symbol unified $symbol of the $market $to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle $to fetch
-         * @param {int|null} $limit the maximum amount of candles $to fetch
+         * @param {int|null} $limit the maximum amount of candles $to fetch, $limit is conflicted with $since and $params["until"], If either $since and $params["until"] is specified, $request will be rejected
          * @param {array} $params extra parameters specific $to the gateio api endpoint
          * @param {string|null} $params->price "mark" or "index" for mark $price and index $price candles
          * @param {int|null} $params->until timestamp in ms of the latest candle $to fetch
