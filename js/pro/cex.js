@@ -975,7 +975,6 @@ module.exports = class cex extends cexRest {
         const messageHash = 'orderbook:' + symbol;
         if (incrementalId !== storedOrderBook['nonce'] + 1) {
             delete client.subscriptions[messageHash];
-            delete this.orderbooks[symbol];
             client.reject (this.id + ' watchOrderBook() skipped a message', messageHash);
         }
         const timestamp = this.safeInteger (data, 'time');
