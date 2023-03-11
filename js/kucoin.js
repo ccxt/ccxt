@@ -418,6 +418,9 @@ module.exports = class kucoin extends Exchange {
                 'fetchMarkets': {
                     'fetchTickersFees': true,
                 },
+                'withdraw': {
+                    'includeFee': false,
+                },
                 // endpoint versions
                 'versions': {
                     'public': {
@@ -2289,6 +2292,11 @@ module.exports = class kucoin extends Exchange {
             network = network.toLowerCase ();
             request['chain'] = network;
             params = this.omit (params, 'network');
+        }
+        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const includeFee = this.safeValue (withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['feeDeductType'] = 'INTERNAL';
         }
         const response = await this.privatePostWithdrawals (this.extend (request, params));
         //
