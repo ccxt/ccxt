@@ -1426,8 +1426,8 @@ class binance extends \ccxt\async\binance {
             $lastTradeTimestamp = $T;
         }
         $fee = null;
-        $feeCost = $this->safe_float($order, 'n');
-        if (($feeCost !== null) && ($feeCost > 0)) {
+        $feeCost = $this->safe_string($order, 'n');
+        if (($feeCost !== null) && (Precise::string_gt($feeCost, '0'))) {
             $feeCurrencyId = $this->safe_string($order, 'N');
             $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
