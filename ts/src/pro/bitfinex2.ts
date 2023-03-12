@@ -1032,11 +1032,11 @@ export default class bitfinex2 extends bitfinex2Rest {
         const clientOrderId = this.safeString (order, 1);
         const marketId = this.safeString (order, 3);
         const symbol = this.safeSymbol (marketId);
-        market = this.safeMarket (marketId);
-        let amount = this.safeNumber (order, 7);
+        market = this.safeMarket (symbol);
+        let amount = this.safeString (order, 7);
         let side = 'buy';
-        if (amount < 0) {
-            amount = Math.abs (amount);
+        if (Precise.stringLt (amount, '0')) {
+            amount = Precise.stringAbs (amount);
             side = 'sell';
         }
         const remaining = Precise.stringAbs (this.safeString (order, 6));
