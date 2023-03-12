@@ -628,19 +628,19 @@ export default class bitfinex2 extends bitfinex2Rest {
             const deltas = message[1];
             const orderbook = this.orderbooks[symbol];
             if (isRaw) {
-                const price = this.safeFloat (deltas, 1);
+                const price = this.safeString (deltas, 1);
                 const size = (deltas[2] < 0) ? -deltas[2] : deltas[2];
                 const side = (deltas[2] < 0) ? 'asks' : 'bids';
                 const bookside = orderbook[side];
                 // price = 0 means that you have to remove the order from your book
-                const amount = (price > 0) ? size : 0;
+                const amount = Precise.stringGt (price, '0') ? size : 0;
                 bookside.store (price, amount, id);
             } else {
-                const amount = this.safeNumber (deltas, 2);
-                const counter = this.safeNumber (deltas, 1);
-                const price = this.safeNumber (deltas, 0);
-                const size = (amount < 0) ? -amount : amount;
-                const side = (amount < 0) ? 'asks' : 'bids';
+                const amount = this.safeString (deltas, 2);
+                const counter = this.safeString (deltas, 1);
+                const price = this.safeString (deltas, 0);
+                const size = Precise.stringLt (amount, '0') ? Precise.stringNeg (amount) : amount;
+                const side = Precise.stringLt (amount, '0') ? 'asks' : 'bids';
                 const bookside = orderbook[side];
                 bookside.store (price, size, counter);
             }
