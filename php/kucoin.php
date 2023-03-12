@@ -417,6 +417,9 @@ class kucoin extends Exchange {
                 'fetchMarkets' => array(
                     'fetchTickersFees' => true,
                 ),
+                'withdraw' => array(
+                    'includeFee' => false,
+                ),
                 // endpoint versions
                 'versions' => array(
                     'public' => array(
@@ -2237,6 +2240,11 @@ class kucoin extends Exchange {
             $request['chain'] = $network;
             $params = $this->omit($params, 'network');
         }
+        $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+        $includeFee = $this->safe_value($withdrawOptions, 'includeFee', false);
+        if ($includeFee) {
+            $request['feeDeductType'] = 'INTERNAL';
+        }
         $response = $this->privatePostWithdrawals (array_merge($request, $params));
         //
         // https://github.com/ccxt/ccxt/issues/5558
@@ -2255,7 +2263,7 @@ class kucoin extends Exchange {
     public function parse_transaction_status($status) {
         $statuses = array(
             'SUCCESS' => 'ok',
-            'PROCESSING' => 'ok',
+            'PROCESSING' => 'pending',
             'FAILURE' => 'failed',
         );
         return $this->safe_string($statuses, $status);

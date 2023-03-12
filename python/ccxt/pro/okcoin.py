@@ -542,12 +542,13 @@ class okcoin(Exchange, ccxt.async_support.okcoin):
         #
         table = self.safe_string(message, 'table')
         parts = table.split('/')
+        data = self.safe_value(message, 'data', [])
+        self.balance['info'] = data
         type = self.safe_string(parts, 0)
         if type == 'spot':
             part1 = self.safe_string(parts, 1)
             if part1 == 'margin_account':
                 type = 'margin'
-        data = self.safe_value(message, 'data', [])
         for i in range(0, len(data)):
             balance = self.parseBalanceByType(type, data)
             oldBalance = self.safe_value(self.balance, type, {})

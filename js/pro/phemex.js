@@ -328,15 +328,15 @@ module.exports = class phemex extends phemexRest {
         //           lockedTradingBalanceEv: 0,
         //           lockedWithdrawEv: 0,
         //           userID: 2647224
-        //       },
-        //       {
+        //         },
+        //         {
         //           balanceEv: 1154232337,
         //           currency: 'USDT',
         //           lastUpdateTimeNs: '1650442617610017597',
         //           lockedTradingBalanceEv: 0,
         //           lockedWithdrawEv: 0,
         //           userID: 2647224
-        //       }
+        //         }
         //    ]
         // swap
         //    [
@@ -361,6 +361,7 @@ module.exports = class phemex extends phemexRest {
         //        }
         //    ]
         //
+        this.balance['info'] = message;
         for (let i = 0; i < message.length; i++) {
             const balance = message[i];
             const currencyId = this.safeString (balance, 'currency');

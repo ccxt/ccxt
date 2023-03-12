@@ -95,7 +95,9 @@ class cex extends \ccxt\async\cex {
         $data = $this->safe_value($message, 'data', array());
         $freeBalance = $this->safe_value($data, 'balance', array());
         $usedBalance = $this->safe_value($data, 'obalance', array());
-        $result = array();
+        $result = array(
+            'info' => $data,
+        );
         $currencyIds = is_array($freeBalance) ? array_keys($freeBalance) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
@@ -901,7 +903,7 @@ class cex extends \ccxt\async\cex {
             );
             $request = $this->deep_extend($subscribe, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -975,10 +977,11 @@ class cex extends \ccxt\async\cex {
         $pair = $this->safe_string($data, 'pair', '');
         $symbol = $this->pair_to_symbol($pair);
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($incrementalId !== $storedOrderBook['nonce'] + 1) {
-            throw new ExchangeError($this->id . ' watchOrderBook() skipped a message');
-        }
         $messageHash = 'orderbook:' . $symbol;
+        if ($incrementalId !== $storedOrderBook['nonce'] + 1) {
+            unset($client->subscriptions[$messageHash]);
+            $client->reject ($this->id . ' watchOrderBook() skipped a message', $messageHash);
+        }
         $timestamp = $this->safe_integer($data, 'time');
         $asks = $this->safe_value($data, 'asks', array());
         $bids = $this->safe_value($data, 'bids', array());
@@ -1236,7 +1239,7 @@ class cex extends \ccxt\async\cex {
                         'timestamp' => $nonce,
                     ),
                 );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, array_merge($request, $params), $messageHash);
+                Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
             }
             return Async\await($future);
         }) ();

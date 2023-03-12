@@ -103,7 +103,7 @@ class tokocrypto extends Exchange {
                 'setPositionMode' => false,
                 'signIn' => false,
                 'transfer' => false,
-                'withdraw' => false,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -2126,6 +2126,17 @@ class tokocrypto extends Exchange {
         //         "createTime" => 1659521314413
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "成功",
+        //         "data" => array(
+        //             "withdrawId":"12"
+        //         ),
+        //         "timestamp" => 1571745049095
+        //     }
+        //
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag'); // set but unused
         if ($tag !== null) {
@@ -2141,7 +2152,7 @@ class tokocrypto extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;
         $insertTime = $this->safe_integer($transaction, 'insertTime');
-        $createTime = $this->safe_integer($transaction, 'createTime');
+        $createTime = $this->safe_integer_2($transaction, 'createTime', 'timestamp');
         $type = $this->safe_string($transaction, 'type');
         if ($type === null) {
             if (($insertTime !== null) && ($createTime === null)) {
@@ -2166,9 +2177,15 @@ class tokocrypto extends Exchange {
         if ($internal !== null) {
             $internal = $internal ? true : false;
         }
+        $id = $this->safe_string($transaction, 'id');
+        if ($id === null) {
+            $data = $this->safe_value($transaction, 'data', array());
+            $id = $this->safe_string($data, 'withdrawId');
+            $type = 'withdrawal';
+        }
         return array(
             'info' => $transaction,
-            'id' => $this->safe_string($transaction, 'id'),
+            'id' => $id,
             'txid' => $txid,
             'type' => $type,
             'currency' => $code,
@@ -2188,6 +2205,50 @@ class tokocrypto extends Exchange {
             'internal' => $internal,
             'fee' => $fee,
         );
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the bybit api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $this->load_markets();
+        $this->check_address($address);
+        $currency = $this->currency($code);
+        $request = array(
+            'asset' => $currency['id'],
+            // 'clientId' => 'string', // // client's custom id for withdraw order, server does not check it's uniqueness, automatically generated if not sent
+            // 'network' => 'string',
+            'address' => $address,
+            // 'addressTag' => 'string', // for coins like XRP, XMR, etc
+            'amount' => $this->number_to_string($amount),
+        );
+        if ($tag !== null) {
+            $request['addressTag'] = $tag;
+        }
+        list($networkCode, $query) = $this->handle_network_code_and_params($params);
+        $networkId = $this->network_code_to_id($networkCode);
+        if ($networkId !== null) {
+            $request['network'] = strtoupper($networkId);
+        }
+        $response = $this->privatePostOpenV1Withdraws (array_merge($request, $query));
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "成功",
+        //         "data" => array(
+        //             "withdrawId":"12"
+        //         ),
+        //         "timestamp" => 1571745049095
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, PermissionDenied, ExchangeNotAvailable, ArgumentsRequired } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -216,10 +216,12 @@ module.exports = class btcex extends Exchange {
                     '403': AuthenticationError, // ACCESS_DENIED_ERROR Access denied
                     '1000': ExchangeNotAvailable, // NO_SERVICE No service found
                     '1001': BadRequest, // BAD_REQUEST Bad requested
+                    '1005': DDoSProtection, // {"code":1005,"message":"Operate too frequently"}
                     '2000': AuthenticationError, // NEED_LOGIN Login is required
                     '2001': AuthenticationError, // ACCOUNT_NOT_MATCH Account information does not match
                     '2002': AuthenticationError, // ACCOUNT_NEED_ENABLE Account needs to be activated
                     '2003': AuthenticationError, // ACCOUNT_NOT_AVAILABLE Account not available
+                    '2010': PermissionDenied, // {"code":2010,"message":"Access denied","data":{}}
                     '3000': AuthenticationError, // TEST user
                     '3002': AuthenticationError, // NICKNAME_EXIST Nicknames exist
                     '3003': AuthenticationError, // ACCOUNT_NOT_EXIST No account
@@ -284,6 +286,7 @@ module.exports = class btcex extends Exchange {
                     '5013': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_HIGH order price range is too high.
                     '5014': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
                     '5109': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
+                    '5119': InvalidOrder, // {"code":5119,"message":"Cannot be less than the minimum order value：10USDT, instrument: GXE/USDT","data":{"coinType":"USDT","amount":"10","instrumentName":"GXE/USDT"}}
                     '5135': InvalidOrder, // The quantity should be larger than: 0.01
                     '5901': InvalidOrder, // TRANSFER_RESULT transfer out success.
                     '5902': InvalidOrder, // ORDER_SUCCESS place order success.
@@ -1284,7 +1287,7 @@ module.exports = class btcex extends Exchange {
             'instrument_name': market['id'],
             'type': type,
         };
-        if (side === 'sell') {
+        if (side === 'sell' || type === 'limit') {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
         if (type === 'limit') {
@@ -1596,19 +1599,18 @@ module.exports = class btcex extends Exchange {
             // 'end_id': 0, // The ID number of the last trade to be returned
             // 'sorting': '', // Direction of results sorting,default: desc
             // 'self_trade': false, // If not set, query all
+            // 'start_timestamp': false // The trade time of the first trade to be returned
+            // 'end_timestamp': false // The trade time of the last trade to be returned
         };
-        let method = undefined;
         const market = this.market (symbol);
         request['instrument_name'] = market['id'];
-        if (since === undefined) {
-            method = 'privateGetGetUserTradesByInstrument';
-        } else {
-            method = 'privateGetGetUserTradesByInstrumentAndTime';
-        }
         if (limit !== undefined) {
             request['count'] = limit; // default 20
         }
-        const response = await this[method] (this.extend (request, params));
+        if (since !== undefined) {
+            request['start_timestamp'] = since;
+        }
+        const response = await this.privateGetGetUserTradesByInstrument (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {

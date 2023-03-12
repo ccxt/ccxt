@@ -212,6 +212,7 @@ class okx extends Exchange {
                         'account/account-position-risk' => 2,
                         'account/balance' => 2,
                         'account/positions' => 2,
+                        'account/positions-history' => 2,
                         'account/bills' => 5 / 3,
                         'account/bills-archive' => 5 / 3,
                         'account/config' => 4,
@@ -252,6 +253,7 @@ class okx extends Exchange {
                         'trade/fills-history' => 2,
                         'trade/orders-algo-pending' => 1,
                         'trade/orders-algo-history' => 1,
+                        'trade/order-algo' => 1,
                         'account/subaccount/balances' => 10,
                         'asset/subaccount/bills' => 5 / 3,
                         'users/subaccount/list' => 10,
@@ -310,6 +312,7 @@ class okx extends Exchange {
                         'account/borrow-repay' => 5 / 3,
                         'account/quick-margin-borrow-repay' => 4,
                         'account/activate-option' => 4,
+                        'account/set-auto-loan' => 4,
                         'asset/transfer' => 10,
                         'asset/withdrawal' => 5 / 3,
                         'asset/purchase_redempt' => 5 / 3,
@@ -750,6 +753,9 @@ class okx extends Exchange {
                 'fetchOHLCV' => array(
                     // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                     'timezone' => 'UTC', // UTC, HK
+                ),
+                'fetchPositions' => array(
+                    'method' => 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
                 ),
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice' => false,
@@ -2586,7 +2592,9 @@ class okx extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
-        $stopPrice = $this->safe_number_n($order, array( 'tpTriggerPx', 'triggerPx', 'slTriggerPx' ));
+        $stopLossPrice = $this->safe_number_2($order, 'slTriggerPx', 'slOrdPx');
+        $takeProfitPrice = $this->safe_number_2($order, 'tpTriggerPx', 'tpOrdPx');
+        $stopPrice = $this->safe_number_n($order, array( 'triggerPx', 'moveTriggerPx' ));
         $reduceOnly = $this->safe_string($order, 'reduceOnly');
         if ($reduceOnly !== null) {
             $reduceOnly = ($reduceOnly === 'true');
@@ -2604,6 +2612,8 @@ class okx extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopLossPrice' => $stopLossPrice,
+            'takeProfitPrice' => $takeProfitPrice,
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
             'average' => $average,
@@ -2644,7 +2654,12 @@ class okx extends Exchange {
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $stop = $this->safe_value($params, 'stop');
             if ($stop) {
-                throw new NotSupported($this->id . ' fetchOrder() does not support $stop orders, use fetchOpenOrders() fetchCanceledOrders() or fetchClosedOrders()');
+                $method = 'privateGetTradeOrderAlgo';
+                if ($clientOrderId !== null) {
+                    $request['algoClOrdId'] = $clientOrderId;
+                } else {
+                    $request['algoId'] = $id;
+                }
             } else {
                 if ($clientOrderId !== null) {
                     $request['clOrdId'] = $clientOrderId;
@@ -2652,7 +2667,7 @@ class okx extends Exchange {
                     $request['ordId'] = $id;
                 }
             }
-            $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId' ));
+            $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId', 'stop' ));
             $response = Async\await($this->$method (array_merge($request, $query)));
             //
             // Spot and Swap
@@ -2696,6 +2711,58 @@ class okx extends Exchange {
             //             }
             //         ),
             //         "msg" => ""
+            //     }
+            //
+            // Algo $order
+            //     {
+            //         "code":"0",
+            //         "msg":"",
+            //         "data":array(
+            //             {
+            //                 "instType":"FUTURES",
+            //                 "instId":"BTC-USD-200329",
+            //                 "ordId":"123445",
+            //                 "ccy":"BTC",
+            //                 "clOrdId":"",
+            //                 "algoId":"1234",
+            //                 "sz":"999",
+            //                 "closeFraction":"",
+            //                 "ordType":"oco",
+            //                 "side":"buy",
+            //                 "posSide":"long",
+            //                 "tdMode":"cross",
+            //                 "tgtCcy" => "",
+            //                 "state":"effective",
+            //                 "lever":"20",
+            //                 "tpTriggerPx":"",
+            //                 "tpTriggerPxType":"",
+            //                 "tpOrdPx":"",
+            //                 "slTriggerPx":"",
+            //                 "slTriggerPxType":"",
+            //                 "triggerPx":"99",
+            //                 "triggerPxType":"last",
+            //                 "ordPx":"12",
+            //                 "actualSz":"",
+            //                 "actualPx":"",
+            //                 "actualSide":"",
+            //                 "pxVar":"",
+            //                 "pxSpread":"",
+            //                 "pxLimit":"",
+            //                 "szLimit":"",
+            //                 "tag" => "adadadadad",
+            //                 "timeInterval":"",
+            //                 "callbackRatio":"",
+            //                 "callbackSpread":"",
+            //                 "activePx":"",
+            //                 "moveTriggerPx":"",
+            //                 "reduceOnly" => "false",
+            //                 "triggerTime":"1597026383085",
+            //                 "last" => "16012",
+            //                 "failCode" => "",
+            //                 "algoClOrdId" => "",
+            //                 "cTime":"1597026383000"
+            //             }
+            //         )
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
@@ -3658,7 +3725,7 @@ class okx extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $filtered = $this->filter_by($data, 'selected', true);
-            $parsed = $this->parse_deposit_addresses($filtered, array( $code ), false);
+            $parsed = $this->parse_deposit_addresses($filtered, [ $currency['code'] ], false);
             return $this->index_by($parsed, 'network');
         }) ();
     }
@@ -3722,28 +3789,34 @@ class okx extends Exchange {
             if (($tag !== null) && (strlen($tag) > 0)) {
                 $address = $address . ':' . $tag;
             }
-            $fee = $this->safe_string($params, 'fee');
-            if ($fee === null) {
-                throw new ArgumentsRequired($this->id . " withdraw() requires a 'fee' string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set '0'. Withdrawing to external digital asset $address requires $network $transaction $fee->");
-            }
             $request = array(
                 'ccy' => $currency['id'],
                 'toAddr' => $address,
                 'dest' => '4', // 2 = OKCoin International, 3 = OKX 4 = others
                 'amt' => $this->number_to_string($amount),
-                'fee' => $this->number_to_string($fee), // withdrawals to OKCoin or OKX are $fee-free, please set 0
             );
-            if (is_array($params) && array_key_exists('password', $params)) {
-                $request['pwd'] = $params['password'];
-            } elseif (is_array($params) && array_key_exists('pwd', $params)) {
-                $request['pwd'] = $params['pwd'];
-            }
             $networks = $this->safe_value($this->options, 'networks', array());
             $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
             $network = $this->safe_string($networks, $network, $network); // handle ETH>ERC20 alias
             if ($network !== null) {
                 $request['chain'] = $currency['id'] . '-' . $network;
                 $params = $this->omit($params, 'network');
+            }
+            $fee = $this->safe_string($params, 'fee');
+            if ($fee === null) {
+                $currencies = Async\await($this->fetch_currencies());
+                $this->currencies = $this->deep_extend($this->currencies, $currencies);
+                $targetNetwork = $this->safe_value($currency['networks'], $this->network_id_to_code($network), array());
+                $fee = $this->safe_string($targetNetwork, 'fee');
+                if ($fee === null) {
+                    throw new ArgumentsRequired($this->id . " withdraw() requires a 'fee' string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set '0'. Withdrawing to external digital asset $address requires $network $transaction $fee->");
+                }
+                $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are $fee-free, please set 0
+            }
+            if (is_array($params) && array_key_exists('password', $params)) {
+                $request['pwd'] = $params['password'];
+            } elseif (is_array($params) && array_key_exists('pwd', $params)) {
+                $request['pwd'] = $params['pwd'];
             }
             $query = $this->omit($params, array( 'fee', 'password', 'pwd' ));
             if (!(is_array($request) && array_key_exists('pwd', $request))) {
@@ -4262,7 +4335,9 @@ class okx extends Exchange {
                     $request['instId'] = implode(',', $marketIds);
                 }
             }
-            $response = Async\await($this->privateGetAccountPositions (array_merge($request, $params)));
+            $fetchPositionsOptions = $this->safe_value($this->options, 'fetchPositions', array());
+            $method = $this->safe_string($fetchPositionsOptions, 'method', 'privateGetAccountPositions');
+            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -4376,6 +4451,9 @@ class okx extends Exchange {
                 if ($parsedCurrency !== null) {
                     $side = ($market['base'] === $parsedCurrency) ? 'long' : 'short';
                 }
+            }
+            if ($side === null) {
+                $side = $this->safe_string($position, 'direction');
             }
         } else {
             if ($pos !== null) {

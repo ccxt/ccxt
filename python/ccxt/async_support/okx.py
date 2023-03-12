@@ -226,6 +226,7 @@ class okx(Exchange):
                         'account/account-position-risk': 2,
                         'account/balance': 2,
                         'account/positions': 2,
+                        'account/positions-history': 2,
                         'account/bills': 5 / 3,
                         'account/bills-archive': 5 / 3,
                         'account/config': 4,
@@ -266,6 +267,7 @@ class okx(Exchange):
                         'trade/fills-history': 2,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
+                        'trade/order-algo': 1,
                         'account/subaccount/balances': 10,
                         'asset/subaccount/bills': 5 / 3,
                         'users/subaccount/list': 10,
@@ -324,6 +326,7 @@ class okx(Exchange):
                         'account/borrow-repay': 5 / 3,
                         'account/quick-margin-borrow-repay': 4,
                         'account/activate-option': 4,
+                        'account/set-auto-loan': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/purchase_redempt': 5 / 3,
@@ -764,6 +767,9 @@ class okx(Exchange):
                 'fetchOHLCV': {
                     # 'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                     'timezone': 'UTC',  # UTC, HK
+                },
+                'fetchPositions': {
+                    'method': 'privateGetAccountPositions',  # privateGetAccountPositions or privateGetAccountPositionsHistory
                 },
                 'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': False,
@@ -2452,7 +2458,9 @@ class okx(Exchange):
         clientOrderId = self.safe_string(order, 'clOrdId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
-        stopPrice = self.safe_number_n(order, ['tpTriggerPx', 'triggerPx', 'slTriggerPx'])
+        stopLossPrice = self.safe_number_2(order, 'slTriggerPx', 'slOrdPx')
+        takeProfitPrice = self.safe_number_2(order, 'tpTriggerPx', 'tpOrdPx')
+        stopPrice = self.safe_number_n(order, ['triggerPx', 'moveTriggerPx'])
         reduceOnly = self.safe_string(order, 'reduceOnly')
         if reduceOnly is not None:
             reduceOnly = (reduceOnly == 'true')
@@ -2469,6 +2477,8 @@ class okx(Exchange):
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'average': average,
@@ -2506,13 +2516,17 @@ class okx(Exchange):
         method = self.safe_string(params, 'method', defaultMethod)
         stop = self.safe_value(params, 'stop')
         if stop:
-            raise NotSupported(self.id + ' fetchOrder() does not support stop orders, use fetchOpenOrders() fetchCanceledOrders() or fetchClosedOrders()')
+            method = 'privateGetTradeOrderAlgo'
+            if clientOrderId is not None:
+                request['algoClOrdId'] = clientOrderId
+            else:
+                request['algoId'] = id
         else:
             if clientOrderId is not None:
                 request['clOrdId'] = clientOrderId
             else:
                 request['ordId'] = id
-        query = self.omit(params, ['method', 'clOrdId', 'clientOrderId'])
+        query = self.omit(params, ['method', 'clOrdId', 'clientOrderId', 'stop'])
         response = await getattr(self, method)(self.extend(request, query))
         #
         # Spot and Swap
@@ -2556,6 +2570,58 @@ class okx(Exchange):
         #             }
         #         ],
         #         "msg": ""
+        #     }
+        #
+        # Algo order
+        #     {
+        #         "code":"0",
+        #         "msg":"",
+        #         "data":[
+        #             {
+        #                 "instType":"FUTURES",
+        #                 "instId":"BTC-USD-200329",
+        #                 "ordId":"123445",
+        #                 "ccy":"BTC",
+        #                 "clOrdId":"",
+        #                 "algoId":"1234",
+        #                 "sz":"999",
+        #                 "closeFraction":"",
+        #                 "ordType":"oco",
+        #                 "side":"buy",
+        #                 "posSide":"long",
+        #                 "tdMode":"cross",
+        #                 "tgtCcy": "",
+        #                 "state":"effective",
+        #                 "lever":"20",
+        #                 "tpTriggerPx":"",
+        #                 "tpTriggerPxType":"",
+        #                 "tpOrdPx":"",
+        #                 "slTriggerPx":"",
+        #                 "slTriggerPxType":"",
+        #                 "triggerPx":"99",
+        #                 "triggerPxType":"last",
+        #                 "ordPx":"12",
+        #                 "actualSz":"",
+        #                 "actualPx":"",
+        #                 "actualSide":"",
+        #                 "pxVar":"",
+        #                 "pxSpread":"",
+        #                 "pxLimit":"",
+        #                 "szLimit":"",
+        #                 "tag": "adadadadad",
+        #                 "timeInterval":"",
+        #                 "callbackRatio":"",
+        #                 "callbackSpread":"",
+        #                 "activePx":"",
+        #                 "moveTriggerPx":"",
+        #                 "reduceOnly": "false",
+        #                 "triggerTime":"1597026383085",
+        #                 "last": "16012",
+        #                 "failCode": "",
+        #                 "algoClOrdId": "",
+        #                 "cTime":"1597026383000"
+        #             }
+        #         ]
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -3464,7 +3530,7 @@ class okx(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         filtered = self.filter_by(data, 'selected', True)
-        parsed = self.parse_deposit_addresses(filtered, [code], False)
+        parsed = self.parse_deposit_addresses(filtered, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
     async def fetch_deposit_address(self, code, params={}):
@@ -3515,26 +3581,31 @@ class okx(Exchange):
         currency = self.currency(code)
         if (tag is not None) and (len(tag) > 0):
             address = address + ':' + tag
-        fee = self.safe_string(params, 'fee')
-        if fee is None:
-            raise ArgumentsRequired(self.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
         request = {
             'ccy': currency['id'],
             'toAddr': address,
             'dest': '4',  # 2 = OKCoin International, 3 = OKX 4 = others
             'amt': self.number_to_string(amount),
-            'fee': self.number_to_string(fee),  # withdrawals to OKCoin or OKX are fee-free, please set 0
         }
-        if 'password' in params:
-            request['pwd'] = params['password']
-        elif 'pwd' in params:
-            request['pwd'] = params['pwd']
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH>ERC20 alias
         if network is not None:
             request['chain'] = currency['id'] + '-' + network
             params = self.omit(params, 'network')
+        fee = self.safe_string(params, 'fee')
+        if fee is None:
+            currencies = await self.fetch_currencies()
+            self.currencies = self.deep_extend(self.currencies, currencies)
+            targetNetwork = self.safe_value(currency['networks'], self.network_id_to_code(network), {})
+            fee = self.safe_string(targetNetwork, 'fee')
+            if fee is None:
+                raise ArgumentsRequired(self.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
+            request['fee'] = self.number_to_string(fee)  # withdrawals to OKCoin or OKX are fee-free, please set 0
+        if 'password' in params:
+            request['pwd'] = params['password']
+        elif 'pwd' in params:
+            request['pwd'] = params['pwd']
         query = self.omit(params, ['fee', 'password', 'pwd'])
         if not ('pwd' in request):
             raise ExchangeError(self.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase')
@@ -4011,7 +4082,9 @@ class okx(Exchange):
             marketIdsLength = len(marketIds)
             if marketIdsLength > 0:
                 request['instId'] = ','.join(marketIds)
-        response = await self.privateGetAccountPositions(self.extend(request, params))
+        fetchPositionsOptions = self.safe_value(self.options, 'fetchPositions', {})
+        method = self.safe_string(fetchPositionsOptions, 'method', 'privateGetAccountPositions')
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -4121,6 +4194,8 @@ class okx(Exchange):
                 parsedCurrency = self.safe_currency_code(posCcy)
                 if parsedCurrency is not None:
                     side = 'long' if (market['base'] == parsedCurrency) else 'short'
+            if side is None:
+                side = self.safe_string(position, 'direction')
         else:
             if pos is not None:
                 if side == 'net':

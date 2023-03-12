@@ -691,6 +691,7 @@ module.exports = class whitebit extends whitebitRest {
         const method = this.safeString (message, 'method');
         const data = this.safeValue (message, 'params');
         const balanceDict = this.safeValue (data, 0);
+        this.balance['info'] = balanceDict;
         const keys = Object.keys (balanceDict);
         const currencyId = this.safeValue (keys, 0);
         const rawBalance = this.safeValue (balanceDict, currencyId);
@@ -792,7 +793,7 @@ module.exports = class whitebit extends whitebitRest {
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
-        const messageHash = 'login';
+        const messageHash = 'authenticated';
         const client = this.client (url);
         const future = client.future ('authenticated');
         const authenticated = this.safeValue (client.subscriptions, messageHash);
@@ -817,7 +818,12 @@ module.exports = class whitebit extends whitebitRest {
                 'id': id,
                 'method': this.handleAuthenticate,
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, subscription);
+            try {
+                await this.watch (url, messageHash, request, messageHash, subscription);
+            } catch (e) {
+                delete client.subscriptions[messageHash];
+                future.reject (e);
+            }
         }
         return await future;
     }
@@ -849,8 +855,8 @@ module.exports = class whitebit extends whitebitRest {
         } catch (e) {
             if (e instanceof AuthenticationError) {
                 client.reject (e, 'authenticated');
-                if ('login' in client.subscriptions) {
-                    delete client.subscriptions['login'];
+                if ('authenticated' in client.subscriptions) {
+                    delete client.subscriptions['authenticated'];
                 }
                 return false;
             }

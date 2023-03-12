@@ -90,7 +90,9 @@ module.exports = class cex extends cexRest {
         const data = this.safeValue (message, 'data', {});
         const freeBalance = this.safeValue (data, 'balance', {});
         const usedBalance = this.safeValue (data, 'obalance', {});
-        const result = {};
+        const result = {
+            'info': data,
+        };
         const currencyIds = Object.keys (freeBalance);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -897,7 +899,7 @@ module.exports = class cex extends cexRest {
         };
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, messageHash, request, messageHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message) {
@@ -970,10 +972,11 @@ module.exports = class cex extends cexRest {
         const pair = this.safeString (data, 'pair', '');
         const symbol = this.pairToSymbol (pair);
         const storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (incrementalId !== storedOrderBook['nonce'] + 1) {
-            throw new ExchangeError (this.id + ' watchOrderBook() skipped a message');
-        }
         const messageHash = 'orderbook:' + symbol;
+        if (incrementalId !== storedOrderBook['nonce'] + 1) {
+            delete client.subscriptions[messageHash];
+            client.reject (this.id + ' watchOrderBook() skipped a message', messageHash);
+        }
         const timestamp = this.safeInteger (data, 'time');
         const asks = this.safeValue (data, 'asks', []);
         const bids = this.safeValue (data, 'bids', []);
@@ -1230,7 +1233,7 @@ module.exports = class cex extends cexRest {
                     'timestamp': nonce,
                 },
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params), messageHash);
+            await this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
         return await future;
     }

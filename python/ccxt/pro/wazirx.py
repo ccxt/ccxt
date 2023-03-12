@@ -83,6 +83,10 @@ class wazirx(Exchange, ccxt.async_support.wazirx):
         #
         data = self.safe_value(message, 'data', {})
         balances = self.safe_value(data, 'B', [])
+        timestamp = self.safe_integer(data, 'E')
+        self.balance['info'] = balances
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'a')

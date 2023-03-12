@@ -328,6 +328,7 @@ class bittrex extends \ccxt\async\bittrex {
         //     }
         //
         $delta = $this->safe_value($message, 'delta', array());
+        $this->balance['info'] = $delta;
         $currencyId = $this->safe_string($delta, 'currencySymbol');
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();

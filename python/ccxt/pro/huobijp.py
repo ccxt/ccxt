@@ -321,30 +321,34 @@ class huobijp(Exchange, ccxt.async_support.huobijp):
         client.resolve(orderbook, messageHash)
 
     async def watch_order_book_snapshot(self, client, message, subscription):
-        symbol = self.safe_string(subscription, 'symbol')
-        limit = self.safe_integer(subscription, 'limit')
-        params = self.safe_value(subscription, 'params')
         messageHash = self.safe_string(subscription, 'messageHash')
-        api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
-        requestId = self.request_id()
-        request = {
-            'req': messageHash,
-            'id': requestId,
-        }
-        # self is a temporary subscription by a specific requestId
-        # it has a very short lifetime until the snapshot is received over ws
-        snapshotSubscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'limit': limit,
-            'params': params,
-            'method': self.handle_order_book_snapshot,
-        }
-        orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
-        return orderbook.limit()
+        try:
+            symbol = self.safe_string(subscription, 'symbol')
+            limit = self.safe_integer(subscription, 'limit')
+            params = self.safe_value(subscription, 'params')
+            api = self.safe_string(self.options, 'api', 'api')
+            hostname = {'hostname': self.hostname}
+            url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
+            requestId = self.request_id()
+            request = {
+                'req': messageHash,
+                'id': requestId,
+            }
+            # self is a temporary subscription by a specific requestId
+            # it has a very short lifetime until the snapshot is received over ws
+            snapshotSubscription = {
+                'id': requestId,
+                'messageHash': messageHash,
+                'symbol': symbol,
+                'limit': limit,
+                'params': params,
+                'method': self.handle_order_book_snapshot,
+            }
+            orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
+            return orderbook.limit()
+        except Exception as e:
+            del client.subscriptions[messageHash]
+            client.reject(e, messageHash)
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)

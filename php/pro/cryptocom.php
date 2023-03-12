@@ -440,6 +440,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         //
         $messageHash = $this->safe_string($message, 'subscription');
         $data = $this->safe_value($message, 'data');
+        $this->balance['info'] = $data;
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'currency');

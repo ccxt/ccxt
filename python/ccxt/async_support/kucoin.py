@@ -435,6 +435,9 @@ class kucoin(Exchange):
                 'fetchMarkets': {
                     'fetchTickersFees': True,
                 },
+                'withdraw': {
+                    'includeFee': False,
+                },
                 # endpoint versions
                 'versions': {
                     'public': {
@@ -2154,6 +2157,10 @@ class kucoin(Exchange):
             network = network.lower()
             request['chain'] = network
             params = self.omit(params, 'network')
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        includeFee = self.safe_value(withdrawOptions, 'includeFee', False)
+        if includeFee:
+            request['feeDeductType'] = 'INTERNAL'
         response = await self.privatePostWithdrawals(self.extend(request, params))
         #
         # https://github.com/ccxt/ccxt/issues/5558
@@ -2171,7 +2178,7 @@ class kucoin(Exchange):
     def parse_transaction_status(self, status):
         statuses = {
             'SUCCESS': 'ok',
-            'PROCESSING': 'ok',
+            'PROCESSING': 'pending',
             'FAILURE': 'failed',
         }
         return self.safe_string(statuses, status)

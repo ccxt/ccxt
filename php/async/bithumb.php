@@ -402,41 +402,44 @@ class bithumb extends Exchange {
              * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->publicGetTickerAll ($params));
-            //
-            //     {
-            //         "status":"0000",
-            //         "data":{
-            //             "BTC":array(
-            //                 "opening_price":"9045000",
-            //                 "closing_price":"9132000",
-            //                 "min_price":"8938000",
-            //                 "max_price":"9168000",
-            //                 "units_traded":"4619.79967497",
-            //                 "acc_trade_value":"42021363832.5187",
-            //                 "prev_closing_price":"9041000",
-            //                 "units_traded_24H":"8793.5045804",
-            //                 "acc_trade_value_24H":"78933458515.4962",
-            //                 "fluctate_24H":"530000",
-            //                 "fluctate_rate_24H":"6.16"
-            //             ),
-            //             "date":"1587710878669"
-            //         }
-            //     }
-            //
             $result = array();
-            $data = $this->safe_value($response, 'data', array());
-            $timestamp = $this->safe_integer($data, 'date');
-            $tickers = $this->omit($data, 'date');
-            $ids = is_array($tickers) ? array_keys($tickers) : array();
-            for ($i = 0; $i < count($ids); $i++) {
-                $id = $ids[$i];
-                $market = $this->safe_market($id);
-                $symbol = $market['symbol'];
-                $ticker = $tickers[$id];
-                $isArray = gettype($ticker) === 'array' && array_keys($ticker) === array_keys(array_keys($ticker));
-                if (!$isArray) {
+            $quoteCurrencies = $this->safe_value($this->options, 'quoteCurrencies', array());
+            $quotes = is_array($quoteCurrencies) ? array_keys($quoteCurrencies) : array();
+            for ($i = 0; $i < count($quotes); $i++) {
+                $quote = $quotes[$i];
+                $method = 'publicGetTickerALL' . $quote;
+                $response = Async\await($this->$method ($params));
+                //
+                //     {
+                //         "status":"0000",
+                //         "data":{
+                //             "BTC":array(
+                //                 "opening_price":"9045000",
+                //                 "closing_price":"9132000",
+                //                 "min_price":"8938000",
+                //                 "max_price":"9168000",
+                //                 "units_traded":"4619.79967497",
+                //                 "acc_trade_value":"42021363832.5187",
+                //                 "prev_closing_price":"9041000",
+                //                 "units_traded_24H":"8793.5045804",
+                //                 "acc_trade_value_24H":"78933458515.4962",
+                //                 "fluctate_24H":"530000",
+                //                 "fluctate_rate_24H":"6.16"
+                //             ),
+                //             "date":"1587710878669"
+                //         }
+                //     }
+                //
+                $data = $this->safe_value($response, 'data', array());
+                $timestamp = $this->safe_integer($data, 'date');
+                $tickers = $this->omit($data, 'date');
+                $currencyIds = is_array($tickers) ? array_keys($tickers) : array();
+                for ($j = 0; $j < count($currencyIds); $j++) {
+                    $currencyId = $currencyIds[$j];
+                    $ticker = $data[$currencyId];
+                    $base = $this->safe_currency_code($currencyId);
+                    $symbol = $base . '/' . $quote;
+                    $market = $this->safe_market($symbol);
                     $ticker['date'] = $timestamp;
                     $result[$symbol] = $this->parse_ticker($ticker, $market);
                 }

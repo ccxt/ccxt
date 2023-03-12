@@ -20,7 +20,7 @@ class gate extends Exchange {
             'pro' => true,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
-                'doc' => 'https://www.gate.io/docs/apiv4/en/index.html',
+                'doc' => 'https://www.gate.io/docs/developers/apiv4/en/',
                 'www' => 'https://gate.io/',
                 'api' => array(
                     'public' => array(
@@ -47,10 +47,12 @@ class gate extends Exchange {
                     'public' => array(
                         'futures' => 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options' => 'https://fx-api-testnet.gateio.ws/api/v4',
                     ),
                     'private' => array(
                         'futures' => 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options' => 'https://fx-api-testnet.gateio.ws/api/v4',
                     ),
                 ),
                 'referral' => array(
@@ -423,7 +425,6 @@ class gate extends Exchange {
                 'RAI' => 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC' => 'Super Bitcoin',
                 'TNC' => 'Trinity Network Credit',
-                'TON' => 'TONToken',
                 'VAI' => 'VAIOT',
             ),
             'requiredCredentials' => array(
@@ -434,6 +435,7 @@ class gate extends Exchange {
                 'X-Gate-Channel-Id' => 'ccxt',
             ),
             'options' => array(
+                'sandboxMode' => false,
                 'createOrder' => array(
                     'expiration' => 86400, // for conditional orders
                 ),
@@ -570,7 +572,7 @@ class gate extends Exchange {
                     ),
                 ),
             ),
-            // https://www.gate.io/docs/apiv4/en/index.html#label-list
+            // https://www.gate.io/docs/developers/apiv4/en/#label-list
             'exceptions' => array(
                 'exact' => array(
                     'INVALID_PARAM_VALUE' => '\\ccxt\\BadRequest',
@@ -663,26 +665,43 @@ class gate extends Exchange {
                     'TOO_BUSY' => '\\ccxt\\ExchangeNotAvailable',
                     'CROSS_ACCOUNT_NOT_FOUND' => '\\ccxt\\ExchangeError',
                     'RISK_LIMIT_TOO_LOW' => '\\ccxt\\BadRequest', // array("label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000")
+                    'AUTO_TRIGGER_PRICE_LESS_LAST' => '\\ccxt\\InvalidOrder',  // array("label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument => Trigger.Price must < last_price")
+                    'AUTO_TRIGGER_PRICE_GREATE_LAST' => '\\ccxt\\InvalidOrder', // array("label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument => Trigger.Price must > last_price")
                 ),
                 'broad' => array(),
             ),
         ));
     }
 
+    public function set_sandbox_mode($enable) {
+        parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
+    }
+
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for gate
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currency-pairs-supported                                     // spot
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         // margin
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts                                            // swap
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2                                          // future
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time  // option
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing market data
          */
+        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $promises = array(
-            $this->fetch_spot_markets($params),
             $this->fetch_contract_markets($params),
             $this->fetch_option_markets($params),
         );
-        $spotMarkets = $promises[0];
-        $contractMarkets = $promises[1];
-        $optionMarkets = $promises[2];
+        if (!$sandboxMode) {
+            // gate does not have a sandbox for spot $markets
+            $mainnetOnly = array( $this->fetch_spot_markets($params) );
+            $promises = $this->array_concat($promises, $mainnetOnly);
+        }
+        $spotMarkets = $this->safe_value($promises, 0, array());
+        $contractMarkets = $this->safe_value($promises, 1, array());
+        $optionMarkets = $this->safe_value($promises, 2, array());
         $markets = $this->array_concat($spotMarkets, $contractMarkets);
         return $this->array_concat($markets, $optionMarkets);
     }
@@ -2357,10 +2376,14 @@ class gate extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#$market-candlesticks       // spot
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-futures-candlesticks  // swap
+         * @see https://www.gate.io/docs/developers/apiv4/en/#$market-candlesticks       // future
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-options-candlesticks  // option
          * @param {string} $symbol unified $symbol of the $market $to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle $to fetch
-         * @param {int|null} $limit the maximum amount of candles $to fetch
+         * @param {int|null} $limit the maximum amount of candles $to fetch, $limit is conflicted with $since and $params["until"], If either $since and $params["until"] is specified, $request will be rejected
          * @param {array} $params extra parameters specific $to the gateio api endpoint
          * @param {string|null} $params->price "mark" or "index" for mark $price and index $price candles
          * @param {int|null} $params->until timestamp in ms of the latest candle $to fetch
@@ -2934,6 +2957,8 @@ class gate extends Exchange {
         if ($network !== null) {
             $request['chain'] = $network;
             $params = $this->omit($params, 'network');
+        } else {
+            $request['chain'] = $currency['id'];
         }
         $response = $this->privateWithdrawalsPostWithdrawals (array_merge($request, $params));
         //
@@ -2995,15 +3020,19 @@ class gate extends Exchange {
         //
         $id = $this->safe_string($transaction, 'id');
         $type = null;
-        $amount = $this->safe_string($transaction, 'amount');
+        $amountString = $this->safe_string($transaction, 'amount');
         if ($id !== null) {
             if ($id[0] === 'b') {
                 // GateCode handling
-                $type = Precise::string_gt($amount, '0') ? 'deposit' : 'withdrawal';
-                $amount = Precise::string_abs($amount);
+                $type = Precise::string_gt($amountString, '0') ? 'deposit' : 'withdrawal';
+                $amountString = Precise::string_abs($amountString);
             } else {
                 $type = $this->parse_transaction_type($id[0]);
             }
+        }
+        $feeCostString = $this->safe_string($transaction, 'fee');
+        if ($type === 'withdrawal') {
+            $amountString = Precise::string_sub($amountString, $feeCostString);
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
@@ -3011,7 +3040,6 @@ class gate extends Exchange {
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = $this->parse_transaction_status($rawStatus);
         $address = $this->safe_string($transaction, 'address');
-        $fee = $this->safe_number($transaction, 'fee');
         $tag = $this->safe_string($transaction, 'memo');
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         return array(
@@ -3019,7 +3047,7 @@ class gate extends Exchange {
             'id' => $id,
             'txid' => $txid,
             'currency' => $code,
-            'amount' => $this->parse_number($amount),
+            'amount' => $this->parse_number($amountString),
             'network' => null,
             'address' => $address,
             'addressTo' => null,
@@ -3032,7 +3060,10 @@ class gate extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'updated' => null,
-            'fee' => $fee,
+            'fee' => array(
+                'currency' => $code,
+                'cost' => $this->parse_number($feeCostString),
+            ),
         );
     }
 
@@ -3591,7 +3622,7 @@ class gate extends Exchange {
         $filledString = Precise::string_sub($amount, $remainingString);
         $cost = $this->safe_string($order, 'filled_total');
         $rawStatus = null;
-        $average = $this->safe_number($order, 'fill_price');
+        $average = $this->safe_number_2($order, 'avg_deal_price', 'fill_price');
         if ($put) {
             $remainingString = $amount;
             $filledString = '0';

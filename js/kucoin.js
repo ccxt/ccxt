@@ -418,6 +418,9 @@ module.exports = class kucoin extends Exchange {
                 'fetchMarkets': {
                     'fetchTickersFees': true,
                 },
+                'withdraw': {
+                    'includeFee': false,
+                },
                 // endpoint versions
                 'versions': {
                     'public': {
@@ -2290,6 +2293,11 @@ module.exports = class kucoin extends Exchange {
             request['chain'] = network;
             params = this.omit (params, 'network');
         }
+        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const includeFee = this.safeValue (withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['feeDeductType'] = 'INTERNAL';
+        }
         const response = await this.privatePostWithdrawals (this.extend (request, params));
         //
         // https://github.com/ccxt/ccxt/issues/5558
@@ -2308,7 +2316,7 @@ module.exports = class kucoin extends Exchange {
     parseTransactionStatus (status) {
         const statuses = {
             'SUCCESS': 'ok',
-            'PROCESSING': 'ok',
+            'PROCESSING': 'pending',
             'FAILURE': 'failed',
         };
         return this.safeString (statuses, status);

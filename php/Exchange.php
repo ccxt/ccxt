@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.8.17';
+$version = '2.9.13';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.8.17';
+    const VERSION = '2.9.13';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -405,6 +405,7 @@ class Exchange {
         'indodax',
         'itbit',
         'kraken',
+        'krakenfutures',
         'kucoin',
         'kucoinfutures',
         'kuna',
@@ -430,7 +431,6 @@ class Exchange {
         'probit',
         'ripio',
         'stex',
-        'therock',
         'tidex',
         'timex',
         'tokocrypto',
@@ -1430,6 +1430,8 @@ class Exchange {
         //         }
         //     }
         // }
+
+        $this->options = $this->get_default_options();
 
         $this->urlencode_glue = ini_get('arg_separator.output'); // can be overrided by exchange constructor params
 
@@ -2898,9 +2900,6 @@ class Exchange {
         }
         $timestamp = $this->safe_integer($order, 'timestamp');
         $datetime = $this->safe_string($order, 'datetime');
-        if ($timestamp === null) {
-            $timestamp = $this->parse8601 ($timestamp);
-        }
         if ($datetime === null) {
             $datetime = $this->iso8601 ($timestamp);
         }
@@ -3968,6 +3967,9 @@ class Exchange {
                 'updated' => $time,
             ));
         }
+        if (!(is_array($this->status) && array_key_exists('info', $this->status))) {
+            $this->status['info'] = null;
+        }
         return $this->status;
     }
 
@@ -4147,6 +4149,9 @@ class Exchange {
 
     public function fetch_ticker($symbol, $params = array ()) {
         if ($this->has['fetchTickers']) {
+            $this->load_markets();
+            $market = $this->market ($symbol);
+            $symbol = $market['symbol'];
             $tickers = $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {

@@ -257,6 +257,7 @@ class coinex extends \ccxt\async\coinex {
         //
         $params = $this->safe_value($message, 'params', array());
         $first = $this->safe_value($params, 0, array());
+        $this->balance['info'] = $first;
         $currencies = is_array($first) ? array_keys($first) : array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currencyId = $currencies[$i];

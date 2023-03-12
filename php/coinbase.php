@@ -2030,7 +2030,7 @@ class coinbase extends Exchange {
                         $total = $this->price_to_precision($symbol, $cost);
                     }
                 } else {
-                    $total = $this->amount_to_precision($symbol, $amount);
+                    $total = $this->price_to_precision($symbol, $amount);
                 }
                 $request['order_configuration'] = array(
                     'market_market_ioc' => array(
