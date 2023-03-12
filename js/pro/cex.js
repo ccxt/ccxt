@@ -899,7 +899,7 @@ module.exports = class cex extends cexRest {
         };
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, messageHash, request, messageHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message) {
@@ -1233,7 +1233,7 @@ module.exports = class cex extends cexRest {
                     'timestamp': nonce,
                 },
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params), messageHash);
+            await this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
         return await future;
     }
