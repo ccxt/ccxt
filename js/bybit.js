@@ -3204,6 +3204,7 @@ module.exports = class bybit extends Exchange {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': undefined,
+            'reduceOnly': this.safeValue (order, 'reduceOnly'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
