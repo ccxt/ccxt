@@ -47,6 +47,7 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
   - `/doc/*` (these files are generated from `/wiki/*`, place your edits there)
   - `/build/*` (these are generated automatically)
+  - `/js/*` (these are compiled from the typescript version)
   - `/php/*` (except for base classes)
   - `/python/*` (except for base classes)
   - `/ccxt.js`
@@ -233,7 +234,7 @@ Generated versions and docs are transpiled from the source `ccxt.js` file and fi
 
 ### Transpiled (generated) files
 
-- All derived exchange classes are transpiled automatically from source JS files. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
+- All derived exchange classes are transpiled by `tsc` to javsacript and then by our custom transpiler to PHP and Python from the Typescript files. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
 - All base classes are **not** transpiled, those are language-specific.
 
 #### JavaScript
@@ -242,9 +243,9 @@ The `ccxt.browser.js` is generated with Babel from source.
 
 #### Python
 
-These files containing derived exchange classes are transpiled from JS into Python:
+These files containing derived exchange classes are transpiled from TS into Python:
 
-- `js/[_a-z].js` → `python/ccxt/async/[_a-z].py`
+- `ts/[_a-z].ts` → `python/ccxt/async/[_a-z].py`
 - `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python sync transpilation stage)
 - `python/ccxt/test/test_async.py` → `python/ccxt/test/test_sync.py` (the sync test is generated from the async test)
 
@@ -257,7 +258,7 @@ These Python base classes and files are not transpiled:
 
 These files containing derived exchange classes are transpiled from JS into PHP:
 
-- `js/[_a-z].js` → `php/[_a-z].php`
+- `ts/[_a-z].ts` → `php/[_a-z].php`
 
 These PHP base classes and files are not transpiled:
 
@@ -265,7 +266,7 @@ These PHP base classes and files are not transpiled:
 
 #### Typescript
 
-- `js/[_a-z].js` → `ccxt.d.ts`
+- Development is made using these files
 
 ### Base Class
 
@@ -943,7 +944,7 @@ Before building for the first time, install Node dependencies (skip this step if
 npm install
 ```
 
-The command below will build everything and generate PHP/Python versions from source JS files:
+The command below will build everything and generate PHP/Python versions from source TS files:
 
 ```
 npm run build
@@ -1019,7 +1020,7 @@ Follow this steps to add a test:
 
 ## Committing Changes To The Repository
 
-The build process generates many changes in the transpiled exchange files, e.g. for Python and PHP. **You should NOT commit them to GitHub, commit only the base (JS) file changes please**.
+The build process generates many changes in the transpiled exchange files, e.g. for Python and PHP. **You should NOT commit them to GitHub, commit only the base (TS) file changes please**.
 
 ## Financial Contributions
 

@@ -200,9 +200,14 @@ npm install ccxt
 ```
 
 ```JavaScript
+//cjs
 var ccxt = require ('ccxt')
-
 console.log (ccxt.exchanges) // print all available exchanges
+```
+```Javascript
+//esm
+import {version, exchanges} from 'ccxt';
+console.log(version, Object.keys(exchanges));
 ```
 
 ### JavaScript (for use with the `<script>` tag):
@@ -324,7 +329,12 @@ Read the [Manual](https://docs.ccxt.com/en/latest/manual.html) for more details.
 
 ### JavaScript
 
+**CCXT now supports ESM and CJS modules**
+
+#### CJS
+
 ```JavaScript
+// cjs example
 'use strict';
 const ccxt = require ('ccxt');
 
@@ -365,6 +375,17 @@ const ccxt = require ('ccxt');
     bitfinex.createLimitSellOrder ('BTC/USD', 1, 10, { 'type': 'trailing-stop' })
 
 }) ();
+```
+#### ESM
+
+```Javascript
+//esm example
+import {version, binance} from 'ccxt';
+
+console.log(version);
+const exchange = new binance();
+const ticker = await exchange.fetchTicker('BTC/USDT');
+console.log(ticker);
 ```
 
 ### Python
