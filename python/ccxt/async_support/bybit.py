@@ -3091,6 +3091,7 @@ class bybit(Exchange):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': None,
+            'reduceOnly': self.safe_value(order, 'reduceOnly'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,

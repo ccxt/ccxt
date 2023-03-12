@@ -2290,10 +2290,10 @@ class phemex extends Exchange {
                 $params = $this->omit($params, 'stopLossPrice');
             }
             $method = 'privatePostSpotOrders';
-            if ($market['inverse']) {
-                $method = 'privatePostOrders';
-            } elseif ($market['settle'] === 'USDT') {
+            if ($market['settle'] === 'USDT') {
                 $method = 'privatePostGOrders';
+            } elseif ($market['contract']) {
+                $method = 'privatePostOrders';
             }
             $params = $this->omit($params, 'reduceOnly');
             $response = Async\await($this->$method (array_merge($request, $params)));
