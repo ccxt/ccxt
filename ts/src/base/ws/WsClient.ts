@@ -7,7 +7,7 @@ import {
 } from '../../base/functions.js';
 import WebSocket from 'ws';
 
-const WebSocketPlatform = isNode ? WebSocket : window.WebSocket;
+const WebSocketPlatform = isNode ? WebSocket : self.WebSocket;
 
 export default class WsClient extends Client {
     connectionStarted:number;
