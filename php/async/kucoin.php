@@ -422,6 +422,9 @@ class kucoin extends Exchange {
                 'fetchMarkets' => array(
                     'fetchTickersFees' => true,
                 ),
+                'withdraw' => array(
+                    'includeFee' => false,
+                ),
                 // endpoint versions
                 'versions' => array(
                     'public' => array(
@@ -2292,6 +2295,11 @@ class kucoin extends Exchange {
                 $network = strtolower($network);
                 $request['chain'] = $network;
                 $params = $this->omit($params, 'network');
+            }
+            $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+            $includeFee = $this->safe_value($withdrawOptions, 'includeFee', false);
+            if ($includeFee) {
+                $request['feeDeductType'] = 'INTERNAL';
             }
             $response = Async\await($this->privatePostWithdrawals (array_merge($request, $params)));
             //

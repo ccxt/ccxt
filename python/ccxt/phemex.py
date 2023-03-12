@@ -2181,10 +2181,10 @@ class phemex(Exchange):
                 request['stopLossEp'] = self.to_ep(stopLossPrice, market)
             params = self.omit(params, 'stopLossPrice')
         method = 'privatePostSpotOrders'
-        if market['inverse']:
-            method = 'privatePostOrders'
-        elif market['settle'] == 'USDT':
+        if market['settle'] == 'USDT':
             method = 'privatePostGOrders'
+        elif market['contract']:
+            method = 'privatePostOrders'
         params = self.omit(params, 'reduceOnly')
         response = getattr(self, method)(self.extend(request, params))
         #

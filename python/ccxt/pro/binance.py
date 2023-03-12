@@ -1291,8 +1291,8 @@ class binance(Exchange, ccxt.async_support.binance):
         elif executionType == 'TRADE':
             lastTradeTimestamp = T
         fee = None
-        feeCost = self.safe_float(order, 'n')
-        if (feeCost is not None) and (feeCost > 0):
+        feeCost = self.safe_string(order, 'n')
+        if (feeCost is not None) and (Precise.string_gt(feeCost, '0')):
             feeCurrencyId = self.safe_string(order, 'N')
             feeCurrency = self.safe_currency_code(feeCurrencyId)
             fee = {
