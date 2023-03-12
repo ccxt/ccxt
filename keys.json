@@ -51,5 +51,6 @@
     "tidex":         { "skip": true },
     "yobit":         { "skip": true },
     "coinbase":      { "skip": true, "//": "all endpoints are private" },
-    "buda":          { "skip": true, "//": "exchange unavailable" }
+    "buda":          { "skip": true, "//": "exchange unavailable" ,}
+    "whitebit":      { "skip": true }
 }
