@@ -2284,10 +2284,10 @@ module.exports = class phemex extends Exchange {
             params = this.omit (params, 'stopLossPrice');
         }
         let method = 'privatePostSpotOrders';
-        if (market['inverse']) {
-            method = 'privatePostOrders';
-        } else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             method = 'privatePostGOrders';
+        } else if (market['contract']) {
+            method = 'privatePostOrders';
         }
         params = this.omit (params, 'reduceOnly');
         const response = await this[method] (this.extend (request, params));
