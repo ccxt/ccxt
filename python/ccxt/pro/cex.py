@@ -828,7 +828,7 @@ class cex(Exchange, ccxt.async_support.cex):
         }
         request = self.deep_extend(subscribe, params)
         orderbook = await self.watch(url, messageHash, request, messageHash)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message):
         #
@@ -898,9 +898,10 @@ class cex(Exchange, ccxt.async_support.cex):
         pair = self.safe_string(data, 'pair', '')
         symbol = self.pair_to_symbol(pair)
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
-        if incrementalId != storedOrderBook['nonce'] + 1:
-            raise ExchangeError(self.id + ' watchOrderBook() skipped a message')
         messageHash = 'orderbook:' + symbol
+        if incrementalId != storedOrderBook['nonce'] + 1:
+            del client.subscriptions[messageHash]
+            client.reject(self.id + ' watchOrderBook() skipped a message', messageHash)
         timestamp = self.safe_integer(data, 'time')
         asks = self.safe_value(data, 'asks', [])
         bids = self.safe_value(data, 'bids', [])
@@ -1135,5 +1136,5 @@ class cex(Exchange, ccxt.async_support.cex):
                     'timestamp': nonce,
                 },
             }
-            self.spawn(self.watch, url, messageHash, self.extend(request, params), messageHash)
+            await self.watch(url, messageHash, self.extend(request, params), messageHash)
         return await future
