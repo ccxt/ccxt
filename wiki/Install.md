@@ -245,8 +245,9 @@ exchange = ccxt.poloniex({
     # This is the setting you should be using with synchronous version of ccxt in Python 3
     #
     'proxies': {
-        'http': 'http://10.10.1.10:3128',
-        'https': 'http://10.10.1.10:1080',
+        # change the following for your own proxy addresses
+        'http': 'http://10.10.1.10:3128',  # these are examples values that will not work for you
+        'https': 'http://10.10.1.10:1080',  # these are examples values that will not work for you
     },
 })
 
