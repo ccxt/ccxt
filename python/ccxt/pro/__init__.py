@@ -8,10 +8,6 @@ __version__ = '2.9.13'
 
 # ----------------------------------------------------------------------------
 
-# Pro Exchange
-
-from ccxt.pro.base.exchange import Exchange  # noqa: F401
-
 # CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
