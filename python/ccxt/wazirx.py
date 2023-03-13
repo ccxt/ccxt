@@ -276,7 +276,7 @@ class wazirx(Exchange):
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the wazirx api endpoint
         :param int|None params['until']: timestamp in s of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -289,7 +289,7 @@ class wazirx(Exchange):
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['until'])
         if since is not None:
-            request['startTime'] = int(since / 1000)
+            request['startTime'] = self.parse_to_int(since / 1000)
         if until is not None:
             request['endTime'] = until
         response = self.publicGetKlines(self.extend(request, params))

@@ -6,13 +6,13 @@ import numbers  # noqa E402
 
 def test_margin_modification(exchange, marginModification):
     format = {
-        info: {},
-        type: 'add',
-        amount: 0.1,
-        total: 0.29934828,
-        code: 'USDT',
-        symbol: 'ADA/USDT:USDT',
-        status: 'ok',
+        'info': {},
+        'type': 'add',
+        'amount': 0.1,
+        'total': 0.29934828,
+        'code': 'USDT',
+        'symbol': 'ADA/USDT:USDT',
+        'status': 'ok',
     }
     keys = list(format.keys())
     for i in range(0, len(keys)):

@@ -444,12 +444,12 @@ class lbank extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the lbank api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             if ($limit === null) {
-                $limit = 100; // as it's defined in lbank2
+                $limit = 100; // it's defined in lbank2
             }
             if ($since === null) {
                 $duration = $this->parse_timeframe($timeframe);
@@ -459,7 +459,7 @@ class lbank extends Exchange {
                 'symbol' => $market['id'],
                 'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'size' => $limit,
-                'time' => intval($since / 1000),
+                'time' => $this->parse_to_int($since / 1000),
             );
             $response = Async\await($this->publicGetKline (array_merge($request, $params)));
             //
@@ -799,7 +799,7 @@ class lbank extends Exchange {
     public function convert_secret_to_pem($secret) {
         $lineLength = 64;
         $secretLength = strlen($secret) - 0;
-        $numLines = intval($secretLength / $lineLength);
+        $numLines = $this->parse_to_int($secretLength / $lineLength);
         $numLines = $this->sum($numLines, 1);
         $pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for ($i = 0; $i < $numLines; $i++) {

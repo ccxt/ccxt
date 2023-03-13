@@ -7,9 +7,9 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\InvalidOrder;
 use ccxt\DDoSProtection;
+use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 
@@ -598,7 +598,7 @@ class btcalpha extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the btcalpha api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -610,7 +610,7 @@ class btcalpha extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($since !== null) {
-                $request['since'] = intval($since / 1000);
+                $request['since'] = $this->parse_to_int($since / 1000);
             }
             $response = Async\await($this->publicGetChartsPairTypeChart (array_merge($request, $params)));
             //

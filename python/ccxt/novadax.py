@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import AccountSuspended
@@ -18,6 +17,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -493,7 +493,7 @@ class novadax(Exchange):
         #          "timestamp": 1565171053345
         #       }
         #
-        # private fetchMyTrades(same endpoint as fetchOrderTrades)
+        # private fetchMyTrades(same endpoint)
         #
         #      {
         #          "id": "608717046691139584",
@@ -582,7 +582,7 @@ class novadax(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the novadax api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -598,7 +598,7 @@ class novadax(Exchange):
             request['from'] = now - limit * duration
             request['to'] = now
         else:
-            startFrom = int(since / 1000)
+            startFrom = self.parse_to_int(since / 1000)
             request['from'] = startFrom
             request['to'] = self.sum(startFrom, limit * duration)
         response = self.publicGetMarketKlineHistory(self.extend(request, params))

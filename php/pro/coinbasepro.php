@@ -11,8 +11,6 @@ use React\Async;
 
 class coinbasepro extends \ccxt\async\coinbasepro {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -318,7 +316,8 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $feeCurrency = $market['quote'];
         $feeCost = null;
         if (($parsed['cost'] !== null) && ($feeRate !== null)) {
-            $feeCost = $parsed['cost'] * $feeRate;
+            $cost = $this->safe_number($parsed, 'cost');
+            $feeCost = $cost * $feeRate;
         }
         $parsed['fee'] = array(
             'rate' => $feeRate,

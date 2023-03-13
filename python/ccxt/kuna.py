@@ -589,7 +589,7 @@ class kuna(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the kuna api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
@@ -747,7 +747,7 @@ class kuna(Exchange):
         response = self.privateGetOrders(self.extend(request, params))
         # todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         # with order cache + fetchOpenOrders
-        # as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
+        # BTC-e, Liqui, Yobit, DSX, Tidex, WEX
         return self.parse_orders(response, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

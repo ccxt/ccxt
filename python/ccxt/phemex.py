@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import numbers
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -20,6 +19,7 @@ from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -414,7 +414,7 @@ class phemex(Exchange):
                     '11125': InvalidOrder,  # TE_BO_CANNOT_CANCEL_BOTP_OR_BOSL_ORDER Details: cannot cancel bracket sl/tp order
                     '11126': InvalidOrder,  # TE_BO_DONOT_SUPPORT_API Details: doesn't support bracket order via API
                     '11128': InvalidOrder,  # TE_BO_INVALID_EXECINST Details: ExecInst value is invalid
-                    '11129': InvalidOrder,  # TE_BO_MUST_BE_SAME_SIDE_AS_POS Details: bracket order should have the same side as position's side
+                    '11129': InvalidOrder,  # TE_BO_MUST_BE_SAME_SIDE_AS_POS Details: bracket order should have the same side's side
                     '11130': InvalidOrder,  # TE_BO_WRONG_SL_TRIGGER_TYPE Details: bracket stop loss order trigger type is invalid
                     '11131': InvalidOrder,  # TE_BO_WRONG_TP_TRIGGER_TYPE Details: bracket take profit order trigger type is invalid
                     '11132': InvalidOrder,  # TE_BO_ABORT_BOSL_DUE_BOTP_CREATE_FAILED Details: cancel bracket stop loss order due failed to create take profit order.
@@ -906,7 +906,7 @@ class phemex(Exchange):
             self.parse_number(amount),
         ]
 
-    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market=None):
+    def custom_parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market=None):
         result = {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -972,7 +972,7 @@ class phemex(Exchange):
         result = self.safe_value(response, 'result', {})
         book = self.safe_value_2(result, 'book', 'orderbook_p', {})
         timestamp = self.safe_integer_product(result, 'timestamp', 0.000001)
-        orderbook = self.parse_order_book(book, symbol, timestamp, 'bids', 'asks', 0, 1, market)
+        orderbook = self.custom_parse_order_book(book, symbol, timestamp, 'bids', 'asks', 0, 1, market)
         orderbook['nonce'] = self.safe_integer(result, 'sequence')
         return orderbook
 
@@ -982,7 +982,9 @@ class phemex(Exchange):
         precise.decimals = precise.decimals - scale
         precise.reduce()
         stringValue = str(precise)
-        return int(float(stringValue))
+        floatValue = float(stringValue)
+        floatString = str(floatValue)
+        return int(floatString)
 
     def to_ev(self, amount, market=None):
         if (amount is None) or (market is None):
@@ -1055,7 +1057,7 @@ class phemex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1070,10 +1072,10 @@ class phemex(Exchange):
         possibleLimitValues = [5, 10, 50, 100, 500, 1000]
         maxLimit = 1000  # maximum limit, we shouldn't sent request of more than it
         if limit is None:
-            limit = 100  # set default, as exchange doesn't have any defaults and needs something to be set
+            limit = 100  # set default, doesn't have any defaults and needs something to be set
         limit = min(limit, maxLimit)
         if since is not None:  # phemex also provides kline query with from/to, however, self interface is NOT recommended.
-            since = int(since / 1000)
+            since = self.parse_to_int(since / 1000)
             request['from'] = since
             # time ranges ending in the future are not accepted
             # https://github.com/ccxt/ccxt/issues/8050
@@ -2181,10 +2183,10 @@ class phemex(Exchange):
                 request['stopLossEp'] = self.to_ep(stopLossPrice, market)
             params = self.omit(params, 'stopLossPrice')
         method = 'privatePostSpotOrders'
-        if market['inverse']:
-            method = 'privatePostOrders'
-        elif market['settle'] == 'USDT':
+        if market['settle'] == 'USDT':
             method = 'privatePostGOrders'
+        elif market['contract']:
+            method = 'privatePostOrders'
         params = self.omit(params, 'reduceOnly')
         response = getattr(self, method)(self.extend(request, params))
         #

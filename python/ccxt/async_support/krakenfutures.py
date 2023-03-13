@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -19,6 +18,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -232,7 +232,7 @@ class krakenfutures(Exchange):
 
     async def fetch_markets(self, params={}):
         """
-        Fetches the available trading markets from the exchange, Multi-collateral markets are returned as linear markets, but can be settled in multiple currencies
+        Fetches the available trading markets from the exchange, Multi-collateral markets are returned markets, but can be settled in multiple currencies
         see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
         :param dict params: exchange specific params
         :returns: An array of market structures
@@ -557,7 +557,7 @@ class krakenfutures(Exchange):
         params = self.omit(params, 'price')
         if since is not None:
             duration = self.parse_timeframe(timeframe)
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
             if limit is None:
                 limit = 5000
             elif limit > 5000:
@@ -570,7 +570,7 @@ class krakenfutures(Exchange):
                 raise BadRequest(self.id + ' fetchOHLCV() limit cannot exceed 5000')
             duration = self.parse_timeframe(timeframe)
             request['to'] = self.seconds()
-            request['from'] = int(request['to'] - (duration * limit))
+            request['from'] = self.parse_to_int(request['to'] - (duration * limit))
         response = await self.chartsGetPriceTypeSymbolInterval(self.extend(request, params))
         #
         #    {
@@ -773,8 +773,8 @@ class krakenfutures(Exchange):
         :param int amount: Contract quantity
         :param float price: Limit order price
         :param float|None params['stopPrice']: The stop price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
-        :param bool|None params['reduceOnly']: Set as True if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default False,
-        :param bool|None params['postOnly']: Set as True if you wish to make a postOnly order, Default False
+        :param bool|None params['reduceOnly']: Set if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default False,
+        :param bool|None params['postOnly']: Set if you wish to make a postOnly order, Default False
         :param str|None params['triggerSignal']: If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
         :param str|None params['cliOrdId']: UUID The order identity that is specified from the user, It must be globally unique
         """

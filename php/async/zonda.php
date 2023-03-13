@@ -993,7 +993,7 @@ class zonda extends Exchange {
             $amount = Precise::string_neg($amount);
         }
         // there are 2 undocumented api calls => (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
-        // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
+        // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId parameter)
         $fundsBefore = $this->safe_value($item, 'fundsBefore', array());
         $fundsAfter = $this->safe_value($item, 'fundsAfter', array());
         return array(
@@ -1069,7 +1069,7 @@ class zonda extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the zonda api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

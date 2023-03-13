@@ -4,13 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NetworkError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -176,7 +176,7 @@ class hollaex(Exchange):
                     'Invalid token': AuthenticationError,
                     'Order not found': OrderNotFound,
                     'Insufficient balance': InsufficientFunds,
-                    'Error 1001 - Order rejected. Order could not be submitted as self order was set to a post only order.': OrderImmediatelyFillable,
+                    'Error 1001 - Order rejected. Order could not be submitted order was set to a post only order.': OrderImmediatelyFillable,
                 },
                 'exact': {
                     '400': BadRequest,
@@ -191,7 +191,7 @@ class hollaex(Exchange):
             },
             'options': {
                 # how many seconds before the authenticated request expires
-                'api-expires': int(self.timeout / 1000),
+                'api-expires': self.parse_to_int(self.timeout / 1000),
                 'networks': {
                     'BTC': 'btc',
                     'ETH': 'eth',
@@ -723,7 +723,7 @@ class hollaex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the hollaex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -741,10 +741,10 @@ class hollaex(Exchange):
             request['from'] = start
         else:
             if limit is None:
-                request['from'] = int(since / 1000)
+                request['from'] = self.parse_to_int(since / 1000)
                 request['to'] = self.seconds()
             else:
-                start = int(since / 1000)
+                start = self.parse_to_int(since / 1000)
                 request['from'] = start
                 request['to'] = self.sum(start, duration * limit)
         response = self.publicGetChart(self.extend(request, params))
@@ -1088,7 +1088,7 @@ class hollaex(Exchange):
             'size': self.normalize_number_if_needed(convertedAmount),
             'type': type,
             # 'stop': float(self.price_to_precision(symbol, stopPrice)),
-            # 'meta': {},  # other options such as post_only
+            # 'meta': {},  # other options such
         }
         stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop'])
         meta = self.safe_value(params, 'meta', {})
@@ -1624,7 +1624,7 @@ class hollaex(Exchange):
         url = self.urls['api']['rest'] + path
         if api == 'private':
             self.check_required_credentials()
-            defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', int(self.timeout / 1000))
+            defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', int((self.timeout / str(1000))))
             expires = self.sum(self.seconds(), defaultExpires)
             expiresString = str(expires)
             auth = method + path + expiresString
@@ -1650,7 +1650,7 @@ class hollaex(Exchange):
             #
             # different errors return the same code eg:
             #
-            #  {"message":"Error 1001 - Order rejected. Order could not be submitted as self order was set to a post only order."}
+            #  {"message":"Error 1001 - Order rejected. Order could not be submitted order was set to a post only order."}
             #
             #  {"message":"Error 1001 - POST ONLY order can not be of type market"}
             #

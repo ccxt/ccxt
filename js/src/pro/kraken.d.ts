@@ -1,0 +1,45 @@
+import krakenRest from '../kraken.js';
+export default class kraken extends krakenRest {
+    describe(): any;
+    handleTicker(client: any, message: any, subscription: any): void;
+    handleTrades(client: any, message: any, subscription: any): void;
+    handleOHLCV(client: any, message: any, subscription: any): void;
+    requestId(): any;
+    watchPublic(name: any, symbol: any, params?: {}): Promise<any>;
+    watchTicker(symbol: any, params?: {}): Promise<any>;
+    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
+    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    loadMarkets(reload?: boolean, params?: {}): Promise<any>;
+    watchHeartbeat(params?: {}): Promise<any>;
+    handleHeartbeat(client: any, message: any): void;
+    handleOrderBook(client: any, message: any, subscription: any): void;
+    formatNumber(n: any, length: any): string;
+    handleDeltas(bookside: any, deltas: any, timestamp?: any): any;
+    handleSystemStatus(client: any, message: any): any;
+    authenticate(params?: {}): Promise<string>;
+    watchPrivate(name: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    handleMyTrades(client: any, message: any, subscription?: any): void;
+    parseWsTrade(trade: any, market?: any): {
+        id: string;
+        order: string;
+        info: any;
+        timestamp: number;
+        datetime: string;
+        symbol: any;
+        type: string;
+        side: string;
+        takerOrMaker: any;
+        price: number;
+        amount: number;
+        cost: any;
+        fee: any;
+    };
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    handleOrders(client: any, message: any, subscription?: any): void;
+    parseWsOrder(order: any, market?: any): any;
+    handleSubscriptionStatus(client: any, message: any): void;
+    handleErrorMessage(client: any, message: any): boolean;
+    handleMessage(client: any, message: any): any;
+}

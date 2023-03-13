@@ -372,7 +372,7 @@ class mercado(Exchange):
         }
         if since is not None:
             method += 'From'
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
         to = self.safe_integer(params, 'to')
         if to is not None:
             method += 'To'
@@ -696,7 +696,7 @@ class mercado(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -705,9 +705,9 @@ class mercado(Exchange):
             'symbol': market['base'] + '-' + market['quote'],  # exceptional endpoint, that needs custom symbol syntax
         }
         if limit is None:
-            limit = 100  # set some default limit, as it's required if user doesn't provide it
+            limit = 100  # set some default limit,'s required if user doesn't provide it
         if since is not None:
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
             request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe))
         else:
             request['to'] = self.seconds()
