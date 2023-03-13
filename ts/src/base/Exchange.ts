@@ -868,8 +868,9 @@ export default class Exchange {
         let AbortError
         if (this.fetchImplementation === undefined) {
             if (isNode) {
-                this.fetchImplementation = await import ('../static_dependencies/node-fetch/index')
-                AbortError = await import ('../static_dependencies/node-fetch/errors/abort-error')
+                const module = await import ('../static_dependencies/node-fetch/index.js')
+                AbortError = module.AbortError
+                this.fetchImplementation = module.default
             } else {
                 this.fetchImplementation = window.fetch
                 AbortError = DOMException
