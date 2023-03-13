@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
 import {RequestOptions} from 'http';
+/*
 import {FormData} from 'formdata-polyfill/esm.min.js';
 import {
 	Blob,
@@ -10,6 +11,7 @@ import {
 	fileFrom,
 	fileFromSync
 } from 'fetch-blob/from.js';
+*/
 
 type AbortSignal = {
 	readonly aborted: boolean;
