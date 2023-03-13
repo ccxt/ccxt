@@ -294,6 +294,17 @@ export default class cryptocom extends Exchange {
                     'swap': 'DERIVATIVES',
                     'future': 'DERIVATIVES',
                 },
+                'networks': {
+                    'BEP20': 'BSC',
+                    'ERC20': 'ETH',
+                    'TRX': 'TRON',
+                    'TRC20': 'TRON',
+                },
+                'networksById': {
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'TRON': 'TRC20',
+                },
             },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
