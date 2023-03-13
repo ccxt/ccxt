@@ -922,7 +922,7 @@ export default class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
-        let feeCost = this.safeString (item, 'fee', 0);
+        let feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
             feeCost = Precise.stringDiv (feeCost, '100000000');
         }
