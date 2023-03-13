@@ -1882,8 +1882,8 @@ export default class Exchange {
         return this.extend (order, {
             'id': this.safeString (order, 'id'),
             'clientOrderId': this.safeString (order, 'clientOrderId'),
-            'timestamp': datetime,
-            'datetime': timestamp,
+            'timestamp': timestamp,
+            'datetime': datetime,
             'symbol': symbol,
             'type': this.safeString (order, 'type'),
             'side': side,
