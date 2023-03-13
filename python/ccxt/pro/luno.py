@@ -150,7 +150,7 @@ class luno(ccxt.async_support.luno):
         }
         request = self.deep_extend(subscribe, params)
         orderbook = await self.watch(url, messageHash, request, subscriptionHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message, subscription):
         #

@@ -156,7 +156,7 @@ export default class luno extends lunoRest {
         };
         const request = this.deepExtend(subscribe, params);
         const orderbook = await this.watch(url, messageHash, request, subscriptionHash, subscription);
-        return orderbook.limit(limit);
+        return orderbook.limit();
     }
     handleOrderBook(client, message, subscription) {
         //

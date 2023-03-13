@@ -3747,8 +3747,8 @@ class okx extends Exchange {
             if ($fee === null) {
                 throw new ArgumentsRequired($this->id . " withdraw() requires a 'fee' string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set '0'. Withdrawing to external digital asset $address requires $network $transaction $fee->");
             }
-            $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are $fee-free, please set 0
         }
+        $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are $fee-free, please set 0
         if (is_array($params) && array_key_exists('password', $params)) {
             $request['pwd'] = $params['password'];
         } elseif (is_array($params) && array_key_exists('pwd', $params)) {
