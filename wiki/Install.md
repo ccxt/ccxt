@@ -185,7 +185,7 @@ exchange = ccxt.binance({
 ```
 
 ```shell
-$ export HTTP_PROXY="http://10.10.1.10:3128"
+$ export HTTP_PROXY="http://10.10.1.10:3128"  # these proxies won't work for you, they are here for example
 $ export HTTPS_PROXY="http://10.10.1.10:1080"
 ```
 
