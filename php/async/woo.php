@@ -1073,6 +1073,7 @@ class woo extends Exchange {
         $status = $this->safe_value($order, 'status');
         $side = $this->safe_string_lower($order, 'side');
         $filled = $this->safe_value($order, 'executed');
+        $average = $this->safe_string($order, 'average_executed_price');
         $remaining = Precise::string_sub($cost, $filled);
         $fee = $this->safe_value($order, 'total_fee');
         $feeCurrency = $this->safe_string($order, 'fee_asset');
@@ -1093,7 +1094,7 @@ class woo extends Exchange {
             'price' => $price,
             'stopPrice' => null,
             'triggerPrice' => null,
-            'average' => null,
+            'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining, // TO_DO
