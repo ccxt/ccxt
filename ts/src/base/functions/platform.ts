@@ -11,7 +11,7 @@
 // - make sure it works with Angular.js
 // - make sure it does not break other possible usage scenarios
 
-import fetchNode from '../../static_dependencies/fetch-ponyfill/fetch-node.cjs'
+import defaultFetch from '../../static_dependencies/node-fetch/index.js'
 
 const isBrowser = typeof window !== 'undefined'
 
@@ -24,8 +24,6 @@ const isWebWorker = typeof WorkerGlobalScope !== 'undefined' && (self instanceof
 const isWindows = typeof process !== 'undefined' && process.platform === "win32"
 
 const isNode = !(isBrowser || isWebWorker)
-
-const defaultFetch = isNode ? fetchNode().fetch : fetch
 
 // ----------------------------------------------------------------------------
 
