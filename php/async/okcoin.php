@@ -146,7 +146,7 @@ class okcoin extends Exchange {
                         'rfq/trade' => 50,
                     ),
                 ),
-                // TODO fix signing issue as above
+                // TODO fix signing issue
                 'users' => array(
                     'get' => array(
                         'subaccount-info' => 20,
@@ -710,9 +710,9 @@ class okcoin extends Exchange {
                     '36103' => '\\ccxt\\PermissionDenied', // Account is suspended due to ongoing liquidation.
                     '36104' => '\\ccxt\\PermissionDenied', // Account is not enabled for options trading.
                     '36105' => '\\ccxt\\PermissionDenied', // Please enable the account for option contract.
-                    '36106' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred in or out, as account is suspended.
+                    '36106' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred in or out, is suspended.
                     '36107' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred out within 30 minutes after option exercising or settlement.
-                    '36108' => '\\ccxt\\InsufficientFunds', // Funds cannot be transferred in or out, as equity of the account is less than zero.
+                    '36108' => '\\ccxt\\InsufficientFunds', // Funds cannot be transferred in or out, of the account is less than zero.
                     '36109' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred in or out during option exercising or settlement.
                     '36201' => '\\ccxt\\PermissionDenied', // New order function is blocked.
                     '36202' => '\\ccxt\\PermissionDenied', // Account does not have permission to short option.
@@ -1564,7 +1564,7 @@ class okcoin extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the okcoin api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1992,7 +1992,7 @@ class okcoin extends Exchange {
                 $request = array_merge($request, array(
                     'type' => $type, // 1:open long 2:open short 3:close long 4:close short for futures
                     'size' => $size,
-                    // 'match_price' => '0', // Order at best counter party $price? (0:no 1:yes). The default is 0. If it is set as 1, the $price parameter will be ignored. When posting orders at best bid $price, order_type can only be 0 (regular $order).
+                    // 'match_price' => '0', // Order at best counter party $price? (0:no 1:yes). The default is 0. If it is set, the $price parameter will be ignored. When posting orders at best bid $price, order_type can only be 0 (regular $order).
                 ));
                 $orderType = $this->safe_string($params, 'order_type');
                 // order_type === '4' means a $market $order
@@ -2180,7 +2180,7 @@ class okcoin extends Exchange {
         //         "created_at":"2019-03-18T07:26:49.000Z",
         //         "filled_notional":"3.9734",
         //         "filled_size":"0.001", // filled_qty in futures and swap orders
-        //         "funds":"", // this is most likely the same as notional
+        //         "funds":"", // this is most likely the same
         //         "instrument_id":"BTC-USDT",
         //         "notional":"",
         //         "order_id":"2500723297813504",
@@ -2702,7 +2702,7 @@ class okcoin extends Exchange {
                 'to_address' => $address,
                 'destination' => '4', // 2 = OKCoin International, 3 = OKEx 4 = others
                 'amount' => $this->number_to_string($amount),
-                'fee' => $fee, // 'strval'. Network transaction $fee ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set as 0. Withdrawal to external digital asset $address requires network transaction $fee->
+                'fee' => $fee, // 'strval'. Network transaction $fee ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set. Withdrawal to external digital asset $address requires network transaction $fee->
             );
             if (is_array($params) && array_key_exists('password', $params)) {
                 $request['trade_pwd'] = $params['password'];
@@ -3594,8 +3594,8 @@ class okcoin extends Exchange {
             $response = Async\await($this->$method (array_merge($request, $query)));
             //
             // transfer     funds transfer in/out
-            // trade        funds moved as a result of a trade, spot accounts only
-            // rebate       fee rebate as per fee schedule, spot accounts only
+            // trade        funds moved result of a trade, spot accounts only
+            // rebate       fee rebate fee schedule, spot accounts only
             // match        open long/open short/close long/close short (futures) or a change in the amount because of trades (swap)
             // fee          fee, futures only
             // settlement   settlement/clawback/settle long/settle short
@@ -3681,8 +3681,8 @@ class okcoin extends Exchange {
     public function parse_ledger_entry_type($type) {
         $types = array(
             'transfer' => 'transfer', // funds transfer in/out
-            'trade' => 'trade', // funds moved as a result of a trade, spot accounts only
-            'rebate' => 'rebate', // fee rebate as per fee schedule, spot accounts only
+            'trade' => 'trade', // funds moved result of a trade, spot accounts only
+            'rebate' => 'rebate', // fee rebate fee schedule, spot accounts only
             'match' => 'trade', // open long/open short/close long/close short (futures) or a change in the amount because of trades (swap)
             'fee' => 'fee', // fee, futures only
             'settlement' => 'trade', // settlement/clawback/settle long/settle short

@@ -1273,22 +1273,27 @@ class bitmart extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitmart api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $type = $market['type'];
             $duration = $this->parse_timeframe($timeframe);
+            $parsedTimeframe = $this->safe_integer($this->timeframes, $timeframe);
             $request = array(
                 'symbol' => $market['id'],
-                'step' => $this->safe_integer($this->timeframes, $timeframe, $timeframe),
             );
+            if ($parsedTimeframe !== null) {
+                $request['step'] = $parsedTimeframe;
+            } else {
+                $request['step'] = $timeframe;
+            }
             $maxLimit = 500;
             if ($limit === null) {
                 $limit = $maxLimit;
             }
             $limit = min ($maxLimit, $limit);
-            $now = intval($this->milliseconds() / 1000);
+            $now = $this->parse_to_int($this->milliseconds() / 1000);
             $fromRequest = ($type === 'spot') ? 'from' : 'start_time';
             $toRequest = ($type === 'spot') ? 'to' : 'end_time';
             if ($since === null) {
@@ -1296,7 +1301,7 @@ class bitmart extends Exchange {
                 $request[$fromRequest] = $start;
                 $request[$toRequest] = $now;
             } else {
-                $start = intval($since / 1000) - 1;
+                $start = $this->parse_to_int(($since / 1000)) - 1;
                 $end = $this->sum($start, $limit * $duration);
                 $request[$fromRequest] = $start;
                 $request[$toRequest] = min ($end, $now);

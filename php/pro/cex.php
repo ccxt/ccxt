@@ -13,8 +13,6 @@ use React\Async;
 
 class cex extends \ccxt\async\cex {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -148,7 +146,7 @@ class cex extends \ccxt\async\cex {
             );
             $request = $this->deep_extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
-            // assing $symbol to the $trades as $message does not contain $symbol information
+            // assing $symbol to the $trades does not contain $symbol information
             for ($i = 0; $i < count($trades); $i++) {
                 $trades[$i]['symbol'] = $symbol;
             }
@@ -850,7 +848,7 @@ class cex extends \ccxt\async\cex {
         //         ok => 'ok'
         //     }
         //
-        $symbol = $this->safe_string($message, 'oid'); // $symbol is set as requestId in watchOrders
+        $symbol = $this->safe_string($message, 'oid'); // $symbol is set in watchOrders
         $rawOrders = $this->safe_value($message, 'data', array());
         $myOrders = $this->orders;
         if ($this->orders === null) {
@@ -1014,7 +1012,7 @@ class cex extends \ccxt\async\cex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

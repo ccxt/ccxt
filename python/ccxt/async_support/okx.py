@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import AccountSuspended
@@ -26,6 +25,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -534,7 +534,7 @@ class okx(Exchange):
                     '51138': InvalidOrder,  # Your opening price has triggered the limit price, and the min sell price is {0}
                     '51139': InvalidOrder,  # Reduce-only feature is unavailable for the spot transactions by simple account
                     '51156': BadRequest,  # You're leading trades in long/short mode and can't use self API endpoint to close positions
-                    '51159': BadRequest,  # You're leading trades in buy/sell mode. If you want to place orders using self API endpoint, the orders must be in the same direction as your existing positions and open orders.
+                    '51159': BadRequest,  # You're leading trades in buy/sell mode. If you want to place orders using self API endpoint, the orders must be in the same direction existing positions and open orders.
                     '51162': InvalidOrder,  # You have {instrument} open orders. Cancel these orders and try again
                     '51163': InvalidOrder,  # You hold {instrument} positions. Close these positions and try again
                     '51166': InvalidOrder,  # Currently, we don't support leading trades with self instrument
@@ -582,26 +582,26 @@ class okx(Exchange):
                     '51328': InvalidOrder,  # closeFraction is only available for reduceOnly orders
                     '51329': InvalidOrder,  # closeFraction is only available in NET mode
                     '51330': InvalidOrder,  # closeFraction is only available for stop market orders
-                    '51400': OrderNotFound,  # Cancellation failed as the order does not exist
-                    '51401': OrderNotFound,  # Cancellation failed as the order is already canceled
-                    '51402': OrderNotFound,  # Cancellation failed as the order is already completed
-                    '51403': InvalidOrder,  # Cancellation failed as the order type does not support cancellation
+                    '51400': OrderNotFound,  # Cancellation failed order does not exist
+                    '51401': OrderNotFound,  # Cancellation failed order is already canceled
+                    '51402': OrderNotFound,  # Cancellation failed order is already completed
+                    '51403': InvalidOrder,  # Cancellation failed order type does not support cancellation
                     '51404': InvalidOrder,  # Order cancellation unavailable during the second phase of call auction
-                    '51405': ExchangeError,  # Cancellation failed as you do not have any pending orders
+                    '51405': ExchangeError,  # Cancellation failed do not have any pending orders
                     '51406': ExchangeError,  # Canceled - order count exceeds the limit {0}
                     '51407': BadRequest,  # Either order ID or client order ID is required
                     '51408': ExchangeError,  # Pair ID or name does not match the order info
                     '51409': ExchangeError,  # Either pair ID or pair name ID is required
-                    '51410': CancelPending,  # Cancellation failed as the order is already under cancelling status
+                    '51410': CancelPending,  # Cancellation failed order is already under cancelling status
                     '51500': ExchangeError,  # Either order price or amount is required
                     '51501': ExchangeError,  # Maximum {0} orders can be modified
                     '51502': InsufficientFunds,  # Order modification failed for insufficient margin
-                    '51503': ExchangeError,  # Order modification failed as the order does not exist
+                    '51503': ExchangeError,  # Order modification failed order does not exist
                     '51506': ExchangeError,  # Order modification unavailable for the order type
                     '51508': ExchangeError,  # Orders are not allowed to be modified during the call auction
-                    '51509': ExchangeError,  # Modification failed as the order has been canceled
-                    '51510': ExchangeError,  # Modification failed as the order has been completed
-                    '51511': ExchangeError,  # Modification failed as the order price did not meet the requirement for Post Only
+                    '51509': ExchangeError,  # Modification failed order has been canceled
+                    '51510': ExchangeError,  # Modification failed order has been completed
+                    '51511': ExchangeError,  # Modification failed order price did not meet the requirement for Post Only
                     '51600': ExchangeError,  # Status not found
                     '51601': ExchangeError,  # Order status and order ID cannot exist at the same time
                     '51602': ExchangeError,  # Either order status or order ID is required
@@ -636,7 +636,7 @@ class okx(Exchange):
                     '58108': ExchangeError,  # Please enable the account for option contract
                     '58109': ExchangeError,  # Please enable the account for swap contract
                     '58110': ExchangeError,  # The contract triggers risk control, and the platform has suspended the fund transfer function of it. Please wait patiently
-                    '58111': ExchangeError,  # Funds transfer unavailable as the perpetual contract is charging the funding fee. Please try again later
+                    '58111': ExchangeError,  # Funds transfer unavailable perpetual contract is charging the funding fee. Please try again later
                     '58112': ExchangeError,  # Your fund transfer failed. Please try again later
                     '58114': ExchangeError,  # Transfer amount must be more than 0
                     '58115': ExchangeError,  # Sub-account does not exist
@@ -669,8 +669,8 @@ class okx(Exchange):
                     '58300': ExchangeError,  # Deposit-address count exceeds the limit
                     '58350': InsufficientFunds,  # Insufficient balance
                     # Account error codes 59000-59999
-                    '59000': ExchangeError,  # Your settings failed as you have positions or open orders
-                    '59001': ExchangeError,  # Switching unavailable as you have borrowings
+                    '59000': ExchangeError,  # Your settings failed have positions or open orders
+                    '59001': ExchangeError,  # Switching unavailable have borrowings
                     '59100': ExchangeError,  # You have open positions. Please cancel all open positions before changing the leverage
                     '59101': ExchangeError,  # You have pending orders with isolated positions. Please cancel all the pending orders and adjust the leverage
                     '59102': ExchangeError,  # Leverage exceeds the maximum leverage. Please adjust the leverage
@@ -713,7 +713,7 @@ class okx(Exchange):
                     '60012': BadRequest,  # Illegal request
                     '60013': BadRequest,  # Invalid args
                     '60014': RateLimitExceeded,  # Requests too frequent
-                    '60015': NetworkError,  # Connection closed as there was no data transmission in the last 30 seconds
+                    '60015': NetworkError,  # Connection closed was no data transmission in the last 30 seconds
                     '60016': ExchangeNotAvailable,  # Buffer is full, cannot write data
                     '60017': BadRequest,  # Invalid url path
                     '60018': BadRequest,  # The {0} {1} {2} {3} {4} does not exist
@@ -1662,7 +1662,7 @@ class okx(Exchange):
         :param dict params: extra parameters specific to the okx api endpoint
         :param str|None params['price']: "mark" or "index" for mark price and index price candles
         :param int|None params['until']: timestamp in ms of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1841,7 +1841,7 @@ class okx(Exchange):
         return {
             'info': fee,
             'symbol': self.safe_symbol(None, market),
-            # OKX returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
+            # OKX returns the fees values opposed to other exchanges, so the sign needs to be flipped
             'maker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'maker', 'makerU'))),
             'taker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'taker', 'takerU'))),
         }
@@ -2064,7 +2064,7 @@ class okx(Exchange):
         slTriggerPxType = self.safe_string(params, 'slTriggerPxType', 'last')
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not ommited so as to be extended into the request
+        marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not ommited so be extended into the request
         margin = False
         if (marginMode is not None) and (marginMode != 'cash'):
             margin = True
@@ -2140,7 +2140,7 @@ class okx(Exchange):
             request['ordType'] = 'conditional'
             twoWayCondition = ((takeProfitPrice is not None) and (stopLossPrice is not None))
             # if TP and SL are sent together
-            # as ordType 'conditional' only stop-loss order will be applied
+            # 'conditional' only stop-loss order will be applied
             if twoWayCondition:
                 request['ordType'] = 'oco'
             if takeProfitPrice is not None:
@@ -2461,9 +2461,10 @@ class okx(Exchange):
         stopLossPrice = self.safe_number_2(order, 'slTriggerPx', 'slOrdPx')
         takeProfitPrice = self.safe_number_2(order, 'tpTriggerPx', 'tpOrdPx')
         stopPrice = self.safe_number_n(order, ['triggerPx', 'moveTriggerPx'])
-        reduceOnly = self.safe_string(order, 'reduceOnly')
+        reduceOnlyRaw = self.safe_string(order, 'reduceOnly')
+        reduceOnly = False
         if reduceOnly is not None:
-            reduceOnly = (reduceOnly == 'true')
+            reduceOnly = (reduceOnlyRaw == 'true')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -3961,7 +3962,7 @@ class okx(Exchange):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated')
         market = self.market(symbol)
@@ -4227,13 +4228,13 @@ class okx(Exchange):
             collateralString = self.safe_string(position, 'margin')
         maintenanceMarginString = self.safe_string(position, 'mmr')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
-        maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notionalString)
+        maintenanceMarginPercentageString = Precise.string_div(maintenanceMarginString, notionalString)
         if initialMarginPercentage is None:
             initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalString, 4))
         elif initialMarginString is None:
             initialMarginString = Precise.string_mul(initialMarginPercentage, notionalString)
         rounder = '0.00005'  # round to closest 0.01%
-        maintenanceMarginPercentage = self.parse_number(Precise.string_div(Precise.string_add(maintenanceMarginPercentage, rounder), '1', 4))
+        maintenanceMarginPercentage = self.parse_number(Precise.string_div(Precise.string_add(maintenanceMarginPercentageString, rounder), '1', 4))
         liquidationPrice = self.safe_number(position, 'liqPx')
         percentageString = self.safe_string(position, 'uplRatio')
         percentage = self.parse_number(Precise.string_mul(percentageString, '100'))
@@ -4613,7 +4614,7 @@ class okx(Exchange):
         type, query = self.handle_market_type_and_params('fetchFundingHistory', market, params)
         if type == 'swap':
             request['instType'] = self.convert_to_instrument_type(type)
-        # AccountBillsArchive has the same cost as AccountBills but supports three months of data
+        # AccountBillsArchive has the same cost but supports three months of data
         response = await self.privateGetAccountBillsArchive(self.extend(request, query))
         #
         #    {
@@ -4682,7 +4683,7 @@ class okx(Exchange):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated')
         request = {
@@ -5072,7 +5073,7 @@ class okx(Exchange):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchMarketLeverageTiers', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'tdMode', 'cross')  # cross as default marginMode
+            marginMode = self.safe_string(params, 'tdMode', 'cross')  # cross marginMode
         request = {
             'instType': type,
             'tdMode': marginMode,
@@ -5160,7 +5161,7 @@ class okx(Exchange):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross marginMode
         request = {
             'mgnMode': marginMode,
         }
@@ -5366,10 +5367,10 @@ class okx(Exchange):
         Retrieves the open interest history of a currency
         :param str symbol: Unified CCXT currency code instead of a unified symbol
         :param str timeframe: "5m", "1h", or "1d"
-        :param int|None since: The time in ms of the earliest record to retrieve as a unix timestamp
+        :param int|None since: The time in ms of the earliest record to retrieve unix timestamp
         :param int|None limit: Not used by okx, but parsed internally by CCXT
         :param dict params: Exchange specific parameters
-        :param int|None params['until']: The time in ms of the latest record to retrieve as a unix timestamp
+        :param int|None params['until']: The time in ms of the latest record to retrieve unix timestamp
         :returns: An array of `open interest structures <https://docs.ccxt.com/en/latest/manual.html#interest-history-structure>`
         """
         options = self.safe_value(self.options, 'fetchOpenInterestHistory', {})

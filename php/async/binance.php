@@ -7,7 +7,6 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
@@ -15,6 +14,7 @@ use ccxt\MarginModeAlreadySet;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\DDoSProtection;
+use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -2284,18 +2284,6 @@ class binance extends Exchange {
                 $account['used'] = Precise::string_add($frozen, Precise::string_add($locked, $withdrawing));
                 $result[$code] = $account;
             }
-        } elseif ($type === 'option') {
-            $timestamp = $this->safe_integer($response, 'time');
-            $assets = $this->safe_value($response, 'asset', array());
-            for ($i = 0; $i < count($assets); $i++) {
-                $balance = $assets[$i];
-                $currencyId = $this->safe_string($balance, 'asset');
-                $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'available');
-                $account['used'] = $this->safe_string($balance, 'locked');
-                $result[$code] = $account;
-            }
         } else {
             $balances = $response;
             if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
@@ -2368,8 +2356,6 @@ class binance extends Exchange {
                 $method = 'sapiGetLendingUnionAccount';
             } elseif ($type === 'funding') {
                 $method = 'sapiPostAssetGetFundingAsset';
-            } elseif ($type === 'option') {
-                $method = 'eapiPrivateGetAccount';
             }
             $requestParams = $this->omit($query, array( 'type', 'symbols' ));
             $response = Async\await($this->$method (array_merge($request, $requestParams)));
@@ -2598,22 +2584,6 @@ class binance extends Exchange {
             //         "withdrawing" => "0"
             //       }
             //     )
-            //
-            // $options (eapi)
-            //
-            //     {
-            //         "asset" => array(
-            //             {
-            //                 "asset" => "USDT",
-            //                 "marginBalance" => "25.45130462",
-            //                 "equity" => "25.45130462",
-            //                 "available" => "25.45130462",
-            //                 "locked" => "0.00000000",
-            //                 "unrealizedPNL" => "0.00000000"
-            //             }
-            //         ),
-            //         "time" => 1676328152755
-            //     }
             //
             return $this->parse_balance($response, $type, $marginMode);
         }) ();
@@ -3092,7 +3062,7 @@ class binance extends Exchange {
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @param {string|null} $params->price "mark" or "index" for mark $price and index $price candles
              * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4106,7 +4076,7 @@ class binance extends Exchange {
                         throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice extra param for a ' . $type . ' order');
                     }
                 } else {
-                    // check for delta $price as well
+                    // check for delta $price
                     $trailingDelta = $this->safe_value($params, 'trailingDelta');
                     if ($trailingDelta === null && $stopPrice === null) {
                         throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice or $trailingDelta param for a ' . $type . ' order');
@@ -4314,7 +4284,7 @@ class binance extends Exchange {
             } elseif ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
                 $symbols = $this->symbols;
                 $numSymbols = count($symbols);
-                $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
+                $fetchOpenOrdersRateLimit = $this->parse_to_int($numSymbols / 2);
                 throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this $method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
             } else {
                 $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
@@ -6261,7 +6231,7 @@ class binance extends Exchange {
         if (!$rational) {
             $initialMarginPercentageString = Precise::string_div(Precise::string_add($initialMarginPercentageString, '1e-8'), '1', 8);
         }
-        // as oppose to notionalValue
+        // to notionalValue
         $usdm = (is_array($position) && array_key_exists('notional', $position));
         $maintenanceMarginString = $this->safe_string($position, 'maintMargin');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
@@ -6479,7 +6449,7 @@ class binance extends Exchange {
         $entryPrice = $this->parse_number($entryPriceString);
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
-        // as oppose to notionalValue
+        // to notionalValue
         $linear = (is_array($position) && array_key_exists('notional', $position));
         if ($marginMode === 'cross') {
             // calculate $collateral
@@ -7913,10 +7883,10 @@ class binance extends Exchange {
              * Retrieves the open interest history of a currency
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} $timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
-             * @param {int|null} $since the time(ms) of the earliest record to retrieve as a unix timestamp
+             * @param {int|null} $since the time(ms) of the earliest record to retrieve unix timestamp
              * @param {int|null} $limit default 30, max 500
              * @param {array} $params exchange specific parameters
-             * @param {int|null} $params->until the time(ms) of the latest record to retrieve as a unix timestamp
+             * @param {int|null} $params->until the time(ms) of the latest record to retrieve unix timestamp
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure open interest history structure}
              */
             if ($timeframe === '1m') {

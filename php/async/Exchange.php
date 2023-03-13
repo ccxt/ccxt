@@ -272,9 +272,8 @@ class Exchange extends \ccxt\Exchange {
         $stringifiedNumber = (string) $number;
         $convertedNumber = floatval($stringifiedNumber);
         return intval($convertedNumber);
-
     }
-    
+
     public function get_default_options() {
         return array(
             'defaultNetworkCodeReplacements' => array(
@@ -459,8 +458,8 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function safe_order($order, $market = null) {
-        // parses numbers as strings
-        // * it is important pass the $trades as unparsed $rawTrades
+        // parses numbers
+        // * it is important pass the $trades $rawTrades
         $amount = $this->omit_zero($this->safe_string($order, 'amount'));
         $remaining = $this->safe_string($order, 'remaining');
         $filled = $this->safe_string($order, 'filled');
@@ -676,8 +675,8 @@ class Exchange extends \ccxt\Exchange {
         return array_merge($order, array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
-            'timestamp' => $timestamp,
-            'datetime' => $datetime,
+            'timestamp' => $datetime,
+            'datetime' => $timestamp,
             'symbol' => $symbol,
             'type' => $this->safe_string($order, 'type'),
             'side' => $side,
@@ -1298,7 +1297,7 @@ class Exchange extends \ccxt\Exchange {
             if ($responseNetworksLength === 0) {
                 throw new NotSupported($this->id . ' - ' . $networkCode . ' network did not return any result for ' . $currencyCode);
             } else {
-                // if $networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+                // if $networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
                 $networkId = $isIndexedByUnifiedNetworkCode ? $networkCode : $this->networkCodeToId ($networkCode, $currencyCode);
                 if (is_array($indexedNetworkEntries) && array_key_exists($networkId, $indexedNetworkEntries)) {
                     $chosenNetworkId = $networkId;
@@ -1915,7 +1914,7 @@ class Exchange extends \ccxt\Exchange {
         /**
          * @ignore
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return array([string|null, object]) the marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         * @return array([string|null, object]) the marginMode in lowercase by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
          */
         return $this->handleOptionAndParams ($params, $methodName, 'marginMode', $defaultValue);
     }
@@ -2035,6 +2034,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_withdrawals($symbol = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchWithdrawals() is not supported yet');
+    }
+
+    public function parse_last_price($price, $market = null) {
+        throw new NotSupported($this->id . ' parseLastPrice() is not supported yet');
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -2741,6 +2744,10 @@ class Exchange extends \ccxt\Exchange {
             }
         }
         return $fee;
+    }
+
+    public function parse_income($info, $market = null) {
+        throw new NotSupported($this->id . ' parseIncome () is not supported yet');
     }
 
     public function parse_incomes($incomes, $market = null, $since = null, $limit = null) {

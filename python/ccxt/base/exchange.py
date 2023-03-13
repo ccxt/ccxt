@@ -1976,8 +1976,8 @@ class Exchange(object):
         return balance
 
     def safe_order(self, order, market=None):
-        # parses numbers as strings
-        # * it is important pass the trades as unparsed rawTrades
+        # parses numbers
+        # * it is important pass the trades rawTrades
         amount = self.omit_zero(self.safe_string(order, 'amount'))
         remaining = self.safe_string(order, 'remaining')
         filled = self.safe_string(order, 'filled')
@@ -2148,8 +2148,8 @@ class Exchange(object):
         return self.extend(order, {
             'id': self.safe_string(order, 'id'),
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
-            'timestamp': timestamp,
-            'datetime': datetime,
+            'timestamp': datetime,
+            'datetime': timestamp,
             'symbol': symbol,
             'type': self.safe_string(order, 'type'),
             'side': side,
@@ -2676,7 +2676,7 @@ class Exchange(object):
             if responseNetworksLength == 0:
                 raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
             else:
-                # if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+                # if networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
                 networkId = networkCode if isIndexedByUnifiedNetworkCode else self.networkCodeToId(networkCode, currencyCode)
                 if networkId in indexedNetworkEntries:
                     chosenNetworkId = networkId
@@ -3142,7 +3142,7 @@ class Exchange(object):
         """
          * @ignore
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
+        :returns [str|None, dict]: the marginMode in lowercase by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
         """
         return self.handleOptionAndParams(params, methodName, 'marginMode', defaultValue)
 
@@ -3229,6 +3229,9 @@ class Exchange(object):
 
     def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetchWithdrawals() is not supported yet')
+
+    def parse_last_price(self, price, market=None):
+        raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
 
     def fetch_deposit_address(self, code, params={}):
         if self.has['fetchDepositAddresses']:
@@ -3778,6 +3781,9 @@ class Exchange(object):
                 fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw']
                 fee['deposit'] = fee['networks'][networkKeys[i]]['deposit']
         return fee
+
+    def parse_income(self, info, market=None):
+        raise NotSupported(self.id + ' parseIncome() is not supported yet')
 
     def parse_incomes(self, incomes, market=None, since=None, limit=None):
         """

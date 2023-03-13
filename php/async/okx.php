@@ -520,7 +520,7 @@ class okx extends Exchange {
                     '51138' => '\\ccxt\\InvalidOrder', // Your opening price has triggered the limit price, and the min sell price is {0}
                     '51139' => '\\ccxt\\InvalidOrder', // Reduce-only feature is unavailable for the spot transactions by simple account
                     '51156' => '\\ccxt\\BadRequest', // You're leading trades in long/short mode and can't use this API endpoint to close positions
-                    '51159' => '\\ccxt\\BadRequest', // You're leading trades in buy/sell mode. If you want to place orders using this API endpoint, the orders must be in the same direction as your existing positions and open orders.
+                    '51159' => '\\ccxt\\BadRequest', // You're leading trades in buy/sell mode. If you want to place orders using this API endpoint, the orders must be in the same direction existing positions and open orders.
                     '51162' => '\\ccxt\\InvalidOrder', // You have {instrument} open orders. Cancel these orders and try again
                     '51163' => '\\ccxt\\InvalidOrder', // You hold {instrument} positions. Close these positions and try again
                     '51166' => '\\ccxt\\InvalidOrder', // Currently, we don't support leading trades with this instrument
@@ -568,26 +568,26 @@ class okx extends Exchange {
                     '51328' => '\\ccxt\\InvalidOrder', // closeFraction is only available for reduceOnly orders
                     '51329' => '\\ccxt\\InvalidOrder', // closeFraction is only available in NET mode
                     '51330' => '\\ccxt\\InvalidOrder', // closeFraction is only available for stop market orders
-                    '51400' => '\\ccxt\\OrderNotFound', // Cancellation failed as the order does not exist
-                    '51401' => '\\ccxt\\OrderNotFound', // Cancellation failed as the order is already canceled
-                    '51402' => '\\ccxt\\OrderNotFound', // Cancellation failed as the order is already completed
-                    '51403' => '\\ccxt\\InvalidOrder', // Cancellation failed as the order type does not support cancellation
+                    '51400' => '\\ccxt\\OrderNotFound', // Cancellation failed order does not exist
+                    '51401' => '\\ccxt\\OrderNotFound', // Cancellation failed order is already canceled
+                    '51402' => '\\ccxt\\OrderNotFound', // Cancellation failed order is already completed
+                    '51403' => '\\ccxt\\InvalidOrder', // Cancellation failed order type does not support cancellation
                     '51404' => '\\ccxt\\InvalidOrder', // Order cancellation unavailable during the second phase of call auction
-                    '51405' => '\\ccxt\\ExchangeError', // Cancellation failed as you do not have any pending orders
+                    '51405' => '\\ccxt\\ExchangeError', // Cancellation failed do not have any pending orders
                     '51406' => '\\ccxt\\ExchangeError', // Canceled - order count exceeds the limit {0}
                     '51407' => '\\ccxt\\BadRequest', // Either order ID or client order ID is required
                     '51408' => '\\ccxt\\ExchangeError', // Pair ID or name does not match the order info
                     '51409' => '\\ccxt\\ExchangeError', // Either pair ID or pair name ID is required
-                    '51410' => '\\ccxt\\CancelPending', // Cancellation failed as the order is already under cancelling status
+                    '51410' => '\\ccxt\\CancelPending', // Cancellation failed order is already under cancelling status
                     '51500' => '\\ccxt\\ExchangeError', // Either order price or amount is required
                     '51501' => '\\ccxt\\ExchangeError', // Maximum {0} orders can be modified
                     '51502' => '\\ccxt\\InsufficientFunds', // Order modification failed for insufficient margin
-                    '51503' => '\\ccxt\\ExchangeError', // Order modification failed as the order does not exist
+                    '51503' => '\\ccxt\\ExchangeError', // Order modification failed order does not exist
                     '51506' => '\\ccxt\\ExchangeError', // Order modification unavailable for the order type
                     '51508' => '\\ccxt\\ExchangeError', // Orders are not allowed to be modified during the call auction
-                    '51509' => '\\ccxt\\ExchangeError', // Modification failed as the order has been canceled
-                    '51510' => '\\ccxt\\ExchangeError', // Modification failed as the order has been completed
-                    '51511' => '\\ccxt\\ExchangeError', // Modification failed as the order price did not meet the requirement for Post Only
+                    '51509' => '\\ccxt\\ExchangeError', // Modification failed order has been canceled
+                    '51510' => '\\ccxt\\ExchangeError', // Modification failed order has been completed
+                    '51511' => '\\ccxt\\ExchangeError', // Modification failed order price did not meet the requirement for Post Only
                     '51600' => '\\ccxt\\ExchangeError', // Status not found
                     '51601' => '\\ccxt\\ExchangeError', // Order status and order ID cannot exist at the same time
                     '51602' => '\\ccxt\\ExchangeError', // Either order status or order ID is required
@@ -622,7 +622,7 @@ class okx extends Exchange {
                     '58108' => '\\ccxt\\ExchangeError', // Please enable the account for option contract
                     '58109' => '\\ccxt\\ExchangeError', // Please enable the account for swap contract
                     '58110' => '\\ccxt\\ExchangeError', // The contract triggers risk control, and the platform has suspended the fund transfer function of it. Please wait patiently
-                    '58111' => '\\ccxt\\ExchangeError', // Funds transfer unavailable as the perpetual contract is charging the funding fee. Please try again later
+                    '58111' => '\\ccxt\\ExchangeError', // Funds transfer unavailable perpetual contract is charging the funding fee. Please try again later
                     '58112' => '\\ccxt\\ExchangeError', // Your fund transfer failed. Please try again later
                     '58114' => '\\ccxt\\ExchangeError', // Transfer amount must be more than 0
                     '58115' => '\\ccxt\\ExchangeError', // Sub-account does not exist
@@ -655,8 +655,8 @@ class okx extends Exchange {
                     '58300' => '\\ccxt\\ExchangeError', // Deposit-address count exceeds the limit
                     '58350' => '\\ccxt\\InsufficientFunds', // Insufficient balance
                     // Account error codes 59000-59999
-                    '59000' => '\\ccxt\\ExchangeError', // Your settings failed as you have positions or open orders
-                    '59001' => '\\ccxt\\ExchangeError', // Switching unavailable as you have borrowings
+                    '59000' => '\\ccxt\\ExchangeError', // Your settings failed have positions or open orders
+                    '59001' => '\\ccxt\\ExchangeError', // Switching unavailable have borrowings
                     '59100' => '\\ccxt\\ExchangeError', // You have open positions. Please cancel all open positions before changing the leverage
                     '59101' => '\\ccxt\\ExchangeError', // You have pending orders with isolated positions. Please cancel all the pending orders and adjust the leverage
                     '59102' => '\\ccxt\\ExchangeError', // Leverage exceeds the maximum leverage. Please adjust the leverage
@@ -699,7 +699,7 @@ class okx extends Exchange {
                     '60012' => '\\ccxt\\BadRequest', // Illegal request
                     '60013' => '\\ccxt\\BadRequest', // Invalid args
                     '60014' => '\\ccxt\\RateLimitExceeded', // Requests too frequent
-                    '60015' => '\\ccxt\\NetworkError', // Connection closed as there was no data transmission in the last 30 seconds
+                    '60015' => '\\ccxt\\NetworkError', // Connection closed was no data transmission in the last 30 seconds
                     '60016' => '\\ccxt\\ExchangeNotAvailable', // Buffer is full, cannot write data
                     '60017' => '\\ccxt\\BadRequest', // Invalid url path
                     '60018' => '\\ccxt\\BadRequest', // The {0} {1} {2} {3} {4} does not exist
@@ -1718,7 +1718,7 @@ class okx extends Exchange {
              * @param {array} $params extra parameters specific to the okx api endpoint
              * @param {string|null} $params->price "mark" or "index" for mark $price and index $price candles
              * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1919,7 +1919,7 @@ class okx extends Exchange {
         return array(
             'info' => $fee,
             'symbol' => $this->safe_symbol(null, $market),
-            // OKX returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
+            // OKX returns the fees values opposed to other exchanges, so the sign needs to be flipped
             'maker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'maker', 'makerU'))),
             'taker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'taker', 'takerU'))),
         );
@@ -2152,7 +2152,7 @@ class okx extends Exchange {
             $slTriggerPxType = $this->safe_string($params, 'slTriggerPxType', 'last');
             $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
             $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-            $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the $request
+            $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so be extended into the $request
             $margin = false;
             if (($marginMode !== null) && ($marginMode !== 'cash')) {
                 $margin = true;
@@ -2240,7 +2240,7 @@ class okx extends Exchange {
                 $request['ordType'] = 'conditional';
                 $twoWayCondition = (($takeProfitPrice !== null) && ($stopLossPrice !== null));
                 // if TP and SL are sent together
-                // as ordType 'conditional' only stop-loss $order will be applied
+                // 'conditional' only stop-loss $order will be applied
                 if ($twoWayCondition) {
                     $request['ordType'] = 'oco';
                 }
@@ -2595,9 +2595,10 @@ class okx extends Exchange {
         $stopLossPrice = $this->safe_number_2($order, 'slTriggerPx', 'slOrdPx');
         $takeProfitPrice = $this->safe_number_2($order, 'tpTriggerPx', 'tpOrdPx');
         $stopPrice = $this->safe_number_n($order, array( 'triggerPx', 'moveTriggerPx' ));
-        $reduceOnly = $this->safe_string($order, 'reduceOnly');
+        $reduceOnlyRaw = $this->safe_string($order, 'reduceOnly');
+        $reduceOnly = false;
         if ($reduceOnly !== null) {
-            $reduceOnly = ($reduceOnly === 'true');
+            $reduceOnly = ($reduceOnlyRaw === 'true');
         }
         return $this->safe_order(array(
             'info' => $order,
@@ -4201,7 +4202,7 @@ class okx extends Exchange {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
             if ($marginMode === null) {
-                $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross as default $marginMode
+                $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross $marginMode
             }
             if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
                 throw new BadRequest($this->id . ' fetchLeverage() requires a $marginMode parameter that must be either cross or isolated');
@@ -4492,14 +4493,14 @@ class okx extends Exchange {
         }
         $maintenanceMarginString = $this->safe_string($position, 'mmr');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
-        $maintenanceMarginPercentage = Precise::string_div($maintenanceMarginString, $notionalString);
+        $maintenanceMarginPercentageString = Precise::string_div($maintenanceMarginString, $notionalString);
         if ($initialMarginPercentage === null) {
             $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalString, 4));
         } elseif ($initialMarginString === null) {
             $initialMarginString = Precise::string_mul($initialMarginPercentage, $notionalString);
         }
         $rounder = '0.00005'; // round to closest 0.01%
-        $maintenanceMarginPercentage = $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentage, $rounder), '1', 4));
+        $maintenanceMarginPercentage = $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentageString, $rounder), '1', 4));
         $liquidationPrice = $this->safe_number($position, 'liqPx');
         $percentageString = $this->safe_string($position, 'uplRatio');
         $percentage = $this->parse_number(Precise::string_mul($percentageString, '100'));
@@ -4905,7 +4906,7 @@ class okx extends Exchange {
             if ($type === 'swap') {
                 $request['instType'] = $this->convert_to_instrument_type($type);
             }
-            // AccountBillsArchive has the same cost as AccountBills but supports three months of $data
+            // AccountBillsArchive has the same cost but supports three months of $data
             $response = Async\await($this->privateGetAccountBillsArchive (array_merge($request, $query)));
             //
             //    {
@@ -4980,7 +4981,7 @@ class okx extends Exchange {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
             if ($marginMode === null) {
-                $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross as default $marginMode
+                $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross $marginMode
             }
             if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
                 throw new BadRequest($this->id . ' setLeverage() requires a $marginMode parameter that must be either cross or isolated');
@@ -5425,7 +5426,7 @@ class okx extends Exchange {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMarketLeverageTiers', $params);
             if ($marginMode === null) {
-                $marginMode = $this->safe_string($params, 'tdMode', 'cross'); // cross as default $marginMode
+                $marginMode = $this->safe_string($params, 'tdMode', 'cross'); // cross $marginMode
             }
             $request = array(
                 'instType' => $type,
@@ -5520,7 +5521,7 @@ class okx extends Exchange {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params);
             if ($marginMode === null) {
-                $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross as default $marginMode
+                $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross $marginMode
             }
             $request = array(
                 'mgnMode' => $marginMode,
@@ -5747,10 +5748,10 @@ class okx extends Exchange {
              * Retrieves the open interest history of a $currency
              * @param {string} $symbol Unified CCXT $currency code instead of a unified $symbol
              * @param {string} $timeframe "5m", "1h", or "1d"
-             * @param {int|null} $since The time in ms of the earliest record to retrieve as a unix timestamp
+             * @param {int|null} $since The time in ms of the earliest record to retrieve unix timestamp
              * @param {int|null} $limit Not used by okx, but parsed internally by CCXT
              * @param {array} $params Exchange specific parameters
-             * @param {int|null} $params->until The time in ms of the latest record to retrieve as a unix timestamp
+             * @param {int|null} $params->until The time in ms of the latest record to retrieve unix timestamp
              * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure open interest structures}
              */
             $options = $this->safe_value($this->options, 'fetchOpenInterestHistory', array());

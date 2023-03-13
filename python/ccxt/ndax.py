@@ -6,10 +6,10 @@
 from ccxt.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -709,7 +709,7 @@ class ndax(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the ndax api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         self.load_markets()
@@ -1276,7 +1276,7 @@ class ndax(Exchange):
             'InstrumentId': int(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
-            'TimeInForce': 1,  # 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+            'TimeInForce': 1,  # 0 Unknown, 1 GTC by default, 2 OPG execute to opening price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
             # 'ClientOrderId': clientOrderId,  # defaults to 0
             # If self order is order A, OrderIdOCO refers to the order ID of an order B(which is not the order being created by self call).
             # If order B executes, then order A created by self call is canceled.
@@ -1320,7 +1320,7 @@ class ndax(Exchange):
             'InstrumentId': int(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
-            'TimeInForce': 1,  # 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+            'TimeInForce': 1,  # 0 Unknown, 1 GTC by default, 2 OPG execute to opening price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
             # 'ClientOrderId': clientOrderId,  # defaults to 0
             # If self order is order A, OrderIdOCO refers to the order ID of an order B(which is not the order being created by self call).
             # If order B executes, then order A created by self call is canceled.
@@ -1383,7 +1383,7 @@ class ndax(Exchange):
             market = self.market(symbol)
             request['InstrumentId'] = market['id']
         if since is not None:
-            request['StartTimeStamp'] = int(since / 1000)
+            request['StartTimeStamp'] = self.parse_to_int(since / 1000)
         if limit is not None:
             request['Depth'] = limit
         response = self.privateGetGetTradesHistory(self.extend(request, params))
@@ -1605,7 +1605,7 @@ class ndax(Exchange):
             market = self.market(symbol)
             request['InstrumentId'] = market['id']
         if since is not None:
-            request['StartTimeStamp'] = int(since / 1000)
+            request['StartTimeStamp'] = self.parse_to_int(since / 1000)
         if limit is not None:
             request['Depth'] = limit
         response = self.privateGetGetOrdersHistory(self.extend(request, params))
@@ -1753,7 +1753,7 @@ class ndax(Exchange):
         if symbol is not None:
             market = self.market(symbol)
         request = {
-            'OMSId': int(omsId),
+            'OMSId': self.parse_to_int(omsId),
             # 'AccountId': accountId,
             'OrderId': int(id),
         }
@@ -2039,7 +2039,7 @@ class ndax(Exchange):
                 'LimitsRejected': 'rejected',  # withdrawal does not meet limits for fiat or crypto asset
                 'Submitted': 'pending',  # withdrawal sent to Account Provider; awaiting blockchain confirmation
                 'Confirmed': 'pending',  # Account Provider confirms that withdrawal is on the blockchain
-                'ManuallyConfirmed': 'pending',  # admin has sent withdrawal via wallet or admin function directly; marks ticket as FullyProcessed; debits account
+                'ManuallyConfirmed': 'pending',  # admin has sent withdrawal via wallet or admin function directly; marks ticket; debits account
                 'Confirmed2Fa': 'pending',  # user has confirmed withdraw via 2-factor authentication.
             },
         }

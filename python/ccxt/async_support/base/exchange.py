@@ -670,8 +670,8 @@ class Exchange(BaseExchange):
         return balance
 
     def safe_order(self, order, market=None):
-        # parses numbers as strings
-        # * it is important pass the trades as unparsed rawTrades
+        # parses numbers
+        # * it is important pass the trades rawTrades
         amount = self.omit_zero(self.safe_string(order, 'amount'))
         remaining = self.safe_string(order, 'remaining')
         filled = self.safe_string(order, 'filled')
@@ -842,8 +842,8 @@ class Exchange(BaseExchange):
         return self.extend(order, {
             'id': self.safe_string(order, 'id'),
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
-            'timestamp': timestamp,
-            'datetime': datetime,
+            'timestamp': datetime,
+            'datetime': timestamp,
             'symbol': symbol,
             'type': self.safe_string(order, 'type'),
             'side': side,
@@ -1924,6 +1924,9 @@ class Exchange(BaseExchange):
     async def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetchWithdrawals() is not supported yet')
 
+    def parse_last_price(self, price, market=None):
+        raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
+
     async def fetch_deposit_address(self, code, params={}):
         if self.has['fetchDepositAddresses']:
             depositAddresses = await self.fetchDepositAddresses([code], params)
@@ -2472,6 +2475,9 @@ class Exchange(BaseExchange):
                 fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw']
                 fee['deposit'] = fee['networks'][networkKeys[i]]['deposit']
         return fee
+
+    def parse_income(self, info, market=None):
+        raise NotSupported(self.id + ' parseIncome() is not supported yet')
 
     def parse_incomes(self, incomes, market=None, since=None, limit=None):
         """

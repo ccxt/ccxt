@@ -735,7 +735,7 @@ class ndax extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the ndax api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -1337,7 +1337,7 @@ class ndax extends Exchange {
                 'InstrumentId' => intval($market['id']),
                 'omsId' => $omsId,
                 'AccountId' => $accountId,
-                'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening $price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+                'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute to opening $price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
                 // 'ClientOrderId' => $clientOrderId, // defaults to 0
                 // If this order is order A, OrderIdOCO refers to the order ID of an order B (which is not the order being created by this call).
                 // If order B executes, then order A created by this call is canceled.
@@ -1386,7 +1386,7 @@ class ndax extends Exchange {
                 'InstrumentId' => intval($market['id']),
                 'omsId' => $omsId,
                 'AccountId' => $accountId,
-                'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening $price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+                'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute to opening $price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
                 // 'ClientOrderId' => $clientOrderId, // defaults to 0
                 // If this order is order A, OrderIdOCO refers to the order ID of an order B (which is not the order being created by this call).
                 // If order B executes, then order A created by this call is canceled.
@@ -1455,7 +1455,7 @@ class ndax extends Exchange {
                 $request['InstrumentId'] = $market['id'];
             }
             if ($since !== null) {
-                $request['StartTimeStamp'] = intval($since / 1000);
+                $request['StartTimeStamp'] = $this->parse_to_int($since / 1000);
             }
             if ($limit !== null) {
                 $request['Depth'] = $limit;
@@ -1696,7 +1696,7 @@ class ndax extends Exchange {
                 $request['InstrumentId'] = $market['id'];
             }
             if ($since !== null) {
-                $request['StartTimeStamp'] = intval($since / 1000);
+                $request['StartTimeStamp'] = $this->parse_to_int($since / 1000);
             }
             if ($limit !== null) {
                 $request['Depth'] = $limit;
@@ -1854,7 +1854,7 @@ class ndax extends Exchange {
                 $market = $this->market($symbol);
             }
             $request = array(
-                'OMSId' => intval($omsId),
+                'OMSId' => $this->parse_to_int($omsId),
                 // 'AccountId' => $accountId,
                 'OrderId' => intval($id),
             );
@@ -2159,7 +2159,7 @@ class ndax extends Exchange {
                 'LimitsRejected' => 'rejected', // withdrawal does not meet limits for fiat or crypto asset
                 'Submitted' => 'pending', // withdrawal sent to Account Provider; awaiting blockchain confirmation
                 'Confirmed' => 'pending', // Account Provider confirms that withdrawal is on the blockchain
-                'ManuallyConfirmed' => 'pending', // admin has sent withdrawal via wallet or admin function directly; marks ticket as FullyProcessed; debits account
+                'ManuallyConfirmed' => 'pending', // admin has sent withdrawal via wallet or admin function directly; marks ticket; debits account
                 'Confirmed2Fa' => 'pending', // user has confirmed withdraw via 2-factor authentication.
             ),
         );

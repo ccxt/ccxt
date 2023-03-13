@@ -5,9 +5,9 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -421,12 +421,12 @@ class lbank(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the lbank api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
-            limit = 100  # as it's defined in lbank2
+            limit = 100  # it's defined in lbank2
         if since is None:
             duration = self.parse_timeframe(timeframe)
             since = self.milliseconds() - duration * 1000 * limit
@@ -434,7 +434,7 @@ class lbank(Exchange):
             'symbol': market['id'],
             'type': self.safe_string(self.timeframes, timeframe, timeframe),
             'size': limit,
-            'time': int(since / 1000),
+            'time': self.parse_to_int(since / 1000),
         }
         response = self.publicGetKline(self.extend(request, params))
         #
@@ -741,7 +741,7 @@ class lbank(Exchange):
     def convert_secret_to_pem(self, secret):
         lineLength = 64
         secretLength = len(secret) - 0
-        numLines = int(secretLength / lineLength)
+        numLines = self.parse_to_int(secretLength / lineLength)
         numLines = self.sum(numLines, 1)
         pem = "-----BEGIN PRIVATE KEY-----\n"  # eslint-disable-line
         for i in range(0, numLines):

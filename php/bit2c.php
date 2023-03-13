@@ -262,7 +262,7 @@ class bit2c extends Exchange {
             'pair' => $market['id'],
         );
         $orderbook = $this->publicGetExchangesPairOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($orderbook, $market['symbol']);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -327,7 +327,7 @@ class bit2c extends Exchange {
             'pair' => $market['id'],
         );
         if ($since !== null) {
-            $request['date'] = intval($since);
+            $request['date'] = $this->parse_to_int($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // max 100000
@@ -555,18 +555,18 @@ class bit2c extends Exchange {
         }
         // bit2c $order $type:
         // 0 = LMT,  1 = MKT
-        $type = $this->safe_integer($orderUnified, 'order_type');
-        if ($type === 0) {
+        $type = $this->safe_string($orderUnified, 'order_type');
+        if ($type === '0') {
             $type = 'limit';
-        } elseif ($type === 1) {
+        } elseif ($type === '1') {
             $type = 'market';
         }
         // bit2c $side:
         // 0 = buy, 1 = sell
-        $side = $this->safe_integer($orderUnified, 'type');
-        if ($side === 0) {
+        $side = $this->safe_string($orderUnified, 'type');
+        if ($side === '0') {
             $side = 'buy';
-        } elseif ($side === 1) {
+        } elseif ($side === '1') {
             $side = 'sell';
         }
         $price = $this->safe_string($orderUnified, 'price');

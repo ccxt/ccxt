@@ -562,9 +562,9 @@ class bitget extends Exchange {
                     '36103' => '\\ccxt\\AccountSuspended', // Account is suspended due to ongoing liquidation.
                     '36104' => '\\ccxt\\PermissionDenied', // Account is not enabled for options trading.
                     '36105' => '\\ccxt\\PermissionDenied', // Please enable the account for option contract.
-                    '36106' => '\\ccxt\\AccountSuspended', // Funds cannot be transferred in or out, as account is suspended.
+                    '36106' => '\\ccxt\\AccountSuspended', // Funds cannot be transferred in or out, is suspended.
                     '36107' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred out within 30 minutes after option exercising or settlement.
-                    '36108' => '\\ccxt\\InsufficientFunds', // Funds cannot be transferred in or out, as equity of the account is less than zero.
+                    '36108' => '\\ccxt\\InsufficientFunds', // Funds cannot be transferred in or out, of the account is less than zero.
                     '36109' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred in or out during option exercising or settlement.
                     '36201' => '\\ccxt\\PermissionDenied', // New order function is blocked.
                     '36202' => '\\ccxt\\PermissionDenied', // Account does not have permission to short option.
@@ -669,7 +669,7 @@ class bitget extends Exchange {
                     '40502' => '\\ccxt\\ExchangeError', // If it is a copy user, you must pass the copy to whom
                     '40503' => '\\ccxt\\ExchangeError', // With the single type
                     '40504' => '\\ccxt\\ExchangeError', // Platform code must pass
-                    '40505' => '\\ccxt\\ExchangeError', // Not the same as single type
+                    '40505' => '\\ccxt\\ExchangeError', // Not the same type
                     '40506' => '\\ccxt\\AuthenticationError', // Platform signature error
                     '40507' => '\\ccxt\\AuthenticationError', // Api signature error
                     '40508' => '\\ccxt\\ExchangeError', // KOL is not authorized
@@ -2059,7 +2059,7 @@ class bitget extends Exchange {
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitget api endpoint
              * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -3573,7 +3573,7 @@ class bitget extends Exchange {
             } else {
                 $numerator = Precise::string_mul($numerator, $calcTakerFeeMult);
             }
-            $liquidationPrice = Precise::string_div($numerator, $mmrMinusOne);
+            $liquidationPrice = $this->parse_number(Precise::string_div($numerator, $mmrMinusOne));
         }
         $feeToClose = Precise::string_mul($notional, $calcTakerFeeRate);
         $maintenanceMargin = Precise::string_add(Precise::string_mul($maintenanceMarginPercentage, $notional), $feeToClose);
@@ -3585,7 +3585,7 @@ class bitget extends Exchange {
             'symbol' => $symbol,
             'notional' => $this->parse_number($notional),
             'marginMode' => $marginMode,
-            'liquidationPrice' => $this->parse_number($liquidationPrice),
+            'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $this->parse_number($entryPrice),
             'unrealizedPnl' => $this->parse_number($unrealizedPnl),
             'percentage' => $this->parse_number($percentage),

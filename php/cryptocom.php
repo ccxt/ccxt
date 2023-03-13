@@ -818,7 +818,7 @@ class cryptocom extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the cryptocom api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2461,7 +2461,7 @@ class cryptocom extends Exchange {
                 'nonce' => $nonce,
             ));
             // fix issue https://github.com/ccxt/ccxt/issues/11179
-            // php always encodes dictionaries as arrays
+            // php always encodes dictionaries
             // if an array is empty, php will put it in square brackets
             // python and js will put it in curly brackets
             // the code below checks and replaces those brackets in empty requests
