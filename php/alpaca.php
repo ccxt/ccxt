@@ -16,6 +16,7 @@ class alpaca extends Exchange {
             'countries' => array( 'US' ),
             'rateLimit' => 333, // 3 req per second
             'hostname' => 'alpaca.markets',
+            'pro' => true,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg',
                 'www' => 'https://alpaca.markets',
@@ -58,7 +59,7 @@ class alpaca extends Exchange {
                 'fetchL2OrderBook' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => false,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -198,7 +199,7 @@ class alpaca extends Exchange {
                     '40310000' => '\\ccxt\\InsufficientFunds', // array("available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested => 221.63, available => 0)","symbol":"USDT")
                 ),
                 'broad' => array(
-                    'Invalid format for parameter' => '\\ccxt\\BadRequest', // array("message":"Invalid format for parameter start => error parsing '0' as RFC3339 or 2006-01-02 time => parsing time \"0\" as \"2006-01-02\" => cannot parse \"0\" as \"2006\"")
+                    'Invalid format for parameter' => '\\ccxt\\BadRequest', // array("message":"Invalid format for parameter start => error parsing '0' or 2006-01-02 time => parsing time \"0\" as \"2006-01-02\" => cannot parse \"0\" as \"2006\"")
                     'Invalid symbol' => '\\ccxt\\BadSymbol', // array("message":"Invalid symbol(s) => BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$")
                 ),
             ),
@@ -413,19 +414,19 @@ class alpaca extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the alpha api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbols' => $market['id'],
-            'timeframe' => $this->timeframes[$timeframe],
+            'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            $request['start'] = intval($since / 1000);
+            $request['start'] = $this->yyyymmdd($since);
         }
         $method = $this->safe_string($this->options, 'fetchOHLCVMethod', 'cryptoPublicGetCryptoBars');
         $response = $this->$method (array_merge($request, $params));
@@ -703,6 +704,7 @@ class alpaca extends Exchange {
             'side' => $this->safe_string($order, 'side'),
             'price' => $this->safe_number($order, 'limit_price'),
             'stopPrice' => $this->safe_number($order, 'stop_price'),
+            'triggerPrice' => $this->safe_number($order, 'stop_price'),
             'cost' => null,
             'average' => $this->safe_number($order, 'filled_avg_price'),
             'amount' => $this->safe_number($order, 'qty'),
@@ -744,7 +746,8 @@ class alpaca extends Exchange {
         //       "i":"355681339"
         //   }
         //
-        $symbol = $this->safe_symbol(null, $market);
+        $marketId = $this->safe_string($trade, 'S');
+        $symbol = $this->safe_symbol($marketId, $market);
         $datetime = $this->safe_string($trade, 't');
         $timestamp = $this->parse8601($datetime);
         $alpacaSide = $this->safe_string($trade, 'tks');

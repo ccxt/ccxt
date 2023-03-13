@@ -1,6 +1,6 @@
-"use strict";
 
-const ccxt = require ('../../ccxt.js')
+
+import ccxt from '../../ccxt.js';
 
 const aggregateOrderBookSide = function (orderbookSide, precision = undefined) {
     const result = []

@@ -55,7 +55,7 @@ class btcbox extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
-                'fetchTickers' => null,
+                'fetchTickers' => false,
                 'fetchTrades' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
@@ -408,6 +408,7 @@ class btcbox extends Exchange {
             'symbol' => $market['symbol'],
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'trades' => $trades,
             'fee' => null,
@@ -478,7 +479,7 @@ class btcbox extends Exchange {
             //
             $orders = $this->parse_orders($response, $market, $since, $limit);
             // status (open/closed/canceled) is null
-            // btcbox does not return status, but we know it's 'open' as we queried for open $orders
+            // btcbox does not return status, but we know it's 'open' queried for open $orders
             if ($type === 'open') {
                 for ($i = 0; $i < count($orders); $i++) {
                     $orders[$i]['status'] = 'open';

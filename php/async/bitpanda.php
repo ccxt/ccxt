@@ -84,8 +84,6 @@ class bitpanda extends Exchange {
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
-                'privateAPI' => true,
-                'publicAPI' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
@@ -341,6 +339,8 @@ class bitpanda extends Exchange {
                     'active' => null,
                     'fee' => null,
                     'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
+                    'withdraw' => null,
+                    'deposit' => null,
                     'limits' => array(
                         'amount' => array( 'min' => null, 'max' => null ),
                         'withdraw' => array( 'min' => null, 'max' => null ),
@@ -659,7 +659,7 @@ class bitpanda extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bitpanda api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -808,7 +808,7 @@ class bitpanda extends Exchange {
         $durationInSeconds = $this->parse_timeframe($timeframe);
         $duration = $durationInSeconds * 1000;
         $timestamp = $this->parse8601($this->safe_string($ohlcv, 'time'));
-        $alignedTimestamp = $duration * intval($timestamp / $duration);
+        $alignedTimestamp = $duration * $this->parse_to_int($timestamp / $duration);
         $options = $this->safe_value($this->options, 'fetchOHLCV', array());
         $volumeField = $this->safe_string($options, 'volume', 'total_amount');
         return array(
@@ -830,7 +830,7 @@ class bitpanda extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitpanda api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1488,6 +1488,7 @@ class bitpanda extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => null,
             'average' => null,
@@ -1724,7 +1725,7 @@ class bitpanda extends Exchange {
                 // 'from' => $this->iso8601($since),
                 // 'to' => $this->iso8601($this->milliseconds()), // max range is 100 days
                 // 'instrument_code' => $market['id'],
-                // 'with_cancelled_and_rejected' => false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+                // 'with_cancelled_and_rejected' => false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
                 // 'with_just_filled_inactive' => false, // orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
                 // 'with_just_orders' => false, // do not return any trades corresponsing $to the orders, it may be significanly faster and should be used if user is not interesting in trade information
                 // 'max_page_size' => 100,
@@ -1841,7 +1842,7 @@ class bitpanda extends Exchange {
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             $request = array(
-                'with_cancelled_and_rejected' => true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+                'with_cancelled_and_rejected' => true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
             );
             return Async\await($this->fetch_open_orders($symbol, $since, $limit, array_merge($request, $params)));
         }) ();

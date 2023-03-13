@@ -59,7 +59,6 @@ class kuna(Exchange):
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setPositionMode': False,
-                'withdraw': None,
             },
             'timeframes': None,
             'urls': {
@@ -451,7 +450,7 @@ class kuna(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the kuna api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -590,7 +589,7 @@ class kuna(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the kuna api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
@@ -704,6 +703,7 @@ class kuna(Exchange):
             'side': side,
             'price': self.safe_string(order, 'price'),
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': self.safe_string(order, 'volume'),
             'filled': self.safe_string(order, 'executed_volume'),
             'remaining': self.safe_string(order, 'remaining_volume'),
@@ -747,7 +747,7 @@ class kuna(Exchange):
         response = self.privateGetOrders(self.extend(request, params))
         # todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         # with order cache + fetchOpenOrders
-        # as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
+        # BTC-e, Liqui, Yobit, DSX, Tidex, WEX
         return self.parse_orders(response, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

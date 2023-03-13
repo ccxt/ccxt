@@ -7,11 +7,11 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadResponse;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
+use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 
@@ -194,7 +194,11 @@ class probit extends Exchange {
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRON',
-                    'TRX' => 'TRON',
+                ),
+                'networksById' => array(
+                    'BSC' => 'BEP20',
+                    'ETH' => 'ERC20',
+                    'TRON' => 'TRC20',
                 ),
             ),
             'commonCurrencies' => array(
@@ -545,7 +549,7 @@ class probit extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the probit api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -854,17 +858,16 @@ class probit extends Exchange {
             $parts = explode('-', $iso8601);
             $year = $this->safe_string($parts, 0);
             $month = $this->safe_integer($parts, 1);
+            $monthString = null;
             if ($after) {
-                $month = $this->sum($month, 1);
+                $monthString = $this->sum($month, (string) 1);
             }
             if ($month < 10) {
-                $month = '0' . (string) $month;
-            } else {
-                $month = (string) $month;
+                $monthString = '0' . (string) $month;
             }
-            return $year . '-' . $month . '-01T00:00:00.000Z';
+            return $year . '-' . $monthString . '-01T00:00:00.000Z';
         } elseif ($timeframe === '1w') {
-            $timestamp = intval($timestamp / 1000);
+            $timestamp = $this->parse_to_int($timestamp / 1000);
             $firstSunday = 259200; // 1970-01-04T00:00:00.000Z
             $difference = $timestamp - $firstSunday;
             $numWeeks = (int) floor($difference / $duration);
@@ -874,8 +877,8 @@ class probit extends Exchange {
             }
             return $this->iso8601($previousSunday * 1000);
         } else {
-            $timestamp = intval($timestamp / 1000);
-            $timestamp = $duration * intval($timestamp / $duration);
+            $timestamp = $this->parse_to_int($timestamp / 1000);
+            $timestamp = $duration * $this->parse_to_int($timestamp / $duration);
             if ($after) {
                 $timestamp = $this->sum($timestamp, $duration);
             }
@@ -892,11 +895,11 @@ class probit extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the probit api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $limit = ($limit === null) ? 100 : $limit;
             $requestLimit = $this->sum($limit, 1);
             $requestLimit = min (1000, $requestLimit); // max 1000
@@ -1124,6 +1127,7 @@ class probit extends Exchange {
             'status' => $status,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -1342,7 +1346,7 @@ class probit extends Exchange {
             }
             $response = Async\await($this->privateGetDepositAddress (array_merge($request, $params)));
             $data = $this->safe_value($response, 'data', array());
-            return $this->parse_deposit_addresses($data);
+            return $this->parse_deposit_addresses($data, $codes);
         }) ();
     }
 
@@ -1446,6 +1450,142 @@ class probit extends Exchange {
             'cancelling' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://docs.poloniex.com/#public-endpoints-reference-$data-currency-information
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the poloniex api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fees structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetCurrencyWithPlatform ($params));
+            //
+            //  {
+            //     "data" => array(
+            //       {
+            //       "id" => "AFX",
+            //       "display_name" => array(
+            //       "ko-kr" => "아프릭스",
+            //       "en-us" => "Afrix"
+            //       ),
+            //       "show_in_ui" => true,
+            //       "platform" => array(
+            //       {
+            //       "id" => "ZYN",
+            //       "priority" => 1,
+            //       "deposit" => true,
+            //       "withdrawal" => true,
+            //       "currency_id" => "AFX",
+            //       "precision" => 18,
+            //       "min_confirmation_count" => 60,
+            //       "require_destination_tag" => false,
+            //       "allow_withdrawal_destination_tag" => false,
+            //       "display_name" => {
+            //       "name" => array(
+            //       "ko-kr" => "지네코인",
+            //       "en-us" => "Wethio"
+            //       }
+            //       ),
+            //       "min_deposit_amount" => "0",
+            //       "min_withdrawal_amount" => "0",
+            //       "withdrawal_fee" => array(
+            //       array(
+            //       "currency_id" => "ZYN",
+            //       "amount" => "0.5",
+            //       "priority" => 1
+            //       }
+            //       ),
+            //       "deposit_fee" => array(),
+            //       "suspended_reason" => "",
+            //       "deposit_suspended" => false,
+            //       "withdrawal_suspended" => false,
+            //       "platform_currency_display_name" => array()
+            //       }
+            //       ),
+            //       "internal_transfer" => array(
+            //       "suspended_reason" => null,
+            //       "suspended" => false
+            //       ),
+            //       "stakeable" => false,
+            //       "unstakeable" => false,
+            //       "auto_stake" => false,
+            //       "auto_stake_amount" => "0"
+            //       ),
+            //     )
+            //  }
+            //
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_deposit_withdraw_fees($data, $codes, 'id');
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency) {
+        //
+        // {
+        //     id => 'USDT',
+        //     display_name => array( 'ko-kr' => '테더', 'en-us' => 'Tether' ),
+        //     show_in_ui => true,
+        //     platform => [
+        //       array(
+        //         id => 'ETH',
+        //         priority => '1',
+        //         deposit => true,
+        //         withdrawal => true,
+        //         currency_id => 'USDT',
+        //         precision => '6',
+        //         min_confirmation_count => '15',
+        //         require_destination_tag => false,
+        //         allow_withdrawal_destination_tag => false,
+        //         display_name => [Object],
+        //         min_deposit_amount => '0',
+        //         min_withdrawal_amount => '1',
+        //         withdrawal_fee => [Array],
+        //         deposit_fee => array(),
+        //         suspended_reason => '',
+        //         deposit_suspended => false,
+        //         withdrawal_suspended => false,
+        //         platform_currency_display_name => [Object]
+        //       ),
+        //     ],
+        //     internal_transfer => array( suspended_reason => null, suspended => false ),
+        //     stakeable => false,
+        //     unstakeable => false,
+        //     auto_stake => false,
+        //     auto_stake_amount => '0'
+        //   }
+        //
+        $depositWithdrawFee = $this->deposit_withdraw_fee(array());
+        $platforms = $this->safe_value($fee, 'platform', array());
+        $depositResult = array(
+            'fee' => null,
+            'percentage' => null,
+        );
+        for ($i = 0; $i < count($platforms); $i++) {
+            $network = $platforms[$i];
+            $networkId = $this->safe_string($network, 'id');
+            $networkCode = $this->network_id_to_code($networkId, $currency['code']);
+            $withdrawalFees = $this->safe_value($network, 'withdrawal_fee', array());
+            $withdrawFee = $this->safe_number($withdrawalFees[0], 'amount');
+            if (strlen($withdrawalFees) > 0) {
+                $withdrawResult = array(
+                    'fee' => $withdrawFee,
+                    'percentage' => ($withdrawFee !== null) ? false : null,
+                );
+                if ($i === 0) {
+                    $depositWithdrawFee['withdraw'] = $withdrawResult;
+                }
+                $depositWithdrawFee['networks'][$networkCode] = array(
+                    'withdraw' => $withdrawResult,
+                    'deposit' => $depositResult,
+                );
+            }
+        }
+        $depositWithdrawFee['info'] = $fee;
+        return $depositWithdrawFee;
     }
 
     public function nonce() {

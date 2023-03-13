@@ -10,8 +10,6 @@ use React\Async;
 
 class hitbtc extends \ccxt\async\hitbtc {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -292,12 +290,12 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             // if ($limit === null) {
             //     $limit = 100;
             // }
-            $period = $this->timeframes[$timeframe];
+            $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $request = array(
                 'params' => array(
                     'period' => $period,

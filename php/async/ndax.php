@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
+use ccxt\Precise;
 use React\Async;
 
 class ndax extends Exchange {
@@ -734,7 +735,7 @@ class ndax extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the ndax api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -742,7 +743,7 @@ class ndax extends Exchange {
             $request = array(
                 'omsId' => $omsId,
                 'InstrumentId' => $market['id'],
-                'Interval' => $this->timeframes[$timeframe],
+                'Interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $duration = $this->parse_timeframe($timeframe);
             $now = $this->milliseconds();
@@ -1101,60 +1102,53 @@ class ndax extends Exchange {
     public function parse_ledger_entry($item, $currency = null) {
         //
         //     {
-        //         "TransactionId":2663709493,
-        //         "ReferenceId":68,
-        //         "OMSId":1,
-        //         "AccountId":449,
-        //         "CR":10.000000000000000000000000000,
-        //         "DR":0.0000000000000000000000000000,
-        //         "Counterparty":3,
-        //         "TransactionType":"Other",
-        //         "ReferenceType":"Deposit",
-        //         "ProductId":1,
-        //         "Balance":10.000000000000000000000000000,
-        //         "TimeStamp":1607532331591
+        //         "TransactionId" => 2663709493,
+        //         "ReferenceId" => 68,
+        //         "OMSId" => 1,
+        //         "AccountId" => 449,
+        //         "CR" => 10.000000000000000000000000000,
+        //         "DR" => 0.0000000000000000000000000000,
+        //         "Counterparty" => 3,
+        //         "TransactionType" => "Other",
+        //         "ReferenceType" => "Deposit",
+        //         "ProductId" => 1,
+        //         "Balance" => 10.000000000000000000000000000,
+        //         "TimeStamp" => 1607532331591
         //     }
         //
-        $id = $this->safe_string($item, 'TransactionId');
-        $account = $this->safe_string($item, 'AccountId');
-        $referenceId = $this->safe_string($item, 'ReferenceId');
-        $referenceAccount = $this->safe_string($item, 'Counterparty');
-        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'ReferenceType'));
         $currencyId = $this->safe_string($item, 'ProductId');
-        $code = $this->safe_currency_code($currencyId, $currency);
-        $credit = $this->safe_number($item, 'CR');
-        $debit = $this->safe_number($item, 'DR');
+        $credit = $this->safe_string($item, 'CR');
+        $debit = $this->safe_string($item, 'DR');
         $amount = null;
         $direction = null;
-        if ($credit > 0) {
+        if (Precise::string_lt($credit, '0')) {
             $amount = $credit;
             $direction = 'in';
-        } elseif ($debit > 0) {
+        } elseif (Precise::string_lt($debit, '0')) {
             $amount = $debit;
             $direction = 'out';
         }
-        $timestamp = $this->safe_integer($item, 'TimeStamp');
         $before = null;
-        $after = $this->safe_number($item, 'Balance');
+        $after = $this->safe_string($item, 'Balance');
         if ($direction === 'out') {
-            $before = $this->sum($after, $amount);
+            $before = Precise::string_add($after, $amount);
         } elseif ($direction === 'in') {
-            $before = max (0, $after - $amount);
+            $before = Precise::string_max('0', Precise::string_sub($after, $amount));
         }
-        $status = 'ok';
+        $timestamp = $this->safe_integer($item, 'TimeStamp');
         return array(
             'info' => $item,
-            'id' => $id,
+            'id' => $this->safe_string($item, 'TransactionId'),
             'direction' => $direction,
-            'account' => $account,
-            'referenceId' => $referenceId,
-            'referenceAccount' => $referenceAccount,
-            'type' => $type,
-            'currency' => $code,
-            'amount' => $amount,
-            'before' => $before,
-            'after' => $after,
-            'status' => $status,
+            'account' => $this->safe_string($item, 'AccountId'),
+            'referenceId' => $this->safe_string($item, 'ReferenceId'),
+            'referenceAccount' => $this->safe_string($item, 'Counterparty'),
+            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'ReferenceType')),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->parse_number($amount),
+            'before' => $this->parse_number($before),
+            'after' => $this->parse_number($after),
+            'status' => 'ok',
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'fee' => null,
@@ -1343,7 +1337,7 @@ class ndax extends Exchange {
                 'InstrumentId' => intval($market['id']),
                 'omsId' => $omsId,
                 'AccountId' => $accountId,
-                'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening $price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+                'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute to opening $price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
                 // 'ClientOrderId' => $clientOrderId, // defaults to 0
                 // If this order is order A, OrderIdOCO refers to the order ID of an order B (which is not the order being created by this call).
                 // If order B executes, then order A created by this call is canceled.
@@ -1392,7 +1386,7 @@ class ndax extends Exchange {
                 'InstrumentId' => intval($market['id']),
                 'omsId' => $omsId,
                 'AccountId' => $accountId,
-                'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening $price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+                'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute to opening $price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
                 // 'ClientOrderId' => $clientOrderId, // defaults to 0
                 // If this order is order A, OrderIdOCO refers to the order ID of an order B (which is not the order being created by this call).
                 // If order B executes, then order A created by this call is canceled.
@@ -1461,7 +1455,7 @@ class ndax extends Exchange {
                 $request['InstrumentId'] = $market['id'];
             }
             if ($since !== null) {
-                $request['StartTimeStamp'] = intval($since / 1000);
+                $request['StartTimeStamp'] = $this->parse_to_int($since / 1000);
             }
             if ($limit !== null) {
                 $request['Depth'] = $limit;
@@ -1702,7 +1696,7 @@ class ndax extends Exchange {
                 $request['InstrumentId'] = $market['id'];
             }
             if ($since !== null) {
-                $request['StartTimeStamp'] = intval($since / 1000);
+                $request['StartTimeStamp'] = $this->parse_to_int($since / 1000);
             }
             if ($limit !== null) {
                 $request['Depth'] = $limit;
@@ -1860,7 +1854,7 @@ class ndax extends Exchange {
                 $market = $this->market($symbol);
             }
             $request = array(
-                'OMSId' => intval($omsId),
+                'OMSId' => $this->parse_to_int($omsId),
                 // 'AccountId' => $accountId,
                 'OrderId' => intval($id),
             );
@@ -2014,8 +2008,9 @@ class ndax extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             * @see https://apidoc.ndax.io/#getdeposits
              * @param {string|null} $code unified $currency $code
-             * @param {int|null} $since the earliest time in ms to fetch deposits for
+             * @param {int|null} $since not used by ndax fetchDeposits
              * @param {int|null} $limit the maximum number of deposits structures to retrieve
              * @param {array} $params extra parameters specific to the ndax api endpoint
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
@@ -2036,26 +2031,36 @@ class ndax extends Exchange {
             );
             $response = Async\await($this->privateGetGetDeposits (array_merge($request, $params)));
             //
-            //     array(
-            //         array(
-            //             "OMSId":1,
-            //             "DepositId":44,
-            //             "AccountId":449,
-            //             "SubAccountId":0,
-            //             "ProductId":4,
-            //             "Amount":200.00000000000000000000000000,
-            //             "LastUpdateTimeStamp":637431291261187806,
-            //             "ProductType":"CryptoCurrency",
-            //             "TicketStatus":"FullyProcessed",
-            //             "DepositInfo":"array()",
-            //             "DepositCode":"ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-            //             "TicketNumber":71,
-            //             "NotionalProductId":13,
-            //             "NotionalValue":200.00000000000000000000000000,
-            //             "FeeAmount":0.0000000000000000000000000000,
-            //         ),
-            //     )
+            //    "array(
+            //        array(
+            //            "OMSId" => 1,
+            //            "DepositId" => 44,
+            //            "AccountId" => 449,
+            //            "SubAccountId" => 0,
+            //            "ProductId" => 4,
+            //            "Amount" => 200.00000000000000000000000000,
+            //            "LastUpdateTimeStamp" => 637431291261187806,
+            //            "ProductType" => "CryptoCurrency",
+            //            "TicketStatus" => "FullyProcessed",
+            //            "DepositInfo" => "array(
+            //                "AccountProviderId":42,
+            //                "AccountProviderName":"USDT_BSC",
+            //                "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
+            //                "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
+            //                "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
+            //            ),",
+            //            "DepositCode" => "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+            //            "TicketNumber" => 71,
+            //            "NotionalProductId" => 13,
+            //            "NotionalValue" => 200.00000000000000000000000000,
+            //            "FeeAmount" => 0.0000000000000000000000000000,
+            //        ),
+            //        ...
+            //    )"
             //
+            if (gettype($response) === 'string') {
+                return $this->parse_transactions(json_decode($response, $as_associative_array = true), $currency, $since, $limit);
+            }
             return $this->parse_transactions($response, $currency, $since, $limit);
         }) ();
     }
@@ -2154,7 +2159,7 @@ class ndax extends Exchange {
                 'LimitsRejected' => 'rejected', // withdrawal does not meet limits for fiat or crypto asset
                 'Submitted' => 'pending', // withdrawal sent to Account Provider; awaiting blockchain confirmation
                 'Confirmed' => 'pending', // Account Provider confirms that withdrawal is on the blockchain
-                'ManuallyConfirmed' => 'pending', // admin has sent withdrawal via wallet or admin function directly; marks ticket as FullyProcessed; debits account
+                'ManuallyConfirmed' => 'pending', // admin has sent withdrawal via wallet or admin function directly; marks ticket; debits account
                 'Confirmed2Fa' => 'pending', // user has confirmed withdraw via 2-factor authentication.
             ),
         );
@@ -2166,22 +2171,28 @@ class ndax extends Exchange {
         //
         // fetchDeposits
         //
-        //     {
-        //         "OMSId":1,
-        //         "DepositId":44,
-        //         "AccountId":449,
-        //         "SubAccountId":0,
-        //         "ProductId":4,
-        //         "Amount":200.00000000000000000000000000,
-        //         "LastUpdateTimeStamp":637431291261187806,
-        //         "ProductType":"CryptoCurrency",
-        //         "TicketStatus":"FullyProcessed",
-        //         "DepositInfo":"array()",
-        //         "DepositCode":"ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-        //         "TicketNumber":71,
-        //         "NotionalProductId":13,
-        //         "NotionalValue":200.00000000000000000000000000,
-        //         "FeeAmount":0.0000000000000000000000000000,
+        //    {
+        //        "OMSId" => 1,
+        //        "DepositId" => 44,
+        //        "AccountId" => 449,
+        //        "SubAccountId" => 0,
+        //        "ProductId" => 4,
+        //        "Amount" => 200.00000000000000000000000000,
+        //        "LastUpdateTimeStamp" => 637431291261187806,
+        //        "ProductType" => "CryptoCurrency",
+        //        "TicketStatus" => "FullyProcessed",
+        //        "DepositInfo" => "array(
+        //            "AccountProviderId":42,
+        //            "AccountProviderName":"USDT_BSC",
+        //            "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
+        //            "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
+        //            "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
+        //        )",
+        //        "DepositCode" => "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        //        "TicketNumber" => 71,
+        //        "NotionalProductId" => 13,
+        //        "NotionalValue" => 200.00000000000000000000000000,
+        //        "FeeAmount" => 0.0000000000000000000000000000,
         //     }
         //
         // fetchWithdrawals
@@ -2208,10 +2219,8 @@ class ndax extends Exchange {
         //     }
         //
         $id = null;
-        $txid = null;
         $currencyId = $this->safe_string($transaction, 'ProductId');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $timestamp = null;
         $type = null;
         if (is_array($transaction) && array_key_exists('DepositId', $transaction)) {
             $id = $this->safe_string($transaction, 'DepositId');
@@ -2220,20 +2229,15 @@ class ndax extends Exchange {
             $id = $this->safe_string($transaction, 'WithdrawId');
             $type = 'withdrawal';
         }
-        $templateFormString = $this->safe_string($transaction, 'TemplateForm');
-        $address = null;
+        $templateForm = $this->parse_json($this->safe_value_2($transaction, 'TemplateForm', 'DepositInfo'));
         $updated = $this->safe_integer($transaction, 'LastUpdateTimeStamp');
-        if ($templateFormString !== null) {
-            $templateForm = json_decode($templateFormString, $as_associative_array = true);
-            $address = $this->safe_string($templateForm, 'ExternalAddress');
-            $txid = $this->safe_string($templateForm, 'TxId');
-            $timestamp = $this->safe_integer($templateForm, 'TimeSubmitted');
+        if ($templateForm !== null) {
             $updated = $this->safe_integer($templateForm, 'LastUpdated', $updated);
         }
-        $addressTo = $address;
-        $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'TicketStatus'), $type);
-        $amount = $this->safe_number($transaction, 'Amount');
+        $address = $this->safe_string_2($templateForm, 'ExternalAddress', 'ToAddress');
+        $timestamp = $this->safe_integer($templateForm, 'TimeSubmitted');
         $feeCost = $this->safe_number($transaction, 'FeeAmount');
+        $transactionStatus = $this->safe_string($transaction, 'TicketStatus');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
@@ -2241,19 +2245,19 @@ class ndax extends Exchange {
         return array(
             'info' => $transaction,
             'id' => $id,
-            'txid' => $txid,
+            'txid' => $this->safe_string_2($templateForm, 'TxId', 'TXId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'address' => $address,
-            'addressTo' => $addressTo,
-            'addressFrom' => null,
+            'addressTo' => $address,
+            'addressFrom' => $this->safe_string($templateForm, 'FromAddress'),
             'tag' => null,
             'tagTo' => null,
             'tagFrom' => null,
             'type' => $type,
-            'amount' => $amount,
+            'amount' => $this->safe_number($transaction, 'Amount'),
             'currency' => $code,
-            'status' => $status,
+            'status' => $this->parse_transaction_status_by_type($transactionStatus, $type),
             'updated' => $updated,
             'fee' => $fee,
         );

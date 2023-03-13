@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import ArgumentsRequired
@@ -18,6 +17,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -297,6 +297,7 @@ class mexc(Exchange):
                 'cancelOrder': {
                     'method': 'spotPrivateDeleteOrderCancel',  # contractPrivatePostOrderCancel contractPrivatePostPlanorderCancel
                 },
+                'broker': 'CCXT',
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -310,6 +311,7 @@ class mexc(Exchange):
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
                 'FREE': 'FreeRossDAO',  # conflict with FREE Coin
+                'GAS': 'GASDAO',
                 'GMT': 'GMT Token',
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
@@ -757,10 +759,15 @@ class mexc(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the mexc api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
-        marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        symbols = self.market_symbols(symbols)
+        first = self.safe_string(symbols, 0)
+        market = None
+        if first is not None:
+            market = self.market(first)
+        marketType, query = self.handle_market_type_and_params('fetchTickers', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPublicGetMarketTicker',
             'swap': 'contractPublicGetTicker',
@@ -1208,7 +1215,7 @@ class mexc(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the mexc api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1225,13 +1232,13 @@ class mexc(Exchange):
         if market['spot']:
             method = 'spotPublicGetMarketKline'
             if since is not None:
-                request['start_time'] = int(since / 1000)
+                request['start_time'] = self.parse_to_int(since / 1000)
             if limit is not None:
                 request['limit'] = limit  # default 100
         elif market['swap']:
             method = 'contractPublicGetKlineSymbol'
             if since is not None:
-                request['start'] = int(since / 1000)
+                request['start'] = self.parse_to_int(since / 1000)
             # request['end'] = self.seconds()
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -2215,6 +2222,7 @@ class mexc(Exchange):
             'side': side,
             'price': price,
             'stopPrice': self.safe_string(order, 'triggerPrice'),
+            'triggerPrice': self.safe_string(order, 'triggerPrice'),
             'average': self.safe_string(order, 'dealAvgPrice'),
             'amount': amount,
             'cost': cost,
@@ -2917,6 +2925,7 @@ class mexc(Exchange):
                 'ApiKey': self.apiKey,
                 'Request-Time': timestamp,
                 'Content-Type': 'application/json',
+                'source': self.safe_string(self.options, 'broker', 'CCXT'),
             }
             if method == 'POST':
                 auth = self.json(params)

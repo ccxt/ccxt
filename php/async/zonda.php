@@ -446,6 +446,7 @@ class zonda extends Exchange {
             'side' => $this->safe_string_lower($order, 'offerType'),
             'price' => $this->safe_string($order, 'rate'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'filled' => null,
@@ -659,7 +660,7 @@ class zonda extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the zonda api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->v1_01PublicGetTradingStats ($params));
@@ -992,7 +993,7 @@ class zonda extends Exchange {
             $amount = Precise::string_neg($amount);
         }
         // there are 2 undocumented api calls => (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
-        // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
+        // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId parameter)
         $fundsBefore = $this->safe_value($item, 'fundsBefore', array());
         $fundsAfter = $this->safe_value($item, 'fundsAfter', array());
         return array(
@@ -1004,7 +1005,7 @@ class zonda extends Exchange {
             'referenceAccount' => null,
             'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
             'currency' => $this->safe_currency_code($currencyId),
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'before' => $this->safe_number($fundsBefore, 'total'),
             'after' => $this->safe_number($fundsAfter, 'total'),
             'status' => 'ok',
@@ -1068,14 +1069,14 @@ class zonda extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the zonda api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
             $request = array(
                 'symbol' => $tradingSymbol,
-                'resolution' => $this->timeframes[$timeframe],
+                'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 // 'from' => 1574709092000, // unix timestamp in milliseconds, required
                 // 'to' => 1574709092000, // unix timestamp in milliseconds, required
             );

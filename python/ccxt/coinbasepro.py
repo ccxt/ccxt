@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
@@ -16,6 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -48,7 +48,7 @@ class coinbasepro(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
-                'fetchDepositAddress': None,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchDepositAddress': False,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': True,
                 'fetchLedger': True,
                 'fetchMarginMode': False,
@@ -185,8 +185,8 @@ class coinbasepro(Exchange):
                 'trading': {
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
-                    'maker': 0.4 / 100,  # highest fee of all tiers
-                    'taker': 0.6 / 100,  # highest fee of all tiers
+                    'maker': self.parse_number('0.004'),  # highest fee of all tiers
+                    'taker': self.parse_number('0.006'),  # highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': False,
@@ -607,7 +607,7 @@ class coinbasepro(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -762,7 +762,7 @@ class coinbasepro(Exchange):
         :param dict params: extra parameters specific to the coinbasepro api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
-        # as of 2018-08-23
+        # 2018-08-23
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
@@ -852,15 +852,18 @@ class coinbasepro(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the coinbasepro api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
-        granularity = self.timeframes[timeframe]
+        parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
         request = {
             'id': market['id'],
-            'granularity': granularity,
         }
+        if parsedTimeframe is not None:
+            request['granularity'] = parsedTimeframe
+        else:
+            request['granularity'] = timeframe
         if since is not None:
             request['start'] = self.iso8601(since)
             if limit is None:
@@ -868,7 +871,7 @@ class coinbasepro(Exchange):
                 limit = 300  # max = 300
             else:
                 limit = min(300, limit)
-            request['end'] = self.iso8601(self.sum((limit - 1) * granularity * 1000, since))
+            request['end'] = self.iso8601(self.sum((limit - 1) * parsedTimeframe * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         #
         #     [
@@ -968,6 +971,7 @@ class coinbasepro(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1195,7 +1199,7 @@ class coinbasepro(Exchange):
 
     def deposit(self, code, amount, address, params={}):
         """
-        Creates a new deposit address, as required by coinbasepro
+        Creates a new deposit address, by coinbasepro
         :param str code: Unified CCXT currency code(e.g. `"USDT"`)
         :param float amount: The amount of currency to send in the deposit(e.g. `20`)
         :param str address: Not used by coinbasepro
@@ -1264,8 +1268,8 @@ class coinbasepro(Exchange):
     def parse_ledger_entry_type(self, type):
         types = {
             'transfer': 'transfer',  # Funds moved between portfolios
-            'match': 'trade',       # Funds moved as a result of a trade
-            'fee': 'fee',           # Fee as a result of a trade
+            'match': 'trade',       # Funds moved result of a trade
+            'fee': 'fee',           # Fee result of a trade
             'rebate': 'rebate',     # Fee rebate
             'conversion': 'trade',  # Funds converted between fiat currency and a stablecoin
         }
@@ -1381,10 +1385,13 @@ class coinbasepro(Exchange):
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         """
         fetch history of deposits and withdrawals
+        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
         :param str|None code: unified currency code for the currency of the transactions, default is None
         :param int|None since: timestamp in ms of the earliest transaction, default is None
         :param int|None limit: max number of transactions to return, default is None
         :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :param str|None params['id']: account id, when defined, the endpoint used is '/accounts/{account_id}/transfers/' instead of '/transfers/'
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         self.load_markets()
@@ -1407,6 +1414,34 @@ class coinbasepro(Exchange):
         response = None
         if id is None:
             response = self.privateGetTransfers(self.extend(request, params))
+            #
+            #    [
+            #        {
+            #            "id": "bee6fd7c-afb2-4e47-8298-671d09997d16",
+            #            "type": "deposit",
+            #            "created_at": "2022-12-21 00:48:45.477503+00",
+            #            "completed_at": null,
+            #            "account_id": "sal3802-36bd-46be-a7b8-alsjf383sldak",
+            #            "user_id": "6382048209f92as392039dlks2",
+            #            "amount": "0.01000000",
+            #            "details": {
+            #                "network": "litecoin",
+            #                "crypto_address": "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
+            #                "coinbase_account_id": "fl2b6925-f6ba-403n-jj03-40fl435n430f",
+            #                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17",  # withdrawals only
+            #                "crypto_transaction_hash": "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
+            #                "tx_service_transaction_id": "1873249104",
+            #                "coinbase_payment_method_id": ""
+            #            },
+            #            "canceled_at": null,
+            #            "processed_at": null,
+            #            "user_nonce": null,
+            #            "idem": "5e3201b0-e390-5k3k-a913-c32932049242",
+            #            "profile_id": "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
+            #            "currency": "LTC"
+            #        }
+            #    ]
+            #
             for i in range(0, len(response)):
                 account_id = self.safe_string(response[i], 'account_id')
                 account = self.safe_value(self.accountsById, account_id)
@@ -1414,6 +1449,32 @@ class coinbasepro(Exchange):
                 response[i]['currency'] = code
         else:
             response = self.privateGetAccountsIdTransfers(self.extend(request, params))
+            #
+            #    [
+            #        {
+            #            "id": "bee6fd7c-afb2-4e47-8298-671d09997d16",
+            #            "type": "deposit",
+            #            "created_at": "2022-12-21 00:48:45.477503+00",
+            #            "completed_at": null,
+            #            "amount": "0.01000000",
+            #            "details": {
+            #                "network": "litecoin",
+            #                "crypto_address": "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
+            #                "coinbase_account_id": "fl2b6925-f6ba-403n-jj03-40fl435n430f",
+            #                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17",  # withdrawals only
+            #                "crypto_transaction_hash": "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
+            #                "tx_service_transaction_id": "1873249104",
+            #                "coinbase_payment_method_id": ""
+            #            },
+            #            "canceled_at": null,
+            #            "processed_at": null,
+            #            "user_nonce": null,
+            #            "idem": "5e3201b0-e390-5k3k-a913-c32932049242",
+            #            "profile_id": "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
+            #            "currency": "LTC"
+            #        }
+            #    ]
+            #
             for i in range(0, len(response)):
                 response[i]['currency'] = code
         return self.parse_transactions(response, currency, since, limit)
@@ -1454,20 +1515,49 @@ class coinbasepro(Exchange):
             return 'pending'
 
     def parse_transaction(self, transaction, currency=None):
+        #
+        # privateGetTransfers
+        #
+        #    [
+        #        {
+        #            "id": "bee6fd7c-afb2-4e47-8298-671d09997d16",
+        #            "type": "deposit",
+        #            "created_at": "2022-12-21 00:48:45.477503+00",
+        #            "completed_at": null,
+        #            "account_id": "sal3802-36bd-46be-a7b8-alsjf383sldak",     # only from privateGetTransfers
+        #            "user_id": "6382048209f92as392039dlks2",                  # only from privateGetTransfers
+        #            "amount": "0.01000000",
+        #            "details": {
+        #                "network": "litecoin",
+        #                "crypto_address": "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
+        #                "coinbase_account_id": "fl2b6925-f6ba-403n-jj03-40fl435n430f",
+        #                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17",  # withdrawals only
+        #                "crypto_transaction_hash": "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
+        #                "tx_service_transaction_id": "1873249104",
+        #                "coinbase_payment_method_id": ""
+        #            },
+        #            "canceled_at": null,
+        #            "processed_at": null,
+        #            "user_nonce": null,
+        #            "idem": "5e3201b0-e390-5k3k-a913-c32932049242",
+        #            "profile_id": "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
+        #            "currency": "LTC"
+        #        }
+        #    ]
+        #
         details = self.safe_value(transaction, 'details', {})
-        id = self.safe_string(transaction, 'id')
-        txid = self.safe_string(details, 'crypto_transaction_hash')
         timestamp = self.parse8601(self.safe_string(transaction, 'created_at'))
-        updated = self.parse8601(self.safe_string(transaction, 'processed_at'))
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        status = self.parse_transaction_status(transaction)
         amount = self.safe_number(transaction, 'amount')
         type = self.safe_string(transaction, 'type')
         address = self.safe_string(details, 'crypto_address')
-        tag = self.safe_string(details, 'destination_tag')
         address = self.safe_string(transaction, 'crypto_address', address)
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         if type == 'withdraw':
             type = 'withdrawal'
             address = self.safe_string(details, 'sent_to_address', address)
@@ -1475,28 +1565,28 @@ class coinbasepro(Exchange):
             if feeCost is not None:
                 if amount is not None:
                     amount -= feeCost
-                fee = {
-                    'cost': feeCost,
-                    'currency': code,
-                }
+                fee['cost'] = feeCost
+                fee['currency'] = code
+        networkId = self.safe_string(details, 'network')
         return {
             'info': transaction,
-            'id': id,
-            'txid': txid,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(details, 'crypto_transaction_hash'),
+            'type': type,
+            'currency': code,
+            'network': self.network_id_to_code(networkId),
+            'amount': amount,
+            'status': self.parse_transaction_status(transaction),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
             'address': address,
-            'addressTo': None,
             'addressFrom': None,
-            'tag': tag,
-            'tagTo': None,
+            'addressTo': self.safe_string(details, 'crypto_address'),
+            'tag': self.safe_string(details, 'destination_tag'),
             'tagFrom': None,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
-            'updated': updated,
+            'tagTo': None,
+            'updated': self.parse8601(self.safe_string(transaction, 'processed_at')),
+            'comment': None,
             'fee': fee,
         }
 

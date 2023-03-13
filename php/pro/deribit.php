@@ -12,8 +12,6 @@ use React\Async;
 
 class deribit extends \ccxt\async\deribit {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -140,6 +138,7 @@ class deribit extends \ccxt\async\deribit {
         //
         $params = $this->safe_value($message, 'params', array());
         $data = $this->safe_value($params, 'data', array());
+        $this->balance['info'] = $data;
         $currencyId = $this->safe_string($data, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId);
         $balance = $this->parse_balance($data);
@@ -602,7 +601,7 @@ class deribit extends \ccxt\async\deribit {
         $channel = $this->safe_string($params, 'channel', '');
         $data = $this->safe_value($params, 'data', array());
         $orders = array();
-        if ($this->is_array($data)) {
+        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             $orders = $this->parse_orders($data);
         } else {
             $order = $this->parse_order($data);
@@ -624,7 +623,7 @@ class deribit extends \ccxt\async\deribit {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the deribit api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

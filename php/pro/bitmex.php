@@ -12,8 +12,6 @@ use React\Async;
 
 class bitmex extends \ccxt\async\bitmex {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -29,15 +27,15 @@ class bitmex extends \ccxt\async\bitmex {
             ),
             'urls' => array(
                 'test' => array(
-                    'ws' => 'wss://testnet.bitmex.com/realtime',
+                    'ws' => 'wss://ws.testnet.bitmex.com/realtime',
                 ),
                 'api' => array(
-                    'ws' => 'wss://www.bitmex.com/realtime',
+                    'ws' => 'wss://ws.bitmex.com/realtime',
                 ),
             ),
-            'versions' => array(
-                'ws' => '0.2.0',
-            ),
+            // 'versions' => array(
+            //     'ws' => '0.2.0',
+            // ),
             'options' => array(
                 'watchOrderBookLevel' => 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
                 'tradesLimit' => 1000,
@@ -563,44 +561,41 @@ class bitmex extends \ccxt\async\bitmex {
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $url = $this->urls['api']['ws'];
-            $client = $this->client($url);
-            $future = $client->future ('authenticated');
-            $action = 'authKeyExpires';
-            $authenticated = $this->safe_value($client->subscriptions, $action);
-            if ($authenticated === null) {
-                try {
-                    $this->check_required_credentials();
-                    $timestamp = $this->milliseconds();
-                    $message = 'GET' . '/realtime' . (string) $timestamp;
-                    $signature = $this->hmac($this->encode($message), $this->encode($this->secret));
-                    $request = array(
-                        'op' => $action,
-                        'args' => array(
-                            $this->apiKey,
-                            $timestamp,
-                            $signature,
-                        ),
-                    );
-                    $this->spawn(array($this, 'watch'), $url, $action, $request, $action);
-                } catch (Exception $e) {
-                    $client->reject ($e, 'authenticated');
-                    if (is_array($client->subscriptions) && array_key_exists($action, $client->subscriptions)) {
-                        unset($client->subscriptions[$action]);
-                    }
+        $url = $this->urls['api']['ws'];
+        $client = $this->client($url);
+        $future = $client->future ('authenticated');
+        $action = 'authKeyExpires';
+        $authenticated = $this->safe_value($client->subscriptions, $action);
+        if ($authenticated === null) {
+            try {
+                $this->check_required_credentials();
+                $timestamp = $this->milliseconds();
+                $message = 'GET' . '/realtime' . (string) $timestamp;
+                $signature = $this->hmac($this->encode($message), $this->encode($this->secret));
+                $request = array(
+                    'op' => $action,
+                    'args' => array(
+                        $this->apiKey,
+                        $timestamp,
+                        $signature,
+                    ),
+                );
+                $this->spawn(array($this, 'watch'), $url, $action, $request, $action);
+            } catch (Exception $e) {
+                $client->reject ($e, 'authenticated');
+                if (is_array($client->subscriptions) && array_key_exists($action, $client->subscriptions)) {
+                    unset($client->subscriptions[$action]);
                 }
             }
-            return Async\await($future);
-        }) ();
+        }
+        return $future;
     }
 
     public function handle_authentication_message($client, $message) {
         $authenticated = $this->safe_value($message, 'success', false);
         if ($authenticated) {
-            // we resolve the $future here permanently so authentication only happens once
-            $future = $this->safe_value($client->futures, 'authenticated');
-            $future->resolve (true);
+            // we resolve the future here permanently so authentication only happens once
+            $client->resolve ($message, 'authenticated');
         } else {
             $error = new AuthenticationError ($this->json($message));
             $client->reject ($error, 'authenticated');
@@ -991,12 +986,12 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitmex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $table = 'tradeBin' . $this->timeframes[$timeframe];
+            $table = 'tradeBin' . $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageHash = $table . ':' . $market['id'];
             $url = $this->urls['api']['ws'];
             $request = array(
@@ -1226,7 +1221,7 @@ class bitmex extends \ccxt\async\bitmex {
     public function handle_system_status($client, $message) {
         //
         // todo answer the question whether handleSystemStatus should be renamed
-        // and unified as handleStatus for any usage pattern that
+        // and unified for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -1271,7 +1266,7 @@ class bitmex extends \ccxt\async\bitmex {
         $error = $this->safe_value($message, 'error');
         if ($error !== null) {
             $request = $this->safe_value($message, 'request', array());
-            $args = $this->safe_string($request, 'args', array());
+            $args = $this->safe_value($request, 'args', array());
             $numArgs = count($args);
             if ($numArgs > 0) {
                 $messageHash = $args[0];

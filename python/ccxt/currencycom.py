@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -15,6 +14,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -358,7 +358,6 @@ class currencycom(Exchange):
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': self.safe_string(currency, 'baseAddress'),
                 'type': self.safe_string_lower(currency, 'type'),
                 'name': self.safe_string(currency, 'name'),
                 'active': None,
@@ -456,7 +455,7 @@ class currencycom(Exchange):
             spot = (type == 'SPOT')
             futures = False
             swap = (type == 'LEVERAGE')
-            margin = swap  # as we decided to set
+            margin = swap  # decided to set
             if swap:
                 symbol = symbol.replace(self.options['leverage_markets_suffix'], '')
                 symbol += ':' + quote
@@ -879,7 +878,7 @@ class currencycom(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the currencycom api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetV2Ticker24hr(params)
@@ -931,13 +930,13 @@ class currencycom(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the currencycom api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             request['startTime'] = since
@@ -1160,6 +1159,7 @@ class currencycom(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': None,
@@ -1316,7 +1316,7 @@ class currencycom(Exchange):
         elif self.options['warnOnFetchOpenOrdersWithoutSymbol']:
             symbols = self.symbols
             numSymbols = len(symbols)
-            fetchOpenOrdersRateLimit = int(numSymbols / 2)
+            fetchOpenOrdersRateLimit = self.parse_to_int(numSymbols / 2)
             raise ExchangeError(self.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + str(fetchOpenOrdersRateLimit) + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = False to suppress self warning message.')
         response = self.privateGetV2OpenOrders(self.extend(request, params))
         #
@@ -1462,56 +1462,70 @@ class currencycom(Exchange):
             request['limit'] = limit
         response = getattr(self, method)(self.extend(request, params))
         #
-        #     [
-        #       {
-        #         "id": "616769213",
-        #         "balance": "2.088",
-        #         "amount": "1.304",   # negative for 'withdrawal'
-        #         "currency": "CAKE",
-        #         "type": "deposit",
-        #         "timestamp": "1645282121023",
-        #         "paymentMethod": "BLOCKCHAIN",
-        #         "blockchainTransactionHash": "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
-        #         "status": "PROCESSED",
-        #         "commission": "0.14",  # self property only exists in withdrawal
-        #       },
-        #     ]
+        #    [
+        #        {
+        #            "id": "616769213",
+        #            "balance": "2.088",
+        #            "amount": "1.304",   # negative for 'withdrawal'
+        #            "currency": "CAKE",
+        #            "type": "deposit",
+        #            "timestamp": "1645282121023",
+        #            "paymentMethod": "BLOCKCHAIN",
+        #            "blockchainTransactionHash": "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
+        #            "status": "PROCESSED",
+        #            "commission": "0.14",  # self property only exists in withdrawal
+        #        },
+        #    ]
         #
         return self.parse_transactions(response, currency, since, limit, params)
 
     def parse_transaction(self, transaction, currency=None):
-        id = self.safe_string(transaction, 'id')
-        txHash = self.safe_string(transaction, 'blockchainTransactionHash')
-        amount = self.safe_number(transaction, 'amount')
+        #
+        #    {
+        #        "id": "616769213",
+        #        "balance": "2.088",
+        #        "amount": "1.304",   # negative for 'withdrawal'
+        #        "currency": "CAKE",
+        #        "type": "deposit",
+        #        "timestamp": "1645282121023",
+        #        "paymentMethod": "BLOCKCHAIN",
+        #        "blockchainTransactionHash": "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
+        #        "status": "PROCESSED",
+        #        "commission": "0.14",  # self property only exists in withdrawal
+        #    }
+        #
         timestamp = self.safe_integer(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        state = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         feeCost = self.safe_string(transaction, 'commission')
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         if feeCost is not None:
-            fee = {'currency': code, 'cost': feeCost}
+            fee['currency'] = code
+            fee['cost'] = feeCost
         result = {
-            'id': id,
-            'txid': txHash,
+            'info': transaction,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'blockchainTransactionHash'),
+            'type': self.parse_transaction_type(self.safe_string(transaction, 'type')),
+            'currency': code,
+            'network': None,
+            'amount': self.safe_number(transaction, 'amount'),
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'state')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
-            'addressFrom': None,
             'address': None,
+            'addressFrom': None,
             'addressTo': None,
-            'tagFrom': None,
             'tag': None,
+            'tagFrom': None,
             'tagTo': None,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': state,
             'updated': None,
             'comment': None,
             'fee': fee,
-            'info': transaction,
         }
         return result
 

@@ -6,14 +6,12 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
+use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 
 class whitebit extends \ccxt\async\whitebit {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -73,7 +71,7 @@ class whitebit extends \ccxt\async\whitebit {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the whitebit api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -626,6 +624,7 @@ class whitebit extends \ccxt\async\whitebit {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,
@@ -695,6 +694,7 @@ class whitebit extends \ccxt\async\whitebit {
         $method = $this->safe_string($message, 'method');
         $data = $this->safe_value($message, 'params');
         $balanceDict = $this->safe_value($data, 0);
+        $this->balance['info'] = $balanceDict;
         $keys = is_array($balanceDict) ? array_keys($balanceDict) : array();
         $currencyId = $this->safe_value($keys, 0);
         $rawBalance = $this->safe_value($balanceDict, $currencyId);
@@ -734,6 +734,7 @@ class whitebit extends \ccxt\async\whitebit {
             $id = $this->nonce();
             $client = $this->safe_value($this->clients, $url);
             $request = null;
+            $marketIds = array();
             if ($client === null) {
                 $subscription = array();
                 $market = $this->market($symbol);
@@ -765,6 +766,7 @@ class whitebit extends \ccxt\async\whitebit {
                     return Async\await($this->watch($url, $messageHash, $request, $method, $subscription));
                 } else {
                     // resubscribe
+                    $marketIds = array();
                     $marketIds = is_array($subscription) ? array_keys($subscription) : array();
                     if ($isNested) {
                         $marketIds = array( $marketIds );
@@ -803,7 +805,7 @@ class whitebit extends \ccxt\async\whitebit {
         return Async\async(function () use ($params) {
             $this->check_required_credentials();
             $url = $this->urls['api']['ws'];
-            $messageHash = 'login';
+            $messageHash = 'authenticated';
             $client = $this->client($url);
             $future = $client->future ('authenticated');
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
@@ -828,7 +830,12 @@ class whitebit extends \ccxt\async\whitebit {
                     'id' => $id,
                     'method' => array($this, 'handle_authenticate'),
                 );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $subscription);
+                try {
+                    Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+                } catch (Exception $e) {
+                    unset($client->subscriptions[$messageHash]);
+                    $future->reject ($e);
+                }
             }
             return Async\await($future);
         }) ();
@@ -861,8 +868,8 @@ class whitebit extends \ccxt\async\whitebit {
         } catch (Exception $e) {
             if ($e instanceof AuthenticationError) {
                 $client->reject ($e, 'authenticated');
-                if (is_array($client->subscriptions) && array_key_exists('login', $client->subscriptions)) {
-                    unset($client->subscriptions['login']);
+                if (is_array($client->subscriptions) && array_key_exists('authenticated', $client->subscriptions)) {
+                    unset($client->subscriptions['authenticated']);
                 }
                 return false;
             }
@@ -913,7 +920,7 @@ class whitebit extends \ccxt\async\whitebit {
 
     public function handle_subscription_status($client, $message, $id) {
         // not every $method stores its $subscription
-        // as an object so we can't do indeById here
+        // object so we can't do indeById here
         $subs = $client->subscriptions;
         $values = is_array($subs) ? array_values($subs) : array();
         for ($i = 0; $i < count($values); $i++) {

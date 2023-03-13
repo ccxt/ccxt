@@ -46,7 +46,7 @@ class zb extends Exchange {
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'createMarketOrder' => null,
+                'createMarketOrder' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
@@ -1343,21 +1343,23 @@ class zb extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the zb api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $response = Async\await($this->spotV1PublicGetAllTicker ($params));
             $result = array();
             $marketsByIdWithoutUnderscore = array();
-            $marketIds = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
+            $marketIds = $this->ids;
             for ($i = 0; $i < count($marketIds); $i++) {
-                $tickerId = str_replace('_', '', $marketIds[$i]);
-                $marketsByIdWithoutUnderscore[$tickerId] = $this->markets_by_id[$marketIds[$i]];
+                $marketId = $marketIds[$i];
+                $tickerId = str_replace('_', '', $marketId);
+                $marketsByIdWithoutUnderscore[$tickerId] = $marketId;
             }
             $ids = is_array($response) ? array_keys($response) : array();
             for ($i = 0; $i < count($ids); $i++) {
-                $market = $this->safe_value($marketsByIdWithoutUnderscore, $ids[$i]);
+                $marketId = $this->safe_value($marketsByIdWithoutUnderscore, $ids[$i]);
+                $market = $this->safe_market($marketId, null, '_');
                 if ($market !== null) {
                     $symbol = $market['symbol'];
                     $ticker = $this->safe_value($response, $ids[$i]);
@@ -1537,7 +1539,7 @@ class zb extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the zb api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1811,7 +1813,7 @@ class zb extends Exchange {
             /**
              * create a trade order
              * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
+             * @param {string} $type must be 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
@@ -1928,7 +1930,7 @@ class zb extends Exchange {
                 if ($clientOrderId !== null) {
                     $request['clientOrderId'] = $clientOrderId;
                 }
-                // using extend as $name causes issues in python
+                // using extend $name causes issues in python
                 $extendOrderAlgos = $this->safe_value($params, 'extend', null); // OPTIONAL array("orderAlgos":[array("bizType":1,"priceType":1,"triggerPrice":"70000"),array("bizType":2,"priceType":1,"triggerPrice":"40000")])
                 if ($extendOrderAlgos !== null) {
                     $request['extend'] = $extendOrderAlgos;
@@ -2904,18 +2906,17 @@ class zb extends Exchange {
         if ($orderId === null) {
             $orderId = $this->safe_value($order, 'id');
         }
-        $side = $this->safe_integer_2($order, 'type', 'side');
-        if ($side === null) {
-            $side = null;
-        } else {
+        $rawSide = $this->safe_integer_2($order, 'type', 'side');
+        $side = null;
+        if ($side !== null) {
             if ($market['spot']) {
-                $side = ($side === 1) ? 'buy' : 'sell';
+                $side = ($rawSide === 1) ? 'buy' : 'sell';
             } elseif ($market['swap']) {
-                if ($side === 0) {
+                if ($rawSide === 0) {
                     $side = null;
-                } elseif (($side === 1) || ($side === 4) || ($side === 5)) {
+                } elseif (($rawSide === 1) || ($rawSide === 4) || ($rawSide === 5)) {
                     $side = 'buy';
-                } elseif (($side === 2) || ($side === 3) || ($side === 6)) {
+                } elseif (($rawSide === 2) || ($rawSide === 3) || ($rawSide === 6)) {
                     $side = 'sell';
                 }
             }
@@ -2965,6 +2966,7 @@ class zb extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $this->safe_number($order, 'triggerPrice'),
+            'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'average' => $this->safe_string($order, 'avgPrice'),
             'cost' => $cost,
             'amount' => $amount,

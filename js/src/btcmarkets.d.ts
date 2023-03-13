@@ -1,0 +1,96 @@
+import { Exchange } from './base/Exchange.js';
+export default class btcmarkets extends Exchange {
+    describe(): any;
+    fetchTransactionsWithMethod(method: any, code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchTransactions(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    parseTransactionStatus(status: any): string;
+    parseTransactionType(type: any): string;
+    parseTransaction(transaction: any, currency?: any): {
+        id: string;
+        txid: string;
+        timestamp: number;
+        datetime: string;
+        network: any;
+        address: string;
+        addressTo: string;
+        addressFrom: any;
+        tag: any;
+        tagTo: any;
+        tagFrom: any;
+        type: string;
+        amount: number;
+        currency: any;
+        status: string;
+        updated: number;
+        comment: any;
+        fee: {
+            currency: any;
+            cost: number;
+            rate: any;
+        };
+        info: any;
+    };
+    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchTime(params?: {}): Promise<number>;
+    parseBalance(response: any): object;
+    fetchBalance(params?: {}): Promise<object>;
+    parseOHLCV(ohlcv: any, market?: any): number[];
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
+    fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchTicker2(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
+    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
+    fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    cancelOrders(ids: any, symbol?: any, params?: {}): Promise<any>;
+    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
+    calculateFee(symbol: any, type: any, side: any, amount: any, price: any, takerOrMaker?: string, params?: {}): {
+        type: string;
+        currency: any;
+        rate: any;
+        cost: number;
+    };
+    parseOrderStatus(status: any): string;
+    parseOrder(order: any, market?: any): any;
+    fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
+    fetchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any[]>;
+    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+        id: string;
+        txid: string;
+        timestamp: number;
+        datetime: string;
+        network: any;
+        address: string;
+        addressTo: string;
+        addressFrom: any;
+        tag: any;
+        tagTo: any;
+        tagFrom: any;
+        type: string;
+        amount: number;
+        currency: any;
+        status: string;
+        updated: number;
+        comment: any;
+        fee: {
+            currency: any;
+            cost: number;
+            rate: any;
+        };
+        info: any;
+    }>;
+    nonce(): number;
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+        url: string;
+        method: string;
+        body: any;
+        headers: any;
+    };
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+}

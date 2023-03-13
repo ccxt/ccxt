@@ -10,8 +10,6 @@ use React\Async;
 
 class upbit extends \ccxt\async\upbit {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(

@@ -129,6 +129,7 @@ class bigone extends Exchange {
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
                 ),
+                'exchangeMillisecondsCorrection' => -100,
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -366,7 +367,7 @@ class bigone extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $request = array();
@@ -431,7 +432,7 @@ class bigone extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($data, 'timestamp');
-        return intval($timestamp / 1000000);
+        return $this->parse_to_int($timestamp / 1000000);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -677,7 +678,7 @@ class bigone extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -686,11 +687,11 @@ class bigone extends Exchange {
         }
         $request = array(
             'asset_pair_name' => $market['id'],
-            'period' => $this->timeframes[$timeframe],
+            'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => $limit,
         );
         if ($since !== null) {
-            // $start = intval($since / 1000);
+            // $start = $this->parse_to_int($since / 1000);
             $duration = $this->parse_timeframe($timeframe);
             $end = $this->sum($since, $limit * $duration * 1000);
             $request['time'] = $this->iso8601($end);
@@ -811,6 +812,7 @@ class bigone extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'average' => $average,
@@ -1101,13 +1103,15 @@ class bigone extends Exchange {
     }
 
     public function nonce() {
-        return $this->microseconds() * 1000;
+        $exchangeTimeCorrection = $this->safe_integer($this->options, 'exchangeMillisecondsCorrection', 0) * 1000000;
+        return $this->microseconds() * 1000 . $exchangeTimeCorrection;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
+        $headers = array();
         if ($api === 'public') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
@@ -1122,9 +1126,7 @@ class bigone extends Exchange {
                 // 'recv_window' => '30', // default 30
             );
             $jwt = $this->jwt($request, $this->encode($this->secret));
-            $headers = array(
-                'Authorization' => 'Bearer ' . $jwt,
-            );
+            $headers['Authorization'] = 'Bearer ' . $jwt;
             if ($method === 'GET') {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
@@ -1134,6 +1136,7 @@ class bigone extends Exchange {
                 $body = $this->json($query);
             }
         }
+        $headers['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
@@ -1151,7 +1154,7 @@ class bigone extends Exchange {
         );
         $response = $this->privateGetAssetsAssetSymbolAddress (array_merge($request, $params));
         //
-        // the actual $response format is not the same as the documented one
+        // the actual $response format is not the same documented one
         // the $data key contains an array in the actual $response
         //
         //     {

@@ -290,6 +290,7 @@ class mexc extends Exchange {
                 'cancelOrder' => array(
                     'method' => 'spotPrivateDeleteOrderCancel', // contractPrivatePostOrderCancel contractPrivatePostPlanorderCancel
                 ),
+                'broker' => 'CCXT',
             ),
             'commonCurrencies' => array(
                 'BEYONDPROTOCOL' => 'BEYOND',
@@ -303,6 +304,7 @@ class mexc extends Exchange {
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
+                'GAS' => 'GASDAO',
                 'GMT' => 'GMT Token',
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
@@ -783,13 +785,19 @@ class mexc extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the mexc api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
-            list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+            $symbols = $this->market_symbols($symbols);
+            $first = $this->safe_string($symbols, 0);
+            $market = null;
+            if ($first !== null) {
+                $market = $this->market($first);
+            }
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $method = $this->get_supported_mapping($marketType, array(
                 'spot' => 'spotPublicGetMarketTicker',
                 'swap' => 'contractPublicGetTicker',
@@ -1266,7 +1274,7 @@ class mexc extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the mexc api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1284,7 +1292,7 @@ class mexc extends Exchange {
             if ($market['spot']) {
                 $method = 'spotPublicGetMarketKline';
                 if ($since !== null) {
-                    $request['start_time'] = intval($since / 1000);
+                    $request['start_time'] = $this->parse_to_int($since / 1000);
                 }
                 if ($limit !== null) {
                     $request['limit'] = $limit; // default 100
@@ -1292,7 +1300,7 @@ class mexc extends Exchange {
             } elseif ($market['swap']) {
                 $method = 'contractPublicGetKlineSymbol';
                 if ($since !== null) {
-                    $request['start'] = intval($since / 1000);
+                    $request['start'] = $this->parse_to_int($since / 1000);
                 }
                 // $request['end'] = $this->seconds();
             }
@@ -2372,6 +2380,7 @@ class mexc extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $this->safe_string($order, 'triggerPrice'),
+            'triggerPrice' => $this->safe_string($order, 'triggerPrice'),
             'average' => $this->safe_string($order, 'dealAvgPrice'),
             'amount' => $amount,
             'cost' => $cost,
@@ -3152,6 +3161,7 @@ class mexc extends Exchange {
                 'ApiKey' => $this->apiKey,
                 'Request-Time' => $timestamp,
                 'Content-Type' => 'application/json',
+                'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
             );
             if ($method === 'POST') {
                 $auth = $this->json($params);

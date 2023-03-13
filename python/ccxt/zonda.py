@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadSymbol
@@ -17,6 +16,7 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -448,6 +448,7 @@ class zonda(Exchange):
             'side': self.safe_string_lower(order, 'offerType'),
             'price': self.safe_string(order, 'rate'),
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'filled': None,
@@ -641,7 +642,7 @@ class zonda(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         response = self.v1_01PublicGetTradingStats(params)
@@ -965,7 +966,7 @@ class zonda(Exchange):
             direction = 'out'
             amount = Precise.string_neg(amount)
         # there are 2 undocumented api calls: (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
-        # that can be used to enrich the transfers with txid, address etc(you need to use info.detailId as a parameter)
+        # that can be used to enrich the transfers with txid, address etc(you need to use info.detailId parameter)
         fundsBefore = self.safe_value(item, 'fundsBefore', {})
         fundsAfter = self.safe_value(item, 'fundsAfter', {})
         return {
@@ -977,7 +978,7 @@ class zonda(Exchange):
             'referenceAccount': None,
             'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
             'currency': self.safe_currency_code(currencyId),
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'before': self.safe_number(fundsBefore, 'total'),
             'after': self.safe_number(fundsAfter, 'total'),
             'status': 'ok',
@@ -1037,14 +1038,14 @@ class zonda(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
         request = {
             'symbol': tradingSymbol,
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': 1574709092000,  # unix timestamp in milliseconds, required
             # 'to': 1574709092000,  # unix timestamp in milliseconds, required
         }

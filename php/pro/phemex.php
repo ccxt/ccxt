@@ -11,8 +11,6 @@ use React\Async;
 
 class phemex extends \ccxt\async\phemex {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -212,37 +210,38 @@ class phemex extends \ccxt\async\phemex {
 
     public function handle_balance($type, $client, $message) {
         // spot
-        //  array(
-        //     array(
-        //         balanceEv => 0,
-        //         $currency => 'BTC',
-        //         lastUpdateTimeNs => '1650442638722099092',
-        //         $lockedTradingBalanceEv => 0,
-        //         $lockedWithdrawEv => 0,
-        //         userID => 2647224
-        //       ),
-        //       {
-        //         balanceEv => 1154232337,
-        //         $currency => 'USDT',
-        //         lastUpdateTimeNs => '1650442617610017597',
-        //         $lockedTradingBalanceEv => 0,
-        //         $lockedWithdrawEv => 0,
-        //         userID => 2647224
-        //       }
+        //    array(
+        //       array(
+        //           balanceEv => 0,
+        //           $currency => 'BTC',
+        //           lastUpdateTimeNs => '1650442638722099092',
+        //           $lockedTradingBalanceEv => 0,
+        //           $lockedWithdrawEv => 0,
+        //           userID => 2647224
+        //         ),
+        //         {
+        //           balanceEv => 1154232337,
+        //           $currency => 'USDT',
+        //           lastUpdateTimeNs => '1650442617610017597',
+        //           $lockedTradingBalanceEv => 0,
+        //           $lockedWithdrawEv => 0,
+        //           userID => 2647224
+        //         }
         //    )
         //
         // swap
-        //  array(
-        //       {
-        //         accountBalanceEv => 0,
-        //         accountID => 26472240001,
-        //         bonusBalanceEv => 0,
-        //         $currency => 'BTC',
-        //         totalUsedBalanceEv => 0,
-        //         userID => 2647224
-        //       }
-        //  )
+        //    array(
+        //         {
+        //           accountBalanceEv => 0,
+        //           accountID => 26472240001,
+        //           bonusBalanceEv => 0,
+        //           $currency => 'BTC',
+        //           totalUsedBalanceEv => 0,
+        //           userID => 2647224
+        //         }
+        //    )
         //
+        $this->balance['info'] = $message;
         for ($i = 0; $i < count($message); $i++) {
             $balance = $message[$i];
             $currencyId = $this->safe_string($balance, 'currency');
@@ -436,7 +435,7 @@ class phemex extends \ccxt\async\phemex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -507,7 +506,7 @@ class phemex extends \ccxt\async\phemex {
         $timestamp = $this->safe_integer_product($message, 'timestamp', 0.000001);
         if ($type === 'snapshot') {
             $book = $this->safe_value($message, 'book', array());
-            $snapshot = $this->parse_order_book($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
+            $snapshot = $this->customParseOrderBook ($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
             $snapshot['nonce'] = $nonce;
             $orderbook = $this->order_book($snapshot, $depth);
             $this->orderbooks[$symbol] = $orderbook;
@@ -604,17 +603,14 @@ class phemex extends \ccxt\async\phemex {
         for ($i = 0; $i < count($message); $i++) {
             $rawTrade = $message[$i];
             $marketId = $this->safe_string($rawTrade, 'symbol');
-            // skip delisted  markets
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $parsed = $this->parse_trade($rawTrade);
-                $cachedTrades->append ($parsed);
-                $symbol = $parsed['symbol'];
-                $market = $this->market($symbol);
-                if ($type === null) {
-                    $type = $market['type'];
-                }
-                $marketIds[$symbol] = true;
+            $market = $this->safe_market($marketId);
+            $parsed = $this->parse_trade($rawTrade);
+            $cachedTrades->append ($parsed);
+            $symbol = $parsed['symbol'];
+            if ($type === null) {
+                $type = $market['type'];
             }
+            $marketIds[$symbol] = true;
         }
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -760,31 +756,22 @@ class phemex extends \ccxt\async\phemex {
             if ($ordersLength === 0) {
                 return;
             }
-            $fills = $this->safe_value($message, 'fills', array());
-            $trades = $fills;
+            $trades = $this->safe_value($message, 'fills', array());
             for ($i = 0; $i < count($orders); $i++) {
                 $rawOrder = $orders[$i];
-                $marketId = $this->safe_string($rawOrder, 'symbol');
-                // skip delisted spot markets
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $parsedOrder = $this->parse_order($rawOrder);
-                    $parsedOrders[] = $parsedOrder;
-                }
+                $parsedOrder = $this->parse_order($rawOrder);
+                $parsedOrders[] = $parsedOrder;
             }
         } else {
             for ($i = 0; $i < count($message); $i++) {
                 $update = $message[$i];
-                $marketId = $this->safe_string($update, 'symbol');
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    // skip delisted swap markets
-                    $action = $this->safe_string($update, 'action');
-                    if (($action !== null) && ($action !== 'Cancel')) {
-                        // order . trade info together
-                        $trades[] = $update;
-                    }
-                    $parsedOrder = $this->parse_ws_swap_order($update);
-                    $parsedOrders[] = $parsedOrder;
+                $action = $this->safe_string($update, 'action');
+                if (($action !== null) && ($action !== 'Cancel')) {
+                    // order . trade info together
+                    $trades[] = $update;
                 }
+                $parsedOrder = $this->parse_ws_swap_order($update);
+                $parsedOrders[] = $parsedOrder;
             }
         }
         $this->handle_my_trades($client, $trades);
@@ -912,6 +899,7 @@ class phemex extends \ccxt\async\phemex {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -1022,7 +1010,7 @@ class phemex extends \ccxt\async\phemex {
         $id = $this->safe_integer($message, 'id');
         if ($id !== null) {
             // not every $method stores its $subscription
-            // as an object so we can't do indeById here
+            // object so we can't do indeById here
             $subs = $client->subscriptions;
             $values = is_array($subs) ? array_values($subs) : array();
             for ($i = 0; $i < count($values); $i++) {

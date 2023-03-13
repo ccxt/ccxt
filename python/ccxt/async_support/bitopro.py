@@ -7,11 +7,11 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -185,6 +185,8 @@ class bitopro(Exchange):
                     'ETH': 'ERC20',
                     'TRX': 'TRX',
                     'TRC20': 'TRX',
+                    'BEP20': 'BSC',
+                    'BSC': 'BSC',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -430,7 +432,7 @@ class bitopro(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         response = await self.publicGetTickers()
@@ -703,11 +705,11 @@ class bitopro(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
-        resolution = self.timeframes[timeframe]
+        resolution = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
             'pair': market['id'],
             'resolution': resolution,
@@ -837,6 +839,7 @@ class bitopro(Exchange):
             '2': 'closed',
             '3': 'closed',
             '4': 'canceled',
+            '6': 'canceled',
         }
         return self.safe_string(statuses, status, None)
 
@@ -891,6 +894,9 @@ class bitopro(Exchange):
         filled = self.safe_string(order, 'executedAmount')
         remaining = self.safe_string(order, 'remainingAmount')
         timeInForce = self.safe_string(order, 'timeInForce')
+        postOnly = None
+        if timeInForce == 'POST_ONLY':
+            postOnly = True
         fee = None
         feeAmount = self.safe_string(order, 'fee')
         feeSymbol = self.safe_currency_code(self.safe_string(order, 'feeSymbol'))
@@ -908,10 +914,11 @@ class bitopro(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': None,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': average,
@@ -959,6 +966,9 @@ class bitopro(Exchange):
                 raise InvalidOrder(self.id + ' createOrder() requires a condition parameter for ' + orderType + ' orders')
             else:
                 request['condition'] = condition
+        postOnly = self.is_post_only(orderType == 'MARKET', None, params)
+        if postOnly:
+            request['timeInForce'] = 'POST_ONLY'
         response = await self.privatePostOrdersPair(self.extend(request, params), params)
         #
         #     {
@@ -1232,76 +1242,79 @@ class bitopro(Exchange):
     def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits
-        #             {
-        #                 "serial":"20220214X766799",
-        #                 "timestamp":"1644833015053",
-        #                 "address":"bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
-        #                 "amount":"0.20000000",
-        #                 "fee":"0.00000000",
-        #                 "total":"0.20000000",
-        #                 "status":"COMPLETE",
-        #                 "txid":"A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
-        #                 "message":"778553959",
-        #                 "protocol":"MAIN",
-        #                 "id":"2905906537"
-        #             }
+        #
+        #    {
+        #        "serial": "20220214X766799",
+        #        "timestamp": "1644833015053",
+        #        "address": "bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
+        #        "amount": "0.20000000",
+        #        "fee": "0.00000000",
+        #        "total": "0.20000000",
+        #        "status": "COMPLETE",
+        #        "txid": "A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
+        #        "message": "778553959",
+        #        "protocol": "MAIN",
+        #        "id": "2905906537"
+        #    }
         #
         # fetchWithdrawals or fetchWithdraw
-        #             {
-        #                 "serial":"20220215BW14069838",
-        #                 "timestamp":"1644907716044",
-        #                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        #                 "amount":"8.00000000",
-        #                 "fee":"2.00000000",
-        #                 "total":"10.00000000",
-        #                 "status":"COMPLETE",
-        #                 "txid":"50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
-        #                 "protocol":"TRX",
-        #                 "id":"9925310345"
-        #             }
+        #
+        #    {
+        #        "serial": "20220215BW14069838",
+        #        "timestamp": "1644907716044",
+        #        "address": "TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        #        "amount": "8.00000000",
+        #        "fee": "2.00000000",
+        #        "total": "10.00000000",
+        #        "status": "COMPLETE",
+        #        "txid": "50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
+        #        "protocol": "TRX",
+        #        "id": "9925310345"
+        #    }
         #
         # withdraw
-        #             {
-        #                 "serial":"20220215BW14069838",
-        #                 "currency":"USDT",
-        #                 "protocol":"TRX",
-        #                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        #                 "amount":"8",
-        #                 "fee":"2",
-        #                 "total":"10"
-        #             }
+        #
+        #    {
+        #        "serial": "20220215BW14069838",
+        #        "currency": "USDT",
+        #        "protocol": "TRX",
+        #        "address": "TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        #        "amount": "8",
+        #        "fee": "2",
+        #        "total": "10"
+        #    }
         #
         currencyId = self.safe_string(transaction, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        id = self.safe_string(transaction, 'serial')
-        txId = self.safe_string(transaction, 'txid')
         timestamp = self.safe_integer(transaction, 'timestamp')
-        amount = self.safe_number(transaction, 'total')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'message')
         status = self.safe_string(transaction, 'status')
-        fee = self.safe_number(transaction, 'fee')
+        networkId = self.safe_string(transaction, 'protocol')
+        if networkId == 'MAIN':
+            networkId = code
         return {
             'info': transaction,
-            'id': id,
-            'txid': txId,
+            'id': self.safe_string(transaction, 'serial'),
+            'txid': self.safe_string(transaction, 'txid'),
+            'type': None,
+            'currency': code,
+            'network': self.network_id_to_code(networkId),
+            'amount': self.safe_number(transaction, 'total'),
+            'status': self.parse_transaction_status(status),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
-            'addressFrom': None,
             'address': address,
+            'addressFrom': None,
             'addressTo': address,
-            'tagFrom': None,
             'tag': tag,
+            'tagFrom': None,
             'tagTo': tag,
-            'type': None,
-            'amount': amount,
-            'currency': code,
-            'status': self.parse_transaction_status(status),
             'updated': None,
+            'comment': None,
             'fee': {
                 'currency': code,
-                'cost': fee,
+                'cost': self.safe_number(transaction, 'fee'),
                 'rate': None,
             },
         }
@@ -1501,8 +1514,8 @@ class bitopro(Exchange):
                 rawData = {
                     'nonce': nonce,
                 }
-                rawData = self.json(rawData)
-                payload = self.string_to_base64(rawData)
+                data = self.json(rawData)
+                payload = self.string_to_base64(data)
                 signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
                 headers['X-BITOPRO-APIKEY'] = self.apiKey
                 headers['X-BITOPRO-PAYLOAD'] = payload

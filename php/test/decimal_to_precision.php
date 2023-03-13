@@ -29,6 +29,9 @@ function number_to_string ($x) {
     return Exchange::number_to_string ($x);
 }
 
+// @ts-nocheck
+// eslint-disable-next-line
+
 // ----------------------------------------------------------------------------
 // number_to_string
 
@@ -238,7 +241,7 @@ assert (decimal_to_precision ('1.45', ROUND, 0, DECIMAL_PLACES) === '1'); // not
 
 // ----------------------------------------------------------------------------
 // negative precision only implemented so far in python
-// pretty useless for decimal applications as anything |$x| < 5 === 0
+// pretty useless for decimal applications |$x| < 5 === 0
 // NO_PADDING and PAD_WITH_ZERO are ignored
 
 assert (decimal_to_precision ('5', ROUND, -1, DECIMAL_PLACES) === '10');

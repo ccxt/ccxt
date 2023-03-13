@@ -387,7 +387,7 @@ class btcturk(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetTicker(params)
@@ -534,7 +534,7 @@ class btcturk(Exchange):
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the btcturk api endpoint
         :param int|None params['until']: timestamp in ms of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -543,9 +543,9 @@ class btcturk(Exchange):
             'resolution': self.safe_value(self.timeframes, timeframe, timeframe),  # allows the user to pass custom timeframes if needed
         }
         until = self.safe_integer(params, 'until', self.milliseconds())
-        request['to'] = int(until / 1000)
+        request['to'] = self.parse_to_int((until / 1000))
         if since is not None:
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
         elif limit is None:  # since will also be None
             limit = 100  # default value
         if limit is not None:
@@ -554,10 +554,10 @@ class btcturk(Exchange):
             seconds = self.parse_timeframe(timeframe)
             limitSeconds = seconds * (limit - 1)
             if since is not None:
-                to = int(since / 1000) + limitSeconds
+                to = self.parse_to_int(since / 1000) + limitSeconds
                 request['to'] = min(request['to'], to)
             else:
-                request['from'] = int(until / 1000) - limitSeconds
+                request['from'] = self.parse_to_int(until / 1000) - limitSeconds
         response = self.graphGetKlinesHistory(self.extend(request, params))
         #
         #    {

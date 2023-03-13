@@ -445,7 +445,7 @@ class bitbank extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bitbank api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         if ($since === null) {
             if ($limit === null) {
@@ -458,7 +458,7 @@ class bitbank extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
-            'candletype' => $this->timeframes[$timeframe],
+            'candletype' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'yyyymmdd' => $this->yyyymmdd($since, ''),
         );
         $response = $this->publicGetPairCandlestickCandletypeYyyymmdd (array_merge($request, $params));
@@ -590,6 +590,7 @@ class bitbank extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'average' => $average,
             'amount' => $amount,
@@ -683,7 +684,7 @@ class bitbank extends Exchange {
             $request['count'] = $limit;
         }
         if ($since !== null) {
-            $request['since'] = intval($since / 1000);
+            $request['since'] = $this->parse_to_int($since / 1000);
         }
         $response = $this->privateGetUserSpotActiveOrders (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
@@ -711,7 +712,7 @@ class bitbank extends Exchange {
             $request['count'] = $limit;
         }
         if ($since !== null) {
-            $request['since'] = intval($since / 1000);
+            $request['since'] = $this->parse_to_int($since / 1000);
         }
         $response = $this->privateGetUserSpotTradeHistory (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
@@ -931,11 +932,11 @@ class bitbank extends Exchange {
                 '70001' => 'A system error occurred. Please contact support',
                 '70002' => 'A system error occurred. Please contact support',
                 '70003' => 'A system error occurred. Please contact support',
-                '70004' => 'We are unable to accept orders as the transaction is currently suspended',
+                '70004' => 'We are unable to accept orders transaction is currently suspended',
                 '70005' => 'Order can not be accepted because purchase order is currently suspended',
                 '70006' => 'We can not accept orders because we are currently unsubscribed ',
                 '70009' => 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
-                '70010' => 'We are temporarily raising the minimum order quantity as the system load is now rising.',
+                '70010' => 'We are temporarily raising the minimum order quantity system load is now rising.',
             );
             $errorClasses = $this->exceptions;
             $code = $this->safe_string($data, 'code');

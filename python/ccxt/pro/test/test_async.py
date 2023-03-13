@@ -20,7 +20,7 @@ from exchange.test_watch_ohlcv import test_watch_ohlcv
 
 
 import ccxt.pro  # noqa: F401
-from ccxt.pro.base.exchange import Exchange  # noqa: F401
+from ccxt.base.exchange import Exchange  # noqa: F401
 # from ccxtpro.base.future import Future  # noqa: F401
 
 
@@ -135,8 +135,6 @@ def get_test_symbol(exchange, symbols):
 
 
 async def test_exchange(exchange):
-    print(exchange.id)
-    # delay = 2
 
     codes = [
         'BTC',
@@ -241,7 +239,10 @@ async def test():
         sys.stdout.write(exchange.id + ' [Skipped alias]\n')
         sys.stdout.flush()
     else:
-        print(exchange.id, argv.verbose)
+
+        # add http proxy if any
+        if hasattr(exchange, 'httpProxy'):
+            exchange.aiohttp_proxy = exchange.httpProxy
         await exchange.load_markets()
         exchange.verbose = argv.verbose
         # exchange.print = print_to_file

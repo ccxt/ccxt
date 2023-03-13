@@ -59,7 +59,6 @@ class kuna extends Exchange {
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setPositionMode' => false,
-                'withdraw' => null,
             ),
             'timeframes' => null,
             'urls' => array(
@@ -467,7 +466,7 @@ class kuna extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the kuna api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -622,7 +621,7 @@ class kuna extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the kuna api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $trades = Async\await($this->fetch_trades($symbol, $since, $limit, $params));
@@ -753,6 +752,7 @@ class kuna extends Exchange {
             'side' => $side,
             'price' => $this->safe_string($order, 'price'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $this->safe_string($order, 'volume'),
             'filled' => $this->safe_string($order, 'executed_volume'),
             'remaining' => $this->safe_string($order, 'remaining_volume'),
@@ -802,7 +802,7 @@ class kuna extends Exchange {
             $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
             // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
             // with order cache . fetchOpenOrders
-            // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
+            // BTC-e, Liqui, Yobit, DSX, Tidex, WEX
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
