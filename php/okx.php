@@ -969,6 +969,7 @@ class okx extends Exchange {
             $promises[] = $this->fetch_markets_by_type($types[$i], $params);
         }
         // why not both ¯\_(ツ)_/¯
+        $promises = $promises;
         for ($i = 0; $i < count($promises); $i++) {
             $result = $this->array_concat($result, $promises[$i]);
         }

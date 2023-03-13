@@ -477,6 +477,7 @@ class gemini extends Exchange {
             //     }
             //
         }
+        $promises = $promises;
         for ($i = 0; $i < count($promises); $i++) {
             $response = $promises[$i];
             $marketId = $this->safe_string_lower($response, 'symbol');

@@ -1,5 +1,3 @@
-'use nostrict';
-
 import fetch from './ts/src/static_dependencies/node-fetch/index.js'
 
 function style(s, style) {

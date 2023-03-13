@@ -699,6 +699,7 @@ class gate extends Exchange {
             $mainnetOnly = array( $this->fetch_spot_markets($params) );
             $rawPromises = $this->array_concat($rawPromises, $mainnetOnly);
         }
+        $promises = $rawPromises;
         $spotMarkets = $this->safe_value($promises, 0, array());
         $contractMarkets = $this->safe_value($promises, 1, array());
         $optionMarkets = $this->safe_value($promises, 2, array());
