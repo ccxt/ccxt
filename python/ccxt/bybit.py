@@ -1322,9 +1322,9 @@ class bybit(Exchange):
             self.fetch_derivatives_markets({'category': 'linear'}),
             self.fetch_derivatives_markets({'category': 'inverse'}),
         ]
-        spotMarkets = promisesUnresolved[0]
-        linearMarkets = promisesUnresolved[1]
-        inverseMarkets = promisesUnresolved[2]
+        spotMarkets = promises[0]
+        linearMarkets = promises[1]
+        inverseMarkets = promises[2]
         markets = spotMarkets
         markets = self.array_concat(markets, linearMarkets)
         return self.array_concat(markets, inverseMarkets)
