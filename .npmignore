@@ -1,5 +1,5 @@
 ccxt.egg-info/
-build/**/*
+build/
 examples/
 node_modules/
 python/
