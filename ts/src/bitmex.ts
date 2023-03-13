@@ -955,9 +955,9 @@ export default class bitmex extends Exchange {
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': this.safeNumber (amount),
-            'before': this.safeNumber (before),
-            'after': this.safeNumber (after),
+            'amount': this.parseNumber (amount),
+            'before': this.parseNumber (before),
+            'after': this.parseNumber (after),
             'status': status,
             'fee': fee,
         };
