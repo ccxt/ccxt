@@ -11,10 +11,10 @@ import { binaryToBase58, byteArrayToWordArray, urlencodeBase64, stringToBase64 }
 // import errors from './../errors.js'
 import { ExchangeError } from '../errors.js';
 import sigUtil from 'eth-sig-util';
+import crypto from 'crypto';
 
 const EC = elliptic.ec;
 const EDDSA = elliptic.eddsa;
-const crypto = require('crypto');
 
 /*  ------------------------------------------------------------------------ */
 
