@@ -424,7 +424,7 @@ class Transpiler {
 
     getPython2Regexes () {
         return [
-            [ /.+asyncio\.gather.+\n/g, '' ], // remove line entirely
+            [ /await\s+asyncio\.gather\(\*(.+)\)/g, '$1' ], // remove line entirely
             [ /(\s)await(\s)/g, '$1' ]
         ]
     }
@@ -435,8 +435,7 @@ class Transpiler {
             [ /\bAsync\\await\((.+)\);/g, '$1;' ],
             // hence the following regex is added with a dotAll modifier 's'
             // and a non greedy match for the calls not picked up by the previous regex
-            [ /\bAsync\\await\((.+?)\);/gs, '$1;' ],
-            [ /.+Promise\\all.+\n/g, '' ], // remove line entirely
+            [ /\bAsync\\await\(Promise\\all\((.+)\)/g, '$1' ], // remove line entirely
             [ /\byield(?: from)?\s+/g, '' ], // delete yield from
         ]
     }
