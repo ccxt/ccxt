@@ -53,7 +53,7 @@ class wazirx extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
-                'fetchOrder' => true,
+                'fetchOrder' => false,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPositionMode' => false,
