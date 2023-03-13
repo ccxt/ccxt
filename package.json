@@ -93,7 +93,7 @@
     "copy-python-license": "node build/copy LICENSE.txt python/LICENSE.txt",
     "copy-python-keys": "node build/copy keys.json python/keys.json",
     "copy-python-readme": "node build/copy README.md python/README.md",
-    "postinstall": "node postinstall.cjs"
+    "postinstall": "node postinstall.js"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
@@ -115,7 +115,7 @@
     "ololog": "1.1.155",
     "replace-in-file": "^6.3.5",
     "rollup": "^2.70.1",
-    "typescript": "4.7.4"
+    "typescript": "^4.7.4"
   },
   "author": {
     "name": "Igor Kroitor",
@@ -213,6 +213,7 @@
   },
   "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
   "dependencies": {
+    "node-fetch": "^3.3.1",
     "ws": "^8.8.1"
   }
 }
