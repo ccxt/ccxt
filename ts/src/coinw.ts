@@ -38,7 +38,7 @@ export default class coinw extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
-                'fetchTrades': true, // https://api.coinw.com/api/v1/public?command=returnTradeHistory&symbol=CWT_CNYT&start=1579238517000&end=1581916917660
+                'fetchTrades': true,
                 'fetchWithdrawals': true, // https://api.coinw.com/api/v1/private?command=returnDepositsWithdrawals
                 'transfer': true, // https://api.coinw.com/api/v1/public?command=spotWealthTransfer
                 'withdraw': true, // https://api.coinw.com/api/v1/private?command=doWithdraw
