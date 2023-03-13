@@ -2,7 +2,7 @@ import { Exchange } from './src/base/Exchange.js';
 import { Precise } from './src/base/Precise.js';
 import * as functions from './src/base/functions.js';
 import * as errors from './src/base/errors.js';
-declare const version = "3.0.0";
+declare const version = "3.0.1";
 import ace from './src/ace.js';
 import alpaca from './src/alpaca.js';
 import ascendex from './src/ascendex.js';
