@@ -32,6 +32,7 @@ export default class coinsph extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'deposit': true,
                 'editOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -102,7 +103,7 @@ export default class coinsph extends Exchange {
                 'setPositionMode': false,
                 'signIn': false,
                 'transfer': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
