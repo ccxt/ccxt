@@ -359,7 +359,7 @@ The result from the newUpdates mode will be one or more updates that have occurr
 
 ```JavaScript
 // JavaScript
-const ccxtpro = require ('ccxt.pro')
+const ccxtpro = require ('ccxt').pro
 console.log ('CCXT version', ccxtpro.version)
 console.log ('Supported exchanges:', ccxtpro.exchanges)
 ```
@@ -388,7 +388,7 @@ Creating a CCXT Pro exchange instance is pretty much identical to creating a CCX
 
 ```JavaScript
 // JavaScript
-const ccxt = require ('ccxt.pro')
+const ccxt = require ('ccxt').pro
 const exchange = new ccxtpro.binance ({ newUpdates: false })
 ```
 
@@ -418,8 +418,7 @@ error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 require_once 'vendor/autoload.php';
 
-$loop = \React\EventLoop\Factory::create(); // the event loop goes here ↓
-$exchange = new \ccxt\pro\kucoin(array('loop' => $loop, 'newUpdates': false ));
+$exchange = new \ccxt\pro\kucoin(array( 'newUpdates' => false ));
 ```
 
 ## Exchange Properties

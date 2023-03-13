@@ -2,5 +2,5 @@
 * [Exchanges By Country](Exchange-Markets-By-Country.md)
 * [Install](Install.md)
 * [Manual](Manual.md)
-* [Ccxt.pro](ccxt.pro.md)
+* [Ccxt.pro](ccxt.pro.manual.md)
 * [FAQ](FAQ.md)
