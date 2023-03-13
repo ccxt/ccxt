@@ -2,6 +2,7 @@
 import { execSync } from 'child_process';
 import log  from 'ololog';
 import ccxt from '../js/ccxt.js';
+import { isMainEntry } from './transpile.js';
 const { values }   = Object
 import assert from 'assert';
 import * as url from 'node:url';
@@ -75,22 +76,6 @@ function cleanupOldTags () {
             execSync (`git tag -d ${tag} && git push origin :refs/tags/${tag}`)
         }
     }
-}
-// ============================================================================
-
-function isMainEntry(metaUrl) {
-    // https://exploringjs.com/nodejs-shell-scripting/ch_nodejs-path.html#detecting-if-module-is-main
-    if (import.meta.url.startsWith('file:')) {
-        const modulePath = url.fileURLToPath(metaUrl);
-        if (process.argv[1] === modulePath) {
-            return true;
-        }
-        // when called without .js extension
-        if (process.argv[1] === modulePath.replace('.js','')) {
-            return true;
-        }
-    }
-    return false;
 }
 
 // ============================================================================
