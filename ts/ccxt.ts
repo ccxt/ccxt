@@ -37,7 +37,7 @@ import * as errors   from './src/base/errors.js'
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.0.3';
+const version = '3.0.4';
 
 (Exchange as any).ccxtVersion = version
 
