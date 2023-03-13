@@ -1,41 +1,23 @@
-import assert from 'assert';
 
-function testLeverageTier (exchange, method, tier) {
+import testSharedMethods from './test.sharedMethods';
+
+function testLeverageTier (exchange, method, entry) {
     const format = {
-        'tier': 1,
-        'minNotional': 0,
-        'maxNotional': 5000,
-        'maintenanceMarginRate': 0.01,
-        'maxLeverage': 25,
+        'tier': exchange.parseNumber ('1'),
+        'minNotional': exchange.parseNumber ('0'),
+        'maxNotional': exchange.parseNumber ('5000'),
+        'maintenanceMarginRate': exchange.parseNumber ('0.01'),
+        'maxLeverage': exchange.parseNumber ('25'),
         'info': {},
     };
-    const keys = Object.keys (format);
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        assert (key in tier, exchange.id + ' ' + method + ' ' + key + ' missing from response');
-    }
-    if (tier['tier'] !== undefined) {
-        assert (typeof tier['tier'] === 'number');
-        assert (tier['tier'] >= 0);
-    }
-    if (tier['minNotional'] !== undefined) {
-        assert (typeof tier['minNotional'] === 'number');
-        assert (tier['minNotional'] >= 0);
-    }
-    if (tier['maxNotional'] !== undefined) {
-        assert (typeof tier['maxNotional'] === 'number');
-        assert (tier['maxNotional'] >= 0);
-    }
-    if (tier['maxLeverage'] !== undefined) {
-        assert (typeof tier['maxLeverage'] === 'number');
-        assert (tier['maxLeverage'] >= 1);
-    }
-    if (tier['maintenanceMarginRate'] !== undefined) {
-        assert (typeof tier['maintenanceMarginRate'] === 'number');
-        assert (tier['maintenanceMarginRate'] <= 1);
-    }
-    console.log (exchange.id, method, tier['tier'], tier['minNotional'], tier['maxNotional'], tier['maintenanceMarginRate'], tier['maxLeverage']);
-    return tier;
+    const emptyNotAllowedFor = [ 'maxLeverage', ' info' ];
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    //
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'tier', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'minNotional', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'maxNotional', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'maxLeverage', '1');
+    testSharedMethods.assertLessOrEqual (exchange, method, entry, 'maintenanceMarginRate', '1');
 }
 
 export default testLeverageTier;

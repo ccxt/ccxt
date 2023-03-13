@@ -1,38 +1,25 @@
-import assert from 'assert';
 
-function testMarginModification (exchange, marginModification) {
+import testSharedMethods from './test.sharedMethods';
+
+function testMarginModification (exchange, method, entry) {
     const format = {
-        'info': {},
+        'info': {}, // or []
         'type': 'add',
-        'amount': 0.1,
-        'total': 0.29934828,
+        'amount': exchange.parseNumber ('0.1'),
+        'total': exchange.parseNumber ('0.29934828'),
         'code': 'USDT',
         'symbol': 'ADA/USDT:USDT',
         'status': 'ok',
     };
-    const keys = Object.keys (format);
-    for (let i = 0; i < keys.length; i++) {
-        assert (keys[i] in marginModification);
-    }
-    assert (typeof marginModification['info'] === 'object');
-    if (marginModification['type'] !== undefined) {
-        assert (marginModification['type'] === 'add' || marginModification['type'] === 'reduce' || marginModification['type'] === 'set');
-    }
-    if (marginModification['amount'] !== undefined) {
-        assert (typeof marginModification['amount'] === 'number');
-    }
-    if (marginModification['total'] !== undefined) {
-        assert (typeof marginModification['total'] === 'number');
-    }
-    if (marginModification['code'] !== undefined) {
-        assert (typeof marginModification['code'] === 'string');
-    }
-    if (marginModification['symbol'] !== undefined) {
-        assert (typeof marginModification['symbol'] === 'string');
-    }
-    if (marginModification['status'] !== undefined) {
-        assert (exchange.inArray (marginModification['status'], [ 'ok', 'pending', 'canceled', 'failed' ]));
-    }
+    const emptyNotAllowedFor = [ 'type', 'status' ];
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['code']);
+    //
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'amount', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'total', '0');
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'type', [ 'add', 'reduce', 'set' ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'canceled', 'failed' ]);
+    testSharedMethods.assertSymbol (exchange, method, entry, 'symbol');
 }
 
 export default testMarginModification;

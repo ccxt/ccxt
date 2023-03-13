@@ -1,17 +1,11 @@
 
-// ----------------------------------------------------------------------------
+import testOrderBook from './test.orderBook';
 
-import testOrderBook from './test.orderbook.js';
-
-// ----------------------------------------------------------------------------
-
-export default async (exchange, symbol) => {
+async function testFetchOrderBook (exchange, symbol) {
     const method = 'fetchOrderBook';
-    if (exchange.has[method]) {
-        const orderbook = await exchange[method] (symbol);
-        testOrderBook (exchange, orderbook, method, symbol);
-        return orderbook;
-    } else {
-        console.log (method + '() is not supported');
-    }
-};
+    const orderbook = await exchange[method] (symbol);
+    console.log (exchange.id, method, 'fetched succesfully, asserting now ...');
+    testOrderBook (exchange, method, orderbook, symbol);
+}
+
+export default testFetchOrderBook;

@@ -4,7 +4,7 @@
 
 import log from 'ololog';
 
-import testOrderBook from '../../../test/Exchange/test.orderbook.js';
+import testOrderBook from '../../../test/Exchange/test.orderBook.js';
 import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */

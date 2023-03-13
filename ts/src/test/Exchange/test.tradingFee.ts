@@ -1,32 +1,18 @@
-// ----------------------------------------------------------------------------
 
-import assert from 'assert';
+import testSharedMethods from './test.sharedMethods';
 
-//  ---------------------------------------------------------------------------
-
-function testTradingFee (symbol, fee) {
-    assert (fee, 'fee is undefined');
-    const sampleFee = {
-        'info': { 'a': 1, 'b': 2, 'c': 3 },
+function testTradingFee (exchange, method, symbol, entry) {
+    const format = {
+        'info': { },
         'symbol': 'ETH/BTC',
-        'maker': 0.002,
-        'taker': 0.003,
+        'maker': exchange.parseNumber ('0.002'),
+        'taker': exchange.parseNumber ('0.003'),
+        'percentage': false,
+        'tierBased': false,
     };
-    const keys = Object.keys (sampleFee);
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        assert (key in fee, 'fee key ' + key + ' not found');
-    }
-    assert (fee['symbol'] === symbol, 'trade symbol is not equal to requested symbol: trade: ' + fee['symbol'] + ' requested: ' + symbol);
-    assert (typeof fee['maker'] === 'number', 'maker fee is not a number');
-    assert (typeof fee['taker'] === 'number', 'taker fee is not a number');
-    if ('percentage' in fee) {
-        assert (typeof fee['percentage'] === 'boolean', 'percentage is not a boolean');
-    }
-    if ('tierBased' in fee) {
-        assert (typeof fee['tierBased'] === 'boolean', 'percentage is not a boolean');
-    }
-    return fee;
+    const emptyNotAllowedFor = [ 'maker', 'taker', 'percentage', 'tierBased' ];
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
 }
 
 export default testTradingFee;

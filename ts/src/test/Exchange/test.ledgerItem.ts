@@ -1,45 +1,36 @@
 
-// ----------------------------------------------------------------------------
+import testSharedMethods from './test.sharedMethods';
 
-import assert from 'assert';
+function testLedgerItem (exchange, method, entry, requestedCode, now) {
+    const format = {
+        'info': {},
+        'id': 'x1234',
+        'currency': 'BTC',
+        'account': 'spot',
+        'referenceId': '',
+        'referenceAccount': '',
+        'status': 'ok',
+        'amount': exchange.parseNumber ('22'),
+        'before': exchange.parseNumber ('111'),
+        'after': exchange.parseNumber ('133'),
+        'fee': {},
+        'direction': 'in',
+        'timestamp': 1638230400000,
+        'datetime': '2021-11-30T00:00:00.000Z',
+        'type': 'deposit',
+    };
+    const emptyNotAllowedFor = [ 'id', 'currency', 'account', 'status', 'direction' ];
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCommonTimestamp (exchange, method, entry, now);
+    testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
+    //
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'direction', [ 'in', 'out' ]);
+    // testSharedMethods.assertAgainstArray (exchange, method, entry, 'type', ['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee',  ]);
+    // testSharedMethods.assertAgainstArray (exchange, method, entry, 'account', ['spot', 'swap', .. ]);
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'amount', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'before', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'after', '0');
+    testSharedMethods.reviseFeeObject (exchange, method, entry['fee']);
+}
 
-// ----------------------------------------------------------------------------
-
-export default (exchange, item, code, now) => {
-    assert (typeof item === 'object');
-    assert ('id' in item);
-    assert (item['id'] === undefined || typeof item['id'] === 'string');
-    assert ('direction' in item);
-    assert (item['direction'] === 'in' || item['direction'] === 'out');
-    assert ('account' in item);
-    assert (item['account'] === undefined || typeof item['account'] === 'string');
-    assert ('referenceId' in item);
-    assert (item['referenceId'] === undefined || typeof item['referenceId'] === 'string');
-    assert ('referenceAccount' in item);
-    assert (item['referenceAccount'] === undefined || typeof item['referenceAccount'] === 'string');
-    assert ('type' in item);
-    // expect (item.type).to.be.oneOf (['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee', /* TODO: add more types here */ ])
-    assert ('currency' in item);
-    assert ((item['currency'] === undefined) || (item['currency'] in exchange.currencies));
-    assert ('amount' in item);
-    assert ((item['amount'] === undefined) || (typeof item['amount'] === 'number'));
-    assert ('before' in item);
-    assert ((item['before'] === undefined) || (typeof item['before'] === 'number'));
-    assert ('after' in item);
-    assert ((item['after'] === undefined) || (typeof item['after'] === 'number'));
-    assert ('timestamp' in item);
-    assert ((item['timestamp'] === undefined) || (typeof item['timestamp'] === 'number'));
-    assert (item['timestamp'] >= 1230940800000);
-    assert (item['timestamp'] <= now);
-    assert ('datetime' in item);
-    assert (item['datetime'] === exchange.iso8601 (item['timestamp']));
-    assert ('fee' in item);
-    if (item['fee'] !== undefined) {
-        assert (typeof item['fee'] === 'object');
-        assert ('cost' in item['fee']);
-        assert ((item['fee']['cost'] === undefined) || (typeof item['fee']['cost'] === 'number'));
-        assert ('currency' in item['fee']);
-    }
-    assert ('info' in item);
-    assert ((item['info'] === undefined) || (typeof item['info'] === 'object'));
-};
+export default testLedgerItem;

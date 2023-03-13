@@ -1,57 +1,58 @@
 
-// ----------------------------------------------------------------------------
-
+import testSharedMethods from './test.sharedMethods';
 import assert from 'assert';
+import Precise from '../../base/Precise';
 
-// ----------------------------------------------------------------------------
-
-export default (exchange, orderbook, method, symbol) => {
+function testOrderBook (exchange, method, entry, symbol) {
     const format = {
         // 'symbol': 'ETH/BTC', // reserved
-        'bids': [],
-        'asks': [],
-        'timestamp': 1234567890,
+        'bids': [
+            [ exchange.parseNumber ('1.23'), exchange.parseNumber ('0.123')],
+            [ exchange.parseNumber ('1.22'), exchange.parseNumber ('0.543')],
+        ],
+        'asks': [
+            [ exchange.parseNumber ('1.24'), exchange.parseNumber ('0.453')],
+            [ exchange.parseNumber ('1.25'), exchange.parseNumber ('0.157')],
+        ],
+        'timestamp': 1504224000000,
         'datetime': '2017-09-01T00:00:00',
         'nonce': 134234234,
         // 'info': {},
     };
-    const keys = Object.keys (format);
-    for (let i = 0; i < keys.length; i++) {
-        assert (keys[i] in orderbook);
-    }
-    const bids = orderbook['bids'];
-    const asks = orderbook['asks'];
-    for (let i = 0; i < bids.length; i++) {
-        if (bids.length > (i + 1)) {
-            assert (bids[i][0] >= bids[i + 1][0]);
+    const emptyNotAllowedFor = [ 'bids', 'asks' ];
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCommonTimestamp (exchange, method, entry);
+    testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
+    const logText = testSharedMethods.logTemplate (exchange, method, entry);
+    //
+    const bids = entry['bids'];
+    const bidsLength = bids.length;
+    for (let i = 0; i < bidsLength; i++) {
+        const currentBidString = exchange.safeString (bids[i], 0);
+        const nextI = i + 1;
+        if (bidsLength > nextI) {
+            const nextBidString = exchange.safeString (bids[nextI], 0);
+            assert (Precise.stringGt (currentBidString, nextBidString), 'current bid should be > than the next one: ' + currentBidString + '>' + nextBidString + logText);
         }
-        assert (typeof bids[i][0] === 'number');
-        assert (typeof bids[i][1] === 'number');
+        testSharedMethods.assertGreater (exchange, method, bids[i], 0, '0');
+        testSharedMethods.assertGreater (exchange, method, bids[i], 1, '0');
     }
-    for (let i = 0; i < asks.length; i++) {
-        if (asks.length > (i + 1)) {
-            assert (asks[i][0] <= asks[i + 1][0]);
+    const asks = entry['asks'];
+    const asksLength = asks.length;
+    for (let i = 0; i < asksLength; i++) {
+        const currentAskString = exchange.safeString (asks[i], 0);
+        const nextI = i + 1;
+        if (asksLength > nextI) {
+            const nextAskString = exchange.safeString (asks[nextI], 0);
+            assert (Precise.stringLt (currentAskString, nextAskString), 'current ask should be < than the next one: ' + currentAskString + '<' + nextAskString + logText);
         }
-        assert (typeof asks[i][0] === 'number');
-        assert (typeof asks[i][1] === 'number');
+        testSharedMethods.assertGreater (exchange, method, asks[i], 0, '0');
+        testSharedMethods.assertGreater (exchange, method, asks[i], 1, '0');
     }
-    if (![
+    if (bidsLength && asksLength) {
+        // check bid-ask spread
+        assert (bids[0][0] < asks[0][0], 'bids[0][0] (' + bids[0][0] + ') should be < than asks[0][0] (' + asks[0][0] + ')' + logText);
+    }
+}
 
-        'bitrue',
-        'bkex',
-        'blockchaincom',
-        'btcalpha',
-        'btcbox',
-        'ftxus',
-        'mexc',
-        'xbtce',
-        'upbit', // an orderbook might have a 0-price ask occasionally
-
-    ].includes (exchange.id)) {
-        if (bids.length && asks.length) {
-            const errorMessage = 'bids[0][0]:' + bids[0][0] + 'of' + bids.length + 'asks[0][0]:' + asks[0][0] + 'of' + asks.length;
-            assert (bids[0][0] <= asks[0][0], errorMessage);
-        }
-    }
-    console.log (symbol, method, orderbook['nonce'] || orderbook['datetime'], bids.length, 'bids:', bids[0], asks.length, 'asks:', asks[0]);
-};
+export default testOrderBook;

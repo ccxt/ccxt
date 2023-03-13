@@ -1,24 +1,14 @@
 
-// ----------------------------------------------------------------------------
+import testMarket from './test.market';
 
-import testMarket from './test.market.js';
-
-// ----------------------------------------------------------------------------
-
-export default async (exchange) => {
+async function testLoadMarkets (exchange) {
     const method = 'loadMarkets';
-    const skippedExchanges = [
-        'bitforex',
-    ];
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...');
-        return;
-    }
     const markets = await exchange[method] ();
-    const values = Object.values (markets);
-    for (let i = 0; i < values.length; i++) {
-        const market = values[i];
-        testMarket (exchange, market, method);
+    const marketValues = Object.values (markets);
+    console.log (exchange.id, method, 'fetched', marketValues.length, 'entries, asserting each ...');
+    for (let i = 0; i < marketValues.length; i++) {
+        testMarket (exchange, method, marketValues[i]);
     }
-    return markets;
-};
+}
+
+export default testLoadMarkets;

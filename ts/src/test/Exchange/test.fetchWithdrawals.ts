@@ -1,23 +1,18 @@
 
-// ----------------------------------------------------------------------------
-
 import assert from 'assert';
-import testTransaction from './test.transaction.js';
+import testSharedMethods from './test.sharedMethods';
+import testTransaction from './test.transaction';
 
-// ----------------------------------------------------------------------------
-
-export default async (exchange, code) => {
+async function testFetchWithdrawals (exchange, code) {
     const method = 'fetchWithdrawals';
-    if (exchange.has[method]) {
-        const transactions = await exchange[method] (code);
-        console.log ('fetched', transactions.length, 'withdrawals, asserting each...');
-        assert (transactions instanceof Array);
-        const now = Date.now ();
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = transactions[i];
-            testTransaction (exchange, transaction, code, now);
-        }
-    } else {
-        console.log (method + '() is not supported');
+    const transactions = await exchange[method] (code);
+    assert (Array.isArray(transactions), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json(transactions));
+    console.log (exchange.id, method, 'fetched', transactions.length, 'entries, asserting each ...');
+    const now = exchange.milliseconds ();
+    for (let i = 0; i < transactions.length; i++) {
+        testTransaction (exchange, method, transactions[i], code, now);
     }
-};
+    testSharedMethods.reviseSortedTimestamps (exchange, method, code, transactions);
+}
+
+export default testFetchWithdrawals;

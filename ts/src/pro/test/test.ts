@@ -86,7 +86,10 @@ const keysGlobal = 'keys.json'
 
 const settingsFile = fs.readFileSync (keysFile);
 let settings = JSON.parse (settingsFile as any);
-settings = settings[exchangeId];
+settings = exchange.safeValue (settings, exchangeId, {});
+const skipSettingsFile = fs.readFileSync (__dirname + '/../../../' + 'skip-tests.json');
+let skipSettings = JSON.parse (skipSettingsFile as any);
+skipSettings = exchange.safeValue (skipSettingsFile, exchangeId, {});
 
 if (settings) {
     for (const key in settings) {
@@ -98,7 +101,7 @@ if (settings) {
 
 Object.assign (exchange, settings);
 
-if (settings && (settings.skip || settings.skipWs)) {
+if (skipSettings && (skipSettings.skip || skipSettings.skipWs)) {
     log.error.bright ('[Skipped]', { exchangeId, symbol });
     process.exit (0);
 }

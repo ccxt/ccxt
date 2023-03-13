@@ -1,27 +1,11 @@
 
-// ----------------------------------------------------------------------------
+import testTicker from "./test.ticker";
 
-import testTicker from './test.ticker.js';
-
-// ----------------------------------------------------------------------------
-
-export default async (exchange, symbol) => {
+async function testFetchTicker (exchange, symbol) {
     const method = 'fetchTicker';
-    const skippedExchanges = [
-        'digifinex',
-        'currencycom',
-    ];
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...');
-        return;
-    }
-    if (exchange.has[method]) {
-        const ticker = await exchange[method] (symbol);
-        testTicker (exchange, ticker, method, symbol);
-        console.log (symbol, method, ticker['datetime'], 'bid:', ticker['bid'], 'ask:', ticker['ask']);
-        return ticker;
-    } else {
-        console.log (symbol, method + '() is not supported');
-    }
-};
+    const ticker = await exchange[method] (symbol);
+    console.log (exchange.id, method, 'fetched succesfully, asserting now ...');
+    testTicker (exchange, method, ticker, symbol);
+}
 
+export default testFetchTicker;

@@ -1,17 +1,13 @@
-import testTradingFee from './test.tradingFee.js';
 
-export default async (exchange, symbol) => {
+import assert from 'assert';
+import testTradingFee from './test.tradingFee';
+
+async function testFetchTradingFee (exchange, symbol) {
     const method = 'fetchTradingFee';
-    const skippedExchanges = [];
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...');
-        return;
-    }
-    if (exchange.has[method]) {
-        const fee = await exchange[method] (symbol);
-        testTradingFee (symbol, fee);
-        return fee;
-    } else {
-        console.log (method + '() is not supported');
-    }
-};
+    const fee = await exchange[method] (symbol);
+    assert (typeof fee === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (fee));
+    console.log (exchange.id, method, 'fetched succesfully, asserting now ...');
+    testTradingFee (exchange, method, symbol, fee);
+}
+
+export default testFetchTradingFee;

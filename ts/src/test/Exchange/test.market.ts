@@ -1,126 +1,116 @@
 import assert from 'assert';
+import testSharedMethods from './test.sharedMethods';
 
-function testMarket (exchange, market, method) {
+function testMarket (exchange, method, market) {
     const format = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
         'base': 'BTC', // unified uppercase string, base currency, 3 or more letters
         'quote': 'USD', // unified uppercase string, quote currency, 3 or more letters
-        'taker': 0.0011, // taker fee, for example, 0.0011 = 0.11%
-        'maker': 0.0009, // maker fee, for example, 0.0009 = 0.09%
+        'taker': exchange.parseNumber ('0.0011'), // taker fee, for example, 0.0011 = 0.11%
+        'maker': exchange.parseNumber ('0.0009'), // maker fee, for example, 0.0009 = 0.09%
         'baseId': 'btc', // exchange-specific base currency id
         'quoteId': 'usd', // exchange-specific quote currency id
         'active': true, // boolean, market status
         'type': 'spot',
-        'linear': undefined,
-        'inverse': undefined,
+        'linear': false,
+        'inverse': false,
         'spot': true,
         'swap': false,
         'future': false,
         'option': false,
         'margin': false,
         'contract': false,
-        'contractSize': 0.001,
+        'contractSize': exchange.parseNumber ('0.001'),
         'expiry': 1656057600000,
         'expiryDatetime': '2022-06-24T08:00:00.000Z',
         'optionType': 'put',
-        'strike': 56000,
-        'settle': undefined,
-        'settleId': undefined,
+        'strike': exchange.parseNumber ('56000'),
+        'settle': 'XYZ',
+        'settleId': 'Xyz',
         'precision': {
-            'price': 8, // integer or fraction
-            'amount': 8, // integer or fraction
-            'cost': 8, // integer or fraction
+            // todo : handle precision types after another PR is merged
+            'price': exchange.parseNumber ('8'), // integer or fraction
+            'amount': exchange.parseNumber ('8'), // integer or fraction
+            'cost': exchange.parseNumber ('8'), // integer or fraction
         },
         // value limits when placing orders on this market
         'limits': {
             'amount': {
-                'min': 0.01, // order amount should be > min
-                'max': 1000, // order amount should be < max
+                'min': exchange.parseNumber ('0.01'), // order amount should be > min
+                'max': exchange.parseNumber ('1000'), // order amount should be < max
             },
             'price': {
-                'min': 0.01, // order price should be > min
-                'max': 1000, // order price should be < max
+                'min': exchange.parseNumber ('0.01'), // order price should be > min
+                'max': exchange.parseNumber ('1000'), // order price should be < max
             },
             // order cost = price * amount
             'cost': {
-                'min': 0.01, // order cost should be > min
-                'max': 1000, // order cost should be < max
+                'min': exchange.parseNumber ('0.01'), // order cost should be > min
+                'max': exchange.parseNumber ('1000'), // order cost should be < max
             },
         },
         'info': {}, // the original unparsed market info from the exchange
     };
-    let keys = Object.keys (format);
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        const keyPresent = (key in market);
-        assert (keyPresent, key + ' missing ' + exchange.json (market));
-    }
-    keys = [
-        'id',
-        'symbol',
-        'baseId',
-        'quoteId',
-        'base',
-        'quote',
-        'precision',
-        'limits',
-    ];
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        assert (market[key] !== undefined, key + ' undefined ' + exchange.json (market));
-    }
-    assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'));
-    assert ((market['maker'] === undefined) || (typeof market['maker'] === 'number'));
+    const emptyNotAllowedFor = [ 'id', 'symbol', 'base', 'quote', 'baseId', 'quoteId', 'precision', 'limits', 'type', 'spot', 'swap', 'future', 'contract' ];
+    testSharedMethods.assertStructureKeys (exchange, method, market, format, emptyNotAllowedFor);
+    testSharedMethods.assertSymbol (exchange, method, market, 'symbol');
+    const logText = testSharedMethods.logTemplate (exchange, method, market);
+    //
+    testSharedMethods.assertGreater (exchange, method, market, 'contractSize', '0');
+    testSharedMethods.assertGreater (exchange, method, market, 'expiry', '0');
+    testSharedMethods.assertGreater (exchange, method, market, 'strike', '0');
+    testSharedMethods.assertAgainstArray (exchange, method, market, 'optionType', [ 'put', 'call' ]);
+    testSharedMethods.assertGreater (exchange, method, market, 'taker', '-100');
+    testSharedMethods.assertGreater (exchange, method, market, 'maker', '-100');
     if (market['contract']) {
-        assert (market['linear'] !== market['inverse']);
+        assert (market['linear'] !== market['inverse'], 'market linear and inverse must not be the same' + logText);
     } else {
-        assert ((market['linear'] === undefined) && (market['inverse'] === undefined));
+        assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is true' + logText);
     }
     if (market['option']) {
-        assert (market['strike'] !== undefined);
-        assert (market['optionType'] !== undefined);
+        assert (market['strike'] !== undefined, '"strike" must be defined when "option" is true' + logText);
+        assert (market['optionType'] !== undefined, '"optionType" must be defined when "option" is true' + logText);
     }
-    const validTypes = {
-        'spot': true,
-        'margin': true,
-        'swap': true,
-        'future': true,
-        'option': true,
-    };
-    //
-    // binance has type = 'delivery'
-    // https://github.com/ccxt/ccxt/issues/11121
-    //
-    // assert (type in validTypes);
-    //
-    const types = Object.keys (validTypes);
+    const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option' ];
+    testSharedMethods.assertAgainstArray (exchange, method, market, 'type', validTypes);
+    const types = validTypes;
     for (let i = 0; i < types.length; i++) {
-        const entry = types[i];
-        if (entry in market) {
-            const value = market[entry];
-            assert ((value === undefined) || value || !value);
-        }
+        testSharedMethods.assertAgainstArray (exchange, method, market, types[i], [ true, false, undefined ]);
     }
-    //
-    // todo fix binance
-    //
-    // if (market['future']) {
-    //     assert ((market['swap'] === false) && (market['option'] === false));
-    // } else if (market['swap']) {
-    //     assert ((market['future'] === false) && (market['option'] === false));
-    // } else if (market['option']) {
-    //     assert ((market['future'] === false) && (market['swap'] === false));
-    // }
-    // if (market['linear']) {
-    //     assert (market['inverse'] === false);
-    // } else if (market['inverse']) {
-    //     assert (market['linear'] === false);
-    // }
-    // if (market['future']) {
-    //     assert (market['expiry'] !== undefined);
-    //     assert (market['expiryDatetime'] !== undefined);
-    // }
+    if (market['future']) {
+        assert (!market['swap'] && !market['option'], 'market swap and option must be false when "future" is true' + logText);
+    } else if (market['swap']) {
+        assert (!market['future'] && !market['option'], 'market future and option must be false when "swap" is true' + logText);
+    } else if (market['option']) {
+        assert (!market['future'] && !market['swap'], 'market future and swap must be false when "option" is true' + logText);
+    }
+    if (market['linear']) {
+        assert (!market['inverse'], 'market inverse must be false when "linear" is true' + logText);
+    } else if (market['inverse']) {
+        assert (!market['linear'], 'market linear must be false when "inverse" is true' + logText);
+    }
+    if (market['future']) {
+        assert (market['expiry'] !== undefined, '"expiry" must be defined when "future" is true' + logText);
+        assert (market['expiryDatetime'] !== undefined, '"expiryDatetime" must be defined when "future" is true' + logText);
+    }
+    if (market['expiry'] !== undefined) {
+        assert (market['expiryDatetime'] === exchange.iso8601 (market['expiry']), 'expiryDatetime must be equal to expiry in iso8601 format' + logText);
+    }
+    const targetKeys = [ 'cost', 'amount', 'price' ];
+    // check precisions
+    for (let i = 0; i < targetKeys.length; i++) {
+        const key = targetKeys[i];
+        // todo: should be migrated into assertGreater after TickSize handling is implemented
+        testSharedMethods.assertGreaterOrEqual (exchange, method, market['precision'], key, '0');
+    }
+    // check limits
+    for (let i = 0; i < targetKeys.length; i++) {
+        const key = targetKeys[i];
+        const limitEntry = market['limits'][key];
+        testSharedMethods.assertGreaterOrEqual (exchange, method, limitEntry, 'min', '0');
+        testSharedMethods.assertGreater (exchange, method, limitEntry, 'max', '0');
+    }
 }
 
 export default testMarket;

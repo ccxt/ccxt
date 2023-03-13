@@ -1,39 +1,36 @@
-import assert from 'assert';
 
-//  ---------------------------------------------------------------------------
+import testSharedMethods from './test.sharedMethods';
 
-function testTransaction (exchange, transaction, code, now) {
-    assert (transaction);
-    assert ((transaction['id'] === undefined) || (typeof transaction['id'] === 'string'));
-    assert (typeof transaction['timestamp'] === 'number');
-    assert (transaction['timestamp'] > 1230940800000); // 03 Jan 2009 - first block
-    assert (transaction['timestamp'] < now);
-    assert ('updated' in transaction);
-    assert ('address' in transaction);
-    assert ('tag' in transaction);
-    assert ('txid' in transaction);
-    assert (transaction['datetime'] === exchange.iso8601 (transaction['timestamp']));
-    const statuses = [
-        'ok',
-        'pending',
-        'failed',
-        'rejected',
-        'canceled',
-    ];
-    const transactionStatusIsValid = exchange.inArray (transaction['status'], statuses);
-    assert (transactionStatusIsValid);
-    assert (transaction['currency'] === code);
-    assert (typeof transaction['type'] === 'string');
-    assert (transaction['type'] === 'deposit' || transaction['type'] === 'withdrawal');
-    assert (typeof transaction['amount'] === 'number');
-    assert (transaction['amount'] >= 0);
-    if (transaction['fee']) {
-        assert (typeof transaction['fee']['cost'] === 'number');
-        if (transaction['fee']['cost'] !== 0) {
-            assert (typeof transaction['fee']['currency'] === 'string');
-        }
-    }
-    assert (transaction.info);
+function testTransaction (exchange, method, entry, requestedCode, now) {
+    const format = {
+        'info': {}, // or []
+        'id': '1234',
+        'txid': '0x1345FEG45EAEF7',
+        'timestamp': 1502962946216,
+        'datetime': '2017-08-17 12:42:48.000',
+        'network': 'ETH',
+        'address': '0xEFE3487358AEF352345345',
+        'addressTo': '0xEFE3487358AEF352345123',
+        'addressFrom': '0xEFE3487358AEF352345456',
+        'tag': 'smth',
+        'tagTo': 'smth',
+        'tagFrom': 'smth',
+        'type': 'deposit',
+        'amount': exchange.parseNumber ('1.234'),
+        'currency': 'USDT',
+        'status': 'ok',
+        'updated': 1502962946233,
+        'fee': {},
+    };
+    const emptyNotAllowedFor = [ 'type', 'amount', 'currency' ];
+    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCommonTimestamp (exchange, method, entry, now);
+    testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
+    //
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'failed', 'rejected', 'canceled' ]);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'type', ['deposit', 'withdrawal']);
+    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'amount', '0');
+    testSharedMethods.reviseFeeObject (exchange, method, entry['fee']);
 }
 
 export default testTransaction;
