@@ -42,7 +42,7 @@ export default async (exchange, symbol) => {
 
             for (let i = 0; i < response.length; i++) {
                 const order = response[i]
-                testOrder (exchange, order, symbol, now)
+                testOrder (exchange, method, order, symbol, now)
             }
         } catch (e) {
 

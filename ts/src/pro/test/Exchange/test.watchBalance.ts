@@ -33,7 +33,7 @@ export default async (exchange) => {
 
             log (exchange.iso8601 (now), exchange.id, method, balance)
 
-            testBalance (exchange, balance)
+            testBalance (exchange, method, balance)
 
         } catch (e) {
 

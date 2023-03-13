@@ -61,7 +61,7 @@ export default async (exchange, symbol) => {
             // log.noLocate (asTable (response))
 
             for (let i = 0; i < response.length; i++) {
-                testTrade (exchange, response[i], symbol, now)
+                testTrade (exchange, method, response[i], symbol, now)
             }
         } catch (e) {
 

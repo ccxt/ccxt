@@ -39,7 +39,7 @@ export default async (exchange, symbol) => {
 
             for (let i = 0; i < response.length; i++) {
                 const trade = response[i]
-                testTrade (exchange, trade, symbol, now)
+                testTrade (exchange, method, trade, symbol, now)
                 if (i > 0) {
                     const previousTrade = response[i - 1]
                     if (trade.timestamp && previousTrade.timestamp) {

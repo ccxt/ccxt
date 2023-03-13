@@ -6,7 +6,7 @@ import assert from 'assert';
 import testSharedMethods from './test.sharedMethods';
 import Precise from '../../base/Precise';
 
-function testBalance (exchange, entry, method) {
+function testBalance (exchange, method, entry) {
     const format = {
         'free': {},
         'used': {},

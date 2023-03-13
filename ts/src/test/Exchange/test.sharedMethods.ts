@@ -56,7 +56,7 @@ function areSameTypes (exchange, entry, key, format) {
     return result;
 }
 
-function assertCommonTimestamp (exchange, method, entry, nowToCheck = undefined, keyName = 'timestamp') {
+function assertCommonTimestamp (exchange, method, entry, nowToCheck = undefined, keyName : any = 'timestamp') {
     // define common log text
     const logText = logTemplate (exchange, method, entry);
     const isDateTimeObject = typeof keyName === 'string';

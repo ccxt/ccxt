@@ -55,7 +55,7 @@ export default async (exchange, symbol) => {
             // log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'ohlcvs')
             for (let i = 0; i < response.length; i++) {
                 const current = response[i]
-                testOHLCV (exchange, current, symbol, now)
+                testOHLCV (exchange, method, current, symbol, now)
                 if (i > 0) {
                     const previous = response[i - 1]
                     if (current[0] && previous[0]) {
