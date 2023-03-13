@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -16,6 +15,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -626,7 +626,7 @@ class bitstamp(Exchange):
         #     }
         #
         microtimestamp = self.safe_integer(response, 'microtimestamp')
-        timestamp = int(microtimestamp / 1000)
+        timestamp = self.parse_to_int(microtimestamp / 1000)
         orderbook = self.parse_order_book(response, market['symbol'], timestamp)
         orderbook['nonce'] = microtimestamp
         return orderbook
@@ -942,7 +942,7 @@ class bitstamp(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -956,13 +956,13 @@ class bitstamp(Exchange):
                 request['limit'] = 1000  # we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
             else:
                 limit = 1000
-                start = int(since / 1000)
+                start = self.parse_to_int(since / 1000)
                 request['start'] = start
                 request['end'] = self.sum(start, limit * duration)
                 request['limit'] = limit
         else:
             if since is not None:
-                start = int(since / 1000)
+                start = self.parse_to_int(since / 1000)
                 request['start'] = start
                 request['end'] = self.sum(start, limit * duration)
             request['limit'] = min(limit, 1000)  # min 1, max 1000
@@ -1085,8 +1085,8 @@ class bitstamp(Exchange):
         :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         self.load_markets()
-        response = self.privatePostBalance(params)
-        return self.parse_transaction_fees(response, codes)
+        balance = self.privatePostBalance(params)
+        return self.parse_transaction_fees(balance)
 
     def parse_transaction_fees(self, response, codes=None):
         #

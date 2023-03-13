@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.4 (2023-03-13)
+
+### 3.0.3 (2023-03-13)
+
+### 3.0.2 (2023-03-13)
+
+### 3.0.1 (2023-03-13)
+
+### 2.9.16 (2023-03-13)
+
+### 2.9.15 (2023-03-13)
+
+### 2.9.14 (2023-03-13)
+
+### 2.9.13 (2023-03-12)
+
+
+### Bug Fixes
+
+* **Phemex:** createOrder usd settled contracts [ci deploy] ([cdd673d](https://github.com/ccxt/ccxt/commit/cdd673da65b6d788f6955ea22a209028704bd0e5))
+
+### 2.9.12 (2023-03-11)
+
+### 2.9.11 (2023-03-10)
+
+### 2.9.10 (2023-03-09)
+
+### 2.9.9 (2023-03-09)
+
 ### 2.9.8 (2023-03-08)
 
 ### 2.9.7 (2023-03-07)

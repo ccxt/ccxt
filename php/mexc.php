@@ -1243,7 +1243,7 @@ class mexc extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the mexc api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1261,7 +1261,7 @@ class mexc extends Exchange {
         if ($market['spot']) {
             $method = 'spotPublicGetMarketKline';
             if ($since !== null) {
-                $request['start_time'] = intval($since / 1000);
+                $request['start_time'] = $this->parse_to_int($since / 1000);
             }
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100
@@ -1269,7 +1269,7 @@ class mexc extends Exchange {
         } elseif ($market['swap']) {
             $method = 'contractPublicGetKlineSymbol';
             if ($since !== null) {
-                $request['start'] = intval($since / 1000);
+                $request['start'] = $this->parse_to_int($since / 1000);
             }
             // $request['end'] = $this->seconds();
         }

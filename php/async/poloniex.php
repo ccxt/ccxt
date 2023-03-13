@@ -322,7 +322,7 @@ class poloniex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1670,7 +1670,7 @@ class poloniex extends Exchange {
             Async\await($this->load_markets());
             $year = 31104000; // 60 * 60 * 24 * 30 * 12 = one $year of history, why not
             $now = $this->seconds();
-            $start = ($since !== null) ? intval($since / 1000) : $now - 10 * $year;
+            $start = ($since !== null) ? intval(($since / (string) 1000)) : $now - 10 * $year;
             $request = array(
                 'start' => $start, // UNIX timestamp, required
                 'end' => $now, // UNIX timestamp, required

@@ -6,11 +6,11 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -1011,6 +1011,7 @@ class woo(Exchange):
         status = self.safe_value(order, 'status')
         side = self.safe_string_lower(order, 'side')
         filled = self.safe_value(order, 'executed')
+        average = self.safe_string(order, 'average_executed_price')
         remaining = Precise.string_sub(cost, filled)
         fee = self.safe_value(order, 'total_fee')
         feeCurrency = self.safe_string(order, 'fee_asset')
@@ -1031,7 +1032,7 @@ class woo(Exchange):
             'price': price,
             'stopPrice': None,
             'triggerPrice': None,
-            'average': None,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,  # TO_DO
@@ -1104,7 +1105,7 @@ class woo(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the woo api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1994,7 +1995,7 @@ class woo(Exchange):
             symbol = market['symbol']
             request['symbol'] = market['id']
         if since is not None:
-            request['start_t'] = int(since / 1000)
+            request['start_t'] = self.parse_to_int(since / 1000)
         response = await self.v1PublicGetFundingRateHistory(self.extend(request, params))
         #
         #     {

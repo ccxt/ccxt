@@ -444,7 +444,7 @@ class timex extends Exchange {
         $currency = $this->get_currency_by_address($currencyAddresss);
         return array(
             'info' => $transaction,
-            'id' => $this->safe_string_2($transaction, 'transferHash'),
+            'id' => $this->safe_string($transaction, 'transferHash'),
             'txid' => $this->safe_string($transaction, 'txid'),
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
@@ -641,7 +641,7 @@ class timex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the timex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
