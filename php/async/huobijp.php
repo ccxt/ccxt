@@ -962,7 +962,7 @@ class huobijp extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the huobijp api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1878,8 +1878,8 @@ class huobijp extends Exchange {
             if ($method !== 'POST') {
                 $request = array_merge($request, $query);
             }
-            $request = $this->keysort($request);
-            $auth = $this->urlencode($request);
+            $requestSorted = $this->keysort($request);
+            $auth = $this->urlencode($requestSorted);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             $payload = implode("\n", array($method, $this->hostname, $url, $auth));

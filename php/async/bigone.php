@@ -444,7 +444,7 @@ class bigone extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $timestamp = $this->safe_integer($data, 'timestamp');
-            return intval($timestamp / 1000000);
+            return $this->parse_to_int($timestamp / 1000000);
         }) ();
     }
 
@@ -696,7 +696,7 @@ class bigone extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bigone api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -709,7 +709,7 @@ class bigone extends Exchange {
                 'limit' => $limit,
             );
             if ($since !== null) {
-                // $start = intval($since / 1000);
+                // $start = $this->parse_to_int($since / 1000);
                 $duration = $this->parse_timeframe($timeframe);
                 $end = $this->sum($since, $limit * $duration * 1000);
                 $request['time'] = $this->iso8601($end);
@@ -1192,7 +1192,7 @@ class bigone extends Exchange {
             );
             $response = Async\await($this->privateGetAssetsAssetSymbolAddress (array_merge($request, $params)));
             //
-            // the actual $response format is not the same as the documented one
+            // the actual $response format is not the same documented one
             // the $data key contains an array in the actual $response
             //
             //     {

@@ -11,8 +11,6 @@ use React\Async;
 
 class bitstamp extends \ccxt\async\bitstamp {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -211,12 +209,12 @@ class bitstamp extends \ccxt\async\bitstamp {
         //
         $microtimestamp = $this->safe_integer($trade, 'microtimestamp');
         $id = $this->safe_string($trade, 'id');
-        $timestamp = intval($microtimestamp / 1000);
+        $timestamp = $this->parse_to_int($microtimestamp / 1000);
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
         $symbol = $market['symbol'];
-        $side = $this->safe_integer($trade, 'type');
-        $side = ($side === 0) ? 'buy' : 'sell';
+        $sideRaw = $this->safe_integer($trade, 'type');
+        $side = ($sideRaw === 0) ? 'buy' : 'sell';
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,

@@ -1056,7 +1056,7 @@ class yobit extends Exchange {
             $request['count'] = intval($limit);
         }
         if ($since !== null) {
-            $request['since'] = intval($since / 1000);
+            $request['since'] = $this->parse_to_int($since / 1000);
         }
         $response = $this->privatePostTradeHistory (array_merge($request, $params));
         //

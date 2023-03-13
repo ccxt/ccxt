@@ -624,7 +624,7 @@ class bitstamp extends Exchange {
         //     }
         //
         $microtimestamp = $this->safe_integer($response, 'microtimestamp');
-        $timestamp = intval($microtimestamp / 1000);
+        $timestamp = $this->parse_to_int($microtimestamp / 1000);
         $orderbook = $this->parse_order_book($response, $market['symbol'], $timestamp);
         $orderbook['nonce'] = $microtimestamp;
         return $orderbook;
@@ -968,7 +968,7 @@ class bitstamp extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bitstamp api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -982,14 +982,14 @@ class bitstamp extends Exchange {
                 $request['limit'] = 1000; // we need to specify an allowed amount of `$limit` if no `$since` is set and there is no default $limit by exchange
             } else {
                 $limit = 1000;
-                $start = intval($since / 1000);
+                $start = $this->parse_to_int($since / 1000);
                 $request['start'] = $start;
                 $request['end'] = $this->sum($start, $limit * $duration);
                 $request['limit'] = $limit;
             }
         } else {
             if ($since !== null) {
-                $start = intval($since / 1000);
+                $start = $this->parse_to_int($since / 1000);
                 $request['start'] = $start;
                 $request['end'] = $this->sum($start, $limit * $duration);
             }
@@ -1117,14 +1117,14 @@ class bitstamp extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         /**
          * *DEPRECATED* please use fetchDepositWithdrawFees instead
-         * @see https://www.bitstamp.net/api/#balance
+         * @see https://www.bitstamp.net/api/#$balance
          * @param {[string]|null} $codes list of unified currency $codes
          * @param {array} $params extra parameters specific to the bitstamp api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
          */
         $this->load_markets();
-        $response = $this->privatePostBalance ($params);
-        return $this->parse_transaction_fees($response, $codes);
+        $balance = $this->privatePostBalance ($params);
+        return $this->parse_transaction_fees($balance);
     }
 
     public function parse_transaction_fees($response, $codes = null) {

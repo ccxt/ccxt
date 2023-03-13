@@ -1,28 +1,32 @@
-'use strict';
-
-const { PAD_WITH_ZERO } = require('../../js/base/functions/number.js');
+import { PAD_WITH_ZERO } from '../../js/base/functions/number.js';
 
 //-----------------------------------------------------------------------------
 
-const ccxt         = require ('../../ccxt.js')
-    , fs           = require ('fs')
-    , path         = require ('path')
-    , ansi         = require ('ansicolor').nice
-    , asTable      = require ('as-table').configure ({
+import ccxt from '../../ccxt.js';
 
-        delimiter: '|'.lightGray.dim,
-        right: true,
-        title: x => String (x).lightGray,
-        print: x => {
-            if (typeof x === 'object') {
-                const j = JSON.stringify (x).trim ()
-                if (j.length < 100) return j
-            }
-            return String (x)
-        }
-    })
-    , { ROUND, DECIMAL_PLACES, decimalToPrecision, omit, unique, flatten, extend } = ccxt
-    , log = require ('ololog').handleNodeErrors ().noLocate.unlimited
+import fs from 'fs';
+import path from 'path';
+import ansicolor from 'ansicolor';
+import asTable from 'as-table';
+
+ansicolor.nice
+//-----------------------------------------------------------------------------
+
+const table   = asTable.configure ({
+
+              delimiter: '|'.lightGray.dim,
+              right: true,
+              title: x => String (x).lightGray,
+              print: x => {
+                  if (typeof x === 'object') {
+                      const j = JSON.stringify (x).trim ()
+                      if (j.length < 100) return j
+                  }
+                  return String (x)
+              }
+          }),
+      { ROUND, DECIMAL_PLACES, decimalToPrecision, omit, unique, flatten, extend } = ccxt,
+      log = require ('ololog').handleNodeErrors ().noLocate.unlimited;
 
 //-----------------------------------------------------------------------------
 
@@ -115,7 +119,7 @@ function initializeAllExchanges () {
     return result
 }
 
-;(async () => {
+(async () => {
 
     const exchanges = initializeAllExchanges ()
     console.log (exchanges.map (exchange => exchange.id))
@@ -203,7 +207,7 @@ function initializeAllExchanges () {
         }, result);
     })
 
-    const table = asTable (results)
+    const table = table (results)
 
     log (table)
 

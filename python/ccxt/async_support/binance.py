@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -27,6 +26,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
@@ -2230,17 +2230,6 @@ class binance(Exchange):
                 locked = self.safe_string(entry, 'locked')
                 account['used'] = Precise.string_add(frozen, Precise.string_add(locked, withdrawing))
                 result[code] = account
-        elif type == 'option':
-            timestamp = self.safe_integer(response, 'time')
-            assets = self.safe_value(response, 'asset', [])
-            for i in range(0, len(assets)):
-                balance = assets[i]
-                currencyId = self.safe_string(balance, 'asset')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(balance, 'available')
-                account['used'] = self.safe_string(balance, 'locked')
-                result[code] = account
         else:
             balances = response
             if not isinstance(response, list):
@@ -2305,8 +2294,6 @@ class binance(Exchange):
             method = 'sapiGetLendingUnionAccount'
         elif type == 'funding':
             method = 'sapiPostAssetGetFundingAsset'
-        elif type == 'option':
-            method = 'eapiPrivateGetAccount'
         requestParams = self.omit(query, ['type', 'symbols'])
         response = await getattr(self, method)(self.extend(request, requestParams))
         #
@@ -2534,22 +2521,6 @@ class binance(Exchange):
         #         "withdrawing": "0"
         #       }
         #     ]
-        #
-        # options(eapi)
-        #
-        #     {
-        #         "asset": [
-        #             {
-        #                 "asset": "USDT",
-        #                 "marginBalance": "25.45130462",
-        #                 "equity": "25.45130462",
-        #                 "available": "25.45130462",
-        #                 "locked": "0.00000000",
-        #                 "unrealizedPNL": "0.00000000"
-        #             }
-        #         ],
-        #         "time": 1676328152755
-        #     }
         #
         return self.parse_balance(response, type, marginMode)
 
@@ -2993,7 +2964,7 @@ class binance(Exchange):
         :param dict params: extra parameters specific to the binance api endpoint
         :param str|None params['price']: "mark" or "index" for mark price and index price candles
         :param int|None params['until']: timestamp in ms of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -3917,7 +3888,7 @@ class binance(Exchange):
                 if stopPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
-                # check for delta price as well
+                # check for delta price
                 trailingDelta = self.safe_value(params, 'trailingDelta')
                 if trailingDelta is None and stopPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a stopPrice or trailingDelta param for a ' + type + ' order')
@@ -4104,7 +4075,7 @@ class binance(Exchange):
         elif self.options['warnOnFetchOpenOrdersWithoutSymbol']:
             symbols = self.symbols
             numSymbols = len(symbols)
-            fetchOpenOrdersRateLimit = int(numSymbols / 2)
+            fetchOpenOrdersRateLimit = self.parse_to_int(numSymbols / 2)
             raise ExchangeError(self.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + str(fetchOpenOrdersRateLimit) + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = False to suppress self warning message.')
         else:
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
@@ -5872,7 +5843,7 @@ class binance(Exchange):
         rational = (1000 % leverage) == 0
         if not rational:
             initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
-        # as oppose to notionalValue
+        # to notionalValue
         usdm = ('notional' in position)
         maintenanceMarginString = self.safe_string(position, 'maintMargin')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
@@ -6076,7 +6047,7 @@ class binance(Exchange):
         entryPrice = self.parse_number(entryPriceString)
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        # as oppose to notionalValue
+        # to notionalValue
         linear = ('notional' in position)
         if marginMode == 'cross':
             # calculate collateral
@@ -7332,10 +7303,10 @@ class binance(Exchange):
         Retrieves the open interest history of a currency
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
-        :param int|None since: the time(ms) of the earliest record to retrieve as a unix timestamp
+        :param int|None since: the time(ms) of the earliest record to retrieve unix timestamp
         :param int|None limit: default 30, max 500
         :param dict params: exchange specific parameters
-        :param int|None params['until']: the time(ms) of the latest record to retrieve as a unix timestamp
+        :param int|None params['until']: the time(ms) of the latest record to retrieve unix timestamp
         :returns dict: an array of `open interest history structure <https://docs.ccxt.com/en/latest/manual.html#interest-history-structure>`
         """
         if timeframe == '1m':

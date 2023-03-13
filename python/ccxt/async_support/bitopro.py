@@ -7,11 +7,11 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -705,7 +705,7 @@ class bitopro(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1514,8 +1514,8 @@ class bitopro(Exchange):
                 rawData = {
                     'nonce': nonce,
                 }
-                rawData = self.json(rawData)
-                payload = self.string_to_base64(rawData)
+                data = self.json(rawData)
+                payload = self.string_to_base64(data)
                 signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
                 headers['X-BITOPRO-APIKEY'] = self.apiKey
                 headers['X-BITOPRO-PAYLOAD'] = payload

@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import math
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -16,6 +15,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
 
 
@@ -368,8 +368,8 @@ class wavesexchange(Exchange):
     def get_fees_for_asset(self, symbol, side, amount, price, params={}):
         self.load_markets()
         market = self.market(symbol)
-        amount = self.amount_to_precision(symbol, amount)
-        price = self.price_to_precision(symbol, price)
+        amount = self.custom_amount_to_precision(symbol, amount)
+        price = self.custom_price_to_precision(symbol, price)
         request = self.extend({
             'amountAsset': market['baseId'],
             'priceAsset': market['quoteId'],
@@ -379,7 +379,7 @@ class wavesexchange(Exchange):
         }, params)
         return self.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee(request)
 
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+    def custom_calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         response = self.get_fees_for_asset(symbol, side, amount, price)
         # {
         #     "base":{
@@ -418,7 +418,7 @@ class wavesexchange(Exchange):
             return quotes
         else:
             # currencies can have any name because you can create you own token
-            # as a result someone can create a fake token called BTC
+            # result someone can create a fake token called BTC
             # we use self mapping to determine the real tokens
             # https://docs.waves.exchange/en/waves-matcher/matcher-api#asset-pair
             response = self.matcherGetMatcherSettings()
@@ -880,7 +880,7 @@ class wavesexchange(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -895,7 +895,7 @@ class wavesexchange(Exchange):
         limit = min(allowedCandles, limit)
         duration = self.parse_timeframe(timeframe) * 1000
         if since is None:
-            durationRoundedTimestamp = int(self.milliseconds() / duration) * duration
+            durationRoundedTimestamp = self.parse_to_int(self.milliseconds() / duration) * duration
             delta = (limit - 1) * duration
             timeStart = durationRoundedTimestamp - delta
             request['timeStart'] = str(timeStart)
@@ -1136,17 +1136,17 @@ class wavesexchange(Exchange):
             return ''
         return currencyId
 
-    def price_to_precision(self, symbol, price):
+    def custom_price_to_precision(self, symbol, price):
         market = self.markets[symbol]
         wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
         difference = market['precision']['amount'] - market['precision']['price']
-        return int(float(self.to_precision(price, wavesPrecision - difference)))
+        return self.parse_to_int(float(self.to_precision(price, wavesPrecision - difference)))
 
-    def amount_to_precision(self, symbol, amount):
-        return int(float(self.to_precision(amount, self.markets[symbol]['precision']['amount'])))
+    def custom_amount_to_precision(self, symbol, amount):
+        return self.parse_to_int(float(self.to_precision(amount, self.markets[symbol]['precision']['amount'])))
 
     def currency_to_precision(self, code, amount, networkCode=None):
-        return int(float(self.to_precision(amount, self.currencies[code]['precision'])))
+        return self.parse_to_int(float(self.to_precision(amount, self.currencies[code]['precision'])))
 
     def from_precision(self, amount, scale):
         if amount is None:
@@ -1261,8 +1261,8 @@ class wavesexchange(Exchange):
                     matcherFee = int(discountMatcherFee)
         if matcherFeeAssetId is None:
             raise InsufficientFunds(self.id + ' not enough funds on none of the eligible asset fees')
-        amount = self.amount_to_precision(symbol, amount)
-        price = self.price_to_precision(symbol, price)
+        amount = self.custom_amount_to_precision(symbol, amount)
+        price = self.custom_price_to_precision(symbol, price)
         byteArray = [
             self.number_to_be(3, 1),
             self.base58_to_binary(self.apiKey),

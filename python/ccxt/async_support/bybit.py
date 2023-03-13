@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -18,6 +17,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -52,7 +52,7 @@ class bybit(Exchange):
                 'createStopOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
-                'fetchBorrowInterest': False,  # temporarily disabled, as it does not work
+                'fetchBorrowInterest': False,  # temporarily disabled, does not work
                 'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -684,7 +684,7 @@ class bybit(Exchange):
                     '110045': InsufficientFunds,  # Insufficient wallet balance
                     '110046': BadRequest,  # Any adjustments made will trigger immediate liquidation
                     '110047': BadRequest,  # Risk limit cannot be adjusted due to insufficient available margin
-                    '110048': BadRequest,  # Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
+                    '110048': BadRequest,  # Risk limit cannot be adjusted current/expected position value held exceeds the revised risk limit
                     '110049': BadRequest,  # Tick notes can only be numbers
                     '110050': BadRequest,  # Coin is not in the range of selected
                     '110051': InsufficientFunds,  # The user's available balance cannot cover the lowest price of the current market
@@ -726,7 +726,7 @@ class bybit(Exchange):
                     '131208': ExchangeError,  # Forbid transfer
                     '131209': BadRequest,  # Get subMember relation error
                     '131210': BadRequest,  # Amount accuracy error
-                    '131211': BadRequest,  # fromAccountType can't be the same as toAccountType
+                    '131211': BadRequest,  # fromAccountType can't be the same
                     '131212': InsufficientFunds,  # Insufficient balance
                     '131213': BadRequest,  # TransferLTV check error
                     '131214': BadRequest,  # TransferId exist
@@ -795,7 +795,7 @@ class bybit(Exchange):
                     '140045': InsufficientFunds,  # Insufficient wallet balance
                     '140046': BadRequest,  # Any adjustments made will trigger immediate liquidation
                     '140047': BadRequest,  # Risk limit cannot be adjusted due to insufficient available margin
-                    '140048': BadRequest,  # Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
+                    '140048': BadRequest,  # Risk limit cannot be adjusted current/expected position value held exceeds the revised risk limit
                     '140049': BadRequest,  # Tick notes can only be numbers
                     '140050': InvalidOrder,  # Coin is not in the range of selected
                     '140051': InsufficientFunds,  # The user's available balance cannot cover the lowest price of the current market
@@ -984,8 +984,8 @@ class bybit(Exchange):
                     '30008': InvalidOrder,  # invalid order_type
                     '30009': ExchangeError,  # no position found
                     '30010': InsufficientFunds,  # insufficient wallet balance
-                    '30011': PermissionDenied,  # operation not allowed as position is undergoing liquidation
-                    '30012': PermissionDenied,  # operation not allowed as position is undergoing ADL
+                    '30011': PermissionDenied,  # operation not allowed is undergoing liquidation
+                    '30012': PermissionDenied,  # operation not allowed is undergoing ADL
                     '30013': PermissionDenied,  # position is in liq or adl status
                     '30014': InvalidOrder,  # invalid closing order, qty should not greater than size
                     '30015': InvalidOrder,  # invalid closing order, side should be opposite
@@ -1013,9 +1013,9 @@ class bybit(Exchange):
                     '30037': InvalidOrder,  # order already cancelled
                     '30041': ExchangeError,  # no position found
                     '30042': InsufficientFunds,  # insufficient wallet balance
-                    '30043': InvalidOrder,  # operation not allowed as position is undergoing liquidation
-                    '30044': InvalidOrder,  # operation not allowed as position is undergoing AD
-                    '30045': InvalidOrder,  # operation not allowed as position is not normal status
+                    '30043': InvalidOrder,  # operation not allowed is undergoing liquidation
+                    '30044': InvalidOrder,  # operation not allowed is undergoing AD
+                    '30045': InvalidOrder,  # operation not allowed is not normal status
                     '30049': InsufficientFunds,  # insufficient available balance
                     '30050': ExchangeError,  # any adjustments made will trigger immediate liquidation
                     '30051': ExchangeError,  # due to risk limit, cannot adjust leverage
@@ -1043,7 +1043,7 @@ class bybit(Exchange):
                     'Request timeout': RequestTimeout,  # {"retCode":10016,"retMsg":"Request timeout, please try again later","result":{},"retExtInfo":{},"time":1675307914985}
                     'unknown orderInfo': OrderNotFound,  # {"ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100}
                     'invalid api_key': AuthenticationError,  # {"ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797"}
-                    # the below two issues are caused as described: issues/9149#issuecomment-1146559498, when response is such:  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100}
+                    # the below two issues are caused: issues/9149#issuecomment-1146559498, when response is such:  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100}
                     'oc_diff': InsufficientFunds,
                     'new_oc': InsufficientFunds,
                     'openapi sign params error!': AuthenticationError,  # {"retCode":10001,"retMsg":"empty value: apiTimestamp[] apiKey[] apiSignature[xxxxxxxxxxxxxxxxxxxxxxx]: openapi sign params error!","result":null,"retExtInfo":null,"time":1664789597123}
@@ -1318,12 +1318,12 @@ class bybit(Exchange):
         """
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
-        promises = [
+        promisesUnresolved = [
             self.fetch_spot_markets(params),
             self.fetch_derivatives_markets({'category': 'linear'}),
             self.fetch_derivatives_markets({'category': 'inverse'}),
         ]
-        promises = await asyncio.gather(*promises)
+        promises = await asyncio.gather(*promisesUnresolved)
         spotMarkets = promises[0]
         linearMarkets = promises[1]
         inverseMarkets = promises[2]
@@ -1348,7 +1348,7 @@ class bybit(Exchange):
         #                     "baseCoin": "BTC",
         #                     "quoteCoin": "USDT",
         #                     "innovation": "0",
-        #                     "status": "1",
+        #                     "status": "Trading",
         #                     "lotSizeFilter": {
         #                         "basePrecision": "0.000001",
         #                         "quotePrecision": "0.00000001",
@@ -1381,7 +1381,7 @@ class bybit(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             status = self.safe_string(market, 'status')
-            active = (status == 'trading') or (status == '1')  # latter can be removed after 10/03
+            active = (status == 'Trading')
             lotSizeFilter = self.safe_value(market, 'lotSizeFilter')
             priceFilter = self.safe_value(market, 'priceFilter')
             quotePrecision = self.safe_number(lotSizeFilter, 'quotePrecision')
@@ -1942,7 +1942,7 @@ class bybit(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.check_required_symbol('fetchOHLCV', symbol)
         await self.load_markets()
@@ -2388,6 +2388,10 @@ class bybit(Exchange):
         marketType = 'contract'
         if market is not None:
             marketType = market['type']
+        category = self.safe_string(trade, 'category')
+        if category is not None:
+            if category == 'spot':
+                marketType = 'spot'
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         amountString = self.safe_string_n(trade, ['execQty', 'orderQty', 'size'])
@@ -2868,9 +2872,12 @@ class bybit(Exchange):
                 # use self endpoint only we have no other choice
                 # because it requires transfer permission
                 method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery'
-                request['accountType'] = unifiedType
             else:
-                method = 'privateGetContractV3PrivateAccountWalletBalance'
+                if enableUnifiedAccount:
+                    method = 'privateGetV5AccountWalletBalance'
+                else:
+                    method = 'privateGetContractV3PrivateAccountWalletBalance'
+            request['accountType'] = unifiedType
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot wallet
@@ -3040,6 +3047,10 @@ class bybit(Exchange):
         marketType = 'contract'
         if market is not None:
             marketType = market['type']
+        category = self.safe_string(order, 'category')
+        if category is not None:
+            if category == 'spot':
+                marketType = 'spot'
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer(order, 'createdTime')
@@ -3080,6 +3091,7 @@ class bybit(Exchange):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': None,
+            'reduceOnly': self.safe_value(order, 'reduceOnly'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -3237,6 +3249,10 @@ class bybit(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
         create a trade order
+        see https://bybit-exchange.github.io/docs/v5/order/create-order
+        see https://bybit-exchange.github.io/docs/spot/trade/place-order
+        see https://bybit-exchange.github.io/docs/derivatives/unified/place-order
+        see https://bybit-exchange.github.io/docs/derivatives/contract/place-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -3317,25 +3333,36 @@ class bybit(Exchange):
             request['timeInForce'] = 'FOK'
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'IOC'
-        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
-        isStopLossOrder = stopLossPrice is not None
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        isTakeProfitOrder = takeProfitPrice is not None
-        if isStopLossOrder:
-            request['stopLoss'] = self.price_to_precision(symbol, stopLossPrice)
-        if isTakeProfitOrder:
-            request['takeProfit'] = self.price_to_precision(symbol, takeProfitPrice)
+        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice', triggerPrice)
+        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
+        stopLoss = self.safe_number(params, 'stopLoss')
+        takeProfit = self.safe_number(params, 'takeProfit')
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        isStopLoss = stopLoss is not None
+        isTakeProfit = takeProfit is not None
         if triggerPrice is not None:
-            # logical xor
             isBuy = side == 'buy'
-            ascending = not isBuy if stopLossPrice else isBuy
+            ascending = not isBuy if stopLossTriggerPrice else isBuy
             request['triggerDirection'] = 2 if ascending else 1
-            request['triggerBy'] = 'LastPrice'
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+        elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+            if isStopLossTriggerOrder:
+                request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['triggerDirection'] = 2
+            else:
+                request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                request['triggerDirection'] = 1
+            request['reduceOnly'] = True
+        elif isStopLoss or isTakeProfit:
+            if isStopLoss:
+                request['stopLoss'] = self.price_to_precision(symbol, stopLoss)
+            if isTakeProfit:
+                request['takeProfit'] = self.price_to_precision(symbol, takeProfit)
         if market['spot']:
             # only works for spot market
-            if triggerPrice is not None or isStopLossOrder or isTakeProfitOrder:
+            if triggerPrice is not None or stopLossTriggerPrice is not None or takeProfitTriggerPrice is not None or isStopLoss or isTakeProfit:
                 request['orderFilter'] = 'tpslOrder'
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
@@ -3343,7 +3370,7 @@ class bybit(Exchange):
         elif market['option']:
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
         response = await self.privatePostV5OrderCreate(self.extend(request, params))
         #
         #     {
@@ -3363,6 +3390,14 @@ class bybit(Exchange):
     async def create_spot_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        upperCaseType = type.upper()
+        request = {
+            'symbol': market['id'],
+            'side': self.capitalize(side),
+            'orderType': upperCaseType,  # limit, market or limit_maker
+            'timeInForce': 'GTC',  # FOK, IOC
+            # 'orderLinkId': 'string',  # unique client order id, max 36 characters
+        }
         if (type == 'market') and (side == 'buy'):
             # for market buy it requires the amount of quote currency to spend
             if self.options['createMarketBuyOrderRequiresPrice']:
@@ -3375,15 +3410,9 @@ class bybit(Exchange):
                     priceString = self.number_to_string(price)
                     quoteAmount = Precise.string_mul(amountString, priceString)
                     amount = cost if (cost is not None) else self.parse_number(quoteAmount)
-        upperCaseType = type.upper()
-        request = {
-            'symbol': market['id'],
-            'side': self.capitalize(side),
-            'orderType': upperCaseType,  # limit, market or limit_maker
-            'timeInForce': 'GTC',  # FOK, IOC
-            'orderQty': self.amount_to_precision(symbol, amount),
-            # 'orderLinkId': 'string',  # unique client order id, max 36 characters
-        }
+                    request['orderQty'] = self.cost_to_precision(symbol, amount)
+        else:
+            request['orderQty'] = self.amount_to_precision(symbol, amount)
         if (upperCaseType == 'LIMIT') or (upperCaseType == 'LIMIT_MAKER'):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires a price argument for a ' + type + ' order')
@@ -3479,21 +3508,30 @@ class bybit(Exchange):
             request['timeInForce'] = 'FillOrKill'
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'ImmediateOrCancel'
-        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
-        isStopLossOrder = stopLossPrice is not None
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        isTakeProfitOrder = takeProfitPrice is not None
-        if isStopLossOrder or isTakeProfitOrder:
+        triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
+        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice', triggerPrice)
+        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
+        stopLoss = self.safe_number(params, 'stopLoss')
+        takeProfit = self.safe_number(params, 'takeProfit')
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        isStopLoss = stopLoss is not None
+        isTakeProfit = takeProfit is not None
+        if isStopLossTriggerOrder or isTakeProfitTriggerOrder:
             request['triggerBy'] = 'LastPrice'
-            triggerAt = stopLossPrice if isStopLossOrder else takeProfitPrice
+            triggerAt = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
             preciseTriggerPrice = self.price_to_precision(symbol, triggerAt)
             request['triggerPrice'] = preciseTriggerPrice
             isBuy = side == 'buy'
             # logical xor
-            ascending = not isBuy if stopLossPrice else isBuy
+            ascending = not isBuy if stopLossTriggerPrice else isBuy
             delta = self.number_to_string(market['precision']['price'])
             request['basePrice'] = Precise.string_add(preciseTriggerPrice, delta) if ascending else Precise.string_sub(preciseTriggerPrice, delta)
+        elif isStopLoss or isTakeProfit:
+            if isStopLoss:
+                request['stopLoss'] = self.price_to_precision(symbol, stopLoss)
+            if isTakeProfit:
+                request['takeProfit'] = self.price_to_precision(symbol, takeProfit)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -3562,27 +3600,40 @@ class bybit(Exchange):
             request['timeInForce'] = 'FillOrKill'
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'ImmediateOrCancel'
-        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
-        isStopLossOrder = stopLossPrice is not None
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        isTakeProfitOrder = takeProfitPrice is not None
-        if isStopLossOrder or isTakeProfitOrder:
-            triggerAt = stopLossPrice if isStopLossOrder else takeProfitPrice
-            preciseTriggerPrice = self.price_to_precision(symbol, triggerAt)
+        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice', triggerPrice)
+        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
+        stopLoss = self.safe_number(params, 'stopLoss')
+        takeProfit = self.safe_number(params, 'takeProfit')
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        isStopLoss = stopLoss is not None
+        isTakeProfit = takeProfit is not None
+        if triggerPrice:
             isBuy = side == 'buy'
-            # logical xor
-            ascending = not isBuy if stopLossPrice else isBuy
+            ascending = not isBuy if stopLossTriggerPrice else isBuy
             request['triggerDirection'] = 2 if ascending else 1
-            request['triggerBy'] = 'LastPrice'
-            request['triggerPrice'] = self.price_to_precision(symbol, preciseTriggerPrice)
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+        elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+            if isStopLossTriggerOrder:
+                request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['triggerDirection'] = 2
+            else:
+                request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                request['triggerDirection'] = 1
+            request['reduceOnly'] = True
+        elif isStopLoss or isTakeProfit:
+            if isStopLoss:
+                request['stopLoss'] = self.price_to_precision(symbol, stopLoss)
+            if isTakeProfit:
+                request['takeProfit'] = self.price_to_precision(symbol, takeProfit)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
         elif market['option']:
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
         response = await self.privatePostContractV3PrivateOrderCreate(self.extend(request, params))
         #
         #     {
@@ -3643,20 +3694,29 @@ class bybit(Exchange):
         elif timeInForce == 'ioc':
             request['time_in_force'] = 'ImmediateOrCancel'
         if market['swap']:
-            triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-            stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
-            isStopLossOrder = stopLossPrice is not None
-            takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-            isTakeProfitOrder = takeProfitPrice is not None
-            isStopOrder = isStopLossOrder or isTakeProfitOrder
+            triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
+            stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice', triggerPrice)
+            takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
+            stopLoss = self.safe_number(params, 'stopLoss')
+            takeProfit = self.safe_number(params, 'takeProfit')
+            isStopLossTriggerOrder = stopLossTriggerPrice is not None
+            isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+            isStopLoss = stopLoss is not None
+            isTakeProfit = takeProfit is not None
+            isStopOrder = isStopLossTriggerOrder or isTakeProfitTriggerOrder
             if isStopOrder:
                 request['orderFilter'] = 'StopOrder'
                 request['trigger_by'] = 'LastPrice'
-                stopPx = stopLossPrice if isStopLossOrder else takeProfitPrice
+                stopPx = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
                 preciseStopPrice = self.price_to_precision(symbol, stopPx)
                 request['triggerPrice'] = preciseStopPrice
                 delta = self.number_to_string(market['precision']['price'])
-                request['basePrice'] = Precise.string_sub(preciseStopPrice, delta) if isStopLossOrder else Precise.string_add(preciseStopPrice, delta)
+                request['basePrice'] = Precise.string_sub(preciseStopPrice, delta) if isStopLossTriggerOrder else Precise.string_add(preciseStopPrice, delta)
+            elif isStopLoss or isTakeProfit:
+                if isStopLoss:
+                    request['stopLoss'] = self.price_to_precision(symbol, stopLoss)
+                if isTakeProfit:
+                    request['takeProfit'] = self.price_to_precision(symbol, takeProfit)
             else:
                 request['orderFilter'] = 'Order'
         clientOrderId = self.safe_string(params, 'clientOrderId')

@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.kucoin import kucoin
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -16,6 +15,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -325,14 +325,6 @@ class kucoinfutures(kucoin):
             },
         })
 
-    def fetch_accounts(self, params={}):
-        """
-        fetch all the accounts associated with a profile
-        :param dict params: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
-        """
-        raise BadRequest(self.id + ' fetchAccounts() is not supported yet')
-
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
@@ -538,15 +530,19 @@ class kucoinfutures(kucoin):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
+        parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
         request = {
             'symbol': marketId,
-            'granularity': self.safe_integer(self.timeframes, timeframe, timeframe),
         }
+        if parsedTimeframe is not None:
+            request['granularity'] = parsedTimeframe
+        else:
+            request['granularity'] = timeframe
         duration = self.parse_timeframe(timeframe) * 1000
         endAt = self.milliseconds()
         if since is not None:
@@ -592,15 +588,6 @@ class kucoinfutures(kucoin):
             self.safe_number(ohlcv, 4),
             self.safe_number(ohlcv, 5),
         ]
-
-    def create_deposit_address(self, code, params={}):
-        """
-        create a currency deposit address
-        :param str code: unified currency code of the currency for the deposit address
-        :param dict params: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
-        """
-        raise BadRequest(self.id + ' createDepositAddress() is not supported yet')
 
     def fetch_deposit_address(self, code, params={}):
         """
@@ -681,7 +668,7 @@ class kucoinfutures(kucoin):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        timestamp = int(self.safe_integer(data, 'ts') / 1000000)
+        timestamp = self.parse_to_int(self.safe_integer(data, 'ts') / 1000000)
         orderbook = self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1)
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
@@ -1768,7 +1755,7 @@ class kucoinfutures(kucoin):
         takerOrMaker = self.safe_string(trade, 'liquidity')
         timestamp = self.safe_integer(trade, 'ts')
         if timestamp is not None:
-            timestamp = int(timestamp / 1000000)
+            timestamp = self.parse_to_int(timestamp / 1000000)
         else:
             timestamp = self.safe_integer(trade, 'createdAt')
             # if it's a historical v1 trade, the exchange returns timestamp in seconds
@@ -1920,7 +1907,8 @@ class kucoinfutures(kucoin):
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
-        raise BadRequest(self.id + ' fetchTransactionFee() is not supported')
+        # raise BadRequest(self.id + ' fetchTransactionFee() is not supported')
+        return None
 
     def fetch_deposit_withdraw_fee(self, code, params={}):
         """
@@ -1932,7 +1920,8 @@ class kucoinfutures(kucoin):
         raise BadRequest(self.id + ' fetchDepositWithdrawFee() is not supported')
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
-        raise BadRequest(self.id + ' fetchLedger() is not supported yet')
+        # raise BadRequest(self.id + ' fetchLedger() is not supported yet')
+        return None
 
     def fetch_market_leverage_tiers(self, symbol, params={}):
         """

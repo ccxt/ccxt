@@ -1,0 +1,358 @@
+import { Exchange } from './base/Exchange.js';
+export default class huobi extends Exchange {
+    describe(): any;
+    fetchStatus(params?: {}): Promise<{
+        status: any;
+        updated: any;
+        eta: any;
+        url: any;
+        info: any;
+    }>;
+    fetchTime(params?: {}): Promise<number>;
+    parseTradingFee(fee: any, market?: any): {
+        info: any;
+        symbol: any;
+        maker: number;
+        taker: number;
+    };
+    fetchTradingFee(symbol: any, params?: {}): Promise<{
+        info: any;
+        symbol: any;
+        maker: number;
+        taker: number;
+    }>;
+    fetchTradingLimits(symbols?: any, params?: {}): Promise<{}>;
+    fetchTradingLimitsById(id: any, params?: {}): Promise<{
+        info: any;
+        limits: {
+            amount: {
+                min: number;
+                max: number;
+            };
+        };
+    }>;
+    parseTradingLimits(limits: any, symbol?: any, params?: {}): {
+        info: any;
+        limits: {
+            amount: {
+                min: number;
+                max: number;
+            };
+        };
+    };
+    costToPrecision(symbol: any, cost: any): any;
+    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarketsByTypeAndSubType(type: any, subType: any, params?: {}): Promise<any[]>;
+    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
+    fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
+    fetchOrderTrades(id: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchSpotOrderTrades(id: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchTrades(symbol: any, since?: any, limit?: number, params?: {}): Promise<any>;
+    parseOHLCV(ohlcv: any, market?: any): number[];
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchAccounts(params?: {}): Promise<any[]>;
+    parseAccount(account: any): {
+        info: any;
+        id: string;
+        type: any;
+        code: any;
+    };
+    fetchAccountIdByType(type: any, params?: {}): Promise<any>;
+    fetchCurrencies(params?: {}): Promise<{}>;
+    networkIdToCode(networkId: any, currencyCode?: any): string;
+    networkCodeToId(networkCode: any, currencyCode?: any): any;
+    fetchBalance(params?: {}): Promise<any>;
+    fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
+    parseMarginBalanceHelper(balance: any, code: any, result: any): any;
+    fetchSpotOrdersByStates(states: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchSpotOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchClosedSpotOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchContractOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchClosedContractOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    parseOrderStatus(status: any): string;
+    parseOrder(order: any, market?: any): any;
+    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createSpotOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<{
+        info: any;
+        id: string;
+        timestamp: any;
+        datetime: any;
+        lastTradeTimestamp: any;
+        status: any;
+        symbol: any;
+        type: any;
+        side: any;
+        price: any;
+        amount: any;
+        filled: any;
+        remaining: any;
+        cost: any;
+        trades: any;
+        fee: any;
+        clientOrderId: any;
+        average: any;
+    }>;
+    createContractOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
+    cancelOrders(ids: any, symbol?: any, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: any, params?: {}): Promise<any>;
+    parseDepositAddress(depositAddress: any, currency?: any): {
+        currency: any;
+        address: string;
+        tag: string;
+        network: string;
+        note: string;
+        info: any;
+    };
+    fetchDepositAddressesByNetwork(code: any, params?: {}): Promise<{}>;
+    fetchDepositAddress(code: any, params?: {}): Promise<any>;
+    fetchWithdrawAddresses(code: any, note?: any, networkCode?: any, params?: {}): Promise<any[]>;
+    fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    parseTransaction(transaction: any, currency?: any): {
+        info: any;
+        id: string;
+        txid: string;
+        timestamp: number;
+        datetime: string;
+        network: string;
+        address: string;
+        addressTo: any;
+        addressFrom: any;
+        tag: string;
+        tagTo: any;
+        tagFrom: any;
+        type: string;
+        amount: number;
+        currency: any;
+        status: string;
+        updated: number;
+        fee: {
+            currency: any;
+            cost: number;
+            rate: any;
+        };
+    };
+    parseTransactionStatus(status: any): string;
+    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+        info: any;
+        id: string;
+        txid: string;
+        timestamp: number;
+        datetime: string;
+        network: string;
+        address: string;
+        addressTo: any;
+        addressFrom: any;
+        tag: string;
+        tagTo: any;
+        tagFrom: any;
+        type: string;
+        amount: number;
+        currency: any;
+        status: string;
+        updated: number;
+        fee: {
+            currency: any;
+            cost: number;
+            rate: any;
+        };
+    }>;
+    parseTransfer(transfer: any, currency?: any): {
+        info: any;
+        id: string;
+        timestamp: any;
+        datetime: any;
+        currency: any;
+        amount: any;
+        fromAccount: any;
+        toAccount: any;
+        status: any;
+    };
+    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+        info: any;
+        id: string;
+        timestamp: any;
+        datetime: any;
+        currency: any;
+        amount: any;
+        fromAccount: any;
+        toAccount: any;
+        status: any;
+    }>;
+    fetchBorrowRatesPerSymbol(params?: {}): Promise<{
+        info: any;
+    }>;
+    fetchBorrowRates(params?: {}): Promise<{}>;
+    fetchFundingRateHistory(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    parseFundingRate(contract: any, market?: any): {
+        info: any;
+        symbol: any;
+        markPrice: any;
+        indexPrice: any;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: any;
+        datetime: any;
+        fundingRate: number;
+        fundingTimestamp: number;
+        fundingDatetime: string;
+        nextFundingRate: number;
+        nextFundingTimestamp: number;
+        nextFundingDatetime: string;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    };
+    fetchFundingRate(symbol: any, params?: {}): Promise<{
+        info: any;
+        symbol: any;
+        markPrice: any;
+        indexPrice: any;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: any;
+        datetime: any;
+        fundingRate: number;
+        fundingTimestamp: number;
+        fundingDatetime: string;
+        nextFundingRate: number;
+        nextFundingTimestamp: number;
+        nextFundingDatetime: string;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    }>;
+    fetchFundingRates(symbols?: any, params?: {}): Promise<any>;
+    fetchBorrowInterest(code?: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    parseBorrowInterest(info: any, market?: any): {
+        account: string;
+        symbol: string;
+        marginMode: string;
+        currency: any;
+        interest: number;
+        interestRate: number;
+        amountBorrowed: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    };
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+        url: string;
+        method: string;
+        body: any;
+        headers: any;
+    };
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    fetchFundingHistory(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    setLeverage(leverage: any, symbol?: any, params?: {}): Promise<any>;
+    parseIncome(income: any, market?: any): {
+        info: any;
+        symbol: any;
+        code: any;
+        timestamp: number;
+        datetime: string;
+        id: string;
+        amount: number;
+    };
+    parsePosition(position: any, market?: any): {
+        info: any;
+        id: any;
+        symbol: any;
+        contracts: number;
+        contractSize: any;
+        entryPrice: number;
+        collateral: number;
+        side: string;
+        unrealizedProfit: number;
+        leverage: number;
+        percentage: number;
+        marginMode: string;
+        notional: number;
+        markPrice: any;
+        liquidationPrice: number;
+        initialMargin: number;
+        initialMarginPercentage: number;
+        maintenanceMargin: number;
+        maintenanceMarginPercentage: number;
+        marginRatio: number;
+        timestamp: any;
+        datetime: any;
+    };
+    fetchPositions(symbols?: any, params?: {}): Promise<any>;
+    fetchPosition(symbol: any, params?: {}): Promise<any>;
+    parseLedgerEntryType(type: any): string;
+    parseLedgerEntry(item: any, currency?: any): {
+        id: string;
+        direction: string;
+        account: string;
+        referenceId: string;
+        referenceAccount: string;
+        type: string;
+        currency: any;
+        amount: number;
+        timestamp: number;
+        datetime: string;
+        before: any;
+        after: any;
+        status: any;
+        fee: any;
+        info: any;
+    };
+    fetchLedger(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchLeverageTiers(symbols?: any, params?: {}): Promise<{}>;
+    fetchMarketLeverageTiers(symbol: any, params?: {}): Promise<any>;
+    parseLeverageTiers(response: any, symbols?: any, marketIdKey?: any): {};
+    fetchOpenInterestHistory(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOpenInterest(symbol: any, params?: {}): Promise<any>;
+    parseOpenInterest(interest: any, market?: any): {
+        symbol: string;
+        baseVolume: number;
+        quoteVolume: number;
+        openInterestAmount: number;
+        openInterestValue: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    };
+    borrowMargin(code: any, amount: any, symbol?: any, params?: {}): Promise<any>;
+    repayMargin(code: any, amount: any, symbol?: any, params?: {}): Promise<any>;
+    parseMarginLoan(info: any, currency?: any): {
+        id: number;
+        currency: any;
+        amount: any;
+        symbol: any;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    };
+    fetchSettlementHistory(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    parseDepositWithdrawFee(fee: any, currency?: any): {
+        info: any;
+        withdraw: {
+            fee: any;
+            percentage: any;
+        };
+        deposit: {
+            fee: any;
+            percentage: any;
+        };
+        networks: {};
+    };
+    parseSettlements(settlements: any, market: any): any[];
+    parseSettlement(settlement: any, market: any): {
+        info: any;
+        symbol: any;
+        price: number;
+        timestamp: number;
+        datetime: string;
+    };
+}

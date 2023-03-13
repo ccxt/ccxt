@@ -12,8 +12,6 @@ use React\Async;
 
 class independentreserve extends \ccxt\async\independentreserve {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(

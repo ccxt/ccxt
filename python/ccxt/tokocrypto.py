@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -26,6 +25,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
@@ -1205,7 +1205,7 @@ class tokocrypto(Exchange):
         :param dict params: extra parameters specific to the tokocrypto api endpoint
         :param str|None params['price']: "mark" or "index" for mark price and index price candles
         :param int|None params['until']: timestamp in ms of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2104,9 +2104,10 @@ class tokocrypto(Exchange):
         if feeCost is not None:
             fee['currency'] = code
             fee['cost'] = feeCost
-        internal = self.safe_integer(transaction, 'transferType')
-        if internal is not None:
-            internal = True if internal else False
+        internalRaw = self.safe_integer(transaction, 'transferType')
+        internal = False
+        if internalRaw is not None:
+            internal = True
         id = self.safe_string(transaction, 'id')
         if id is None:
             data = self.safe_value(transaction, 'data', {})

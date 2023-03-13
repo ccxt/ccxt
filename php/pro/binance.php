@@ -13,8 +13,6 @@ use React\Async;
 
 class binance extends \ccxt\async\binance {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -299,9 +297,8 @@ class binance extends \ccxt\async\binance {
         //         )
         //     }
         //
-        $testnetSpot = mb_strpos($client->url, 'testnet') > 0;
-        $isSpot = mb_strpos($client->url, '/stream.binance') > 0;
-        $marketType = ($testnetSpot || $isSpot) ? 'spot' : 'contract';
+        $index = mb_strpos($client->url, '/stream');
+        $marketType = ($index >= 0) ? 'spot' : 'contract';
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
@@ -639,7 +636,7 @@ class binance extends \ccxt\async\binance {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the binance api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1426,8 +1423,8 @@ class binance extends \ccxt\async\binance {
             $lastTradeTimestamp = $T;
         }
         $fee = null;
-        $feeCost = $this->safe_float($order, 'n');
-        if (($feeCost !== null) && ($feeCost > 0)) {
+        $feeCost = $this->safe_string($order, 'n');
+        if (($feeCost !== null) && (Precise::string_gt($feeCost, '0'))) {
             $feeCurrencyId = $this->safe_string($order, 'N');
             $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             $fee = array(

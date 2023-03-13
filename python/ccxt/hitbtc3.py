@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -19,6 +18,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -951,7 +951,7 @@ class hitbtc3(Exchange):
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        # we use clientOrderId as the order id with self exchange intentionally
+        # we use clientOrderId order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         orderId = self.safe_string_2(trade, 'clientOrderId', 'client_order_id')
@@ -1261,7 +1261,7 @@ class hitbtc3(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1451,7 +1451,7 @@ class hitbtc3(Exchange):
         if symbol is not None:
             market = self.market(symbol)
         request = {
-            'order_id': id,  # exchange assigned order id as oppose to the client order id
+            'order_id': id,  # exchange assigned order id to the client order id
         }
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrderTrades', market, params)
@@ -1811,7 +1811,7 @@ class hitbtc3(Exchange):
         #     }
         #
         id = self.safe_string(order, 'client_order_id')
-        # we use clientOrderId as the order id with self exchange intentionally
+        # we use clientOrderId order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         side = self.safe_string(order, 'side')
@@ -1923,7 +1923,7 @@ class hitbtc3(Exchange):
         fromNetwork = self.safe_string(networks, fromNetwork)  # handle ETH>ERC20 alias
         toNetwork = self.safe_string(networks, toNetwork)  # handle ETH>ERC20 alias
         if fromNetwork == toNetwork:
-            raise BadRequest(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork')
+            raise BadRequest(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same')
         if (fromNetwork is None) or (toNetwork is None):
             keys = list(networks.keys())
             raise ArgumentsRequired(self.id + ' convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ' + ', '.join(keys))

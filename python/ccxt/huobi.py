@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import ArgumentsRequired
@@ -21,6 +20,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -871,7 +871,7 @@ class huobi(Exchange):
                     '1066': BadSymbol,  # {"status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147}
                     '1067': InvalidOrder,  # {"status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413}
                     '1094': InvalidOrder,  # {"status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243}
-                    '1220': AccountNotEnabled,  # {"status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718}
+                    '1220': AccountNotEnabled,  # {"status":"error","err_code":1220,"err_msg":"You don’t have access permission have not opened contracts trading.","ts":1645096660718}
                     '1303': BadRequest,  # {"code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true}
                     '1461': InvalidOrder,  # {"status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits(5000USDT). Please modify.","ts":1652554651234}
                     'bad-request': BadRequest,
@@ -2498,7 +2498,7 @@ class huobi(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the huobi api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2507,7 +2507,7 @@ class huobi(Exchange):
             # 'symbol': market['id'],  # spot, future
             # 'contract_code': market['id'],  # swap
             # 'size': 1000,  # max 1000 for spot, 2000 for contracts
-            # 'from': int(since / 1000), spot only
+            # 'from': int((since / str(1000))), spot only
             # 'to': self.seconds(), spot only
         }
         fieldName = 'symbol'
@@ -2516,7 +2516,7 @@ class huobi(Exchange):
         method = 'spotPublicGetMarketHistoryCandles'
         if market['spot']:
             if since is not None:
-                request['from'] = int(since / 1000)
+                request['from'] = self.parse_to_int(since / 1000)
             if limit is not None:
                 request['size'] = limit  # max 2000
         elif market['future']:
@@ -2570,7 +2570,7 @@ class huobi(Exchange):
                     request['from'] = now - duration * (limit - 1)
                     request['to'] = now
                 else:
-                    start = int(since / 1000)
+                    start = self.parse_to_int(since / 1000)
                     request['from'] = start
                     request['to'] = self.sum(start, duration * (limit - 1))
         request[fieldName] = market['id']
@@ -2681,6 +2681,7 @@ class huobi(Exchange):
         #            }
         #        ]
         #    }
+        #    }
         #
         data = self.safe_value(response, 'data', [])
         result = {}
@@ -2767,7 +2768,7 @@ class huobi(Exchange):
         return result
 
     def network_id_to_code(self, networkId, currencyCode=None):
-        # here network-id is provided as a pair of currency & chain(i.e. trc20usdt)
+        # here network-id is provided pair of currency & chain(i.e. trc20usdt)
         keys = list(self.options['networkNamesByChainIds'].keys())
         keysLength = len(keys)
         if keysLength == 0:
@@ -5323,8 +5324,8 @@ class huobi(Exchange):
                 }
                 if method != 'POST':
                     request = self.extend(request, query)
-                request = self.keysort(request)
-                auth = self.urlencode(request)
+                sortedRequest = self.keysort(request)
+                auth = self.urlencode(sortedRequest)
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
                 payload = "\n".join([method, self.hostname, url, auth])  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')

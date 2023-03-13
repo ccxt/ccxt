@@ -1,0 +1,11 @@
+
+import testBalance from './test.balance';
+
+async function testFetchBalance (exchange, code, symbol) {
+    const method = 'fetchBalance';
+    const response = await exchange[method] ();
+    console.log (exchange.id, method, 'fetched, asserting now  ...');
+    testBalance (exchange, response, method);
+}
+
+export default testFetchBalance;

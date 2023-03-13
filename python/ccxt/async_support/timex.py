@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -15,6 +14,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -431,7 +431,7 @@ class timex(Exchange):
         currency = self.get_currency_by_address(currencyAddresss)
         return {
             'info': transaction,
-            'id': self.safe_string_2(transaction, 'transferHash'),
+            'id': self.safe_string(transaction, 'transferHash'),
             'txid': self.safe_string(transaction, 'txid'),
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
@@ -611,7 +611,7 @@ class timex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the timex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)

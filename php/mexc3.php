@@ -916,7 +916,7 @@ class mexc3 extends Exchange {
         //                 "contractSize":0.0001,
         //                 "minLeverage":1,
         //                 "maxLeverage":125,
-        //                 "priceScale":2, // seems useless atm, as it's just how UI shows the price, $i->e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
+        //                 "priceScale":2, // seems useless atm,'s just how UI shows the price, $i->e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
         //                 "volScale":0, // probably => contract amount precision
         //                 "amountScale":4, // probably => $quote currency precision
         //                 "priceUnit":0.5, // price tick size
@@ -1328,7 +1328,7 @@ class mexc3 extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of $candles to fetch
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {[[int]]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of $candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1365,7 +1365,7 @@ class mexc3 extends Exchange {
             $candles = $response;
         } elseif ($market['swap']) {
             if ($since !== null) {
-                $request['start'] = intval($since / 1000);
+                $request['start'] = $this->parse_to_int($since / 1000);
             }
             $priceType = $this->safe_string($params, 'price', 'default');
             $params = $this->omit($params, 'price');
@@ -2339,7 +2339,7 @@ class mexc3 extends Exchange {
             //
             return $this->parse_orders($response, $market, $since, $limit);
         } else {
-            // TO_DO => another possible way is through => open_orders/{$symbol}, but as they have same ratelimits, and less granularity, i think historical orders are more convenient, as it supports more $params (however, theoretically, open-orders endpoint might be sligthly fast)
+            // TO_DO => another possible way is through => open_orders/{$symbol}, but have same ratelimits, and less granularity, i think historical orders are more convenient, supports more $params (however, theoretically, open-orders endpoint might be sligthly fast)
             return $this->fetch_orders_by_state(2, $symbol, $since, $limit, $params);
         }
     }
@@ -2742,7 +2742,7 @@ class mexc3 extends Exchange {
         //         "price" => "2.9", // not present in stop-$market, but in stop-limit $order
         //         "executeCycle" => "87600",
         //         "trend" => "1",
-        //          // below keys are same as in regular $order structure
+        //          // below keys are same regular $order structure
         //         "symbol" => "STEPN_USDT",
         //         "leverage" => "20",
         //         "side" => "1",

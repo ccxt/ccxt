@@ -41,6 +41,9 @@ class novadax extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchDepositAddress' => false,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -486,7 +489,7 @@ class novadax extends Exchange {
         //          "timestamp" => 1565171053345
         //       }
         //
-        // private fetchMyTrades (same endpoint as fetchOrderTrades)
+        // private fetchMyTrades (same endpoint)
         //
         //      {
         //          "id" => "608717046691139584",
@@ -579,7 +582,7 @@ class novadax extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -596,7 +599,7 @@ class novadax extends Exchange {
             $request['from'] = $now - $limit * $duration;
             $request['to'] = $now;
         } else {
-            $startFrom = intval($since / 1000);
+            $startFrom = $this->parse_to_int($since / 1000);
             $request['from'] = $startFrom;
             $request['to'] = $this->sum($startFrom, $limit * $duration);
         }

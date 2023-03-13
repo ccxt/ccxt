@@ -544,7 +544,7 @@ class btcturk extends Exchange {
          * @param {int|null} $limit the maximum amount of candles $to fetch
          * @param {array} $params extra parameters specific $to the btcturk api endpoint
          * @param {int|null} $params->until timestamp in ms of the latest candle $to fetch
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -553,9 +553,9 @@ class btcturk extends Exchange {
             'resolution' => $this->safe_value($this->timeframes, $timeframe, $timeframe), // allows the user $to pass custom timeframes if needed
         );
         $until = $this->safe_integer($params, 'until', $this->milliseconds());
-        $request['to'] = intval($until / 1000);
+        $request['to'] = $this->parse_to_int(($until / 1000));
         if ($since !== null) {
-            $request['from'] = intval($since / 1000);
+            $request['from'] = $this->parse_to_int($since / 1000);
         } elseif ($limit === null) { // $since will also be null
             $limit = 100; // default value
         }
@@ -566,10 +566,10 @@ class btcturk extends Exchange {
             $seconds = $this->parse_timeframe($timeframe);
             $limitSeconds = $seconds * ($limit - 1);
             if ($since !== null) {
-                $to = intval($since / 1000) . $limitSeconds;
+                $to = $this->parse_to_int($since / 1000) . $limitSeconds;
                 $request['to'] = min ($request['to'], $to);
             } else {
-                $request['from'] = intval($until / 1000) - $limitSeconds;
+                $request['from'] = $this->parse_to_int($until / 1000) - $limitSeconds;
             }
         }
         $response = $this->graphGetKlinesHistory (array_merge($request, $params));
