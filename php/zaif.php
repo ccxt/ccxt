@@ -25,7 +25,7 @@ class zaif extends Exchange {
                 'future' => false,
                 'option' => false,
                 'cancelOrder' => true,
-                'createMarketOrder' => null,
+                'createMarketOrder' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -440,7 +440,7 @@ class zaif extends Exchange {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
+         * @param {string} $type must be 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
@@ -670,8 +670,9 @@ class zaif extends Exchange {
         );
     }
 
-    public function nonce() {
-        $nonce = floatval($this->milliseconds() / 1000);
+    public function custom_nonce() {
+        $num = ($this->milliseconds() / (string) 1000);
+        $nonce = floatval($num);
         return sprintf('%.8f', $nonce);
     }
 
@@ -690,7 +691,7 @@ class zaif extends Exchange {
             } else {
                 $url .= 'tapi';
             }
-            $nonce = $this->nonce();
+            $nonce = $this->custom_nonce();
             $body = $this->urlencode(array_merge(array(
                 'method' => $path,
                 'nonce' => $nonce,

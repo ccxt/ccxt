@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import AccountSuspended
@@ -22,6 +21,7 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -39,7 +39,7 @@ class gate(Exchange):
             'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
-                'doc': 'https://www.gate.io/docs/apiv4/en/index.html',
+                'doc': 'https://www.gate.io/docs/developers/apiv4/en/',
                 'www': 'https://gate.io/',
                 'api': {
                     'public': {
@@ -66,10 +66,12 @@ class gate(Exchange):
                     'public': {
                         'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
                     },
                     'private': {
                         'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
                     },
                 },
                 'referral': {
@@ -442,7 +444,6 @@ class gate(Exchange):
                 'RAI': 'Rai Reflex Index',  # conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
-                'TON': 'TONToken',
                 'VAI': 'VAIOT',
             },
             'requiredCredentials': {
@@ -453,6 +454,7 @@ class gate(Exchange):
                 'X-Gate-Channel-Id': 'ccxt',
             },
             'options': {
+                'sandboxMode': False,
                 'createOrder': {
                     'expiration': 86400,  # for conditional orders
                 },
@@ -589,7 +591,7 @@ class gate(Exchange):
                     },
                 },
             },
-            # https://www.gate.io/docs/apiv4/en/index.html#label-list
+            # https://www.gate.io/docs/developers/apiv4/en/#label-list
             'exceptions': {
                 'exact': {
                     'INVALID_PARAM_VALUE': BadRequest,
@@ -682,25 +684,43 @@ class gate(Exchange):
                     'TOO_BUSY': ExchangeNotAvailable,
                     'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
                     'RISK_LIMIT_TOO_LOW': BadRequest,  # {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
+                    'AUTO_TRIGGER_PRICE_LESS_LAST': InvalidOrder,  # {"label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument: Trigger.Price must < last_price"}
+                    'AUTO_TRIGGER_PRICE_GREATE_LAST': InvalidOrder,  # {"label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument: Trigger.Price must > last_price"}
                 },
+                'broad': {},
             },
-            'broad': {},
         })
+
+    def set_sandbox_mode(self, enable):
+        super(gate, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable
 
     async def fetch_markets(self, params={}):
         """
         retrieves data on all markets for gate
+        see https://www.gate.io/docs/developers/apiv4/en/#list-all-currency-pairs-supported                                     # spot
+        see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         # margin
+        see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts                                            # swap
+        see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2                                          # future
+        see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time  # option
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        promises = [
-            self.fetch_spot_markets(params),
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        rawPromises = [
             self.fetch_contract_markets(params),
+            self.fetch_option_markets(params),
         ]
-        promises = await asyncio.gather(*promises)
-        spotMarkets = promises[0]
-        contractMarkets = promises[1]
-        return self.array_concat(spotMarkets, contractMarkets)
+        if not sandboxMode:
+            # gate does not have a sandbox for spot markets
+            mainnetOnly = [self.fetch_spot_markets(params)]
+            rawPromises = self.array_concat(rawPromises, mainnetOnly)
+        promises = await asyncio.gather(*rawPromises)
+        spotMarkets = self.safe_value(promises, 0, [])
+        contractMarkets = self.safe_value(promises, 1, [])
+        optionMarkets = self.safe_value(promises, 2, [])
+        markets = self.array_concat(spotMarkets, contractMarkets)
+        return self.array_concat(markets, optionMarkets)
 
     async def fetch_spot_markets(self, params={}):
         marginResponse = await self.publicMarginGetCurrencyPairs(params)
@@ -1274,7 +1294,7 @@ class gate(Exchange):
                 'lowerCaseId': currencyIdLower,
                 'name': None,
                 'code': code,
-                'precision': self.parse_number('1e-4'),  # todo: as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix(self.value, 4);" function, so users cant set lower precision than 0.0001
+                'precision': self.parse_number('1e-4'),  # todo: is done completely in html, in withdrawal page's source it has predefined "num_need_fix(self.value, 4);" function, so users cant set lower precision than 0.0001
                 'info': entry,
                 'active': active,
                 'deposit': depositEnabled,
@@ -2081,7 +2101,7 @@ class gate(Exchange):
         see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the gate api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -2287,21 +2307,25 @@ class gate(Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://www.gate.io/docs/developers/apiv4/en/#market-candlesticks       # spot
+        see https://www.gate.io/docs/developers/apiv4/en/#get-futures-candlesticks  # swap
+        see https://www.gate.io/docs/developers/apiv4/en/#market-candlesticks       # future
+        see https://www.gate.io/docs/developers/apiv4/en/#get-options-candlesticks  # option
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
+        :param int|None limit: the maximum amount of candles to fetch, limit is conflicted with since and params["until"], If either since and params["until"] is specified, request will be rejected
         :param dict params: extra parameters specific to the gateio api endpoint
         :param str|None params['price']: "mark" or "index" for mark price and index price candles
         :param int|None params['until']: timestamp in ms of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume(units in quote currency)
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume(units in quote currency)
         """
         await self.load_markets()
         market = self.market(symbol)
         price = self.safe_string(params, 'price')
         request = {}
         request, params = self.prepare_request(market, None, params)
-        request['interval'] = self.timeframes[timeframe]
+        request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
         method = 'publicSpotGetCandlesticks'
         maxLimit = 1000
         if market['contract']:
@@ -2319,11 +2343,11 @@ class gate(Exchange):
         limit = maxLimit if (limit is None) else min(limit, maxLimit)
         until = self.safe_integer(params, 'until')
         if until is not None:
-            until = int(until / 1000)
+            until = self.parse_to_int(until / 1000)
             params = self.omit(params, 'until')
         if since is not None:
             duration = self.parse_timeframe(timeframe)
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
             toTimestamp = self.sum(request['from'], limit * duration - 1)
             currentTimestamp = self.seconds()
             to = min(toTimestamp, currentTimestamp)
@@ -2465,7 +2489,7 @@ class gate(Exchange):
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
         if since is not None and (market['contract']):
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
         response = await getattr(self, method)(self.extend(request, query))
         #
         # spot
@@ -2569,9 +2593,9 @@ class gate(Exchange):
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
         if since is not None:
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
         if until is not None:
-            request['to'] = int(until / 1000)
+            request['to'] = self.parse_to_int(until / 1000)
         method = self.get_supported_mapping(type, {
             'spot': 'privateSpotGetMyTrades',
             'margin': 'privateSpotGetMyTrades',
@@ -2767,7 +2791,7 @@ class gate(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            start = int(since / 1000)
+            start = self.parse_to_int(since / 1000)
             request['from'] = start
             request['to'] = self.sum(start, 30 * 24 * 60 * 60)
         response = await self.privateWalletGetDeposits(self.extend(request, params))
@@ -2791,7 +2815,7 @@ class gate(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            start = int(since / 1000)
+            start = self.parse_to_int(since / 1000)
             request['from'] = start
             request['to'] = self.sum(start, 30 * 24 * 60 * 60)
         response = await self.privateWalletGetWithdrawals(self.extend(request, params))
@@ -2824,6 +2848,8 @@ class gate(Exchange):
         if network is not None:
             request['chain'] = network
             params = self.omit(params, 'network')
+        else:
+            request['chain'] = currency['id']
         response = await self.privateWithdrawalsPostWithdrawals(self.extend(request, params))
         #
         #    {
@@ -2881,21 +2907,23 @@ class gate(Exchange):
         #
         id = self.safe_string(transaction, 'id')
         type = None
-        amount = self.safe_string(transaction, 'amount')
+        amountString = self.safe_string(transaction, 'amount')
         if id is not None:
             if id[0] == 'b':
                 # GateCode handling
-                type = 'deposit' if Precise.string_gt(amount, '0') else 'withdrawal'
-                amount = Precise.string_abs(amount)
+                type = 'deposit' if Precise.string_gt(amountString, '0') else 'withdrawal'
+                amountString = Precise.string_abs(amountString)
             else:
                 type = self.parse_transaction_type(id[0])
+        feeCostString = self.safe_string(transaction, 'fee')
+        if type == 'withdrawal':
+            amountString = Precise.string_sub(amountString, feeCostString)
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         txid = self.safe_string(transaction, 'txid')
         rawStatus = self.safe_string(transaction, 'status')
         status = self.parse_transaction_status(rawStatus)
         address = self.safe_string(transaction, 'address')
-        fee = self.safe_number(transaction, 'fee')
         tag = self.safe_string(transaction, 'memo')
         timestamp = self.safe_timestamp(transaction, 'timestamp')
         return {
@@ -2903,7 +2931,7 @@ class gate(Exchange):
             'id': id,
             'txid': txid,
             'currency': code,
-            'amount': self.parse_number(amount),
+            'amount': self.parse_number(amountString),
             'network': None,
             'address': address,
             'addressTo': None,
@@ -2916,7 +2944,10 @@ class gate(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'updated': None,
-            'fee': fee,
+            'fee': {
+                'currency': code,
+                'cost': self.parse_number(feeCostString),
+            },
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -2937,8 +2968,9 @@ class gate(Exchange):
         :param bool|None params['auto_borrow']: *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
         :param str|None params['settle']: *contract only* Unified Currency Code for settle currency
         :param bool|None params['reduceOnly']: *contract only* Indicates if self order is to reduce the size of a position
-        :param bool|None params['close']: *contract only* Set as True to close the position, with size set to 0
+        :param bool|None params['close']: *contract only* Set to close the position, with size set to 0
         :param bool|None params['auto_size']: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+        :param int|None params['price_type']: *contract only* 0 latest deal price, 1 mark price, 2 index price
         :returns dict|None: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -2985,7 +3017,7 @@ class gate(Exchange):
                     'size': amount,  # int64, positive = bid, negative = ask
                     # 'iceberg': 0,  # int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                     # 'close': False,  # True to close the position, with size set to 0
-                    # 'reduce_only': False,  # St as True to be reduce-only order
+                    # 'reduce_only': False,  # St to be reduce-only order
                     # 'tif': 'gtc',  # gtc, ioc, poc PendingOrCancelled == postOnly order
                     # 'text': clientOrderId,  # 't-abcdef1234567890',
                     # 'auto_size': '',  # close_long, close_short, note size also needs to be set to 0
@@ -3074,9 +3106,13 @@ class gate(Exchange):
                     elif isTakeProfitOrder:
                         rule = 2 if (side == 'buy') else 1
                         triggerOrderPrice = self.price_to_precision(symbol, takeProfitPrice)
+                    priceType = self.safe_integer(params, 'price_type', 0)
+                    if priceType < 0 or priceType > 2:
+                        raise BadRequest(self.id + ' createOrder() price_type should be 0 latest deal price, 1 mark price, 2 index price')
+                    params = self.omit(params, ['price_type'])
                     request['trigger'] = {
                         # 'strategy_type': 0,  # 0 = by price, 1 = by price gap, only 0 is supported currently
-                        'price_type': 0,  # 0 latest deal price, 1 mark price, 2 index price
+                        'price_type': priceType,  # 0 latest deal price, 1 mark price, 2 index price
                         'price': self.price_to_precision(symbol, triggerOrderPrice),  # price or gap
                         'rule': rule,  # 1 means price_type >= price, 2 means price_type <= price
                         # 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
@@ -3432,7 +3468,7 @@ class gate(Exchange):
         filledString = Precise.string_sub(amount, remainingString)
         cost = self.safe_string(order, 'filled_total')
         rawStatus = None
-        average = self.safe_number(order, 'fill_price')
+        average = self.safe_number_2(order, 'avg_deal_price', 'fill_price')
         if put:
             remainingString = amount
             filledString = '0'
@@ -3476,18 +3512,19 @@ class gate(Exchange):
         numFeeCurrencies = len(fees)
         multipleFeeCurrencies = numFeeCurrencies > 1
         status = self.parse_order_status(rawStatus)
-        filled = self.parse_number(Precise.string_abs(filledString))
-        remaining = self.parse_number(Precise.string_abs(remainingString))
+        filled = Precise.string_abs(filledString)
+        remaining = Precise.string_abs(remainingString)
         # handle spot market buy
         account = self.safe_string(order, 'account')  # using self instead of market type because of the conflicting ids
-        if (account == 'spot') and (type == 'market') and (side == 'buy'):
+        if account == 'spot':
             averageString = self.safe_string(order, 'avg_deal_price')
             average = self.parse_number(averageString)
-            filled = Precise.string_div(filledString, averageString)
-            remaining = Precise.string_div(remainingString, averageString)
-            price = None  # arrives as 0
-            cost = amount
-            amount = Precise.string_div(amount, averageString)
+            if (type == 'market') and (side == 'buy'):
+                filled = Precise.string_div(filledString, averageString)
+                remaining = Precise.string_div(remainingString, averageString)
+                price = None  # arrives
+                cost = amount
+                amount = Precise.string_div(amount, averageString)
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': self.safe_string(order, 'text'),
@@ -3597,7 +3634,7 @@ class gate(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None and spot:
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
         methodTail = 'PriceOrders' if stop else 'Orders'
         openSpotOrders = spot and (status == 'open') and not stop
         if openSpotOrders:
@@ -3947,12 +3984,7 @@ class gate(Exchange):
         #        "currency_pair": "BTC_USDT"
         #    }
         #
-        transfer = self.parse_transfer(response, currency)
-        return self.extend(transfer, {
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'amount': self.parse_number(truncated),
-        })
+        return self.parse_transfer(response, currency)
 
     def parse_transfer(self, transfer, currency=None):
         timestamp = self.milliseconds()
@@ -4077,7 +4109,7 @@ class gate(Exchange):
         unrealisedPnl = self.safe_string(position, 'unrealised_pnl')
         # Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
         # *The default leverage under the full position is the highest leverage in the market.
-        # *Trading fee is charged as Taker Fee Rate(0.075%).
+        # *Trading fee is charged Fee Rate(0.075%).
         takerFee = '0.00075'
         feePaid = Precise.string_mul(takerFee, notional)
         initialMarginString = Precise.string_add(Precise.string_div(notional, leverage), feePaid)
@@ -4506,7 +4538,7 @@ class gate(Exchange):
             request['currency_pair'] = market['id']
             request['side'] = 'borrow'
             # default it to 0.01% since self is a reasonable limit
-            # as it is the smallest tick size currently offered by gateio
+            # is the smallest tick size currently offered by gateio
             request['rate'] = self.safe_string(params, 'rate', '0.0001')
             request['auto_renew'] = True
             method = 'privateMarginPostLoans'
@@ -4735,7 +4767,7 @@ class gate(Exchange):
         see https://www.gate.io/docs/developers/apiv4/en/#futures-stats
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m", "15m", "30m", "1h", "4h", "1d"
-        :param int|None since: the time(ms) of the earliest record to retrieve as a unix timestamp
+        :param int|None since: the time(ms) of the earliest record to retrieve unix timestamp
         :param int|None limit: default 30
         :param dict params: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
@@ -4747,7 +4779,7 @@ class gate(Exchange):
         request = {
             'contract': market['id'],
             'settle': market['settleId'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit

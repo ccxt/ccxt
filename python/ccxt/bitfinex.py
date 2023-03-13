@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
@@ -17,6 +16,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -51,7 +51,7 @@ class bitfinex(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
-                'fetchDeposits': None,
+                'fetchDeposits': False,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchIndexOHLCV': False,
@@ -75,7 +75,7 @@ class bitfinex(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
                 'fetchTransactions': True,
-                'fetchWithdrawals': None,
+                'fetchWithdrawals': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -824,7 +824,7 @@ class bitfinex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitfinex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -973,7 +973,7 @@ class bitfinex(Exchange):
             'limit_trades': limit,
         }
         if since is not None:
-            request['timestamp'] = int(since / 1000)
+            request['timestamp'] = self.parse_to_int(since / 1000)
         response = self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -996,7 +996,7 @@ class bitfinex(Exchange):
         if limit is not None:
             request['limit_trades'] = limit
         if since is not None:
-            request['timestamp'] = int(since / 1000)
+            request['timestamp'] = self.parse_to_int(since / 1000)
         response = self.privatePostMytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -1230,7 +1230,7 @@ class bitfinex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitfinex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         if limit is None:
@@ -1239,7 +1239,7 @@ class bitfinex(Exchange):
         v2id = 't' + market['id']
         request = {
             'symbol': v2id,
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
             'sort': 1,
             'limit': limit,
         }
@@ -1325,7 +1325,7 @@ class bitfinex(Exchange):
                 currencyId = currency['id']
         query['currency'] = currencyId
         if since is not None:
-            query['since'] = int(since / 1000)
+            query['since'] = self.parse_to_int(since / 1000)
         response = self.privatePostHistoryMovements(self.extend(query, params))
         #
         #     [

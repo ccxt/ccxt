@@ -767,7 +767,7 @@ class mexc extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the mexc api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1243,7 +1243,7 @@ class mexc extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the mexc api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1261,7 +1261,7 @@ class mexc extends Exchange {
         if ($market['spot']) {
             $method = 'spotPublicGetMarketKline';
             if ($since !== null) {
-                $request['start_time'] = intval($since / 1000);
+                $request['start_time'] = $this->parse_to_int($since / 1000);
             }
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100
@@ -1269,7 +1269,7 @@ class mexc extends Exchange {
         } elseif ($market['swap']) {
             $method = 'contractPublicGetKlineSymbol';
             if ($since !== null) {
-                $request['start'] = intval($since / 1000);
+                $request['start'] = $this->parse_to_int($since / 1000);
             }
             // $request['end'] = $this->seconds();
         }

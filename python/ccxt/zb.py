@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -25,6 +24,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -57,7 +57,7 @@ class zb(Exchange):
                 'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'createMarketOrder': None,
+                'createMarketOrder': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': True,
@@ -578,6 +578,7 @@ class zb(Exchange):
         #     }
         #
         promises = [self.spotV1PublicGetMarkets(params), self.contractV2PublicGetConfigMarketList(params)]
+        promises = promises
         markets = promises[0]
         contracts = promises[1]
         #
@@ -1314,7 +1315,7 @@ class zb(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the zb api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1494,7 +1495,7 @@ class zb(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the zb api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1746,7 +1747,7 @@ class zb(Exchange):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -1849,7 +1850,7 @@ class zb(Exchange):
             clientOrderId = self.safe_string(params, 'clientOrderId')  # OPTIONAL '^[a-zA-Z0-9-_]{1,36}$',  # The user-defined order number
             if clientOrderId is not None:
                 request['clientOrderId'] = clientOrderId
-            # using self.extend as name causes issues in python
+            # using self.extend name causes issues in python
             extendOrderAlgos = self.safe_value(params, 'extend', None)  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
             if extendOrderAlgos is not None:
                 request['extend'] = extendOrderAlgos
@@ -2763,18 +2764,17 @@ class zb(Exchange):
         orderId = self.safe_string_2(order, 'orderId', 'data') if market['swap'] else self.safe_string(order, 'id')
         if orderId is None:
             orderId = self.safe_value(order, 'id')
-        side = self.safe_integer_2(order, 'type', 'side')
-        if side is None:
-            side = None
-        else:
+        rawSide = self.safe_integer_2(order, 'type', 'side')
+        side = None
+        if side is not None:
             if market['spot']:
-                side = 'buy' if (side == 1) else 'sell'
+                side = 'buy' if (rawSide == 1) else 'sell'
             elif market['swap']:
-                if side == 0:
+                if rawSide == 0:
                     side = None
-                elif (side == 1) or (side == 4) or (side == 5):
+                elif (rawSide == 1) or (rawSide == 4) or (rawSide == 5):
                     side = 'buy'
-                elif (side == 2) or (side == 3) or (side == 6):
+                elif (rawSide == 2) or (rawSide == 3) or (rawSide == 6):
                     side = 'sell'
         timestamp = self.safe_integer(order, 'trade_date')
         if timestamp is None:

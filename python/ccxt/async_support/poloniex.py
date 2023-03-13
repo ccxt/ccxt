@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -21,6 +20,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -46,7 +46,6 @@ class poloniex(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
-                'createMarketOrder': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -100,8 +99,12 @@ class poloniex(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
-                'api': 'https://api.poloniex.com',
-                'test': 'https://sand-spot-api-gateway.poloniex.com',
+                'api': {
+                    'rest': 'https://api.poloniex.com',
+                },
+                'test': {
+                    'rest': 'https://sand-spot-api-gateway.poloniex.com',
+                },
                 'www': 'https://www.poloniex.com',
                 'doc': 'https://docs.poloniex.com',
                 'fees': 'https://poloniex.com/fees',
@@ -329,13 +332,13 @@ class poloniex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the poloniex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             request['startTime'] = since
@@ -522,7 +525,7 @@ class poloniex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the poloniex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1552,7 +1555,7 @@ class poloniex(Exchange):
         await self.load_markets()
         year = 31104000  # 60 * 60 * 24 * 30 * 12 = one year of history, why not
         now = self.seconds()
-        start = int(since / 1000) if (since is not None) else now - 10 * year
+        start = int((since / str(1000))) if (since is not None) else now - 10 * year
         request = {
             'start': start,  # UNIX timestamp, required
             'end': now,  # UNIX timestamp, required
@@ -1742,7 +1745,8 @@ class poloniex(Exchange):
             if (codes is None) or (self.in_array(code, codes)):
                 depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(feeInfo, code)
                 childChains = self.safe_value(feeInfo, 'childChains')
-                if len(childChains) > 0:
+                chainsLength = len(childChains)
+                if chainsLength > 0:
                     for j in range(0, len(childChains)):
                         networkId = childChains[j]
                         networkId = networkId.replace(code, '')
@@ -1893,7 +1897,7 @@ class poloniex(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api']
+        url = self.urls['api']['rest']
         query = self.omit(params, self.extract_params(path))
         implodedPath = self.implode_params(path, params)
         if api == 'public':

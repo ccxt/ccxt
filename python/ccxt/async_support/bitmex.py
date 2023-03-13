@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -15,6 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -36,7 +36,7 @@ class bitmex(Exchange):
             'pro': True,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': True,
@@ -397,7 +397,7 @@ class bitmex(Exchange):
             settle = self.safe_currency_code(settleId)
             basequote = baseId + quoteId
             swap = (id == basequote)
-            # 'positionCurrency' may be empty("", as Bitmex currently returns for ETHUSD)
+            # 'positionCurrency' may be empty("", currently returns for ETHUSD)
             # so let's take the settlCurrency first and then adjust if needed
             type = None
             future = False
@@ -1095,7 +1095,7 @@ class bitmex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1389,7 +1389,7 @@ class bitmex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         # send JSON key/value pairs, such as {"key": "value"}
@@ -1401,7 +1401,7 @@ class bitmex(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'binSize': self.timeframes[timeframe],
+            'binSize': self.safe_string(self.timeframes, timeframe, timeframe),
             'partial': True,     # True == include yet-incomplete current bins
             # 'filter': filter,  # filter by individual fields and do advanced queries
             # 'columns': [],    # will return all columns if omitted
@@ -1730,14 +1730,14 @@ class bitmex(Exchange):
         if reduceOnly is not None:
             if (market['type'] != 'swap') and (market['type'] != 'future'):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only')
+        brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
             'orderQty': float(self.amount_to_precision(symbol, amount)),  # lot size multiplied by the number of contracts
             'ordType': orderType,
+            'text': brokerId,
         }
-        if reduceOnly:
-            request['execInst'] = 'ReduceOnly'
         if (orderType == 'Stop') or (orderType == 'StopLimit') or (orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'):
             stopPrice = self.safe_number_2(params, 'stopPx', 'stopPrice')
             if stopPrice is None:
@@ -1770,6 +1770,8 @@ class bitmex(Exchange):
             request['orderQty'] = amount
         if price is not None:
             request['price'] = price
+        brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
+        request['text'] = brokerId
         response = await self.privatePutOrder(self.extend(request, params))
         return self.parse_order(response)
 
@@ -2635,8 +2637,7 @@ class bitmex(Exchange):
                 'Content-Type': 'application/json',
                 'api-key': self.apiKey,
             }
-            expires = self.sum(self.seconds(), expires)
-            expires = str(expires)
+            expires = self.sum(self.seconds(), str(expires))
             auth += expires
             headers['api-expires'] = expires
             if method == 'POST' or method == 'PUT' or method == 'DELETE':

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.6.52'
+__version__ = '3.0.1'
 
 # ----------------------------------------------------------------------------
 
@@ -73,6 +73,7 @@ from ccxt.base.errors import InvalidNonce                             # noqa: F4
 from ccxt.base.errors import RequestTimeout                           # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
+from ccxt.ace import ace                                              # noqa: F401
 from ccxt.alpaca import alpaca                                        # noqa: F401
 from ccxt.ascendex import ascendex                                    # noqa: F401
 from ccxt.bequant import bequant                                      # noqa: F401
@@ -145,6 +146,7 @@ from ccxt.independentreserve import independentreserve                # noqa: F4
 from ccxt.indodax import indodax                                      # noqa: F401
 from ccxt.itbit import itbit                                          # noqa: F401
 from ccxt.kraken import kraken                                        # noqa: F401
+from ccxt.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.kucoin import kucoin                                        # noqa: F401
 from ccxt.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.kuna import kuna                                            # noqa: F401
@@ -170,7 +172,6 @@ from ccxt.poloniexfutures import poloniexfutures                      # noqa: F4
 from ccxt.probit import probit                                        # noqa: F401
 from ccxt.ripio import ripio                                          # noqa: F401
 from ccxt.stex import stex                                            # noqa: F401
-from ccxt.therock import therock                                      # noqa: F401
 from ccxt.tidex import tidex                                          # noqa: F401
 from ccxt.timex import timex                                          # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
@@ -185,6 +186,7 @@ from ccxt.zb import zb                                                # noqa: F4
 from ccxt.zonda import zonda                                          # noqa: F401
 
 exchanges = [
+    'ace',
     'alpaca',
     'ascendex',
     'bequant',
@@ -257,6 +259,7 @@ exchanges = [
     'indodax',
     'itbit',
     'kraken',
+    'krakenfutures',
     'kucoin',
     'kucoinfutures',
     'kuna',
@@ -282,7 +285,6 @@ exchanges = [
     'probit',
     'ripio',
     'stex',
-    'therock',
     'tidex',
     'timex',
     'tokocrypto',

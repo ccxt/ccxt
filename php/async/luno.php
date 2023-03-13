@@ -52,7 +52,7 @@ class luno extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => false, // overload of base fetchOHLCV, as it doesn't work in this exchange
+                'fetchOHLCV' => false, // overload of base fetchOHLCV, doesn't work in this exchange
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -554,7 +554,7 @@ class luno extends Exchange {
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the luno api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -830,7 +830,7 @@ class luno extends Exchange {
             if ($type === 'market') {
                 $method .= 'Marketorder';
                 $request['type'] = strtoupper($side);
-                // todo add createMarketBuyOrderRequires $price logic as it is implemented in the other exchanges
+                // todo add createMarketBuyOrderRequires $price logic is implemented in the other exchanges
                 if ($side === 'buy') {
                     $request['counter_volume'] = $this->amount_to_precision($market['symbol'], $amount);
                 } else {

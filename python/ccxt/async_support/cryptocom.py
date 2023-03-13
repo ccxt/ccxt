@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import asyncio
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import ArgumentsRequired
@@ -18,6 +17,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -584,7 +584,7 @@ class cryptocom(Exchange):
         see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the cryptocom api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -811,13 +811,13 @@ class cryptocom(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the cryptocom api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         marketType, query = self.handle_market_type_and_params('fetchOHLCV', market, params)
         method = self.get_supported_mapping(marketType, {
@@ -1430,10 +1430,11 @@ class cryptocom(Exchange):
         # }
         data = self.safe_value(response, 'result', {})
         addresses = self.safe_value(data, 'deposit_address_list', [])
-        if len(addresses) == 0:
+        addressesLength = len(addresses)
+        if addressesLength == 0:
             raise ExchangeError(self.id + ' fetchDepositAddressesByNetwork() generating address...')
         result = {}
-        for i in range(0, len(addresses)):
+        for i in range(0, addressesLength):
             value = self.safe_value(addresses, i)
             addressString = self.safe_string(value, 'address')
             currencyId = self.safe_string(value, 'currency')
@@ -2344,7 +2345,7 @@ class cryptocom(Exchange):
                 'nonce': nonce,
             })
             # fix issue https://github.com/ccxt/ccxt/issues/11179
-            # php always encodes dictionaries as arrays
+            # php always encodes dictionaries
             # if an array is empty, php will put it in square brackets
             # python and js will put it in curly brackets
             # the code below checks and replaces those brackets in empty requests

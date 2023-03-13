@@ -7,14 +7,12 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\InvalidNonce;
+use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 
 class bitfinex2 extends \ccxt\async\bitfinex2 {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -65,10 +63,10 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             $checksum = $this->safe_value($this->options, 'checksum', true);
             if ($checksum && !$client->subscriptions[$messageHash]['checksum'] && ($channel === 'book')) {
                 $client->subscriptions[$messageHash]['checksum'] = true;
-                $client->send (array(
+                Async\await($client->send (array(
                     'event' => 'conf',
                     'flags' => 131072,
-                ));
+                )));
             }
             return $result;
         }) ();
@@ -92,12 +90,12 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the biftfinex2 api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $channel = 'candles';
             $key = 'trade:' . $interval . ':' . $market['id'];
             $messageHash = $channel . ':' . $interval . ':' . $market['id'];
@@ -851,7 +849,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     public function authenticate($params = array ()) {
         $url = $this->urls['api']['ws']['private'];
         $client = $this->client($url);
-        $messageHash = 'authenticate';
+        $messageHash = 'authenticated';
         $future = $this->safe_value($client->subscriptions, $messageHash);
         if ($future === null) {
             $nonce = $this->milliseconds();
@@ -976,13 +974,15 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         } else {
             $parsed = $this->parse_ws_order($data);
             $orders->append ($parsed);
+            $symbol = $parsed['symbol'];
+            $symbolIds[$symbol] = true;
         }
         $name = 'orders';
         $client->resolve ($this->orders, $name);
         $keys = is_array($symbolIds) ? array_keys($symbolIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $symbol = $keys[$i];
-            $market = $this->safe_market($symbol);
+            $market = $this->market($symbol);
             $messageHash = $name . ':' . $market['id'];
             $client->resolve ($this->orders, $messageHash);
         }
@@ -1039,7 +1039,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $clientOrderId = $this->safe_string($order, 1);
         $marketId = $this->safe_string($order, 3);
         $symbol = $this->safe_symbol($marketId);
-        $market = $this->safe_market($symbol);
+        $market = $this->safe_market($marketId);
         $amount = $this->safe_number($order, 7);
         $side = 'buy';
         if ($amount < 0) {

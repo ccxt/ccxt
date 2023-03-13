@@ -141,26 +141,26 @@ class delta extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.15 / 100,
-                    'maker' => 0.10 / 100,
+                    'taker' => $this->parse_number('0.0015'),
+                    'maker' => $this->parse_number('0.0010'),
                     'tiers' => array(
                         'taker' => array(
-                            array( 0, 0.15 / 100 ),
-                            array( 100, 0.13 / 100 ),
-                            array( 250, 0.13 / 100 ),
-                            array( 1000, 0.1 / 100 ),
-                            array( 5000, 0.09 / 100 ),
-                            array( 10000, 0.075 / 100 ),
-                            array( 20000, 0.065 / 100 ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('100'), $this->parse_number('0.0013') ),
+                            array( $this->parse_number('250'), $this->parse_number('0.0013') ),
+                            array( $this->parse_number('1000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('5000'), $this->parse_number('0.0009') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.00075') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.00065') ),
                         ),
                         'maker' => array(
-                            array( 0, 0.1 / 100 ),
-                            array( 100, 0.1 / 100 ),
-                            array( 250, 0.09 / 100 ),
-                            array( 1000, 0.075 / 100 ),
-                            array( 5000, 0.06 / 100 ),
-                            array( 10000, 0.05 / 100 ),
-                            array( 20000, 0.05 / 100 ),
+                            array( $this->parse_number('0'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('100'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('250'), $this->parse_number('0.0009') ),
+                            array( $this->parse_number('1000'), $this->parse_number('0.00075') ),
+                            array( $this->parse_number('5000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.0005') ),
                         ),
                     ),
                 ),
@@ -180,19 +180,19 @@ class delta extends Exchange {
             'precisionMode' => TICK_SIZE,
             'requiredCredentials' => array(
                 'apiKey' => true,
-                'secret' => false,
+                'secret' => true,
             ),
             'exceptions' => array(
                 'exact' => array(
                     // Margin required to place order with selected leverage and quantity is insufficient.
                     'insufficient_margin' => '\\ccxt\\InsufficientFunds', // array("error":array("code":"insufficient_margin","context":array("available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000")),"success":false)
                     'order_size_exceed_available' => '\\ccxt\\InvalidOrder', // The order book doesn't have sufficient liquidity, hence the order couldnt be filled, for example, ioc orders
-                    'risk_limits_breached' => '\\ccxt\\BadRequest', // orders couldn't be placed as it will breach allowed risk limits.
+                    'risk_limits_breached' => '\\ccxt\\BadRequest', // orders couldn't be placed will breach allowed risk limits.
                     'invalid_contract' => '\\ccxt\\BadSymbol', // The contract/product is either doesn't exist or has already expired.
                     'immediate_liquidation' => '\\ccxt\\InvalidOrder', // Order will cause immediate liquidation.
                     'out_of_bankruptcy' => '\\ccxt\\InvalidOrder', // Order prices are out of position bankruptcy limits.
                     'self_matching_disrupted_post_only' => '\\ccxt\\InvalidOrder', // Self matching is not allowed during auction.
-                    'immediate_execution_post_only' => '\\ccxt\\InvalidOrder', // orders couldn't be placed as it includes post only orders which will be immediately executed
+                    'immediate_execution_post_only' => '\\ccxt\\InvalidOrder', // orders couldn't be placed includes post only orders which will be immediately executed
                     'bad_schema' => '\\ccxt\\BadRequest', // array("error":array("code":"bad_schema","context":array("schema_errors":[array("code":"validation_error","message":"id is required","param":"")])),"success":false)
                     'invalid_api_key' => '\\ccxt\\AuthenticationError', // array("success":false,"error":array("code":"invalid_api_key"))
                     'invalid_signature' => '\\ccxt\\AuthenticationError', // array("success":false,"error":array("code":"invalid_signature"))
@@ -775,7 +775,7 @@ class delta extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1015,13 +1015,13 @@ class delta extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'resolution' => $this->timeframes[$timeframe],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe);
         $limit = $limit ? $limit : 2000; // max 2000
@@ -1030,7 +1030,7 @@ class delta extends Exchange {
             $request['end'] = $end;
             $request['start'] = $end - $limit * $duration;
         } else {
-            $start = intval($since / 1000);
+            $start = $this->parse_to_int($since / 1000);
             $request['start'] = $start;
             $request['end'] = $this->sum($start, $limit * $duration);
         }
@@ -1122,7 +1122,7 @@ class delta extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $result;
+        return $this->parse_position($result, $market);
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
@@ -1138,21 +1138,93 @@ class delta extends Exchange {
         //     {
         //         "success" => true,
         //         "result" => array(
-        //             {
-        //                 "user_id" => 0,
-        //                 "size" => 0,
-        //                 "entry_price" => "string",
-        //                 "margin" => "string",
-        //                 "liquidation_price" => "string",
-        //                 "bankruptcy_price" => "string",
-        //                 "adl_level" => 0,
-        //                 "product_id" => 0
-        //             }
+        //           {
+        //             "user_id" => 0,
+        //             "size" => 0,
+        //             "entry_price" => "string",
+        //             "margin" => "string",
+        //             "liquidation_price" => "string",
+        //             "bankruptcy_price" => "string",
+        //             "adl_level" => 0,
+        //             "product_id" => 0,
+        //             "product_symbol" => "string",
+        //             "commission" => "string",
+        //             "realized_pnl" => "string",
+        //             "realized_funding" => "string"
+        //           }
         //         )
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $result;
+        return $this->parse_positions($result, $symbols);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        // fetchPosition
+        //
+        //     {
+        //         "entry_price":null,
+        //         "size":0,
+        //         "timestamp":1605454074268079
+        //     }
+        //
+        //
+        // fetchPositions
+        //
+        //     {
+        //         "user_id" => 0,
+        //         "size" => 0,
+        //         "entry_price" => "string",
+        //         "margin" => "string",
+        //         "liquidation_price" => "string",
+        //         "bankruptcy_price" => "string",
+        //         "adl_level" => 0,
+        //         "product_id" => 0,
+        //         "product_symbol" => "string",
+        //         "commission" => "string",
+        //         "realized_pnl" => "string",
+        //         "realized_funding" => "string"
+        //     }
+        //
+        $marketId = $this->safe_string($position, 'product_symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $timestamp = $this->safe_integer_product($position, 'timestamp', 0.001);
+        $sizeString = $this->safe_string($position, 'size');
+        $side = null;
+        if ($sizeString !== null) {
+            if (Precise::string_gt($sizeString, '0')) {
+                $side = 'buy';
+            } elseif (Precise::string_lt($sizeString, '0')) {
+                $side = 'sell';
+            }
+        }
+        return array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $symbol,
+            'notional' => null,
+            'marginMode' => null,
+            'liquidationPrice' => $this->safe_number($position, 'liquidation_price'),
+            'entryPrice' => $this->safe_number($position, 'entry_price'),
+            'unrealizedPnl' => null, // todo - realized_pnl ?
+            'percentage' => null,
+            'contracts' => $this->parse_number($sizeString),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'markPrice' => null,
+            'side' => $side,
+            'hedged' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'collateral' => null,
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'leverage' => null,
+            'marginRatio' => null,
+        );
     }
 
     public function parse_order_status($status) {

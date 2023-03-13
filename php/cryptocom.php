@@ -353,6 +353,7 @@ class cryptocom extends Exchange {
          * @return {[array]} an array of objects representing market data
          */
         $promises = array( $this->fetch_spot_markets($params), $this->fetch_derivatives_markets($params) );
+        $promises = $promises;
         $spotMarkets = $promises[0];
         $derivativeMarkets = $promises[1];
         $markets = $this->array_concat($spotMarkets, $derivativeMarkets);
@@ -579,7 +580,7 @@ class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the cryptocom api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -818,13 +819,13 @@ class cryptocom extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the cryptocom api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'instrument_name' => $market['id'],
-            'timeframe' => $this->timeframes[$timeframe],
+            'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOHLCV', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
@@ -1479,11 +1480,12 @@ class cryptocom extends Exchange {
         // }
         $data = $this->safe_value($response, 'result', array());
         $addresses = $this->safe_value($data, 'deposit_address_list', array());
-        if (strlen($addresses) === 0) {
+        $addressesLength = count($addresses);
+        if ($addressesLength === 0) {
             throw new ExchangeError($this->id . ' fetchDepositAddressesByNetwork() generating $address->..');
         }
         $result = array();
-        for ($i = 0; $i < count($addresses); $i++) {
+        for ($i = 0; $i < $addressesLength; $i++) {
             $value = $this->safe_value($addresses, $i);
             $addressString = $this->safe_string($value, 'address');
             $currencyId = $this->safe_string($value, 'currency');
@@ -2460,7 +2462,7 @@ class cryptocom extends Exchange {
                 'nonce' => $nonce,
             ));
             // fix issue https://github.com/ccxt/ccxt/issues/11179
-            // php always encodes dictionaries as arrays
+            // php always encodes dictionaries
             // if an array is empty, php will put it in square brackets
             // python and js will put it in curly brackets
             // the code below checks and replaces those brackets in empty requests

@@ -29,7 +29,7 @@ class zaif(Exchange):
                 'future': False,
                 'option': False,
                 'cancelOrder': True,
-                'createMarketOrder': None,
+                'createMarketOrder': False,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
@@ -429,7 +429,7 @@ class zaif(Exchange):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -646,8 +646,9 @@ class zaif(Exchange):
             'info': transaction,
         }
 
-    def nonce(self):
-        nonce = float(self.milliseconds() / 1000)
+    def custom_nonce(self):
+        num = (self.milliseconds() / str(1000))
+        nonce = float(num)
         return format(nonce, '.8f')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -664,7 +665,7 @@ class zaif(Exchange):
                 url += 'tlapi'
             else:
                 url += 'tapi'
-            nonce = self.nonce()
+            nonce = self.custom_nonce()
             body = self.urlencode(self.extend({
                 'method': path,
                 'nonce': nonce,

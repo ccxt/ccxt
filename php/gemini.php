@@ -29,20 +29,19 @@ class gemini extends Exchange {
                 'addMargin' => false,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
-                'createMarketOrder' => null,
+                'createMarketOrder' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
-                'fetchBidsAsks' => null,
+                'fetchBidsAsks' => false,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
-                'fetchClosedOrders' => null,
+                'fetchClosedOrders' => false,
                 'fetchDepositAddress' => null, // TODO
                 'fetchDepositAddressesByNetwork' => true,
-                'fetchDeposits' => null,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -59,7 +58,7 @@ class gemini extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => null,
+                'fetchOrders' => false,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
@@ -71,7 +70,6 @@ class gemini extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
-                'fetchWithdrawals' => null,
                 'postOnly' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
@@ -415,6 +413,9 @@ class gemini extends Exchange {
     public function fetch_usdt_markets($params = array ()) {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
+        if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
+            return array(); // sandbox does not have usdt markets
+        }
         $fetchUsdtMarkets = $this->safe_value($this->options, 'fetchUsdtMarkets', array());
         $result = array();
         for ($i = 0; $i < count($fetchUsdtMarkets); $i++) {
@@ -476,6 +477,7 @@ class gemini extends Exchange {
             //     }
             //
         }
+        $promises = $promises;
         for ($i = 0; $i < count($promises); $i++) {
             $response = $promises[$i];
             $marketId = $this->safe_string_lower($response, 'symbol');
@@ -633,6 +635,7 @@ class gemini extends Exchange {
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} $params extra parameters specific to the gemini api endpoint
+         * @param {array} $params->fetchTickerMethod 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetch_ticker- 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
          */
         $method = $this->safe_value($this->options, 'fetchTickerMethod', 'fetchTickerV1');
@@ -738,7 +741,7 @@ class gemini extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the gemini api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $response = $this->publicGetV1Pricefeed ($params);
@@ -1193,8 +1196,9 @@ class gemini extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://docs.gemini.com/rest-api/#new-order
          * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
+         * @param {string} $type must be 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
@@ -1214,7 +1218,7 @@ class gemini extends Exchange {
         $amountString = $this->amount_to_precision($symbol, $amount);
         $priceString = $this->price_to_precision($symbol, $price);
         $request = array(
-            'client_order_id' => (string) $clientOrderId,
+            'client_order_id' => $clientOrderId,
             'symbol' => $market['id'],
             'amount' => $amountString,
             'price' => $priceString,
@@ -1344,7 +1348,7 @@ class gemini extends Exchange {
             $request['limit_trades'] = $limit;
         }
         if ($since !== null) {
-            $request['timestamp'] = intval($since / 1000);
+            $request['timestamp'] = $this->parse_to_int($since / 1000);
         }
         $response = $this->privatePostV1Mytrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
@@ -1514,6 +1518,7 @@ class gemini extends Exchange {
 
     public function fetch_deposit_addresses_by_network($code, $params = array ()) {
         $this->load_markets();
+        $currency = $this->currency($code);
         $network = $this->safe_string($params, 'network');
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddressesByNetwork() requires a $network parameter');
@@ -1527,7 +1532,7 @@ class gemini extends Exchange {
             'network' => $networkId,
         );
         $response = $this->privatePostV1AddressesNetwork (array_merge($request, $params));
-        $results = $this->parse_deposit_addresses($response, array( $code ), false, array( 'network' => $networkCode, 'currency' => $code ));
+        $results = $this->parse_deposit_addresses($response, [ $currency['code'] ], false, array( 'network' => $networkCode, 'currency' => $code ));
         return $this->group_by($results, 'network');
     }
 
@@ -1624,7 +1629,7 @@ class gemini extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the gemini api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);

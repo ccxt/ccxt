@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -17,6 +16,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -41,16 +41,12 @@ class whitebit(Exchange):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
-                'createDepositAddress': None,
-                'createLimitOrder': None,
-                'createMarketOrder': None,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
-                'editOrder': None,
+                'editOrder': False,
                 'fetchBalance': True,
-                'fetchBidsAsks': None,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -763,7 +759,7 @@ class whitebit(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the whitebit api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1010,20 +1006,20 @@ class whitebit(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the whitebit api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             maxLimit = 1440
             if limit is None:
                 limit = maxLimit
             limit = min(limit, maxLimit)
-            start = int(since / 1000)
+            start = self.parse_to_int(since / 1000)
             duration = self.parse_timeframe(timeframe)
             end = self.sum(start, duration * limit)
             request['start'] = start
@@ -1598,12 +1594,7 @@ class whitebit(Exchange):
         #
         #    []
         #
-        transfer = self.parse_transfer(response, currency)
-        return self.extend(transfer, {
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        })
+        return self.parse_transfer(response, currency)
 
     def parse_transfer(self, transfer, currency):
         #

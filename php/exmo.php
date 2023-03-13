@@ -427,15 +427,15 @@ class exmo extends Exchange {
         //     {
         //         "BTC":array(
         //             array( "type":"deposit", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 ),
-        //             array( "type":"withdraw", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"350", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"0.0005 BTC", "currency_confirmations":6 )
+        //             array( "type":"withdraw", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"350", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"0.0005 BTC", "currency_confirmations":6 )
         //         ),
         //         "ETH":array(
-        //             array( "type":"withdraw", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"500", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"0.004 ETH", "currency_confirmations":4 ),
+        //             array( "type":"withdraw", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"500", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"0.004 ETH", "currency_confirmations":4 ),
         //             array( "type":"deposit", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 0.01 ETH. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 )
         //         ),
         //         "USDT":array(
         //             array( "type":"deposit", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":false,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2 ),
-        //             array( "type":"withdraw", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6 ),
+        //             array( "type":"withdraw", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6 ),
         //             array( "type":"deposit", "name":"USDT (ERC20)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2 ),
         //             array(
         //                 "type":"withdraw",
@@ -444,16 +444,16 @@ class exmo extends Exchange {
         //                 "min":"55",
         //                 "max":"200000",
         //                 "enabled":true,
-        //                 "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Recommendation => Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",
+        //                 "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales. Recommendation => Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",
         //                 "commission_desc":"10 USDT",
         //                 "currency_confirmations":6
         //             ),
         //             array( "type":"deposit", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":true,"comment":"Minimum deposit amount is 10 USDT. Only TRON main network supported", "commission_desc":"0%", "currency_confirmations":2 ),
-        //             array( "type":"withdraw", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6 )
+        //             array( "type":"withdraw", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6 )
         //         ),
         //         "XLM":array(
         //             array( "type":"deposit", "name":"XLM", "currency_name":"XLM", "min":"1", "max":"1000000", "enabled":true,"comment":"Attention! A deposit without memo(invoice) will not be credited. Minimum deposit amount is 1 XLM. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 ),
-        //             array( "type":"withdraw", "name":"XLM", "currency_name":"XLM", "min":"21", "max":"1000000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales.", "commission_desc":"0.01 XLM", "currency_confirmations":1 )
+        //             array( "type":"withdraw", "name":"XLM", "currency_name":"XLM", "min":"21", "max":"1000000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales.", "commission_desc":"0.01 XLM", "currency_confirmations":1 )
         //         ),
         //     }
         //
@@ -593,23 +593,23 @@ class exmo extends Exchange {
         //     {
         //         "BTC":array(
         //             array( "type":"deposit", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 ),
-        //             array( "type":"withdraw", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"350", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"0.0005 BTC", "currency_confirmations":6 )
+        //             array( "type":"withdraw", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"350", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"0.0005 BTC", "currency_confirmations":6 )
         //         ),
         //         "ETH":array(
-        //             array( "type":"withdraw", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"500", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"0.004 ETH", "currency_confirmations":4 ),
+        //             array( "type":"withdraw", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"500", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"0.004 ETH", "currency_confirmations":4 ),
         //             array( "type":"deposit", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 0.01 ETH. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 )
         //         ),
         //         "USDT":array(
         //             array( "type":"deposit", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":false,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2 ),
-        //             array( "type":"withdraw", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6 ),
+        //             array( "type":"withdraw", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6 ),
         //             array( "type":"deposit", "name":"USDT (ERC20)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2 ),
-        //             array( "type":"withdraw", "name":"USDT (ERC20)", "currency_name":"USDT", "min":"55", "max":"200000", "enabled":true, "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Recommendation => Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",  "commission_desc":"10 USDT", "currency_confirmations":6 ),
+        //             array( "type":"withdraw", "name":"USDT (ERC20)", "currency_name":"USDT", "min":"55", "max":"200000", "enabled":true, "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales. Recommendation => Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",  "commission_desc":"10 USDT", "currency_confirmations":6 ),
         //             array( "type":"deposit", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":true,"comment":"Minimum deposit amount is 10 USDT. Only TRON main network supported", "commission_desc":"0%", "currency_confirmations":2 ),
-        //             array( "type":"withdraw", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6 )
+        //             array( "type":"withdraw", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6 )
         //         ),
         //         "XLM":array(
         //             array( "type":"deposit", "name":"XLM", "currency_name":"XLM", "min":"1", "max":"1000000", "enabled":true,"comment":"Attention! A deposit without memo(invoice) will not be credited. Minimum deposit amount is 1 XLM. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 ),
-        //             array( "type":"withdraw", "name":"XLM", "currency_name":"XLM", "min":"21", "max":"1000000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales.", "commission_desc":"0.01 XLM", "currency_confirmations":1 )
+        //             array( "type":"withdraw", "name":"XLM", "currency_name":"XLM", "min":"21", "max":"1000000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales.", "commission_desc":"0.01 XLM", "currency_confirmations":1 )
         //         ),
         //     }
         //
@@ -786,13 +786,13 @@ class exmo extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle $to fetch
          * @param {int|null} $limit the maximum amount of $candles $to fetch
          * @param {array} $params extra parameters specific $to the exmo api endpoint
-         * @return {[[int]]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of $candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'resolution' => $this->timeframes[$timeframe],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $options = $this->safe_value($this->options, 'fetchOHLCV');
         $maxLimit = $this->safe_integer($options, 'maxLimit', 3000);
@@ -805,18 +805,18 @@ class exmo extends Exchange {
             if ($limit > $maxLimit) {
                 $limit = $maxLimit; // avoid exception
             }
-            $request['from'] = intval($now / 1000) - $limit * $duration - 1;
-            $request['to'] = intval($now / 1000);
+            $request['from'] = $this->parse_to_int($now / 1000) - $limit * $duration - 1;
+            $request['to'] = $this->parse_to_int($now / 1000);
         } else {
-            $request['from'] = intval($since / 1000) - 1;
+            $request['from'] = $this->parse_to_int($since / 1000) - 1;
             if ($limit === null) {
-                $request['to'] = intval($now / 1000);
+                $request['to'] = $this->parse_to_int($now / 1000);
             } else {
                 if ($limit > $maxLimit) {
                     throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
                 }
                 $to = $this->sum($since, $limit * $duration * 1000);
-                $request['to'] = intval($to / 1000);
+                $request['to'] = $this->parse_to_int($to / 1000);
             }
         }
         $response = $this->publicGetCandlesHistory (array_merge($request, $params));
@@ -1002,7 +1002,7 @@ class exmo extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the exmo api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1772,7 +1772,7 @@ class exmo extends Exchange {
         $this->load_markets();
         $request = array();
         if ($since !== null) {
-            $request['date'] = intval($since / 1000);
+            $request['date'] = $this->parse_to_int($since / 1000);
         }
         $currency = null;
         if ($code !== null) {

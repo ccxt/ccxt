@@ -6,13 +6,11 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\AuthenticationError;
 use ccxt\NotSupported;
+use ccxt\AuthenticationError;
 use React\Async;
 
 class cryptocom extends \ccxt\async\cryptocom {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -277,7 +275,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -285,7 +283,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' watchOHLCV() supports spot markets only');
             }
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageHash = 'candlestick' . '.' . $interval . '.' . $market['id'];
             $ohlcv = Async\await($this->watch_public($messageHash, $params));
             if ($this->newUpdates) {
@@ -440,6 +438,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         //
         $messageHash = $this->safe_string($message, 'subscription');
         $data = $this->safe_value($message, 'data');
+        $this->balance['info'] = $data;
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'currency');

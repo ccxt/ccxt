@@ -26,7 +26,7 @@ class tidex extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'createMarketOrder' => null,
+                'createMarketOrder' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
@@ -504,7 +504,7 @@ class tidex extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the tidex api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -851,7 +851,7 @@ class tidex extends Exchange {
             $request['count'] = intval($limit);
         }
         if ($since !== null) {
-            $request['since'] = intval($since / 1000);
+            $request['since'] = $this->parse_to_int($since / 1000);
         }
         $response = $this->privatePostTradeHistory (array_merge($request, $params));
         $trades = $this->safe_value($response, 'return', array());

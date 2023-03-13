@@ -40,15 +40,14 @@ class bitforex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
-                'fetchMyTrades' => null,
+                'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => null,
                 'fetchPositionMode' => false,
                 'fetchTicker' => true,
-                'fetchTickers' => null,
+                'fetchTickers' => false,
                 'fetchTrades' => true,
                 'fetchTransactionFees' => false,
                 'fetchTransfer' => false,
@@ -450,13 +449,13 @@ class bitforex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitforex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
-                'ktype' => $this->timeframes[$timeframe],
+                'ktype' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($limit !== null) {
                 $request['size'] = $limit; // default 1, max 600

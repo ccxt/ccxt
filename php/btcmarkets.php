@@ -501,13 +501,13 @@ class btcmarkets extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'marketId' => $market['id'],
-            'timeWindow' => $this->timeframes[$timeframe],
+            'timeWindow' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             // 'from' => $this->iso8601($since),
             // 'to' => $this->iso8601($this->milliseconds()),
             // 'before' => 1234567890123,
