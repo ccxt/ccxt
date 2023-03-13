@@ -39,3 +39,8 @@ docker-compose.yml
 phpunit.xml.dist
 setup.cfg
 exchanges.cfg
+
+# TS sources and JS tests
+/ts/
+/js/src/test/
+/js/src/pro/test/
