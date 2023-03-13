@@ -13,6 +13,8 @@ import { ExchangeError } from '../errors.js';
 
 const EC = elliptic.ec;
 const EDDSA = elliptic.eddsa;
+const crypto = require('crypto');
+const sigUtil = require('eth-sig-util');
 /*  ------------------------------------------------------------------------ */
 
 const hash = (request, hash = 'md5', digest = 'hex') => {
@@ -164,6 +166,12 @@ function crc32 (str, signed = false) {
         return unsigned;
     }
 }
+function createCipheriv(mode, key, nonceBytes) {
+    return crypto.createCipheriv(mode, key, nonceBytes);
+}
+function signTypedData(keyBuffer, data) {
+    return sigUtil.signTypedData(keyBuffer, data);
+}
 
 /*  ------------------------------------------------------------------------ */
 
@@ -176,6 +184,8 @@ export {
     ecdsa,
     eddsa,
     crc32,
+    createCipheriv,
+    signTypedData,
 };
 
 /*  ------------------------------------------------------------------------ */
