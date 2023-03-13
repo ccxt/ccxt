@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -15,6 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -397,7 +397,7 @@ class bitmex(Exchange):
             settle = self.safe_currency_code(settleId)
             basequote = baseId + quoteId
             swap = (id == basequote)
-            # 'positionCurrency' may be empty("", as Bitmex currently returns for ETHUSD)
+            # 'positionCurrency' may be empty("", currently returns for ETHUSD)
             # so let's take the settlCurrency first and then adjust if needed
             type = None
             future = False
@@ -1389,7 +1389,7 @@ class bitmex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         # send JSON key/value pairs, such as {"key": "value"}
@@ -2637,8 +2637,7 @@ class bitmex(Exchange):
                 'Content-Type': 'application/json',
                 'api-key': self.apiKey,
             }
-            expires = self.sum(self.seconds(), expires)
-            expires = str(expires)
+            expires = self.sum(self.seconds(), str(expires))
             auth += expires
             headers['api-expires'] = expires
             if method == 'POST' or method == 'PUT' or method == 'DELETE':

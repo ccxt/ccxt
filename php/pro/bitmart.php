@@ -6,13 +6,11 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
+use ccxt\AuthenticationError;
 use React\Async;
 
 class bitmart extends \ccxt\async\bitmart {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -334,7 +332,7 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitmart api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -384,7 +382,7 @@ class bitmart extends \ccxt\async\bitmart {
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $parsed = $this->parse_ohlcv($candle, $market);
-            $parsed[0] = intval($parsed[0] / $durationInMs) * $durationInMs;
+            $parsed[0] = intval(($parsed[0] / (string) $durationInMs)) * $durationInMs;
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {

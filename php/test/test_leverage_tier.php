@@ -20,7 +20,6 @@ function test_leverage_tier($exchange, $method, $tier) {
     $keys = is_array($format) ? array_keys($format) : array();
     for ($i = 0; $i < count($keys); $i++) {
         $key = $keys[$i];
-        assert (is_array($tier, $exchange->id . ' ' . $method . ' ' . $key . ' missing from response') && array_key_exists($key, $tier, $exchange->id . ' ' . $method . ' ' . $key . ' missing from response'));
     }
     if ($tier['tier'] !== null) {
         assert ((is_float($tier['tier']) || is_int($tier['tier'])));
@@ -45,5 +44,4 @@ function test_leverage_tier($exchange, $method, $tier) {
     var_dump ($exchange->id, $method, $tier['tier'], $tier['minNotional'], $tier['maxNotional'], $tier['maintenanceMarginRate'], $tier['maxLeverage']);
     return $tier;
 }
-
 

@@ -6,13 +6,13 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -307,7 +307,7 @@ class ascendex(Exchange):
                     '200011': ExchangeError,  # CODE_GEN_FAILED Do not generate required code promptly
                     '200012': ExchangeError,  # FAKE_COKE_VERIFY
                     '200013': ExchangeError,  # SECURITY_ALERT Provide security alert message
-                    '200014': PermissionDenied,  # RESTRICTED_ACCOUNT Account is restricted for certain activity, such as trading, or withdraw.
+                    '200014': PermissionDenied,  # RESTRICTED_ACCOUNT Account is restricted for certain activity, such, or withdraw.
                     '200015': PermissionDenied,  # PERMISSION_DENIED No enough permission for the operation
                     '300001': InvalidOrder,  # INVALID_PRICE Order price is invalid
                     '300002': InvalidOrder,  # INVALID_QTY Order size is invalid
@@ -1043,7 +1043,7 @@ class ascendex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the ascendex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)

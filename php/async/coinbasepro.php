@@ -7,10 +7,10 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidAddress;
 use ccxt\NotSupported;
+use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 
@@ -791,7 +791,7 @@ class coinbasepro extends Exchange {
              * @param {array} $params extra parameters specific to the coinbasepro api endpoint
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
              */
-            // as of 2018-08-23
+            // 2018-08-23
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
             }
@@ -895,15 +895,19 @@ class coinbasepro extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the coinbasepro api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $granularity = $this->safe_integer($this->timeframes, $timeframe, $timeframe);
+            $parsedTimeframe = $this->safe_integer($this->timeframes, $timeframe);
             $request = array(
                 'id' => $market['id'],
-                'granularity' => $granularity,
             );
+            if ($parsedTimeframe !== null) {
+                $request['granularity'] = $parsedTimeframe;
+            } else {
+                $request['granularity'] = $timeframe;
+            }
             if ($since !== null) {
                 $request['start'] = $this->iso8601($since);
                 if ($limit === null) {
@@ -912,7 +916,7 @@ class coinbasepro extends Exchange {
                 } else {
                     $limit = min (300, $limit);
                 }
-                $request['end'] = $this->iso8601($this->sum(($limit - 1) * $granularity * 1000, $since));
+                $request['end'] = $this->iso8601($this->sum(($limit - 1) * $parsedTimeframe * 1000, $since));
             }
             $response = Async\await($this->publicGetProductsIdCandles (array_merge($request, $params)));
             //
@@ -1293,7 +1297,7 @@ class coinbasepro extends Exchange {
     public function deposit($code, $amount, $address, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $params) {
             /**
-             * Creates a new deposit $address, as required by coinbasepro
+             * Creates a new deposit $address, by coinbasepro
              * @param {string} $code Unified CCXT $currency $code (e.g. `"USDT"`)
              * @param {float} $amount The $amount of $currency to send in the deposit (e.g. `20`)
              * @param {string} $address Not used by coinbasepro
@@ -1372,8 +1376,8 @@ class coinbasepro extends Exchange {
     public function parse_ledger_entry_type($type) {
         $types = array(
             'transfer' => 'transfer', // Funds moved between portfolios
-            'match' => 'trade',       // Funds moved as a result of a trade
-            'fee' => 'fee',           // Fee as a result of a trade
+            'match' => 'trade',       // Funds moved result of a trade
+            'fee' => 'fee',           // Fee result of a trade
             'rebate' => 'rebate',     // Fee rebate
             'conversion' => 'trade',  // Funds converted between fiat currency and a stablecoin
         );

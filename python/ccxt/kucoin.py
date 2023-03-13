@@ -8,7 +8,6 @@ import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadRequest
@@ -21,6 +20,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -478,7 +478,7 @@ class kucoin(Exchange):
                     },
                 },
                 'partner': {
-                    # the support for spot and future exchanges as separate settings
+                    # the support for spot and future exchanges settings
                     'spot': {
                         'id': 'ccxt',
                         'key': '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
@@ -1124,7 +1124,7 @@ class kucoin(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the kucoin api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1136,7 +1136,7 @@ class kucoin(Exchange):
         duration = self.parse_timeframe(timeframe) * 1000
         endAt = self.milliseconds()  # required param
         if since is not None:
-            request['startAt'] = int(int(math.floor(since / 1000)))
+            request['startAt'] = self.parse_to_int(int(math.floor(since / 1000)))
             if limit is None:
                 # https://docs.kucoin.com/#get-klines
                 # https://docs.kucoin.com/#details
@@ -1146,8 +1146,8 @@ class kucoin(Exchange):
             endAt = self.sum(since, limit * duration)
         elif limit is not None:
             since = endAt - limit * duration
-            request['startAt'] = int(int(math.floor(since / 1000)))
-        request['endAt'] = int(int(math.floor(endAt / 1000)))
+            request['startAt'] = self.parse_to_int(int(math.floor(since / 1000)))
+        request['endAt'] = self.parse_to_int(int(math.floor(endAt / 1000)))
         response = self.publicGetMarketCandles(self.extend(request, params))
         #
         #     {
@@ -1220,7 +1220,7 @@ class kucoin(Exchange):
             # for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
             # 'chain': 'ERC20',  # optional
         }
-        # same as for withdraw
+        # same withdraw
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string_upper_2(params, 'chain', 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
@@ -1865,14 +1865,14 @@ class kucoin(Exchange):
         elif method == 'private_get_limit_fills':
             # does not return trades earlier than 2019-02-18T00:00:00Z
             # takes no params
-            # only returns first 1000 trades(not only "in the last 24 hours" as stated in the docs)
+            # only returns first 1000 trades(not only "in the last 24 hours" in the docs)
             parseResponseData = True
         elif method == 'private_get_hist_orders':
             # despite that self endpoint is called `HistOrders`
             # it returns historical trades instead of orders
             # returns trades earlier than 2019-02-18T00:00:00Z only
             if since is not None:
-                request['startAt'] = int(since / 1000)
+                request['startAt'] = self.parse_to_int(since / 1000)
         else:
             raise ExchangeError(self.id + ' fetchMyTradesMethod() invalid method')
         response = getattr(self, method)(self.extend(request, params))
@@ -2047,7 +2047,7 @@ class kucoin(Exchange):
         takerOrMaker = self.safe_string(trade, 'liquidity')
         timestamp = self.safe_integer(trade, 'time')
         if timestamp is not None:
-            timestamp = int(timestamp / 1000000)
+            timestamp = self.parse_to_int(timestamp / 1000000)
         else:
             timestamp = self.safe_integer(trade, 'createdAt')
             # if it's a historical v1 trade, the exchange returns timestamp in seconds
@@ -2307,7 +2307,7 @@ class kucoin(Exchange):
         if since is not None:
             # if since is earlier than 2019-02-18T00:00:00Z
             if since < 1550448000000:
-                request['startAt'] = int(since / 1000)
+                request['startAt'] = self.parse_to_int(since / 1000)
                 method = 'privateGetHistDeposits'
             else:
                 request['startAt'] = since
@@ -2374,7 +2374,7 @@ class kucoin(Exchange):
         if since is not None:
             # if since is earlier than 2019-02-18T00:00:00Z
             if since < 1550448000000:
-                request['startAt'] = int(since / 1000)
+                request['startAt'] = self.parse_to_int(since / 1000)
                 method = 'privateGetHistWithdrawals'
             else:
                 request['startAt'] = since
@@ -2717,7 +2717,7 @@ class kucoin(Exchange):
             'KuCoin Bonus': 'bonus',  # KuCoin Bonus
             'Referral Bonus': 'referral',  # Referral Bonus
             'Rewards': 'bonus',  # Activities Rewards
-            # 'Distribution': 'Distribution',  # Distribution, such as get GAS by holding NEO
+            # 'Distribution': 'Distribution',  # Distribution, such GAS by holding NEO
             'Airdrop/Fork': 'airdrop',  # Airdrop/Fork
             'Other rewards': 'bonus',  # Other rewards, except Vote, Airdrop, Fork
             'Fee Rebate': 'rebate',  # Fee Rebate
@@ -2755,7 +2755,7 @@ class kucoin(Exchange):
         #     {
         #         "id": "611a1e7c6a053300067a88d9",  #unique key for each ledger entry
         #         "currency": "USDT",  #Currency
-        #         "amount": "10.00059547",  #The total amount of assets(fees included) involved in assets changes such as transaction, withdrawal and bonus distribution.
+        #         "amount": "10.00059547",  #The total amount of assets(fees included) involved in assets changes such, withdrawal and bonus distribution.
         #         "fee": "0",  #Deposit or withdrawal fee
         #         "balance": "0",  #Total assets of a currency remaining funds after transaction
         #         "accountType": "MAIN",  #Account Type
@@ -2992,7 +2992,7 @@ class kucoin(Exchange):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params)
         if marginMode is None:
-            marginMode = 'cross'  # cross as default marginMode
+            marginMode = 'cross'  # cross marginMode
         request = {}
         method = 'privateGetMarginBorrowOutstanding'
         if marginMode == 'isolated':

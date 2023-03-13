@@ -832,17 +832,16 @@ class probit extends Exchange {
             $parts = explode('-', $iso8601);
             $year = $this->safe_string($parts, 0);
             $month = $this->safe_integer($parts, 1);
+            $monthString = null;
             if ($after) {
-                $month = $this->sum($month, 1);
+                $monthString = $this->sum($month, (string) 1);
             }
             if ($month < 10) {
-                $month = '0' . (string) $month;
-            } else {
-                $month = (string) $month;
+                $monthString = '0' . (string) $month;
             }
-            return $year . '-' . $month . '-01T00:00:00.000Z';
+            return $year . '-' . $monthString . '-01T00:00:00.000Z';
         } elseif ($timeframe === '1w') {
-            $timestamp = intval($timestamp / 1000);
+            $timestamp = $this->parse_to_int($timestamp / 1000);
             $firstSunday = 259200; // 1970-01-04T00:00:00.000Z
             $difference = $timestamp - $firstSunday;
             $numWeeks = (int) floor($difference / $duration);
@@ -852,8 +851,8 @@ class probit extends Exchange {
             }
             return $this->iso8601($previousSunday * 1000);
         } else {
-            $timestamp = intval($timestamp / 1000);
-            $timestamp = $duration * intval($timestamp / $duration);
+            $timestamp = $this->parse_to_int($timestamp / 1000);
+            $timestamp = $duration * $this->parse_to_int($timestamp / $duration);
             if ($after) {
                 $timestamp = $this->sum($timestamp, $duration);
             }
@@ -869,7 +868,7 @@ class probit extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the probit api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);

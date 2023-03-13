@@ -318,15 +318,6 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function fetch_accounts($params = array ()) {
-        /**
-         * fetch all the accounts associated with a profile
-         * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
-         */
-        throw new BadRequest($this->id . ' fetchAccounts() is not supported yet');
-    }
-
     public function fetch_status($params = array ()) {
         return Async\async(function () use ($params) {
             /**
@@ -547,15 +538,20 @@ class kucoinfutures extends kucoin {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $marketId = $market['id'];
+            $parsedTimeframe = $this->safe_integer($this->timeframes, $timeframe);
             $request = array(
                 'symbol' => $marketId,
-                'granularity' => $this->safe_integer($this->timeframes, $timeframe, $timeframe),
             );
+            if ($parsedTimeframe !== null) {
+                $request['granularity'] = $parsedTimeframe;
+            } else {
+                $request['granularity'] = $timeframe;
+            }
             $duration = $this->parse_timeframe($timeframe) * 1000;
             $endAt = $this->milliseconds();
             if ($since !== null) {
@@ -605,16 +601,6 @@ class kucoinfutures extends kucoin {
             $this->safe_number($ohlcv, 4),
             $this->safe_number($ohlcv, 5),
         );
-    }
-
-    public function create_deposit_address($code, $params = array ()) {
-        /**
-         * create a currency deposit address
-         * @param {string} $code unified currency $code of the currency for the deposit address
-         * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
-         */
-        throw new BadRequest($this->id . ' createDepositAddress() is not supported yet');
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -704,7 +690,7 @@ class kucoinfutures extends kucoin {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $timestamp = intval($this->safe_integer($data, 'ts') / 1000000);
+            $timestamp = $this->parse_to_int($this->safe_integer($data, 'ts') / 1000000);
             $orderbook = $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
             $orderbook['nonce'] = $this->safe_integer($data, 'sequence');
             return $orderbook;
@@ -1873,7 +1859,7 @@ class kucoinfutures extends kucoin {
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
         $timestamp = $this->safe_integer($trade, 'ts');
         if ($timestamp !== null) {
-            $timestamp = intval($timestamp / 1000000);
+            $timestamp = $this->parse_to_int($timestamp / 1000000);
         } else {
             $timestamp = $this->safe_integer($trade, 'createdAt');
             // if it's a historical v1 $trade, the exchange returns $timestamp in seconds
@@ -2044,7 +2030,8 @@ class kucoinfutures extends kucoin {
          * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
          */
-        throw new BadRequest($this->id . ' fetchTransactionFee() is not supported');
+        // throw new BadRequest($this->id . ' fetchTransactionFee() is not supported');
+        return null;
     }
 
     public function fetch_deposit_withdraw_fee($code, $params = array ()) {
@@ -2058,7 +2045,8 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
-        throw new BadRequest($this->id . ' fetchLedger() is not supported yet');
+        // throw new BadRequest($this->id . ' fetchLedger() is not supported yet');
+        return null;
     }
 
     public function fetch_market_leverage_tiers($symbol, $params = array ()) {

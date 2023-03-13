@@ -51,7 +51,7 @@ class luno(Exchange):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
-                'fetchOHLCV': False,  # overload of base fetchOHLCV, as it doesn't work in self exchange
+                'fetchOHLCV': False,  # overload of base fetchOHLCV, doesn't work in self exchange
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -759,7 +759,7 @@ class luno(Exchange):
         if type == 'market':
             method += 'Marketorder'
             request['type'] = side.upper()
-            # todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
+            # todo add createMarketBuyOrderRequires price logic is implemented in the other exchanges
             if side == 'buy':
                 request['counter_volume'] = self.amount_to_precision(market['symbol'], amount)
             else:

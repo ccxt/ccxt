@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -16,6 +15,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -908,7 +908,7 @@ class mexc3(Exchange):
         #                 "contractSize":0.0001,
         #                 "minLeverage":1,
         #                 "maxLeverage":125,
-        #                 "priceScale":2,  # seems useless atm, as it's just how UI shows the price, i.e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
+        #                 "priceScale":2,  # seems useless atm,'s just how UI shows the price, i.e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
         #                 "volScale":0,  # probably: contract amount precision
         #                 "amountScale":4,  # probably: quote currency precision
         #                 "priceUnit":0.5,  # price tick size
@@ -1297,7 +1297,7 @@ class mexc3(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1332,7 +1332,7 @@ class mexc3(Exchange):
             candles = response
         elif market['swap']:
             if since is not None:
-                request['start'] = int(since / 1000)
+                request['start'] = self.parse_to_int(since / 1000)
             priceType = self.safe_string(params, 'price', 'default')
             params = self.omit(params, 'price')
             method = self.get_supported_mapping(priceType, {
@@ -2240,7 +2240,7 @@ class mexc3(Exchange):
             #
             return self.parse_orders(response, market, since, limit)
         else:
-            # TO_DO: another possible way is through: open_orders/{symbol}, but as they have same ratelimits, and less granularity, i think historical orders are more convenient, as it supports more params(however, theoretically, open-orders endpoint might be sligthly fast)
+            # TO_DO: another possible way is through: open_orders/{symbol}, but have same ratelimits, and less granularity, i think historical orders are more convenient, supports more params(however, theoretically, open-orders endpoint might be sligthly fast)
             return await self.fetch_orders_by_state(2, symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -2620,7 +2620,7 @@ class mexc3(Exchange):
         #         "price": "2.9",  # not present in stop-market, but in stop-limit order
         #         "executeCycle": "87600",
         #         "trend": "1",
-        #          # below keys are same as in regular order structure
+        #          # below keys are same regular order structure
         #         "symbol": "STEPN_USDT",
         #         "leverage": "20",
         #         "side": "1",

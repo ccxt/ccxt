@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.9.13';
+$version = '3.0.1';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.9.13';
+    const VERSION = '3.0.1';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -446,8 +446,6 @@ class Exchange {
     );
 
     public static $camelcase_methods = array(
-        'fetchImplementation' => 'fetch_implementation',
-        'executeRestRequest' => 'execute_rest_request',
         'deepExtend' => 'deep_extend',
         'indexBy' => 'index_by',
         'sortBy' => 'sort_by',
@@ -455,10 +453,8 @@ class Exchange {
         'groupBy' => 'group_by',
         'unCamelCase' => 'un_camel_case',
         'precisionFromString' => 'precision_from_string',
-        'TimedOut' => 'timed_out',
         'buildOHLCVC' => 'build_ohlcvc',
         'decimalToPrecision' => 'decimal_to_precision',
-        'defaultFetch' => 'default_fetch',
         'safeValue' => 'safe_value',
         'safeValue2' => 'safe_value_2',
         'safeString' => 'safe_string',
@@ -510,6 +506,7 @@ class Exchange {
         'parseDate' => 'parse_date',
         'isArray' => 'is_array',
         'base64ToString' => 'base64_to_string',
+        'TimedOut' => 'timed_out',
         'asFloat' => 'as_float',
         'asInteger' => 'as_integer',
         'binaryToBase58' => 'binary_to_base58',
@@ -551,6 +548,41 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'fetchAccounts' => 'fetch_accounts',
+        'fetchTrades' => 'fetch_trades',
+        'fetchDepositAddresses' => 'fetch_deposit_addresses',
+        'fetchOrderBook' => 'fetch_order_book',
+        'fetchTime' => 'fetch_time',
+        'fetchTradingLimits' => 'fetch_trading_limits',
+        'parseTicker' => 'parse_ticker',
+        'parseDepositAddress' => 'parse_deposit_address',
+        'parseTrade' => 'parse_trade',
+        'parseTransaction' => 'parse_transaction',
+        'parseTransfer' => 'parse_transfer',
+        'parseAccount' => 'parse_account',
+        'parseLedgerEntry' => 'parse_ledger_entry',
+        'parseOrder' => 'parse_order',
+        'fetchBorrowRates' => 'fetch_borrow_rates',
+        'parseMarketLeverageTiers' => 'parse_market_leverage_tiers',
+        'fetchLeverageTiers' => 'fetch_leverage_tiers',
+        'parsePosition' => 'parse_position',
+        'parseFundingRateHistory' => 'parse_funding_rate_history',
+        'parseBorrowInterest' => 'parse_borrow_interest',
+        'fetchFundingRates' => 'fetch_funding_rates',
+        'findTimeframe' => 'find_timeframe',
+        'formatScientificNotationFTX' => 'format_scientific_notation_ftx',
+        'orderBook' => 'order_book',
+        'indexedOrderBook' => 'indexed_order_book',
+        'countedOrderBook' => 'counted_order_book',
+        'handleMessage' => 'handle_message',
+        'onConnected' => 'on_connected',
+        'onError' => 'on_error',
+        'onClose' => 'on_close',
+        'handleDelta' => 'handle_delta',
+        'loadOrderBook' => 'load_order_book',
+        'handleDeltas' => 'handle_deltas',
+        'getCacheIndex' => 'get_cache_index',
+        'parseToInt' => 'parse_to_int',
         'getDefaultOptions' => 'get_default_options',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'setMarkets' => 'set_markets',
@@ -649,6 +681,7 @@ class Exchange {
         'fetchTransactions' => 'fetch_transactions',
         'fetchDeposits' => 'fetch_deposits',
         'fetchWithdrawals' => 'fetch_withdrawals',
+        'parseLastPrice' => 'parse_last_price',
         'fetchDepositAddress' => 'fetch_deposit_address',
         'commonCurrencyCode' => 'common_currency_code',
         'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
@@ -704,6 +737,7 @@ class Exchange {
         'parseDepositWithdrawFees' => 'parse_deposit_withdraw_fees',
         'depositWithdrawFee' => 'deposit_withdraw_fee',
         'assignDefaultDepositWithdrawFees' => 'assign_default_deposit_withdraw_fees',
+        'parseIncome' => 'parse_income',
         'parseIncomes' => 'parse_incomes',
         'getMarketFromSymbols' => 'get_market_from_symbols',
     );
@@ -2716,8 +2750,8 @@ class Exchange {
     }
 
     public function safe_order($order, $market = null) {
-        // parses numbers as strings
-        // * it is important pass the $trades as unparsed $rawTrades
+        // parses numbers
+        // * it is important pass the $trades $rawTrades
         $amount = $this->omit_zero($this->safe_string($order, 'amount'));
         $remaining = $this->safe_string($order, 'remaining');
         $filled = $this->safe_string($order, 'filled');
@@ -3551,7 +3585,7 @@ class Exchange {
             if ($responseNetworksLength === 0) {
                 throw new NotSupported($this->id . ' - ' . $networkCode . ' network did not return any result for ' . $currencyCode);
             } else {
-                // if $networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+                // if $networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
                 $networkId = $isIndexedByUnifiedNetworkCode ? $networkCode : $this->networkCodeToId ($networkCode, $currencyCode);
                 if (is_array($indexedNetworkEntries) && array_key_exists($networkId, $indexedNetworkEntries)) {
                     $chosenNetworkId = $networkId;
@@ -4130,7 +4164,7 @@ class Exchange {
         /**
          * @ignore
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return array([string|null, object]) the marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         * @return array([string|null, object]) the marginMode in lowercase by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
          */
         return $this->handleOptionAndParams ($params, $methodName, 'marginMode', $defaultValue);
     }
@@ -4244,6 +4278,10 @@ class Exchange {
 
     public function fetch_withdrawals($symbol = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchWithdrawals() is not supported yet');
+    }
+
+    public function parse_last_price($price, $market = null) {
+        throw new NotSupported($this->id . ' parseLastPrice() is not supported yet');
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -4912,6 +4950,10 @@ class Exchange {
             }
         }
         return $fee;
+    }
+
+    public function parse_income($info, $market = null) {
+        throw new NotSupported($this->id . ' parseIncome () is not supported yet');
     }
 
     public function parse_incomes($incomes, $market = null, $since = null, $limit = null) {

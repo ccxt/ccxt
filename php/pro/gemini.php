@@ -11,8 +11,6 @@ use React\Async;
 
 class gemini extends \ccxt\async\gemini {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -144,7 +142,7 @@ class gemini extends \ccxt\async\gemini {
         //             array( 'buy', '22252.37', '0.02' ),
         //             array( 'buy', '22251.61', '0.04' ),
         //             array( 'buy', '22251.60', '0.04' ),
-        //             // some asks as well
+        //             // some asks
         //         ),
         //         $trades => array(
         //             array( type => 'trade', $symbol => 'BTCUSD', event_id => 122258166738, timestamp => 1655330221424, price => '22269.14', quantity => '0.00004473', side => 'buy' ),
@@ -203,7 +201,7 @@ class gemini extends \ccxt\async\gemini {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the gemini api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -351,7 +349,7 @@ class gemini extends \ccxt\async\gemini {
         //             array( 'buy', '22252.37', '0.02' ),
         //             array( 'buy', '22251.61', '0.04' ),
         //             array( 'buy', '22251.60', '0.04' ),
-        //             // some asks as well
+        //             // some asks
         //         ),
         //         trades => array(
         //             array( type => 'trade', symbol => 'BTCUSD', event_id => 122258166738, timestamp => 1655330221424, price => '22269.14', quantity => '0.00004473', side => 'buy' ),
@@ -657,11 +655,12 @@ class gemini extends \ccxt\async\gemini {
         );
         $this->options = array_merge($defaultOptions, $this->options);
         $originalHeaders = $this->options['ws']['options']['headers'];
-        $this->options['ws']['options']['headers'] = array(
+        $headers = array(
             'X-GEMINI-APIKEY' => $this->apiKey,
             'X-GEMINI-PAYLOAD' => $this->decode($b64),
             'X-GEMINI-SIGNATURE' => $signature,
         );
+        $this->options['ws']['options']['headers'] = $headers;
         $this->client($url);
         $this->options['ws']['options']['headers'] = $originalHeaders;
     }
