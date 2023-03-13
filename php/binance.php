@@ -1810,6 +1810,7 @@ class binance extends Exchange {
                 throw new ExchangeError($this->id . ' $fetchMarkets() $this->options $fetchMarkets "' . $marketType . '" is not a supported market type');
             }
         }
+        $promises = $promises;
         $spotMarkets = $this->safe_value($this->safe_value($promises, 0), 'symbols', array());
         $futureMarkets = $this->safe_value($this->safe_value($promises, 1), 'symbols', array());
         $deliveryMarkets = $this->safe_value($this->safe_value($promises, 2), 'symbols', array());

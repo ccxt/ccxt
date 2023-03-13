@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.9.14'
+__version__ = '2.9.16'
 
 # -----------------------------------------------------------------------------
 
@@ -842,8 +842,8 @@ class Exchange(BaseExchange):
         return self.extend(order, {
             'id': self.safe_string(order, 'id'),
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
-            'timestamp': datetime,
-            'datetime': timestamp,
+            'timestamp': timestamp,
+            'datetime': datetime,
             'symbol': symbol,
             'type': self.safe_string(order, 'type'),
             'side': side,

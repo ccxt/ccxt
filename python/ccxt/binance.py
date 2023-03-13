@@ -1794,6 +1794,7 @@ class binance(Exchange):
                 promises.append(self.eapiPublicGetExchangeInfo(params))
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
+        promises = promises
         spotMarkets = self.safe_value(self.safe_value(promises, 0), 'symbols', [])
         futureMarkets = self.safe_value(self.safe_value(promises, 1), 'symbols', [])
         deliveryMarkets = self.safe_value(self.safe_value(promises, 2), 'symbols', [])

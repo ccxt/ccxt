@@ -1428,6 +1428,7 @@ class huobi(Exchange):
                     subValue = self.safe_value(value, subType)
                     if subValue:
                         promises.append(self.fetch_markets_by_type_and_sub_type(type, subType, params))
+        promises = promises
         for i in range(0, len(promises)):
             allMarkets = self.array_concat(allMarkets, promises[i])
         return allMarkets

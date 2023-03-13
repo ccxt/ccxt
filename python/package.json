@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "2.9.14",
+  "version": "2.9.16",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "unpkg": "dist/ccxt.browser.js",
   "type": "module",
@@ -26,7 +26,7 @@
     "fixTSBug": "node build/fixTSBug",
     "tsBuild": "tsc",
     "emitTypes": "(tsc --emitDeclarationOnly --declaration > /dev/null 2>&1 || true)",
-    "build": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
+    "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
     "force-build": "npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
     "force-build-slow": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
     "pre-transpile": "npm run export-exchanges && npm run vss && npm run tsBuild && npm run emitTypes && npm run copy-python-files && npm run check-js-syntax && npm run bundle",

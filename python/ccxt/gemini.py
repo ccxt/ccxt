@@ -473,6 +473,7 @@ class gemini(Exchange):
             #         "wrap_enabled": False
             #     }
             #
+        promises = promises
         for i in range(0, len(promises)):
             response = promises[i]
             marketId = self.safe_string_lower(response, 'symbol')

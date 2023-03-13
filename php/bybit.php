@@ -1321,6 +1321,7 @@ class bybit extends Exchange {
             $this->fetch_derivatives_markets(array( 'category' => 'linear' )),
             $this->fetch_derivatives_markets(array( 'category' => 'inverse' )),
         );
+        $promises = $promisesUnresolved;
         $spotMarkets = $promises[0];
         $linearMarkets = $promises[1];
         $inverseMarkets = $promises[2];

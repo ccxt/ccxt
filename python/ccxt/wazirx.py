@@ -59,7 +59,7 @@ class wazirx(Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
-                'fetchOrder': True,
+                'fetchOrder': False,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPositionMode': False,

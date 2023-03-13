@@ -538,6 +538,7 @@ class digifinex(Exchange):
         marginMode, query = self.handle_margin_mode_and_params('fetchMarketsV2', params)
         method = 'publicSpotGetMarginSymbols' if (marginMode is not None) else 'publicSpotGetTradesSymbols'
         promises = [getattr(self, method)(query), self.publicSwapGetPublicInstruments(params)]
+        promises = promises
         spotMarkets = promises[0]
         swapMarkets = promises[1]
         #

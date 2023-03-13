@@ -278,6 +278,7 @@ class bkex extends Exchange {
             $this->publicSpotGetCommonSymbols ($params),
             $this->publicSwapGetMarketSymbols ($params),
         );
+        $promises = $promises;
         $spotMarkets = $promises[0];
         //
         //     {

@@ -1882,8 +1882,8 @@ export default class Exchange {
         return this.extend (order, {
             'id': this.safeString (order, 'id'),
             'clientOrderId': this.safeString (order, 'clientOrderId'),
-            'timestamp': datetime,
-            'datetime': timestamp,
+            'timestamp': timestamp,
+            'datetime': datetime,
             'symbol': symbol,
             'type': this.safeString (order, 'type'),
             'side': side,
@@ -3285,11 +3285,11 @@ export default class Exchange {
         return [ tag, params ];
     }
 
-    async createLimitOrder (symbol: string, side, amount, price, params = {}) {
+    async createLimitOrder (symbol: string, side: string, amount, price, params = {}) {
         return await this.createOrder (symbol, 'limit', side, amount, price, params);
     }
 
-    async createMarketOrder (symbol, side, amount, price = undefined, params = {}) {
+    async createMarketOrder (symbol: string, side: string, amount, price = undefined, params = {}) {
         return await this.createOrder (symbol, 'market', side, amount, price, params);
     }
 
@@ -3309,7 +3309,7 @@ export default class Exchange {
         return await this.createOrder (symbol, 'market', 'sell', amount, undefined, params);
     }
 
-    costToPrecision (symbol, cost) {
+    costToPrecision (symbol: string, cost) {
         const market = this.market (symbol);
         return this.decimalToPrecision (cost, TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
@@ -3792,7 +3792,7 @@ export default class Exchange {
         }
     }
 
-    checkRequiredMarginArgument (methodName, symbol, marginMode) {
+    checkRequiredMarginArgument (methodName: string, symbol: string, marginMode: string) {
         /**
          * @ignore
          * @method
@@ -3807,7 +3807,7 @@ export default class Exchange {
         }
     }
 
-    checkRequiredSymbol (methodName, symbol) {
+    checkRequiredSymbol (methodName: string, symbol: string) {
         /**
          * @ignore
          * @method
