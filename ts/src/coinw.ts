@@ -584,21 +584,19 @@ export default class coinw extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const access = api;
-        const prefix = 'api/v1';
-        let url = this.implodeHostname (this.urls['api']['rest']) + '/' + prefix + '/' + access + '?command=' + path;
-        const paramsKeys = Object.keys (params);
-        if (paramsKeys.length > 0) {
-            url += '&' + this.urlencode (params);
-        }
-        if (access === 'private') {
+        let url = this.implodeHostname (this.urls['api']['rest']) + '/' + 'api/' + this.version + '/' + api + '?command=' + path;
+        if (method === 'GET') {
+            const paramsKeys = Object.keys (params);
+            if (paramsKeys.length > 0) {
+                url += '&' + this.urlencode (params);
+            }
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            method = 'POST';
             const sortedParams = this.keysort (this.extend (params, { 'api_key': this.apiKey }));
-            const signParams = this.extend (sortedParams, { 'secret_key': this.secret });
-            const signString = this.urlencode (signParams);
-            const signature = this.hash (signString, 'md5', 'hash').toUpperCase ();
-            body = this.urlencode (sortedParams) + '&' + 'sign=' + signature;
+            const urlencodedParams = this.urlencode (sortedParams);
+            const signedString = urlencodedParams + '&secret_key=' + this.secret;
+            const signature = this.hash (signedString, 'md5').toUpperCase ();
+            body = urlencodedParams + '&sign=' + signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
