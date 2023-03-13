@@ -1322,12 +1322,12 @@ export default class bybit extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const promisesUnresolved = [
+        let promises = [
             this.fetchSpotMarkets (params),
             this.fetchDerivativesMarkets ({ 'category': 'linear' }),
             this.fetchDerivativesMarkets ({ 'category': 'inverse' }),
         ];
-        const promises = await Promise.all (promisesUnresolved);
+        promises = await Promise.all (promises) as any;
         const spotMarkets = promises[0];
         const linearMarkets = promises[1];
         const inverseMarkets = promises[2];
