@@ -1,13 +1,13 @@
-'use strict';
-
-//  ---------------------------------------------------------------------------
-const Exchange = require ('./base/Exchange');
-const { BadRequest, NetworkError, AuthenticationError, PermissionDenied } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coinw extends Exchange {
+import { Exchange } from './base/Exchange.js';
+import { BadRequest, NetworkError, AuthenticationError, PermissionDenied } from './base/errors.js';
+import { TICK_SIZE } from './base/functions/number.js';
+
+//  ---------------------------------------------------------------------------
+
+export default class coinw extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinw',
@@ -158,7 +158,7 @@ module.exports = class coinw extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.publicGetReturnSymbol (params);
+        const response = await (this as any).publicGetReturnSymbol (params);
         //
         //    [
         //        {
@@ -253,7 +253,7 @@ module.exports = class coinw extends Exchange {
          * @param {object} params extra parameters specific to the coinw api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetReturnCurrencies (params);
+        const response = await (this as any).publicGetReturnCurrencies (params);
         //  {
         //    "code":"200",
         //    "data": {
@@ -353,7 +353,7 @@ module.exports = class coinw extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetReturnTicker (params);
+        const response = await (this as any).publicGetReturnTicker (params);
         //
         //   {
         //       "code":"200",
@@ -433,7 +433,7 @@ module.exports = class coinw extends Exchange {
         if (since !== undefined) {
             request['start'] = since;
         }
-        const response = await this.publicGetReturnTradeHistory (this.extend (request, params));
+        const response = await (this as any).publicGetReturnTradeHistory (this.extend (request, params));
         //
         //    {
         //        "code":"200",
@@ -480,7 +480,7 @@ module.exports = class coinw extends Exchange {
             limit = Math.min (20, Math.max (5, limit));
             request['size'] = limit;
         }
-        const response = await this.publicGetReturnOrderBook (this.extend (request, params));
+        const response = await (this as any).publicGetReturnOrderBook (this.extend (request, params));
         //
         //   {
         //       code: '200',
@@ -542,7 +542,7 @@ module.exports = class coinw extends Exchange {
         if (since !== undefined) {
             request['start'] = since;
         }
-        const response = await this.publicGetReturnChartData (this.extend (request, params));
+        const response = await (this as any).publicGetReturnChartData (this.extend (request, params));
         //
         //   {
         //       "code":"200",
@@ -624,4 +624,4 @@ module.exports = class coinw extends Exchange {
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
     }
-};
+}
