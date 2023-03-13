@@ -11,8 +11,6 @@ use React\Async;
 
 class bitopro extends \ccxt\async\bitopro {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -137,7 +135,7 @@ class bitopro extends \ccxt\async\bitopro {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'TRADE' . ':' . $symbol;
-            $trades = Async\await($this->watch_public('trades', $messageHash, $market['id'], $limit));
+            $trades = Async\await($this->watch_public('trades', $messageHash, $market['id']));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -254,12 +252,13 @@ class bitopro extends \ccxt\async\bitopro {
         );
         $this->options = array_merge($defaultOptions, $this->options);
         $originalHeaders = $this->options['ws']['options']['headers'];
-        $this->options['ws']['options']['headers'] = array(
+        $headers = array(
             'X-BITOPRO-API' => 'ccxt',
             'X-BITOPRO-APIKEY' => $this->apiKey,
             'X-BITOPRO-PAYLOAD' => $payload,
             'X-BITOPRO-SIGNATURE' => $signature,
         );
+        $this->options['ws']['options']['headers'] = $headers;
         // instantiate client
         $this->client($url);
         $this->options['ws']['options']['headers'] = $originalHeaders;

@@ -358,8 +358,8 @@ class wavesexchange extends Exchange {
     public function get_fees_for_asset($symbol, $side, $amount, $price, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $amount = $this->amount_to_precision($symbol, $amount);
-        $price = $this->price_to_precision($symbol, $price);
+        $amount = $this->custom_amount_to_precision($symbol, $amount);
+        $price = $this->custom_price_to_precision($symbol, $price);
         $request = array_merge(array(
             'amountAsset' => $market['baseId'],
             'priceAsset' => $market['quoteId'],
@@ -370,7 +370,7 @@ class wavesexchange extends Exchange {
         return $this->matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee ($request);
     }
 
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+    public function custom_calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $response = $this->get_fees_for_asset($symbol, $side, $amount, $price);
         // {
         //     "base":array(
@@ -411,7 +411,7 @@ class wavesexchange extends Exchange {
             return $quotes;
         } else {
             // currencies can have any name because you can create you own token
-            // as a result someone can create a fake token called BTC
+            // result someone can create a fake token called BTC
             // we use this mapping to determine the real tokens
             // https://docs.waves.exchange/en/waves-matcher/matcher-api#asset-pair
             $response = $this->matcherGetMatcherSettings ();
@@ -903,7 +903,7 @@ class wavesexchange extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, $open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, $open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -919,7 +919,7 @@ class wavesexchange extends Exchange {
         $limit = min ($allowedCandles, $limit);
         $duration = $this->parse_timeframe($timeframe) * 1000;
         if ($since === null) {
-            $durationRoundedTimestamp = intval($this->milliseconds() / $duration) * $duration;
+            $durationRoundedTimestamp = $this->parse_to_int($this->milliseconds() / $duration) * $duration;
             $delta = ($limit - 1) * $duration;
             $timeStart = $durationRoundedTimestamp - $delta;
             $request['timeStart'] = (string) $timeStart;
@@ -1182,19 +1182,19 @@ class wavesexchange extends Exchange {
         return $currencyId;
     }
 
-    public function price_to_precision($symbol, $price) {
+    public function custom_price_to_precision($symbol, $price) {
         $market = $this->markets[$symbol];
         $wavesPrecision = $this->safe_integer($this->options, 'wavesPrecision', 8);
         $difference = $market['precision']['amount'] - $market['precision']['price'];
-        return intval(floatval($this->to_precision($price, $wavesPrecision - $difference)));
+        return $this->parse_to_int(floatval($this->to_precision($price, $wavesPrecision - $difference)));
     }
 
-    public function amount_to_precision($symbol, $amount) {
-        return intval(floatval($this->to_precision($amount, $this->markets[$symbol]['precision']['amount'])));
+    public function custom_amount_to_precision($symbol, $amount) {
+        return $this->parse_to_int(floatval($this->to_precision($amount, $this->markets[$symbol]['precision']['amount'])));
     }
 
     public function currency_to_precision($code, $amount, $networkCode = null) {
-        return intval(floatval($this->to_precision($amount, $this->currencies[$code]['precision'])));
+        return $this->parse_to_int(floatval($this->to_precision($amount, $this->currencies[$code]['precision'])));
     }
 
     public function from_precision($amount, $scale) {
@@ -1328,8 +1328,8 @@ class wavesexchange extends Exchange {
         if ($matcherFeeAssetId === null) {
             throw new InsufficientFunds($this->id . ' not enough funds on none of the eligible asset fees');
         }
-        $amount = $this->amount_to_precision($symbol, $amount);
-        $price = $this->price_to_precision($symbol, $price);
+        $amount = $this->custom_amount_to_precision($symbol, $amount);
+        $price = $this->custom_price_to_precision($symbol, $price);
         $byteArray = [
             $this->number_to_be(3, 1),
             $this->base58_to_binary($this->apiKey),

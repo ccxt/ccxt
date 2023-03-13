@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import AccountSuspended
@@ -21,6 +20,7 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -706,14 +706,14 @@ class gate(Exchange):
         :returns [dict]: an array of objects representing market data
         """
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
-        promises = [
+        rawPromises = [
             self.fetch_contract_markets(params),
             self.fetch_option_markets(params),
         ]
         if not sandboxMode:
             # gate does not have a sandbox for spot markets
             mainnetOnly = [self.fetch_spot_markets(params)]
-            promises = self.array_concat(promises, mainnetOnly)
+            rawPromises = self.array_concat(rawPromises, mainnetOnly)
         spotMarkets = self.safe_value(promises, 0, [])
         contractMarkets = self.safe_value(promises, 1, [])
         optionMarkets = self.safe_value(promises, 2, [])
@@ -1292,7 +1292,7 @@ class gate(Exchange):
                 'lowerCaseId': currencyIdLower,
                 'name': None,
                 'code': code,
-                'precision': self.parse_number('1e-4'),  # todo: as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix(self.value, 4);" function, so users cant set lower precision than 0.0001
+                'precision': self.parse_number('1e-4'),  # todo: is done completely in html, in withdrawal page's source it has predefined "num_need_fix(self.value, 4);" function, so users cant set lower precision than 0.0001
                 'info': entry,
                 'active': active,
                 'deposit': depositEnabled,
@@ -2316,7 +2316,7 @@ class gate(Exchange):
         :param dict params: extra parameters specific to the gateio api endpoint
         :param str|None params['price']: "mark" or "index" for mark price and index price candles
         :param int|None params['until']: timestamp in ms of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume(units in quote currency)
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume(units in quote currency)
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2341,11 +2341,11 @@ class gate(Exchange):
         limit = maxLimit if (limit is None) else min(limit, maxLimit)
         until = self.safe_integer(params, 'until')
         if until is not None:
-            until = int(until / 1000)
+            until = self.parse_to_int(until / 1000)
             params = self.omit(params, 'until')
         if since is not None:
             duration = self.parse_timeframe(timeframe)
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
             toTimestamp = self.sum(request['from'], limit * duration - 1)
             currentTimestamp = self.seconds()
             to = min(toTimestamp, currentTimestamp)
@@ -2487,7 +2487,7 @@ class gate(Exchange):
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
         if since is not None and (market['contract']):
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
         response = getattr(self, method)(self.extend(request, query))
         #
         # spot
@@ -2591,9 +2591,9 @@ class gate(Exchange):
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
         if since is not None:
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
         if until is not None:
-            request['to'] = int(until / 1000)
+            request['to'] = self.parse_to_int(until / 1000)
         method = self.get_supported_mapping(type, {
             'spot': 'privateSpotGetMyTrades',
             'margin': 'privateSpotGetMyTrades',
@@ -2789,7 +2789,7 @@ class gate(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            start = int(since / 1000)
+            start = self.parse_to_int(since / 1000)
             request['from'] = start
             request['to'] = self.sum(start, 30 * 24 * 60 * 60)
         response = self.privateWalletGetDeposits(self.extend(request, params))
@@ -2813,7 +2813,7 @@ class gate(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            start = int(since / 1000)
+            start = self.parse_to_int(since / 1000)
             request['from'] = start
             request['to'] = self.sum(start, 30 * 24 * 60 * 60)
         response = self.privateWalletGetWithdrawals(self.extend(request, params))
@@ -2966,7 +2966,7 @@ class gate(Exchange):
         :param bool|None params['auto_borrow']: *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
         :param str|None params['settle']: *contract only* Unified Currency Code for settle currency
         :param bool|None params['reduceOnly']: *contract only* Indicates if self order is to reduce the size of a position
-        :param bool|None params['close']: *contract only* Set as True to close the position, with size set to 0
+        :param bool|None params['close']: *contract only* Set to close the position, with size set to 0
         :param bool|None params['auto_size']: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
         :param int|None params['price_type']: *contract only* 0 latest deal price, 1 mark price, 2 index price
         :returns dict|None: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -3015,7 +3015,7 @@ class gate(Exchange):
                     'size': amount,  # int64, positive = bid, negative = ask
                     # 'iceberg': 0,  # int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                     # 'close': False,  # True to close the position, with size set to 0
-                    # 'reduce_only': False,  # St as True to be reduce-only order
+                    # 'reduce_only': False,  # St to be reduce-only order
                     # 'tif': 'gtc',  # gtc, ioc, poc PendingOrCancelled == postOnly order
                     # 'text': clientOrderId,  # 't-abcdef1234567890',
                     # 'auto_size': '',  # close_long, close_short, note size also needs to be set to 0
@@ -3510,8 +3510,8 @@ class gate(Exchange):
         numFeeCurrencies = len(fees)
         multipleFeeCurrencies = numFeeCurrencies > 1
         status = self.parse_order_status(rawStatus)
-        filled = self.parse_number(Precise.string_abs(filledString))
-        remaining = self.parse_number(Precise.string_abs(remainingString))
+        filled = Precise.string_abs(filledString)
+        remaining = Precise.string_abs(remainingString)
         # handle spot market buy
         account = self.safe_string(order, 'account')  # using self instead of market type because of the conflicting ids
         if account == 'spot':
@@ -3520,7 +3520,7 @@ class gate(Exchange):
             if (type == 'market') and (side == 'buy'):
                 filled = Precise.string_div(filledString, averageString)
                 remaining = Precise.string_div(remainingString, averageString)
-                price = None  # arrives as 0
+                price = None  # arrives
                 cost = amount
                 amount = Precise.string_div(amount, averageString)
         return self.safe_order({
@@ -3632,7 +3632,7 @@ class gate(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None and spot:
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
         methodTail = 'PriceOrders' if stop else 'Orders'
         openSpotOrders = spot and (status == 'open') and not stop
         if openSpotOrders:
@@ -4107,7 +4107,7 @@ class gate(Exchange):
         unrealisedPnl = self.safe_string(position, 'unrealised_pnl')
         # Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
         # *The default leverage under the full position is the highest leverage in the market.
-        # *Trading fee is charged as Taker Fee Rate(0.075%).
+        # *Trading fee is charged Fee Rate(0.075%).
         takerFee = '0.00075'
         feePaid = Precise.string_mul(takerFee, notional)
         initialMarginString = Precise.string_add(Precise.string_div(notional, leverage), feePaid)
@@ -4536,7 +4536,7 @@ class gate(Exchange):
             request['currency_pair'] = market['id']
             request['side'] = 'borrow'
             # default it to 0.01% since self is a reasonable limit
-            # as it is the smallest tick size currently offered by gateio
+            # is the smallest tick size currently offered by gateio
             request['rate'] = self.safe_string(params, 'rate', '0.0001')
             request['auto_renew'] = True
             method = 'privateMarginPostLoans'
@@ -4765,7 +4765,7 @@ class gate(Exchange):
         see https://www.gate.io/docs/developers/apiv4/en/#futures-stats
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m", "15m", "30m", "1h", "4h", "1d"
-        :param int|None since: the time(ms) of the earliest record to retrieve as a unix timestamp
+        :param int|None since: the time(ms) of the earliest record to retrieve unix timestamp
         :param int|None limit: default 30
         :param dict params: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:

@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -23,6 +22,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -829,16 +829,20 @@ class kraken(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
+        parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
         request = {
             'pair': market['id'],
-            'interval': self.safe_integer(self.timeframes, timeframe, timeframe),
         }
+        if parsedTimeframe is not None:
+            request['interval'] = parsedTimeframe
+        else:
+            request['interval'] = timeframe
         if since is not None:
-            request['since'] = int((since - 1) / 1000)
+            request['since'] = self.parse_to_int((since - 1) / 1000)
         response = await self.publicGetOHLC(self.extend(request, params))
         #
         #     {
@@ -899,7 +903,7 @@ class kraken(Exchange):
         time = self.safe_number(item, 'time')
         timestamp = None
         if time is not None:
-            timestamp = int(time * 1000)
+            timestamp = self.parse_to_int(time * 1000)
         return {
             'info': item,
             'id': id,
@@ -938,7 +942,7 @@ class kraken(Exchange):
             currency = self.currency(code)
             request['asset'] = currency['id']
         if since is not None:
-            request['start'] = int(since / 1000)
+            request['start'] = self.parse_to_int(since / 1000)
         response = await self.privatePostLedgers(self.extend(request, params))
         # { error: [],
         #   result: {ledger: {'LPUAIB-TS774-UKHP7X': {  refid: "A2B4HBV-L4MDIE-JU4N3N",
@@ -1039,7 +1043,7 @@ class kraken(Exchange):
             amount = self.safe_string(trade, 1)
             tradeLength = len(trade)
             if tradeLength > 6:
-                id = self.safe_string(trade, 6)  # artificially added as per  #1794
+                id = self.safe_string(trade, 6)  # artificially added  #1794
         elif isinstance(trade, str):
             id = trade
         elif 'ordertxid' in trade:
@@ -1568,7 +1572,7 @@ class kraken(Exchange):
         options = self.safe_value(self.options, 'fetchOrderTrades', {})
         batchSize = self.safe_integer(options, 'batchSize', 20)
         numTradeIds = len(tradeIds)
-        numBatches = int(numTradeIds / batchSize)
+        numBatches = self.parse_to_int(numTradeIds / batchSize)
         numBatches = self.sum(numBatches, 1)
         result = []
         for j in range(0, numBatches):
@@ -1645,7 +1649,7 @@ class kraken(Exchange):
             # 'ofs' = result offset
         }
         if since is not None:
-            request['start'] = int(since / 1000)
+            request['start'] = self.parse_to_int(since / 1000)
         response = await self.privatePostTradesHistory(self.extend(request, params))
         #
         #     {
@@ -1749,7 +1753,7 @@ class kraken(Exchange):
         await self.load_markets()
         request = {}
         if since is not None:
-            request['start'] = int(since / 1000)
+            request['start'] = self.parse_to_int(since / 1000)
         query = params
         clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
         if clientOrderId is not None:
@@ -1775,7 +1779,7 @@ class kraken(Exchange):
         await self.load_markets()
         request = {}
         if since is not None:
-            request['start'] = int(since / 1000)
+            request['start'] = self.parse_to_int(since / 1000)
         query = params
         clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
         if clientOrderId is not None:
@@ -2100,7 +2104,7 @@ class kraken(Exchange):
         defaultDepositMethod = self.safe_string(defaultDepositMethods, code)
         depositMethod = self.safe_string(params, 'method', defaultDepositMethod)
         # if the user has specified an exchange-specific method in params
-        # we pass it as is, otherwise we take the 'network' unified param
+        # we pass it, otherwise we take the 'network' unified param
         if depositMethod is None:
             depositMethods = await self.fetch_deposit_methods(code)
             if network is not None:
@@ -2184,7 +2188,7 @@ class kraken(Exchange):
             #
             result = self.safe_value(response, 'result', {})
             return self.parse_transaction(result, currency)
-        raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, as set up on your account)")
+        raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, up on your account)")
 
     async def fetch_positions(self, symbols=None, params={}):
         """

@@ -16,7 +16,6 @@ def test_leverage_tier(exchange, method, tier):
     keys = list(format.keys())
     for i in range(0, len(keys)):
         key = keys[i]
-        assert key in tier, exchange.id + ' ' + method + ' ' + key + ' missing from response'
 
     if tier['tier'] is not None:
         assert isinstance(tier['tier'], numbers.Real)

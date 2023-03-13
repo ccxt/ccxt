@@ -690,14 +690,14 @@ class gate extends Exchange {
          * @return {[array]} an array of objects representing market data
          */
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
-        $promises = array(
+        $rawPromises = array(
             $this->fetch_contract_markets($params),
             $this->fetch_option_markets($params),
         );
         if (!$sandboxMode) {
             // gate does not have a sandbox for spot $markets
             $mainnetOnly = array( $this->fetch_spot_markets($params) );
-            $promises = $this->array_concat($promises, $mainnetOnly);
+            $rawPromises = $this->array_concat($rawPromises, $mainnetOnly);
         }
         $spotMarkets = $this->safe_value($promises, 0, array());
         $contractMarkets = $this->safe_value($promises, 1, array());
@@ -1310,7 +1310,7 @@ class gate extends Exchange {
                 'lowerCaseId' => $currencyIdLower,
                 'name' => null,
                 'code' => $code,
-                'precision' => $this->parse_number('1e-4'), // todo => as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix($this->value, 4);" function, so users cant set lower precision than 0.0001
+                'precision' => $this->parse_number('1e-4'), // todo => is done completely in html, in withdrawal page's source it has predefined "num_need_fix($this->value, 4);" function, so users cant set lower precision than 0.0001
                 'info' => $entry,
                 'active' => $active,
                 'deposit' => $depositEnabled,
@@ -2387,7 +2387,7 @@ class gate extends Exchange {
          * @param {array} $params extra parameters specific $to the gateio api endpoint
          * @param {string|null} $params->price "mark" or "index" for mark $price and index $price candles
          * @param {int|null} $params->until timestamp in ms of the latest candle $to fetch
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2415,12 +2415,12 @@ class gate extends Exchange {
         $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $until = intval($until / 1000);
+            $until = $this->parse_to_int($until / 1000);
             $params = $this->omit($params, 'until');
         }
         if ($since !== null) {
             $duration = $this->parse_timeframe($timeframe);
-            $request['from'] = intval($since / 1000);
+            $request['from'] = $this->parse_to_int($since / 1000);
             $toTimestamp = $this->sum($request['from'], $limit * $duration - 1);
             $currentTimestamp = $this->seconds();
             $to = min ($toTimestamp, $currentTimestamp);
@@ -2574,7 +2574,7 @@ class gate extends Exchange {
             $request['limit'] = $limit; // default 100, max 1000
         }
         if ($since !== null && ($market['contract'])) {
-            $request['from'] = intval($since / 1000);
+            $request['from'] = $this->parse_to_int($since / 1000);
         }
         $response = $this->$method (array_merge($request, $query));
         //
@@ -2685,10 +2685,10 @@ class gate extends Exchange {
             $request['limit'] = $limit; // default 100, max 1000
         }
         if ($since !== null) {
-            $request['from'] = intval($since / 1000);
+            $request['from'] = $this->parse_to_int($since / 1000);
         }
         if ($until !== null) {
-            $request['to'] = intval($until / 1000);
+            $request['to'] = $this->parse_to_int($until / 1000);
         }
         $method = $this->get_supported_mapping($type, array(
             'spot' => 'privateSpotGetMyTrades',
@@ -2893,7 +2893,7 @@ class gate extends Exchange {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            $start = intval($since / 1000);
+            $start = $this->parse_to_int($since / 1000);
             $request['from'] = $start;
             $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
         }
@@ -2921,7 +2921,7 @@ class gate extends Exchange {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            $start = intval($since / 1000);
+            $start = $this->parse_to_int($since / 1000);
             $request['from'] = $start;
             $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
         }
@@ -3085,7 +3085,7 @@ class gate extends Exchange {
          * @param {bool|null} $params->auto_borrow *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
          * @param {string|null} $params->settle *$contract only* Unified Currency Code for settle currency
          * @param {bool|null} $params->reduceOnly *$contract only* Indicates if this order is to reduce the size of a position
-         * @param {bool|null} $params->close *$contract only* Set as true to close the position, with size set to 0
+         * @param {bool|null} $params->close *$contract only* Set to close the position, with size set to 0
          * @param {bool|null} $params->auto_size *$contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
          * @param {int|null} $params->price_type *$contract only* 0 latest deal $price, 1 mark $price, 2 index $price
          * @return {array|null} {@link https://docs.ccxt.com/en/latest/manual.html#order-structure An order structure}
@@ -3140,7 +3140,7 @@ class gate extends Exchange {
                     'size' => $amount, // int64, positive = bid, negative = ask
                     // 'iceberg' => 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                     // 'close' => false, // true to close the position, with size set to 0
-                    // 'reduce_only' => false, // St as true to be reduce-only order
+                    // 'reduce_only' => false, // St to be reduce-only order
                     // 'tif' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
                     // 'text' => $clientOrderId, // 't-abcdef1234567890',
                     // 'auto_size' => '', // close_long, close_short, note size also needs to be set to 0
@@ -3673,8 +3673,8 @@ class gate extends Exchange {
         $numFeeCurrencies = count($fees);
         $multipleFeeCurrencies = $numFeeCurrencies > 1;
         $status = $this->parse_order_status($rawStatus);
-        $filled = $this->parse_number(Precise::string_abs($filledString));
-        $remaining = $this->parse_number(Precise::string_abs($remainingString));
+        $filled = Precise::string_abs($filledString);
+        $remaining = Precise::string_abs($remainingString);
         // handle spot $market buy
         $account = $this->safe_string($order, 'account'); // using this instead of $market $type because of the conflicting ids
         if ($account === 'spot') {
@@ -3683,7 +3683,7 @@ class gate extends Exchange {
             if (($type === 'market') && ($side === 'buy')) {
                 $filled = Precise::string_div($filledString, $averageString);
                 $remaining = Precise::string_div($remainingString, $averageString);
-                $price = null; // arrives as 0
+                $price = null; // arrives
                 $cost = $amount;
                 $amount = Precise::string_div($amount, $averageString);
             }
@@ -3806,7 +3806,7 @@ class gate extends Exchange {
             $request['limit'] = $limit;
         }
         if ($since !== null && $spot) {
-            $request['from'] = intval($since / 1000);
+            $request['from'] = $this->parse_to_int($since / 1000);
         }
         $methodTail = $stop ? 'PriceOrders' : 'Orders';
         $openSpotOrders = $spot && ($status === 'open') && !$stop;
@@ -4302,7 +4302,7 @@ class gate extends Exchange {
         $unrealisedPnl = $this->safe_string($position, 'unrealised_pnl');
         // Initial Position Margin = ( Position Value / Leverage ) . Close Position Fee
         // *The default $leverage under the full $position is the highest $leverage in the $market->
-        // *Trading fee is charged as Taker Fee Rate (0.075%).
+        // *Trading fee is charged Fee Rate (0.075%).
         $takerFee = '0.00075';
         $feePaid = Precise::string_mul($takerFee, $notional);
         $initialMarginString = Precise::string_add(Precise::string_div($notional, $leverage), $feePaid);
@@ -4746,7 +4746,7 @@ class gate extends Exchange {
             $request['currency_pair'] = $market['id'];
             $request['side'] = 'borrow';
             // default it to 0.01% since this is a reasonable limit
-            // as it is the smallest tick size currently offered by gateio
+            // is the smallest tick size currently offered by gateio
             $request['rate'] = $this->safe_string($params, 'rate', '0.0001');
             $request['auto_renew'] = true;
             $method = 'privateMarginPostLoans';
@@ -4993,7 +4993,7 @@ class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#futures-stats
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $timeframe "5m", "15m", "30m", "1h", "4h", "1d"
-         * @param {int|null} $since the time(ms) of the earliest record to retrieve as a unix timestamp
+         * @param {int|null} $since the time(ms) of the earliest record to retrieve unix timestamp
          * @param {int|null} $limit default 30
          * @param {array} $params exchange specific parameters
          * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)

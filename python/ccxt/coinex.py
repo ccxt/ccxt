@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -16,6 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -1168,7 +1168,7 @@ class coinex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1621,20 +1621,24 @@ class coinex(Exchange):
         if feeCurrency is None:
             feeCurrency = market['quote']
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        side = self.safe_integer(order, 'side')
-        if side == 1:
+        rawSide = self.safe_integer(order, 'side')
+        side = None
+        if rawSide == 1:
             side = 'sell'
-        elif side == 2:
+        elif rawSide == 2:
             side = 'buy'
         else:
             side = self.safe_string(order, 'type')
-        type = self.safe_string(order, 'order_type')
-        if type is None:
+        rawType = self.safe_string(order, 'order_type')
+        type = None
+        if rawType is None:
             type = self.safe_integer(order, 'type')
             if type == 1:
                 type = 'limit'
             elif type == 2:
                 type = 'market'
+        else:
+            type = rawType
         return self.safe_order({
             'id': self.safe_string_2(order, 'id', 'order_id'),
             'clientOrderId': None,
@@ -1692,7 +1696,7 @@ class coinex(Exchange):
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, option == 'MAKER_ONLY', params)
         positionId = self.safe_integer_2(params, 'position_id', 'positionId')  # Required for closing swap positions
-        timeInForce = self.safe_string(params, 'timeInForce')  # Spot: IOC, FOK, PO, GTC, ... NORMAL(default), MAKER_ONLY
+        timeInForceRaw = self.safe_string(params, 'timeInForce')  # Spot: IOC, FOK, PO, GTC, ... NORMAL(default), MAKER_ONLY
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is not None:
             if market['type'] != 'swap':
@@ -1727,13 +1731,14 @@ class coinex(Exchange):
                     elif type == 'market':
                         method = 'perpetualPrivatePostOrderPutStopMarket'
                     request['amount'] = self.amount_to_precision(symbol, amount)
+                timeInForce = None
                 if (type != 'market') or (stopPrice is not None):
                     if postOnly:
                         request['option'] = 1
-                    elif timeInForce is not None:
-                        if timeInForce == 'IOC':
+                    elif timeInForceRaw is not None:
+                        if timeInForceRaw == 'IOC':
                             timeInForce = 2
-                        elif timeInForce == 'FOK':
+                        elif timeInForceRaw == 'FOK':
                             timeInForce = 3
                         else:
                             timeInForce = 1
@@ -1780,14 +1785,14 @@ class coinex(Exchange):
                     method = 'privatePostOrderStopMarket'
             if (type != 'market') or (stopPrice is not None):
                 # following options cannot be applied to vanilla market orders(but can be applied to stop-market orders)
-                if (timeInForce is not None) or postOnly:
-                    if (postOnly or (timeInForce != 'IOC')) and ((type == 'limit') and (stopPrice is not None)):
+                if (timeInForceRaw is not None) or postOnly:
+                    if (postOnly or (timeInForceRaw != 'IOC')) and ((type == 'limit') and (stopPrice is not None)):
                         raise InvalidOrder(self.id + ' createOrder() only supports the IOC option for stop-limit orders')
                     if postOnly:
                         request['option'] = 'MAKER_ONLY'
                     else:
-                        if timeInForce is not None:
-                            request['option'] = timeInForce  # exchange takes 'IOC' and 'FOK'
+                        if timeInForceRaw is not None:
+                            request['option'] = timeInForceRaw  # exchange takes 'IOC' and 'FOK'
         accountId = self.safe_integer(params, 'account_id')
         defaultType = self.safe_string(self.options, 'defaultType')
         if defaultType == 'margin':

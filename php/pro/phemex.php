@@ -11,8 +11,6 @@ use React\Async;
 
 class phemex extends \ccxt\async\phemex {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -437,7 +435,7 @@ class phemex extends \ccxt\async\phemex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -508,7 +506,7 @@ class phemex extends \ccxt\async\phemex {
         $timestamp = $this->safe_integer_product($message, 'timestamp', 0.000001);
         if ($type === 'snapshot') {
             $book = $this->safe_value($message, 'book', array());
-            $snapshot = $this->parse_order_book($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
+            $snapshot = $this->customParseOrderBook ($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
             $snapshot['nonce'] = $nonce;
             $orderbook = $this->order_book($snapshot, $depth);
             $this->orderbooks[$symbol] = $orderbook;
@@ -1012,7 +1010,7 @@ class phemex extends \ccxt\async\phemex {
         $id = $this->safe_integer($message, 'id');
         if ($id !== null) {
             // not every $method stores its $subscription
-            // as an object so we can't do indeById here
+            // object so we can't do indeById here
             $subs = $client->subscriptions;
             $values = is_array($subs) ? array_values($subs) : array();
             for ($i = 0; $i < count($values); $i++) {

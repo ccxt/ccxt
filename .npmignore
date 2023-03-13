@@ -1,11 +1,5 @@
 ccxt.egg-info/
-build/**/*
-!build/countries.js
-!build/export-exchanges.js
-!build/fs.js
-!build/transpile.js
-!build/vss.js
-!build/cleanup-old-tags.js
+build/
 examples/
 node_modules/
 python/
@@ -39,3 +33,8 @@ docker-compose.yml
 phpunit.xml.dist
 setup.cfg
 exchanges.cfg
+
+# TS sources and JS tests
+/ts/
+/js/src/test/
+/js/src/pro/test/

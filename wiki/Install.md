@@ -30,7 +30,7 @@ JavaScript version of ccxt works both in Node and web browsers. Requires ES6 and
 npm install ccxt
 ```
 
-```JavaScript
+```javascript
 var ccxt = require ('ccxt')
 
 console.log (ccxt.exchanges) // print all available exchanges
@@ -40,18 +40,18 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.9.13/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@2.9.13/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.9.14/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@2.9.14/dist/ccxt.browser.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.9.13/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.9.14/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
 
-```JavaScript
+```javascript
 console.log (ccxt.exchanges) // print all available exchanges
 ```
 
@@ -100,14 +100,14 @@ npm link ccxt
 pip install ccxt
 ```
 
-```Python
+```python
 import ccxt
 print(ccxt.exchanges) # print a list of all available exchange classes
 ```
 
 The library supports concurrent asynchronous mode with asyncio and async/await in Python 3.5.3+
 
-```Python
+```python
 import ccxt.async_support as ccxt # link against the asynchronous version of ccxt
 ```
 
@@ -125,7 +125,7 @@ It requires common PHP modules:
 - iconv
 - gmp (this is a built-in extension as of PHP 7.2+)
 
-```PHP
+```php
 include "ccxt.php";
 var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
@@ -161,7 +161,7 @@ In some specific cases you may want a proxy, if you experience issues with [DDoS
 
 In order to use proxies with JavaScript, one needs to pass the proxying `agent` option to the exchange class instance constructor (or set the `exchange.agent` property later after instantiation in runtime):
 
-```JavaScript
+```javascript
 const ccxt = require ('ccxt')
     , HttpsProxyAgent = require ('https-proxy-agent')
 
@@ -185,7 +185,7 @@ exchange = ccxt.binance({
 ```
 
 ```shell
-$ export HTTP_PROXY="http://10.10.1.10:3128"
+$ export HTTP_PROXY="http://10.10.1.10:3128"  # these proxies won't work for you, they are here for example
 $ export HTTPS_PROXY="http://10.10.1.10:1080"
 ```
 
@@ -193,7 +193,7 @@ After exporting the above variables with your proxy settings, all reqeusts from 
 
 You can also set them programmatically:
 
-```Python
+```python
 import ccxt
 exchange = ccxt.poloniex({
     'proxies': {
@@ -205,7 +205,7 @@ exchange = ccxt.poloniex({
 
 Or
 
-```Python
+```python
 import ccxt
 exchange = ccxt.poloniex()
 exchange.proxies = {
@@ -218,7 +218,7 @@ exchange.proxies = {
 
 - https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-sync-python-requests-2-and-3.py
 
-```Python
+```python
 # -*- coding: utf-8 -*-
 
 import os
@@ -260,7 +260,7 @@ pprint(exchange.fetch_ticker('ETH/BTC'))
 
 - https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-asyncio-aiohttp-python-3.py
 
-```Python
+```python
 # -*- coding: utf-8 -*-
 
 import asyncio
@@ -318,7 +318,7 @@ A more detailed documentation on using proxies with the sync python version of t
 pip install aiohttp_socks
 ```
 
-```Python
+```python
 import ccxt.async_support as ccxt
 import aiohttp
 import aiohttp_socks
@@ -356,7 +356,7 @@ To run your own CORS proxy locally you can either set up one of the existing one
 
 ### Node.js CORS Proxy
 
-```JavaScript
+```javascript
 // JavaScript CORS Proxy
 // Save this in a file like cors.js and run with `node cors [port]`
 // It will listen for your requests on the port you pass in command line or port 8080 by default
@@ -366,7 +366,7 @@ require ('cors-anywhere').createServer ().listen (port, 'localhost')
 
 ### Python CORS Proxy
 
-```Python
+```python
 #!/usr/bin/env python
 # Python CORS Proxy
 # Save this in a file like cors.py and run with `python cors.py [port]` or `cors [port]`

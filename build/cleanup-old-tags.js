@@ -1,10 +1,14 @@
 
 import { execSync } from 'child_process';
-import { noLocate as log } from 'ololog';
-import { groupBy } from '../ccxt.js';
+import log  from 'ololog';
+import ccxt from '../js/ccxt.js';
+import { isMainEntry } from './transpile.js';
 const { values }   = Object
 import assert from 'assert';
+import * as url from 'node:url';
 
+const { groupBy } = ccxt;
+log.noLocate();
 function cleanupOldTags () {
 
     const tags = execSync ('git tag').toString ().split ('\n').filter (s => s).map (t => {
@@ -77,7 +81,7 @@ function cleanupOldTags () {
 // ============================================================================
 // main entry point
 
-if (require.main === module) {
+if (isMainEntry(import.meta.url)) {
 
     // if called directly like `node module`
 

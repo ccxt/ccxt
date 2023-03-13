@@ -7,13 +7,11 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\BadRequest;
+use ccxt\AuthenticationError;
 use React\Async;
 
 class bybit extends \ccxt\async\bybit {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -333,7 +331,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1369,8 +1367,8 @@ class bybit extends \ccxt\async\bybit {
         $client = $this->client($url);
         $future = $this->safe_value($client->subscriptions, $messageHash);
         if ($future === null) {
-            $expires = $this->milliseconds() + 10000;
-            $expires = (string) $expires;
+            $expiresInt = $this->milliseconds() + 10000;
+            $expires = (string) $expiresInt;
             $path = 'GET/realtime';
             $auth = $path . $expires;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'hex');

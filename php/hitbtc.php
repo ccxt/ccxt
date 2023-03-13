@@ -612,7 +612,7 @@ class hitbtc extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the hitbtc api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -783,7 +783,7 @@ class hitbtc extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        // we use clientOrderId as the order $id with this exchange intentionally
+        // we use clientOrderId order $id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $orderId = $this->safe_string($trade, 'clientOrderId');
@@ -965,7 +965,7 @@ class hitbtc extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        // we use $clientOrderId as the $order id with this exchange intentionally
+        // we use $clientOrderId $order id with this exchange intentionally
         // because most of their endpoints will require $clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         // their max accepted length is 32 characters
@@ -996,7 +996,7 @@ class hitbtc extends Exchange {
 
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
-        // we use clientOrderId as the order $id with this exchange intentionally
+        // we use clientOrderId order $id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         // their max accepted length is 32 characters
@@ -1027,7 +1027,7 @@ class hitbtc extends Exchange {
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
-        // we use clientOrderId as the order $id with this exchange intentionally
+        // we use clientOrderId order $id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $request = array(
@@ -1100,7 +1100,7 @@ class hitbtc extends Exchange {
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'cumQuantity');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        // we use $clientOrderId as the $order $id with this exchange intentionally
+        // we use $clientOrderId $order $id with this exchange intentionally
         // because most of their endpoints will require $clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $id = $this->safe_string($order, 'clientOrderId');
@@ -1145,7 +1145,7 @@ class hitbtc extends Exchange {
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
-        // we use clientOrderId as the order $id with this exchange intentionally
+        // we use clientOrderId order $id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $request = array(
@@ -1168,7 +1168,7 @@ class hitbtc extends Exchange {
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
-        // we use clientOrderId as the order $id with this exchange intentionally
+        // we use clientOrderId order $id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $request = array(
@@ -1385,7 +1385,7 @@ class hitbtc extends Exchange {
         $fromNetwork = $this->safe_string($networks, $fromNetwork, $fromNetwork); // handle ETH>ERC20 alias
         $toNetwork = $this->safe_string($networks, $toNetwork, $toNetwork); // handle ETH>ERC20 alias
         if ($fromNetwork === $toNetwork) {
-            throw new ExchangeError($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same as toNetwork');
+            throw new ExchangeError($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same');
         }
         $request = array(
             'fromCurrency' => $currency['id'] . $fromNetwork,

@@ -7,8 +7,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
 
 //  ---------------------------------------------------------------------------
 
@@ -45,5 +43,4 @@ function test_transaction($exchange, $transaction, $code, $now) {
     }
     assert ($transaction->info);
 }
-
 
