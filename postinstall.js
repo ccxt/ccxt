@@ -1,7 +1,9 @@
-const fetch = require ('./ts/src/static_dependencies/fetch-ponyfill/fetch-node.cjs') ().fetch
+'use nostrict';
+
+import fetch from './ts/src/static_dependencies/node-fetch/index.js'
 
 function style(s, style) {
-    return style + s + '\033[0m'
+    return style + s + '\x1b[0m'
 }
 
 const colors = {
@@ -16,7 +18,7 @@ const colors = {
 
 let colorFunctions = {}
 for (let color of Object.keys (colors)) {
-    colorFunctions[color] = (s) => console.log (style (s, '\033[' + colors[color].toString () + 'm'))
+    colorFunctions[color] = (s) => console.log (style (s, '\x1b[' + colors[color].toString () + 'm'))
 }
 
 let ascii = [
