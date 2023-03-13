@@ -1,10 +1,13 @@
 
 import { execSync } from 'child_process';
-import { noLocate as log } from 'ololog';
-import { groupBy } from '../ccxt.js';
+import log  from 'ololog';
+import ccxt from '../js/ccxt.js';
 const { values }   = Object
 import assert from 'assert';
+import * as url from 'node:url';
 
+const { groupBy } = ccxt;
+log.noLocate();
 function cleanupOldTags () {
 
     const tags = execSync ('git tag').toString ().split ('\n').filter (s => s).map (t => {
@@ -73,11 +76,27 @@ function cleanupOldTags () {
         }
     }
 }
+// ============================================================================
+
+function isMainEntry(metaUrl) {
+    // https://exploringjs.com/nodejs-shell-scripting/ch_nodejs-path.html#detecting-if-module-is-main
+    if (import.meta.url.startsWith('file:')) {
+        const modulePath = url.fileURLToPath(metaUrl);
+        if (process.argv[1] === modulePath) {
+            return true;
+        }
+        // when called without .js extension
+        if (process.argv[1] === modulePath.replace('.js','')) {
+            return true;
+        }
+    }
+    return false;
+}
 
 // ============================================================================
 // main entry point
 
-if (require.main === module) {
+if (isMainEntry(import.meta.url)) {
 
     // if called directly like `node module`
 
