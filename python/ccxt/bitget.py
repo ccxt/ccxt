@@ -902,6 +902,7 @@ class bitget(Exchange):
                     })))
             else:
                 promises.append(self.fetch_markets_by_type(types[i], params))
+        promises = promises
         result = promises[0]
         for i in range(1, len(promises)):
             result = self.array_concat(result, promises[i])

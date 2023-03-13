@@ -980,6 +980,7 @@ class okx(Exchange):
         for i in range(0, len(types)):
             promises.append(self.fetch_markets_by_type(types[i], params))
         # why not both ¯\_(ツ)_/¯
+        promises = promises
         for i in range(0, len(promises)):
             result = self.array_concat(result, promises[i])
         return result

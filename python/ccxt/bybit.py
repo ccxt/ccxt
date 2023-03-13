@@ -1322,6 +1322,7 @@ class bybit(Exchange):
             self.fetch_derivatives_markets({'category': 'linear'}),
             self.fetch_derivatives_markets({'category': 'inverse'}),
         ]
+        promises = promisesUnresolved
         spotMarkets = promises[0]
         linearMarkets = promises[1]
         inverseMarkets = promises[2]

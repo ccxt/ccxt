@@ -889,6 +889,7 @@ class bitget extends Exchange {
                 $promises[] = $this->fetch_markets_by_type($types[$i], $params);
             }
         }
+        $promises = $promises;
         $result = $promises[0];
         for ($i = 1; $i < count($promises); $i++) {
             $result = $this->array_concat($result, $promises[$i]);

@@ -530,6 +530,7 @@ class digifinex extends Exchange {
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchMarketsV2', $params);
         $method = ($marginMode !== null) ? 'publicSpotGetMarginSymbols' : 'publicSpotGetTradesSymbols';
         $promises = [ $this->$method ($query), $this->publicSwapGetPublicInstruments ($params) ];
+        $promises = $promises;
         $spotMarkets = $promises[0];
         $swapMarkets = $promises[1];
         //

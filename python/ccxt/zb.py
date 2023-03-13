@@ -578,6 +578,7 @@ class zb(Exchange):
         #     }
         #
         promises = [self.spotV1PublicGetMarkets(params), self.contractV2PublicGetConfigMarketList(params)]
+        promises = promises
         markets = promises[0]
         contracts = promises[1]
         #

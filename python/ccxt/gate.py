@@ -714,6 +714,7 @@ class gate(Exchange):
             # gate does not have a sandbox for spot markets
             mainnetOnly = [self.fetch_spot_markets(params)]
             rawPromises = self.array_concat(rawPromises, mainnetOnly)
+        promises = rawPromises
         spotMarkets = self.safe_value(promises, 0, [])
         contractMarkets = self.safe_value(promises, 1, [])
         optionMarkets = self.safe_value(promises, 2, [])

@@ -283,6 +283,7 @@ class bkex(Exchange):
             self.publicSpotGetCommonSymbols(params),
             self.publicSwapGetMarketSymbols(params),
         ]
+        promises = promises
         spotMarkets = promises[0]
         #
         #     {

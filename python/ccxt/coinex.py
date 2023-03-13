@@ -402,6 +402,7 @@ class coinex(Exchange):
             self.fetch_spot_markets(params),
             self.fetch_contract_markets(params),
         ]
+        promises = promises
         spotMarkets = promises[0]
         swapMarkets = promises[1]
         return self.array_concat(spotMarkets, swapMarkets)

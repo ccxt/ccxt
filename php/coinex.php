@@ -393,6 +393,7 @@ class coinex extends Exchange {
             $this->fetch_spot_markets($params),
             $this->fetch_contract_markets($params),
         );
+        $promises = $promises;
         $spotMarkets = $promises[0];
         $swapMarkets = $promises[1];
         return $this->array_concat($spotMarkets, $swapMarkets);

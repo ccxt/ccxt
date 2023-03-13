@@ -366,6 +366,7 @@ class cryptocom(Exchange):
         :returns [dict]: an array of objects representing market data
         """
         promises = [self.fetch_spot_markets(params), self.fetch_derivatives_markets(params)]
+        promises = promises
         spotMarkets = promises[0]
         derivativeMarkets = promises[1]
         markets = self.array_concat(spotMarkets, derivativeMarkets)
