@@ -399,7 +399,7 @@ export default class woo extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?#public-trades}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchTrades() requires a symbol argument');
@@ -526,7 +526,7 @@ export default class woo extends Exchange {
          * @description fetch the trading fees for multiple markets
          * @see https://docs.woo.org/#get-account-information-new
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.v3PrivateGetAccountinfo(params);
@@ -722,7 +722,7 @@ export default class woo extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const reduceOnly = this.safeValue(params, 'reduceOnly');
         const orderType = type.toUpperCase();
@@ -818,7 +818,7 @@ export default class woo extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -857,7 +857,7 @@ export default class woo extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
@@ -899,7 +899,7 @@ export default class woo extends Exchange {
          * @description cancel all open orders in a market
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' canelOrders() requires a symbol argument');
@@ -925,7 +925,7 @@ export default class woo extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
@@ -987,7 +987,7 @@ export default class woo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1122,7 +1122,7 @@ export default class woo extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1229,7 +1229,7 @@ export default class woo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -1270,7 +1270,7 @@ export default class woo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1315,7 +1315,7 @@ export default class woo extends Exchange {
          * @name woo#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         const response = await this.v1PrivateGetSubAccountAssets(params);
         //
@@ -1361,7 +1361,7 @@ export default class woo extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.woo.org/#get-current-holding-get-balance-new
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?#balance-structure}
          */
         await this.loadMarkets();
         const response = await this.v3PrivateGetBalances(params);
@@ -1413,7 +1413,7 @@ export default class woo extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         // this method is TODO because of networks unification
         await this.loadMarkets();
@@ -1507,7 +1507,7 @@ export default class woo extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         const [currency, rows] = await this.getAssetHistoryRows(code, since, limit, params);
         return this.parseLedger(rows, currency, since, limit, params);
@@ -1571,7 +1571,7 @@ export default class woo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const request = {
             'token_side': 'DEPOSIT',
@@ -1587,7 +1587,7 @@ export default class woo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const request = {
             'token_side': 'WITHDRAW',
@@ -1603,7 +1603,7 @@ export default class woo extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const request = {
             'type': 'BALANCE',
@@ -1673,7 +1673,7 @@ export default class woo extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -1709,7 +1709,7 @@ export default class woo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         const request = {
             'type': 'COLLATERAL',
@@ -1800,7 +1800,7 @@ export default class woo extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         await this.loadMarkets();
@@ -1842,7 +1842,7 @@ export default class woo extends Exchange {
          * @param {float} amount the amount to repay
          * @param {string|undefined} symbol not used by woo.repayMargin ()
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets();
         let market = undefined;
