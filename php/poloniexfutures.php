@@ -406,7 +406,7 @@ class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-$symbols
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
@@ -556,7 +556,7 @@ class poloniexfutures extends Exchange {
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
         $timestamp = $this->safe_integer($trade, 'ts');
         if ($timestamp !== null) {
-            $timestamp = intval($timestamp / 1000000);
+            $timestamp = $this->parse_to_int($timestamp / 1000000);
         } else {
             $timestamp = $this->safe_integer($trade, 'createdAt');
             // if it's a historical v1 $trade, the exchange returns $timestamp in seconds
@@ -666,15 +666,20 @@ class poloniexfutures extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
+        $parsedTimeframe = $this->safe_integer($this->timeframes, $timeframe);
         $request = array(
             'symbol' => $marketId,
-            'granularity' => $this->timeframes[$timeframe],
         );
+        if ($parsedTimeframe !== null) {
+            $request['granularity'] = $parsedTimeframe;
+        } else {
+            $request['granularity'] = $timeframe;
+        }
         $duration = $this->parse_timeframe($timeframe) * 1000;
         $endAt = $this->milliseconds();
         if ($since !== null) {

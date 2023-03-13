@@ -41,7 +41,7 @@ class bitfinex2 extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
-                'editOrder' => null,
+                'editOrder' => false,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => true,
                 'fetchClosedOrders' => true,
@@ -310,7 +310,7 @@ class bitfinex2 extends Exchange {
                 ),
                 // convert 'market' to 'EXCHANGE MARKET'
                 // convert 'limit' 'EXCHANGE LIMIT'
-                // everything else remains as is
+                // everything else remains
                 'orderTypes' => array(
                     'market' => 'EXCHANGE MARKET',
                     'limit' => 'EXCHANGE LIMIT',
@@ -413,10 +413,12 @@ class bitfinex2 extends Exchange {
         // https://docs.bitfinex.com/docs/introduction#$amount-precision
         // The $amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
+        $symbol = $this->safe_symbol($symbol);
         return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     public function price_to_precision($symbol, $price) {
+        $symbol = $this->safe_symbol($symbol);
         $price = $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
         // https://docs.bitfinex.com/docs/introduction#$price-precision
         // The precision level of all trading prices is based on significant figures.
@@ -887,7 +889,7 @@ class bitfinex2 extends Exchange {
             $error = $this->safe_string($response, 0);
             if ($error === 'error') {
                 $message = $this->safe_string($response, 2, '');
-                // same $message as in v1
+                // same $message v1
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
                 throw new ExchangeError($this->id . ' ' . $message);
             }
@@ -1102,7 +1104,7 @@ class bitfinex2 extends Exchange {
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bitfinex2 api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1183,26 +1185,6 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_symbol($marketId) {
-        if ($marketId === null) {
-            return $marketId;
-        }
-        $marketId = str_replace('t', '', $marketId);
-        $baseId = null;
-        $quoteId = null;
-        if (mb_strpos($marketId, ':') !== false) {
-            $parts = explode(':', $marketId);
-            $baseId = $parts[0];
-            $quoteId = $parts[1];
-        } else {
-            $baseId = mb_substr($marketId, 0, 3 - 0);
-            $quoteId = mb_substr($marketId, 3, 6 - 3);
-        }
-        $base = $this->safe_currency_code($baseId);
-        $quote = $this->safe_currency_code($quoteId);
-        return $base . '/' . $quote;
-    }
-
     public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
@@ -1249,12 +1231,12 @@ class bitfinex2 extends Exchange {
         $takerOrMaker = null;
         $type = null;
         $fee = null;
-        $symbol = null;
+        $symbol = $this->safe_symbol(null, $market);
         $timestampIndex = $isPrivate ? 2 : 1;
         $timestamp = $this->safe_integer($trade, $timestampIndex);
         if ($isPrivate) {
             $marketId = $trade[1];
-            $symbol = $this->parse_symbol($marketId);
+            $symbol = $this->safe_symbol($marketId);
             $orderId = $this->safe_string($trade, 3);
             $maker = $this->safe_integer($trade, 8);
             $takerOrMaker = ($maker === 1) ? 'maker' : 'taker';
@@ -1335,7 +1317,7 @@ class bitfinex2 extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitfinex2 api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1348,7 +1330,7 @@ class bitfinex2 extends Exchange {
             }
             $request = array(
                 'symbol' => $market['id'],
-                'timeframe' => $this->timeframes[$timeframe],
+                'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'sort' => 1,
                 'start' => $since,
                 'limit' => $limit,
@@ -1434,7 +1416,7 @@ class bitfinex2 extends Exchange {
     public function parse_order($order, $market = null) {
         $id = $this->safe_string($order, 0);
         $marketId = $this->safe_string($order, 3);
-        $symbol = $this->parse_symbol($marketId);
+        $symbol = $this->safe_symbol($marketId);
         // https://github.com/ccxt/ccxt/issues/6686
         // $timestamp = $this->safe_timestamp($order, 5);
         $timestamp = $this->safe_integer($order, 5);
@@ -1459,7 +1441,7 @@ class bitfinex2 extends Exchange {
         $stopPrice = null;
         if (($orderType === 'EXCHANGE STOP') || ($orderType === 'EXCHANGE STOP LIMIT')) {
             $price = null;
-            $stopPrice = $this->safe_number($order, 16);
+            $stopPrice = $this->safe_string($order, 16);
             if ($orderType === 'EXCHANGE STOP LIMIT') {
                 $price = $this->safe_string($order, 19);
             }
@@ -1524,7 +1506,12 @@ class bitfinex2 extends Exchange {
             // $order types "limit" and "market" immediatley parsed "EXCHANGE LIMIT" and "EXCHANGE MARKET"
             // note => same $order types exist for margin $orders without the EXCHANGE prefix
             $orderTypes = $this->safe_value($this->options, 'orderTypes', array());
-            $orderType = $this->safe_string_upper($orderTypes, $type, $type);
+            $orderType = strtoupper($type);
+            if ($market['spot']) {
+                // although they claim that $type needs to be 'exchange limit' or 'exchange market'
+                // in fact that's not the case for swap markets
+                $orderType = $this->safe_string_upper($orderTypes, $type, $type);
+            }
             $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
             $timeInForce = $this->safe_string($params, 'timeInForce');
             $postOnlyParam = $this->safe_value($params, 'postOnly', false);
@@ -1567,7 +1554,7 @@ class bitfinex2 extends Exchange {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
             if ($stopLimit || $stopMarket) {
-                // $request['price'] is taken as $stopPrice for stop $orders
+                // $request['price'] is taken for stop $orders
                 $request['price'] = $this->price_to_precision($symbol, $stopPrice);
                 if ($stopMarket) {
                     $request['type'] = 'EXCHANGE STOP';
@@ -2403,7 +2390,7 @@ class bitfinex2 extends Exchange {
             if ($statusMessage === 'error') {
                 $feedback = $this->id . ' ' . $response;
                 $message = $this->safe_string($response, 2, '');
-                // same $message as in v1
+                // same $message v1
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
                 throw new ExchangeError($feedback); // unknown $message

@@ -18,10 +18,10 @@ class mexc3 extends Exchange {
             'version' => 'v3',
             'has' => array(
                 'CORS' => null,
-                'spot' => null,
+                'spot' => true,
                 'margin' => true,
-                'swap' => null,
-                'future' => null,
+                'swap' => true,
+                'future' => true,
                 'option' => null,
                 'addMargin' => true,
                 'borrowMargin' => true,
@@ -95,8 +95,6 @@ class mexc3 extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
-                'privateAPI' => true,
-                'publicAPI' => true,
                 'reduceMargin' => true,
                 'repayMargin' => true,
                 'setLeverage' => true,
@@ -166,6 +164,8 @@ class mexc3 extends Exchange {
                             'capital/deposit/address' => 1,
                             'capital/transfer' => 1,
                             'capital/sub-account/universalTransfer' => 1,
+                            'capital/convert' => 1,
+                            'capital/convert/list' => 1,
                             'margin/loan' => 1,
                             'margin/allOrders' => 1,
                             'margin/myTrades' => 1,
@@ -198,6 +198,7 @@ class mexc3 extends Exchange {
                             'capital/transfer' => 1,
                             'capital/deposit/address' => 1,
                             'capital/sub-account/universalTransfer' => 1,
+                            'capital/convert' => 1,
                             'margin/tradeMode' => 1,
                             'margin/order' => 1,
                             'margin/loan' => 1,
@@ -461,6 +462,81 @@ class mexc3 extends Exchange {
                     '88013' => '\\ccxt\\InvalidOrder', // array("msg":"最小交易额不能小于：5USDT","code":88013)
                     '88015' => '\\ccxt\\InsufficientFunds', // array("msg":"持仓不足","code":88015)
                     '700003' => '\\ccxt\\InvalidNonce', // array("code":700003,"msg":"Timestamp for this request is outside of the recvWindow.")
+                    '26' => '\\ccxt\\ExchangeError', // operation not allowed
+                    '602' => '\\ccxt\\AuthenticationError', // Signature verification failed
+                    '10001' => '\\ccxt\\AuthenticationError', // user does not exist
+                    '10007' => '\\ccxt\\BadRequest', // bad symbol
+                    '10015' => '\\ccxt\\BadRequest', // user id cannot be null
+                    '10072' => '\\ccxt\\BadRequest', // invalid access key
+                    '10073' => '\\ccxt\\BadRequest', // invalid Request-Time
+                    '10095' => '\\ccxt\\InvalidOrder', // amount cannot be null
+                    '10096' => '\\ccxt\\InvalidOrder', // amount decimal places is too long
+                    '10097' => '\\ccxt\\InvalidOrder', // amount is error
+                    '10098' => '\\ccxt\\InvalidOrder', // risk control system detected abnormal
+                    '10099' => '\\ccxt\\BadRequest', // user sub account does not open
+                    '10100' => '\\ccxt\\BadRequest', // this currency transfer is not supported
+                    '10102' => '\\ccxt\\InvalidOrder', // amount cannot be zero or negative
+                    '10103' => '\\ccxt\\ExchangeError', // this account transfer is not supported
+                    '10200' => '\\ccxt\\BadRequest', // transfer operation processing
+                    '10201' => '\\ccxt\\BadRequest', // transfer in failed
+                    '10202' => '\\ccxt\\BadRequest', // transfer out failed
+                    '10206' => '\\ccxt\\BadRequest', // transfer is disabled
+                    '10211' => '\\ccxt\\BadRequest', // transfer is forbidden
+                    '10212' => '\\ccxt\\BadRequest', // This withdrawal address is not on the commonly used address list or has been invalidated
+                    '10216' => '\\ccxt\\ExchangeError', // no address available. Please try again later
+                    '10219' => '\\ccxt\\ExchangeError', // asset flow writing failed please try again
+                    '10222' => '\\ccxt\\BadRequest', // currency cannot be null
+                    '10232' => '\\ccxt\\BadRequest', // currency does not exist
+                    '10259' => '\\ccxt\\ExchangeError', // Intermediate account does not configured in redisredis
+                    '10265' => '\\ccxt\\ExchangeError', // Due to risk control, withdrawal is unavailable, please try again later
+                    '10268' => '\\ccxt\\BadRequest', // remark length is too long
+                    '20001' => '\\ccxt\\ExchangeError', // subsystem is not supported
+                    '20002' => '\\ccxt\\ExchangeError', // Internal system error please contact support
+                    '22222' => '\\ccxt\\BadRequest', // record does not exist
+                    '30000' => '\\ccxt\\ExchangeError', // suspended transaction for the symbol
+                    '30001' => '\\ccxt\\InvalidOrder', // The current transaction direction is not allowed to place an order
+                    '30002' => '\\ccxt\\InvalidOrder', // The minimum transaction volume cannot be less than :
+                    '30003' => '\\ccxt\\InvalidOrder', // The maximum transaction volume cannot be greater than :
+                    '30010' => '\\ccxt\\InvalidOrder', // no valid trade price
+                    '30014' => '\\ccxt\\InvalidOrder', // invalid symbol
+                    '30016' => '\\ccxt\\InvalidOrder', // trading disabled
+                    '30018' => '\\ccxt\\InvalidOrder', // market order is disabled
+                    '30020' => '\\ccxt\\AuthenticationError', // no permission for the symbol
+                    '30021' => '\\ccxt\\BadRequest', // invalid symbol
+                    '30025' => '\\ccxt\\InvalidOrder', // no exist opponent order
+                    '30026' => '\\ccxt\\BadRequest', // invalid order ids
+                    '30027' => '\\ccxt\\InvalidOrder', // The currency has reached the maximum position limit, the buying is suspended
+                    '30028' => '\\ccxt\\InvalidOrder', // The currency triggered the platform risk control, the selling is suspended
+                    '30029' => '\\ccxt\\InvalidOrder', // Cannot exceed the maximum order limit
+                    '30032' => '\\ccxt\\InvalidOrder', // Cannot exceed the maximum position
+                    '30041' => '\\ccxt\\InvalidOrder', // current order type can not place order
+                    '60005' => '\\ccxt\\ExchangeError', // your account is abnormal
+                    '700001' => '\\ccxt\\BadRequest', // API-key format invalid
+                    '700002' => '\\ccxt\\AuthenticationError', // Signature for this request is not valid
+                    '700004' => '\\ccxt\\BadRequest', // Param 'origClientOrderId' or 'orderId' must be sent, but both were empty/null
+                    '700005' => '\\ccxt\\InvalidNonce', // recvWindow must less than 60000
+                    '700006' => '\\ccxt\\BadRequest', // IP non white list
+                    '700007' => '\\ccxt\\AuthenticationError', // No permission to access the endpoint
+                    '700008' => '\\ccxt\\BadRequest', // Illegal characters found in parameter
+                    '730001' => '\\ccxt\\BadRequest', // Pair not found
+                    '730002' => '\\ccxt\\BadRequest', // Your input param is invalid
+                    '730000' => '\\ccxt\\ExchangeError', // Request failed, please contact the customer service
+                    '730003' => '\\ccxt\\ExchangeError', // Unsupported operation, please contact the customer service
+                    '730100' => '\\ccxt\\ExchangeError', // Unusual user status
+                    '730600' => '\\ccxt\\BadRequest', // Sub-account Name cannot be null
+                    '730601' => '\\ccxt\\BadRequest', // Sub-account Name must be a combination of 8-32 letters and numbers
+                    '730602' => '\\ccxt\\BadRequest', // Sub-account remarks cannot be null
+                    '730700' => '\\ccxt\\BadRequest', // API KEY remarks cannot be null
+                    '730701' => '\\ccxt\\BadRequest', // API KEY permission cannot be null
+                    '730702' => '\\ccxt\\BadRequest', // API KEY permission does not exist
+                    '730703' => '\\ccxt\\BadRequest', // The IP information is incorrect, and a maximum of 10 IPs are allowed to be bound only
+                    '730704' => '\\ccxt\\BadRequest', // The bound IP format is incorrect, please refill
+                    '730705' => '\\ccxt\\BadRequest', // At most 30 groups of Api Keys are allowed to be created only
+                    '730706' => '\\ccxt\\BadRequest', // API KEY information does not exist
+                    '730707' => '\\ccxt\\BadRequest', // accessKey cannot be null
+                    '730101' => '\\ccxt\\BadRequest', // The user Name already exists
+                    '140001' => '\\ccxt\\BadRequest', // sub account does not exist
+                    '140002' => '\\ccxt\\AuthenticationError', // sub account is forbidden
                 ),
                 'broad' => array(
                     'Order quantity error, please try to modify.' => '\\ccxt\\BadRequest', // code:2011
@@ -634,7 +710,7 @@ class mexc3 extends Exchange {
                     'active' => $active,
                     'deposit' => $isDepositEnabled,
                     'withdraw' => $isWithdrawEnabled,
-                    'fee' => $this->safe_number($chain, 'fee'),
+                    'fee' => $fee,
                     'precision' => null,
                     'limits' => array(
                         'withdraw' => array(
@@ -840,7 +916,7 @@ class mexc3 extends Exchange {
         //                 "contractSize":0.0001,
         //                 "minLeverage":1,
         //                 "maxLeverage":125,
-        //                 "priceScale":2, // seems useless atm, as it's just how UI shows the price, $i->e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
+        //                 "priceScale":2, // seems useless atm,'s just how UI shows the price, $i->e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
         //                 "volScale":0, // probably => contract amount precision
         //                 "amountScale":4, // probably => $quote currency precision
         //                 "priceUnit":0.5, // price tick size
@@ -1252,7 +1328,7 @@ class mexc3 extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of $candles to fetch
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {[[int]]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of $candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1289,7 +1365,7 @@ class mexc3 extends Exchange {
             $candles = $response;
         } elseif ($market['swap']) {
             if ($since !== null) {
-                $request['start'] = intval($since / 1000);
+                $request['start'] = $this->parse_to_int($since / 1000);
             }
             $priceType = $this->safe_string($params, 'price', 'default');
             $params = $this->omit($params, 'price');
@@ -1336,7 +1412,7 @@ class mexc3 extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $request = array();
@@ -1485,7 +1561,7 @@ class mexc3 extends Exchange {
             $ticker = $this->safe_value($response, 'data', array());
         }
         // when it's single $symbol $request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-        return $this->parse_ticker($ticker, $symbol);
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -1509,35 +1585,35 @@ class mexc3 extends Exchange {
         if ($isSwap || (is_array($ticker) && array_key_exists('timestamp', $ticker))) {
             //
             //     {
-            //         "symbol":"ETH_USDT",
-            //         "lastPrice":3581.3,
-            //         "bid1":3581.25,
-            //         "ask1":3581.5,
-            //         "volume24":4045530,
-            //         "amount24":141331823.5755,
-            //         "holdVol":5832946,
-            //         "lower24Price":3413.4,
-            //         "high24Price":3588.7,
-            //         "riseFallRate":0.0275,
-            //         "riseFallValue":95.95,
-            //         "indexPrice":3580.7852,
-            //         "fairPrice":3581.08,
-            //         "fundingRate":0.000063,
-            //         "maxBidPrice":3938.85,
-            //         "minAskPrice":3222.7,
-            //         "timestamp":1634162885016
+            //         "symbol" => "ETH_USDT",
+            //         "lastPrice" => 3581.3,
+            //         "bid1" => 3581.25,
+            //         "ask1" => 3581.5,
+            //         "volume24" => 4045530,
+            //         "amount24" => 141331823.5755,
+            //         "holdVol" => 5832946,
+            //         "lower24Price" => 3413.4,
+            //         "high24Price" => 3588.7,
+            //         "riseFallRate" => 0.0275,
+            //         "riseFallValue" => 95.95,
+            //         "indexPrice" => 3580.7852,
+            //         "fairPrice" => 3581.08,
+            //         "fundingRate" => 0.000063,
+            //         "maxBidPrice" => 3938.85,
+            //         "minAskPrice" => 3222.7,
+            //         "timestamp" => 1634162885016
             //     }
             //
             $timestamp = $this->safe_integer($ticker, 'timestamp');
-            $bid = $this->safe_number($ticker, 'bid1');
-            $ask = $this->safe_number($ticker, 'ask1');
+            $bid = $this->safe_string($ticker, 'bid1');
+            $ask = $this->safe_string($ticker, 'ask1');
             $baseVolume = $this->safe_string($ticker, 'volume24');
             $quoteVolume = $this->safe_string($ticker, 'amount24');
-            $high = $this->safe_number($ticker, 'high24Price');
-            $low = $this->safe_number($ticker, 'lower24Price');
+            $high = $this->safe_string($ticker, 'high24Price');
+            $low = $this->safe_string($ticker, 'lower24Price');
             $changeValue = $this->safe_string($ticker, 'riseFallValue');
             $changePcnt = $this->safe_string($ticker, 'riseFallRate');
-            $changePcnt = $this->parse_number(Precise::string_mul($changePcnt, '100'));
+            $changePcnt = Precise::string_mul($changePcnt, '100');
         } else {
             //
             //     {
@@ -1562,25 +1638,25 @@ class mexc3 extends Exchange {
             //     }
             //
             $timestamp = $this->safe_integer($ticker, 'closeTime');
-            $bid = $this->safe_number($ticker, 'bidPrice');
-            $ask = $this->safe_number($ticker, 'askPrice');
-            $bidVolume = $this->safe_number($ticker, 'bidQty');
-            $askVolume = $this->safe_number($ticker, 'askQty');
-            if ($bidVolume === 0) {
+            $bid = $this->safe_string($ticker, 'bidPrice');
+            $ask = $this->safe_string($ticker, 'askPrice');
+            $bidVolume = $this->safe_string($ticker, 'bidQty');
+            $askVolume = $this->safe_string($ticker, 'askQty');
+            if (Precise::string_eq($bidVolume, '0')) {
                 $bidVolume = null;
             }
-            if ($askVolume === 0) {
+            if (Precise::string_eq($askVolume, '0')) {
                 $askVolume = null;
             }
             $baseVolume = $this->safe_string($ticker, 'volume');
             $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
             $open = $this->safe_string($ticker, 'openPrice');
-            $high = $this->safe_number($ticker, 'highPrice');
-            $low = $this->safe_number($ticker, 'lowPrice');
+            $high = $this->safe_string($ticker, 'highPrice');
+            $low = $this->safe_string($ticker, 'lowPrice');
             $prevClose = $this->safe_string($ticker, 'prevClosePrice');
             $changeValue = $this->safe_string($ticker, 'priceChange');
             $changePcnt = $this->safe_string($ticker, 'priceChangePercent');
-            $changePcnt = $this->parse_number(Precise::string_mul($changePcnt, '100'));
+            $changePcnt = Precise::string_mul($changePcnt, '100');
         }
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
@@ -1610,7 +1686,7 @@ class mexc3 extends Exchange {
          * fetches the bid and ask price and volume for multiple markets
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $market = null;
@@ -2263,7 +2339,7 @@ class mexc3 extends Exchange {
             //
             return $this->parse_orders($response, $market, $since, $limit);
         } else {
-            // TO_DO => another possible way is through => open_orders/{$symbol}, but as they have same ratelimits, and less granularity, i think historical orders are more convenient, as it supports more $params (however, theoretically, open-orders endpoint might be sligthly fast)
+            // TO_DO => another possible way is through => open_orders/{$symbol}, but have same ratelimits, and less granularity, i think historical orders are more convenient, supports more $params (however, theoretically, open-orders endpoint might be sligthly fast)
             return $this->fetch_orders_by_state(2, $symbol, $since, $limit, $params);
         }
     }
@@ -2666,7 +2742,7 @@ class mexc3 extends Exchange {
         //         "price" => "2.9", // not present in stop-$market, but in stop-limit $order
         //         "executeCycle" => "87600",
         //         "trend" => "1",
-        //          // below keys are same as in regular $order structure
+        //          // below keys are same regular $order structure
         //         "symbol" => "STEPN_USDT",
         //         "leverage" => "20",
         //         "side" => "1",
@@ -4768,6 +4844,7 @@ class mexc3 extends Exchange {
                     'ApiKey' => $this->apiKey,
                     'Request-Time' => $timestamp,
                     'Content-Type' => 'application/json',
+                    'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
                 );
                 if ($method === 'POST') {
                     $auth = $this->json($params);

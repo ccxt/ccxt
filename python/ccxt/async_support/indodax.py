@@ -6,12 +6,12 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -37,7 +37,6 @@ class indodax(Exchange):
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'createDepositAddress': False,
-                'createMarketOrder': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
@@ -62,19 +61,17 @@ class indodax(Exchange):
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyTrades': None,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': None,
+                'fetchOrders': False,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
-                'fetchTickers': None,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -94,7 +91,7 @@ class indodax(Exchange):
                 'transfer': False,
                 'withdraw': True,
             },
-            'version': '2.0',  # as of 9 April 2018
+            'version': '2.0',  # 9 April 2018
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
                 'api': {
@@ -439,7 +436,7 @@ class indodax(Exchange):
         see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         #
@@ -934,6 +931,7 @@ class indodax(Exchange):
             fee = {
                 'currency': self.safe_currency_code(None, currency),
                 'cost': feeCost,
+                'rate': None,
             }
         return {
             'id': self.safe_string_2(transaction, 'withdraw_id', 'deposit_id'),

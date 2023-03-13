@@ -6,13 +6,11 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
+use ccxt\AuthenticationError;
 use React\Async;
 
 class bitmart extends \ccxt\async\bitmart {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -334,7 +332,7 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitmart api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -384,7 +382,7 @@ class bitmart extends \ccxt\async\bitmart {
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $parsed = $this->parse_ohlcv($candle, $market);
-            $parsed[0] = intval($parsed[0] / $durationInMs) * $durationInMs;
+            $parsed[0] = intval(($parsed[0] / (string) $durationInMs)) * $durationInMs;
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
@@ -510,31 +508,31 @@ class bitmart extends \ccxt\async\bitmart {
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $this->check_required_credentials();
-            $url = $this->implode_hostname($this->urls['api']['ws']['private']);
-            $messageHash = 'login';
-            $client = $this->client($url);
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $future = $client->future ('authenticated');
-                $timestamp = (string) $this->milliseconds();
-                $memo = $this->uid;
-                $path = 'bitmart.WebSocket';
-                $auth = $timestamp . '#' . $memo . '#' . $path;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-                $request = array(
-                    'op' => $messageHash,
-                    'args' => array(
-                        $this->apiKey,
-                        $timestamp,
-                        $signature,
-                    ),
-                );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
-            }
-            return Async\await($future);
-        }) ();
+        $this->check_required_credentials();
+        $url = $this->implode_hostname($this->urls['api']['ws']['private']);
+        $messageHash = 'authenticated';
+        $client = $this->client($url);
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $timestamp = (string) $this->milliseconds();
+            $memo = $this->uid;
+            $path = 'bitmart.WebSocket';
+            $auth = $timestamp . '#' . $memo . '#' . $path;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+            $operation = 'login';
+            $request = array(
+                'op' => $operation,
+                'args' => array(
+                    $this->apiKey,
+                    $timestamp,
+                    $signature,
+                ),
+            );
+            $message = array_merge($request, $params);
+            $future = $this->watch($url, $messageHash, $message);
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 
     public function handle_subscription_status($client, $message) {
@@ -546,10 +544,10 @@ class bitmart extends \ccxt\async\bitmart {
 
     public function handle_authenticate($client, $message) {
         //
-        //     array( event => 'login', success => true )
+        //     array( event => 'login' )
         //
-        $client->resolve ($message, 'authenticated');
-        return $message;
+        $messageHash = 'authenticated';
+        $client->resolve ($message, $messageHash);
     }
 
     public function handle_error_message($client, $message) {
@@ -567,21 +565,21 @@ class bitmart extends \ccxt\async\bitmart {
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
                 }
             }
+            return false;
         } catch (Exception $e) {
             if ($e instanceof AuthenticationError) {
-                $client->reject ($e, 'authenticated');
-                $method = 'login';
-                if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
-                    unset($client->subscriptions[$method]);
+                $messageHash = 'authenticated';
+                $client->reject ($e, $messageHash);
+                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    unset($client->subscriptions[$messageHash]);
                 }
-                return false;
             }
+            return true;
         }
-        return $message;
     }
 
     public function handle_message($client, $message) {
-        if (!$this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message)) {
             return;
         }
         //

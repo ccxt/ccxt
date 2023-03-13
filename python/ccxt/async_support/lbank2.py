@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -16,6 +15,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -456,7 +456,7 @@ class lbank2(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the lbank api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         request = {
@@ -652,7 +652,7 @@ class lbank2(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the lbank2 api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         # endpoint doesnt work
         await self.load_markets()
@@ -664,8 +664,8 @@ class lbank2(Exchange):
             since = self.milliseconds() - duration * 1000 * limit
         request = {
             'symbol': market['id'],
-            'type': self.timeframes[timeframe],
-            'time': int(since / 1000),
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
+            'time': self.parse_to_int(since / 1000),
             'size': limit,  # max 2000
         }
         response = await self.publicGetKline(self.extend(request, params))
@@ -2157,8 +2157,7 @@ class lbank2(Exchange):
                         self.options['pem'] = pem
                 else:
                     pem = self.convert_secret_to_pem(self.encode(self.secret))
-                encodedPem = self.encode(pem)
-                sign = self.binary_to_base64(self.rsa(uppercaseHash, encodedPem, 'RS256'))
+                sign = self.rsa(uppercaseHash, pem)
             elif signatureMethod == 'HmacSHA256':
                 sign = self.hmac(self.encode(uppercaseHash), self.encode(self.secret))
             query['sign'] = sign
@@ -2174,7 +2173,7 @@ class lbank2(Exchange):
     def convert_secret_to_pem(self, secret):
         lineLength = 64
         secretLength = len(secret) - 0
-        numLines = int(secretLength / lineLength)
+        numLines = self.parse_to_int(secretLength / lineLength)
         numLines = self.sum(numLines, 1)
         pem = "-----BEGIN PRIVATE KEY-----\n"  # eslint-disable-line
         for i in range(0, numLines):

@@ -59,7 +59,7 @@ class mercado extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
-                'fetchTickers' => null,
+                'fetchTickers' => false,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
@@ -89,7 +89,6 @@ class mercado extends Exchange {
                 'doc' => array(
                     'https://www.mercadobitcoin.com.br/api-doc',
                     'https://www.mercadobitcoin.com.br/trade-api',
-                    'https://api.mercadobitcoin.net/api/v4/docs/',
                 ),
             ),
             'api' => array(
@@ -377,7 +376,7 @@ class mercado extends Exchange {
         );
         if ($since !== null) {
             $method .= 'From';
-            $request['from'] = intval($since / 1000);
+            $request['from'] = $this->parse_to_int($since / 1000);
         }
         $to = $this->safe_integer($params, 'to');
         if ($to !== null) {
@@ -728,19 +727,19 @@ class mercado extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of $candles to fetch
          * @param {array} $params extra parameters specific to the mercado api endpoint
-         * @return {[[int]]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of $candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'resolution' => $this->timeframes[$timeframe],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'symbol' => $market['base'] . '-' . $market['quote'], // exceptional endpoint, that needs custom $symbol syntax
         );
         if ($limit === null) {
-            $limit = 100; // set some default $limit, as it's required if user doesn't provide it
+            $limit = 100; // set some default $limit,'s required if user doesn't provide it
         }
         if ($since !== null) {
-            $request['from'] = intval($since / 1000);
+            $request['from'] = $this->parse_to_int($since / 1000);
             $request['to'] = $this->sum($request['from'], $limit * $this->parse_timeframe($timeframe));
         } else {
             $request['to'] = $this->seconds();

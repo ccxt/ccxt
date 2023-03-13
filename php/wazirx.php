@@ -271,13 +271,13 @@ class wazirx extends Exchange {
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the wazirx api endpoint
          * @param {int|null} $params->until timestamp in s of the latest candle to fetch
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'interval' => $this->timeframes[$timeframe],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -285,7 +285,7 @@ class wazirx extends Exchange {
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, array( 'until' ));
         if ($since !== null) {
-            $request['startTime'] = intval($since / 1000);
+            $request['startTime'] = $this->parse_to_int($since / 1000);
         }
         if ($until !== null) {
             $request['endTime'] = $until;
@@ -384,7 +384,7 @@ class wazirx extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the wazirx api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $tickers = $this->publicGetTickers24hr ();
@@ -870,7 +870,7 @@ class wazirx extends Exchange {
             $data = $this->keysort($data);
             $signature = $this->hmac($this->encode($this->urlencode($data)), $this->encode($this->secret), 'sha256');
             $url .= '?' . $this->urlencode($data);
-            $url .= '&$signature=' . $signature;
+            $url .= '&' . 'signature=' . $signature;
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'X-Api-Key' => $this->apiKey,

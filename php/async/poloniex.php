@@ -33,7 +33,6 @@ class poloniex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
-                'createMarketOrder' => null,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
@@ -41,6 +40,8 @@ class poloniex extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -85,8 +86,12 @@ class poloniex extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
-                'api' => 'https://api.poloniex.com',
-                'test' => 'https://sand-spot-api-gateway.poloniex.com',
+                'api' => array(
+                    'rest' => 'https://api.poloniex.com',
+                ),
+                'test' => array(
+                    'rest' => 'https://sand-spot-api-gateway.poloniex.com',
+                ),
                 'www' => 'https://www.poloniex.com',
                 'doc' => 'https://docs.poloniex.com',
                 'fees' => 'https://poloniex.com/fees',
@@ -207,8 +212,12 @@ class poloniex extends Exchange {
                 'networks' => array(
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
-                    'TRX' => 'TRON',
                     'TRC20' => 'TRON',
+                ),
+                'networksById' => array(
+                    'BSC' => 'BEP20',
+                    'ETH' => 'ERC20',
+                    'TRON' => 'TRC20',
                 ),
                 'limits' => array(
                     'cost' => array(
@@ -313,13 +322,13 @@ class poloniex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
-                'interval' => $this->timeframes[$timeframe],
+                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -523,7 +532,7 @@ class poloniex extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1661,7 +1670,7 @@ class poloniex extends Exchange {
             Async\await($this->load_markets());
             $year = 31104000; // 60 * 60 * 24 * 30 * 12 = one $year of history, why not
             $now = $this->seconds();
-            $start = ($since !== null) ? intval($since / 1000) : $now - 10 * $year;
+            $start = ($since !== null) ? intval(($since / (string) 1000)) : $now - 10 * $year;
             $request = array(
                 'start' => $start, // UNIX timestamp, required
                 'end' => $now, // UNIX timestamp, required
@@ -1788,6 +1797,133 @@ class poloniex extends Exchange {
         }) ();
     }
 
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://docs.poloniex.com/#public-endpoints-reference-$data-currency-information
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the poloniex api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fees structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetCurrencies (array_merge($params, array( 'includeMultiChainCurrencies' => true ))));
+            //
+            //     array(
+            //         {
+            //             "1CR" => {
+            //                 "id" => 1,
+            //                 "name" => "1CRedit",
+            //                 "description" => "BTC Clone",
+            //                 "type" => "address",
+            //                 "withdrawalFee" => "0.01000000",
+            //                 "minConf" => 10000,
+            //                 "depositAddress" => null,
+            //                 "blockchain" => "1CR",
+            //                 "delisted" => false,
+            //                 "tradingState" => "NORMAL",
+            //                 "walletState" => "DISABLED",
+            //                 "parentChain" => null,
+            //                 "isMultiChain" => false,
+            //                 "isChildChain" => false,
+            //                 "childChains" => array()
+            //             }
+            //         }
+            //     )
+            //
+            $data = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $currencies = is_array($entry) ? array_keys($entry) : array();
+                $currencyId = $this->safe_string($currencies, 0);
+                $data[$currencyId] = $entry[$currencyId];
+            }
+            return $this->parse_deposit_withdraw_fees($data, $codes);
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+        //
+        //         {
+        //             "1CR" => array(
+        //                 "id" => 1,
+        //                 "name" => "1CRedit",
+        //                 "description" => "BTC Clone",
+        //                 "type" => "address",
+        //                 "withdrawalFee" => "0.01000000",
+        //                 "minConf" => 10000,
+        //                 "depositAddress" => null,
+        //                 "blockchain" => "1CR",
+        //                 "delisted" => false,
+        //                 "tradingState" => "NORMAL",
+        //                 "walletState" => "DISABLED",
+        //                 "parentChain" => null,
+        //                 "isMultiChain" => false,
+        //                 "isChildChain" => false,
+        //                 "childChains" => array()
+        //             ),
+        //         }
+        //
+        $depositWithdrawFees = array();
+        $codes = $this->market_codes($codes);
+        $responseKeys = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($responseKeys); $i++) {
+            $currencyId = $responseKeys[$i];
+            $code = $this->safe_currency_code($currencyId);
+            $feeInfo = $response[$currencyId];
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($feeInfo, $code);
+                $childChains = $this->safe_value($feeInfo, 'childChains');
+                $chainsLength = count($childChains);
+                if ($chainsLength > 0) {
+                    for ($j = 0; $j < count($childChains); $j++) {
+                        $networkId = $childChains[$j];
+                        $networkId = str_replace($code, '', $networkId);
+                        $networkCode = $this->network_id_to_code($networkId);
+                        $networkInfo = $this->safe_value($response, $networkId);
+                        $networkObject = array();
+                        $withdrawFee = $this->safe_number($networkInfo, 'withdrawalFee');
+                        $networkObject[$networkCode] = array(
+                            'withdraw' => array(
+                                'fee' => $withdrawFee,
+                                'percentage' => ($withdrawFee !== null) ? false : null,
+                            ),
+                            'deposit' => array(
+                                'fee' => null,
+                                'percentage' => null,
+                            ),
+                        );
+                        $depositWithdrawFees[$code]['networks'] = array_merge($depositWithdrawFees[$code]['networks'], $networkObject);
+                    }
+                }
+            }
+        }
+        return $depositWithdrawFees;
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        $depositWithdrawFee = $this->deposit_withdraw_fee(array());
+        $depositWithdrawFee['info'][$currency] = $fee;
+        $networkId = $this->safe_string($fee, 'blockchain');
+        $withdrawFee = $this->safe_number($fee, 'withdrawalFee');
+        $withdrawResult = array(
+            'fee' => $withdrawFee,
+            'percentage' => ($withdrawFee !== null) ? false : null,
+        );
+        $depositResult = array(
+            'fee' => null,
+            'percentage' => null,
+        );
+        $depositWithdrawFee['withdraw'] = $withdrawResult;
+        $depositWithdrawFee['deposit'] = $depositResult;
+        $networkCode = $this->network_id_to_code($networkId);
+        $depositWithdrawFee['networks'][$networkCode] = array(
+            'withdraw' => $withdrawResult,
+            'deposit' => $depositResult,
+        );
+        return $depositWithdrawFee;
+    }
+
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
@@ -1904,7 +2040,7 @@ class poloniex extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'];
+        $url = $this->urls['api']['rest'];
         $query = $this->omit($params, $this->extract_params($path));
         $implodedPath = $this->implode_params($path, $params);
         if ($api === 'public') {

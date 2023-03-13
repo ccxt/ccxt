@@ -487,13 +487,13 @@ class btcmarkets(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the btcmarkets api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
         request = {
             'marketId': market['id'],
-            'timeWindow': self.timeframes[timeframe],
+            'timeWindow': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': self.iso8601(since),
             # 'to': self.iso8601(self.milliseconds()),
             # 'before': 1234567890123,

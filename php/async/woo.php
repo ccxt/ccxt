@@ -89,7 +89,7 @@ class woo extends Exchange {
                 'setLeverage' => true,
                 'setMargin' => false,
                 'transfer' => true,
-                'withdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -200,6 +200,10 @@ class woo extends Exchange {
                         'get' => array(
                             'algo/order/{oid}' => 1,
                             'algo/orders' => 1,
+                            'balances' => 1,
+                            'accountinfo' => 60,
+                            'positions' => 3.33,
+                            'buypower' => 1,
                         ),
                         'post' => array(
                             'algo/order' => 5,
@@ -235,6 +239,12 @@ class woo extends Exchange {
                     'OMG' => 'ERC20',
                     'UATOM' => 'ATOM',
                     'ZRX' => 'ZRX',
+                ),
+                'networks' => array(
+                    'TRX' => 'TRON',
+                    'TRC20' => 'TRON',
+                    'ERC20' => 'ETH',
+                    'BEP20' => 'BSC',
                 ),
                 // override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies' => array(
@@ -521,35 +531,43 @@ class woo extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
+             * @see https://docs.woo.org/#get-account-information-new
              * @param {array} $params extra parameters specific to the woo api endpoint
              * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->v1PrivateGetClientInfo ($params));
+            $response = Async\await($this->v3PrivateGetAccountinfo ($params));
             //
             //     {
-            //         "application":array(
-            //             "id":45585,
-            //             "leverage":3.00,
-            //             "otpauth":false,
-            //             "alias":"email@address.com",
-            //             "application_id":"c2cc4d74-c8cb-4e10-84db-af2089b8c68a",
-            //             "account":"email@address.com",
-            //             "account_mode":"PURE_SPOT",
-            //             "taker_fee_rate":5.00,
-            //             "maker_fee_rate":2.00,
-            //             "interest_rate":0.00,
-            //             "futures_leverage":1.00,
-            //             "futures_taker_fee_rate":5.00,
-            //             "futures_maker_fee_rate":2.00
+            //         "success" => true,
+            //         "data" => array(
+            //             "applicationId" => "dsa",
+            //             "account" => "dsa",
+            //             "alias" => "haha",
+            //             "accountMode" => "MARGIN",
+            //             "leverage" => 1,
+            //             "takerFeeRate" => 1,
+            //             "makerFeeRate" => 1,
+            //             "interestRate" => 1,
+            //             "futuresTakerFeeRate" => 1,
+            //             "futuresMakerFeeRate" => 1,
+            //             "otpauth" => true,
+            //             "marginRatio" => 1,
+            //             "openMarginRatio" => 1,
+            //             "initialMarginRatio" => 1,
+            //             "maintenanceMarginRatio" => 1,
+            //             "totalCollateral" => 1,
+            //             "freeCollateral" => 1,
+            //             "totalAccountValue" => 1,
+            //             "totalVaultValue" => 1,
+            //             "totalStakingValue" => 1
             //         ),
-            //         "margin_rate":1000,
-            //         "success":true
+            //         "timestamp" => 1673323685109
             //     }
             //
-            $application = $this->safe_value($response, 'application', array());
-            $maker = $this->safe_string($application, 'maker_fee_rate');
-            $taker = $this->safe_string($application, 'taker_fee_rate');
+            $data = $this->safe_value($response, 'data', array());
+            $maker = $this->safe_string($data, 'makerFeeRate');
+            $taker = $this->safe_string($data, 'takerFeeRate');
             $result = array();
             for ($i = 0; $i < count($this->symbols); $i++) {
                 $symbol = $this->symbols[$i];
@@ -730,15 +748,25 @@ class woo extends Exchange {
                 'order_type' => $orderType, // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
                 'side' => $orderSide,
             );
+            $isMarket = $orderType === 'MARKET';
+            $timeInForce = $this->safe_string_lower($params, 'timeInForce');
+            $postOnly = $this->is_post_only($isMarket, null, $params);
+            if ($postOnly) {
+                $request['order_type'] = 'POST_ONLY';
+            } elseif ($timeInForce === 'fok') {
+                $request['order_type'] = 'FOK';
+            } elseif ($timeInForce === 'ioc') {
+                $request['order_type'] = 'IOC';
+            }
             if ($reduceOnly) {
                 $request['reduce_only'] = $reduceOnly;
             }
             if ($price !== null) {
                 $request['order_price'] = $this->price_to_precision($symbol, $price);
             }
-            if ($orderType === 'MARKET') {
+            if ($isMarket) {
                 // for $market buy it requires the $amount of quote currency to spend
-                if ($orderSide === 'BUY') {
+                if ($market['spot'] && $orderSide === 'BUY') {
                     $cost = $this->safe_number($params, 'cost');
                     if ($this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true)) {
                         if ($cost === null) {
@@ -753,6 +781,8 @@ class woo extends Exchange {
                         } else {
                             $request['order_amount'] = $this->cost_to_precision($symbol, $cost);
                         }
+                    } else {
+                        $request['order_amount'] = $this->cost_to_precision($symbol, $amount);
                     }
                 } else {
                     $request['order_quantity'] = $this->amount_to_precision($symbol, $amount);
@@ -764,7 +794,7 @@ class woo extends Exchange {
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
             }
-            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
+            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ));
             $response = Async\await($this->v1PrivatePostOrder (array_merge($request, $params)));
             // {
             //     success => true,
@@ -1013,6 +1043,15 @@ class woo extends Exchange {
         }) ();
     }
 
+    public function parse_time_in_force($timeInForce) {
+        $timeInForces = array(
+            'ioc' => 'IOC',
+            'fok' => 'FOK',
+            'post_only' => 'PO',
+        );
+        return $this->safe_string($timeInForces, $timeInForce, null);
+    }
+
     public function parse_order($order, $market = null) {
         //
         // Possible input functions:
@@ -1047,7 +1086,7 @@ class woo extends Exchange {
             'status' => $this->parse_order_status($status),
             'symbol' => $symbol,
             'type' => $orderType,
-            'timeInForce' => null,
+            'timeInForce' => $this->parse_time_in_force($orderType),
             'postOnly' => null, // TO_DO
             'reduceOnly' => $this->safe_value($order, 'reduce_only'),
             'side' => $side,
@@ -1135,13 +1174,13 @@ class woo extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the woo api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
-                'type' => $this->timeframes[$timeframe],
+                'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 1000);
@@ -1337,35 +1376,37 @@ class woo extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://docs.woo.org/#get-current-holding-get-balance-new
              * @param {array} $params extra parameters specific to the woo api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->v2PrivateGetClientHolding ($params));
+            $response = Async\await($this->v3PrivateGetBalances ($params));
             //
-            // {
-            //     holding => array(
-            //       array(
-            //         token => 'USDT',
-            //         holding => '23.56', // free balance
-            //         frozen => '888.0', // i.e. if in processing withdrawal
-            //         interest => '0.0',
-            //         outstanding_holding => '-56.7', // this value is set (negative number) if there is an open limit order, and this is QUOTE currency of order
-            //         pending_exposure => '333.45', //  this value is set  (positive number) if there is an open limit order, and this is BASE currency of order
-            //         opening_cost => '0.00000000',
-            //         holding_cost => '0.00000000',
-            //         realised_pnl => '0.00000000',
-            //         settled_pnl => '0.00000000',
-            //         fee_24_h => '0',
-            //         settled_pnl_24_h => '0',
-            //         updated_time => '1641370779'
-            //       ),
-            //       ...
-            //     ),
-            //     success => true
-            // }
+            //     {
+            //         "success" => true,
+            //         "data" => {
+            //             "holding" => array(
+            //                 array(
+            //                     "token" => "0_token",
+            //                     "holding" => 1,
+            //                     "frozen" => 0,
+            //                     "staked" => 0,
+            //                     "unbonding" => 0,
+            //                     "vault" => 0,
+            //                     "interest" => 0,
+            //                     "pendingShortQty" => 0,
+            //                     "pendingLongQty" => 0,
+            //                     "availableBalance" => 0,
+            //                     "updatedTime" => 312321.121
+            //                 }
+            //             )
+            //         ),
+            //         "timestamp" => 1673323746259
+            //     }
             //
-            return $this->parse_balance($response);
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_balance($data);
         }) ();
     }
 
@@ -1379,8 +1420,7 @@ class woo extends Exchange {
             $code = $this->safe_currency_code($this->safe_string($balance, 'token'));
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'holding');
-            $used = $this->safe_string($balance, 'outstanding_holding');
-            $account['used'] = Precise::string_neg($used);
+            $account['free'] = $this->safe_string($balance, 'availableBalance');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
@@ -1622,12 +1662,11 @@ class woo extends Exchange {
             $movementDirection = 'withdrawal';
         }
         $fee = $this->parse_token_and_fee_temp($transaction, 'fee_token', 'fee_amount');
-        $fee['rate'] = null;
         $addressTo = $this->safe_string($transaction, 'target_address');
         $addressFrom = $this->safe_string($transaction, 'source_address');
         $timestamp = $this->safe_timestamp($transaction, 'created_time');
         return array(
-            'id' => $this->safe_string($transaction, 'id'),
+            'id' => $this->safe_string_2($transaction, 'id', 'withdraw_id'),
             'txid' => $this->safe_string($transaction, 'tx_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1786,6 +1825,49 @@ class woo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the woo api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            Async\await($this->load_markets());
+            $this->check_address($address);
+            $currency = $this->currency($code);
+            $request = array(
+                'amount' => $amount,
+                'address' => $address,
+            );
+            if ($tag !== null) {
+                $request['extra'] = $tag;
+            }
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $currencyNetworks = $this->safe_value($currency, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network');
+            $networkId = $this->safe_string($networks, $network, $network);
+            $coinNetwork = $this->safe_value($currencyNetworks, $networkId, array());
+            $coinNetworkId = $this->safe_string($coinNetwork, 'id');
+            if ($coinNetworkId === null) {
+                throw new BadRequest($this->id . ' withdraw() require $network parameter');
+            }
+            $request['token'] = $coinNetworkId;
+            $response = Async\await($this->v1PrivatePostAssetWithdraw (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "withdraw_id" => "20200119145703654"
+            //     }
+            //
+            return $this->parse_transaction($response, $currency);
+        }) ();
+    }
+
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
@@ -1865,10 +1947,18 @@ class woo extends Exchange {
                 'x-api-key' => $this->apiKey,
                 'x-api-timestamp' => $ts,
             );
-            if ($version === 'v3' && ($method === 'POST' || $method === 'PUT' || $method === 'DELETE')) {
-                $auth = $this->json($params);
-                $body = $auth;
-                $auth = $ts . $method . '/' . $version . '/' . $pathWithParams . $body;
+            if ($version === 'v3') {
+                $auth = $ts . $method . '/' . $version . '/' . $pathWithParams;
+                if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
+                    $body = $this->json($params);
+                    $auth .= $body;
+                } else {
+                    if ($params) {
+                        $query = $this->urlencode($params);
+                        $url .= '?' . $query;
+                        $auth .= '?' . $query;
+                    }
+                }
                 $headers['content-type'] = 'application/json';
             } else {
                 $auth = $this->urlencode($params);
@@ -1932,17 +2022,6 @@ class woo extends Exchange {
             'amount' => $amount,
             'rate' => $rate,
         );
-    }
-
-    public function parse_incomes($incomes, $market = null, $since = null, $limit = null) {
-        $result = array();
-        for ($i = 0; $i < count($incomes); $i++) {
-            $entry = $incomes[$i];
-            $parsed = $this->parse_income($entry, $market);
-            $result[] = $parsed;
-        }
-        $sorted = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_since_limit($sorted, $since, $limit, 'timestamp');
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -2048,7 +2127,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates($symbols, $params = array ()) {
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -2085,7 +2164,7 @@ class woo extends Exchange {
                 $request['symbol'] = $market['id'];
             }
             if ($since !== null) {
-                $request['start_t'] = intval($since / 1000);
+                $request['start_t'] = $this->parse_to_int($since / 1000);
             }
             $response = Async\await($this->v1PublicGetFundingRateHistory (array_merge($request, $params)));
             //
@@ -2129,28 +2208,36 @@ class woo extends Exchange {
     public function fetch_leverage($symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
-            $response = Async\await($this->v1PrivateGetClientInfo ($params));
+            $response = Async\await($this->v3PrivateGetAccountinfo ($params));
             //
             //     {
             //         "success" => true,
-            //         "application" => array(
-            //             "application_id" => "8935820a-6600-4c2c-9bc3-f017d89aa173",
-            //             "account" => "CLIENT_ACCOUNT_01",
-            //             "alias" => "CLIENT_ACCOUNT_01",
-            //             "account_mode":"FUTURES" //account mode
-            //             "leverage" => 5,
-            //             "taker_fee_rate" => 0,
-            //             "maker_fee_rate" => 0,
-            //             "interest_rate" => 0,
-            //             "futures_leverage" => 5,
-            //             "futures_taker_fee_rate" => 0,
-            //             "futures_maker_fee_rate" => 0,
-            //             "otpauth" => false
+            //         "data" => array(
+            //             "applicationId" => "dsa",
+            //             "account" => "dsa",
+            //             "alias" => "haha",
+            //             "accountMode" => "MARGIN",
+            //             "leverage" => 1,
+            //             "takerFeeRate" => 1,
+            //             "makerFeeRate" => 1,
+            //             "interestRate" => 1,
+            //             "futuresTakerFeeRate" => 1,
+            //             "futuresMakerFeeRate" => 1,
+            //             "otpauth" => true,
+            //             "marginRatio" => 1,
+            //             "openMarginRatio" => 1,
+            //             "initialMarginRatio" => 1,
+            //             "maintenanceMarginRatio" => 1,
+            //             "totalCollateral" => 1,
+            //             "freeCollateral" => 1,
+            //             "totalAccountValue" => 1,
+            //             "totalVaultValue" => 1,
+            //             "totalStakingValue" => 1
             //         ),
-            //         "margin_rate" => 1000
+            //         "timestamp" => 1673323685109
             //     }
             //
-            $result = $this->safe_value($response, 'application');
+            $result = $this->safe_value($response, 'data');
             $leverage = $this->safe_number($result, 'leverage');
             return array(
                 'info' => $response,
@@ -2202,47 +2289,50 @@ class woo extends Exchange {
     public function fetch_positions($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
-            $response = Async\await($this->v1PrivateGetPositions ($params));
+            $response = Async\await($this->v3PrivateGetPositions ($params));
             //
             //     {
-            //         "positions":array(
-            //             {
-            //                 "symbol":"PERP_ETC_USDT",
-            //                 "holding":0.0,
-            //                 "pending_long_qty":0.0,
-            //                 "pending_short_qty":0.0,
-            //                 "settle_price":0.0,
-            //                 "average_open_price":0,
-            //                 "timestamp":"1652231044.920",
-            //                 "mark_price":22.68,
-            //                 "pnl_24_h":0,
-            //                 "fee_24_h":0
-            //             }
+            //         "success" => true,
+            //         "data" => {
+            //             "positions" => array(
+            //                 array(
+            //                     "symbol" => "0_symbol",
+            //                     "holding" => 1,
+            //                     "pendingLongQty" => 0,
+            //                     "pendingShortQty" => 1,
+            //                     "settlePrice" => 1,
+            //                     "averageOpenPrice" => 1,
+            //                     "pnl24H" => 1,
+            //                     "fee24H" => 1,
+            //                     "markPrice" => 1,
+            //                     "estLiqPrice" => 1,
+            //                     "timestamp" => 12321321
+            //                 }
+            //             )
             //         ),
-            //         "initial_margin_ratio":1000,
-            //         "current_margin_ratio":1000,
-            //         "maintenance_margin_ratio":1000,
-            //         "success":true
+            //         "timestamp" => 1673323880342
             //     }
             //
-            $result = $this->safe_value($response, 'positions', array());
-            return $this->parse_positions($result, $symbols);
+            $result = $this->safe_value($response, 'data', array());
+            $positions = $this->safe_value($result, 'positions', array());
+            return $this->parse_positions($positions, $symbols);
         }) ();
     }
 
     public function parse_position($position, $market = null) {
         //
         //     {
-        //         "symbol":"PERP_ETC_USDT",
-        //         "holding":0.0,
-        //         "pending_long_qty":0.0,
-        //         "pending_short_qty":0.0,
-        //         "settle_price":0.0,
-        //         "average_open_price":0,
-        //         "timestamp":"1652231044.920",
-        //         "mark_price":22.68,
-        //         "pnl_24_h":0,
-        //         "fee_24_h":0
+        //         "symbol" => "0_symbol",
+        //         "holding" => 1,
+        //         "pendingLongQty" => 0,
+        //         "pendingShortQty" => 1,
+        //         "settlePrice" => 1,
+        //         "averageOpenPrice" => 1,
+        //         "pnl24H" => 1,
+        //         "fee24H" => 1,
+        //         "markPrice" => 1,
+        //         "estLiqPrice" => 1,
+        //         "timestamp" => 12321321
         //     }
         //
         $contract = $this->safe_string($position, 'symbol');
@@ -2255,9 +2345,9 @@ class woo extends Exchange {
             $side = 'short';
         }
         $contractSize = $this->safe_string($market, 'contractSize');
-        $markPrice = $this->safe_string($position, 'mark_price');
+        $markPrice = $this->safe_string($position, 'markPrice');
         $timestamp = $this->safe_timestamp($position, 'timestamp');
-        $entryPrice = $this->safe_string($position, 'average_open_price');
+        $entryPrice = $this->safe_string($position, 'averageOpenPrice');
         $priceDifference = Precise::string_sub($markPrice, $entryPrice);
         $unrealisedPnl = Precise::string_mul($priceDifference, $size);
         $size = Precise::string_abs($size);
@@ -2279,7 +2369,7 @@ class woo extends Exchange {
             'contracts' => $this->parse_number($size),
             'contractSize' => $this->parse_number($contractSize),
             'marginRatio' => null,
-            'liquidationPrice' => $this->safe_number($position, 'est_liq_price'),
+            'liquidationPrice' => $this->safe_number($position, 'estLiqPrice'),
             'markPrice' => $this->parse_number($markPrice),
             'collateral' => null,
             'marginMode' => 'cross',

@@ -9,17 +9,16 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\InvalidNonce;
+use ccxt\Precise;
 use React\Async;
 
 class kraken extends \ccxt\async\kraken {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
-                'watchBalance' => false, // no such type of subscription as of 2021-01-05
+                'watchBalance' => false, // no such type of subscription 2021-01-05
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
@@ -39,9 +38,9 @@ class kraken extends \ccxt\async\kraken {
                     ),
                 ),
             ),
-            'versions' => array(
-                'ws' => '0.2.0',
-            ),
+            // 'versions' => array(
+            //     'ws' => '0.2.0',
+            // ),
             'options' => array(
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
@@ -187,8 +186,9 @@ class kraken extends \ccxt\async\kraken {
             $messageHash = $name . ':' . $timeframe . ':' . $wsName;
             $timestamp = $this->safe_float($candle, 1);
             $timestamp -= $duration;
+            $ts = $this->parse_to_int($timestamp * 1000);
             $result = array(
-                intval($timestamp * 1000),
+                $ts,
                 $this->safe_float($candle, 2),
                 $this->safe_float($candle, 3),
                 $this->safe_float($candle, 4),
@@ -304,7 +304,7 @@ class kraken extends \ccxt\async\kraken {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the kraken api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $name = 'ohlc';
@@ -322,7 +322,7 @@ class kraken extends \ccxt\async\kraken {
                 ),
                 'subscription' => array(
                     'name' => $name,
-                    'interval' => $this->timeframes[$timeframe],
+                    'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 ),
             );
             $request = $this->deep_extend($subscribe, $params);
@@ -533,13 +533,16 @@ class kraken extends \ccxt\async\kraken {
         }
     }
 
-    public function handle_deltas($bookside, $deltas, $timestamp) {
+    public function handle_deltas($bookside, $deltas, $timestamp = null) {
         for ($j = 0; $j < count($deltas); $j++) {
             $delta = $deltas[$j];
             $price = floatval($delta[0]);
             $amount = floatval($delta[1]);
             $oldTimestamp = $timestamp ? $timestamp : 0;
-            $timestamp = max ($oldTimestamp, intval(floatval($delta[2]) * 1000));
+            $calcMul = $delta[2] * 1000;
+            $calcStr = $this->number_to_string($calcMul);
+            $calc = $this->number_to_string(floatval($calcStr));
+            $timestamp = max ($oldTimestamp, intval($calc));
             $bookside->store ($price, $amount);
         }
         return $timestamp;
@@ -548,7 +551,7 @@ class kraken extends \ccxt\async\kraken {
     public function handle_system_status($client, $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
-        // and unified as handleStatus for any usage pattern that
+        // and unified for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -968,10 +971,10 @@ class kraken extends \ccxt\async\kraken {
         if ($orderDescription !== null) {
             $parts = explode(' ', $orderDescription);
             $side = $this->safe_string($parts, 0);
-            $amount = $this->safe_float($parts, 1);
+            $amount = $this->safe_string($parts, 1);
             $wsName = $this->safe_string($parts, 2);
             $type = $this->safe_string($parts, 4);
-            $price = $this->safe_float($parts, 5);
+            $price = $this->safe_string($parts, 5);
         }
         $side = $this->safe_string($description, 'type', $side);
         $type = $this->safe_string($description, 'ordertype', $type);
@@ -979,27 +982,23 @@ class kraken extends \ccxt\async\kraken {
         $market = $this->safe_value($this->options['marketsByWsName'], $wsName, $market);
         $symbol = null;
         $timestamp = $this->safe_timestamp($order, 'opentm');
-        $amount = $this->safe_float($order, 'vol', $amount);
-        $filled = $this->safe_float($order, 'vol_exec');
-        $remaining = null;
-        if (($amount !== null) && ($filled !== null)) {
-            $remaining = $amount - $filled;
-        }
+        $amount = $this->safe_string($order, 'vol', $amount);
+        $filled = $this->safe_string($order, 'vol_exec');
         $fee = null;
-        $cost = $this->safe_float($order, 'cost');
-        $price = $this->safe_float($description, 'price', $price);
-        if (($price === null) || ($price === 0.0)) {
-            $price = $this->safe_float($description, 'price2');
+        $cost = $this->safe_string($order, 'cost');
+        $price = $this->safe_string($description, 'price', $price);
+        if (($price === null) || (Precise::string_eq($price, '0.0'))) {
+            $price = $this->safe_string($description, 'price2');
         }
-        if (($price === null) || ($price === 0.0)) {
-            $price = $this->safe_float($order, 'price', $price);
+        if (($price === null) || (Precise::string_eq($price, '0.0'))) {
+            $price = $this->safe_string($order, 'price', $price);
         }
-        $average = $this->safe_float_2($order, 'avg_price', 'price');
+        $average = $this->safe_string_2($order, 'avg_price', 'price');
         if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array($order) && array_key_exists('fee', $order)) {
                 $flags = $order['oflags'];
-                $feeCost = $this->safe_float($order, 'fee');
+                $feeCost = $this->safe_string($order, 'fee');
                 $fee = array(
                     'cost' => $feeCost,
                     'rate' => null,
@@ -1023,8 +1022,8 @@ class kraken extends \ccxt\async\kraken {
         if ($rawTrades !== null) {
             $trades = $this->parse_trades($rawTrades, $market, null, null, array( 'order' => $id ));
         }
-        $stopPrice = $this->safe_float($order, 'stopprice');
-        return array(
+        $stopPrice = $this->safe_number($order, 'stopprice');
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -1044,10 +1043,10 @@ class kraken extends \ccxt\async\kraken {
             'amount' => $amount,
             'filled' => $filled,
             'average' => $average,
-            'remaining' => $remaining,
+            'remaining' => null,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function handle_subscription_status($client, $message) {

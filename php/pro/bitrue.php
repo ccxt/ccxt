@@ -11,8 +11,6 @@ use React\Async;
 
 class bitrue extends \ccxt\async\bitrue {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -64,8 +62,8 @@ class bitrue extends \ccxt\async\bitrue {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-             * @param {dict} $params extra parameters specific to the bitrue api endpoint
-             * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @param {array} $params extra parameters specific to the bitrue api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             $url = Async\await($this->authenticate());
             $messageHash = 'balance';
@@ -149,6 +147,7 @@ class bitrue extends \ccxt\async\bitrue {
         //         t => 1657799510000
         //     )]
         //
+        $this->balance['info'] = $balances;
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'a');
@@ -178,11 +177,11 @@ class bitrue extends \ccxt\async\bitrue {
             /**
              * watches information on user $orders
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-             * @param {Array} symbols unified symbols of the $market to watch the $orders for
+             * @param {[string]} symbols unified symbols of the $market to watch the $orders for
              * @param {int|null} $since timestamp in ms of the earliest order
              * @param {int|null} $limit the maximum amount of $orders to return
-             * @param {dict} $params extra parameters specific to the bitrue api endpoint
-             * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure} indexed by $market symbols
+             * @param {array} $params extra parameters specific to the bitrue api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure} indexed by $market symbols
              */
             Async\await($this->load_markets());
             if ($symbol !== null) {

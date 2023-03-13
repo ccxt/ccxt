@@ -430,7 +430,7 @@ class bitopro extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $response = $this->publicGetTickers ();
@@ -718,11 +718,11 @@ class bitopro extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $resolution = $this->timeframes[$timeframe];
+        $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $request = array(
             'pair' => $market['id'],
             'resolution' => $resolution,
@@ -863,6 +863,7 @@ class bitopro extends Exchange {
             '2' => 'closed',
             '3' => 'closed',
             '4' => 'canceled',
+            '6' => 'canceled',
         );
         return $this->safe_string($statuses, $status, null);
     }
@@ -918,6 +919,10 @@ class bitopro extends Exchange {
         $filled = $this->safe_string($order, 'executedAmount');
         $remaining = $this->safe_string($order, 'remainingAmount');
         $timeInForce = $this->safe_string($order, 'timeInForce');
+        $postOnly = null;
+        if ($timeInForce === 'POST_ONLY') {
+            $postOnly = true;
+        }
         $fee = null;
         $feeAmount = $this->safe_string($order, 'fee');
         $feeSymbol = $this->safe_currency_code($this->safe_string($order, 'feeSymbol'));
@@ -936,7 +941,7 @@ class bitopro extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
-            'postOnly' => null,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
@@ -992,6 +997,10 @@ class bitopro extends Exchange {
             } else {
                 $request['condition'] = $condition;
             }
+        }
+        $postOnly = $this->is_post_only($orderType === 'MARKET', null, $params);
+        if ($postOnly) {
+            $request['timeInForce'] = 'POST_ONLY';
         }
         $response = $this->privatePostOrdersPair (array_merge($request, $params), $params);
         //
@@ -1575,8 +1584,8 @@ class bitopro extends Exchange {
                 $rawData = array(
                     'nonce' => $nonce,
                 );
-                $rawData = $this->json($rawData);
-                $payload = base64_encode($rawData);
+                $data = $this->json($rawData);
+                $payload = base64_encode($data);
                 $signature = $this->hmac($payload, $this->encode($this->secret), 'sha384');
                 $headers['X-BITOPRO-APIKEY'] = $this->apiKey;
                 $headers['X-BITOPRO-PAYLOAD'] = $payload;

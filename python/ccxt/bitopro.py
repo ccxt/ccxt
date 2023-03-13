@@ -7,11 +7,11 @@ from ccxt.base.exchange import Exchange
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -432,7 +432,7 @@ class bitopro(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetTickers()
@@ -705,11 +705,11 @@ class bitopro(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
-        resolution = self.timeframes[timeframe]
+        resolution = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
             'pair': market['id'],
             'resolution': resolution,
@@ -839,6 +839,7 @@ class bitopro(Exchange):
             '2': 'closed',
             '3': 'closed',
             '4': 'canceled',
+            '6': 'canceled',
         }
         return self.safe_string(statuses, status, None)
 
@@ -893,6 +894,9 @@ class bitopro(Exchange):
         filled = self.safe_string(order, 'executedAmount')
         remaining = self.safe_string(order, 'remainingAmount')
         timeInForce = self.safe_string(order, 'timeInForce')
+        postOnly = None
+        if timeInForce == 'POST_ONLY':
+            postOnly = True
         fee = None
         feeAmount = self.safe_string(order, 'fee')
         feeSymbol = self.safe_currency_code(self.safe_string(order, 'feeSymbol'))
@@ -910,7 +914,7 @@ class bitopro(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': None,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': None,
@@ -962,6 +966,9 @@ class bitopro(Exchange):
                 raise InvalidOrder(self.id + ' createOrder() requires a condition parameter for ' + orderType + ' orders')
             else:
                 request['condition'] = condition
+        postOnly = self.is_post_only(orderType == 'MARKET', None, params)
+        if postOnly:
+            request['timeInForce'] = 'POST_ONLY'
         response = self.privatePostOrdersPair(self.extend(request, params), params)
         #
         #     {
@@ -1507,8 +1514,8 @@ class bitopro(Exchange):
                 rawData = {
                     'nonce': nonce,
                 }
-                rawData = self.json(rawData)
-                payload = self.string_to_base64(rawData)
+                data = self.json(rawData)
+                payload = self.string_to_base64(data)
                 signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
                 headers['X-BITOPRO-APIKEY'] = self.apiKey
                 headers['X-BITOPRO-PAYLOAD'] = payload

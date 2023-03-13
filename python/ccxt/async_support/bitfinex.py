@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
@@ -17,6 +16,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -51,7 +51,7 @@ class bitfinex(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
-                'fetchDeposits': None,
+                'fetchDeposits': False,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchIndexOHLCV': False,
@@ -75,7 +75,7 @@ class bitfinex(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
                 'fetchTransactions': True,
-                'fetchWithdrawals': None,
+                'fetchWithdrawals': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -595,23 +595,27 @@ class bitfinex(Exchange):
                 quoteId = id[3:6]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+            type = 'spot'
+            if id.find('F0') > -1:
+                type = 'swap'
             result.append({
                 'id': id,
-                'symbol': base + '/' + quote,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': None,
-                'type': 'spot',
-                'spot': True,
+                'type': type,
+                'spot': (type == 'spot'),
                 'margin': self.safe_value(market, 'margin'),
-                'swap': False,
+                'swap': (type == 'swap'),
                 'future': False,
                 'option': False,
                 'active': True,
-                'contract': False,
+                'contract': (type == 'swap'),
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
@@ -652,9 +656,11 @@ class bitfinex(Exchange):
         # https://docs.bitfinex.com/docs/introduction#amount-precision
         # The amount field allows up to 8 decimals.
         # Anything exceeding self will be rounded to the 8th decimal.
+        symbol = self.safe_symbol(symbol)
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def price_to_precision(self, symbol, price):
+        symbol = self.safe_symbol(symbol)
         price = self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
         # https://docs.bitfinex.com/docs/introduction#price-precision
         # The precision level of all trading prices is based on significant figures.
@@ -818,7 +824,7 @@ class bitfinex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitfinex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -967,7 +973,7 @@ class bitfinex(Exchange):
             'limit_trades': limit,
         }
         if since is not None:
-            request['timestamp'] = int(since / 1000)
+            request['timestamp'] = self.parse_to_int(since / 1000)
         response = await self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -990,7 +996,7 @@ class bitfinex(Exchange):
         if limit is not None:
             request['limit_trades'] = limit
         if since is not None:
-            request['timestamp'] = int(since / 1000)
+            request['timestamp'] = self.parse_to_int(since / 1000)
         response = await self.privatePostMytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -1008,17 +1014,22 @@ class bitfinex(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         postOnly = self.safe_value(params, 'postOnly', False)
+        type = type.lower()
         params = self.omit(params, ['postOnly'])
+        if market['spot']:
+            # although they claim that type needs to be 'exchange limit' or 'exchange market'
+            # in fact that's not the case for swap markets
+            type = self.safe_string_lower(self.options['orderTypes'], type, type)
         request = {
             'symbol': market['id'],
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
-            'type': self.safe_string(self.options['orderTypes'], type, type),
+            'type': type,
             'ocoorder': False,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
         }
-        if type == 'market':
+        if type.find('market') > -1:
             request['price'] = str(self.nonce())
         else:
             request['price'] = self.price_to_precision(symbol, price)
@@ -1219,7 +1230,7 @@ class bitfinex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitfinex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         if limit is None:
@@ -1228,7 +1239,7 @@ class bitfinex(Exchange):
         v2id = 't' + market['id']
         request = {
             'symbol': v2id,
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
             'sort': 1,
             'limit': limit,
         }
@@ -1314,7 +1325,7 @@ class bitfinex(Exchange):
                 currencyId = currency['id']
         query['currency'] = currencyId
         if since is not None:
-            query['since'] = int(since / 1000)
+            query['since'] = self.parse_to_int(since / 1000)
         response = await self.privatePostHistoryMovements(self.extend(query, params))
         #
         #     [
@@ -1532,8 +1543,7 @@ class bitfinex(Exchange):
             return
         throwError = False
         if code >= 400:
-            firstChar = self.safe_string(body, 0)
-            if firstChar == '{':
+            if body[0] == '{':
                 throwError = True
         else:
             # json response with error, i.e:

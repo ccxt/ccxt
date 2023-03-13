@@ -47,6 +47,7 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
   - `/doc/*` (these files are generated from `/wiki/*`, place your edits there)
   - `/build/*` (these are generated automatically)
+  - `/js/*` (these are compiled from the typescript version)
   - `/php/*` (except for base classes)
   - `/python/*` (except for base classes)
   - `/ccxt.js`
@@ -119,7 +120,7 @@ If you're not going to develop CCXT and contribute code to the CCXT library, the
 
 ### With Docker
 
-The easiest way is to use Docker to run an isolated build & test enviroment with all the dependencies installed:
+The easiest way is to use Docker to run an isolated build & test environment with all the dependencies installed:
 
 ```shell
 docker-compose run --rm ccxt
@@ -196,6 +197,7 @@ The contents of the repository are structured as follows:
 /ccxt.php                  # entry point for the PHP version of the ccxt library
 /doc/                      # Sphinx-generated rst-docs for http://docs.ccxt.com/
 /js/                       # the JS version of the library
+/ts/                       # the TypeScript version of the library
 /php/                      # PHP ccxt module/package folder
 /python/                   # Python ccxt module/package folder for PyPI
 /python/__init__.py        # entry point for the Python version of the ccxt.library
@@ -233,7 +235,7 @@ Generated versions and docs are transpiled from the source `ccxt.js` file and fi
 
 ### Transpiled (generated) files
 
-- All derived exchange classes are transpiled automatically from source JS files. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
+- All derived exchange classes are transpiled by `tsc` to javsacript and then by our custom transpiler to PHP and Python from the Typescript files. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
 - All base classes are **not** transpiled, those are language-specific.
 
 #### JavaScript
@@ -242,9 +244,9 @@ The `ccxt.browser.js` is generated with Babel from source.
 
 #### Python
 
-These files containing derived exchange classes are transpiled from JS into Python:
+These files containing derived exchange classes are transpiled from TS into Python:
 
-- `js/[_a-z].js` → `python/ccxt/async/[_a-z].py`
+- `ts/[_a-z].ts` → `python/ccxt/async/[_a-z].py`
 - `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python sync transpilation stage)
 - `python/ccxt/test/test_async.py` → `python/ccxt/test/test_sync.py` (the sync test is generated from the async test)
 
@@ -257,7 +259,7 @@ These Python base classes and files are not transpiled:
 
 These files containing derived exchange classes are transpiled from JS into PHP:
 
-- `js/[_a-z].js` → `php/[_a-z].php`
+- `ts/[_a-z].ts` → `php/[_a-z].php`
 
 These PHP base classes and files are not transpiled:
 
@@ -265,7 +267,7 @@ These PHP base classes and files are not transpiled:
 
 #### Typescript
 
-- `js/[_a-z].js` → `ccxt.d.ts`
+- Development is made using these files
 
 ### Base Class
 
@@ -511,7 +513,7 @@ If you need to search for several different keys within an object you have avail
 ```Javascript
 const price = this.safeStringN (object, [ 'key1', 'key2', 'key3' ], default)
 ```
-For every safe method listed above, there is the correspondent `safeMethodN` too. 
+For every safe method listed above, there is the correspondent `safeMethodN` too.
 
 The above safe-functions will check for the existence of the `key` (or `key1`, `key2`) in the object and will properly return `undefined/None/null` values for JS/Python/PHP. Each function also accepts the `default` value to be returned instead of `undefined/None/null` in the last argument.
 
@@ -658,8 +660,8 @@ That `.length;` line ending does the trick. The only case when the array `.lengt
 In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up numbers or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is.
 
 There's this aspect of representation of numbers throughout the lib.
-The existing approach documented int the Manual says that the library will accept and will return "floats everywhere" for amounts, prices, costs, etc.
-Using floats is the easiest way of unboarding new users.
+The existing approach documented in the Manual says that the library will accept and will return "floats everywhere" for amounts, prices, costs, etc.
+Using floats is the easiest way of onboarding new users.
 This has known quirks, it's impossible to represent exact numbers with floats (https://0.30000000000000004.com/)
 
 To address that, we are switching to string-based representations everywhere.
@@ -757,7 +759,7 @@ The brackets are needed to hint the transpiler which part of the conditional is 
 Here are some examples of a badly-designed code that will break the transpiler:
 
 ```JavaScript
-// this is an example of bad codestyle that will likely break the transpiler
+// this is an example of bad code style that will likely break the transpiler
 const foo = {
    'bar': 'a' + qux === 'baz' ? this.a () : this.b () + 'b',
 };
@@ -943,7 +945,7 @@ Before building for the first time, install Node dependencies (skip this step if
 npm install
 ```
 
-The command below will build everything and generate PHP/Python versions from source JS files:
+The command below will build everything and generate PHP/Python versions from source TS files:
 
 ```
 npm run build
@@ -1019,7 +1021,7 @@ Follow this steps to add a test:
 
 ## Committing Changes To The Repository
 
-The build process generates many changes in the transpiled exchange files, e.g. for Python and PHP. **You should NOT commit them to GitHub, commit only the base (JS) file changes please**.
+The build process generates many changes in the transpiled exchange files, e.g. for Python and PHP. **You should NOT commit them to GitHub, commit only the base (TS) file changes please**.
 
 ## Financial Contributions
 

@@ -983,7 +983,7 @@ class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/spot/#get-$ticker-of-all-pairs-v2
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bitmart api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1242,22 +1242,27 @@ class bitmart extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bitmart api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $type = $market['type'];
         $duration = $this->parse_timeframe($timeframe);
+        $parsedTimeframe = $this->safe_integer($this->timeframes, $timeframe);
         $request = array(
             'symbol' => $market['id'],
-            'step' => $this->timeframes[$timeframe],
         );
+        if ($parsedTimeframe !== null) {
+            $request['step'] = $parsedTimeframe;
+        } else {
+            $request['step'] = $timeframe;
+        }
         $maxLimit = 500;
         if ($limit === null) {
             $limit = $maxLimit;
         }
         $limit = min ($maxLimit, $limit);
-        $now = intval($this->milliseconds() / 1000);
+        $now = $this->parse_to_int($this->milliseconds() / 1000);
         $fromRequest = ($type === 'spot') ? 'from' : 'start_time';
         $toRequest = ($type === 'spot') ? 'to' : 'end_time';
         if ($since === null) {
@@ -1265,7 +1270,7 @@ class bitmart extends Exchange {
             $request[$fromRequest] = $start;
             $request[$toRequest] = $now;
         } else {
-            $start = intval($since / 1000) - 1;
+            $start = $this->parse_to_int(($since / 1000)) - 1;
             $end = $this->sum($start, $limit * $duration);
             $request[$fromRequest] = $start;
             $request[$toRequest] = min ($end, $now);

@@ -350,7 +350,6 @@ class currencycom extends Exchange {
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
-                'address' => $this->safe_string($currency, 'baseAddress'),
                 'type' => $this->safe_string_lower($currency, 'type'),
                 'name' => $this->safe_string($currency, 'name'),
                 'active' => null,
@@ -451,7 +450,7 @@ class currencycom extends Exchange {
             $spot = ($type === 'SPOT');
             $futures = false;
             $swap = ($type === 'LEVERAGE');
-            $margin = $swap; // as we decided to set
+            $margin = $swap; // decided to set
             if ($swap) {
                 $symbol = str_replace($this->options['leverage_markets_suffix'], '', $symbol);
                 $symbol .= ':' . $quote;
@@ -893,7 +892,7 @@ class currencycom extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the currencycom api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $response = $this->publicGetV2Ticker24hr ($params);
@@ -947,13 +946,13 @@ class currencycom extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the currencycom api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'interval' => $this->timeframes[$timeframe],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -1353,7 +1352,7 @@ class currencycom extends Exchange {
         } elseif ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;
             $numSymbols = count($symbols);
-            $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
+            $fetchOpenOrdersRateLimit = $this->parse_to_int($numSymbols / 2);
             throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
         $response = $this->privateGetV2OpenOrders (array_merge($request, $params));

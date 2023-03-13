@@ -275,7 +275,7 @@ class coinfalcon extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the coinfalcon api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -615,8 +615,8 @@ class coinfalcon extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string($order, 'operation_type');
         if ($type !== null) {
-            $type = explode('_', $type);
-            $type = $type[0];
+            $typeParts = explode('_', $type);
+            $type = $typeParts[0];
         }
         $side = $this->safe_string($order, 'order_type');
         $postOnly = $this->safe_value($order, 'post_only');

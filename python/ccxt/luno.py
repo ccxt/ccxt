@@ -51,7 +51,7 @@ class luno(Exchange):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
-                'fetchOHLCV': False,  # overload of base fetchOHLCV, as it doesn't work in self exchange
+                'fetchOHLCV': False,  # overload of base fetchOHLCV, doesn't work in self exchange
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -510,7 +510,7 @@ class luno(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the luno api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -759,7 +759,7 @@ class luno(Exchange):
         if type == 'market':
             method += 'Marketorder'
             request['type'] = side.upper()
-            # todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
+            # todo add createMarketBuyOrderRequires price logic is implemented in the other exchanges
             if side == 'buy':
                 request['counter_volume'] = self.amount_to_precision(market['symbol'], amount)
             else:

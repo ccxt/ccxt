@@ -13,8 +13,6 @@ use React\Async;
 
 class woo extends \ccxt\async\woo {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -282,7 +280,7 @@ class woo extends \ccxt\async\woo {
                 throw new ExchangeError($this->id . ' watchOHLCV $timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
             }
             $market = $this->market($symbol);
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $name = 'kline';
             $topic = $market['id'] . '@' . $name . '_' . $interval;
             $request = array(
@@ -439,32 +437,30 @@ class woo extends \ccxt\async\woo {
         return true;
     }
 
-    public function authenticate($params) {
-        return Async\async(function () use ($params) {
-            $this->check_required_credentials();
-            $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
-            $client = $this->client($url);
-            $messageHash = 'authenticated';
-            $event = 'auth';
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $future = $client->future ($messageHash);
-                $ts = (string) $this->nonce();
-                $auth = $this->urlencode($params);
-                $auth .= '|' . $ts;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-                $request = array(
-                    'event' => $event,
-                    'params' => array(
-                        'apikey' => $this->apiKey,
-                        'sign' => $signature,
-                        'timestamp' => $ts,
-                    ),
-                );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
-            }
-            return Async\await($future);
-        }) ();
+    public function authenticate($params = array ()) {
+        $this->check_required_credentials();
+        $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+        $client = $this->client($url);
+        $messageHash = 'authenticated';
+        $event = 'auth';
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $ts = (string) $this->nonce();
+            $auth = '|' . $ts;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+            $request = array(
+                'event' => $event,
+                'params' => array(
+                    'apikey' => $this->apiKey,
+                    'sign' => $signature,
+                    'timestamp' => $ts,
+                ),
+            );
+            $message = array_merge($request, $params);
+            $future = $this->watch($url, $messageHash, $message);
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 
     public function watch_private($messageHash, $message, $params = array ()) {
@@ -671,14 +667,16 @@ class woo extends \ccxt\async\woo {
                 return $method($client, $message);
             }
             $splitTopic = explode('@', $topic);
-            if (strlen($splitTopic) === 2) {
+            $splitLength = count($splitTopic);
+            if ($splitLength === 2) {
                 $name = $this->safe_string($splitTopic, 1);
                 $method = $this->safe_value($methods, $name);
                 if ($method !== null) {
                     return $method($client, $message);
                 }
                 $splitName = explode('_', $name);
-                if (strlen($splitName) === 2) {
+                $splitNameLength = count($splitTopic);
+                if ($splitNameLength === 2) {
                     $method = $this->safe_value($methods, $this->safe_string($splitName, 0));
                     if ($method !== null) {
                         return $method($client, $message);
@@ -708,19 +706,12 @@ class woo extends \ccxt\async\woo {
     public function handle_subscribe($client, $message) {
         //
         //     {
-        //         $id => '666888',
+        //         id => '666888',
         //         event => 'subscribe',
         //         success => true,
         //         ts => 1657117712212
         //     }
         //
-        $id = $this->safe_string($message, 'id');
-        $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-        $subscription = $this->safe_value($subscriptionsById, $id, array());
-        $method = $this->safe_value($subscription, 'method');
-        if ($method !== null) {
-            $method($client, $message, $subscription);
-        }
         return $message;
     }
 
@@ -732,15 +723,17 @@ class woo extends \ccxt\async\woo {
         //         ts => 1657463158812
         //     }
         //
+        $messageHash = 'authenticated';
         $success = $this->safe_value($message, 'success');
         if ($success) {
-            $future = $this->safe_value($client->futures, 'authenticated');
-            $future->resolve (true);
+            $client->resolve ($message, $messageHash);
         } else {
             $error = new AuthenticationError ($this->json($message));
-            $client->reject ($error, 'authenticated');
+            $client->reject ($error, $messageHash);
             // allows further authentication attempts
-            unset($client->subscriptions['authenticated']);
+            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                unset($client->subscriptions['authenticated']);
+            }
         }
     }
 }

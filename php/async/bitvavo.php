@@ -563,7 +563,7 @@ class bitvavo extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bitvavo api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTicker24h ($params));
@@ -835,13 +835,13 @@ class bitvavo extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitvavo api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
-                'interval' => $this->timeframes[$timeframe],
+                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 // 'limit' => 1440, // default 1440, max 1440
                 // 'start' => $since,
                 // 'end' => $this->milliseconds(),
@@ -1419,6 +1419,11 @@ class bitvavo extends Exchange {
         $remaining = $this->safe_string($order, 'amountRemaining');
         $filled = $this->safe_string($order, 'filledAmount');
         $cost = $this->safe_string($order, 'filledAmountQuote');
+        if ($cost === null) {
+            $amountQuote = $this->safe_string($order, 'amountQuote');
+            $amountQuoteRemaining = $this->safe_string($order, 'amountQuoteRemaining');
+            $cost = Precise::string_sub($amountQuote, $amountQuoteRemaining);
+        }
         $fee = null;
         $feeCost = $this->safe_number($order, 'feePaid');
         if ($feeCost !== null) {

@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -25,6 +24,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -53,6 +53,7 @@ class bitget(Exchange):
                 'cancelOrders': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'editOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -60,12 +61,13 @@ class bitget(Exchange):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': True,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
@@ -84,6 +86,7 @@ class bitget(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositionMode': False,
@@ -97,7 +100,7 @@ class bitget(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransfer': False,
-                'fetchTransfers': None,
+                'fetchTransfers': True,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
@@ -109,10 +112,12 @@ class bitget(Exchange):
             },
             'timeframes': {
                 '1m': '1m',
+                '3m': '3m',
                 '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
+                '2h': '2h',
                 '4h': '4h',
                 '6h': '6h',
                 '12h': '12h',
@@ -150,6 +155,7 @@ class bitget(Exchange):
                             'market/fills': 1,
                             'market/candles': 1,
                             'market/depth': 1,
+                            'market/spot-vip-level': 2,
                         },
                     },
                     'mix': {
@@ -167,6 +173,7 @@ class bitget(Exchange):
                             'market/open-interest': 1,
                             'market/mark-price': 1,
                             'market/symbol-leverage': 1,
+                            'market/contract-vip-level': 2,
                         },
                     },
                 },
@@ -195,12 +202,19 @@ class bitget(Exchange):
                             'wallet/transfer': 4,
                             'wallet/withdrawal': 4,
                             'wallet/subTransfer': 10,
+                            'plan/placePlan': 1,
+                            'plan/modifyPlan': 1,
+                            'plan/cancelPlan': 1,
+                            'plan/currentPlan': 1,
+                            'plan/historyPlan': 1,
                         },
                     },
                     'mix': {
                         'get': {
                             'account/account': 2,
                             'account/accounts': 2,
+                            'account/accountBill': 2,
+                            'account/accountBusinessBill': 4,
                             'account/open-count': 1,
                             'order/current': 2,
                             'order/history': 2,
@@ -237,6 +251,7 @@ class bitget(Exchange):
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
                             'plan/placeTPSL': 2,
+                            'plan/placeTrailStop': 2,
                             'plan/placePositionsTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
@@ -560,9 +575,9 @@ class bitget(Exchange):
                     '36103': AccountSuspended,  # Account is suspended due to ongoing liquidation.
                     '36104': PermissionDenied,  # Account is not enabled for options trading.
                     '36105': PermissionDenied,  # Please enable the account for option contract.
-                    '36106': AccountSuspended,  # Funds cannot be transferred in or out, as account is suspended.
+                    '36106': AccountSuspended,  # Funds cannot be transferred in or out, is suspended.
                     '36107': PermissionDenied,  # Funds cannot be transferred out within 30 minutes after option exercising or settlement.
-                    '36108': InsufficientFunds,  # Funds cannot be transferred in or out, as equity of the account is less than zero.
+                    '36108': InsufficientFunds,  # Funds cannot be transferred in or out, of the account is less than zero.
                     '36109': PermissionDenied,  # Funds cannot be transferred in or out during option exercising or settlement.
                     '36201': PermissionDenied,  # New order function is blocked.
                     '36202': PermissionDenied,  # Account does not have permission to short option.
@@ -667,7 +682,7 @@ class bitget(Exchange):
                     '40502': ExchangeError,  # If it is a copy user, you must pass the copy to whom
                     '40503': ExchangeError,  # With the single type
                     '40504': ExchangeError,  # Platform code must pass
-                    '40505': ExchangeError,  # Not the same as single type
+                    '40505': ExchangeError,  # Not the same type
                     '40506': AuthenticationError,  # Platform signature error
                     '40507': AuthenticationError,  # Api signature error
                     '40508': ExchangeError,  # KOL is not authorized
@@ -697,6 +712,8 @@ class bitget(Exchange):
                     '40712': InsufficientFunds,  # Insufficient margin
                     '40713': ExchangeError,  # Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError,  # No direct margin call is allowed
+                    '43011': InvalidOrder,  # The parameter does not meet the specification executePrice <= 0
+                    '43025': InvalidOrder,  # Plan order does not exist
                     '45110': InvalidOrder,  # {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
                     # spot
                     'invalid sign': AuthenticationError,
@@ -773,29 +790,34 @@ class bitget(Exchange):
             'options': {
                 'timeframes': {
                     'spot': {
-                        '1m': '1min',
-                        '5m': '5min',
-                        '15m': '15min',
-                        '30m': '30min',
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
                         '1h': '1h',
                         '4h': '4h',
-                        '6h': '6h',
-                        '12h': '12h',
-                        '1d': '1day',
-                        '3d': '3day',
-                        '1w': '1week',
-                        '1M': '1M',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                     'swap': {
-                        '1m': '60',
-                        '5m': '300',
-                        '15m': '900',
-                        '30m': '1800',
-                        '1h': '3600',
-                        '4h': '14400',
-                        '12h': '43200',
-                        '1d': '86400',
-                        '1w': '604800',
+                        '1m': '1m',
+                        '3m': '3m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1H',
+                        '2h': '2H',
+                        '4h': '4H',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                 },
                 'fetchMarkets': [
@@ -805,14 +827,33 @@ class bitget(Exchange):
                 'defaultType': 'spot',  # 'spot', 'swap'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice': True,
-                'broker': {
-                    'spot': 'CCXT#',
-                    'swap': 'CCXT#',
-                },
+                'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': True,
                 },
+                'accountsByType': {
+                    'main': 'EXCHANGE',
+                    'spot': 'EXCHANGE',
+                    'future': 'USDT_MIX',
+                    'contract': 'CONTRACT',
+                    'mix': 'USD_MIX',
+                },
+                'accountsById': {
+                    'EXCHANGE': 'spot',
+                    'USDT_MIX': 'future',
+                    'CONTRACT': 'swap',
+                    'USD_MIX': 'swap',
+                },
                 'sandboxMode': False,
+                'networks': {
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                    'BSC': 'BEP20',
+                },
+                'networksById': {
+                    'TRC20': 'TRX',
+                    'BSC': 'BEP20',
+                },
             },
         })
 
@@ -909,7 +950,10 @@ class bitget(Exchange):
         #        minTradeNum: '0.001',
         #        priceEndStep: '5',
         #        volumePlace: '3',
-        #        pricePlace: '1'
+        #        pricePlace: '1',
+        #        symbolStatus: "normal",
+        #        offTime: "-1",
+        #        limitOpenTime: "-1"
         #    }
         #
         marketId = self.safe_string(market, 'symbol')
@@ -971,10 +1015,10 @@ class bitget(Exchange):
             preciseAmount.reduce()
             amountString = str(preciseAmount)
             amountPrecision = self.parse_number(amountString)
-        status = self.safe_string(market, 'status')
+        status = self.safe_string_2(market, 'status', 'symbolStatus')
         active = None
         if status is not None:
-            active = status == 'online'
+            active = (status == 'online' or status == 'normal')
         minCost = None
         if quote == 'USDT':
             minCost = self.safe_number(market, 'minTradeUSDT')
@@ -999,7 +1043,7 @@ class bitget(Exchange):
             'inverse': inverse,
             'taker': self.safe_number(market, 'takerFeeRate'),
             'maker': self.safe_number(market, 'makerFeeRate'),
-            'contractSize': self.safe_number(market, 'sizeMultiplier'),
+            'contractSize': 1,
             'expiry': expiry,
             'expiryDatetime': expiryDatetime,
             'strike': None,
@@ -1179,7 +1223,7 @@ class bitget(Exchange):
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """
         fetch all deposits made to an account
-         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
         :param str|None code: unified currency code
         :param int since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
@@ -1296,7 +1340,7 @@ class bitget(Exchange):
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
         fetch all withdrawals made from an account
-         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
         :param str|None code: unified currency code
         :param int since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
@@ -1400,14 +1444,18 @@ class bitget(Exchange):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the binance api endpoint
+        :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
         await self.load_markets()
+        networkCode = self.safe_string(params, 'network')
+        networkId = self.network_code_to_id(networkCode, code)
         currency = self.currency(code)
         request = {
             'coin': currency['code'],
         }
+        if networkId is not None:
+            request['chain'] = networkId
         response = await self.privateSpotGetWalletDepositAddress(self.extend(request, params))
         #
         #     {
@@ -1437,11 +1485,12 @@ class bitget(Exchange):
         #
         currencyId = self.safe_string(depositAddress, 'coin')
         networkId = self.safe_string(depositAddress, 'chain')
+        parsedCurrency = self.safe_currency_code(currencyId, currency)
         return {
-            'currency': self.safe_currency_code(currencyId, currency),
+            'currency': parsedCurrency,
             'address': self.safe_string(depositAddress, 'address'),
             'tag': self.safe_string(depositAddress, 'tag'),
-            'network': networkId,
+            'network': self.network_id_to_code(networkId, parsedCurrency),
             'info': depositAddress,
         }
 
@@ -1516,6 +1565,12 @@ class bitget(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
+        if (market is None) and (marketId is not None) and (marketId.find('_') == -1):
+            # fetchTickers fix:
+            # spot symbol are different from the "request id"
+            # so we need to convert it to the exchange-specific id
+            # otherwise we will not be able to find the market
+            marketId = marketId + '_SPBL'
         symbol = self.safe_symbol(marketId, market)
         high = self.safe_string(ticker, 'high24h')
         low = self.safe_string(ticker, 'low24h')
@@ -1597,8 +1652,9 @@ class bitget(Exchange):
         see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-symbol-ticker
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitget api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         await self.load_markets()
         type = None
         market = None
@@ -1612,8 +1668,12 @@ class bitget(Exchange):
         })
         request = {}
         if method == 'publicMixGetMarketTickers':
-            defaultSubType = self.safe_string(self.options, 'defaultSubType')
-            request['productType'] = 'UMCBL' if (defaultSubType == 'linear') else 'DMCBL'
+            subType = None
+            subType, params = self.handle_sub_type_and_params('fetchTickers', None, params)
+            productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
+            if sandboxMode:
+                productType = 'S' + productType
+            request['productType'] = productType
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot
@@ -1691,18 +1751,18 @@ class bitget(Exchange):
         # private
         #
         #     {
-        #         accountId: '6394957606',
-        #         symbol: 'LTCUSDT_SPBL',
-        #         orderId: '864752115272552448',
-        #         fillId: '864752115685969921',
+        #         accountId: '4383649766',
+        #         symbol: 'ETHBTC_SPBL',
+        #         orderId: '1009402341131468800',
+        #         fillId: '1009402351489581068',
         #         orderType: 'limit',
-        #         side: 'buy',
-        #         fillPrice: '127.92000000',
-        #         fillQuantity: '0.10000000',
-        #         fillTotalAmount: '12.79200000',
-        #         feeCcy: 'LTC',
-        #         fees: '0.00000000',
-        #         cTime: '1641898891373'
+        #         side: 'sell',
+        #         fillPrice: '0.06997800',
+        #         fillQuantity: '0.04120000',
+        #         fillTotalAmount: '0.00288309',
+        #         feeCcy: 'BTC',
+        #         fees: '-0.00000288',
+        #         cTime: '1676386195060'
         #     }
         #
         #     {
@@ -1736,7 +1796,7 @@ class bitget(Exchange):
             fee = {
                 'code': currencyCode,  # kept here for backward-compatibility, but will be removed soon
                 'currency': currencyCode,
-                'cost': feeAmount,
+                'cost': Precise.string_neg(feeAmount),
             }
         datetime = self.iso8601(timestamp)
         return self.safe_trade({
@@ -1927,7 +1987,7 @@ class bitget(Exchange):
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitget api endpoint
         :param int|None params['until']: timestamp in ms of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1939,23 +1999,23 @@ class bitget(Exchange):
             'spot': 'publicSpotGetMarketCandles',
             'swap': 'publicMixGetMarketCandles',
         })
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer_2(query, 'until', 'till')
         if limit is None:
             limit = 100
-        if market['type'] == 'spot':
-            request['period'] = self.options['timeframes']['spot'][timeframe]
+        timeframes = self.options['timeframes'][marketType]
+        selectedTimeframe = self.safe_string(timeframes, timeframe, timeframe)
+        duration = self.parse_timeframe(timeframe)
+        if market['spot']:
+            request['period'] = selectedTimeframe
             request['limit'] = limit
             if since is not None:
                 request['after'] = since
                 if until is None:
-                    millisecondsPerTimeframe = self.options['timeframes']['swap'][timeframe] * 1000
-                    request['before'] = self.sum(since, millisecondsPerTimeframe * limit)
+                    request['before'] = self.sum(since, limit * duration * 1000)
             if until is not None:
                 request['before'] = until
-        elif market['type'] == 'swap':
-            request['granularity'] = self.options['timeframes']['swap'][timeframe]
-            duration = self.parse_timeframe(timeframe)
+        elif market['swap']:
+            request['granularity'] = selectedTimeframe
             now = self.milliseconds()
             if since is None:
                 request['startTime'] = now - (limit - 1) * (duration * 1000)
@@ -1966,7 +2026,8 @@ class bitget(Exchange):
                     request['endTime'] = until
                 else:
                     request['endTime'] = self.sum(since, limit * duration * 1000)
-        response = await getattr(self, method)(self.extend(request, query))
+        ommitted = self.omit(query, ['until', 'till'])
+        response = await getattr(self, method)(self.extend(request, ommitted))
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
         data = self.safe_value(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
@@ -1977,6 +2038,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         await self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.get_supported_mapping(marketType, {
@@ -1985,8 +2047,12 @@ class bitget(Exchange):
         })
         request = {}
         if marketType == 'swap':
-            defaultSubType = self.safe_string(self.options, 'defaultSubType')
-            request['productType'] = 'UMCBL' if (defaultSubType == 'linear') else 'DMCBL'
+            subType = None
+            subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
+            productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
+            if sandboxMode:
+                productType = 'S' + productType
+            request['productType'] = productType
         response = await getattr(self, method)(self.extend(request, query))
         # spot
         #     {
@@ -2041,11 +2107,11 @@ class bitget(Exchange):
         #
         for i in range(0, len(balance)):
             entry = balance[i]
-            currencyId = self.safe_string_2(entry, 'coinId', 'marginCoin')
+            currencyId = self.safe_string_2(entry, 'coinName', 'marginCoin')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             frozen = self.safe_string(entry, 'frozen')
-            locked = self.safe_string(entry, 'lock')
+            locked = self.safe_string_2(entry, 'lock', 'locked')
             account['used'] = Precise.string_add(frozen, locked)
             account['free'] = self.safe_string(entry, 'available')
             result[code] = account
@@ -2055,8 +2121,14 @@ class bitget(Exchange):
         statuses = {
             'new': 'open',
             'init': 'open',
+            'not_trigger': 'open',
+            'triggered': 'closed',
             'full_fill': 'closed',
             'filled': 'closed',
+            'fail_trigger': 'canceled',
+            'cancel': 'canceled',
+            'cancelled': 'canceled',
+            'canceled': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -2121,7 +2193,7 @@ class bitget(Exchange):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId)
+        market = self.safe_market(marketId, market)
         symbol = market['symbol']
         id = self.safe_string(order, 'orderId')
         price = self.safe_string_2(order, 'price', 'executePrice')
@@ -2191,18 +2263,12 @@ class bitget(Exchange):
         isStopLossOrder = stopLossPrice is not None
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         isTakeProfitOrder = takeProfitPrice is not None
-        isStopOrder = isStopLossOrder or isTakeProfitOrder
+        isStopLossOrTakeProfit = isStopLossOrder or isTakeProfitOrder
         if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder) > 1:
             raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
         if (type == 'limit') and (triggerPrice is None):
             request['price'] = self.price_to_precision(symbol, price)
-        clientOrderId = self.safe_string_2(params, 'client_oid', 'clientOrderId')
-        if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker')
-            if broker is not None:
-                brokerId = self.safe_string(broker, market['type'])
-                if brokerId is not None:
-                    clientOrderId = brokerId + self.uuid22()
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateSpotPostTradeOrders',
             'swap': 'privateMixPostOrderPlaceOrder',
@@ -2210,8 +2276,11 @@ class bitget(Exchange):
         exchangeSpecificParam = self.safe_string_2(params, 'force', 'timeInForceValue')
         postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam == 'post_only', params)
         if marketType == 'spot':
-            if isStopOrder:
-                raise InvalidOrder(self.id + ' createOrder() does not support stop orders on spot markets, only swap markets')
+            if isStopLossOrTakeProfit:
+                raise InvalidOrder(self.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets')
+            timeInForceKey = 'force'
+            quantityKey = 'quantity'
+            quantity = None
             createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
             if createMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
                 if price is None:
@@ -2220,17 +2289,30 @@ class bitget(Exchange):
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
                     cost = self.parse_number(Precise.string_mul(amountString, priceString))
-                    request['quantity'] = self.price_to_precision(symbol, cost)
+                    quantity = self.price_to_precision(symbol, cost)
             else:
-                request['quantity'] = self.amount_to_precision(symbol, amount)
-            request['clientOrderId'] = clientOrderId
+                quantity = self.amount_to_precision(symbol, amount)
+            if clientOrderId is not None:
+                request['clientOrderId'] = clientOrderId
             request['side'] = side
+            if triggerPrice is not None:
+                quantityKey = 'size'
+                timeInForceKey = 'timeInForceValue'
+                # default triggerType to market price for unification
+                triggerType = self.safe_string(params, 'triggerType', 'market_price')
+                request['triggerType'] = triggerType
+                request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+                request['executePrice'] = self.price_to_precision(symbol, price)
+                method = 'privateSpotPostPlanPlacePlan'
+            if quantity is not None:
+                request[quantityKey] = quantity
             if postOnly:
-                request['force'] = 'post_only'
+                request[timeInForceKey] = 'post_only'
             else:
-                request['force'] = 'gtc'
+                request[timeInForceKey] = 'normal'
         else:
-            request['clientOid'] = clientOrderId
+            if clientOrderId is not None:
+                request['clientOid'] = clientOrderId
             request['size'] = self.amount_to_precision(symbol, amount)
             if postOnly:
                 request['timeInForceValue'] = 'post_only'
@@ -2240,9 +2322,10 @@ class bitget(Exchange):
                 triggerType = self.safe_string(params, 'triggerType', 'market_price')
                 request['triggerType'] = triggerType
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-                request['executePrice'] = self.price_to_precision(symbol, price)
+                if price is not None:
+                    request['executePrice'] = self.price_to_precision(symbol, price)
                 method = 'privateMixPostPlanPlacePlan'
-            if isStopOrder:
+            if isStopLossOrTakeProfit:
                 if not isMarketOrder:
                     raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
                 if isStopLossOrder:
@@ -2275,6 +2358,92 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
+    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('editOrder', market, params)
+        request = {
+            'orderId': id,
+            'orderType': type,
+        }
+        isMarketOrder = type == 'market'
+        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        isTriggerOrder = triggerPrice is not None
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        isStopLossOrder = stopLossPrice is not None
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isTakeProfitOrder = takeProfitPrice is not None
+        isStopOrder = isStopLossOrder or isTakeProfitOrder
+        if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder) > 1:
+            raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
+        if not isStopOrder and not isTriggerOrder:
+            raise InvalidOrder(self.id + ' editOrder() only support plan orders')
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotPostPlanModifyPlan',
+            'swap': 'privateMixPostPlanModifyPlan',
+        })
+        if triggerPrice is not None:
+            # default triggerType to market price for unification
+            triggerType = self.safe_string(params, 'triggerType', 'market_price')
+            request['triggerType'] = triggerType
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+            request['executePrice'] = self.price_to_precision(symbol, price)
+        if marketType == 'spot':
+            if isStopOrder:
+                raise InvalidOrder(self.id + ' editOrder() does not support stop orders on spot markets, only swap markets')
+            editMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'editMarketBuyOrderRequiresPrice', True)
+            if editMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
+                if price is None:
+                    raise InvalidOrder(self.id + ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the editMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                else:
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    cost = self.parse_number(Precise.string_mul(amountString, priceString))
+                    request['size'] = self.price_to_precision(symbol, cost)
+            else:
+                request['size'] = self.amount_to_precision(symbol, amount)
+        else:
+            request['symbol'] = market['id']
+            request['size'] = self.amount_to_precision(symbol, amount)
+            if isStopOrder:
+                if not isMarketOrder:
+                    raise ExchangeError(self.id + ' editOrder() bitget stopLoss or takeProfit orders must be market orders')
+                if isStopLossOrder:
+                    request['triggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
+                    request['planType'] = 'loss_plan'
+                elif isTakeProfitOrder:
+                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
+                    request['planType'] = 'profit_plan'
+                method = 'privateMixPostPlanModifyTPSLPlan'
+            request['marginCoin'] = market['settleId']
+        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice'])
+        response = await getattr(self, method)(self.extend(request, omitted))
+        #
+        # spot
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1668136575920,
+        #         "data": {
+        #         "orderId": "974792060738441216",
+        #         "clientOrderId": "974792554995224576"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_order(data, market)
+
     async def cancel_order(self, id, symbol=None, params={}):
         """
         cancels an open order
@@ -2283,8 +2452,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument for spot orders')
+        self.check_required_symbol('cancelOrder', symbol)
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
@@ -2296,17 +2464,20 @@ class bitget(Exchange):
             'symbol': market['id'],
             'orderId': id,
         }
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value(query, 'stop')
         if stop:
-            planType = self.safe_string(params, 'planType')
-            if planType is None:
-                raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan')
-            request['planType'] = planType
-            method = 'privateMixPostPlanCancelPlan'
-            params = self.omit(params, ['stop', 'planType'])
+            if marketType == 'spot':
+                method = 'privateSpotPostPlanCancelPlan'
+            else:
+                planType = self.safe_string(params, 'planType')
+                if planType is None:
+                    raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan')
+                request['planType'] = planType
+                method = 'privateMixPostPlanCancelPlan'
         if marketType == 'swap':
             request['marginCoin'] = market['settleId']
-        response = await getattr(self, method)(self.extend(request, query))
+        ommitted = self.omit(query, ['stop', 'planType'])
+        response = await getattr(self, method)(self.extend(request, ommitted))
         return self.parse_order(response, market)
 
     async def cancel_orders(self, ids, symbol=None, params={}):
@@ -2317,8 +2488,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
+        self.check_required_symbol('cancelOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
@@ -2388,13 +2558,16 @@ class bitget(Exchange):
         :param str params['code']: marginCoin unified currency code
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         await self.load_markets()
         market = None
-        defaultSubType = self.safe_string(self.options, 'defaultSubType')
         if symbol is not None:
             market = self.market(symbol)
-            defaultSubType = 'linear' if (market['linear']) else 'inverse'
-        productType = 'UMCBL' if (defaultSubType == 'linear') else 'DMCBL'
+        subType = None
+        subType, params = self.handle_sub_type_and_params('cancelAllOrders', market, params)
+        productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
+        if sandboxMode:
+            productType = 'S' + productType
         marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if marketType == 'spot':
             raise NotSupported(self.id + ' cancelAllOrders() does not support spot markets')
@@ -2402,13 +2575,12 @@ class bitget(Exchange):
             'productType': productType,
         }
         method = None
-        stop = self.safe_value(params, 'stop')
-        planType = self.safe_string(params, 'planType')
+        stop = self.safe_value(query, 'stop')
+        planType = self.safe_string(query, 'planType')
         if stop is not None or planType is not None:
             if planType is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan')
             method = 'privateMixPostPlanCancelAllPlan'
-            params = self.omit(params, ['stop'])
         else:
             code = self.safe_string_2(params, 'code', 'marginCoin')
             if code is None:
@@ -2416,8 +2588,8 @@ class bitget(Exchange):
             currency = self.currency(code)
             request['marginCoin'] = self.safe_currency_code(code, currency)
             method = 'privateMixPostOrderCancelAllOrders'
-        params = self.omit(query, ['code', 'marginCoin'])
-        response = await getattr(self, method)(self.extend(request, params))
+        ommitted = self.omit(query, ['stop', 'code', 'marginCoin'])
+        response = await getattr(self, method)(self.extend(request, ommitted))
         #
         #     {
         #         "code": "00000",
@@ -2445,8 +2617,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        self.check_required_symbol('fetchOrder', symbol)
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
@@ -2519,14 +2690,15 @@ class bitget(Exchange):
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param int|None limit: the maximum number of open order structures to retrieve
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+        self.check_required_symbol('fetchOpenOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
+        marketType = None
+        query = None
         marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         request = {
             'symbol': market['id'],
@@ -2535,10 +2707,15 @@ class bitget(Exchange):
             'spot': 'privateSpotPostTradeOpenOrders',
             'swap': 'privateMixGetOrderCurrent',
         })
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value(query, 'stop')
         if stop:
-            method = 'privateMixGetPlanCurrentPlan'
-            params = self.omit(params, 'stop')
+            if marketType == 'spot':
+                method = 'privateSpotPostPlanCurrentPlan'
+                if limit is not None:
+                    request['pageSize'] = limit
+            else:
+                method = 'privateMixGetPlanCurrentPlan'
+            query = self.omit(query, 'stop')
         response = await getattr(self, method)(self.extend(request, query))
         #
         #  spot
@@ -2619,23 +2796,86 @@ class bitget(Exchange):
         #         ]
         #     }
         #
+        # spot plan order
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1668134581006,
+        #         "data": {
+        #             "nextFlag": False,
+        #             "endId": 974792555020390400,
+        #             "orderList": [{
+        #                 "orderId": "974792555020390400",
+        #                 "symbol": "TRXUSDT_SPBL",
+        #                 "size": "151",
+        #                 "executePrice": "0.041572",
+        #                 "triggerPrice": "0.041572",
+        #                 "status": "not_trigger",
+        #                 "orderType": "limit",
+        #                 "side": "buy",
+        #                 "triggerType": "fill_price",
+        #                 "cTime": "1668134576563"
+        #             }]
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data', [])
+        if not isinstance(data, list):
+            data = self.safe_value(data, 'orderList', [])
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         """
         fetches information on multiple closed orders made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
+        :param str symbol: unified market symbol of the closed orders
+        :param int|None since: timestamp in ms of the earliest order
+        :param int|None limit: the max number of closed orders to return
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+        await self.load_markets()
+        self.check_required_symbol('fetchClosedOrders', symbol)
+        market = self.market(symbol)
+        response = await self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
+        result = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            status = self.parse_order_status(self.safe_string_2(entry, 'state', 'status'))
+            if status == 'closed':
+                result.append(entry)
+        return self.parse_orders(result, market, since, limit)
+
+    async def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
+        :param str symbol: unified market symbol of the canceled orders
+        :param int|None since: timestamp in ms of the earliest order
+        :param int|None limit: the max number of canceled orders to return
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        self.check_required_symbol('fetchCanceledOrders', symbol)
+        market = self.market(symbol)
+        response = await self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
+        result = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            status = self.parse_order_status(self.safe_string_2(entry, 'state', 'status'))
+            if status == 'canceled':
+                result.append(entry)
+        return self.parse_orders(result, market, since, limit)
+
+    async def fetch_canceled_and_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchCanceledAndClosedOrders', market, params)
         request = {
             'symbol': market['id'],
         }
@@ -2643,7 +2883,14 @@ class bitget(Exchange):
             'spot': 'privateSpotPostTradeHistory',
             'swap': 'privateMixGetOrderHistory',
         })
-        if marketType == 'swap':
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            if marketType == 'spot':
+                method = 'privateSpotPostPlanHistoryPlan'
+            else:
+                method = 'privateMixGetPlanHistoryPlan'
+            params = self.omit(params, 'stop')
+        if marketType == 'swap' or stop:
             if limit is None:
                 limit = 100
             request['pageSize'] = limit
@@ -2651,68 +2898,125 @@ class bitget(Exchange):
                 since = 0
             request['startTime'] = since
             request['endTime'] = self.milliseconds()
-        response = await getattr(self, method)(self.extend(request, query))
+        response = await getattr(self, method)(self.extend(request, params))
         #
-        #  spot
+        # spot
+        #
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645925335553,
-        #       data: [
-        #         {
-        #           accountId: '6394957606',
-        #           symbol: 'BTCUSDT_SPBL',
-        #           orderId: '881623995442958336',
-        #           clientOrderId: '135335e9-b054-4e43-b00a-499f11d3a5cc',
-        #           price: '39000.000000000000',
-        #           quantity: '0.000700000000',
-        #           orderType: 'limit',
-        #           side: 'buy',
-        #           status: 'full_fill',
-        #           fillPrice: '39000.000000000000',
-        #           fillQuantity: '0.000700000000',
-        #           fillTotalAmount: '27.300000000000',
-        #           cTime: '1645921460972'
-        #         }
-        #       ]
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1663623237813,
+        #         "data": [
+        #             {
+        #                 "accountId": "7264631750",
+        #                 "symbol": "BTCUSDT_SPBL",
+        #                 "orderId": "909129926745432064",
+        #                 "clientOrderId": "9e12ee3d-6a87-4e68-b1cc-094422d223a5",
+        #                 "price": "30001.580000000000",
+        #                 "quantity": "0.000600000000",
+        #                 "orderType": "limit",
+        #                 "side": "sell",
+        #                 "status": "full_fill",
+        #                 "fillPrice": "30001.580000000000",
+        #                 "fillQuantity": "0.000600000000",
+        #                 "fillTotalAmount": "18.000948000000",
+        #                 "cTime": "1652479386030"
+        #             },
+        #             ...
+        #         ]
         #     }
         #
         # swap
+        #
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645925688701,
-        #       data: {
-        #         nextFlag: False,
-        #         endId: '881640729145409536',
-        #         orderList: [
-        #           {
-        #             symbol: 'BTCUSDT_UMCBL',
-        #             size: 0.001,
-        #             orderId: '881640729145409536',
-        #             clientOid: '881640729204129792',
-        #             filledQty: 0.001,
-        #             fee: 0,
-        #             price: null,
-        #             priceAvg: 38429.5,
-        #             state: 'filled',
-        #             side: 'open_long',
-        #             timeInForce: 'normal',
-        #             totalProfits: 0,
-        #             posSide: 'long',
-        #             marginCoin: 'USDT',
-        #             filledAmount: 38.4295,
-        #             orderType: 'market',
-        #             cTime: '1645925450611',
-        #             uTime: '1645925450746'
-        #           }
-        #         ]
-        #       }
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1663622728935,
+        #         "data": {
+        #             "nextFlag": False,
+        #             "endId": "908510348120305664",
+        #             "orderList": [
+        #                 {
+        #                     "symbol": "BTCUSDT_UMCBL",
+        #                     "size": 0.004,
+        #                     "orderId": "954568553644306433",
+        #                     "clientOid": "954568553677860864",
+        #                     "filledQty": 0.000,
+        #                     "fee": 0E-8,
+        #                     "price": 18000.00,
+        #                     "state": "canceled",
+        #                     "side": "open_long",
+        #                     "timeInForce": "normal",
+        #                     "totalProfits": 0E-8,
+        #                     "posSide": "long",
+        #                     "marginCoin": "USDT",
+        #                     "filledAmount": 0.0000,
+        #                     "orderType": "limit",
+        #                     "leverage": "3",
+        #                     "marginMode": "fixed",
+        #                     "cTime": "1663312798899",
+        #                     "uTime": "1663312809425"
+        #                 },
+        #                 ...
+        #             ]
+        #         }
+        #     }
+        #
+        # spot plan order
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1668134626684,
+        #         "data": {
+        #             "nextFlag": False,
+        #             "endId": 974792060738441216,
+        #             "orderList": [
+        #                 {
+        #                 "orderId": "974792060738441216",
+        #                 "symbol": "TRXUSDT_SPBL",
+        #                 "size": "156",
+        #                 "executePrice": "0.041272",
+        #                 "triggerPrice": "0.041222",
+        #                 "status": "cancel",
+        #                 "orderType": "limit",
+        #                 "side": "buy",
+        #                 "triggerType": "fill_price",
+        #                 "cTime": "1668134458717"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        # swap plan order
+        #
+        #     {
+        #         "code":"00000",
+        #         "data":[
+        #             {
+        #                 "orderId":"803521986049314816",
+        #                 "executeOrderId":"84271931884910",
+        #                 "symbol":"BTCUSDT_UMCBL",
+        #                 "marginCoin":"USDT",
+        #                 "size":"1",
+        #                 "executePrice":"38923.1",
+        #                 "triggerPrice":"45000.3",
+        #                 "status":"cancel",
+        #                 "orderType":"limit",
+        #                 "planType":"normal_plan",
+        #                 "side":"open_long",
+        #                 "triggerType":"fill_price",
+        #                 "presetTakeProfitPrice":"0",
+        #                 "presetTakeLossPrice":"0",
+        #                 "ctime":"1627300490867"
+        #             }
+        #         ],
+        #         "msg":"success",
+        #         "requestTime":1627354109502
         #     }
         #
         data = self.safe_value(response, 'data')
-        orderList = self.safe_value(data, 'orderList', data)
-        return self.parse_orders(orderList, market, since, limit)
+        return self.safe_value(data, 'orderList', data)
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         """
@@ -2807,8 +3111,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
         await self.load_markets()
         market = self.market(symbol)
         if market['swap']:
@@ -2855,8 +3158,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
+        self.check_required_symbol('fetchOrderTrades', symbol)
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
@@ -2938,7 +3240,7 @@ class bitget(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_position(data[0], market)
+        return self.parse_positions(data)
 
     async def fetch_positions(self, symbols=None, params={}):
         """
@@ -2947,10 +3249,19 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         await self.load_markets()
-        defaultSubType = self.safe_string(self.options, 'defaultSubType')
+        market = None
+        if symbols is not None:
+            first = self.safe_string(symbols, 0)
+            market = self.market(first)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchPositions', market, params)
+        productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
+        if sandboxMode:
+            productType = 'S' + productType
         request = {
-            'productType': 'UMCBL' if (defaultSubType == 'linear') else 'DMCBL',
+            'productType': productType,
         }
         response = await self.privateMixGetPositionAllPosition(self.extend(request, params))
         #
@@ -3012,47 +3323,83 @@ class bitget(Exchange):
         #
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.safe_integer(position, 'cTime')
         marginMode = self.safe_string(position, 'marginMode')
+        collateral = None
+        initialMargin = None
+        unrealizedPnl = self.safe_string(position, 'unrealizedPL')
+        rawCollateral = self.safe_string(position, 'margin')
         if marginMode == 'fixed':
             marginMode = 'isolated'
+            collateral = Precise.string_add(rawCollateral, unrealizedPnl)
         elif marginMode == 'crossed':
             marginMode = 'cross'
-        hedged = self.safe_string(position, 'holdMode')
-        if hedged == 'double_hold':
+            initialMargin = rawCollateral
+        holdMode = self.safe_string(position, 'holdMode')
+        hedged = None
+        if holdMode == 'double_hold':
             hedged = True
-        elif hedged == 'single_hold':
+        elif holdMode == 'single_hold':
             hedged = False
-        contracts = self.safe_integer(position, 'openDelegateCount')
-        liquidation = self.safe_number(position, 'liquidationPrice')
-        if contracts == 0:
-            contracts = None
-        if liquidation == 0:
-            liquidation = None
+        side = self.safe_string(position, 'holdSide')
+        leverage = self.safe_string(position, 'leverage')
+        contractSizeNumber = self.safe_value(market, 'contractSize')
+        contractSize = self.number_to_string(contractSizeNumber)
+        baseAmount = self.safe_string(position, 'total')
+        entryPrice = self.safe_string(position, 'averageOpenPrice')
+        maintenanceMarginPercentage = self.safe_string(position, 'keepMarginRate')
+        openNotional = Precise.string_mul(entryPrice, baseAmount)
+        if initialMargin is None:
+            initialMargin = Precise.string_div(openNotional, leverage)
+        contracts = self.parse_number(Precise.string_div(baseAmount, contractSize))
+        markPrice = self.safe_string(position, 'marketPrice')
+        notional = Precise.string_mul(baseAmount, markPrice)
+        initialMarginPercentage = Precise.string_div(initialMargin, notional)
+        liquidationPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'liquidationPrice')))
+        calcTakerFeeRate = '0.0006'
+        calcTakerFeeMult = '0.9994'
+        if (liquidationPrice is None) and (marginMode == 'isolated') and Precise.string_gt(baseAmount, '0'):
+            signedMargin = Precise.string_div(rawCollateral, baseAmount)
+            signedMmp = maintenanceMarginPercentage
+            if side == 'short':
+                signedMargin = Precise.string_neg(signedMargin)
+                signedMmp = Precise.string_neg(signedMmp)
+            mmrMinusOne = Precise.string_sub('1', signedMmp)
+            numerator = Precise.string_sub(entryPrice, signedMargin)
+            if side == 'long':
+                mmrMinusOne = Precise.string_mul(mmrMinusOne, calcTakerFeeMult)
+            else:
+                numerator = Precise.string_mul(numerator, calcTakerFeeMult)
+            liquidationPrice = self.parse_number(Precise.string_div(numerator, mmrMinusOne))
+        feeToClose = Precise.string_mul(notional, calcTakerFeeRate)
+        maintenanceMargin = Precise.string_add(Precise.string_mul(maintenanceMarginPercentage, notional), feeToClose)
+        marginRatio = Precise.string_div(maintenanceMargin, collateral)
+        percentage = Precise.string_mul(Precise.string_div(unrealizedPnl, initialMargin, 4), '100')
         return {
             'info': position,
             'id': None,
-            'symbol': market['symbol'],
-            'notional': None,
+            'symbol': symbol,
+            'notional': self.parse_number(notional),
             'marginMode': marginMode,
-            'liquidationPrice': liquidation,
-            'entryPrice': self.safe_number(position, 'averageOpenPrice'),
-            'unrealizedPnl': self.safe_number(position, 'unrealizedPL'),
-            'percentage': None,
+            'liquidationPrice': liquidationPrice,
+            'entryPrice': self.parse_number(entryPrice),
+            'unrealizedPnl': self.parse_number(unrealizedPnl),
+            'percentage': self.parse_number(percentage),
             'contracts': contracts,
-            'contractSize': self.safe_number(position, 'total'),
-            'markPrice': None,
-            'side': self.safe_string(position, 'holdSide'),
+            'contractSize': contractSizeNumber,
+            'markPrice': self.parse_number(markPrice),
+            'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'maintenanceMargin': None,
-            'maintenanceMarginPercentage': self.safe_number(position, 'keepMarginRate'),
-            'collateral': self.safe_number(position, 'margin'),
-            'initialMargin': None,
-            'initialMarginPercentage': None,
-            'leverage': self.safe_number(position, 'leverage'),
-            'marginRatio': None,
+            'maintenanceMargin': self.parse_number(maintenanceMargin),
+            'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentage),
+            'collateral': self.parse_number(collateral),
+            'initialMargin': self.parse_number(initialMargin),
+            'initialMarginPercentage': self.parse_number(initialMarginPercentage),
+            'leverage': self.parse_number(leverage),
+            'marginRatio': self.parse_number(marginRatio),
         }
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
@@ -3064,8 +3411,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingRateHistory', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -3166,6 +3512,100 @@ class bitget(Exchange):
             'previousFundingDatetime': None,
         }
 
+    async def fetch_funding_history(self, symbol, since=None, limit=None, params={}):
+        """
+        fetch the funding history
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-bill
+        :param str symbol: unified market symbol
+        :param int|None since: the starting timestamp in milliseconds
+        :param int|None limit: the number of entries to return
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns [dict]: a list of `funding history structures <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchFundingHistory() supports swap contracts only')
+        if since is None:
+            since = self.milliseconds() - 31556952000  # 1 year
+        request = {
+            'symbol': market['id'],
+            'marginCoin': market['quoteId'],
+            'startTime': since,
+            'endTime': self.milliseconds(),
+        }
+        if limit is not None:
+            request['pageSize'] = limit
+        response = await self.privateMixGetAccountAccountBill(self.extend(request, params))
+        #
+        #    {
+        #        "code": "00000",
+        #        "msg": "success",
+        #        "data": {
+        #            "result": [
+        #                {
+        #                    "id": "892962903462432768",
+        #                    "symbol": "ETHUSDT_UMCBL",
+        #                    "marginCoin": "USDT",
+        #                    "amount": "0",
+        #                    "fee": "-0.1765104",
+        #                    "feeByCoupon": "",
+        #                    "feeCoin": "USDT",
+        #                    "business": "contract_settle_fee",
+        #                    "cTime": "1648624867354"
+        #                }
+        #            ],
+        #            "endId": "885353495773458432",
+        #            "nextFlag": False,
+        #            "preFlag": False
+        #    }
+        #
+        data = self.safe_value(response, 'data', {})
+        result = self.safe_value(data, 'result', [])
+        return self.parse_funding_histories(result, market, since, limit)
+
+    def parse_funding_history(self, contract, market=None):
+        #
+        #     {
+        #         "id": "892962903462432768",
+        #         "symbol": "ETHUSDT_UMCBL",
+        #         "marginCoin": "USDT",
+        #         "amount": "0",
+        #         "fee": "-0.1765104",
+        #         "feeByCoupon": "",
+        #         "feeCoin": "USDT",
+        #         "business": "contract_settle_fee",
+        #         "cTime": "1648624867354"
+        #     }
+        #
+        marketId = self.safe_string(contract, 'symbol')
+        symbol = self.safe_symbol(marketId, market, None, 'swap')
+        currencyId = self.safe_string(contract, 'marginCoin')
+        code = self.safe_currency_code(currencyId)
+        amount = self.safe_number(contract, 'amount')
+        timestamp = self.safe_integer(contract, 'cTime')
+        id = self.safe_string(contract, 'id')
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'code': code,
+            'amount': amount,
+            'id': id,
+        }
+
+    def parse_funding_histories(self, contracts, market=None, since=None, limit=None):
+        result = []
+        for i in range(0, len(contracts)):
+            contract = contracts[i]
+            business = self.safe_string(contract, 'business')
+            if business != 'contract_settle_fee':
+                continue
+            result.append(self.parse_funding_history(contract, market))
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_since_limit(sorted, since, limit)
+
     async def modify_margin_helper(self, symbol, amount, type, params={}):
         await self.load_markets()
         holdSide = self.safe_string(params, 'holdSide')
@@ -3246,17 +3686,32 @@ class bitget(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
+            'marginCoin': market['settleId'],
         }
-        response = await self.publicMixGetMarketSymbolLeverage(self.extend(request, params))
+        response = await self.privateMixGetAccountAccount(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
         #         "msg": "success",
-        #         "requestTime": 1652347673483,
+        #         "requestTime": 0,
         #         "data": {
-        #             "symbol": "BTCUSDT_UMCBL",
-        #             "minLeverage": "1",
-        #             "maxLeverage": "125"
+        #             "marginCoin": "SUSDT",
+        #             "locked": "0",
+        #             "available": "3000",
+        #             "crossMaxAvailable": "3000",
+        #             "fixedMaxAvailable": "3000",
+        #             "maxTransferOut": "3000",
+        #             "equity": "3000",
+        #             "usdtEquity": "3000",
+        #             "btcEquity": "0.12217217236",
+        #             "crossRiskRate": "0",
+        #             "crossMarginLeverage": 20,
+        #             "fixedLongLeverage": 40,
+        #             "fixedShortLeverage": 10,
+        #             "marginMode": "fixed",
+        #             "holdMode": "double_hold",
+        #             "unrealizedPL": null,
+        #             "bonus": "0"
         #         }
         #     }
         #
@@ -3270,8 +3725,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.check_required_symbol('setLeverage', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -3290,8 +3744,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.check_required_symbol('setMarginMode', symbol)
         marginMode = marginMode.lower()
         if (marginMode != 'fixed') and (marginMode != 'crossed'):
             raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be "fixed" or "crossed"')
@@ -3308,22 +3761,26 @@ class bitget(Exchange):
         """
         set hedged to True or False for a market
         :param bool hedged: set to True to use dualSidePosition
-        :param str|None symbol: not used by binance setPositionMode()
-        :param dict params: extra parameters specific to the binance api endpoint
+        :param str|None symbol: not used by bitget setPositionMode()
+        :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: response from the exchange
          *
         """
-        productType = self.safe_string(params, 'productType')
-        if (productType is None) and (symbol is None):
-            raise ArgumentsRequired(self.id + ' setPositionMode() requires a symbol or the productType parameter')
         await self.load_markets()
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         holdMode = 'double_hold' if hedged else 'single_hold'
         request = {
             'holdMode': holdMode,
         }
+        subType = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['productType'] = 'umcbl' if market['linear'] else 'dmcbl'
+        subType, params = self.handle_sub_type_and_params('setPositionMode', market, params)
+        productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
+        if sandboxMode:
+            productType = 'S' + productType
+        request['productType'] = productType
         response = await self.privateMixPostAccountSetPositionMode(self.extend(request, params))
         #
         #    {
@@ -3365,6 +3822,55 @@ class bitget(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_open_interest(data, market)
+
+    async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch a history of internal transfers made on an account
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
+        :param str|None code: unified currency code of the currency transferred
+        :param int|None since: the earliest time in ms to fetch transfers for
+        :param int|None limit: the maximum number of  transfers structures to retrieve
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        await self.load_markets()
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTransfers', None, params)
+        fromAccount = self.safe_string(params, 'fromAccount', type)
+        params = self.omit(params, 'fromAccount')
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        type = self.safe_string(accountsByType, fromAccount)
+        request = {
+            'fromType': type,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['coinId'] = currency['id']
+        if since is not None:
+            request['before'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateSpotGetAccountTransferRecords(self.extend(request, params))
+        #
+        #     {
+        #         "code":"00000",
+        #         "message":"success",
+        #         "data":[{
+        #             "cTime":"1622697148",
+        #             "coinId":"22",
+        #             "coinName":"usdt",
+        #             "groupType":"deposit",
+        #             "bizType":"transfer-in",
+        #             "quantity":"1",
+        #             "balance": "1",
+        #             "fees":"0",
+        #             "billId":"1291"
+        #         }]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_transfers(data, currency, since, limit)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
@@ -3408,6 +3914,8 @@ class bitget(Exchange):
 
     def parse_transfer(self, transfer, currency=None):
         #
+        # transfer
+        #
         #    {
         #        "code": "00000",
         #        "msg": "success",
@@ -3415,23 +3923,48 @@ class bitget(Exchange):
         #        "data": "SUCCESS"
         #    }
         #
-        timestamp = self.safe_integer(transfer, 'requestTime')
-        msg = self.safe_string(transfer, 'msg')
+        # fetchTransfers
+        #
+        #     {
+        #         "cTime":"1622697148",
+        #         "coinId":"22",
+        #         "coinName":"usdt",
+        #         "groupType":"deposit",
+        #         "bizType":"transfer-in",
+        #         "quantity":"1",
+        #         "balance": "1",
+        #         "fees":"0",
+        #         "billId":"1291"
+        #     }
+        #
+        timestamp = self.safe_integer_2(transfer, 'requestTime', 'tradeTime')
+        if timestamp is None:
+            timestamp = self.safe_timestamp(transfer, 'cTime')
+        msg = self.safe_string_lower_n(transfer, ['msg', 'status'])
+        currencyId = self.safe_string_2(transfer, 'code', 'coinName')
+        if currencyId == '00000':
+            currencyId = None
+        fromAccountRaw = self.safe_string(transfer, 'fromType')
+        accountsById = self.safe_value(self.options, 'accountsById', {})
+        fromAccount = self.safe_string(accountsById, fromAccountRaw, fromAccountRaw)
+        toAccountRaw = self.safe_string(transfer, 'toType')
+        toAccount = self.safe_string(accountsById, toAccountRaw, toAccountRaw)
         return {
             'info': transfer,
-            'id': self.safe_string(transfer, 'id'),
+            'id': self.safe_string_2(transfer, 'id', 'billId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'currency': self.safe_string(currency, 'code'),
-            'amount': self.safe_number(transfer, 'size'),
-            'fromAccount': None,
-            'toAccount': None,
-            'status': 'ok' if (msg == 'success') else msg,
+            'currency': self.safe_currency_code(currencyId),
+            'amount': self.safe_number_n(transfer, ['size', 'quantity', 'amount']),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': self.parse_transfer_status(msg),
         }
 
     def parse_transfer_status(self, status):
         statuses = {
             'success': 'ok',
+            'successful': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
@@ -3522,11 +4055,13 @@ class bitget(Exchange):
                     url += query
                     auth += query
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            broker = self.safe_string(self.options, 'broker')
             headers = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': self.password,
+                'X-CHANNEL-API-CODE': broker,
             }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'

@@ -54,6 +54,8 @@ class hitbtc3 extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => null,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -760,7 +762,7 @@ class hitbtc3 extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the hitbtc3 api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -999,7 +1001,7 @@ class hitbtc3 extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        // we use clientOrderId as the order $id with this exchange intentionally
+        // we use clientOrderId order $id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $orderId = $this->safe_string_2($trade, 'clientOrderId', 'client_order_id');
@@ -1347,13 +1349,13 @@ class hitbtc3 extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the hitbtc3 api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'symbols' => $market['id'],
-                'period' => $this->timeframes[$timeframe],
+                'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($since !== null) {
                 $request['from'] = $this->iso8601($since);
@@ -1557,7 +1559,7 @@ class hitbtc3 extends Exchange {
                 $market = $this->market($symbol);
             }
             $request = array(
-                'order_id' => $id, // exchange assigned order $id as oppose to the client order $id
+                'order_id' => $id, // exchange assigned order $id to the client order $id
             );
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchOrderTrades', $market, $params);
@@ -1961,7 +1963,7 @@ class hitbtc3 extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'client_order_id');
-        // we use clientOrderId as the $order $id with this exchange intentionally
+        // we use clientOrderId $order $id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $side = $this->safe_string($order, 'side');
@@ -2012,13 +2014,13 @@ class hitbtc3 extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
-             * $transfer $currency internally between wallets on the same account
+             * transfer $currency internally between wallets on the same account
              * @param {string} $code unified $currency $code
-             * @param {float} $amount amount to $transfer
-             * @param {string} $fromAccount account to $transfer from
-             * @param {string} $toAccount account to $transfer to
+             * @param {float} $amount amount to transfer
+             * @param {string} $fromAccount account to transfer from
+             * @param {string} $toAccount account to transfer to
              * @param {array} $params extra parameters specific to the hitbtc3 api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
              */
             // account can be "spot", "wallet", or "derivatives"
             Async\await($this->load_markets());
@@ -2030,7 +2032,7 @@ class hitbtc3 extends Exchange {
             $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
             $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
             if ($fromId === $toId) {
-                throw new BadRequest($this->id . ' $transfer() $fromAccount and $toAccount arguments cannot be the same account');
+                throw new BadRequest($this->id . ' transfer() $fromAccount and $toAccount arguments cannot be the same account');
             }
             $request = array(
                 'currency' => $currency['id'],
@@ -2044,12 +2046,7 @@ class hitbtc3 extends Exchange {
             //         '2db6ebab-fb26-4537-9ef8-1a689472d236'
             //     )
             //
-            $transfer = $this->parse_transfer($response, $currency);
-            return array_merge($transfer, array(
-                'fromAccount' => $fromAccount,
-                'toAccount' => $toAccount,
-                'amount' => $this->parse_number($requestAmount),
-            ));
+            return $this->parse_transfer($response, $currency);
         }) ();
     }
 
@@ -2087,7 +2084,7 @@ class hitbtc3 extends Exchange {
             $fromNetwork = $this->safe_string($networks, $fromNetwork); // handle ETH>ERC20 alias
             $toNetwork = $this->safe_string($networks, $toNetwork); // handle ETH>ERC20 alias
             if ($fromNetwork === $toNetwork) {
-                throw new BadRequest($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same as toNetwork');
+                throw new BadRequest($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same');
             }
             if (($fromNetwork === null) || ($toNetwork === null)) {
                 $keys = is_array($networks) ? array_keys($networks) : array();
@@ -2703,6 +2700,96 @@ class hitbtc3 extends Exchange {
             );
             return Async\await($this->privatePutFuturesAccountIsolatedSymbol (array_merge($request, $params)));
         }) ();
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://api.hitbtc.com/#currencies
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the hitbtc3 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fees structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetPublicCurrency ($params));
+            //
+            //     {
+            //       "WEALTH" => {
+            //         "full_name" => "ConnectWealth",
+            //         "payin_enabled" => false,
+            //         "payout_enabled" => false,
+            //         "transfer_enabled" => true,
+            //         "precision_transfer" => "0.001",
+            //         "networks" => array(
+            //           {
+            //             "network" => "ETH",
+            //             "protocol" => "ERC20",
+            //             "default" => true,
+            //             "payin_enabled" => false,
+            //             "payout_enabled" => false,
+            //             "precision_payout" => "0.001",
+            //             "payout_fee" => "0.016800000000",
+            //             "payout_is_payment_id" => false,
+            //             "payin_payment_id" => false,
+            //             "payin_confirmations" => "2"
+            //           }
+            //         )
+            //       }
+            //     }
+            //
+            return $this->parse_deposit_withdraw_fees($response, $codes);
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    {
+        //         "full_name" => "ConnectWealth",
+        //         "payin_enabled" => false,
+        //         "payout_enabled" => false,
+        //         "transfer_enabled" => true,
+        //         "precision_transfer" => "0.001",
+        //         "networks" => array(
+        //           {
+        //             "network" => "ETH",
+        //             "protocol" => "ERC20",
+        //             "default" => true,
+        //             "payin_enabled" => false,
+        //             "payout_enabled" => false,
+        //             "precision_payout" => "0.001",
+        //             "payout_fee" => "0.016800000000",
+        //             "payout_is_payment_id" => false,
+        //             "payin_payment_id" => false,
+        //             "payin_confirmations" => "2"
+        //           }
+        //         )
+        //    }
+        //
+        $networks = $this->safe_value($fee, 'networks', array());
+        $result = $this->deposit_withdraw_fee($fee);
+        for ($j = 0; $j < count($networks); $j++) {
+            $networkEntry = $networks[$j];
+            $networkId = $this->safe_string($networkEntry, 'network');
+            $networkCode = $this->network_id_to_code($networkId);
+            $withdrawFee = $this->safe_number($networkEntry, 'payout_fee');
+            $isDefault = $this->safe_value($networkEntry, 'default');
+            $withdrawResult = array(
+                'fee' => $withdrawFee,
+                'percentage' => ($withdrawFee !== null) ? false : null,
+            );
+            if ($isDefault === true) {
+                $result['withdraw'] = $withdrawResult;
+            }
+            $result['networks'][$networkCode] = array(
+                'withdraw' => $withdrawResult,
+                'deposit' => array(
+                    'fee' => null,
+                    'percentage' => null,
+                ),
+            );
+        }
+        return $result;
     }
 
     public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {

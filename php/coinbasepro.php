@@ -35,7 +35,7 @@ class coinbasepro extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchDepositAddress' => null, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchDepositAddress' => false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits' => true,
                 'fetchLedger' => true,
                 'fetchMarginMode' => false,
@@ -172,8 +172,8 @@ class coinbasepro extends Exchange {
                 'trading' => array(
                     'tierBased' => true, // complicated tier system per coin
                     'percentage' => true,
-                    'maker' => 0.4 / 100, // highest fee of all tiers
-                    'taker' => 0.6 / 100, // highest fee of all tiers
+                    'maker' => $this->parse_number('0.004'), // highest fee of all tiers
+                    'taker' => $this->parse_number('0.006'), // highest fee of all tiers
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -607,7 +607,7 @@ class coinbasepro extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the coinbasepro api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -769,7 +769,7 @@ class coinbasepro extends Exchange {
          * @param {array} $params extra parameters specific to the coinbasepro api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
-        // as of 2018-08-23
+        // 2018-08-23
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
@@ -867,15 +867,19 @@ class coinbasepro extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the coinbasepro api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $granularity = $this->timeframes[$timeframe];
+        $parsedTimeframe = $this->safe_integer($this->timeframes, $timeframe);
         $request = array(
             'id' => $market['id'],
-            'granularity' => $granularity,
         );
+        if ($parsedTimeframe !== null) {
+            $request['granularity'] = $parsedTimeframe;
+        } else {
+            $request['granularity'] = $timeframe;
+        }
         if ($since !== null) {
             $request['start'] = $this->iso8601($since);
             if ($limit === null) {
@@ -884,7 +888,7 @@ class coinbasepro extends Exchange {
             } else {
                 $limit = min (300, $limit);
             }
-            $request['end'] = $this->iso8601($this->sum(($limit - 1) * $granularity * 1000, $since));
+            $request['end'] = $this->iso8601($this->sum(($limit - 1) * $parsedTimeframe * 1000, $since));
         }
         $response = $this->publicGetProductsIdCandles (array_merge($request, $params));
         //
@@ -1243,7 +1247,7 @@ class coinbasepro extends Exchange {
 
     public function deposit($code, $amount, $address, $params = array ()) {
         /**
-         * Creates a new deposit $address, as required by coinbasepro
+         * Creates a new deposit $address, by coinbasepro
          * @param {string} $code Unified CCXT $currency $code (e.g. `"USDT"`)
          * @param {float} $amount The $amount of $currency to send in the deposit (e.g. `20`)
          * @param {string} $address Not used by coinbasepro
@@ -1319,8 +1323,8 @@ class coinbasepro extends Exchange {
     public function parse_ledger_entry_type($type) {
         $types = array(
             'transfer' => 'transfer', // Funds moved between portfolios
-            'match' => 'trade',       // Funds moved as a result of a trade
-            'fee' => 'fee',           // Fee as a result of a trade
+            'match' => 'trade',       // Funds moved result of a trade
+            'fee' => 'fee',           // Fee result of a trade
             'rebate' => 'rebate',     // Fee rebate
             'conversion' => 'trade',  // Funds converted between fiat currency and a stablecoin
         );

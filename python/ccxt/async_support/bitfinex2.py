@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -19,6 +18,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -53,7 +53,7 @@ class bitfinex2(Exchange):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
-                'editOrder': None,
+                'editOrder': False,
                 'fetchBalance': True,
                 'fetchClosedOrder': True,
                 'fetchClosedOrders': True,
@@ -322,7 +322,7 @@ class bitfinex2(Exchange):
                 },
                 # convert 'market' to 'EXCHANGE MARKET'
                 # convert 'limit' 'EXCHANGE LIMIT'
-                # everything else remains as is
+                # everything else remains
                 'orderTypes': {
                     'market': 'EXCHANGE MARKET',
                     'limit': 'EXCHANGE LIMIT',
@@ -420,9 +420,11 @@ class bitfinex2(Exchange):
         # https://docs.bitfinex.com/docs/introduction#amount-precision
         # The amount field allows up to 8 decimals.
         # Anything exceeding self will be rounded to the 8th decimal.
+        symbol = self.safe_symbol(symbol)
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def price_to_precision(self, symbol, price):
+        symbol = self.safe_symbol(symbol)
         price = self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
         # https://docs.bitfinex.com/docs/introduction#price-precision
         # The precision level of all trading prices is based on significant figures.
@@ -863,7 +865,7 @@ class bitfinex2(Exchange):
         error = self.safe_string(response, 0)
         if error == 'error':
             message = self.safe_string(response, 2, '')
-            # same message as in v1
+            # same message v1
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + message)
         return self.parse_transfer(response, currency)
@@ -1062,7 +1064,7 @@ class bitfinex2(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1136,23 +1138,6 @@ class bitfinex2(Exchange):
         ticker = await self.publicGetTickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_symbol(self, marketId):
-        if marketId is None:
-            return marketId
-        marketId = marketId.replace('t', '')
-        baseId = None
-        quoteId = None
-        if marketId.find(':') >= 0:
-            parts = marketId.split(':')
-            baseId = parts[0]
-            quoteId = parts[1]
-        else:
-            baseId = marketId[0:3]
-            quoteId = marketId[3:6]
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        return base + '/' + quote
-
     def parse_trade(self, trade, market=None):
         #
         # fetchTrades(public)
@@ -1198,12 +1183,12 @@ class bitfinex2(Exchange):
         takerOrMaker = None
         type = None
         fee = None
-        symbol = None
+        symbol = self.safe_symbol(None, market)
         timestampIndex = 2 if isPrivate else 1
         timestamp = self.safe_integer(trade, timestampIndex)
         if isPrivate:
             marketId = trade[1]
-            symbol = self.parse_symbol(marketId)
+            symbol = self.safe_symbol(marketId)
             orderId = self.safe_string(trade, 3)
             maker = self.safe_integer(trade, 8)
             takerOrMaker = 'maker' if (maker == 1) else 'taker'
@@ -1276,7 +1261,7 @@ class bitfinex2(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1287,7 +1272,7 @@ class bitfinex2(Exchange):
             since = self.milliseconds() - duration * limit * 1000
         request = {
             'symbol': market['id'],
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
             'sort': 1,
             'start': since,
             'limit': limit,
@@ -1366,7 +1351,7 @@ class bitfinex2(Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 0)
         marketId = self.safe_string(order, 3)
-        symbol = self.parse_symbol(marketId)
+        symbol = self.safe_symbol(marketId)
         # https://github.com/ccxt/ccxt/issues/6686
         # timestamp = self.safe_timestamp(order, 5)
         timestamp = self.safe_integer(order, 5)
@@ -1388,7 +1373,7 @@ class bitfinex2(Exchange):
         stopPrice = None
         if (orderType == 'EXCHANGE STOP') or (orderType == 'EXCHANGE STOP LIMIT'):
             price = None
-            stopPrice = self.safe_number(order, 16)
+            stopPrice = self.safe_string(order, 16)
             if orderType == 'EXCHANGE STOP LIMIT':
                 price = self.safe_string(order, 19)
         status = None
@@ -1448,7 +1433,11 @@ class bitfinex2(Exchange):
         # order types "limit" and "market" immediatley parsed "EXCHANGE LIMIT" and "EXCHANGE MARKET"
         # note: same order types exist for margin orders without the EXCHANGE prefix
         orderTypes = self.safe_value(self.options, 'orderTypes', {})
-        orderType = self.safe_string_upper(orderTypes, type, type)
+        orderType = type.upper()
+        if market['spot']:
+            # although they claim that type needs to be 'exchange limit' or 'exchange market'
+            # in fact that's not the case for swap markets
+            orderType = self.safe_string_upper(orderTypes, type, type)
         stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnlyParam = self.safe_value(params, 'postOnly', False)
@@ -1488,7 +1477,7 @@ class bitfinex2(Exchange):
         if (orderType != 'MARKET') and (not exchangeMarket) and (not exchangeStop):
             request['price'] = self.price_to_precision(symbol, price)
         if stopLimit or stopMarket:
-            # request['price'] is taken as stopPrice for stop orders
+            # request['price'] is taken for stop orders
             request['price'] = self.price_to_precision(symbol, stopPrice)
             if stopMarket:
                 request['type'] = 'EXCHANGE STOP'
@@ -2248,7 +2237,7 @@ class bitfinex2(Exchange):
         if statusMessage == 'error':
             feedback = self.id + ' ' + response
             message = self.safe_string(response, 2, '')
-            # same message as in v1
+            # same message v1
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

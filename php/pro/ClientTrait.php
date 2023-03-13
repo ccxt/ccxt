@@ -66,9 +66,16 @@ trait ClientTrait {
 
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
     public function spawn($method, ... $args) {
-        return Async\async(function () use ($method, $args) {
+        $future = new Future();
+        $promise = Async\async(function () use ($method, $args) {
             return Async\await($method(...$args));
         }) ();
+        $promise->done(function ($result) use ($future){
+            $future->resolve($result);
+        }, function ($error) use ($future) {
+            $future->reject($error);
+        });
+        return $future;
     }
 
     public function delay($timeout, $method, ... $args) {
@@ -158,31 +165,32 @@ trait ClientTrait {
 
     public function load_order_book($client, $messageHash, $symbol, $limit = null, $params = array()) {
         return Async\async(function () use ($client, $messageHash, $symbol, $limit, $params) {
-            $tries = 3;
             if (!array_key_exists($symbol, $this->orderbooks)) {
                 $client->reject(new ExchangeError($this->id . ' loadOrderBook() orderbook is not initiated'), $messageHash);
                 return;
             }
-            $stored = $this->orderbooks[$symbol];
-            for ($i = 0; $i < $tries; $i++) {
-                try {
+            try {
+                $stored = $this->orderbooks[$symbol];
+                $maxRetries = $this->handle_option('watchOrderBook', 'maxRetries', 3);
+                $tries = 0;
+                while ($tries < $maxRetries) {
                     $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $params));
-                    $cache =& $stored->cache;
-                    $index = $this->get_cache_index($orderBook, $cache);
-                    if ($index > 0) {
+                    $index = $this->get_cache_index($orderBook, $stored->cache);
+                    if ($index >= 0) {
                         $stored->reset($orderBook);
-                        $this->handle_deltas($orderBook, array_slice($cache, $index));
-                        $cache = array();
-                        $client>resolve($stored, $messageHash);
+                        $this->handle_deltas($stored, array_slice($stored->cache, $index));
+                        $stored->cache = array();
+                        $client->resolve($stored, $messageHash);
                         return;
                     }
-                } catch (BaseError $e) {
-                    unset($this->orderbooks[$symbol]);
-                    $client->reject($e, $messageHash);
-                    return;
+                    $tries++;
                 }
+                $client->reject (new ExchangeError ($this->id . ' nonce is behind the cache after ' . strval($tries) . ' tries.' ), $messageHash);
+                unset($this->clients[$client->url]);
+            } catch (BaseError $e) {
+                $client->reject($e, $messageHash);
+                Async\await($this->load_order_book($client, $messageHash, $symbol, $limit, $params));
             }
-            $client->reject (new ExchangeError ($this->id . ' loadOrderBook max tries exceeded'), $messageHash);
         }) ();
     }
 

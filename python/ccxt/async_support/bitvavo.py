@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -18,6 +17,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -553,7 +553,7 @@ class bitvavo(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitvavo api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         response = await self.publicGetTicker24h(params)
@@ -805,13 +805,13 @@ class bitvavo(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitvavo api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'limit': 1440,  # default 1440, max 1440
             # 'start': since,
             # 'end': self.milliseconds(),
@@ -1334,6 +1334,10 @@ class bitvavo(Exchange):
         remaining = self.safe_string(order, 'amountRemaining')
         filled = self.safe_string(order, 'filledAmount')
         cost = self.safe_string(order, 'filledAmountQuote')
+        if cost is None:
+            amountQuote = self.safe_string(order, 'amountQuote')
+            amountQuoteRemaining = self.safe_string(order, 'amountQuoteRemaining')
+            cost = Precise.string_sub(amountQuote, amountQuoteRemaining)
         fee = None
         feeCost = self.safe_number(order, 'feePaid')
         if feeCost is not None:

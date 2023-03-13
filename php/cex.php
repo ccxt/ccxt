@@ -312,7 +312,7 @@ class cex extends Exchange {
                 'active' => $active,
                 'deposit' => null,
                 'withdraw' => null,
-                'precision' => $this->parse_number($this->safe_string($currency, 'precision')),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
                 'fee' => null,
                 'limits' => array(
                     'amount' => array(
@@ -522,7 +522,7 @@ class cex extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the cex api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -545,7 +545,7 @@ class cex extends Exchange {
             //         "data1m":"[[1591403940,0.024972,0.024972,0.024969,0.024969,0.49999900]]",
             //     }
             //
-            $key = 'data' . $this->timeframes[$timeframe];
+            $key = 'data' . $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $data = $this->safe_string($response, $key);
             $ohlcvs = json_decode($data, $as_associative_array = true);
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
@@ -594,7 +594,7 @@ class cex extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the cex api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);

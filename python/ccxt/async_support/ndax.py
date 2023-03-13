@@ -6,10 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -709,7 +709,7 @@ class ndax(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the ndax api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
@@ -717,7 +717,7 @@ class ndax(Exchange):
         request = {
             'omsId': omsId,
             'InstrumentId': market['id'],
-            'Interval': self.timeframes[timeframe],
+            'Interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
         now = self.milliseconds()
@@ -1276,7 +1276,7 @@ class ndax(Exchange):
             'InstrumentId': int(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
-            'TimeInForce': 1,  # 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+            'TimeInForce': 1,  # 0 Unknown, 1 GTC by default, 2 OPG execute to opening price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
             # 'ClientOrderId': clientOrderId,  # defaults to 0
             # If self order is order A, OrderIdOCO refers to the order ID of an order B(which is not the order being created by self call).
             # If order B executes, then order A created by self call is canceled.
@@ -1320,7 +1320,7 @@ class ndax(Exchange):
             'InstrumentId': int(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
-            'TimeInForce': 1,  # 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+            'TimeInForce': 1,  # 0 Unknown, 1 GTC by default, 2 OPG execute to opening price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
             # 'ClientOrderId': clientOrderId,  # defaults to 0
             # If self order is order A, OrderIdOCO refers to the order ID of an order B(which is not the order being created by self call).
             # If order B executes, then order A created by self call is canceled.
@@ -1383,7 +1383,7 @@ class ndax(Exchange):
             market = self.market(symbol)
             request['InstrumentId'] = market['id']
         if since is not None:
-            request['StartTimeStamp'] = int(since / 1000)
+            request['StartTimeStamp'] = self.parse_to_int(since / 1000)
         if limit is not None:
             request['Depth'] = limit
         response = await self.privateGetGetTradesHistory(self.extend(request, params))
@@ -1605,7 +1605,7 @@ class ndax(Exchange):
             market = self.market(symbol)
             request['InstrumentId'] = market['id']
         if since is not None:
-            request['StartTimeStamp'] = int(since / 1000)
+            request['StartTimeStamp'] = self.parse_to_int(since / 1000)
         if limit is not None:
             request['Depth'] = limit
         response = await self.privateGetGetOrdersHistory(self.extend(request, params))
@@ -1753,7 +1753,7 @@ class ndax(Exchange):
         if symbol is not None:
             market = self.market(symbol)
         request = {
-            'OMSId': int(omsId),
+            'OMSId': self.parse_to_int(omsId),
             # 'AccountId': accountId,
             'OrderId': int(id),
         }
@@ -1896,8 +1896,9 @@ class ndax(Exchange):
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """
         fetch all deposits made to an account
+        see https://apidoc.ndax.io/#getdeposits
         :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None since: not used by ndax fetchDeposits
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the ndax api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
@@ -1917,26 +1918,35 @@ class ndax(Exchange):
         }
         response = await self.privateGetGetDeposits(self.extend(request, params))
         #
-        #     [
-        #         {
-        #             "OMSId":1,
-        #             "DepositId":44,
-        #             "AccountId":449,
-        #             "SubAccountId":0,
-        #             "ProductId":4,
-        #             "Amount":200.00000000000000000000000000,
-        #             "LastUpdateTimeStamp":637431291261187806,
-        #             "ProductType":"CryptoCurrency",
-        #             "TicketStatus":"FullyProcessed",
-        #             "DepositInfo":"{}",
-        #             "DepositCode":"ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-        #             "TicketNumber":71,
-        #             "NotionalProductId":13,
-        #             "NotionalValue":200.00000000000000000000000000,
-        #             "FeeAmount":0.0000000000000000000000000000,
-        #         },
-        #     ]
+        #    "[
+        #        {
+        #            "OMSId": 1,
+        #            "DepositId": 44,
+        #            "AccountId": 449,
+        #            "SubAccountId": 0,
+        #            "ProductId": 4,
+        #            "Amount": 200.00000000000000000000000000,
+        #            "LastUpdateTimeStamp": 637431291261187806,
+        #            "ProductType": "CryptoCurrency",
+        #            "TicketStatus": "FullyProcessed",
+        #            "DepositInfo": "{
+        #                "AccountProviderId":42,
+        #                "AccountProviderName":"USDT_BSC",
+        #                "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
+        #                "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
+        #                "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
+        #            },",
+        #            "DepositCode": "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        #            "TicketNumber": 71,
+        #            "NotionalProductId": 13,
+        #            "NotionalValue": 200.00000000000000000000000000,
+        #            "FeeAmount": 0.0000000000000000000000000000,
+        #        },
+        #        ...
+        #    ]"
         #
+        if isinstance(response, str):
+            return self.parse_transactions(json.loads(response), currency, since, limit)
         return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
@@ -2029,7 +2039,7 @@ class ndax(Exchange):
                 'LimitsRejected': 'rejected',  # withdrawal does not meet limits for fiat or crypto asset
                 'Submitted': 'pending',  # withdrawal sent to Account Provider; awaiting blockchain confirmation
                 'Confirmed': 'pending',  # Account Provider confirms that withdrawal is on the blockchain
-                'ManuallyConfirmed': 'pending',  # admin has sent withdrawal via wallet or admin function directly; marks ticket as FullyProcessed; debits account
+                'ManuallyConfirmed': 'pending',  # admin has sent withdrawal via wallet or admin function directly; marks ticket; debits account
                 'Confirmed2Fa': 'pending',  # user has confirmed withdraw via 2-factor authentication.
             },
         }
@@ -2040,22 +2050,28 @@ class ndax(Exchange):
         #
         # fetchDeposits
         #
-        #     {
-        #         "OMSId":1,
-        #         "DepositId":44,
-        #         "AccountId":449,
-        #         "SubAccountId":0,
-        #         "ProductId":4,
-        #         "Amount":200.00000000000000000000000000,
-        #         "LastUpdateTimeStamp":637431291261187806,
-        #         "ProductType":"CryptoCurrency",
-        #         "TicketStatus":"FullyProcessed",
-        #         "DepositInfo":"{}",
-        #         "DepositCode":"ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-        #         "TicketNumber":71,
-        #         "NotionalProductId":13,
-        #         "NotionalValue":200.00000000000000000000000000,
-        #         "FeeAmount":0.0000000000000000000000000000,
+        #    {
+        #        "OMSId": 1,
+        #        "DepositId": 44,
+        #        "AccountId": 449,
+        #        "SubAccountId": 0,
+        #        "ProductId": 4,
+        #        "Amount": 200.00000000000000000000000000,
+        #        "LastUpdateTimeStamp": 637431291261187806,
+        #        "ProductType": "CryptoCurrency",
+        #        "TicketStatus": "FullyProcessed",
+        #        "DepositInfo": "{
+        #            "AccountProviderId":42,
+        #            "AccountProviderName":"USDT_BSC",
+        #            "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
+        #            "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
+        #            "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
+        #        }",
+        #        "DepositCode": "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        #        "TicketNumber": 71,
+        #        "NotionalProductId": 13,
+        #        "NotionalValue": 200.00000000000000000000000000,
+        #        "FeeAmount": 0.0000000000000000000000000000,
         #     }
         #
         # fetchWithdrawals
@@ -2082,10 +2098,8 @@ class ndax(Exchange):
         #     }
         #
         id = None
-        txid = None
         currencyId = self.safe_string(transaction, 'ProductId')
         code = self.safe_currency_code(currencyId, currency)
-        timestamp = None
         type = None
         if 'DepositId' in transaction:
             id = self.safe_string(transaction, 'DepositId')
@@ -2093,38 +2107,33 @@ class ndax(Exchange):
         elif 'WithdrawId' in transaction:
             id = self.safe_string(transaction, 'WithdrawId')
             type = 'withdrawal'
-        templateFormString = self.safe_string(transaction, 'TemplateForm')
-        address = None
+        templateForm = self.parse_json(self.safe_value_2(transaction, 'TemplateForm', 'DepositInfo'))
         updated = self.safe_integer(transaction, 'LastUpdateTimeStamp')
-        if templateFormString is not None:
-            templateForm = json.loads(templateFormString)
-            address = self.safe_string(templateForm, 'ExternalAddress')
-            txid = self.safe_string(templateForm, 'TxId')
-            timestamp = self.safe_integer(templateForm, 'TimeSubmitted')
+        if templateForm is not None:
             updated = self.safe_integer(templateForm, 'LastUpdated', updated)
-        addressTo = address
-        status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'TicketStatus'), type)
-        amount = self.safe_number(transaction, 'Amount')
+        address = self.safe_string_2(templateForm, 'ExternalAddress', 'ToAddress')
+        timestamp = self.safe_integer(templateForm, 'TimeSubmitted')
         feeCost = self.safe_number(transaction, 'FeeAmount')
+        transactionStatus = self.safe_string(transaction, 'TicketStatus')
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
         return {
             'info': transaction,
             'id': id,
-            'txid': txid,
+            'txid': self.safe_string_2(templateForm, 'TxId', 'TXId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': address,
-            'addressTo': addressTo,
-            'addressFrom': None,
+            'addressTo': address,
+            'addressFrom': self.safe_string(templateForm, 'FromAddress'),
             'tag': None,
             'tagTo': None,
             'tagFrom': None,
             'type': type,
-            'amount': amount,
+            'amount': self.safe_number(transaction, 'Amount'),
             'currency': code,
-            'status': status,
+            'status': self.parse_transaction_status_by_type(transactionStatus, type),
             'updated': updated,
             'fee': fee,
         }

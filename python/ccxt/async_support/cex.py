@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
@@ -16,6 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -322,7 +322,7 @@ class cex(Exchange):
                 'active': active,
                 'deposit': None,
                 'withdraw': None,
-                'precision': self.parse_number(self.safe_string(currency, 'precision')),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'fee': None,
                 'limits': {
                     'amount': {
@@ -520,7 +520,7 @@ class cex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the cex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -541,7 +541,7 @@ class cex(Exchange):
             #         "data1m":"[[1591403940,0.024972,0.024972,0.024969,0.024969,0.49999900]]",
             #     }
             #
-            key = 'data' + self.timeframes[timeframe]
+            key = 'data' + self.safe_string(self.timeframes, timeframe, timeframe)
             data = self.safe_string(response, key)
             ohlcvs = json.loads(data)
             return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
@@ -586,7 +586,7 @@ class cex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the cex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)

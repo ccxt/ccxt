@@ -459,7 +459,7 @@ class lbank2 extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the lbank api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -679,7 +679,7 @@ class lbank2 extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             // endpoint doesnt work
             Async\await($this->load_markets());
@@ -693,8 +693,8 @@ class lbank2 extends Exchange {
             }
             $request = array(
                 'symbol' => $market['id'],
-                'type' => $this->timeframes[$timeframe],
-                'time' => intval($since / 1000),
+                'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+                'time' => $this->parse_to_int($since / 1000),
                 'size' => $limit, // max 2000
             );
             $response = Async\await($this->publicGetKline (array_merge($request, $params)));
@@ -2343,8 +2343,7 @@ class lbank2 extends Exchange {
                 } else {
                     $pem = $this->convert_secret_to_pem($this->encode($this->secret));
                 }
-                $encodedPem = $this->encode($pem);
-                $sign = $this->binary_to_base64($this->rsa($uppercaseHash, $encodedPem, 'RS256'));
+                $sign = $this->rsa($uppercaseHash, $pem);
             } elseif ($signatureMethod === 'HmacSHA256') {
                 $sign = $this->hmac($this->encode($uppercaseHash), $this->encode($this->secret));
             }
@@ -2363,7 +2362,7 @@ class lbank2 extends Exchange {
     public function convert_secret_to_pem($secret) {
         $lineLength = 64;
         $secretLength = strlen($secret) - 0;
-        $numLines = intval($secretLength / $lineLength);
+        $numLines = $this->parse_to_int($secretLength / $lineLength);
         $numLines = $this->sum($numLines, 1);
         $pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for ($i = 0; $i < $numLines; $i++) {

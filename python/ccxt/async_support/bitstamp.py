@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -16,6 +15,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -316,6 +316,8 @@ class bitstamp(Exchange):
                         'near_address/': 1,
                         'doge_withdrawal/': 1,
                         'doge_address/': 1,
+                        'flr_withdrawal/': 1,
+                        'flr_address/': 1,
                     },
                 },
             },
@@ -624,7 +626,7 @@ class bitstamp(Exchange):
         #     }
         #
         microtimestamp = self.safe_integer(response, 'microtimestamp')
-        timestamp = int(microtimestamp / 1000)
+        timestamp = self.parse_to_int(microtimestamp / 1000)
         orderbook = self.parse_order_book(response, market['symbol'], timestamp)
         orderbook['nonce'] = microtimestamp
         return orderbook
@@ -940,13 +942,13 @@ class bitstamp(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
-            'step': self.timeframes[timeframe],
+            'step': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
         if limit is None:
@@ -954,13 +956,13 @@ class bitstamp(Exchange):
                 request['limit'] = 1000  # we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
             else:
                 limit = 1000
-                start = int(since / 1000)
+                start = self.parse_to_int(since / 1000)
                 request['start'] = start
                 request['end'] = self.sum(start, limit * duration)
                 request['limit'] = limit
         else:
             if since is not None:
-                start = int(since / 1000)
+                start = self.parse_to_int(since / 1000)
                 request['start'] = start
                 request['end'] = self.sum(start, limit * duration)
             request['limit'] = min(limit, 1000)  # min 1, max 1000
@@ -1083,8 +1085,8 @@ class bitstamp(Exchange):
         :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         await self.load_markets()
-        response = await self.privatePostBalance(params)
-        return self.parse_transaction_fees(response, codes)
+        balance = await self.privatePostBalance(params)
+        return self.parse_transaction_fees(balance)
 
     def parse_transaction_fees(self, response, codes=None):
         #
@@ -1471,7 +1473,6 @@ class bitstamp(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(transaction, 'datetime'))
-        id = self.safe_string(transaction, 'id')
         currencyId = self.get_currency_id_from_transaction(transaction)
         code = self.safe_currency_code(currencyId, currency)
         feeCost = self.safe_string(transaction, 'fee')
@@ -1502,7 +1503,6 @@ class bitstamp(Exchange):
         else:
             # from fetchWithdrawals
             type = 'withdrawal'
-        txid = self.safe_string(transaction, 'transaction_id')
         tag = None
         address = self.safe_string(transaction, 'address')
         if address is not None:
@@ -1512,11 +1512,11 @@ class bitstamp(Exchange):
             if numParts > 1:
                 address = addressParts[0]
                 tag = addressParts[1]
-        addressFrom = None
-        addressTo = address
-        tagFrom = None
-        tagTo = tag
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         if feeCost is not None:
             fee = {
                 'currency': feeCurrency,
@@ -1525,22 +1525,23 @@ class bitstamp(Exchange):
             }
         return {
             'info': transaction,
-            'id': id,
-            'txid': txid,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'transaction_id'),
+            'type': type,
+            'currency': code,
+            'network': None,
+            'amount': self.parse_number(amount),
+            'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
-            'addressFrom': addressFrom,
-            'addressTo': addressTo,
             'address': address,
-            'tagFrom': tagFrom,
-            'tagTo': tagTo,
+            'addressFrom': None,
+            'addressTo': address,
             'tag': tag,
-            'type': type,
-            'amount': self.parse_number(amount),
-            'currency': code,
-            'status': status,
+            'tagFrom': None,
+            'tagTo': tag,
             'updated': None,
+            'comment': None,
             'fee': fee,
         }
 
