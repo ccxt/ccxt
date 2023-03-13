@@ -205,6 +205,10 @@ module.exports = class mexc3 extends Exchange {
                             'margin/loan': 1,
                             'margin/repay': 1,
                             'mxDeduct/enable': 1,
+                            'userDataStream': 1,
+                        },
+                        'put': {
+                            'userDataStream': 1,
                         },
                         'delete': {
                             'order': 1,
@@ -212,6 +216,7 @@ module.exports = class mexc3 extends Exchange {
                             'sub-account/apiKey': 1,
                             'margin/order': 1,
                             'margin/openOrders': 1,
+                            'userDataStream': 1,
                         },
                     },
                 },
