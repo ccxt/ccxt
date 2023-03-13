@@ -642,13 +642,13 @@ export default class Exchange {
     currency(code: any): any;
     market(symbol: string): any;
     handleWithdrawTagAndParams(tag: any, params: any): any[];
-    createLimitOrder(symbol: string, side: any, amount: any, price: any, params?: {}): Promise<any>;
-    createMarketOrder(symbol: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createLimitOrder(symbol: string, side: string, amount: any, price: any, params?: {}): Promise<any>;
+    createMarketOrder(symbol: string, side: string, amount: any, price?: any, params?: {}): Promise<any>;
     createLimitBuyOrder(symbol: string, amount: any, price: any, params?: {}): Promise<any>;
     createLimitSellOrder(symbol: string, amount: any, price: any, params?: {}): Promise<any>;
     createMarketBuyOrder(symbol: string, amount: any, params?: {}): Promise<any>;
     createMarketSellOrder(symbol: string, amount: any, params?: {}): Promise<any>;
-    costToPrecision(symbol: any, cost: any): any;
+    costToPrecision(symbol: string, cost: any): any;
     priceToPrecision(symbol: string, price: number | string): string;
     amountToPrecision(symbol: string, amount: string | number): any;
     feeToPrecision(symbol: string, fee: string | number): any;
@@ -689,8 +689,8 @@ export default class Exchange {
     handleTimeInForce(params?: {}): string;
     convertTypeToAccount(account: any): any;
     checkRequiredArgument(methodName: any, argument: any, argumentName: any, options?: any[]): void;
-    checkRequiredMarginArgument(methodName: any, symbol: any, marginMode: any): void;
-    checkRequiredSymbol(methodName: any, symbol: any): void;
+    checkRequiredMarginArgument(methodName: string, symbol: string, marginMode: string): void;
+    checkRequiredSymbol(methodName: string, symbol: string): void;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     depositWithdrawFee(info: any): {
         info: any;
