@@ -274,7 +274,7 @@ async def test_gdax():
 
     exchange = ccxt.poloniex({
         #
-        # ↓ The "proxy" property setting below is for CORS-proxying only!
+        # The "proxy" property setting below is for CORS-proxying only!
         # Do not use it if you don't know what a CORS proxy is.
         # https://docs.ccxt.com/en/latest/install.html#cors-access-control-allow-origin
         # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
@@ -282,7 +282,7 @@ async def test_gdax():
         #
         # 'proxy': 'https://cors-anywhere.herokuapp.com/',
         #
-        # ↓ The "aiohttp_proxy" setting is for HTTP(S)-proxying (SOCKS, etc...)
+        # The "aiohttp_proxy" setting is for HTTP(S)-proxying (SOCKS, etc...)
         # It is a standard method of sending your requests through your proxies
         # This gets passed to the `asyncio` and `aiohttp` implementation directly
         # You can use this setting as documented here:
