@@ -139,6 +139,7 @@ export default class bitforex extends Exchange {
                 '1017': PermissionDenied,
                 '1019': BadSymbol,
                 '3002': InsufficientFunds,
+                '4001': BadSymbol, // {"success":false,"code":"4001","message":"orderbook stopped"}
                 '4002': InvalidOrder,
                 '4003': InvalidOrder,
                 '4004': OrderNotFound,
