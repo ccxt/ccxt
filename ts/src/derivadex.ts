@@ -1724,4 +1724,4 @@ export default class derivadex extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-};
+}

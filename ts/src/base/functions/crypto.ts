@@ -10,11 +10,12 @@ import { capitalize } from './string.js';
 import { binaryToBase58, byteArrayToWordArray, urlencodeBase64, stringToBase64 } from './encode.js';
 // import errors from './../errors.js'
 import { ExchangeError } from '../errors.js';
+import sigUtil from 'eth-sig-util';
 
 const EC = elliptic.ec;
 const EDDSA = elliptic.eddsa;
 const crypto = require('crypto');
-const sigUtil = require('eth-sig-util');
+
 /*  ------------------------------------------------------------------------ */
 
 const hash = (request, hash = 'md5', digest = 'hex') => {
