@@ -690,7 +690,7 @@ export default class Exchange {
                 this.fetchImplementation = module.default;
             }
             else {
-                this.fetchImplementation = window.fetch;
+                this.fetchImplementation = self.fetch;
                 AbortError = DOMException;
             }
         }
