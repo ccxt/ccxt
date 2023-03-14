@@ -4,3 +4,4 @@ import subprocess
 # but the build process should not be stopped
 command = 'tsc --emitDeclarationOnly --declaration'
 subprocess.getoutput(command)
+print("Type declarations emitted!")
