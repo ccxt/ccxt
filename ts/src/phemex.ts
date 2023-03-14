@@ -2385,6 +2385,7 @@ export default class phemex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} params extra parameters specific to the phemex api endpoint
+         * @param {string|undefined} params.posSide either 'Hedged' or 'OneWay' or 'Merged'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
@@ -2437,6 +2438,11 @@ export default class phemex extends Exchange {
             method = 'privatePutOrdersReplace';
         } else if (market['settle'] === 'USDT') {
             method = 'privatePutGOrdersReplace';
+
+            const posSide = this.safeString (params, 'posSide');
+            if (posSide === undefined) {
+                request['posSide'] = 'Merged';
+            }
         }
         const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
