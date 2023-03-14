@@ -568,7 +568,7 @@ class phemex extends Exchange {
             'valueScale' => $valueScale,
             'ratioScale' => $ratioScale,
             'precision' => array(
-                'amount' => $this->safe_number($market, 'lotSize'),
+                'amount' => $this->safe_number_2($market, 'lotSize', 'qtyStepSize'),
                 'price' => $this->safe_number($market, 'tickSize'),
             ),
             'limits' => array(
@@ -2392,16 +2392,11 @@ class phemex extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the phemex api endpoint
+             * @param {string|null} $params->posSide either 'Hedged' or 'OneWay' or 'Merged'
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
-            }
-            if ($type !== null) {
-                throw new ArgumentsRequired($this->id . ' editOrder() $type changing is not implemented. Try to cancel & recreate order for that purpose');
-            }
-            if ($side !== null) {
-                throw new ArgumentsRequired($this->id . ' editOrder() $side changing is not implemented. Try to cancel & recreate order for that purpose');
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2410,14 +2405,15 @@ class phemex extends Exchange {
             );
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdID');
             $params = $this->omit($params, array( 'clientOrderId', 'clOrdID' ));
+            $isUSDTSettled = ($market['settle'] === 'USDT');
             if ($clientOrderId !== null) {
                 $request['clOrdID'] = $clientOrderId;
             } else {
                 $request['orderID'] = $id;
             }
             if ($price !== null) {
-                if ($market['settle'] === 'USDT') {
-                    $request['priceRp'] = $this->price_to_precision($symbol, $price);
+                if ($isUSDTSettled) {
+                    $request['priceRp'] = $this->price_to_precision($market['symbol'], $price);
                 } else {
                     $request['priceEp'] = $this->to_ep($price, $market);
                 }
@@ -2428,11 +2424,15 @@ class phemex extends Exchange {
             if ($finalQty !== null) {
                 $request['baseQtyEV'] = $finalQty;
             } elseif ($amount !== null) {
-                $request['baseQtyEV'] = $this->to_ev($amount, $market);
+                if ($isUSDTSettled) {
+                    $request['baseQtyEV'] = $this->amount_to_precision($market['symbol'], $amount);
+                } else {
+                    $request['baseQtyEV'] = $this->to_ev($amount, $market);
+                }
             }
             $stopPrice = $this->safe_string_2($params, 'stopPx', 'stopPrice');
             if ($stopPrice !== null) {
-                if ($market['settle'] === 'USDT') {
+                if ($isUSDTSettled) {
                     $request['stopPxRp'] = $this->price_to_precision($symbol, $stopPrice);
                 } else {
                     $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
@@ -2442,8 +2442,12 @@ class phemex extends Exchange {
             $method = 'privatePutSpotOrders';
             if ($market['inverse']) {
                 $method = 'privatePutOrdersReplace';
-            } elseif ($market['settle'] === 'USDT') {
+            } elseif ($isUSDTSettled) {
                 $method = 'privatePutGOrdersReplace';
+                $posSide = $this->safe_string($params, 'posSide');
+                if ($posSide === null) {
+                    $request['posSide'] = 'Merged';
+                }
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             $data = $this->safe_value($response, 'data', array());
