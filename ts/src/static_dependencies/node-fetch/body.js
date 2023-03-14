@@ -108,7 +108,7 @@ export default class Body {
 		return buffer.slice(byteOffset, byteOffset + byteLength);
 	}
 
-	async formData() {
+	/*async formData() {
 		const ct = this.headers.get('content-type');
 
 		if (ct.startsWith('application/x-www-form-urlencoded')) {
@@ -124,7 +124,7 @@ export default class Body {
 
 		const {toFormData} = await import('./utils/multipart-parser.js');
 		return toFormData(this.body, ct);
-	}
+	}*/
 
 	/**
 	 * Return raw response as Blob
