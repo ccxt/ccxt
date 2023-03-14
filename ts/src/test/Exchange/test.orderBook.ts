@@ -1,18 +1,18 @@
 
-import testSharedMethods from './test.sharedMethods';
 import assert from 'assert';
-import Precise from '../../base/Precise';
+import PreciseNs from '../../base/Precise';
+import testSharedMethods from './test.sharedMethods';
 
 function testOrderBook (exchange, method, entry, symbol) {
     const format = {
         // 'symbol': 'ETH/BTC', // reserved
         'bids': [
-            [ exchange.parseNumber ('1.23'), exchange.parseNumber ('0.123')],
-            [ exchange.parseNumber ('1.22'), exchange.parseNumber ('0.543')],
+            [ exchange.parseNumber ('1.23'), exchange.parseNumber ('0.123') ],
+            [ exchange.parseNumber ('1.22'), exchange.parseNumber ('0.543') ],
         ],
         'asks': [
-            [ exchange.parseNumber ('1.24'), exchange.parseNumber ('0.453')],
-            [ exchange.parseNumber ('1.25'), exchange.parseNumber ('0.157')],
+            [ exchange.parseNumber ('1.24'), exchange.parseNumber ('0.453') ],
+            [ exchange.parseNumber ('1.25'), exchange.parseNumber ('0.157') ],
         ],
         'timestamp': 1504224000000,
         'datetime': '2017-09-01T00:00:00',
@@ -32,7 +32,7 @@ function testOrderBook (exchange, method, entry, symbol) {
         const nextI = i + 1;
         if (bidsLength > nextI) {
             const nextBidString = exchange.safeString (bids[nextI], 0);
-            assert (Precise.stringGt (currentBidString, nextBidString), 'current bid should be > than the next one: ' + currentBidString + '>' + nextBidString + logText);
+            assert (PreciseNs.stringGt (currentBidString, nextBidString), 'current bid should be > than the next one: ' + currentBidString + '>' + nextBidString + logText);
         }
         testSharedMethods.assertGreater (exchange, method, bids[i], 0, '0');
         testSharedMethods.assertGreater (exchange, method, bids[i], 1, '0');
@@ -44,7 +44,7 @@ function testOrderBook (exchange, method, entry, symbol) {
         const nextI = i + 1;
         if (asksLength > nextI) {
             const nextAskString = exchange.safeString (asks[nextI], 0);
-            assert (Precise.stringLt (currentAskString, nextAskString), 'current ask should be < than the next one: ' + currentAskString + '<' + nextAskString + logText);
+            assert (PreciseNs.stringLt (currentAskString, nextAskString), 'current ask should be < than the next one: ' + currentAskString + '<' + nextAskString + logText);
         }
         testSharedMethods.assertGreater (exchange, method, asks[i], 0, '0');
         testSharedMethods.assertGreater (exchange, method, asks[i], 1, '0');
