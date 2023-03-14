@@ -3117,7 +3117,7 @@ export default class Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.has['fetchTickers']) {
             await this.loadMarkets ();
             const market = this.market (symbol);
