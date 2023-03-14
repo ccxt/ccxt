@@ -2438,7 +2438,6 @@ export default class phemex extends Exchange {
             method = 'privatePutOrdersReplace';
         } else if (market['settle'] === 'USDT') {
             method = 'privatePutGOrdersReplace';
-
             const posSide = this.safeString (params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
