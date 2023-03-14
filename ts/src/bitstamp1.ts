@@ -318,10 +318,10 @@ export default class bitstamp1 extends Exchange {
         };
         const response = await (this as any)[method] (this.extend (request, params));
         const id = this.safeString (response, 'id');
-        return {
+        return this.safeOrder ({
             'info': response,
             'id': id,
-        };
+        });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
