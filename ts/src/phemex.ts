@@ -560,7 +560,7 @@ export default class phemex extends Exchange {
             'valueScale': valueScale,
             'ratioScale': ratioScale,
             'precision': {
-                'amount': this.safeNumber (market, 'lotSize'),
+                'amount': this.safeNumber2 (market, 'lotSize', 'qtyStepSize'),
                 'price': this.safeNumber (market, 'tickSize'),
             },
             'limits': {
