@@ -144,7 +144,7 @@ import { OrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js
 //
 
 // import types
-import {Market, Trade, Fee, Ticker} from './types'
+import {Market, Trade, Fee, Ticker, OHLCV} from './types'
 export {Market, Trade, Fee, Ticker} from './types'
 
 
@@ -1989,7 +1989,7 @@ export default class Exchange {
         };
     }
 
-    safeTrade (trade: Trade, market: object = undefined): Trade {
+    safeTrade (trade: object, market: object = undefined): Trade {
         const amount = this.safeString (trade, 'amount');
         const price = this.safeString (trade, 'price');
         let cost = this.safeString (trade, 'cost');
@@ -2188,7 +2188,7 @@ export default class Exchange {
         });
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: number = undefined, limit: number = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: number = undefined, limit: number = undefined, params = {}): Promise<OHLCV[]> {
         if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
         }
@@ -2534,14 +2534,14 @@ export default class Exchange {
         } as any;
     }
 
-    parseOHLCVs (ohlcvs: object[], market: string = undefined, timeframe: string = '1m', since: number = undefined, limit: number = undefined) {
+    parseOHLCVs (ohlcvs: object[], market: string = undefined, timeframe: string = '1m', since: number = undefined, limit: number = undefined): OHLCV[] {
         const results = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push (this.parseOHLCV (ohlcvs[i], market));
         }
         const sorted = this.sortBy (results, 0);
         const tail = (since === undefined);
-        return this.filterBySinceLimit (sorted, since, limit, 0, tail);
+        return this.filterBySinceLimit (sorted, since, limit, 0, tail) as any;
     }
 
     parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
