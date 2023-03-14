@@ -872,7 +872,7 @@ export default class Exchange {
                 AbortError = module.AbortError
                 this.fetchImplementation = module.default
             } else {
-                this.fetchImplementation = window.fetch
+                this.fetchImplementation = self.fetch
                 AbortError = DOMException
             }
         }
