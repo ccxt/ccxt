@@ -48,8 +48,8 @@ script:
       npm run vss && npm run copy-python-files;
       npm list -g standard-version --depth=0 || npm install -g standard-version@9.5.0;
       standard-version --skip.bump --skip.commit --skip.tag;
-      env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
-      cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
+      env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh || sleep 20;
+      cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh || sleep 20 && cd ..;
     else
       echo "Not publishing";
       env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
