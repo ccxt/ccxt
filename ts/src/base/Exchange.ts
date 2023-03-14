@@ -23,8 +23,11 @@ const {
     , throttle
     , capitalize
     , now
+    , timeout
+    , TimedOut
     , buildOHLCVC
     , decimalToPrecision
+    , defaultFetch
     , safeValue
     , safeValue2
     , safeString
@@ -141,7 +144,7 @@ import Future from './ws/Future.js';
 import { OrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
-//
+// 
 
 // import types
 import {Market, Trade, Fee, Ticker, OHLCV, Order} from './types'
@@ -179,7 +182,7 @@ export default class Exchange {
     reduceFees = true
 
     // do not delete this line, it is needed for users to be able to define their own fetchImplementation
-    fetchImplementation: any
+    fetchImplementation = defaultFetch
     validateServerSsl = true
     validateClientSsl = false
 
@@ -219,6 +222,8 @@ export default class Exchange {
     last_http_response    = undefined
     last_json_response    = undefined
     last_response_headers = undefined
+
+    executeRestRequest = undefined
 
     id = undefined
 
@@ -272,9 +277,9 @@ export default class Exchange {
     lastRestRequestTimestamp = undefined
 
     targetAccount = undefined
-
+    
     stablePairs = {}
-
+    
     // WS/PRO options
     clients = {}
     newUpdates = true
@@ -298,8 +303,10 @@ export default class Exchange {
     precisionFromString = precisionFromString
     capitalize = capitalize
     now = now
+    TimedOut = TimedOut
     buildOHLCVC = buildOHLCVC
     decimalToPrecision = decimalToPrecision
+    defaultFetch = defaultFetch
     safeValue = safeValue
     safeValue2 = safeValue2
     safeString = safeString
@@ -614,7 +621,7 @@ export default class Exchange {
         // whether fees should be summed by currency code
         this.reduceFees = true
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
-        this.fetchImplementation = undefined
+        this.fetchImplementation = defaultFetch
         this.validateServerSsl = true
         this.validateClientSsl = false
         // default property values
@@ -684,6 +691,17 @@ export default class Exchange {
         if (!this.validateServerSsl) {
             agentOptions['rejectUnauthorized'] = false;
         }
+        // js-specific http options
+        //@ts-expect-error
+        if (!this.httpAgent && defaultFetch.http && isNode) {
+            //@ts-expect-error
+            this.httpAgent = new defaultFetch.http.Agent (agentOptions)
+        }
+        //@ts-expect-error
+        if (!this.httpsAgent && defaultFetch. https && isNode) {
+            //@ts-expect-error
+            this.httpsAgent = new defaultFetch.https.Agent (agentOptions)
+        }
         // generate old metainfo interface
         const hasKeys = Object.keys (this.has)
         for (let i = 0; i < hasKeys.length; i++) {
@@ -700,7 +718,9 @@ export default class Exchange {
         if (this.markets) {
             this.setMarkets (this.markets)
         }
+
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
+        
     }
 
     encodeURIComponent (...args) {
@@ -761,7 +781,34 @@ export default class Exchange {
             refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
         }, this.tokenBucket);
         this.throttle = throttle (this.tokenBucket);
-
+        this.executeRestRequest = (url, method = 'GET', headers = undefined, body = undefined) => {
+            // fetchImplementation cannot be called on this. in browsers:
+            // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
+            const fetchImplementation = this.fetchImplementation;
+            const params = { method, headers, body, timeout: this.timeout };
+            if (this.agent) {
+                params['agent'] = this.agent;
+            } else if (this.httpAgent && url.indexOf ('http://') === 0) {
+                params['agent'] = this.httpAgent;
+            } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
+                params['agent'] = this.httpsAgent;
+            }
+            const promise =
+                fetchImplementation (url, this.extend (params, this.fetchOptions))
+                    .catch ((e) => {
+                        if (isNode) {
+                            throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '));
+                        }
+                        throw e; // rethrow all unknown errors
+                    })
+                    .then ((response) => this.handleRestResponse (response, url, method, headers, body));
+            return timeout (this.timeout, promise).catch ((e) => {
+                if (e instanceof TimedOut) {
+                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
+                }
+                throw e;
+            })
+        };
     }
 
     setSandboxMode (enabled) {
@@ -841,7 +888,7 @@ export default class Exchange {
         console.log (... args)
     }
 
-    async fetch (url, method = 'GET', headers = undefined, body = undefined) {
+    fetch (url, method = 'GET', headers = undefined, body = undefined) {
         if (isNode && this.userAgent) {
             if (typeof this.userAgent === 'string') {
                 headers = this.extend ({ 'User-Agent': this.userAgent }, headers)
@@ -865,43 +912,7 @@ export default class Exchange {
         if (this.verbose) {
             this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
         }
-        let AbortError
-        if (this.fetchImplementation === undefined) {
-            if (isNode) {
-                const module = await import ('../static_dependencies/node-fetch/index.js')
-                AbortError = module.AbortError
-                this.fetchImplementation = module.default
-            } else {
-                this.fetchImplementation = self.fetch
-                AbortError = DOMException
-            }
-        }
-        // fetchImplementation cannot be called on this. in browsers:
-        // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
-        const fetchImplementation = this.fetchImplementation;
-        const params = { method, headers, body, timeout: this.timeout };
-        if (this.agent) {
-            params['agent'] = this.agent;
-        } else if (this.httpAgent && url.indexOf ('http://') === 0) {
-            params['agent'] = this.httpAgent;
-        } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
-            params['agent'] = this.httpsAgent;
-        }
-        const controller = new AbortController ()
-        params['signal'] = controller.signal
-        const timeout = setTimeout (() => {
-            controller.abort ()
-        }, this.timeout)
-        try {
-            const response = await fetchImplementation (url, this.extend (params, this.fetchOptions))
-            clearTimeout (timeout)
-            return this.handleRestResponse (response, url, method, headers, body);
-        } catch (e) {
-            if (e instanceof AbortError) {
-                throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
-            }
-            throw e
-        }
+        return this.executeRestRequest (url, method, headers, body)
     }
 
     parseJson (jsonString) {
@@ -1119,55 +1130,55 @@ export default class Exchange {
         sign (path, api: string | object, method = 'GET', params = {}, headers = undefined, body = undefined) {
             return {};
         }
-
+    
         async fetchAccounts (params = {}) {
             return undefined;
         }
-
+    
         async fetchTrades (symbol: string, since: number = undefined, limit: number = undefined, params = {}): Promise<Trade[]> {
             return undefined;
         }
-
+    
         async fetchDepositAddresses (codes = undefined, params = {}) {
             return undefined;
         }
-
+    
         async fetchOrderBook (symbol, limit: number = undefined, params = {}): Promise<OrderBook> {
             return undefined;
         }
-
+    
         async fetchTime (params = {}) {
             return undefined;
         }
-
+    
         async fetchTradingLimits (symbols = undefined, params = {}) {
             return undefined
         }
-
+    
         parseTicker (ticker: object, market = undefined): Ticker {
             return undefined;
         }
-
+    
         parseDepositAddress (depositAddress, currency = undefined) {
             return undefined;
         }
-
+    
         parseTrade (trade: object, market = undefined): Trade {
             return undefined;
         }
-
+    
         parseTransaction (transaction, currency = undefined) {
             return undefined;
         }
-
+    
         parseTransfer (transfer, currency = undefined) {
             return undefined;
         }
-
+        
         parseAccount(account) {
             return undefined;
         }
-
+    
         parseLedgerEntry (item, currency = undefined) {
             return undefined;
         }
@@ -1175,15 +1186,15 @@ export default class Exchange {
         parseOrder (order, market = undefined): Order {
             return undefined;
         }
-
+    
         async fetchBorrowRates (params = {}) {
             return undefined;
         }
-
+    
         parseMarketLeverageTiers (info, market) {
             return undefined;
         }
-
+    
         async fetchLeverageTiers (symbols = undefined, params = {}) {
             return undefined;
         }
@@ -1203,7 +1214,7 @@ export default class Exchange {
         async fetchFundingRates (symbols = undefined, params = {}) {
             return undefined;
         }
-
+        
         findTimeframe (timeframe, timeframes = undefined) {
             timeframes = timeframes || this.timeframes;
             const keys = Object.keys (timeframes);
@@ -1228,7 +1239,7 @@ export default class Exchange {
             method.apply (this, args).then ((future as any).resolve).catch ((future as any).reject)
             return future
         }
-
+    
         delay (timeout, method, ... args) {
             setTimeout (() => {
                 this.spawn (method, ... args)

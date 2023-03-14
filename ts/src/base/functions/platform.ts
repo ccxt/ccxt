@@ -11,6 +11,8 @@
 // - make sure it works with Angular.js
 // - make sure it does not break other possible usage scenarios
 
+import fetchNode from '../../static_dependencies/fetch-ponyfill/fetch-node.cjs'
+
 const isBrowser = typeof window !== 'undefined'
 
 const isElectron = typeof process !== 'undefined' &&
@@ -23,6 +25,8 @@ const isWindows = typeof process !== 'undefined' && process.platform === "win32"
 
 const isNode = !(isBrowser || isWebWorker)
 
+const defaultFetch = isNode ? fetchNode().fetch : fetch
+
 // ----------------------------------------------------------------------------
 
 export {
@@ -31,4 +35,5 @@ export {
     isWebWorker,
     isNode,
     isWindows,
+    defaultFetch,
 }
