@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import { Exchange } from './base/Exchange.js';
-import { BadRequest, NetworkError, AuthenticationError, PermissionDenied } from './base/errors.js';
+import { BadRequest, NetworkError, AuthenticationError, PermissionDenied, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
@@ -26,14 +26,13 @@ export default class coinw extends Exchange {
                 'cancelAllOrders': true, // https://api.coinw.com/api/v1/private?command=cancelAllOrder
                 'cancelOrder': true, // https://api.coinw.com/api/v1/private?command=cancelOrder
                 'createOrder': true, // https://api.coinw.com/api/v1/private?command=doTrade
-                'fetchBalance': true, // https://api.coinw.com/api/v1/private?command=returnCompleteBalances
-                'fetchClosedOrders': true, // https://api.coinw.com/api/v1/private?command=returnUTradeHistory
+                'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDeposists': true, // https://api.coinw.com/api/v1/private?command=returnDepositsWithdrawals
                 'fetchMarkets': true,
                 'fetchMyTrades': true, // https://api.coinw.com/api/v1/private?command=getUserTrades
                 'fetchOHLCV': true,
-                'fetchOpenOrders': true, // https://api.coinw.com/api/v1/private?command=returnOpenOrders
+                'fetchOpenOrders': true,
                 'fetchOrder': true, // https://api.coinw.com/api/v1/private?command=returnOrderTrades
                 'fetchOrderBook': true,
                 'fetchTicker': 'emulated',
@@ -380,6 +379,7 @@ export default class coinw extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        // fetchTrades
         //
         //    {
         //        amount: '0.6463',
@@ -389,6 +389,9 @@ export default class coinw extends Exchange {
         //        total: '10958.714504',
         //        type: 'SELL'
         //    }
+        //
+        // TODO: fetchMyTrades
+        //
         //
         const datetime = this.safeString (trade, 'time');
         const timestamp = this.parse8601 (datetime) - (8 * 3600000); // 8 hours ahead on UTC time
@@ -581,6 +584,488 @@ export default class coinw extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the ascendex api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await (this as any).privatePostReturnCompleteBalances (params);
+        //
+        // {
+        //   {
+        //    "code":"200",
+        //    "data":{
+        //      "MATIC":{
+        //        "onOrders":0,
+        //        "available":0
+        //      },
+        //      "TRIO":{
+        //        "onOrders":0,
+        //        "available":0
+        //      },
+        //      "CTXC":{
+        //        "onOrders":0,
+        //        "available":0
+        //      },
+        //      "BCHSV":{
+        //        "onOrders":0,
+        //        "available":0
+        //      },
+        //      "HT":{
+        //        "onOrders":0,
+        //        "available":0
+        //      }
+        //    },
+        //    },
+        //    "msg":"SUCCESS"
+        // }
+        //
+        return this.parseBalance (response);
+    }
+
+    parseBalance (response) {
+        const result = { 'info': response };
+        const data = this.safeValue (response, 'data');
+        const dataKeys = Object.keys (data);
+        for (let i = 0; i < dataKeys.length; i++) {
+            const currencyId = dataKeys[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const balance = this.safeValue (data, currencyId);
+            let account = undefined;
+            if (code in result) {
+                account = result[code];
+            } else {
+                account = this.account ();
+            }
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'onOrders');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    parseOrder (order, market = undefined) {
+        // fetchOpenOrders
+        //
+        //   {
+        //       orderNumber: '4620188542546389202',
+        //       date: '1678807552468',
+        //       startingAmount: '5.04',
+        //       total: '0.0036',
+        //       type: 'buy',
+        //       prize: '1400',
+        //       success_count: '0',
+        //       success_amount: '0',
+        //       status: '1'
+        //   }
+        //
+        // fetchOrder
+        //
+        //   {
+        //       "tradeID":421547953,
+        //       "currencyPair":"CWT_CNYT",
+        //       "type":"buy",
+        //       "amount":11,
+        //       "success_amount":0,
+        //       "total":11,
+        //       "success_total":"0.00",
+        //       "fee":1,
+        //       "date":"2019-12-27 12:01:08",
+        //       "status":1   
+        //   }
+        //
+        const id = this.safeString2 (order, 'orderNumber', 'tradeID');
+        const marketId = this.safeString (order, 'currencyPair');
+        const side = this.safeString (order, 'type');
+        const price = this.safeString (order, 'price');
+        const status = this.safeString (order, 'status') === '1' ? 'open' : 'closed';
+        const amount = this.safeString2 (order, 'startingAmount', 'amount');
+        let symbol = undefined;
+        let timestamp = undefined;
+        let datetime = undefined;
+        let cost = undefined;
+        if (marketId === undefined) {
+            symbol = market['id'];
+            timestamp = this.safeNumber (order, 'date');
+            datetime = this.iso8601 (timestamp);
+        } else {
+            symbol = this.safeSymbol (marketId);
+            datetime = this.safeString (order, 'date') + '.000';
+            timestamp = this.parse8601 (datetime);
+        }
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'average': undefined,
+            'cost': cost,
+            'amount': amount,
+            'filled': this.safeString (order, 'success_amount'),
+            'remaining': undefined,
+            'status': status,
+            'fee': this.safeString (order, 'fee'),
+            'trades': undefined,
+        }, market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+        * @method
+        * @name coinw#fetchOpenOrders
+        * @description fetch all unfilled currently open orders
+        * @param {string|undefined} symbol unified market symbol
+        * @param {int|undefined} since the earliest time in ms to fetch open orders for
+        * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+        * @param {object} params extra parameters specific to the coinw api endpoint
+        * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+        */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + 'fetchOpenOrders() requires a symbol');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'currencyPair': market['id'],
+        };
+        const response = await (this as any).privatePostReturnOpenOrders (this.extend (request, params));
+        //
+        // {
+        //     code: '200',
+        //     data: [
+        //       {
+        //         orderNumber: '4620188542546389202',
+        //         date: '1678807552468',
+        //         startingAmount: '5.04',
+        //         total: '0.0036',
+        //         type: 'buy',
+        //         prize: '1400',
+        //         success_count: '0',
+        //         success_amount: '0',
+        //         status: '1'
+        //       }
+        //     ],
+        //     msg: 'SUCCESS'
+        // }
+        //
+        console.log (response);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrders (data, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinw#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {string|undefined} symbol not used by coinw fetchOrder
+         * @param {object} params extra parameters specific to the coinw api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = { 'orderNumber': id };
+        const response = (this as any).privatePostReturnOrderTrades (this.extend (request, params));
+        //
+        // {
+        //     "code":"200",
+        //     "data":{
+        //         "tradeID":421547953,
+        //         "currencyPair":"CWT_CNYT",
+        //         "type":"buy",
+        //         "amount":11,
+        //         "success_amount":0,
+        //         "total":11,
+        //         "success_total":"0.00",
+        //         "fee":1,
+        //         "date":"2019-12-27 12:01:08",
+        //         "status":1
+        //     },
+        //     "msg":"SUCCESS"
+        // }
+        //
+        console.log (response);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinw#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market', 'limit' or 'stop_limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the coinw api endpoint
+         * @param {float} params.triggerPrice The price at which a trigger order is triggered at
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = (this as any).privatePostDoTrade (this.extend (request, params));
+        //
+        // {
+        //     "code":"200",
+        //     "data":{
+        //         "orderNumber":422742231
+        //     },
+        //     "msg":"SUCCESS"
+        // }
+        //
+        return this.safeValue (response, 'data', {});
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the alpaca api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'orderNumber': id,
+        };
+        const response = await (this as any).privatePostCancelOrder (this.extend (request, params));
+        //
+        // {
+        //     "code":"200",
+        //     "data":{
+        //         "clientOrderId":422744738
+        //     },
+        //     "msg":"SUCCESS"
+        // }
+        //
+        return this.safeValue (response, 'data', {});
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#cancelOrders
+         * @description cancel multiple orders
+         * @param {[string]} ids order ids
+         * @param {string} symbol unified market symbol, default is undefined
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        if (symbol !== undefined) {
+            request['currencyPair'] = symbol;
+        }
+        const response = await (this as any).privatePostCancelAllOrder (this.extend (request, params));
+        //
+        // {
+        //     "code":"200",
+        //     "data":{
+        //      "orderNumbers":[421547953]
+        //     },
+        //     "msg":"SUCCESS"
+        // }
+        //
+        return this.safeValue (response, 'data', {});
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinw#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {object} params extra parameters specific to the coinw api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // 1-100 orders, default is 20
+        }
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        const response = await (this as any).privatePostGetUserTrades (this.extend (request, params));
+        return this.parseTrades (this.safeValue (response['data'], 'list'), market, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinw#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {object} params extra parameters specific to the coinw api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + 'fetchDeposits() requires a symbol');
+        }
+        await this.loadMarkets ();
+        let currency = undefined;
+        currency = this.currency (code);
+        const request = {
+            'symbol': currency,
+        };
+        const response = await (this as any).privatePostReturnDepositsWithdrawals (this.extend (request, params));
+        //
+        // {
+        //     "code":"200",
+        //     "data":[
+        //         {
+        //             "amount":31659.654543,
+        //             "depositNumber":937963,
+        //             "address":"123",
+        //             "txid":"已提交autocoinone937963Mon Oct 08 20:19:25 CST 2018",
+        //             "currency":"HC",
+        //             "confirmations":0,
+        //             "status":3
+        //         },{
+        //             "amount":398.8,
+        //             "depositNumber":903010,
+        //             "address":"123",
+        //             "txid":"已提交autocoinone903010Fri Aug 31 18:26:16 CST 2018",
+        //             "currency":"HC",
+        //             "confirmations":0,
+        //             "status":3
+        //         }
+        //     ],
+        //     "msg":"SUCCESS"
+        // }
+        //
+        return this.parseTransactions (response['data'], currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        // TODO: fetchWithdrawals, fetchDeposits
+        // TODO: withdraw
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinw#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {object} params extra parameters specific to the coinw api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + 'fetchDeposits() requires a symbol');
+        }
+        await this.loadMarkets ();
+        let currency = undefined;
+        currency = this.currency (code);
+        const request = {
+            'symbol': currency,
+        };
+        const response = await (this as any).privatePostReturnDepositsWithdrawals (this.extend (request, params));
+        //
+        // {
+        //     "code":"200",
+        //     "data":[
+        //         {
+        //             "amount":31659.654543,
+        //             "depositNumber":937963,
+        //             "address":"123",
+        //             "txid":"已提交autocoinone937963Mon Oct 08 20:19:25 CST 2018",
+        //             "currency":"HC",
+        //             "confirmations":0,
+        //             "status":3
+        //         },{
+        //             "amount":398.8,
+        //             "depositNumber":903010,
+        //             "address":"123",
+        //             "txid":"已提交autocoinone903010Fri Aug 31 18:26:16 CST 2018",
+        //             "currency":"HC",
+        //             "confirmations":0,
+        //             "status":3
+        //         }
+        //     ],
+        //     "msg":"SUCCESS"
+        // }
+        //
+        return this.parseTransactions (response['data'], currency, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinw#withdraw
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the coinw api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        const request = {
+            'address': address, // only supports existing addresses in your withdraw address list
+            'amount': amount,
+            'currency': currency['id'].toLowerCase (),
+        };
+        if (tag !== undefined) {
+            request['addr-tag'] = tag; // only for XRP?
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
+        if (network !== undefined) {
+            // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
+            if (network === 'erc20') {
+                request['chain'] = currency['id'] + network;
+            } else {
+                request['chain'] = network + currency['id'];
+            }
+            params = this.omit (params, 'network');
+        }
+        const response = await (this as any).privatePostDoWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": "99562054"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
