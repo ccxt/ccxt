@@ -660,10 +660,10 @@ export default class bitforex extends Exchange {
         };
         const response = await (this as any).privatePostApiV1TradePlaceOrder (this.extend (request, params));
         const data = response['data'];
-        return {
+        return this.safeOrder ({
             'info': response,
             'id': this.safeString (data, 'orderId'),
-        };
+        }, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

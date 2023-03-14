@@ -436,10 +436,10 @@ class mercado(Exchange):
                 request['quantity'] = self.amount_to_precision(market['symbol'], amount)
         response = await getattr(self, method)(self.extend(request, params))
         # TODO: replace self with a call to parseOrder for unification
-        return {
+        return self.safe_order({
             'info': response,
             'id': str(response['response_data']['order']['order_id']),
-        }
+        }, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """

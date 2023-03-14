@@ -979,10 +979,10 @@ class lbank2(Exchange):
         #      }
         #
         result = self.safe_value(response, 'data', {})
-        return {
+        return self.safe_order({
             'id': self.safe_string(result, 'order_id'),
             'info': result,
-        }
+        }, market)
 
     def parse_order_status(self, status):
         statuses = {

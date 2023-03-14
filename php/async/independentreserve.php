@@ -703,10 +703,10 @@ class independentreserve extends Exchange {
             }
             $request['volume'] = $amount;
             $response = Async\await($this->$method (array_merge($request, $params)));
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $response['OrderGuid'],
-            );
+            ), $market);
         }) ();
     }
 

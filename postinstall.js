@@ -1,4 +1,4 @@
-import fetch from './ts/src/static_dependencies/node-fetch/index.js'
+import fetch from './js/src/static_dependencies/node-fetch/index.js'
 
 function style(s, style) {
     return style + s + '\x1b[0m'

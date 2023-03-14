@@ -945,10 +945,10 @@ class bitso extends Exchange {
         }
         $response = $this->privatePostOrders (array_merge($request, $params));
         $id = $this->safe_string($response['payload'], 'oid');
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $id,
-        );
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

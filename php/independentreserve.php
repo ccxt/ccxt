@@ -680,10 +680,10 @@ class independentreserve extends Exchange {
         }
         $request['volume'] = $amount;
         $response = $this->$method (array_merge($request, $params));
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $response['OrderGuid'],
-        );
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

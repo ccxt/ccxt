@@ -407,10 +407,10 @@ class paymium extends Exchange {
                 $request['price'] = $price;
             }
             $response = Async\await($this->privatePostUserOrders (array_merge($request, $params)));
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $response['uuid'],
-            );
+            ), $market);
         }) ();
     }
 

@@ -24,7 +24,7 @@ export default class huobijp extends Exchange {
     costToPrecision(symbol: any, cost: any): any;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickers(symbols?: any, params?: {}): Promise<any>;
     parseTrade(trade: any, market?: any): {
@@ -46,18 +46,18 @@ export default class huobijp extends Exchange {
     fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTrades(symbol: any, since?: any, limit?: number, params?: {}): Promise<any>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: number, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: number, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     fetchAccounts(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    parseBalance(response: any): object;
-    fetchBalance(params?: {}): Promise<object>;
-    fetchOrdersByStates(states: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    parseBalance(response: any): import("./base/types.js").Balances;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    fetchOrdersByStates(states: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    fetchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
-    fetchOpenOrdersV1(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchOpenOrdersV2(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOpenOrdersV1(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrdersV2(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<{

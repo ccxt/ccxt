@@ -879,10 +879,10 @@ class coinmate extends Exchange {
         }
         $response = $this->$method (array_merge($request, $params));
         $id = $this->safe_string($response, 'data');
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $id,
-        );
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
