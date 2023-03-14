@@ -646,8 +646,9 @@ class zaif(Exchange):
             'info': transaction,
         }
 
-    def nonce(self):
-        nonce = float(self.milliseconds() / 1000)
+    def custom_nonce(self):
+        num = (self.milliseconds() / str(1000))
+        nonce = float(num)
         return format(nonce, '.8f')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -664,7 +665,7 @@ class zaif(Exchange):
                 url += 'tlapi'
             else:
                 url += 'tapi'
-            nonce = self.nonce()
+            nonce = self.custom_nonce()
             body = self.urlencode(self.extend({
                 'method': path,
                 'nonce': nonce,

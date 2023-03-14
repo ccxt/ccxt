@@ -7,12 +7,12 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\MarginModeAlreadySet;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\DDoSProtection;
+use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 
@@ -1235,7 +1235,7 @@ class tokocrypto extends Exchange {
              * @param {array} $params extra parameters specific to the tokocrypto api endpoint
              * @param {string|null} $params->price "mark" or "index" for mark $price and index $price candles
              * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2220,9 +2220,10 @@ class tokocrypto extends Exchange {
             $fee['currency'] = $code;
             $fee['cost'] = $feeCost;
         }
-        $internal = $this->safe_integer($transaction, 'transferType');
-        if ($internal !== null) {
-            $internal = $internal ? true : false;
+        $internalRaw = $this->safe_integer($transaction, 'transferType');
+        $internal = false;
+        if ($internalRaw !== null) {
+            $internal = true;
         }
         $id = $this->safe_string($transaction, 'id');
         if ($id === null) {

@@ -10,8 +10,6 @@ use React\Async;
 
 class ripio extends \ccxt\async\ripio {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -260,8 +258,8 @@ class ripio extends \ccxt\async\ripio {
         if ($nonce > $orderbook['nonce']) {
             $asks = $this->safe_value($data, 'sell', array());
             $bids = $this->safe_value($data, 'buy', array());
-            $this->handle_deltas($orderbook['asks'], $asks, $orderbook['nonce']);
-            $this->handle_deltas($orderbook['bids'], $bids, $orderbook['nonce']);
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['nonce'] = $nonce;
             $timestamp = $this->parse8601($this->safe_string($message, 'publishTime'));
             $orderbook['timestamp'] = $timestamp;

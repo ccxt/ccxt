@@ -303,7 +303,7 @@ class bittrex extends Exchange {
         //             "precision":8,
         //             "status":"ONLINE", // "OFFLINE"
         //             "createdAt":"2019-05-23T00:41:21.843Z",
-        //             "notice":"USDT has swapped to an ERC20-based token as of August 5, 2019."
+        //             "notice":"USDT has swapped to an ERC20-based token August 5, 2019."
         //         }
         //     )
         //
@@ -707,7 +707,7 @@ class bittrex extends Exchange {
         $isTaker = $this->safe_value($trade, 'isTaker');
         if ($isTaker !== null) {
             $takerOrMaker = $isTaker ? 'taker' : 'maker';
-            if (!$isTaker) { // as noted in PR #15655 this API provides confusing value - when it's 'maker' $trade, then $side value should reversed
+            if (!$isTaker) { // in PR #15655 this API provides confusing value - when it's 'maker' $trade, then $side value should reversed
                 if ($side === 'buy') {
                     $side = 'sell';
                 } elseif ($side === 'sell') {
@@ -881,7 +881,7 @@ class bittrex extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bittrex api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1377,7 +1377,7 @@ class bittrex extends Exchange {
             $request['currencySymbol'] = $currency['id'];
         }
         if ($since !== null) {
-            $startDate = intval($since / 1000) * 1000;
+            $startDate = intval(($since / (string) 1000)) * 1000;
             $request['startDate'] = $this->iso8601($startDate);
         }
         if ($limit !== null) {
@@ -1394,7 +1394,7 @@ class bittrex extends Exchange {
         }
         $params = $this->omit($params, 'status');
         $response = $this->$method (array_merge($request, $params));
-        // we cannot filter by `$since` timestamp, as it isn't set by Bittrex
+        // we cannot filter by `$since` timestamp, isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
         // return $this->parse_transactions($response, $currency, $since, $limit);
         return $this->parse_transactions($response, $currency, null, $limit);
@@ -1458,7 +1458,7 @@ class bittrex extends Exchange {
             $request['currencySymbol'] = $currency['id'];
         }
         if ($since !== null) {
-            $startDate = intval($since / 1000) * 1000;
+            $startDate = intval(($since / (string) 1000)) * 1000;
             $request['startDate'] = $this->iso8601($startDate);
         }
         if ($limit !== null) {
@@ -1867,7 +1867,7 @@ class bittrex extends Exchange {
             // and v3 $market ids are reversed in comparison to v1
             // v3 has to be a completely separate implementation
             // otherwise we will have to shuffle symbols and currencies everywhere
-            // which is prone to errors, as was shown here
+            // which is prone to errors, shown here
             // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
             $request['marketSymbol'] = $market['base'] . '-' . $market['quote'];
         }

@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -13,6 +12,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -602,7 +602,7 @@ class hitbtc(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the hitbtc api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -762,7 +762,7 @@ class hitbtc(Exchange):
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        # we use clientOrderId as the order id with self exchange intentionally
+        # we use clientOrderId order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         orderId = self.safe_string(trade, 'clientOrderId')
@@ -933,7 +933,7 @@ class hitbtc(Exchange):
         """
         self.load_markets()
         market = self.market(symbol)
-        # we use clientOrderId as the order id with self exchange intentionally
+        # we use clientOrderId order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         # their max accepted length is 32 characters
@@ -961,7 +961,7 @@ class hitbtc(Exchange):
 
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
-        # we use clientOrderId as the order id with self exchange intentionally
+        # we use clientOrderId order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         # their max accepted length is 32 characters
@@ -989,7 +989,7 @@ class hitbtc(Exchange):
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
-        # we use clientOrderId as the order id with self exchange intentionally
+        # we use clientOrderId order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         request = {
@@ -1060,7 +1060,7 @@ class hitbtc(Exchange):
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'cumQuantity')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        # we use clientOrderId as the order id with self exchange intentionally
+        # we use clientOrderId order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         id = self.safe_string(order, 'clientOrderId')
@@ -1104,7 +1104,7 @@ class hitbtc(Exchange):
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
-        # we use clientOrderId as the order id with self exchange intentionally
+        # we use clientOrderId order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         request = {
@@ -1125,7 +1125,7 @@ class hitbtc(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
-        # we use clientOrderId as the order id with self exchange intentionally
+        # we use clientOrderId order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         request = {
@@ -1323,7 +1323,7 @@ class hitbtc(Exchange):
         fromNetwork = self.safe_string(networks, fromNetwork, fromNetwork)  # handle ETH>ERC20 alias
         toNetwork = self.safe_string(networks, toNetwork, toNetwork)  # handle ETH>ERC20 alias
         if fromNetwork == toNetwork:
-            raise ExchangeError(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork')
+            raise ExchangeError(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same')
         request = {
             'fromCurrency': currency['id'] + fromNetwork,
             'toCurrency': currency['id'] + toNetwork,

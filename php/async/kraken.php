@@ -865,16 +865,21 @@ class kraken extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the kraken api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $parsedTimeframe = $this->safe_integer($this->timeframes, $timeframe);
             $request = array(
                 'pair' => $market['id'],
-                'interval' => $this->safe_integer($this->timeframes, $timeframe, $timeframe),
             );
+            if ($parsedTimeframe !== null) {
+                $request['interval'] = $parsedTimeframe;
+            } else {
+                $request['interval'] = $timeframe;
+            }
             if ($since !== null) {
-                $request['since'] = intval(($since - 1) / 1000);
+                $request['since'] = $this->parse_to_int(($since - 1) / 1000);
             }
             $response = Async\await($this->publicGetOHLC (array_merge($request, $params)));
             //
@@ -940,7 +945,7 @@ class kraken extends Exchange {
         $time = $this->safe_number($item, 'time');
         $timestamp = null;
         if ($time !== null) {
-            $timestamp = intval($time * 1000);
+            $timestamp = $this->parse_to_int($time * 1000);
         }
         return array(
             'info' => $item,
@@ -983,7 +988,7 @@ class kraken extends Exchange {
                 $request['asset'] = $currency['id'];
             }
             if ($since !== null) {
-                $request['start'] = intval($since / 1000);
+                $request['start'] = $this->parse_to_int($since / 1000);
             }
             $response = Async\await($this->privatePostLedgers (array_merge($request, $params)));
             // {  error => array(),
@@ -1095,7 +1100,7 @@ class kraken extends Exchange {
             $amount = $this->safe_string($trade, 1);
             $tradeLength = count($trade);
             if ($tradeLength > 6) {
-                $id = $this->safe_string($trade, 6); // artificially added as per #1794
+                $id = $this->safe_string($trade, 6); // artificially added #1794
             }
         } elseif (gettype($trade) === 'string') {
             $id = $trade;
@@ -1687,7 +1692,7 @@ class kraken extends Exchange {
             $options = $this->safe_value($this->options, 'fetchOrderTrades', array());
             $batchSize = $this->safe_integer($options, 'batchSize', 20);
             $numTradeIds = count($tradeIds);
-            $numBatches = intval($numTradeIds / $batchSize);
+            $numBatches = $this->parse_to_int($numTradeIds / $batchSize);
             $numBatches = $this->sum($numBatches, 1);
             $result = array();
             for ($j = 0; $j < $numBatches; $j++) {
@@ -1775,7 +1780,7 @@ class kraken extends Exchange {
                 // 'ofs' = result offset
             );
             if ($since !== null) {
-                $request['start'] = intval($since / 1000);
+                $request['start'] = $this->parse_to_int($since / 1000);
             }
             $response = Async\await($this->privatePostTradesHistory (array_merge($request, $params)));
             //
@@ -1897,7 +1902,7 @@ class kraken extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             if ($since !== null) {
-                $request['start'] = intval($since / 1000);
+                $request['start'] = $this->parse_to_int($since / 1000);
             }
             $query = $params;
             $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
@@ -1929,7 +1934,7 @@ class kraken extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             if ($since !== null) {
-                $request['start'] = intval($since / 1000);
+                $request['start'] = $this->parse_to_int($since / 1000);
             }
             $query = $params;
             $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
@@ -2285,7 +2290,7 @@ class kraken extends Exchange {
             $defaultDepositMethod = $this->safe_string($defaultDepositMethods, $code);
             $depositMethod = $this->safe_string($params, 'method', $defaultDepositMethod);
             // if the user has specified an exchange-specific method in $params
-            // we pass it as is, otherwise we take the 'network' unified param
+            // we pass it, otherwise we take the 'network' unified param
             if ($depositMethod === null) {
                 $depositMethods = Async\await($this->fetch_deposit_methods($code));
                 if ($network !== null) {
@@ -2380,7 +2385,7 @@ class kraken extends Exchange {
                 $result = $this->safe_value($response, 'result', array());
                 return $this->parse_transaction($result, $currency);
             }
-            throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
+            throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, up on your account)");
         }) ();
     }
 

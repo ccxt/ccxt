@@ -133,6 +133,7 @@ class bitget extends Exchange {
                             'market/fills' => 1,
                             'market/candles' => 1,
                             'market/depth' => 1,
+                            'market/spot-vip-level' => 2,
                         ),
                     ),
                     'mix' => array(
@@ -150,6 +151,7 @@ class bitget extends Exchange {
                             'market/open-interest' => 1,
                             'market/mark-price' => 1,
                             'market/symbol-leverage' => 1,
+                            'market/contract-vip-level' => 2,
                         ),
                     ),
                 ),
@@ -551,9 +553,9 @@ class bitget extends Exchange {
                     '36103' => '\\ccxt\\AccountSuspended', // Account is suspended due to ongoing liquidation.
                     '36104' => '\\ccxt\\PermissionDenied', // Account is not enabled for options trading.
                     '36105' => '\\ccxt\\PermissionDenied', // Please enable the account for option contract.
-                    '36106' => '\\ccxt\\AccountSuspended', // Funds cannot be transferred in or out, as account is suspended.
+                    '36106' => '\\ccxt\\AccountSuspended', // Funds cannot be transferred in or out, is suspended.
                     '36107' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred out within 30 minutes after option exercising or settlement.
-                    '36108' => '\\ccxt\\InsufficientFunds', // Funds cannot be transferred in or out, as equity of the account is less than zero.
+                    '36108' => '\\ccxt\\InsufficientFunds', // Funds cannot be transferred in or out, of the account is less than zero.
                     '36109' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred in or out during option exercising or settlement.
                     '36201' => '\\ccxt\\PermissionDenied', // New order function is blocked.
                     '36202' => '\\ccxt\\PermissionDenied', // Account does not have permission to short option.
@@ -658,7 +660,7 @@ class bitget extends Exchange {
                     '40502' => '\\ccxt\\ExchangeError', // If it is a copy user, you must pass the copy to whom
                     '40503' => '\\ccxt\\ExchangeError', // With the single type
                     '40504' => '\\ccxt\\ExchangeError', // Platform code must pass
-                    '40505' => '\\ccxt\\ExchangeError', // Not the same as single type
+                    '40505' => '\\ccxt\\ExchangeError', // Not the same type
                     '40506' => '\\ccxt\\AuthenticationError', // Platform signature error
                     '40507' => '\\ccxt\\AuthenticationError', // Api signature error
                     '40508' => '\\ccxt\\ExchangeError', // KOL is not authorized
@@ -887,6 +889,7 @@ class bitget extends Exchange {
                 $promises[] = $this->fetch_markets_by_type($types[$i], $params);
             }
         }
+        $promises = $promises;
         $result = $promises[0];
         for ($i = 1; $i < count($promises); $i++) {
             $result = $this->array_concat($result, $promises[$i]);
@@ -1773,18 +1776,18 @@ class bitget extends Exchange {
         // private
         //
         //     {
-        //         accountId => '6394957606',
-        //         $symbol => 'LTCUSDT_SPBL',
-        //         orderId => '864752115272552448',
-        //         fillId => '864752115685969921',
+        //         accountId => '4383649766',
+        //         $symbol => 'ETHBTC_SPBL',
+        //         orderId => '1009402341131468800',
+        //         fillId => '1009402351489581068',
         //         orderType => 'limit',
-        //         $side => 'buy',
-        //         fillPrice => '127.92000000',
-        //         fillQuantity => '0.10000000',
-        //         fillTotalAmount => '12.79200000',
-        //         feeCcy => 'LTC',
-        //         fees => '0.00000000',
-        //         cTime => '1641898891373'
+        //         $side => 'sell',
+        //         fillPrice => '0.06997800',
+        //         fillQuantity => '0.04120000',
+        //         fillTotalAmount => '0.00288309',
+        //         feeCcy => 'BTC',
+        //         fees => '-0.00000288',
+        //         cTime => '1676386195060'
         //     }
         //
         //     {
@@ -1818,7 +1821,7 @@ class bitget extends Exchange {
             $fee = array(
                 'code' => $currencyCode, // kept here for backward-compatibility, but will be removed soon
                 'currency' => $currencyCode,
-                'cost' => $feeAmount,
+                'cost' => Precise::string_neg($feeAmount),
             );
         }
         $datetime = $this->iso8601($timestamp);
@@ -2018,7 +2021,7 @@ class bitget extends Exchange {
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bitget api endpoint
          * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2034,24 +2037,23 @@ class bitget extends Exchange {
         if ($limit === null) {
             $limit = 100;
         }
-        if ($market['type'] === 'spot') {
-            $timeframes = $this->options['timeframes']['spot'];
-            $request['period'] = $this->safe_string($timeframes, $timeframe, $timeframe);
+        $timeframes = $this->options['timeframes'][$marketType];
+        $selectedTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
+        $duration = $this->parse_timeframe($timeframe);
+        if ($market['spot']) {
+            $request['period'] = $selectedTimeframe;
             $request['limit'] = $limit;
             if ($since !== null) {
                 $request['after'] = $since;
                 if ($until === null) {
-                    $millisecondsPerTimeframe = $this->options['timeframes']['swap'][$timeframe] * 1000;
-                    $request['before'] = $this->sum($since, $millisecondsPerTimeframe * $limit);
+                    $request['before'] = $this->sum($since, $limit * $duration * 1000);
                 }
             }
             if ($until !== null) {
                 $request['before'] = $until;
             }
-        } elseif ($market['type'] === 'swap') {
-            $timeframes = $this->options['timeframes']['swap'];
-            $request['granularity'] = $this->safe_string($timeframes, $timeframe, $timeframe);
-            $duration = $this->parse_timeframe($timeframe);
+        } elseif ($market['swap']) {
+            $request['granularity'] = $selectedTimeframe;
             $now = $this->milliseconds();
             if ($since === null) {
                 $request['startTime'] = $now - ($limit - 1) * ($duration * 1000);
@@ -3500,7 +3502,7 @@ class bitget extends Exchange {
             } else {
                 $numerator = Precise::string_mul($numerator, $calcTakerFeeMult);
             }
-            $liquidationPrice = Precise::string_div($numerator, $mmrMinusOne);
+            $liquidationPrice = $this->parse_number(Precise::string_div($numerator, $mmrMinusOne));
         }
         $feeToClose = Precise::string_mul($notional, $calcTakerFeeRate);
         $maintenanceMargin = Precise::string_add(Precise::string_mul($maintenanceMarginPercentage, $notional), $feeToClose);
@@ -3512,7 +3514,7 @@ class bitget extends Exchange {
             'symbol' => $symbol,
             'notional' => $this->parse_number($notional),
             'marginMode' => $marginMode,
-            'liquidationPrice' => $this->parse_number($liquidationPrice),
+            'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $this->parse_number($entryPrice),
             'unrealizedPnl' => $this->parse_number($unrealizedPnl),
             'percentage' => $this->parse_number($percentage),

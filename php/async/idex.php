@@ -179,7 +179,7 @@ class idex extends Exchange {
         //
         // we override priceToPrecision to fix the following issue
         // https://github.com/ccxt/ccxt/issues/13367
-        // array("code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\" => all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes")
+        // array("code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\" => all quantities and prices must be below 100 billion, above 0, need to be provided, and always require 4 decimals ending with 4 zeroes")
         //
         $market = $this->market($symbol);
         $info = $this->safe_value($market, 'info', array());
@@ -442,7 +442,7 @@ class idex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

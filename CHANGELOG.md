@@ -2,6 +2,156 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.4 (2023-03-13)
+
+### 3.0.3 (2023-03-13)
+
+### 3.0.2 (2023-03-13)
+
+### 3.0.1 (2023-03-13)
+
+### 2.9.16 (2023-03-13)
+
+### 2.9.15 (2023-03-13)
+
+### 2.9.14 (2023-03-13)
+
+### 2.9.13 (2023-03-12)
+
+
+### Bug Fixes
+
+* **Phemex:** createOrder usd settled contracts [ci deploy] ([cdd673d](https://github.com/ccxt/ccxt/commit/cdd673da65b6d788f6955ea22a209028704bd0e5))
+
+### 2.9.12 (2023-03-11)
+
+### 2.9.11 (2023-03-10)
+
+### 2.9.10 (2023-03-09)
+
+### 2.9.9 (2023-03-09)
+
+### 2.9.8 (2023-03-08)
+
+### 2.9.7 (2023-03-07)
+
+### 2.9.6 (2023-03-06)
+
+### 2.9.5 (2023-03-06)
+
+### 2.9.4 (2023-03-06)
+
+### 2.9.3 (2023-03-06)
+
+### 2.9.2 (2023-03-06)
+
+### 2.9.1 (2023-03-06)
+
+### 2.8.99 (2023-03-06)
+
+### 2.8.98 (2023-03-05)
+
+### 2.8.97 (2023-03-05)
+
+### 2.8.96 (2023-03-05)
+
+### 2.8.95 (2023-03-05)
+
+### 2.8.94 (2023-03-04)
+
+
+### Bug Fixes
+
+* **bybit:** parseTicker default type ([8a929fa](https://github.com/ccxt/ccxt/commit/8a929fa60908ba4d8ff31bb2b95945c1bf9353e1))
+
+### 2.8.93 (2023-03-04)
+
+
+### Bug Fixes
+
+* **binance:** stream reconnect ([da96a59](https://github.com/ccxt/ccxt/commit/da96a597f6296524fc0151d2c1bd40974948b71c))
+
+### 2.8.92 (2023-03-04)
+
+### 2.8.91 (2023-03-04)
+
+### 2.8.90 (2023-03-04)
+
+### 2.8.89 (2023-03-04)
+
+### 2.8.88 (2023-03-04)
+
+
+### Features
+
+* **coinbasepro:** Added bidVolume and askVolume to watchTicker ([86ed8aa](https://github.com/ccxt/ccxt/commit/86ed8aaec409b9447019907024eaa6ad575c5a21))
+
+### 2.8.87 (2023-03-04)
+
+### 2.8.86 (2023-03-04)
+
+### 2.8.85 (2023-03-04)
+
+### 2.8.84 (2023-03-03)
+
+### 2.8.83 (2023-03-03)
+
+### 2.8.82 (2023-03-03)
+
+### 2.8.81 (2023-03-03)
+
+
+### Bug Fixes
+
+* **phemex:** fix handleSettle ([4754570](https://github.com/ccxt/ccxt/commit/4754570e25168fa8fe9a508edcd62e0270b3ccd5))
+
+### 2.8.80 (2023-03-03)
+
+### 2.8.79 (2023-03-02)
+
+### 2.8.78 (2023-03-02)
+
+
+### Bug Fixes
+
+* **whitebit:** handle authenticate error ([39cd58c](https://github.com/ccxt/ccxt/commit/39cd58c62843473cb2aa314d80f4916f93007de4))
+
+### 2.8.77 (2023-03-02)
+
+### 2.8.76 (2023-03-02)
+
+
+### Bug Fixes
+
+* **Gate:** sandbox markets loading ([b564e9d](https://github.com/ccxt/ccxt/commit/b564e9dd4607b0ec2d278fcf5502cfc1e8b5e4cf))
+
+### 2.8.75 (2023-03-02)
+
+### 2.8.74 (2023-03-02)
+
+
+### Bug Fixes
+
+* **Cex:** incorrect currency precision parsing ([ea6c278](https://github.com/ccxt/ccxt/commit/ea6c278e7d216686bbcbc322af10e3b04970d7bc))
+
+### 2.8.73 (2023-03-02)
+
+
+### Bug Fixes
+
+* **ascendex:** fix [#17010](https://github.com/ccxt/ccxt/issues/17010) ([fb03e92](https://github.com/ccxt/ccxt/commit/fb03e924662a147ab394698f0958eaee8f91cb7c))
+
+### 2.8.72 (2023-03-02)
+
+### 2.8.71 (2023-03-02)
+
+
+### Bug Fixes
+
+* **bybit:** setMarginMode rename and leverage ([4fc1fef](https://github.com/ccxt/ccxt/commit/4fc1fef9fe7ce34ff4b44e7a1dc297e5fd4a6875))
+
+### 2.8.70 (2023-03-02)
+
 ### 2.8.69 (2023-03-01)
 
 

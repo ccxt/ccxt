@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -24,6 +23,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -159,7 +159,7 @@ class okcoin(Exchange):
                         'rfq/trade': 50,
                     },
                 },
-                # TODO fix signing issue as above
+                # TODO fix signing issue
                 'users': {
                     'get': {
                         'subaccount-info': 20,
@@ -723,9 +723,9 @@ class okcoin(Exchange):
                     '36103': PermissionDenied,  # Account is suspended due to ongoing liquidation.
                     '36104': PermissionDenied,  # Account is not enabled for options trading.
                     '36105': PermissionDenied,  # Please enable the account for option contract.
-                    '36106': PermissionDenied,  # Funds cannot be transferred in or out, as account is suspended.
+                    '36106': PermissionDenied,  # Funds cannot be transferred in or out, is suspended.
                     '36107': PermissionDenied,  # Funds cannot be transferred out within 30 minutes after option exercising or settlement.
-                    '36108': InsufficientFunds,  # Funds cannot be transferred in or out, as equity of the account is less than zero.
+                    '36108': InsufficientFunds,  # Funds cannot be transferred in or out, of the account is less than zero.
                     '36109': PermissionDenied,  # Funds cannot be transferred in or out during option exercising or settlement.
                     '36201': PermissionDenied,  # New order function is blocked.
                     '36202': PermissionDenied,  # Account does not have permission to short option.
@@ -1522,7 +1522,7 @@ class okcoin(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the okcoin api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1924,7 +1924,7 @@ class okcoin(Exchange):
             request = self.extend(request, {
                 'type': type,  # 1:open long 2:open short 3:close long 4:close short for futures
                 'size': size,
-                # 'match_price': '0',  # Order at best counter party price?(0:no 1:yes). The default is 0. If it is set as 1, the price parameter will be ignored. When posting orders at best bid price, order_type can only be 0(regular order).
+                # 'match_price': '0',  # Order at best counter party price?(0:no 1:yes). The default is 0. If it is set, the price parameter will be ignored. When posting orders at best bid price, order_type can only be 0(regular order).
             })
             orderType = self.safe_string(params, 'order_type')
             # order_type == '4' means a market order
@@ -2092,7 +2092,7 @@ class okcoin(Exchange):
         #         "created_at":"2019-03-18T07:26:49.000Z",
         #         "filled_notional":"3.9734",
         #         "filled_size":"0.001",  # filled_qty in futures and swap orders
-        #         "funds":"",  # self is most likely the same as notional
+        #         "funds":"",  # self is most likely the same
         #         "instrument_id":"BTC-USDT",
         #         "notional":"",
         #         "order_id":"2500723297813504",
@@ -2567,7 +2567,7 @@ class okcoin(Exchange):
             'to_address': address,
             'destination': '4',  # 2 = OKCoin International, 3 = OKEx 4 = others
             'amount': self.number_to_string(amount),
-            'fee': fee,  # str. Network transaction fee ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set as 0. Withdrawal to external digital asset address requires network transaction fee.
+            'fee': fee,  # str. Network transaction fee ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set. Withdrawal to external digital asset address requires network transaction fee.
         }
         if 'password' in params:
             request['trade_pwd'] = params['password']
@@ -3407,8 +3407,8 @@ class okcoin(Exchange):
         response = await getattr(self, method)(self.extend(request, query))
         #
         # transfer     funds transfer in/out
-        # trade        funds moved as a result of a trade, spot accounts only
-        # rebate       fee rebate as per fee schedule, spot accounts only
+        # trade        funds moved result of a trade, spot accounts only
+        # rebate       fee rebate fee schedule, spot accounts only
         # match        open long/open short/close long/close short(futures) or a change in the amount because of trades(swap)
         # fee          fee, futures only
         # settlement   settlement/clawback/settle long/settle short
@@ -3490,8 +3490,8 @@ class okcoin(Exchange):
     def parse_ledger_entry_type(self, type):
         types = {
             'transfer': 'transfer',  # funds transfer in/out
-            'trade': 'trade',  # funds moved as a result of a trade, spot accounts only
-            'rebate': 'rebate',  # fee rebate as per fee schedule, spot accounts only
+            'trade': 'trade',  # funds moved result of a trade, spot accounts only
+            'rebate': 'rebate',  # fee rebate fee schedule, spot accounts only
             'match': 'trade',  # open long/open short/close long/close short(futures) or a change in the amount because of trades(swap)
             'fee': 'fee',  # fee, futures only
             'settlement': 'trade',  # settlement/clawback/settle long/settle short

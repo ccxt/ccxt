@@ -53,7 +53,7 @@ class wazirx extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
-                'fetchOrder' => true,
+                'fetchOrder' => false,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPositionMode' => false,
@@ -278,7 +278,7 @@ class wazirx extends Exchange {
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the wazirx api endpoint
              * @param {int|null} $params->until timestamp in s of the latest candle to fetch
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -292,7 +292,7 @@ class wazirx extends Exchange {
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, array( 'until' ));
             if ($since !== null) {
-                $request['startTime'] = intval($since / 1000);
+                $request['startTime'] = $this->parse_to_int($since / 1000);
             }
             if ($until !== null) {
                 $request['endTime'] = $until;

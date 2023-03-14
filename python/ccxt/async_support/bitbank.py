@@ -5,12 +5,12 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -440,7 +440,7 @@ class bitbank(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitbank api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         if since is None:
             if limit is None:
@@ -666,7 +666,7 @@ class bitbank(Exchange):
         if limit is not None:
             request['count'] = limit
         if since is not None:
-            request['since'] = int(since / 1000)
+            request['since'] = self.parse_to_int(since / 1000)
         response = await self.privateGetUserSpotActiveOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         orders = self.safe_value(data, 'orders', [])
@@ -690,7 +690,7 @@ class bitbank(Exchange):
         if limit is not None:
             request['count'] = limit
         if since is not None:
-            request['since'] = int(since / 1000)
+            request['since'] = self.parse_to_int(since / 1000)
         response = await self.privateGetUserSpotTradeHistory(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         trades = self.safe_value(data, 'trades', [])
@@ -897,11 +897,11 @@ class bitbank(Exchange):
                 '70001': 'A system error occurred. Please contact support',
                 '70002': 'A system error occurred. Please contact support',
                 '70003': 'A system error occurred. Please contact support',
-                '70004': 'We are unable to accept orders as the transaction is currently suspended',
+                '70004': 'We are unable to accept orders transaction is currently suspended',
                 '70005': 'Order can not be accepted because purchase order is currently suspended',
                 '70006': 'We can not accept orders because we are currently unsubscribed ',
                 '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
-                '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
+                '70010': 'We are temporarily raising the minimum order quantity system load is now rising.',
             }
             errorClasses = self.exceptions
             code = self.safe_string(data, 'code')

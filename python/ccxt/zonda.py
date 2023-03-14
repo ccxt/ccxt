@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadSymbol
@@ -17,6 +16,7 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -966,7 +966,7 @@ class zonda(Exchange):
             direction = 'out'
             amount = Precise.string_neg(amount)
         # there are 2 undocumented api calls: (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
-        # that can be used to enrich the transfers with txid, address etc(you need to use info.detailId as a parameter)
+        # that can be used to enrich the transfers with txid, address etc(you need to use info.detailId parameter)
         fundsBefore = self.safe_value(item, 'fundsBefore', {})
         fundsAfter = self.safe_value(item, 'fundsAfter', {})
         return {
@@ -1038,7 +1038,7 @@ class zonda(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)

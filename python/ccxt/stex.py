@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -15,6 +14,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -24,7 +24,7 @@ class stex(Exchange):
     def describe(self):
         return self.deep_extend(super(stex, self).describe(), {
             'id': 'stex',
-            'name': 'STEX',  # formerly known as stocks.exchange
+            'name': 'STEX',  # formerly known.exchange
             'countries': ['EE'],  # Estonia
             'rateLimit': 1000 / 3,  # https://help.stex.com/en/articles/2815043-api-3-rate-limits
             'certified': False,
@@ -774,7 +774,7 @@ class stex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -796,7 +796,7 @@ class stex(Exchange):
             request['timeEnd'] = self.seconds()
             request['timeStart'] = request['timeEnd'] - timerange
         else:
-            request['timeStart'] = int(since / 1000)
+            request['timeStart'] = self.parse_to_int(since / 1000)
             request['timeEnd'] = self.sum(request['timeStart'], timerange)
         response = self.publicGetChartCurrencyPairIdCandlesType(self.extend(request, params))
         #
@@ -888,7 +888,7 @@ class stex(Exchange):
             request['limit'] = limit  # currently limited to 100 or fewer
         if since is not None:
             request['sort'] = 'ASC'  # needed to make the from param work
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
         response = self.publicGetTradesCurrencyPairId(self.extend(request, params))
         #
         #     {
@@ -1475,7 +1475,7 @@ class stex(Exchange):
         request = {
             'currencyId': currency['id'],
             # Default value is the value that represents legacy protocol.
-            # In case of USDT it is 10 as Tether OMNI was the default previously.
+            # In case of USDT it is 10 OMNI was the default previously.
             # The list of protocols can be obtained from the /public/currencies/{currencyId}
             # 'protocol_id': 10,
         }
@@ -2090,7 +2090,7 @@ class stex(Exchange):
         #                 telegram: '',
         #                 icon_large: 'https://app-coin-images.stex.com/large/usdt.png',
         #                 icon_small: 'https://app-coin-images.stex.com/small/usdt.png',
-        #                 description: 'Tether(USDT) is a cryptocurrency with a value meant to mirror the value of the U.S. dollar. The idea was to create a stable cryptocurrency that can be used like digital dollars. Coins that serve self purpose of being a stable dollar substitute are called “stable coins.” Tether is the most popular stable coin and even acts as a dollar replacement on many popular exchanges! According to their site, Tether converts cash into digital currency, to anchor or “tether” the value of the coin to the price of national currencies like the US dollar, the Euro, and the Yen. Like other cryptos it uses blockchain. Unlike other cryptos, it is [according to the official Tether site] “100% backed by USD”(USD is held in reserve). The primary use of Tether is that it offers some stability to the otherwise volatile crypto space and offers liquidity to exchanges who can’t deal in dollars and with banks(for example to the sometimes controversial but leading exchange Bitfinex).The digital coins are issued by a company called Tether Limited that is governed by the laws of the British Virgin Islands, according to the legal part of its website. It is incorporated in Hong Kong. It has emerged that Jan Ludovicus van der Velde is the CEO of cryptocurrency exchange Bitfinex, which has been accused of being involved in the price manipulation of bitcoin, as well as tether. Many people trading on exchanges, including Bitfinex, will use tether to buy other cryptocurrencies like bitcoin. Tether Limited argues that using self method to buy virtual currencies allows users to move fiat in and out of an exchange more quickly and cheaply. Also, exchanges typically have rocky relationships with banks, and using Tether is a way to circumvent that.USDT is fairly simple to use. Once on exchanges like Poloniex or Bittrex, it can be used to purchase Bitcoin and other cryptocurrencies. It can be easily transferred from an exchange to any Omni Layer enabled wallet. Tether has no transaction fees, although external wallets and exchanges may charge one. In order to convert USDT to USD and vise versa through the Tether.to Platform, users must pay a small fee. Buying and selling Tether for Bitcoin can be done through a variety of exchanges like the ones mentioned previously or through the Tether.to platform, which also allows the conversion between USD to and from your bank account.',
+        #                 description: 'Tether(USDT) is a cryptocurrency with a value meant to mirror the value of the U.S. dollar. The idea was to create a stable cryptocurrency that can be used like digital dollars. Coins that serve self purpose of being a stable dollar substitute are called “stable coins.” Tether is the most popular stable coin and even acts dollar replacement on many popular exchanges! According to their site, Tether converts cash into digital currency, to anchor or “tether” the value of the coin to the price of national currencies like the US dollar, the Euro, and the Yen. Like other cryptos it uses blockchain. Unlike other cryptos, it is [according to the official Tether site] “100% backed by USD”(USD is held in reserve). The primary use of Tether is that it offers some stability to the otherwise volatile crypto space and offers liquidity to exchanges who can’t deal in dollars and with banks(for example to the sometimes controversial but leading exchange Bitfinex).The digital coins are issued by a company called Tether Limited that is governed by the laws of the British Virgin Islands, according to the legal part of its website. It is incorporated in Hong Kong. It has emerged that Jan Ludovicus van der Velde is the CEO of cryptocurrency exchange Bitfinex, which has been accused of being involved in the price manipulation of bitcoin,. Many people trading on exchanges, including Bitfinex, will use tether to buy other cryptocurrencies like bitcoin. Tether Limited argues that using self method to buy virtual currencies allows users to move fiat in and out of an exchange more quickly and cheaply. Also, exchanges typically have rocky relationships with banks, and using Tether is a way to circumvent that.USDT is fairly simple to use. Once on exchanges like Poloniex or Bittrex, it can be used to purchase Bitcoin and other cryptocurrencies. It can be easily transferred from an exchange to any Omni Layer enabled wallet. Tether has no transaction fees, although external wallets and exchanges may charge one. In order to convert USDT to USD and vise versa through the Tether.to Platform, users must pay a small fee. Buying and selling Tether for Bitcoin can be done through a variety of exchanges like the ones mentioned previously or through the Tether.to platform, which also allows the conversion between USD to and from your bank account.',
         #                 official_site: 'https://tether.to/',
         #                 official_block_explorer: 'https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7'
         #             },
@@ -2236,8 +2236,8 @@ class stex(Exchange):
         if tag is not None:
             request['additional_address_parameter'] = tag
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_integer(networks, network, network)  # handle ERC20>ETH alias
+        networkRaw = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_integer(networks, networkRaw, self.parse_to_int(networkRaw))  # handle ERC20>ETH alias
         if network is not None:
             request['protocol_id'] = network
             params = self.omit(params, 'network')

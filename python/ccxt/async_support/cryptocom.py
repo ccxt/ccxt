@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import asyncio
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import ArgumentsRequired
@@ -18,6 +17,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -811,7 +811,7 @@ class cryptocom(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the cryptocom api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2345,7 +2345,7 @@ class cryptocom(Exchange):
                 'nonce': nonce,
             })
             # fix issue https://github.com/ccxt/ccxt/issues/11179
-            # php always encodes dictionaries as arrays
+            # php always encodes dictionaries
             # if an array is empty, php will put it in square brackets
             # python and js will put it in curly brackets
             # the code below checks and replaces those brackets in empty requests

@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
@@ -17,6 +16,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -973,7 +973,7 @@ class bitfinex(Exchange):
             'limit_trades': limit,
         }
         if since is not None:
-            request['timestamp'] = int(since / 1000)
+            request['timestamp'] = self.parse_to_int(since / 1000)
         response = self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -996,7 +996,7 @@ class bitfinex(Exchange):
         if limit is not None:
             request['limit_trades'] = limit
         if since is not None:
-            request['timestamp'] = int(since / 1000)
+            request['timestamp'] = self.parse_to_int(since / 1000)
         response = self.privatePostMytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -1230,7 +1230,7 @@ class bitfinex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitfinex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         if limit is None:
@@ -1325,7 +1325,7 @@ class bitfinex(Exchange):
                 currencyId = currency['id']
         query['currency'] = currencyId
         if since is not None:
-            query['since'] = int(since / 1000)
+            query['since'] = self.parse_to_int(since / 1000)
         response = self.privatePostHistoryMovements(self.extend(query, params))
         #
         #     [
