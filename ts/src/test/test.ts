@@ -19,14 +19,14 @@ const sandbox = process.argv.includes ('--sandbox') || false;
 const privateTest = process.argv.includes ('--private') || false;
 const privateOnly = process.argv.includes ('--privateOnly') || false;
 
-const HttpsProxyAgent = require ('https-proxy-agent')
+import HttpsProxyAgent from 'https-proxy-agent';
 
 // ----------------------------------------------------------------------------
 
-const fs = require ('fs')
-    , assert = require ('assert')
-    , { Agent } = require ('https')
-    , ccxt = require ('../../ccxt.js'); // eslint-disable-line import/order
+import fs from 'fs';
+import assert from 'assert';
+import { Agent } from 'https';
+import ccxt from '../../ccxt.js';
 
 // ----------------------------------------------------------------------------
 
@@ -68,14 +68,14 @@ properties
         testFiles[property] = require (__dirname + '/Exchange/test.' + property + '.js');
     });
 
-const errors = require ('../base/errors.js');
+import errors from '../base/errors';
 
 Object.keys (errors)
     // eslint-disable-next-line no-path-concat
-    .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
+    .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.ts'))
     .forEach ((error) => {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        testFiles[error] = require (__dirname + '/errors/test.' + error + '.js');
+        testFiles[error] = require (__dirname + '/errors/test.' + error + '.ts');
     });
 
 const AuthenticationError = errors.AuthenticationError;
