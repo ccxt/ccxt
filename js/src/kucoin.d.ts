@@ -49,7 +49,7 @@ export default class kucoin extends Exchange {
     };
     fetchDepositAddressesByNetwork(code: any, params?: {}): Promise<any[]>;
     parseDepositAddressesByNetwork(depositAddresses: any, currency?: any): any[];
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: any, params?: {}): Promise<any>;
@@ -115,12 +115,12 @@ export default class kucoin extends Exchange {
     };
     fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
     fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    parseBalanceHelper(entry: any): {
-        free: any;
-        used: any;
-        total: any;
-    };
-    fetchBalance(params?: {}): Promise<object>;
+    parseBalanceHelper(entry: any): import("./base/types.js").Balance;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances | {
+        info: any;
+        timestamp: any;
+        datetime: any;
+    }>;
     transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         id: string;
         currency: any;

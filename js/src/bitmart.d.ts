@@ -45,20 +45,20 @@ export default class bitmart extends Exchange {
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickers(symbols?: any, params?: {}): Promise<any>;
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchOrderTrades(id: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    parseBalance(response: any, marketType: any): object;
-    parseBalanceHelper(entry: any): {
-        free: any;
-        used: any;
-        total: any;
+    parseBalance(response: any, marketType: any): {
+        info: any;
     };
-    fetchBalance(params?: {}): Promise<object>;
+    parseBalanceHelper(entry: any): import("./base/types.js").Balance;
+    fetchBalance(params?: {}): Promise<{
+        info: any;
+    }>;
     parseTradingFee(fee: any, market?: any): {
         info: any;
         symbol: any;

@@ -3,8 +3,8 @@ import { inflate, inflate64, gunzip } from './ws/functions.js';
 import { // eslint-disable-line object-curly-newline
 ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, RateLimitExceeded } from "./errors.js";
 import WsClient from './ws/WsClient.js';
-import { OrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import { Market, Trade, Ticker, OHLCV, Order } from './types';
+import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
+import { Market, Trade, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse } from './types';
 export { Market, Trade, Fee, Ticker } from './types';
 export default class Exchange {
     options: {};
@@ -421,7 +421,7 @@ export default class Exchange {
     onRestResponse(statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, requestHeaders: any, requestBody: any): any;
     onJsonResponse(responseBody: any): any;
     loadMarketsHelper(reload?: boolean, params?: {}): Promise<Market[]>;
-    loadMarkets(reload?: boolean, params?: {}): any;
+    loadMarkets(reload?: boolean, params?: {}): Promise<Dictionary<Market>>;
     fetchCurrencies(params?: {}): Promise<unknown>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     filterBySinceLimit(array: object[], since?: number, limit?: number, key?: string | number, tail?: boolean): object[];
@@ -465,11 +465,14 @@ export default class Exchange {
     parseFundingRateHistory(info: any, market?: any): any;
     parseBorrowInterest(info: any, market?: any): any;
     fetchFundingRates(symbols?: any, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
+    createDepositAddress(code: any, params?: {}): Promise<DepositAddressResponse>;
     findTimeframe(timeframe: any, timeframes?: any): string;
     formatScientificNotationFTX(n: any): any;
     spawn(method: any, ...args: any[]): Promise<unknown>;
     delay(timeout: any, method: any, ...args: any[]): void;
-    orderBook(snapshot?: {}, depth?: number): OrderBook;
+    orderBook(snapshot?: {}, depth?: number): WsOrderBook;
     indexedOrderBook(snapshot?: {}, depth?: number): IndexedOrderBook;
     countedOrderBook(snapshot?: {}, depth?: number): CountedOrderBook;
     handleMessage(client: any, message: any): void;
@@ -515,7 +518,7 @@ export default class Exchange {
         info: object;
     };
     setMarkets(markets: any, currencies?: any): Market[];
-    safeBalance(balance: object): object;
+    safeBalance(balance: object): Balances;
     safeOrder(order: object, market?: object): any;
     parseOrders(orders: object, market?: object, since?: number, limit?: number, params?: {}): Order[];
     calculateFee(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: string, params?: {}): {
@@ -582,7 +585,7 @@ export default class Exchange {
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;
     checkRequiredCredentials(error?: boolean): boolean;
     oath(): string;
-    fetchBalance(params?: {}): Promise<any>;
+    fetchBalance(params?: {}): Promise<Balances>;
     fetchPartialBalance(part: any, params?: {}): Promise<any>;
     fetchFreeBalance(params?: {}): Promise<any>;
     fetchUsedBalance(params?: {}): Promise<any>;
@@ -622,11 +625,7 @@ export default class Exchange {
     fetchWithdrawals(symbol?: any, since?: number, limit?: number, params?: {}): Promise<any>;
     parseLastPrice(price: any, market?: any): void;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
-    account(): {
-        free: any;
-        used: any;
-        total: any;
-    };
+    account(): Balance;
     commonCurrencyCode(currency: string): string;
     currency(code: any): any;
     market(symbol: string): any;

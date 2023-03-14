@@ -1,4 +1,4 @@
-interface Dictionary<T> {
+export interface Dictionary<T> {
     [key: string]: T;
 }
 /** Request parameters */
@@ -142,9 +142,9 @@ export interface Currency {
     precision: number;
 }
 export interface Balance {
-    free: number;
-    used: number;
-    total: number;
+    free: number | string;
+    used: number | string;
+    total: number | string;
 }
 export interface PartialBalances extends Dictionary<number> {
 }
@@ -169,4 +169,3 @@ export interface DepositAddressResponse {
 }
 /** [ timestamp, open, high, low, close, volume ] */
 export declare type OHLCV = [number, number, number, number, number, number];
-export {};

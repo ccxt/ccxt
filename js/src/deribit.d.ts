@@ -18,8 +18,8 @@ export default class deribit extends Exchange {
         code: any;
     };
     fetchMarkets(params?: {}): Promise<any[]>;
-    parseBalance(balance: any): object;
-    fetchBalance(params?: {}): Promise<object>;
+    parseBalance(balance: any): import("./base/types.js").Balances;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     createDepositAddress(code: any, params?: {}): Promise<{
         currency: any;
         address: string;
@@ -40,7 +40,7 @@ export default class deribit extends Exchange {
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;
     parseOrderType(orderType: any): string;

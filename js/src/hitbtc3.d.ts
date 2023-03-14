@@ -20,8 +20,8 @@ export default class hitbtc3 extends Exchange {
         currency: any;
         network: any;
     }>;
-    parseBalance(response: any): object;
-    fetchBalance(params?: {}): Promise<object>;
+    parseBalance(response: any): import("./base/types.js").Balances;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchTicker(symbol: any, params?: {}): Promise<any>;
     fetchTickers(symbols?: any, params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;

@@ -76,7 +76,7 @@ export default class wavesexchange extends Exchange {
     getSymbolFromAssetPair(assetPair: any): string;
     parseOrder(order: any, market?: any): any;
     getWavesAddress(): Promise<any>;
-    fetchBalance(params?: {}): Promise<object>;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;

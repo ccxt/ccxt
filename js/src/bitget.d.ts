@@ -116,7 +116,7 @@ export default class bitget extends Exchange {
         network: string;
         info: any;
     };
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickers(symbols?: any, params?: {}): Promise<any>;
@@ -137,8 +137,8 @@ export default class bitget extends Exchange {
     };
     parseOHLCV(ohlcv: any, market?: any, timeframe?: string): number[];
     fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    fetchBalance(params?: {}): Promise<object>;
-    parseBalance(balance: any): object;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    parseBalance(balance: any): import("./base/types.js").Balances;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;

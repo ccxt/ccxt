@@ -38,7 +38,7 @@ import { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Cu
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.0.6';
+const version = '3.0.7';
 
 (Exchange as any).ccxtVersion = version
 
@@ -421,6 +421,8 @@ export {
     WithdrawalResponse,
     DepositAddressResponse,
     OHLCV,
+    Balances,
+    PartialBalances,
     ace,
     alpaca,
     ascendex,

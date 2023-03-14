@@ -158,16 +158,14 @@ export default class gate extends Exchange {
         id: any;
         amount: number;
     };
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTickers(symbols?: any, params?: {}): Promise<any>;
-    parseBalanceHelper(entry: any): {
-        free: any;
-        used: any;
-        total: any;
-    };
-    fetchBalance(params?: {}): Promise<object>;
+    parseBalanceHelper(entry: any): import("./base/types.js").Balance;
+    fetchBalance(params?: {}): Promise<{
+        info: any;
+    }>;
     fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     fetchFundingRateHistory(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];

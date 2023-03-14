@@ -110,14 +110,14 @@ export default class binance extends Exchange {
         };
         info: any;
     };
-    parseBalanceHelper(entry: any): {
-        free: any;
-        used: any;
-        total: any;
+    parseBalanceHelper(entry: any): import("./base/types.js").Balance;
+    parseBalance(response: any, type?: any, marginMode?: any): {
+        info: any;
     };
-    parseBalance(response: any, type?: any, marginMode?: any): object;
-    fetchBalance(params?: {}): Promise<object>;
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    fetchBalance(params?: {}): Promise<{
+        info: any;
+    }>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchStatus(params?: {}): Promise<{
         status: string;

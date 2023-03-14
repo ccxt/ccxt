@@ -2,7 +2,7 @@ import { Exchange } from './base/Exchange.js';
 export default class krakenfutures extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTickers(symbols?: any, params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
@@ -20,7 +20,7 @@ export default class krakenfutures extends Exchange {
     parseOrder(order: any, market?: any): any;
     fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchBalance(params?: {}): Promise<any>;
-    parseBalance(response: any): object;
+    parseBalance(response: any): import("./base/types.js").Balances;
     fetchFundingRateHistory(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
     fetchPositions(symbols?: any, params?: {}): Promise<any>;
     parsePositions(response: any, symbols?: any, params?: {}): any[];

@@ -16,7 +16,7 @@ export default class woo extends Exchange {
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: any): any;
     parseOrderStatus(status: any): any;
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOrderTrades(id: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
@@ -29,8 +29,8 @@ export default class woo extends Exchange {
         code: any;
         type: string;
     };
-    fetchBalance(params?: {}): Promise<object>;
-    parseBalance(response: any): object;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    parseBalance(response: any): import("./base/types.js").Balances;
     fetchDepositAddress(code: any, params?: {}): Promise<{
         currency: any;
         address: string;

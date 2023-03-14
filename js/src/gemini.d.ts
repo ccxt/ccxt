@@ -54,7 +54,7 @@ export default class gemini extends Exchange {
         };
         info: any;
     };
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTickerV1(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickerV2(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickerV1AndV2(symbol: any, params?: {}): Promise<any>;
@@ -63,9 +63,9 @@ export default class gemini extends Exchange {
     fetchTickers(symbols?: any, params?: {}): Promise<any>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    parseBalance(response: any): object;
+    parseBalance(response: any): import("./base/types.js").Balances;
     fetchTradingFees(params?: {}): Promise<{}>;
-    fetchBalance(params?: {}): Promise<object>;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseOrder(order: any, market?: any): any;
     fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
