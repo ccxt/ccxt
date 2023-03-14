@@ -289,6 +289,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             'rate': feeRate,
             'cost': feeCost,
             'currency': feeCurrency,
+            'type': None,
         }
         return parsed
 

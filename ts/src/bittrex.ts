@@ -1887,7 +1887,7 @@ export default class bittrex extends Exchange {
         }
         const response = await (this as any).privateGetExecutions (this.extend (request, params));
         const trades = this.parseTrades (response, market);
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit) as any;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

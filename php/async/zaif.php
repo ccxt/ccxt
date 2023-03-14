@@ -473,10 +473,10 @@ class zaif extends Exchange {
                 'price' => $price,
             );
             $response = Async\await($this->privatePostTrade (array_merge($request, $params)));
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => (string) $response['return']['order_id'],
-            );
+            ), $market);
         }) ();
     }
 

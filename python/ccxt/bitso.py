@@ -920,10 +920,10 @@ class bitso(Exchange):
             request['price'] = self.price_to_precision(market['symbol'], price)
         response = self.privatePostOrders(self.extend(request, params))
         id = self.safe_string(response['payload'], 'oid')
-        return {
+        return self.safe_order({
             'info': response,
             'id': id,
-        }
+        }, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         """

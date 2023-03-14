@@ -368,10 +368,10 @@ class bl3p extends Exchange {
             }
             $response = Async\await($this->privatePostMarketMoneyOrderAdd (array_merge($order, $params)));
             $orderId = $this->safe_string($response['data'], 'order_id');
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $orderId,
-            );
+            ), $market);
         }) ();
     }
 

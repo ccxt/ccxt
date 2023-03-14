@@ -770,10 +770,10 @@ class luno(Exchange):
             request['price'] = self.price_to_precision(market['symbol'], price)
             request['type'] = 'BID' if (side == 'buy') else 'ASK'
         response = await getattr(self, method)(self.extend(request, params))
-        return {
+        return self.safe_order({
             'info': response,
             'id': response['order_id'],
-        }
+        }, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """

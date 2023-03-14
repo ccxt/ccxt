@@ -663,10 +663,10 @@ class bitforex extends Exchange {
             );
             $response = Async\await($this->privatePostApiV1TradePlaceOrder (array_merge($request, $params)));
             $data = $response['data'];
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $this->safe_string($data, 'orderId'),
-            );
+            ), $market);
         }) ();
     }
 

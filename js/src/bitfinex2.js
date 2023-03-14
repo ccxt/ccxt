@@ -957,17 +957,6 @@ export default class bitfinex2 extends Exchange {
         }
         return currencyId;
     }
-    async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitfinex2#fetchOrder
-         * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
-        throw new NotSupported(this.id + ' fetchOrder() is not supported yet. Consider using fetchOpenOrder() or fetchClosedOrder() instead.');
-    }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method

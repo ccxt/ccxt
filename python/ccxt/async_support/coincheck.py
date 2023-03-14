@@ -559,10 +559,10 @@ class coincheck(Exchange):
             request['amount'] = amount
         response = await self.privatePostExchangeOrders(self.extend(request, params))
         id = self.safe_string(response, 'id')
-        return {
-            'info': response,
+        return self.safe_order({
             'id': id,
-        }
+            'info': response,
+        }, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """

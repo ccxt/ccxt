@@ -706,10 +706,10 @@ class indodax extends Exchange {
         $result = $this->privatePostTrade (array_merge($request, $params));
         $data = $this->safe_value($result, 'return', array());
         $id = $this->safe_string($data, 'order_id');
-        return array(
+        return $this->safe_order(array(
             'info' => $result,
             'id' => $id,
-        );
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

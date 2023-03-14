@@ -16,7 +16,7 @@ import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
 import Future from './ws/Future.js';
-import { OrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
+import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 // ----------------------------------------------------------------------------
 export default class Exchange {
     constructor(userConfig = {}) {
@@ -690,7 +690,7 @@ export default class Exchange {
                 this.fetchImplementation = module.default;
             }
             else {
-                this.fetchImplementation = window.fetch;
+                this.fetchImplementation = self.fetch;
                 AbortError = DOMException;
             }
         }
@@ -984,6 +984,15 @@ export default class Exchange {
     async fetchFundingRates(symbols = undefined, params = {}) {
         return undefined;
     }
+    async transfer(code, amount, fromAccount, toAccount, params = {}) {
+        return undefined;
+    }
+    async withdraw(code, amount, address, tag = undefined, params = {}) {
+        return undefined;
+    }
+    async createDepositAddress(code, params = {}) {
+        return undefined;
+    }
     findTimeframe(timeframe, timeframes = undefined) {
         timeframes = timeframes || this.timeframes;
         const keys = Object.keys(timeframes);
@@ -1015,7 +1024,7 @@ export default class Exchange {
     // -----------------------------------------------------------------------
     // WS/PRO methods
     orderBook(snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
-        return new OrderBook(snapshot, depth);
+        return new WsOrderBook(snapshot, depth);
     }
     indexedOrderBook(snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
         return new IndexedOrderBook(snapshot, depth);

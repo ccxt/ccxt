@@ -111,19 +111,23 @@ export default class Body {
         const { buffer, byteOffset, byteLength } = await consumeBody(this);
         return buffer.slice(byteOffset, byteOffset + byteLength);
     }
-    async formData() {
+    /*async formData() {
         const ct = this.headers.get('content-type');
+
         if (ct.startsWith('application/x-www-form-urlencoded')) {
             const formData = new FormData();
             const parameters = new URLSearchParams(await this.text());
+
             for (const [name, value] of parameters) {
                 formData.append(name, value);
             }
+
             return formData;
         }
-        const { toFormData } = await import('./utils/multipart-parser.js');
+
+        const {toFormData} = await import('./utils/multipart-parser.js');
         return toFormData(this.body, ct);
-    }
+    }*/
     /**
      * Return raw response as Blob
      *
