@@ -40,13 +40,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@3.0.1/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@3.0.1/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@3.0.4/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@3.0.4/dist/ccxt.browser.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@3.0.1/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@3.0.4/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -153,7 +153,7 @@ docker run -it ccxt
 
 ## Proxy
 
-In some specific cases you may want a proxy, if you experience issues with [DDoS protection by Cloudflare](https://docs.ccxt.com/en/latest/manual.html#ddos-protection-by-cloudflare-incapsula) or your network / country / IP is rejected by their filters.
+In some specific cases you may want a proxy, if you experience issues with [DDoS protection by Cloudflare](https://docs.ccxt.com/#/?id=ddos-protection-by-cloudflare-incapsula) or your network / country / IP is rejected by their filters.
 
 **Bear in mind that each added intermediary contributes to the overall latency and roundtrip time. Longer delays can result in price slippage.**
 
