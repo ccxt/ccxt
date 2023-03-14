@@ -3314,6 +3314,11 @@ export default class bybit extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const accounts = await this.isUnifiedEnabled ();
+        const isUnifiedAccount = this.safeValue (accounts, 0, false);
+        if (isUnifiedAccount) {
+            throw new NotSupported (this.id + ' fetchOrder() does not support unified account. Please consider using fetchOpenOrders() or fetchClosedOrders()');
+        }
         if (type === 'spot') {
             // only spot markets have a dedicated endpoint for fetching a order
             const request = {
