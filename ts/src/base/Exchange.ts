@@ -3163,19 +3163,19 @@ export default class Exchange {
         return this.cancelOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
     }
 
-    async fetchOrders (symbol = undefined, since: number = undefined, limit: number = undefined, params = {}): Promise<any> {
+    async fetchOrders (symbol = undefined, since: number = undefined, limit: number = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
     }
 
-    async fetchOpenOrders (symbol = undefined, since: number = undefined, limit: number = undefined, params = {}): Promise<any> {
+    async fetchOpenOrders (symbol = undefined, since: number = undefined, limit: number = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' fetchOpenOrders() is not supported yet');
     }
 
-    async fetchClosedOrders (symbol = undefined, since: number = undefined, limit: number = undefined, params = {}): Promise<any> {
+    async fetchClosedOrders (symbol = undefined, since: number = undefined, limit: number = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
     }
 
-    async fetchMyTrades (symbol = undefined, since: number = undefined, limit: number = undefined, params = {}): Promise<any> {
+    async fetchMyTrades (symbol = undefined, since: number = undefined, limit: number = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
     }
 

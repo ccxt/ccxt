@@ -3154,7 +3154,7 @@ export default class okcoin extends Exchange {
         //         }
         //     ]
         //
-        return this.parseMyTrades (response, market, since, limit, params);
+        return this.parseMyTrades (response, market, since, limit, params) as any;
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
