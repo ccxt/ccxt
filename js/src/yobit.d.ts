@@ -17,8 +17,8 @@ export default class yobit extends Exchange {
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
     fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     createDepositAddress(code: any, params?: {}): Promise<{
         currency: any;
         address: string;

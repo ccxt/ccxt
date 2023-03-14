@@ -681,10 +681,10 @@ class indodax(Exchange):
         result = await self.privatePostTrade(self.extend(request, params))
         data = self.safe_value(result, 'return', {})
         id = self.safe_string(data, 'order_id')
-        return {
+        return self.safe_order({
             'info': result,
             'id': id,
-        }
+        }, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """

@@ -395,10 +395,10 @@ export default class paymium extends Exchange {
             request['price'] = price;
         }
         const response = await this.privatePostUserOrders(this.extend(request, params));
-        return {
+        return this.safeOrder({
             'info': response,
             'id': response['uuid'],
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

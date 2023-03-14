@@ -20,13 +20,13 @@ export default class oceanex extends Exchange {
     fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any[]>;
     fetchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseOrder(order: any, market?: any): any;
     parseOrderStatus(status: any): string;
-    createOrders(symbol: any, orders: any, params?: {}): Promise<object[]>;
+    createOrders(symbol: any, orders: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    cancelOrders(ids: any, symbol?: any, params?: {}): Promise<object[]>;
-    cancelAllOrders(symbol?: any, params?: {}): Promise<object[]>;
+    cancelOrders(ids: any, symbol?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    cancelAllOrders(symbol?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

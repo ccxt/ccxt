@@ -456,10 +456,10 @@ export default class mercado extends Exchange {
         }
         const response = await this[method](this.extend(request, params));
         // TODO: replace this with a call to parseOrder for unification
-        return {
+        return this.safeOrder({
             'info': response,
             'id': response['response_data']['order']['order_id'].toString(),
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

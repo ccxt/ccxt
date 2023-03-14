@@ -450,10 +450,10 @@ class mercado extends Exchange {
         }
         $response = $this->$method (array_merge($request, $params));
         // TODO => replace this with a call to parseOrder for unification
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => (string) $response['response_data']['order']['order_id'],
-        );
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

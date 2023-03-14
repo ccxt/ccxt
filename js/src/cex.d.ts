@@ -8,7 +8,7 @@ export default class cex extends Exchange {
     fetchBalance(params?: {}): Promise<object>;
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTickers(symbols?: any, params?: {}): Promise<any>;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
@@ -60,8 +60,8 @@ export default class cex extends Exchange {
         info: any;
         average: any;
     };
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOrder(id: any, symbol?: any, params?: {}): Promise<{
         id: any;
         clientOrderId: any;

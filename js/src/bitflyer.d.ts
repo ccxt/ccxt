@@ -17,16 +17,13 @@ export default class bitflyer extends Exchange {
         maker: number;
         taker: number;
     }>;
-    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-    }>;
+    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    fetchOrders(symbol?: any, since?: any, limit?: number, params?: {}): Promise<object[]>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: number, params?: {}): Promise<object[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: number, params?: {}): Promise<object[]>;
+    fetchOrders(symbol?: any, since?: any, limit?: number, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: any, since?: any, limit?: number, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: any, since?: any, limit?: number, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchPositions(symbols?: any, params?: {}): Promise<any>;

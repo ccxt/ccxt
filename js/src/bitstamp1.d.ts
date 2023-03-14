@@ -8,10 +8,7 @@ export default class bitstamp1 extends Exchange {
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseBalance(response: any): object;
     fetchBalance(params?: {}): Promise<object>;
-    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-    }>;
+    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     fetchOrderStatus(id: any, symbol?: any, params?: {}): Promise<string>;

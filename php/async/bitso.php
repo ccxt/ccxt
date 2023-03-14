@@ -970,10 +970,10 @@ class bitso extends Exchange {
             }
             $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
             $id = $this->safe_string($response['payload'], 'oid');
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $id,
-            );
+            ), $market);
         }) ();
     }
 

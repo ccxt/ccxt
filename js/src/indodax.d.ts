@@ -16,11 +16,8 @@ export default class indodax extends Exchange {
     parseOrder(order: any, market?: any): any;
     fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-    }>;
+    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     fetchTransactionFee(code: any, params?: {}): Promise<{
         info: any;

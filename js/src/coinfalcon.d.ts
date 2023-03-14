@@ -31,7 +31,7 @@ export default class coinfalcon extends Exchange {
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
     fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
     withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{

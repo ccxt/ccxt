@@ -14,7 +14,7 @@ export default class coinone extends Exchange {
     fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;

@@ -696,10 +696,10 @@ class itbit(Exchange):
             'instrument': market['id'],
         }
         response = self.privatePostWalletsWalletIdOrders(self.extend(request, params))
-        return {
+        return self.safe_order({
             'info': response,
             'id': response['id'],
-        }
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         """

@@ -661,13 +661,13 @@ class bithumb(Exchange):
         id = self.safe_string(response, 'order_id')
         if id is None:
             raise InvalidOrder(self.id + ' createOrder() did not return an order id')
-        return {
+        return self.safe_order({
             'info': response,
             'symbol': symbol,
             'type': type,
             'side': side,
             'id': id,
-        }
+        }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         """

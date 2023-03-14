@@ -10,7 +10,7 @@ export default class poloniexfutures extends Exchange {
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTime(params?: {}): Promise<number>;
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseBalance(response: any): object;
     fetchBalance(params?: {}): Promise<object>;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<{
@@ -86,9 +86,9 @@ export default class poloniexfutures extends Exchange {
     };
     fetchFundingHistory(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any[]>;
     cancelAllOrders(symbol?: any, params?: {}): Promise<any[]>;
-    fetchOrdersByStatus(status: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOrdersByStatus(status: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOrder(id?: any, symbol?: any, params?: {}): Promise<any>;
     parseOrder(order: any, market?: any): any;
     fetchFundingRate(symbol: any, params?: {}): Promise<{

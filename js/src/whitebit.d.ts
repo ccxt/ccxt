@@ -16,9 +16,9 @@ export default class whitebit extends Exchange {
     fetchTickers(symbols?: any, params?: {}): Promise<any>;
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchStatus(params?: {}): Promise<{
         status: string;
@@ -32,7 +32,7 @@ export default class whitebit extends Exchange {
     cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     parseBalance(response: any): object;
     fetchBalance(params?: {}): Promise<object>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any[]>;
     parseOrderType(type: any): string;
     parseOrder(order: any, market?: any): any;

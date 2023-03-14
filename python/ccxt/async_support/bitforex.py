@@ -624,10 +624,10 @@ class bitforex(Exchange):
         }
         response = await self.privatePostApiV1TradePlaceOrder(self.extend(request, params))
         data = response['data']
-        return {
+        return self.safe_order({
             'info': response,
             'id': self.safe_string(data, 'orderId'),
-        }
+        }, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """

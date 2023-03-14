@@ -700,13 +700,13 @@ class bithumb extends Exchange {
             if ($id === null) {
                 throw new InvalidOrder($this->id . ' createOrder() did not return an order id');
             }
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'symbol' => $symbol,
                 'type' => $type,
                 'side' => $side,
                 'id' => $id,
-            );
+            ), $market);
         }) ();
     }
 

@@ -30,10 +30,7 @@ export default class paymium extends Exchange {
         tag: any;
         network: any;
     };
-    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<{
-        info: any;
-        id: any;
-    }>;
+    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;

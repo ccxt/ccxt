@@ -597,10 +597,10 @@ class coincheck extends Exchange {
             }
             $response = Async\await($this->privatePostExchangeOrders (array_merge($request, $params)));
             $id = $this->safe_string($response, 'id');
-            return array(
-                'info' => $response,
+            return $this->safe_order(array(
                 'id' => $id,
-            );
+                'info' => $response,
+            ), $market);
         }) ();
     }
 

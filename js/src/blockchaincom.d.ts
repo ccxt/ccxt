@@ -20,10 +20,10 @@ export default class blockchaincom extends Exchange {
         info: any;
     }>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    fetchCanceledOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchOrdersByState(state: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchCanceledOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrdersByState(state: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchDepositAddress(code: any, params?: {}): Promise<{

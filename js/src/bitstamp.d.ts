@@ -42,7 +42,7 @@ export default class bitstamp extends Exchange {
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseBalance(response: any): object;
     fetchBalance(params?: {}): Promise<object>;
     fetchTradingFee(symbol: any, params?: {}): Promise<{
@@ -115,7 +115,7 @@ export default class bitstamp extends Exchange {
         referenceAccount: any;
         type: string;
         currency: any;
-        amount: string | number;
+        amount: number;
         before: any;
         after: any;
         status: string;
@@ -142,7 +142,7 @@ export default class bitstamp extends Exchange {
         };
     };
     fetchLedger(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     getCurrencyName(code: any): any;
     isFiat(code: any): boolean;
     fetchDepositAddress(code: any, params?: {}): Promise<{

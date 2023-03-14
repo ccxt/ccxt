@@ -6,7 +6,7 @@ export default class idex extends Exchange {
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickers(symbols?: any, params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
@@ -45,7 +45,7 @@ export default class idex extends Exchange {
         updated: number;
         fee: any;
     }>;
-    cancelAllOrders(symbol?: any, params?: {}): Promise<object[]>;
+    cancelAllOrders(symbol?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
     fetchDeposit(id: any, code?: any, params?: {}): Promise<{

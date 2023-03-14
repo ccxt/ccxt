@@ -12,10 +12,7 @@ export default class coincheck extends Exchange {
     fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-    }>;
+    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
     fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
