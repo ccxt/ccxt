@@ -1263,7 +1263,7 @@ export default class btcex extends Exchange {
          * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'FOK'
          * @param {bool|undefined} params.postOnly
          * @param {bool|undefined} params.reduceOnly
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.signIn();
         await this.loadMarkets();
@@ -1980,7 +1980,7 @@ export default class btcex extends Exchange {
          * @description fetch the set leverage for a market
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure}
          */
         await this.signIn();
         await this.loadMarkets();
@@ -2014,7 +2014,7 @@ export default class btcex extends Exchange {
          * @description retrieve information on the maximum leverage, for different trade sizes for a single market
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2085,7 +2085,7 @@ export default class btcex extends Exchange {
          * @description retrieve information on the maximum leverage, for different trade sizes
          * @param {[string]|undefined} symbols a list of unified market symbols
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.publicGetGetPerpetualLeverageBracketAll(params);
@@ -2240,7 +2240,7 @@ export default class btcex extends Exchange {
          * @see https://docs.btcex.com/#contracts
          * @param {[string]} symbols unified market symbols
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -2304,7 +2304,7 @@ export default class btcex extends Exchange {
          * @see https://docs.btcex.com/#contracts
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2411,7 +2411,7 @@ export default class btcex extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.signIn();
         await this.loadMarkets();
@@ -2469,7 +2469,7 @@ export default class btcex extends Exchange {
          * @see https://docs.btcex.com/#contracts
          * @param {string} symbol unified CCXT market symbol
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
