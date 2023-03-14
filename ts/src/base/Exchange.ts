@@ -141,13 +141,13 @@ import { Precise } from './Precise.js'
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
 import Future from './ws/Future.js';
-import { OrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
+import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 // 
 
 // import types
-import {Market, Trade, Fee, Ticker, OHLCV, Order} from './types'
+import {Market, Trade, Fee, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse } from './types'
 export {Market, Trade, Fee, Ticker} from './types'
 
 
@@ -998,7 +998,7 @@ export default class Exchange {
         return this.setMarkets (markets, currencies)
     }
 
-    loadMarkets (reload = false, params = {}) {
+    loadMarkets (reload = false, params = {}): Promise<Dictionary<Market>> {
         // this method is async, it returns a promise
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
             this.reloadingMarkets = true
@@ -1214,7 +1214,19 @@ export default class Exchange {
         async fetchFundingRates (symbols = undefined, params = {}) {
             return undefined;
         }
-        
+
+        async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+            return undefined;
+        }
+
+        async withdraw(code: string, amount, address, tag = undefined, params = {}) {
+            return undefined;
+        }
+
+        async createDepositAddress (code, params = {}): Promise<DepositAddressResponse>{
+            return undefined;
+        }
+
         findTimeframe (timeframe, timeframes = undefined) {
             timeframes = timeframes || this.timeframes;
             const keys = Object.keys (timeframes);
@@ -1251,7 +1263,7 @@ export default class Exchange {
     // WS/PRO methods
 
     orderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
-        return new OrderBook (snapshot, depth);
+        return new WsOrderBook (snapshot, depth);
     }
 
     indexedOrderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
@@ -1623,7 +1635,7 @@ export default class Exchange {
         return this.markets;
     }
 
-    safeBalance (balance: object) {
+    safeBalance (balance: object): Balances {
         const balances = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]);
         const codes = Object.keys (balances);
         balance['free'] = {};
@@ -1661,7 +1673,7 @@ export default class Exchange {
         if (length) {
             balance['debt'] = debtBalance;
         }
-        return balance;
+        return balance as any;
     }
 
     safeOrder (order: object, market: object = undefined) {
@@ -2916,7 +2928,7 @@ export default class Exchange {
         }
     }
 
-    async fetchBalance (params = {}): Promise<any> {
+    async fetchBalance (params = {}): Promise<Balances> {
         throw new NotSupported (this.id + ' fetchBalance() is not supported yet');
     }
 
@@ -3220,7 +3232,7 @@ export default class Exchange {
         }
     }
 
-    account () {
+    account (): Balance {
         return {
             'free': undefined,
             'used': undefined,
@@ -3285,27 +3297,27 @@ export default class Exchange {
         return [ tag, params ];
     }
 
-    async createLimitOrder (symbol: string, side: string, amount, price, params = {}) {
+    async createLimitOrder (symbol: string, side: string, amount, price, params = {}): Promise<Order> {
         return await this.createOrder (symbol, 'limit', side, amount, price, params);
     }
 
-    async createMarketOrder (symbol: string, side: string, amount, price = undefined, params = {}) {
+    async createMarketOrder (symbol: string, side: string, amount, price = undefined, params = {}): Promise<Order> {
         return await this.createOrder (symbol, 'market', side, amount, price, params);
     }
 
-    async createLimitBuyOrder (symbol: string, amount, price, params = {}) {
+    async createLimitBuyOrder (symbol: string, amount, price, params = {}): Promise<Order> {
         return await this.createOrder (symbol, 'limit', 'buy', amount, price, params);
     }
 
-    async createLimitSellOrder (symbol: string, amount, price, params = {}) {
+    async createLimitSellOrder (symbol: string, amount, price, params = {}): Promise<Order> {
         return await this.createOrder (symbol, 'limit', 'sell', amount, price, params);
     }
 
-    async createMarketBuyOrder (symbol: string, amount, params = {}) {
+    async createMarketBuyOrder (symbol: string, amount, params = {}): Promise<Order> {
         return await this.createOrder (symbol, 'market', 'buy', amount, undefined, params);
     }
 
-    async createMarketSellOrder (symbol: string, amount, params = {}) {
+    async createMarketSellOrder (symbol: string, amount, params = {}): Promise<Order> {
         return await this.createOrder (symbol, 'market', 'sell', amount, undefined, params);
     }
 
