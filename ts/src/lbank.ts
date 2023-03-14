@@ -671,7 +671,7 @@ export default class lbank extends Exchange {
         if (numOrders === 1) {
             return orders[0];
         } else {
-            return orders;
+            return orders as any;
         }
     }
 

@@ -903,10 +903,10 @@ export default class coinmate extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'data');
-        return {
+        return this.safeOrder ({
             'info': response,
             'id': id,
-        };
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

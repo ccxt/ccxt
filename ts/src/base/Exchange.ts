@@ -144,7 +144,7 @@ import { OrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js
 //
 
 // import types
-import {Market, Trade, Fee, Ticker, OHLCV} from './types'
+import {Market, Trade, Fee, Ticker, OHLCV, Order} from './types'
 export {Market, Trade, Fee, Ticker} from './types'
 
 
@@ -1172,7 +1172,7 @@ export default class Exchange {
             return undefined;
         }
 
-        parseOrder (order, market = undefined) {
+        parseOrder (order, market = undefined): Order {
             return undefined;
         }
 
@@ -1894,7 +1894,7 @@ export default class Exchange {
         });
     }
 
-    parseOrders (orders: object, market: object = undefined, since: number = undefined, limit: number = undefined, params = {}) {
+    parseOrders (orders: object, market: object = undefined, since: number = undefined, limit: number = undefined, params = {}): Order[] {
         //
         // the value of orders is either a dict or a list
         //
@@ -1933,7 +1933,7 @@ export default class Exchange {
         results = this.sortBy (results, 'timestamp');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         const tail = since === undefined;
-        return this.filterBySymbolSinceLimit (results, symbol, since, limit, tail);
+        return this.filterBySymbolSinceLimit (results, symbol, since, limit, tail) as Order[];
     }
 
     calculateFee (symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker = 'taker', params = {}) {
@@ -3138,7 +3138,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}): Promise<any> {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
     }
 
@@ -3151,7 +3151,7 @@ export default class Exchange {
         return await this.fetchOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}): Promise<any> {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 

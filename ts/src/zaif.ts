@@ -471,10 +471,10 @@ export default class zaif extends Exchange {
             'price': price,
         };
         const response = await (this as any).privatePostTrade (this.extend (request, params));
-        return {
+        return this.safeOrder ({
             'info': response,
             'id': response['return']['order_id'].toString (),
-        };
+        }, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
