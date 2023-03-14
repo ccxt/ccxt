@@ -2398,14 +2398,15 @@ export default class phemex extends Exchange {
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdID');
         params = this.omit (params, [ 'clientOrderId', 'clOrdID' ]);
+        const isUSDTSettled = (market['settle'] === 'USDT');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
         } else {
             request['orderID'] = id;
         }
         if (price !== undefined) {
-            if (market['settle'] === 'USDT') {
-                request['priceRp'] = this.priceToPrecision (symbol, price);
+            if (isUSDTSettled) {
+                request['priceRp'] = this.priceToPrecision (market['symbol'], price);
             } else {
                 request['priceEp'] = this.toEp (price, market);
             }
@@ -2416,11 +2417,15 @@ export default class phemex extends Exchange {
         if (finalQty !== undefined) {
             request['baseQtyEV'] = finalQty;
         } else if (amount !== undefined) {
-            request['baseQtyEV'] = this.toEv (amount, market);
+            if (isUSDTSettled) {
+                request['baseQtyEV'] = this.amountToPrecision (market['symbol'], amount);
+            } else {
+                request['baseQtyEV'] = this.toEv (amount, market);
+            }
         }
         const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
         if (stopPrice !== undefined) {
-            if (market['settle'] === 'USDT') {
+            if (isUSDTSettled) {
                 request['stopPxRp'] = this.priceToPrecision (symbol, stopPrice);
             } else {
                 request['stopPxEp'] = this.toEp (stopPrice, market);
@@ -2430,7 +2435,7 @@ export default class phemex extends Exchange {
         let method = 'privatePutSpotOrders';
         if (market['inverse']) {
             method = 'privatePutOrdersReplace';
-        } else if (market['settle'] === 'USDT') {
+        } else if (isUSDTSettled) {
             method = 'privatePutGOrdersReplace';
             const posSide = this.safeString (params, 'posSide');
             if (posSide === undefined) {
