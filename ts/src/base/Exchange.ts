@@ -145,7 +145,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 
 // import types
 import {Market, Trade, Fee, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse } from './types'
-export {Market, Trade, Fee, Ticker} from './types'
+export {Market, Trade, Fee, Ticker, Order} from './types'
 
 
 // ----------------------------------------------------------------------------

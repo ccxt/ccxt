@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange, Trade } from './base/Exchange.js';
+import { Exchange, Trade, Order } from './base/Exchange.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadSymbol, ExchangeError, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
@@ -460,7 +460,7 @@ export default class derivadex extends Exchange {
         const response = await (this as any).publicGetFills (extendedRequest);
         const traderAddressWithDiscriminant = this.addDiscriminant (this.walletAddress);
         const mainStrategyIdHash = this.getMainStrategyIdHash ();
-        return await this.parseTradesCustom (response, market, since, limit, traderAddressWithDiscriminant, mainStrategyIdHash);
+        return (await this.parseTradesCustom (response, market, since, limit, traderAddressWithDiscriminant, mainStrategyIdHash)) as Trade[];
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -802,7 +802,7 @@ export default class derivadex extends Exchange {
                 throw new OrderNotFound (this.id + ' getSequencedOrder() could not find the order intent associated with this operator response');
             }
         }
-        return await this.parseOrder (order);
+        return await this.parseOrderCustom (order);
     }
 
     async fetchPublicOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -848,7 +848,7 @@ export default class derivadex extends Exchange {
             'orderHash': [ id ],
         };
         const response = await (this as any).publicGetOrderIntents (request);
-        return await this.parseOrder (response['value'][0], market);
+        return await this.parseOrderCustom (response['value'][0], market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -880,21 +880,21 @@ export default class derivadex extends Exchange {
         }
         request['order'] = params['order'] !== undefined ? params['order'] : 'asc';
         const response = await (this as any).publicGetAccountTraderStrategyStrategyIdOrderIntents (request);
-        return await this.parseOrdersCustom (response['value'], market, since, limit);
+        return (await this.parseOrdersCustom (response['value'], market, since, limit)) as Order[];
     }
 
     async parseOrdersCustom (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         let results: any[] = [];
         if (Array.isArray (orders)) {
             for (let i = 0; i < orders.length; i++) {
-                const order = this.extend (await this.parseOrder (orders[i], market), params);
+                const order = this.extend (await this.parseOrderCustom (orders[i], market), params);
                 results.push (order);
             }
         } else {
             const ids = Object.keys (orders);
             for (let i = 0; i < ids.length; i++) {
                 const id = ids[i];
-                const order = this.extend (this.parseOrder (this.extend ({ 'id': id }, orders[id]), market), params);
+                const order = this.extend (this.parseOrderCustom (this.extend ({ 'id': id }, orders[id]), market), params);
                 results.push (order);
             }
         }
@@ -904,7 +904,7 @@ export default class derivadex extends Exchange {
         return this.filterBySymbolSinceLimit (results, symbol, since, limit, tail);
     }
 
-    async parseOrder (order, market = undefined) {
+    async parseOrderCustom (order, market = undefined) {
         // {
         //     "epochId":"1",
         //     "txOrdinal":"7",
