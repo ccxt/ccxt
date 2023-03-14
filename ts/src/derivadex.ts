@@ -4,7 +4,7 @@
 
 import { Exchange, Trade } from './base/Exchange.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { AuthenticationError, BadSymbol, ArgumentsRequired, ExchangeError, OrderNotFound } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadSymbol, ExchangeError, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import CryptoJS from './static_dependencies/crypto-js/crypto-js.cjs';
 import elliptic from './static_dependencies/elliptic/lib/elliptic.cjs';
@@ -374,12 +374,12 @@ export default class derivadex extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = symbols === undefined ? Object.keys (this.markets) : this.marketSymbols (symbols);
+        const marketSymbols = symbols === undefined ? Object.keys (this.markets) : this.marketSymbols (symbols);
         const result = {};
-        for (let i = 0; i < symbols.length; i++) {
-            const ticker = await this.constructTicker (symbols[i]);
+        for (let i = 0; i < marketSymbols.length; i++) {
+            const ticker = await this.constructTicker (marketSymbols[i]);
             if (ticker !== undefined) {
-                result[symbols[i]] = ticker;
+                result[marketSymbols[i]] = ticker;
             }
         }
         return result;
@@ -437,13 +437,15 @@ export default class derivadex extends Exchange {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = symbol !== undefined ? this.market (symbol) : undefined;
         const request = {
-            'symbol': market['id'],
             'trader': this.walletAddress,
             'strategy': 'main',
             'fillReason': '0',
         };
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 500
         }
@@ -550,7 +552,7 @@ export default class derivadex extends Exchange {
         return result;
     }
 
-    async parseTradesCustom (trades, market: object = undefined, since: number = undefined, limit: number = undefined, trader = undefined, strategy = undefined) {
+    async parseTradesCustom (trades, market: object | undefined = undefined, since: number | undefined = undefined, limit: number | undefined = undefined, trader: string | undefined = undefined, strategy: string | undefined = undefined) {
         trades = this.toArray (trades);
         let result = [];
         const orderIntents = await this.getOrderIntents (trades[0]);
@@ -717,14 +719,9 @@ export default class derivadex extends Exchange {
         const request = {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
-            'from': fromTimestamp / 1000,
         };
-        if (limit !== undefined) {
-            request['to'] = this.getToParamForOhlcvRequest (this.timeframes[timeframe], fromTimestamp, limit) / 1000;
-        }
-        if (since !== undefined) {
-            request['since'] = since;
-        }
+        request['from'] = fromTimestamp! / 1000;
+        request['to'] = this.getToParamForOhlcvRequest (this.timeframes[timeframe], fromTimestamp, limit) / 1000;
         const response = await (this as any).v2GetRestOhlcv (this.extend (request, params));
         return this.parseOHLCVs (response['ohlcv'], market, timeframe, since, limit);
     }
@@ -739,7 +736,7 @@ export default class derivadex extends Exchange {
         return [ timestamp, open, high, low, close, volume ];
     }
 
-    getTimeForOhlcvRequest (interval, time, limit) {
+    getTimeForOhlcvRequest (interval, time, limit = 10) {
         const msInMinute = 60 * 1000;
         const msInHour = 60 * 1000 * 60;
         const msInDay = 60 * 1000 * 60 * 24;
@@ -758,7 +755,7 @@ export default class derivadex extends Exchange {
         }
     }
 
-    getToParamForOhlcvRequest (interval, from, limit) {
+    getToParamForOhlcvRequest (interval, from, limit = 10) {
         const msInMinute = 60 * 1000;
         const msInHour = 60 * 1000 * 60;
         const msInDay = 60 * 1000 * 60 * 24;
@@ -778,7 +775,7 @@ export default class derivadex extends Exchange {
         await new Promise ((resolve) => setTimeout (resolve, ms));
     }
 
-    async getSequencedOrder (operatorResponse, lookbackLimit = undefined) {
+    async getSequencedOrder (operatorResponse, lookbackLimit: number | undefined = undefined) {
         /**
          * @method
          * @name derivadex#getSequencedOrder
@@ -820,10 +817,11 @@ export default class derivadex extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
+        const market = symbol !== undefined ? this.market (symbol) : undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -844,11 +842,8 @@ export default class derivadex extends Exchange {
          * @param {object} params extra parameters specific to the derivadex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = symbol !== undefined ? this.market (symbol) : undefined;
         const request = {
             'orderHash': [ id ],
         };
@@ -869,12 +864,14 @@ export default class derivadex extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = symbol !== undefined ? this.market (symbol) : undefined;
         const request = {
-            'symbol': market['id'],
             'trader': this.walletAddress,
             'strategyId': 'main',
         };
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -887,7 +884,7 @@ export default class derivadex extends Exchange {
     }
 
     async parseOrdersCustom (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let results = [];
+        let results: any[] = [];
         if (Array.isArray (orders)) {
             for (let i = 0; i < orders.length; i++) {
                 const order = this.extend (await this.parseOrder (orders[i], market), params);
@@ -1068,6 +1065,9 @@ export default class derivadex extends Exchange {
         const isAuthenticated = this.checkRequiredCredentials ();
         if (!isAuthenticated) {
             throw new AuthenticationError (this.id + ' cancelOrder endpoint requires privateKey and walletAddress credentials');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
