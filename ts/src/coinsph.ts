@@ -373,7 +373,7 @@ export default class coinsph extends Exchange {
         } else if (('byNumberOfSymbols' in config) && ('symbols' in params)) {
             const symbols = params['symbols'];
             const symbolsAmount = symbols.length;
-            const byNumberOfSymbols = config['byNumberOfSymbols'];
+            const byNumberOfSymbols = config['byNumberOfSymbols'] as any;
             for (let i = 0; i < byNumberOfSymbols.length; i++) {
                 const entry = byNumberOfSymbols[i];
                 if (symbolsAmount >= entry[0]) {
@@ -382,7 +382,7 @@ export default class coinsph extends Exchange {
             }
         } else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
-            const byLimit = config['byLimit'];
+            const byLimit = config['byLimit'] as any;
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit >= entry[0]) {
@@ -401,7 +401,7 @@ export default class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
-        const response = await this.publicGetOpenapiV1Ping (params);
+        const response = await (this as any).publicGetOpenapiV1Ping (params);
         return {
             'status': 'ok', // if there's no Errors, status = 'ok'
             'updated': undefined,
@@ -419,7 +419,7 @@ export default class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetOpenapiV1Time (params);
+        const response = await (this as any).publicGetOpenapiV1Time (params);
         //
         //     {"serverTime":1677705408268}
         //
@@ -434,7 +434,7 @@ export default class coinsph extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.publicGetOpenapiV1ExchangeInfo (params);
+        const response = await (this as any).publicGetOpenapiV1ExchangeInfo (params);
         //
         //     {
         //         timezone: 'UTC',
@@ -608,7 +608,7 @@ export default class coinsph extends Exchange {
         const options = this.safeValue (this.options, 'fetchTicker', {});
         const method = this.safeString (options, 'method', defaultMethod);
         const ticker = await this[method] (this.extend (request, params));
-        return this.parseTicker (ticker, market, params);
+        return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -708,7 +708,7 @@ export default class coinsph extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetOpenapiQuoteV1Depth (this.extend (request, params));
+        const response = await (this as any).publicGetOpenapiQuoteV1Depth (this.extend (request, params));
         //
         //     {
         //         "lastUpdateId": "1667022157000699400",
@@ -761,7 +761,7 @@ export default class coinsph extends Exchange {
                 request['limit'] = limit;
             }
         }
-        const response = await this.publicGetOpenapiQuoteV1Klines (this.extend (request, params));
+        const response = await (this as any).publicGetOpenapiQuoteV1Klines (this.extend (request, params));
         //
         //     [
         //         [
@@ -817,7 +817,7 @@ export default class coinsph extends Exchange {
                 request['limit'] = limit;
             }
         }
-        const response = await this.publicGetOpenapiQuoteV1Trades (this.extend (request, params));
+        const response = await (this as any).publicGetOpenapiQuoteV1Trades (this.extend (request, params));
         //
         //     [
         //         {
@@ -860,7 +860,7 @@ export default class coinsph extends Exchange {
         } else if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenapiV1MyTrades (this.extend (request, params));
+        const response = await (this as any).privateGetOpenapiV1MyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -932,7 +932,7 @@ export default class coinsph extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
         const type = undefined;
-        const fee = {};
+        const fee = {} as any;
         const feeCost = this.safeString (trade, 'commission');
         if (feeCost !== undefined) {
             fee['cost'] = feeCost;
@@ -979,7 +979,7 @@ export default class coinsph extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetOpenapiV1Account (params);
+        const response = await (this as any).privateGetOpenapiV1Account (params);
         //
         //     {
         //         accountType: 'SPOT',
@@ -1095,7 +1095,7 @@ export default class coinsph extends Exchange {
         }
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit (params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        const response = await this.privatePostOpenapiV1Order (this.extend (request, params));
+        const response = await (this as any).privatePostOpenapiV1Order (this.extend (request, params));
         //
         //     {
         //         symbol: 'ETHUSDT',
@@ -1145,7 +1145,7 @@ export default class coinsph extends Exchange {
             request['orderId'] = id;
         }
         params = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
-        const response = await this.privateGetOpenapiV1Order (this.extend (request, params));
+        const response = await (this as any).privateGetOpenapiV1Order (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1167,7 +1167,7 @@ export default class coinsph extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetOpenapiV1OpenOrders (this.extend (request, params));
+        const response = await (this as any).privateGetOpenapiV1OpenOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1197,7 +1197,7 @@ export default class coinsph extends Exchange {
         } else if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenapiV1HistoryOrders (this.extend (request, params));
+        const response = await (this as any).privateGetOpenapiV1HistoryOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1220,7 +1220,7 @@ export default class coinsph extends Exchange {
             request['orderId'] = id;
         }
         params = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
-        const response = await this.privateDeleteOpenapiV1Order (this.extend (request, params));
+        const response = await (this as any).privateDeleteOpenapiV1Order (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1243,7 +1243,7 @@ export default class coinsph extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateDeleteOpenapiV1OpenOrders (this.extend (request, params));
+        const response = await (this as any).privateDeleteOpenapiV1OpenOrders (this.extend (request, params));
         return this.parseOrders (response, market);
     }
 
@@ -1428,7 +1428,7 @@ export default class coinsph extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.privateGetOpenapiV1AssetTradeFee (this.extend (request, params));
+        const response = await (this as any).privateGetOpenapiV1AssetTradeFee (this.extend (request, params));
         //
         //     [
         //       {
@@ -1451,7 +1451,7 @@ export default class coinsph extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.privateGetOpenapiV1AssetTradeFee (params);
+        const response = await (this as any).privateGetOpenapiV1AssetTradeFee (params);
         //
         //     [
         //         {
@@ -1520,7 +1520,7 @@ export default class coinsph extends Exchange {
         if (tag !== undefined) {
             request['withdrawOrderId'] = tag;
         }
-        const response = await this.privatePostOpenapiV1CapitalWithdrawApply (this.extend (request, params));
+        const response = await (this as any).privatePostOpenapiV1CapitalWithdrawApply (this.extend (request, params));
         return this.parseTransaction (response, currency);
     }
 
@@ -1550,7 +1550,7 @@ export default class coinsph extends Exchange {
         if (tag !== undefined) {
             request['depositOrderId'] = tag;
         }
-        const response = await this.privatePostOpenapiV1CapitalDepositApply (this.extend (request, params));
+        const response = await (this as any).privatePostOpenapiV1CapitalDepositApply (this.extend (request, params));
         return this.parseTransaction (response, currency);
     }
 
@@ -1579,7 +1579,7 @@ export default class coinsph extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenapiV1CapitalDepositHistory (this.extend (request, params));
+        const response = await (this as any).privateGetOpenapiV1CapitalDepositHistory (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -1608,7 +1608,7 @@ export default class coinsph extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenapiV1CapitalWithdrawHistory (this.extend (request, params));
+        const response = await (this as any).privateGetOpenapiV1CapitalWithdrawHistory (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -1678,7 +1678,7 @@ export default class coinsph extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        let internal = this.safeInteger (transaction, 'transferType');
+        let internal = this.safeInteger (transaction, 'transferType') as any;
         if (internal !== undefined) {
             internal = internal ? true : false;
         }
@@ -1792,4 +1792,4 @@ export default class coinsph extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}
