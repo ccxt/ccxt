@@ -128,7 +128,7 @@ function set_exchange_prop (exchange, prop, value) {
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
 
-module.exports = class testMainClass extends emptyClass {
+export default class testMainClass extends emptyClass {
 
     async init (exchange, symbol) {
         this.expandSettings(exchange, symbol);
@@ -620,5 +620,4 @@ module.exports = class testMainClass extends emptyClass {
 
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-const cls = module.exports;
-(new cls ()).init (exchange, exchangeSymbol);
+(new MainTest ()).init (exchange, exchangeSymbol);

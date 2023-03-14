@@ -1,4 +1,4 @@
-const astTranspiler = require ('ast-transpiler');
+import { Transpiler } from 'ast-transpiler';
 
 // expected files config
 // const filesConfig = [
@@ -11,8 +11,8 @@ const astTranspiler = require ('ast-transpiler');
 //     }
 // ];
 
-module.exports = async ({transpilerConfig, filesConfig}) => {
-    const transpiler = new astTranspiler.Transpiler(transpilerConfig);
+export default async ({transpilerConfig, filesConfig}) => {
+    const transpiler = new Transpiler(transpilerConfig);
 
     const result = [];
     for (const fileConfig of filesConfig) {
