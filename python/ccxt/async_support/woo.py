@@ -1011,6 +1011,7 @@ class woo(Exchange):
         status = self.safe_value(order, 'status')
         side = self.safe_string_lower(order, 'side')
         filled = self.safe_value(order, 'executed')
+        average = self.safe_string(order, 'average_executed_price')
         remaining = Precise.string_sub(cost, filled)
         fee = self.safe_value(order, 'total_fee')
         feeCurrency = self.safe_string(order, 'fee_asset')
@@ -1031,7 +1032,7 @@ class woo(Exchange):
             'price': price,
             'stopPrice': None,
             'triggerPrice': None,
-            'average': None,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,  # TO_DO

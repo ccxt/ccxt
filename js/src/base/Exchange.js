@@ -7,7 +7,7 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable */
 import * as functions from './functions.js';
-const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, throttle, capitalize, now, timeout, TimedOut, buildOHLCVC, decimalToPrecision, defaultFetch, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, stringToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, totp, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, eddsa, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, jwt, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, rsa, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE } = functions;
+const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, throttle, capitalize, now, buildOHLCVC, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, stringToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, totp, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, eddsa, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, jwt, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, rsa, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE } = functions;
 import { inflate, inflate64, gunzip } from './ws/functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
@@ -34,8 +34,6 @@ export default class Exchange {
         this.handleContentTypeApplicationZip = false;
         // whether fees should be summed by currency code
         this.reduceFees = true;
-        // do not delete this line, it is needed for users to be able to define their own fetchImplementation
-        this.fetchImplementation = defaultFetch;
         this.validateServerSsl = true;
         this.validateClientSsl = false;
         this.timeout = 10000; // milliseconds
@@ -67,7 +65,6 @@ export default class Exchange {
         this.last_http_response = undefined;
         this.last_json_response = undefined;
         this.last_response_headers = undefined;
-        this.executeRestRequest = undefined;
         this.id = undefined;
         this.markets = undefined;
         this.has = {};
@@ -126,10 +123,8 @@ export default class Exchange {
         this.precisionFromString = precisionFromString;
         this.capitalize = capitalize;
         this.now = now;
-        this.TimedOut = TimedOut;
         this.buildOHLCVC = buildOHLCVC;
         this.decimalToPrecision = decimalToPrecision;
-        this.defaultFetch = defaultFetch;
         this.safeValue = safeValue;
         this.safeValue2 = safeValue2;
         this.safeString = safeString;
@@ -251,7 +246,7 @@ export default class Exchange {
         // whether fees should be summed by currency code
         this.reduceFees = true;
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
-        this.fetchImplementation = defaultFetch;
+        this.fetchImplementation = undefined;
         this.validateServerSsl = true;
         this.validateClientSsl = false;
         // default property values
@@ -321,17 +316,6 @@ export default class Exchange {
         // ssl options
         if (!this.validateServerSsl) {
             agentOptions['rejectUnauthorized'] = false;
-        }
-        // js-specific http options
-        //@ts-expect-error
-        if (!this.httpAgent && defaultFetch.http && isNode) {
-            //@ts-expect-error
-            this.httpAgent = new defaultFetch.http.Agent(agentOptions);
-        }
-        //@ts-expect-error
-        if (!this.httpsAgent && defaultFetch.https && isNode) {
-            //@ts-expect-error
-            this.httpsAgent = new defaultFetch.https.Agent(agentOptions);
         }
         // generate old metainfo interface
         const hasKeys = Object.keys(this.has);
@@ -590,35 +574,6 @@ export default class Exchange {
             refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
         }, this.tokenBucket);
         this.throttle = throttle(this.tokenBucket);
-        this.executeRestRequest = (url, method = 'GET', headers = undefined, body = undefined) => {
-            // fetchImplementation cannot be called on this. in browsers:
-            // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
-            const fetchImplementation = this.fetchImplementation;
-            const params = { method, headers, body, timeout: this.timeout };
-            if (this.agent) {
-                params['agent'] = this.agent;
-            }
-            else if (this.httpAgent && url.indexOf('http://') === 0) {
-                params['agent'] = this.httpAgent;
-            }
-            else if (this.httpsAgent && url.indexOf('https://') === 0) {
-                params['agent'] = this.httpsAgent;
-            }
-            const promise = fetchImplementation(url, this.extend(params, this.fetchOptions))
-                .catch((e) => {
-                if (isNode) {
-                    throw new ExchangeNotAvailable([this.id, method, url, e.type, e.message].join(' '));
-                }
-                throw e; // rethrow all unknown errors
-            })
-                .then((response) => this.handleRestResponse(response, url, method, headers, body));
-            return timeout(this.timeout, promise).catch((e) => {
-                if (e instanceof TimedOut) {
-                    throw new RequestTimeout(this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
-                }
-                throw e;
-            });
-        };
     }
     setSandboxMode(enabled) {
         if (!!enabled) { // eslint-disable-line no-extra-boolean-cast
@@ -701,7 +656,7 @@ export default class Exchange {
     log(...args) {
         console.log(...args);
     }
-    fetch(url, method = 'GET', headers = undefined, body = undefined) {
+    async fetch(url, method = 'GET', headers = undefined, body = undefined) {
         if (isNode && this.userAgent) {
             if (typeof this.userAgent === 'string') {
                 headers = this.extend({ 'User-Agent': this.userAgent }, headers);
@@ -727,7 +682,47 @@ export default class Exchange {
         if (this.verbose) {
             this.log("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n");
         }
-        return this.executeRestRequest(url, method, headers, body);
+        let AbortError;
+        if (this.fetchImplementation === undefined) {
+            if (isNode) {
+                const module = await import('../static_dependencies/node-fetch/index.js');
+                AbortError = module.AbortError;
+                this.fetchImplementation = module.default;
+            }
+            else {
+                this.fetchImplementation = window.fetch;
+                AbortError = DOMException;
+            }
+        }
+        // fetchImplementation cannot be called on this. in browsers:
+        // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
+        const fetchImplementation = this.fetchImplementation;
+        const params = { method, headers, body, timeout: this.timeout };
+        if (this.agent) {
+            params['agent'] = this.agent;
+        }
+        else if (this.httpAgent && url.indexOf('http://') === 0) {
+            params['agent'] = this.httpAgent;
+        }
+        else if (this.httpsAgent && url.indexOf('https://') === 0) {
+            params['agent'] = this.httpsAgent;
+        }
+        const controller = new AbortController();
+        params['signal'] = controller.signal;
+        const timeout = setTimeout(() => {
+            controller.abort();
+        }, this.timeout);
+        try {
+            const response = await fetchImplementation(url, this.extend(params, this.fetchOptions));
+            clearTimeout(timeout);
+            return this.handleRestResponse(response, url, method, headers, body);
+        }
+        catch (e) {
+            if (e instanceof AbortError) {
+                throw new RequestTimeout(this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
+            }
+            throw e;
+        }
     }
     parseJson(jsonString) {
         try {

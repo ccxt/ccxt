@@ -23,11 +23,7 @@ export default class Exchange {
     number: NumberConstructor;
     handleContentTypeApplicationZip: boolean;
     reduceFees: boolean;
-    fetchImplementation: typeof fetch | {
-        (u: any, options: any): any;
-        http: any;
-        https: any;
-    };
+    fetchImplementation: any;
     validateServerSsl: boolean;
     validateClientSsl: boolean;
     timeout: number;
@@ -62,7 +58,6 @@ export default class Exchange {
     last_http_response: any;
     last_json_response: any;
     last_response_headers: any;
-    executeRestRequest: any;
     id: any;
     markets: Market[];
     has: {};
@@ -123,14 +118,8 @@ export default class Exchange {
     precisionFromString: typeof functions.precisionFromString;
     capitalize: (s: string) => string;
     now: () => number;
-    TimedOut: typeof functions.TimedOut;
     buildOHLCVC: (trades: any, timeframe?: string, since?: number, limit?: number) => any[];
     decimalToPrecision: (x: any, roundingMode: any, numPrecisionDigits: any, countingMode?: number, paddingMode?: number) => any;
-    defaultFetch: typeof fetch | {
-        (u: any, options: any): any;
-        http: any;
-        https: any;
-    };
     safeValue: (o: object, k: string | number, $default?: any) => any;
     safeValue2: (o: object, k1: string | number, k2: string | number, $default?: any) => any;
     safeString: (o: object, k: string | number, $default?: string) => string;
@@ -425,7 +414,7 @@ export default class Exchange {
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
     defineRestApi(api: any, methodName: any, paths?: any[]): void;
     log(...args: any[]): void;
-    fetch(url: any, method?: string, headers?: any, body?: any): any;
+    fetch(url: any, method?: string, headers?: any, body?: any): Promise<any>;
     parseJson(jsonString: any): any;
     getResponseHeaders(response: any): {};
     handleRestResponse(response: any, url: any, method?: string, requestHeaders?: any, requestBody?: any): any;

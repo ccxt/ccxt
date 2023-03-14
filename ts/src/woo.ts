@@ -1068,6 +1068,7 @@ export default class woo extends Exchange {
         const status = this.safeValue (order, 'status');
         const side = this.safeStringLower (order, 'side');
         const filled = this.safeValue (order, 'executed');
+        const average = this.safeString (order, 'average_executed_price');
         const remaining = Precise.stringSub (cost, filled);
         const fee = this.safeValue (order, 'total_fee');
         const feeCurrency = this.safeString (order, 'fee_asset');
@@ -1088,7 +1089,7 @@ export default class woo extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'triggerPrice': undefined,
-            'average': undefined,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining, // TO_DO

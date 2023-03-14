@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.9.16';
+$version = '3.0.4';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.9.16';
+    const VERSION = '3.0.4';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -446,8 +446,6 @@ class Exchange {
     );
 
     public static $camelcase_methods = array(
-        'fetchImplementation' => 'fetch_implementation',
-        'executeRestRequest' => 'execute_rest_request',
         'deepExtend' => 'deep_extend',
         'indexBy' => 'index_by',
         'sortBy' => 'sort_by',
@@ -455,10 +453,8 @@ class Exchange {
         'groupBy' => 'group_by',
         'unCamelCase' => 'un_camel_case',
         'precisionFromString' => 'precision_from_string',
-        'TimedOut' => 'timed_out',
         'buildOHLCVC' => 'build_ohlcvc',
         'decimalToPrecision' => 'decimal_to_precision',
-        'defaultFetch' => 'default_fetch',
         'safeValue' => 'safe_value',
         'safeValue2' => 'safe_value_2',
         'safeString' => 'safe_string',
@@ -510,6 +506,7 @@ class Exchange {
         'parseDate' => 'parse_date',
         'isArray' => 'is_array',
         'base64ToString' => 'base64_to_string',
+        'TimedOut' => 'timed_out',
         'asFloat' => 'as_float',
         'asInteger' => 'as_integer',
         'binaryToBase58' => 'binary_to_base58',
