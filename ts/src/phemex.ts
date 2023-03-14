@@ -2391,12 +2391,6 @@ export default class phemex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
         }
-        if (type !== undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() type changing is not implemented. Try to cancel & recreate order for that purpose');
-        }
-        if (side !== undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() side changing is not implemented. Try to cancel & recreate order for that purpose');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
