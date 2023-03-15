@@ -105,7 +105,7 @@ function createExchange (id, content) {
         sliced = sliced.replace(/'/g, '"'); // correct json quotes
         sliced = sliced.replace(/\s*\/\/\s+.*$/gm, ''); // remove comments
         sliced = sliced.replace(/(,)(\n\s*[}|\]])/g, '$2'); //remove trailing comma
-        sliced = sliced.replaceAll('undefined', 'null');
+        sliced = sliced.replace(/undefined/gm, 'null');
         const parsedUrls = JSON.parse(sliced);
         const name = content.matchAll(nameRegex).next().value[1];
         const versionMatches = content.matchAll(versionRegex).next().value
