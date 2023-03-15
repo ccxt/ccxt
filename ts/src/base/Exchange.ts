@@ -144,8 +144,8 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import {Market, Trade, Fee, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse } from './types'
-export {Market, Trade, Fee, Ticker} from './types'
+import { Market, Trade, Fee, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Hash, Digest } from './types.js'
+export { Market, Trade, Fee, Ticker } from './types.js'
 
 
 // ----------------------------------------------------------------------------
@@ -1060,7 +1060,7 @@ export default class Exchange {
         // takes a hex encoded message
         const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message))
         const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes)
-        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), 'keccak', 'hex')
+        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), Hash.Keccak, Digest.Hex)
     }
 
     signHash (hash: string, privateKey: string) {

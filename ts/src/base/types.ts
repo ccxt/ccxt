@@ -187,3 +187,28 @@ export interface DepositAddressResponse {
 
 /** [ timestamp, open, high, low, close, volume ] */
 export type OHLCV = [number, number, number, number, number, number];
+
+
+export enum Digest {
+    Hex = 'hex',
+    Base64 ='base64',
+    Binary = 'binary',
+}
+
+export enum Hash {
+    Md5 = 'md5',
+    Sha1 = 'sha1',
+    Sha3 = 'sha3',
+    Sha256 = 'sha256',
+    Sha384 = 'sha384',
+    Sha512 = 'sha512',
+    Keccak = 'keccak',
+}
+
+export enum Hmac {
+    Sha1 = 'sha1',
+    Sha3 = 'sha3',
+    Sha256 = 'sha256',
+    Sha384 = 'sha384',
+    Sha512 = 'sha512',
+}

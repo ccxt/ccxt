@@ -7,7 +7,7 @@ var parseBytes = utils.parseBytes;
 var KeyPair = require('./key.cjs');
 var Signature = require('./signature.cjs');
 const BN = require ('../../../../BN/bn.cjs')
-const CryptoJS = require('../../../../crypto-js/crypto-js.js');
+const CryptoJS = require('../../../../crypto-js/crypto-js.cjs');
 
 
 function byteArrayToWordArray (ba) {

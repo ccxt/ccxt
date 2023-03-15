@@ -1,7 +1,9 @@
 /* eslint-disable */
 /*  ------------------------------------------------------------------------ */
 
-import CryptoJS from '../../static_dependencies/crypto-js/crypto-js.cjs'
+import Base64 from '../../static_dependencies/crypto-js/enc-base64.js'
+import { Latin1, Hex, WordArray } from '../../static_dependencies/crypto-js/core.js'
+
 import qs from '../../static_dependencies/qs/index.cjs'
 import BN from '../../static_dependencies/BN/bn.cjs'
 
@@ -22,13 +24,13 @@ const json =  (data, params = undefined) => JSON.stringify (data)
         (object.length >= 2) &&
         ((object[0] === '{') || (object[0] === '['))
     )
-    , stringToBinary = string => CryptoJS.enc.Latin1.parse (string)
-    , stringToBase64 = string => CryptoJS.enc.Latin1.parse (string).toString (CryptoJS.enc.Base64)
-    , base64ToBinary = string => CryptoJS.enc.Base64.parse (string)
-    , base64ToString = string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
-    , binaryToBase64 = binary => binary.toString (CryptoJS.enc.Base64)
-    , base16ToBinary = string => CryptoJS.enc.Hex.parse (string)
-    , binaryToBase16 = binary => binary.toString (CryptoJS.enc.Hex)
+    , stringToBinary = string => Latin1.parse (string)
+    , stringToBase64 = string => Latin1.parse (string).toString (Base64)
+    , base64ToBinary = string => Base64.parse (string)
+    , base64ToString = string => Base64.parse (string).toString (Latin1)
+    , binaryToBase64 = binary => binary.toString (Base64)
+    , base16ToBinary = string => Hex.parse (string)
+    , binaryToBase16 = binary => binary.toString (Hex)
     , binaryConcat = (...args) => args.reduce ((a, b) => a.concat (b))
     , binaryConcatArray = (arr) => arr.reduce ((a, b) => a.concat (b))
 
@@ -89,7 +91,7 @@ const json =  (data, params = undefined) => JSON.stringify (data)
         }
         const base = new BN (58)
         // hex is only compatible encoding between cryptojs and BN
-        const hexString = wordArray.toString (CryptoJS.enc.Hex)
+        const hexString = wordArray.toString (Hex)
         let result = new BN (hexString, 16)
         let string = []
         while (!result.isZero ()) {
@@ -105,12 +107,12 @@ function byteArrayToWordArray (ba) {
     for (let i = 0; i < ba.length; i++) {
         wa[(i / 4) | 0] |= ba[i] << (24 - 8 * i)
     }
-    return CryptoJS.lib.WordArray.create (wa, ba.length)
+    return WordArray.create (wa, ba.length)
 }
 
 
 export {
-    json 
+    json
     , isJsonEncodedObject
     , stringToBinary
     , stringToBase64

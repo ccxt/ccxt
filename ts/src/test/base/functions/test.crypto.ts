@@ -1,3 +1,4 @@
+import { Hash, Digest } from "../../../base/types";
 import { hash, ecdsa, jwt, crc32, rsa } from '../../../base/functions/crypto.js'
 import { encode } from '../../../base/functions/encode.js'
 import { Exchange } from '../../../base/Exchange.js'
@@ -18,20 +19,20 @@ const exchange = new Exchange ();
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-assert (hash (encode (''), 'sha256', 'hex') === 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
-assert (hash (encode ('cheese'), 'sha256', 'hex') === '873ac9ffea4dd04fa719e8920cd6938f0c23cd678af330939cff53c3d2855f34');
+assert (hash (encode (''), Hash.Sha256, Digest.Hex) === 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+assert (hash (encode ('cheese'), Hash.Sha256, Digest.Hex) === '873ac9ffea4dd04fa719e8920cd6938f0c23cd678af330939cff53c3d2855f34');
 
-assert (hash (encode (''), 'md5', 'hex') === 'd41d8cd98f00b204e9800998ecf8427e');
-assert (hash (encode ('sexyfish'), 'md5', 'hex') === 'c8a35464aa9d5683585786f44d5889f8');
+assert (hash (encode (''), Hash.Sha1, Digest.Hex) === 'd41d8cd98f00b204e9800998ecf8427e');
+assert (hash (encode ('sexyfish'), Hash.Sha1, Digest.Hex) === 'c8a35464aa9d5683585786f44d5889f8');
 
-assert (hash (encode (''), 'sha1', 'hex') === 'da39a3ee5e6b4b0d3255bfef95601890afd80709');
-assert (hash (encode ('nutella'), 'sha1', 'hex') === 'b3d60a34b744159793c483b067c56d8affc5111a');
+assert (hash (encode (''), Hash.Sha1, Digest.Hex) === 'da39a3ee5e6b4b0d3255bfef95601890afd80709');
+assert (hash (encode ('nutella'), Hash.Sha1, Digest.Hex) === 'b3d60a34b744159793c483b067c56d8affc5111a');
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 const privateKey = '1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a';
 
-assert (equals (ecdsa ('1a', privateKey, 'p256', 'sha256'), {
+assert (equals (ecdsa ('1a', privateKey, 'p256', Hash.Sha256), {
     'r': '3f4537ef9e72240cdefaea19d68fd483b5e10227e89747c58a3b543bfaf9cc46',
     's': '278d65adebd8d52dac34820c02cee0a0e3348f9aee91a21b8e9bfa0a23b40001',
     'v': 1
@@ -44,7 +45,7 @@ assert (equals (ecdsa (privateKey, privateKey, 'p256', undefined), {
     'v': 0,
 }));
 
-assert (equals (ecdsa ('1a', privateKey, 'secp256k1', 'sha256'), {
+assert (equals (ecdsa ('1a', privateKey, 'secp256k1', Hash.Sha256), {
     'r': '23dcb2a2a3728a35eb1a35cc01743c4609550d9cceaf2083550f13a9eb135f9f',
     's': '317963fcac18e4ec9f7921b97d7ea0c82a873dd6299cbfb6af016e08ef5ed667',
     'v': 0,

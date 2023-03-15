@@ -1,13 +1,19 @@
-
 /*  ------------------------------------------------------------------------ */
 
 import BN from '../../static_dependencies/BN/bn.cjs';
 import elliptic from '../../static_dependencies/elliptic/lib/elliptic.cjs';
 import NodeRSA from '../../static_dependencies/node-rsa/NodeRSA.cjs';
-import CryptoJS from '../../static_dependencies/crypto-js/crypto-js.cjs';
+import { sha1, hmacSHA1 } from '../../static_dependencies/crypto-js/sha1.js';
+import { sha3, hmacSHA3 } from '../../static_dependencies/crypto-js/sha3.js';
+import { sha256, hmacSHA256 } from '../../static_dependencies/crypto-js/sha256.js';
+import { sha384, hmacSHA384 }  from '../../static_dependencies/crypto-js/sha384.js';
+import { sha512, hmacSHA512 } from '../../static_dependencies/crypto-js/sha512.js';
+import { md5, hmacMD5 } from '../../static_dependencies/crypto-js/md5.js';
+import base64 from '../../static_dependencies/crypto-js/enc-base64.js';
+import { Hex, Latin1 } from '../../static_dependencies/crypto-js/core.js';
 
-import { capitalize } from './string.js';
-import { binaryToBase58, byteArrayToWordArray, urlencodeBase64, stringToBase64 } from './encode.js';
+import { Digest, Hash, Hmac } from "../types.js";
+import { binaryToBase58, byteArrayToWordArray, stringToBase64, urlencodeBase64 } from './encode.js';
 // import errors from './../errors.js'
 import { ExchangeError } from '../errors.js';
 
@@ -15,23 +21,45 @@ const EC = elliptic.ec;
 const EDDSA = elliptic.eddsa;
 /*  ------------------------------------------------------------------------ */
 
-const hash = (request, hash = 'md5', digest = 'hex') => {
+const hex = Hex
+const latin1 = Latin1
+const hashes = { md5, sha1, sha3, sha256, sha384, sha512 }
+const digests = { hex, base64, latin1 }
+
+const hash = (request, hash = Hash.Md5, digest = Digest.Hex) => {
     const options = {};
-    if (hash === 'keccak') {
-        hash = 'SHA3';
+    if (hash === Hash.Keccak) {
+        hash = Hash.Sha3;
         options['outputLength'] = 256;
     }
-    const result = CryptoJS[hash.toUpperCase ()] (request, options);
-    return (digest === 'binary') ? result : result.toString (CryptoJS.enc[capitalize (digest)]);
+    const encoder = hashes[hash]
+    const result = encoder (request, options)
+    if (digest === 'binary') {
+        return result
+    } else {
+        const digester = digests[digest]
+        return result.toString (digester)
+    }
 };
 
 /*  .............................................   */
 
-const hmac = (request, secret, hash = 'sha256', digest = 'hex') => {
-    const result = CryptoJS['Hmac' + hash.toUpperCase ()] (request, secret);
+const hmacs = {
+    [Hash.Md5]: hmacMD5,
+    [Hash.Sha1]: hmacSHA1,
+    [Hash.Sha3]: hmacSHA3,
+    [Hash.Sha256]: hmacSHA256,
+    [Hash.Sha384]: hmacSHA384,
+    [Hash.Sha512]: hmacSHA512,
+}
+
+const hmac = (request, secret, hash = Hmac.Sha256, digest = Digest.Hex) => {
+    const encoder = hmacs[hash]
+    const result = encoder (request, secret);
     if (digest) {
-        const encoding = (digest === 'binary') ? 'Latin1' : capitalize (digest);
-        return result.toString (CryptoJS.enc[capitalize (encoding)]);
+        const encoding = (digest === 'binary') ? 'latin1' : digest;
+        const digester = digests[encoding]
+        return result.toString (digester);
     }
     return result;
 };
@@ -70,7 +98,7 @@ function jwt (request, secret, alg = 'HS256') {
     const algorithm = algos[alg];
     let signature = undefined;
     if (algoType === 'HS') {
-        signature = urlencodeBase64 (hmac (token, secret, algorithm, 'base64'));
+        signature = urlencodeBase64 (hmac (token, secret, algorithm, Digest.Base64));
     } else if (algoType === 'RS') {
         signature = urlencodeBase64 (rsa (token, secret, alg));
     }
@@ -80,7 +108,7 @@ function jwt (request, secret, alg = 'HS256') {
 function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, fixedLength = false) {
     let digest = request;
     if (hashFunction !== undefined) {
-        digest = hash (request, hashFunction, 'hex');
+        digest = hash (request, hashFunction, Digest.Hex);
     }
     const curve = new EC (algorithm);
     let signature = curve.sign (digest, secret, 'hex', { 'canonical': true });
@@ -131,12 +159,11 @@ const totp = (secret) => {
         secret = secret.replace (' ', ''); // support 2fa-secrets with spaces like "4TDV WOGO" → "4TDVWOGO"
         const epoch = Math.round (new Date ().getTime () / 1000.0);
         const time = leftpad (dec2hex (Math.floor (epoch / 30)), '0000000000000000');
-        const hmacRes = hmac (CryptoJS.enc.Hex.parse (time), CryptoJS.enc.Hex.parse (base32tohex (secret)), 'sha1', 'hex');
+        const hmacRes = hmac (hex.parse (time), hex.parse (base32tohex (secret)), Hmac.Sha1, Digest.Hex);
         const offset = hex2dec (hmacRes.substring (hmacRes.length - 1));
         // eslint-disable-next-line
         let otp = (hex2dec (hmacRes.substr (offset * 2, 8)) & hex2dec ('7fffffff')) + '';
-        otp = (otp).substr (otp.length - 6, 6);
-        return otp;
+        return otp.substring (otp.length - 6, otp.length);
     };
 
     return getOTP (secret);

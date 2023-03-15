@@ -3,7 +3,7 @@
  */
 
 var BigInteger = require('../libs/jsbn.cjs');
-var CryptoJS = require('../../crypto-js/crypto-js.js');
+var CryptoJS = require('../../crypto-js/crypto-js.cjs');
 var constants = { RSA_NO_PADDING: 3 }
 var Buffer = require('buffer').Buffer;
 
