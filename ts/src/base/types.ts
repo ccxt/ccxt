@@ -206,6 +206,7 @@ export enum Hash {
 }
 
 export enum Hmac {
+    Md5 = 'md5',
     Sha1 = 'sha1',
     Sha3 = 'sha3',
     Sha256 = 'sha256',

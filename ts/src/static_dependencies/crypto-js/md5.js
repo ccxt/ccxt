@@ -204,4 +204,3 @@ const md5 = Hasher._createHelper(MD5);
  */
 const hmacMD5 = Hasher._createHmacHelper(MD5);
 export { md5, hmacMD5 };
-export default hmacMD5;

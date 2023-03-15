@@ -695,5 +695,5 @@ var Hasher = C_lib.Hasher = BufferedBlockAlgorithm.extend({
  */
 var C_algo = C.algo = {};
 
-export { WordArray, Latin1, Hex, Base, Hasher };
+export { WordArray, Latin1, Hex, Utf8, Base, Hasher };
 export default C;
