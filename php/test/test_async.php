@@ -239,7 +239,7 @@ class testMainClass extends emptyClass {
                 $isAuthError = ($e instanceof AuthenticationError);
                 if ($isPublic && $isAuthError) {
                     dump ('[Skipped private]', $exchange->id, $methodNameInTest, ' - method req' . 'uires authentication, skipped from public tests');
-                    // do not throw exception from here, as it's public test and exception is destined to be thrown from private
+                    // do not throw exception from here,'s public test and exception is destined to be thrown from private
                 } else {
                     dump (exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
                     throw $e;

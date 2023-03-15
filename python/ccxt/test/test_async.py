@@ -251,7 +251,7 @@ class testMainClass(emptyClass):
             isAuthError = (isinstance(e, AuthenticationError))
             if isPublic and isAuthError:
                 dump('[Skipped private]', exchange.id, methodNameInTest, ' - method req' + 'uires authentication, skipped from public tests')
-                # do not raise exception from here, as it's public test and exception is destined to be thrown from private
+                # do not raise exception from here,'s public test and exception is destined to be thrown from private
             else:
                 dump(exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
                 raise e
