@@ -4,7 +4,7 @@ import wooRest from '../woo.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { Hmac, Digest } from '../base/types.js';
+import { Hmac } from '../base/types.js';
 
 // ----------------------------------------------------------------------------
 

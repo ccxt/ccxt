@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hmac, Digest } from './base/types.js';
+import { Hmac } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 

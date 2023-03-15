@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Hmac, Digest } from './base/types.js';
+import { Hmac } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 

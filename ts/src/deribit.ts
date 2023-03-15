@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Hmac, Digest } from './base/types.js';
+import { Hmac } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class deribit extends Exchange {

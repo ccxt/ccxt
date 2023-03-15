@@ -4,7 +4,7 @@ import { Exchange } from './base/Exchange.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
-import { Hmac, Digest, Hash } from './base/types.js';
+import { Hmac, Hash } from './base/types.js';
 
 export default class gate extends Exchange {
     describe () {

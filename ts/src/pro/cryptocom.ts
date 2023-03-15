@@ -4,7 +4,7 @@
 import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Hmac, Digest } from '../base/types.js';
+import { Hmac } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 

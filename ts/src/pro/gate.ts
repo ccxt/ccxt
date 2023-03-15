@@ -2,13 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import gateRest from '../gate.js';
-import {
-    AuthenticationError,
-    BadRequest,
-    ArgumentsRequired,
-    NotSupported,
-    InvalidNonce,
-} from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Hmac, Digest } from '../base/types.js';
 
