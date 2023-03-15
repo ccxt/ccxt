@@ -268,11 +268,11 @@ export default class Exchange {
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
-        this.orders = {};
+        this.orders = undefined;
         this.trades = {};
         this.transactions = {};
         this.ohlcvs = {};
-        this.myTrades = {};
+        this.myTrades = undefined;
         this.positions = {};
         // web3 and cryptography flags
         this.requiresWeb3 = false;
