@@ -352,11 +352,6 @@ export default class mexc3 extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'unavailableContracts': {
-                    'BTC/USDT:USDT': true,
-                    'LTC/USDT:USDT': true,
-                    'ETH/USDT:USDT': true,
-                },
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
@@ -1837,11 +1832,6 @@ export default class mexc3 extends Exchange {
     async createSwapOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         await this.loadMarkets ();
         const symbol = market['symbol'];
-        const unavailableContracts = this.safeValue (this.options, 'unavailableContracts', {});
-        const isContractUnavaiable = this.safeValue (unavailableContracts, symbol, false);
-        if (isContractUnavaiable) {
-            throw new NotSupported (this.id + ' createSwapOrder() does not support yet this symbol:' + symbol);
-        }
         let openType = undefined;
         if (marginMode !== undefined) {
             if (marginMode === 'cross') {
