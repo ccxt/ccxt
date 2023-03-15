@@ -1,6 +1,6 @@
 'use strict';
 
-var CryptoJS = require('../../../crypto-js/crypto-js.cjs');
+var CryptoJS = require('../../../crypto-js/crypto-js.js');
 var assert = require('../elliptic/utils.cjs').assert;
 var utils = require ('../elliptic/utils.cjs')
 
