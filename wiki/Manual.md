@@ -1902,7 +1902,6 @@ if ($exchange->has['fetchMyTrades']) {
 - [Leverage Tiers](#leverage-tiers)
 - [Funding Rate](#funding-rate)
 - [Funding Rate History](#funding-rate-history)
-- [Positions Risk](#positions-risk)
 - [Open Interest History](#open-interest-history)
 
 ## Order Book
@@ -2908,52 +2907,6 @@ Returns
         sumOpenInterestValue: '3508262107.38000000',
         timestamp: '1649379000000'
     }
-}
-```
-
-## Positions Risk
-
-*contract only*
-
-```javascript
-fetchPositionsRisk (symbols = undefined, params = {})
-```
-
-Parameters
-
-- **symbols** (\[String\]) Unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
-
-Returns
-
-- A [position risk structures](#position-risk-structure)
-
-#### Positions Risk Structure
-
-```javascript
-{
-    info: { ... },
-    symbol: 'CTSI/USDT',
-    contracts: 0,
-    contractSize: 1,
-    unrealizedPnl: 0,
-    leverage: 20,
-    liquidationPrice: 0.7313,
-    collateral: 0,
-    notional: 0,
-    markPrice: 0.7724,
-    entryPrice: 0,
-    timestamp: 1647420354000,
-    initialMargin: 0,
-    initialMarginPercentage: 0.05,
-    maintenanceMargin: 0,
-    maintenanceMarginPercentage: 0.01,
-    marginRatio: 0.4881,
-    datetime: "2022-03-16T08:45:54.000Z",
-    marginMode: 'cross',
-    side: "long",
-    hedged: false,
-    percentage: 78
 }
 ```
 
