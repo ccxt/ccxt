@@ -214,6 +214,8 @@
   },
   "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
   "dependencies": {
+    "crypto-js": "^4.1.1",
+    "eth-sig-util": "^3.0.1",
     "ws": "^8.8.1"
   }
 }
