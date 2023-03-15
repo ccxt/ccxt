@@ -6,12 +6,12 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -266,7 +266,7 @@ class bit2c(Exchange):
             'pair': market['id'],
         }
         orderbook = await self.publicGetExchangesPairOrderbook(self.extend(request, params))
-        return self.parse_order_book(orderbook, market['symbol'])
+        return self.parse_order_book(orderbook, symbol)
 
     def parse_ticker(self, ticker, market=None):
         symbol = self.safe_symbol(None, market)
@@ -328,7 +328,7 @@ class bit2c(Exchange):
             'pair': market['id'],
         }
         if since is not None:
-            request['date'] = int(since)
+            request['date'] = self.parse_to_int(since)
         if limit is not None:
             request['limit'] = limit  # max 100000
         response = await getattr(self, method)(self.extend(request, params))
@@ -540,17 +540,17 @@ class bit2c(Exchange):
                 status = 'closed'
         # bit2c order type:
         # 0 = LMT,  1 = MKT
-        type = self.safe_integer(orderUnified, 'order_type')
-        if type == 0:
+        type = self.safe_string(orderUnified, 'order_type')
+        if type == '0':
             type = 'limit'
-        elif type == 1:
+        elif type == '1':
             type = 'market'
         # bit2c side:
         # 0 = buy, 1 = sell
-        side = self.safe_integer(orderUnified, 'type')
-        if side == 0:
+        side = self.safe_string(orderUnified, 'type')
+        if side == '0':
             side = 'buy'
-        elif side == 1:
+        elif side == '1':
             side = 'sell'
         price = self.safe_string(orderUnified, 'price')
         amount = None

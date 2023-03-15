@@ -648,7 +648,7 @@ class bitso extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitso api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -970,10 +970,10 @@ class bitso extends Exchange {
             }
             $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
             $id = $this->safe_string($response['payload'], 'oid');
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $id,
-            );
+            ), $market);
         }) ();
     }
 

@@ -461,7 +461,7 @@ class currencycom extends Exchange {
                 $spot = ($type === 'SPOT');
                 $futures = false;
                 $swap = ($type === 'LEVERAGE');
-                $margin = $swap; // as we decided to set
+                $margin = $swap; // decided to set
                 if ($swap) {
                     $symbol = str_replace($this->options['leverage_markets_suffix'], '', $symbol);
                     $symbol .= ':' . $quote;
@@ -971,7 +971,7 @@ class currencycom extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1383,7 +1383,7 @@ class currencycom extends Exchange {
             } elseif ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
                 $symbols = $this->symbols;
                 $numSymbols = count($symbols);
-                $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
+                $fetchOpenOrdersRateLimit = $this->parse_to_int($numSymbols / 2);
                 throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
             }
             $response = Async\await($this->privateGetV2OpenOrders (array_merge($request, $params)));

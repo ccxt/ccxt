@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import ArgumentsRequired
@@ -18,6 +17,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -1215,7 +1215,7 @@ class mexc(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the mexc api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1232,13 +1232,13 @@ class mexc(Exchange):
         if market['spot']:
             method = 'spotPublicGetMarketKline'
             if since is not None:
-                request['start_time'] = int(since / 1000)
+                request['start_time'] = self.parse_to_int(since / 1000)
             if limit is not None:
                 request['limit'] = limit  # default 100
         elif market['swap']:
             method = 'contractPublicGetKlineSymbol'
             if since is not None:
-                request['start'] = int(since / 1000)
+                request['start'] = self.parse_to_int(since / 1000)
             # request['end'] = self.seconds()
         response = getattr(self, method)(self.extend(request, params))
         #

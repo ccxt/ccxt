@@ -602,7 +602,7 @@ class kuna extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $trades = $this->fetch_trades($symbol, $since, $limit, $params);
@@ -773,7 +773,7 @@ class kuna extends Exchange {
         $response = $this->privateGetOrders (array_merge($request, $params));
         // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         // with order cache . fetchOpenOrders
-        // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
+        // BTC-e, Liqui, Yobit, DSX, Tidex, WEX
         return $this->parse_orders($response, $market, $since, $limit);
     }
 

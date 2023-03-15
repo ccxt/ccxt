@@ -12,8 +12,6 @@ use React\Async;
 
 class bitmex extends \ccxt\async\bitmex {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -988,7 +986,7 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitmex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1223,7 +1221,7 @@ class bitmex extends \ccxt\async\bitmex {
     public function handle_system_status($client, $message) {
         //
         // todo answer the question whether handleSystemStatus should be renamed
-        // and unified as handleStatus for any usage pattern that
+        // and unified for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -1268,7 +1266,7 @@ class bitmex extends \ccxt\async\bitmex {
         $error = $this->safe_value($message, 'error');
         if ($error !== null) {
             $request = $this->safe_value($message, 'request', array());
-            $args = $this->safe_string($request, 'args', array());
+            $args = $this->safe_value($request, 'args', array());
             $numArgs = count($args);
             if ($numArgs > 0) {
                 $messageHash = $args[0];

@@ -393,6 +393,7 @@ class coinex extends Exchange {
             $this->fetch_spot_markets($params),
             $this->fetch_contract_markets($params),
         );
+        $promises = $promises;
         $spotMarkets = $promises[0];
         $swapMarkets = $promises[1];
         return $this->array_concat($spotMarkets, $swapMarkets);
@@ -1188,7 +1189,7 @@ class coinex extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the coinex api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1653,22 +1654,26 @@ class coinex extends Exchange {
             $feeCurrency = $market['quote'];
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $side = $this->safe_integer($order, 'side');
-        if ($side === 1) {
+        $rawSide = $this->safe_integer($order, 'side');
+        $side = null;
+        if ($rawSide === 1) {
             $side = 'sell';
-        } elseif ($side === 2) {
+        } elseif ($rawSide === 2) {
             $side = 'buy';
         } else {
             $side = $this->safe_string($order, 'type');
         }
-        $type = $this->safe_string($order, 'order_type');
-        if ($type === null) {
+        $rawType = $this->safe_string($order, 'order_type');
+        $type = null;
+        if ($rawType === null) {
             $type = $this->safe_integer($order, 'type');
             if ($type === 1) {
                 $type = 'limit';
             } elseif ($type === 2) {
                 $type = 'market';
             }
+        } else {
+            $type = $rawType;
         }
         return $this->safe_order(array(
             'id' => $this->safe_string_2($order, 'id', 'order_id'),
@@ -1728,7 +1733,7 @@ class coinex extends Exchange {
         $isMarketOrder = $type === 'market';
         $postOnly = $this->is_post_only($isMarketOrder, $option === 'MAKER_ONLY', $params);
         $positionId = $this->safe_integer_2($params, 'position_id', 'positionId'); // Required for closing $swap positions
-        $timeInForce = $this->safe_string($params, 'timeInForce'); // Spot => IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
+        $timeInForceRaw = $this->safe_string($params, 'timeInForce'); // Spot => IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         if ($reduceOnly !== null) {
             if ($market['type'] !== 'swap') {
@@ -1769,13 +1774,14 @@ class coinex extends Exchange {
                     }
                     $request['amount'] = $this->amount_to_precision($symbol, $amount);
                 }
+                $timeInForce = null;
                 if (($type !== 'market') || ($stopPrice !== null)) {
                     if ($postOnly) {
                         $request['option'] = 1;
-                    } elseif ($timeInForce !== null) {
-                        if ($timeInForce === 'IOC') {
+                    } elseif ($timeInForceRaw !== null) {
+                        if ($timeInForceRaw === 'IOC') {
                             $timeInForce = 2;
-                        } elseif ($timeInForce === 'FOK') {
+                        } elseif ($timeInForceRaw === 'FOK') {
                             $timeInForce = 3;
                         } else {
                             $timeInForce = 1;
@@ -1835,15 +1841,15 @@ class coinex extends Exchange {
             }
             if (($type !== 'market') || ($stopPrice !== null)) {
                 // following options cannot be applied to vanilla $market orders (but can be applied to stop-$market orders)
-                if (($timeInForce !== null) || $postOnly) {
-                    if (($postOnly || ($timeInForce !== 'IOC')) && (($type === 'limit') && ($stopPrice !== null))) {
+                if (($timeInForceRaw !== null) || $postOnly) {
+                    if (($postOnly || ($timeInForceRaw !== 'IOC')) && (($type === 'limit') && ($stopPrice !== null))) {
                         throw new InvalidOrder($this->id . ' createOrder() only supports the IOC $option for stop-limit orders');
                     }
                     if ($postOnly) {
                         $request['option'] = 'MAKER_ONLY';
                     } else {
-                        if ($timeInForce !== null) {
-                            $request['option'] = $timeInForce; // exchange takes 'IOC' and 'FOK'
+                        if ($timeInForceRaw !== null) {
+                            $request['option'] = $timeInForceRaw; // exchange takes 'IOC' and 'FOK'
                         }
                     }
                 }

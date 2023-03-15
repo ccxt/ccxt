@@ -11,8 +11,6 @@ use React\Async;
 
 class bitrue extends \ccxt\async\bitrue {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(

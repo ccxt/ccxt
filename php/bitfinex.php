@@ -991,7 +991,7 @@ class bitfinex extends Exchange {
             'limit_trades' => $limit,
         );
         if ($since !== null) {
-            $request['timestamp'] = intval($since / 1000);
+            $request['timestamp'] = $this->parse_to_int($since / 1000);
         }
         $response = $this->publicGetTradesSymbol (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
@@ -1018,7 +1018,7 @@ class bitfinex extends Exchange {
             $request['limit_trades'] = $limit;
         }
         if ($since !== null) {
-            $request['timestamp'] = intval($since / 1000);
+            $request['timestamp'] = $this->parse_to_int($since / 1000);
         }
         $response = $this->privatePostMytrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
@@ -1278,7 +1278,7 @@ class bitfinex extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bitfinex api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         if ($limit === null) {
@@ -1383,7 +1383,7 @@ class bitfinex extends Exchange {
         }
         $query['currency'] = $currencyId;
         if ($since !== null) {
-            $query['since'] = intval($since / 1000);
+            $query['since'] = $this->parse_to_int($since / 1000);
         }
         $response = $this->privatePostHistoryMovements (array_merge($query, $params));
         //

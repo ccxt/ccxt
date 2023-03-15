@@ -376,7 +376,7 @@ class mercado extends Exchange {
         );
         if ($since !== null) {
             $method .= 'From';
-            $request['from'] = intval($since / 1000);
+            $request['from'] = $this->parse_to_int($since / 1000);
         }
         $to = $this->safe_integer($params, 'to');
         if ($to !== null) {
@@ -450,10 +450,10 @@ class mercado extends Exchange {
         }
         $response = $this->$method (array_merge($request, $params));
         // TODO => replace this with a call to parseOrder for unification
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => (string) $response['response_data']['order']['order_id'],
-        );
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -727,7 +727,7 @@ class mercado extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of $candles to fetch
          * @param {array} $params extra parameters specific to the mercado api endpoint
-         * @return {[[int]]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of $candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -736,10 +736,10 @@ class mercado extends Exchange {
             'symbol' => $market['base'] . '-' . $market['quote'], // exceptional endpoint, that needs custom $symbol syntax
         );
         if ($limit === null) {
-            $limit = 100; // set some default $limit, as it's required if user doesn't provide it
+            $limit = 100; // set some default $limit,'s required if user doesn't provide it
         }
         if ($since !== null) {
-            $request['from'] = intval($since / 1000);
+            $request['from'] = $this->parse_to_int($since / 1000);
             $request['to'] = $this->sum($request['from'], $limit * $this->parse_timeframe($timeframe));
         } else {
             $request['to'] = $this->seconds();

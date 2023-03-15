@@ -5,10 +5,10 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -561,7 +561,7 @@ class btcalpha(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the btcalpha api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -572,7 +572,7 @@ class btcalpha(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['since'] = int(since / 1000)
+            request['since'] = self.parse_to_int(since / 1000)
         response = self.publicGetChartsPairTypeChart(self.extend(request, params))
         #
         #     [

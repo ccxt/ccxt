@@ -6,13 +6,13 @@
 from ccxt.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -447,7 +447,7 @@ class btcbox(Exchange):
         #
         orders = self.parse_orders(response, market, since, limit)
         # status(open/closed/canceled) is None
-        # btcbox does not return status, but we know it's 'open' as we queried for open orders
+        # btcbox does not return status, but we know it's 'open' queried for open orders
         if type == 'open':
             for i in range(0, len(orders)):
                 orders[i]['status'] = 'open'

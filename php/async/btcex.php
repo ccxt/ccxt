@@ -7,10 +7,10 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
+use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 

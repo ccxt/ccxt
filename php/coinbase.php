@@ -856,7 +856,7 @@ class coinbase extends Exchange {
             'amount' => $amountString,
             'cost' => $cost,
             'fee' => array(
-                'cost' => $this->safe_number($feeObject, 'amount', $v3FeeCost),
+                'cost' => $this->safe_number($feeObject, 'amount', $this->parse_number($v3FeeCost)),
                 'currency' => $this->safe_currency_code($feeCurrencyId),
             ),
         ));
@@ -2523,7 +2523,7 @@ class coinbase extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of $candles to fetch, not used by coinbase
          * @param {array} $params extra parameters specific to the coinbase api endpoint
-         * @return {[[int]]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of $candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);

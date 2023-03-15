@@ -2,24 +2,26 @@
 // Usage: npm run transpileWs
 // ---------------------------------------------------------------------------
 
-"use strict";
+import fs from 'fs';
+import log from 'ololog';
+import ccxt from '../js/ccxt.js';
+import ansi  from 'ansicolor'
+import {
+    replaceInFile,
+    copyFile,
+    overwriteFile,
+    createFolder,
+    createFolderRecursively,
+} from './fsLocal.js';
+import Exchange from '../js/src/base/Exchange.js';
+import {  Transpiler, parallelizeTranspiling, isMainEntry } from './transpile.js';
 
-const fs = require ('fs')
-    , log = require ('ololog')
-    , ansi = require ('ansicolor').nice
-    , { unCamelCase, precisionConstants, safeString, unique } = require ('../js/base/functions.js')
-    , {
-        createFolderRecursively,
-        overwriteFile,
-        replaceInFile,
-    } = require ('./fs.js')
-    , errors = require ('../js/base/errors.js')
-    , { Transpiler, parallelizeTranspiling } = require ('./transpile.js')
-    , Exchange = require ('../js/pro/base/Exchange.js')
-    , tsFilename = './ccxt.d.ts'
+const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
+const wsExchangeIds = exchanges.ws;
 
-    const wsExchangeIds = require ('../exchanges.json').ws
+const { unCamelCase, precisionConstants, safeString, unique } = ccxt;
 
+ansi.nice
 // ============================================================================
 
 class CCXTProTranspiler extends Transpiler {
@@ -64,9 +66,9 @@ class CCXTProTranspiler extends Transpiler {
 
     createPythonClassDeclaration (className, baseClass) {
         const baseClasses = (baseClass.indexOf ('Rest') >= 0) ?
-            [ 'Exchange', 'ccxt.async_support.' + baseClass.replace('Rest', '') ] :
+            [ 'ccxt.async_support.' + baseClass.replace('Rest', '') ] :
             [ baseClass ]
-        return 'class ' + className + '(' + baseClasses.join (', ') + '):'
+        return 'class ' + className + '(' +  baseClasses.join (', ') + '):'
     }
 
     createPythonClassImports (baseClass, async = false) {
@@ -78,10 +80,9 @@ class CCXTProTranspiler extends Transpiler {
         async = (async ? '.async_support' : '')
 
         if (baseClass.indexOf ('Rest') >= 0) {
-            baseClass = baseClass.replace ('Rest', '')
             return [
-                'from ccxt.pro.base.exchange import Exchange',
-                'import ccxt' + async
+                // 'from ccxt.async_support' + ' import ' + baseClass,
+                "import ccxt.async_support"
             ]
         } else {
             return [
@@ -102,7 +103,7 @@ class CCXTProTranspiler extends Transpiler {
         const arrayCacheClasses = bodyAsString.match (/\bArrayCache(?:[A-Z][A-Za-z]+)?\b/g)
         if (arrayCacheClasses) {
             const uniqueArrayCacheClasses = unique (arrayCacheClasses).sort ()
-            const arrayCacheImport = 'from ccxt.pro.base.cache import ' + uniqueArrayCacheClasses.join (', ')
+            const arrayCacheImport = 'from ccxt.async_support.base.ws.cache import ' + uniqueArrayCacheClasses.join (', ')
             imports.push (arrayCacheImport)
         }
         return [
@@ -119,12 +120,12 @@ class CCXTProTranspiler extends Transpiler {
         let lines = [
             'class ' + className + ' extends ' + '\\ccxt\\async\\' +  baseClass.replace ('Rest', '') + ' {',
         ]
-        if (baseClass.indexOf ('Rest') >= 0) {
-            lines = lines.concat ([
-                '',
-                '    use ClientTrait;'
-            ])
-        }
+        // if (baseClass.indexOf ('Rest') >= 0) {
+        //     lines = lines.concat ([
+        //         '',
+        //         // '    use ClientTrait;'
+        //     ])
+        // }
         return lines.join ("\n")
     }
 
@@ -148,12 +149,12 @@ class CCXTProTranspiler extends Transpiler {
     // ------------------------------------------------------------------------
 
     transpileOrderBookTest () {
-        const jsFile = './js/pro/test/base/test.OrderBook.js'
+        const jsFile = './ts/src/pro/test/base/test.OrderBook.ts'
         const pyFile = './python/ccxt/pro/test/test_order_book.py'
         const phpFile = './php/pro/test/OrderBook.php'
         const pyImports = [
             '',
-            'from ccxt.pro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402',
+            'from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402',
             '',
         ].join ('\n')
         this.transpileTest (jsFile, pyFile, phpFile, pyImports)
@@ -162,12 +163,12 @@ class CCXTProTranspiler extends Transpiler {
     // ------------------------------------------------------------------------
 
     transpileCacheTest () {
-        const jsFile = './js/pro/test/base/test.Cache.js'
+        const jsFile = './ts/src/pro/test/base/test.Cache.ts'
         const pyFile = './python/ccxt/pro/test/test_cache.py'
         const phpFile = './php/pro/test/Cache.php'
         const pyImports = [
             '',
-            'from ccxt.pro.base.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402',
+            'from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402',
             '',
         ].join ('\n')
         this.transpileTest (jsFile, pyFile, phpFile, pyImports)
@@ -183,8 +184,11 @@ class CCXTProTranspiler extends Transpiler {
 
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
-            [ /[^\n]+require[^\n]+\n/g, '' ],
-            [ /function equals \([\S\s]+?return true;\n}\n/g, '' ],
+            //[ /[^\n]+require[^\n]+\n/g, '' ],
+            [ /[^\n]+from[^\n]+\n/g, '' ],
+            [ /\/\* eslint-disable \*\/\n*/g, '' ],
+            [ /export default\s+[^\n]+;*\n*/g, '' ],
+            [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
         ])
 
         const options = { js, removeEmptyLines: false }
@@ -220,7 +224,7 @@ class CCXTProTranspiler extends Transpiler {
     exportTypeScriptClassNames (file, classes) {
 
         log.bright.cyan ('Exporting WS TypeScript class names →', file.yellow)
-        
+
         const commonImports = [
             '        export const exchanges: string[]',
             '        class Exchange  extends ExchangePro {}'
@@ -239,19 +243,11 @@ class CCXTProTranspiler extends Transpiler {
         replacements.forEach (({ file, regex, replacement }) => {
             replaceInFile (file, regex, replacement)
         })
-        
-    }
-    
-    // -----------------------------------------------------------------------
-    
-    async exportTypeScriptDeclarations (file, jsFolder) {
 
-        const classes = await this.getTSClassDeclarationsAllFiles (wsExchangeIds, jsFolder);
-        this.exportTypeScriptClassNames (file, classes)
     }
 
     // -----------------------------------------------------------------------
-    
+
     async transpileEverything (force = false, child = false) {
 
         // default pattern is '.js'
@@ -259,15 +255,16 @@ class CCXTProTranspiler extends Transpiler {
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
             // , python2Folder = './python/ccxtpro/', // CCXT Pro does not support Python 2
             , python3Folder = './python/ccxt/pro/'
-            , phpAsyncFolder     = './php/pro/'
-            , jsFolder = './js/pro/'
+            , phpAsyncFolder = './php/pro/'
+            , jsFolder = './js/src/pro/'
+            , tsFolder = './ts/src/pro/'
             , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, exchanges }
 
         // createFolderRecursively (python2Folder)
         createFolderRecursively (python3Folder)
         createFolderRecursively (phpAsyncFolder)
 
-        const classes = this.transpileDerivedExchangeFiles (jsFolder, options, '.js', force, child || exchanges.length)
+        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
 
         if (child) {
             return
@@ -281,10 +278,6 @@ class CCXTProTranspiler extends Transpiler {
             log.bright.yellow ('0 files transpiled.')
             return;
         }
-
-        // HINT: if we're going to support specific class definitions
-        // this process won't work anymore as it will override the definitions
-        await this.exportTypeScriptDeclarations (tsFilename, jsFolder)
 
         //*/
 
@@ -300,11 +293,7 @@ class CCXTProTranspiler extends Transpiler {
 
 // ============================================================================
 // main entry point
-
-if (require.main === module) {
-
-    // if called directly like `node module`
-
+if (isMainEntry(import.meta.url)) { // called directly like `node module`
     const transpiler = new CCXTProTranspiler ()
     const force = process.argv.includes ('--force')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
@@ -313,7 +302,7 @@ if (require.main === module) {
         log.bright.green ({ force })
     }
     if (multiprocess) {
-        parallelizeTranspiling (wsExchangeIds)
+        parallelizeTranspiling (exchanges.ws)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)
@@ -327,4 +316,4 @@ if (require.main === module) {
 
 // ============================================================================
 
-module.exports = CCXTProTranspiler
+export default CCXTProTranspiler

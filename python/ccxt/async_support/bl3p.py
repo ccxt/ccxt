@@ -344,10 +344,10 @@ class bl3p(Exchange):
             order['price_int'] = int(Precise.string_mul(priceString, '100000.0'))
         response = await self.privatePostMarketMoneyOrderAdd(self.extend(order, params))
         orderId = self.safe_string(response['data'], 'order_id')
-        return {
+        return self.safe_order({
             'info': response,
             'id': orderId,
-        }
+        }, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """
