@@ -447,10 +447,10 @@ class zaif(Exchange):
             'price': price,
         }
         response = self.privatePostTrade(self.extend(request, params))
-        return {
+        return self.safe_order({
             'info': response,
             'id': str(response['return']['order_id']),
-        }
+        }, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         """

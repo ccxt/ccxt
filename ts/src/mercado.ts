@@ -461,10 +461,10 @@ export default class mercado extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         // TODO: replace this with a call to parseOrder for unification
-        return {
+        return this.safeOrder ({
             'info': response,
             'id': response['response_data']['order']['order_id'].toString (),
-        };
+        }, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -845,7 +845,7 @@ export default class mercado extends Exchange {
         const ordersRaw = this.safeValue (responseData, 'orders', []);
         const orders = this.parseOrders (ordersRaw, market, since, limit);
         const trades = this.ordersToTrades (orders);
-        return this.filterBySymbolSinceLimit (trades, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (trades, market['symbol'], since, limit) as any;
     }
 
     ordersToTrades (orders) {

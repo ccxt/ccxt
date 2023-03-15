@@ -641,10 +641,10 @@ class bitforex extends Exchange {
         );
         $response = $this->privatePostApiV1TradePlaceOrder (array_merge($request, $params));
         $data = $response['data'];
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $this->safe_string($data, 'orderId'),
-        );
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

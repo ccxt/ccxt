@@ -810,10 +810,10 @@ class luno extends Exchange {
             $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
         }
         $response = $this->$method (array_merge($request, $params));
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $response['order_id'],
-        );
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

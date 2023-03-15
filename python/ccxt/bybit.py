@@ -3193,6 +3193,10 @@ class bybit(Exchange):
             market = self.market(symbol)
         type = None
         type, params = self.handle_market_type_and_params('fetchOrder', market, params)
+        accounts = self.is_unified_enabled()
+        isUnifiedAccount = self.safe_value(accounts, 1, False)
+        if isUnifiedAccount:
+            raise NotSupported(self.id + ' fetchOrder() does not support unified account. Please consider using fetchOpenOrders() or fetchClosedOrders()')
         if type == 'spot':
             # only spot markets have a dedicated endpoint for fetching a order
             request = {
@@ -3287,7 +3291,6 @@ class bybit(Exchange):
             'symbol': market['id'],
             'side': self.capitalize(side),
             'orderType': self.capitalize(lowerCaseType),  # limit or market
-            'qty': self.amount_to_precision(symbol, amount),
             # 'timeInForce': 'GTC',  # IOC, FOK, PostOnly
             # 'takeProfit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stopLoss': 123.45,  # stop loss price, only take effect upon opening the position
@@ -3317,6 +3320,21 @@ class bybit(Exchange):
             request['category'] = 'option'
         else:
             raise NotSupported(self.id + ' createOrder does not allow inverse market orders for ' + symbol + ' markets')
+        if market['spot'] and (type == 'market') and (side == 'buy'):
+            # for market buy it requires the amount of quote currency to spend
+            if self.options['createMarketBuyOrderRequiresPrice']:
+                cost = self.safe_number(params, 'cost')
+                params = self.omit(params, 'cost')
+                if price is None and cost is None:
+                    raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                else:
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    quoteAmount = Precise.string_mul(amountString, priceString)
+                    amount = cost if (cost is not None) else self.parse_number(quoteAmount)
+                    request['qty'] = self.cost_to_precision(symbol, amount)
+        else:
+            request['qty'] = self.amount_to_precision(symbol, amount)
         isMarket = lowerCaseType == 'market'
         isLimit = lowerCaseType == 'limit'
         if isLimit:
@@ -7663,6 +7681,7 @@ class bybit(Exchange):
             self.check_required_credentials()
             isOpenapi = url.find('openapi') >= 0
             isV3UnifiedMargin = url.find('unified/v3') >= 0
+            isV3Contract = url.find('contract/v3') >= 0
             isV5UnifiedAccount = url.find('v5') >= 0
             timestamp = str(self.nonce())
             if isOpenapi:
@@ -7680,14 +7699,14 @@ class bybit(Exchange):
                     'X-BAPI-TIMESTAMP': timestamp,
                     'X-BAPI-SIGN': signature,
                 }
-            elif isV3UnifiedMargin or isV5UnifiedAccount:
+            elif isV3UnifiedMargin or isV3Contract or isV5UnifiedAccount:
                 headers = {
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': self.apiKey,
                     'X-BAPI-TIMESTAMP': timestamp,
                     'X-BAPI-RECV-WINDOW': str(self.options['recvWindow']),
                 }
-                if isV3UnifiedMargin:
+                if isV3UnifiedMargin or isV3Contract:
                     headers['X-BAPI-SIGN-TYPE'] = '2'
                 query = params
                 queryEncoded = self.rawencode(query)

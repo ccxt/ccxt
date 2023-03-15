@@ -843,10 +843,10 @@ class luno extends Exchange {
                 $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $response['order_id'],
-            );
+            ), $market);
         }) ();
     }
 

@@ -713,10 +713,10 @@ export default class indodax extends Exchange {
         const result = await this.privatePostTrade(this.extend(request, params));
         const data = this.safeValue(result, 'return', {});
         const id = this.safeString(data, 'order_id');
-        return {
+        return this.safeOrder({
             'info': result,
             'id': id,
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

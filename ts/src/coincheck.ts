@@ -594,10 +594,10 @@ export default class coincheck extends Exchange {
         }
         const response = await (this as any).privatePostExchangeOrders (this.extend (request, params));
         const id = this.safeString (response, 'id');
-        return {
-            'info': response,
+        return this.safeOrder ({
             'id': id,
-        };
+            'info': response,
+        }, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
