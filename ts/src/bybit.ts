@@ -231,6 +231,8 @@ export default class bybit extends Exchange {
                         'v5/market/delivery-price': 1,
                         'v5/spot-lever-token/info': 1,
                         'v5/spot-lever-token/reference': 1,
+                        'v5/ins-loan/product-infos': 1,
+                        'v5/ins-loan/ensure-tokens': 1,
                     },
                 },
                 'private': {
@@ -382,6 +384,15 @@ export default class bybit extends Exchange {
                         // user
                         'v5/user/query-sub-members': 10,
                         'v5/user/query-api': 10,
+                        'v5/spot-cross-margin-trade/loan-info': 1,
+                        'v5/spot-cross-margin-trade/account': 1,
+                        'v5/spot-cross-margin-trade/orders': 1,
+                        'v5/spot-cross-margin-trade/repay-history': 1,
+                        'v5/spot-cross-margin-trade/pledge-token': 1,
+                        'v5/spot-cross-margin-trade/borrow-token': 1,
+                        'v5/ins-loan/loan-order': 1,
+                        'v5/ins-loan/repaid-history': 1,
+                        'v5/ins-loan/ltv': 1,
                     },
                     'post': {
                         // inverse swap
@@ -560,6 +571,9 @@ export default class bybit extends Exchange {
                         'v5/spot-lever-token/order-record': 2.5,
                         'v5/spot-margin-trade/switch-mode': 2.5,
                         'v5/spot-margin-trade/set-leverage': 2.5,
+                        'v5/spot-cross-margin-trade/loan': 2.5,
+                        'v5/spot-cross-margin-trade/repay': 2.5,
+                        'v5/spot-cross-margin-trade/switch': 2.5,
                         // user
                         'v5/user/create-sub-member': 10,
                         'v5/user/create-sub-api': 10,
