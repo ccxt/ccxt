@@ -1493,16 +1493,15 @@ To use the async version of the library, use the `ccxt_async` namespace, as in t
 ```php
 // PHP
 <?php
-include 'ccxt.php';
+include 'vendor/autoload.php';
 
-$loop = \React\EventLoop\Factory::create();
-$kernel = \Recoil\React\ReactKernel::create($loop);
-$kernel->execute(function() use ($loop, $kernel) {
-    $poloniex = new \ccxt\async\poloniex(array('loop' => $loop, 'kernel' => $kernel, 'enableRateLimit' => true));
-    $result = yield $poloniex->fetch_ticker('ETH/BTC');
+use function React\Async\await;
+
+$okx = new \ccxt\async\okx();
+while (true) {
+    $result = await($okx->fetch_ticker('ETH/BTC'));
     var_dump($result);
-}, $loop);
-$kernel->run();
+}
 ```
 
 See further examples in the `examples/php` directory; look for filenames that include the `async` word. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react react/http`. Lastly, [this article](https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/) provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a `yield` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
@@ -1600,7 +1599,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - ...
 
 ```text
-TODO: ADD LINKS ABOVE
+TODO: better formatting
 ```
 
 ## Overriding Unified API Params

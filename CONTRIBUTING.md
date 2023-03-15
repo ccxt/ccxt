@@ -45,7 +45,6 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
-  - `/doc/*` (these files are generated from `/wiki/*`, place your edits there)
   - `/build/*` (these are generated automatically)
   - `/js/*` (these are compiled from the typescript version)
   - `/php/*` (except for base classes)
@@ -195,7 +194,6 @@ The contents of the repository are structured as follows:
 /dist/                     # a folder for the generated browser bundle of CCXT
 /ccxt.js                   # entry point for the master JS version of the ccxt library
 /ccxt.php                  # entry point for the PHP version of the ccxt library
-/doc/                      # Sphinx-generated rst-docs for http://docs.ccxt.com/
 /js/                       # the JS version of the library
 /ts/                       # the TypeScript version of the library
 /php/                      # PHP ccxt module/package folder
