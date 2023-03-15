@@ -1,14 +1,12 @@
-'use strict';
+//  ---------------------------------------------------------------------------
+
+import krakenfuturesRest from '../krakenfutures.js';
+import { BadSymbol, BadRequest } from '../base/errors.js';
+import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-const krakenfuturesRest = require ('../krakenfutures.js');
-const { BadSymbol, BadRequest } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
-
-//  ---------------------------------------------------------------------------
-
-module.exports = class krakenfutures extends krakenfuturesRest {
+export default class krakenfutures extends krakenfuturesRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -382,4 +380,4 @@ module.exports = class krakenfutures extends krakenfuturesRest {
             return method.call (this, client, message);
         }
     }
-};
+}
