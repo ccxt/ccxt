@@ -6,7 +6,7 @@ import NodeRSA from '../../static_dependencies/node-rsa/NodeRSA.cjs';
 import { sha1, hmacSHA1 } from '../../static_dependencies/crypto-js/sha1.js';
 import { sha3, hmacSHA3 } from '../../static_dependencies/crypto-js/sha3.js';
 import { sha256, hmacSHA256 } from '../../static_dependencies/crypto-js/sha256.js';
-import { sha384, hmacSHA384 }  from '../../static_dependencies/crypto-js/sha384.js';
+import { sha384, hmacSHA384 } from '../../static_dependencies/crypto-js/sha384.js';
 import { sha512, hmacSHA512 } from '../../static_dependencies/crypto-js/sha512.js';
 import { md5, hmacMD5 } from '../../static_dependencies/crypto-js/md5.js';
 import base64 from '../../static_dependencies/crypto-js/enc-base64.js';
