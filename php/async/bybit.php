@@ -8316,6 +8316,7 @@ class bybit extends Exchange {
             $this->check_required_credentials();
             $isOpenapi = mb_strpos($url, 'openapi') !== false;
             $isV3UnifiedMargin = mb_strpos($url, 'unified/v3') !== false;
+            $isV3Contract = mb_strpos($url, 'contract/v3') !== false;
             $isV5UnifiedAccount = mb_strpos($url, 'v5') !== false;
             $timestamp = (string) $this->nonce();
             if ($isOpenapi) {
@@ -8334,14 +8335,14 @@ class bybit extends Exchange {
                     'X-BAPI-TIMESTAMP' => $timestamp,
                     'X-BAPI-SIGN' => $signature,
                 );
-            } elseif ($isV3UnifiedMargin || $isV5UnifiedAccount) {
+            } elseif ($isV3UnifiedMargin || $isV3Contract || $isV5UnifiedAccount) {
                 $headers = array(
                     'Content-Type' => 'application/json',
                     'X-BAPI-API-KEY' => $this->apiKey,
                     'X-BAPI-TIMESTAMP' => $timestamp,
                     'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
                 );
-                if ($isV3UnifiedMargin) {
+                if ($isV3UnifiedMargin || $isV3Contract) {
                     $headers['X-BAPI-SIGN-TYPE'] = '2';
                 }
                 $query = $params;
