@@ -113,7 +113,7 @@ function createExchange (id, content) {
         const countriesMatches =  content.matchAll(countriesRegex).next().value;
         let countries = countriesMatches ? countriesMatches[1] : undefined;
         if (countries) {
-            countries = countries.replaceAll('undefined', 'null');
+            countries = countries.replace(/undefined/gm, 'null');
             countries = countries.replace(/'/g, '"'); // correct json quotes
             countries = JSON.parse(countries);
         }
