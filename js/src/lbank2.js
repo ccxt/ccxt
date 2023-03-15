@@ -1030,10 +1030,10 @@ export default class lbank2 extends Exchange {
         //      }
         //
         const result = this.safeValue(response, 'data', {});
-        return {
+        return this.safeOrder({
             'id': this.safeString(result, 'order_id'),
             'info': result,
-        };
+        }, market);
     }
     parseOrderStatus(status) {
         const statuses = {

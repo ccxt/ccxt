@@ -389,10 +389,10 @@ class paymium extends Exchange {
             $request['price'] = $price;
         }
         $response = $this->privatePostUserOrders (array_merge($request, $params));
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $response['uuid'],
-        );
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

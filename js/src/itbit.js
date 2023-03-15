@@ -736,10 +736,10 @@ export default class itbit extends Exchange {
             'instrument': market['id'],
         };
         const response = await this.privatePostWalletsWalletIdOrders(this.extend(request, params));
-        return {
+        return this.safeOrder({
             'info': response,
             'id': response['id'],
-        };
+        }, market);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**

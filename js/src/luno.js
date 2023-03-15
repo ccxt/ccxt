@@ -830,10 +830,10 @@ export default class luno extends Exchange {
             request['type'] = (side === 'buy') ? 'BID' : 'ASK';
         }
         const response = await this[method](this.extend(request, params));
-        return {
+        return this.safeOrder({
             'info': response,
             'id': response['order_id'],
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

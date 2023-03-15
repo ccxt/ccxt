@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "3.0.4",
+  "version": "3.0.10",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "unpkg": "dist/ccxt.browser.js",
   "type": "module",
@@ -11,7 +11,7 @@
     }
   },
   "engines": {
-    "node": ">=10.4.0"
+    "node": ">=15.0.0"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.com"
@@ -25,7 +25,7 @@
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
     "tsBuild": "tsc",
-    "emitTypes": "(tsc --emitDeclarationOnly --declaration > /dev/null 2>&1 || true)",
+    "emitTypes": "node build/emitTypes.js",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
     "force-build": "npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
     "force-build-slow": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",

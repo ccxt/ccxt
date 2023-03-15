@@ -956,10 +956,10 @@ export default class bitso extends Exchange {
         }
         const response = await this.privatePostOrders(this.extend(request, params));
         const id = this.safeString(response['payload'], 'oid');
-        return {
+        return this.safeOrder({
             'info': response,
             'id': id,
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

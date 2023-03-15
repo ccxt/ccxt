@@ -837,7 +837,7 @@ export default class poloniex extends Exchange {
         //     ]
         //
         const result = this.parseTrades (response, market);
-        return this.filterBySinceLimit (result, since, limit);
+        return this.filterBySinceLimit (result, since, limit) as any;
     }
 
     parseOrderStatus (status) {

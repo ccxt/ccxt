@@ -355,10 +355,10 @@ class bl3p extends Exchange {
         }
         $response = $this->privatePostMarketMoneyOrderAdd (array_merge($order, $params));
         $orderId = $this->safe_string($response['data'], 'order_id');
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $orderId,
-        );
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

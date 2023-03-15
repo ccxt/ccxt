@@ -701,10 +701,10 @@ export default class independentreserve extends Exchange {
         }
         request['volume'] = amount;
         const response = await this[method] (this.extend (request, params));
-        return {
+        return this.safeOrder ({
             'info': response,
             'id': response['OrderGuid'],
-        };
+        }, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
