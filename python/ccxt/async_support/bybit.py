@@ -7682,6 +7682,7 @@ class bybit(Exchange):
             self.check_required_credentials()
             isOpenapi = url.find('openapi') >= 0
             isV3UnifiedMargin = url.find('unified/v3') >= 0
+            isV3Contract = url.find('contract/v3') >= 0
             isV5UnifiedAccount = url.find('v5') >= 0
             timestamp = str(self.nonce())
             if isOpenapi:
@@ -7699,14 +7700,14 @@ class bybit(Exchange):
                     'X-BAPI-TIMESTAMP': timestamp,
                     'X-BAPI-SIGN': signature,
                 }
-            elif isV3UnifiedMargin or isV5UnifiedAccount:
+            elif isV3UnifiedMargin or isV3Contract or isV5UnifiedAccount:
                 headers = {
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': self.apiKey,
                     'X-BAPI-TIMESTAMP': timestamp,
                     'X-BAPI-RECV-WINDOW': str(self.options['recvWindow']),
                 }
-                if isV3UnifiedMargin:
+                if isV3UnifiedMargin or isV3Contract:
                     headers['X-BAPI-SIGN-TYPE'] = '2'
                 query = params
                 queryEncoded = self.rawencode(query)

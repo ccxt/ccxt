@@ -3,7 +3,7 @@ import { Precise } from './src/base/Precise.js';
 import * as functions from './src/base/functions.js';
 import * as errors from './src/base/errors.js';
 import { Market, Trade, Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances } from './src/base/types.js';
-declare const version = "3.0.7";
+declare const version = "3.0.9";
 import ace from './src/ace.js';
 import alpaca from './src/alpaca.js';
 import ascendex from './src/ascendex.js';
