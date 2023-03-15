@@ -3307,72 +3307,24 @@ export default class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const accounts = await this.isUnifiedEnabled ();
         const isUnifiedAccount = this.safeValue (accounts, 1, false);
         if (isUnifiedAccount) {
             throw new NotSupported (this.id + ' fetchOrder() does not support unified account. Please consider using fetchOpenOrders() or fetchClosedOrders()');
         }
-        if (type === 'spot') {
-            // only spot markets have a dedicated endpoint for fetching a order
-            const request = {
-                'orderId': id,
-            };
-            const response = await (this as any).privateGetSpotV3PrivateOrder (this.extend (params, request));
-            //
-            //    {
-            //        "retCode": "0",
-            //        "retMsg": "OK",
-            //        "result": {
-            //            "accountId": "13380434",
-            //            "symbol": "AAVEUSDT",
-            //            "orderLinkId": "1666733357434617",
-            //            "orderId": "1275046248585414144",
-            //            "orderPrice": "80",
-            //            "orderQty": "0.11",
-            //            "execQty": "0",
-            //            "cummulativeQuoteQty": "0",
-            //            "avgPrice": "0",
-            //            "status": "NEW",
-            //            "timeInForce": "GTC",
-            //            "orderType": "LIMIT",
-            //            "side": "BUY",
-            //            "stopPrice": "0.0",
-            //            "icebergQty": "0.0",
-            //            "createTime": "1666733357438",
-            //            "updateTime": "1666733357444",
-            //            "isWorking": "1",
-            //            "locked": "8.8",
-            //            "orderCategory": "0"
-            //        },
-            //        "retExtMap": {},
-            //        "retExtInfo": null,
-            //        "time": "1666733357744"
-            //    }
-            //
-            const result = this.safeValue (response, 'result', {});
-            return this.parseOrder (result, market);
-        } else {
-            this.checkRequiredSymbol ('fetchOrder', symbol);
-            const request = {
-                'orderId': id,
-            };
-            const result = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
-            const length = result.length;
-            if (length === 0) {
-                throw new OrderNotFound ('Order ' + id + ' does not exist.');
-            }
-            if (length > 1) {
-                throw new InvalidOrder (this.id + ' returned more than one order');
-            }
-            return this.safeValue (result, 0);
+        this.checkRequiredSymbol ('fetchOrder', symbol);
+        const request = {
+            'orderId': id,
+        };
+        const result = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+        const length = result.length;
+        if (length === 0) {
+            throw new OrderNotFound ('Order ' + id + ' does not exist.');
         }
+        if (length > 1) {
+            throw new InvalidOrder (this.id + ' returned more than one order');
+        }
+        return this.safeValue (result, 0);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -3398,10 +3350,8 @@ export default class bybit extends Exchange {
         symbol = market['symbol'];
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUSDCSettled = market['settle'] === 'USDC';
-        if (enableUnifiedAccount && !market['inverse']) {
+        if (market['spot'] || (enableUnifiedAccount && !market['inverse'])) {
             return await this.createUnifiedAccountOrder (symbol, type, side, amount, price, params);
-        } else if (market['spot']) {
-            return await this.createSpotOrder (symbol, type, side, amount, price, params);
         } else if (enableUnifiedMargin && !market['inverse']) {
             return await this.createUnifiedMarginOrder (symbol, type, side, amount, price, params);
         } else if (isUSDCSettled) {
@@ -3544,88 +3494,6 @@ export default class bybit extends Exchange {
         //         "retExtInfo": {},
         //         "time": 1672211918471
         //     }
-        //
-        const order = this.safeValue (response, 'result', {});
-        return this.parseOrder (order);
-    }
-
-    async createSpotOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const upperCaseType = type.toUpperCase ();
-        const request = {
-            'symbol': market['id'],
-            'side': this.capitalize (side),
-            'orderType': upperCaseType, // limit, market or limit_maker
-            'timeInForce': 'GTC', // FOK, IOC
-            // 'orderLinkId': 'string', // unique client order id, max 36 characters
-        };
-        if ((type === 'market') && (side === 'buy')) {
-            // for market buy it requires the amount of quote currency to spend
-            if (this.options['createMarketBuyOrderRequiresPrice']) {
-                const cost = this.safeNumber (params, 'cost');
-                params = this.omit (params, 'cost');
-                if (price === undefined && cost === undefined) {
-                    throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
-                } else {
-                    const amountString = this.numberToString (amount);
-                    const priceString = this.numberToString (price);
-                    const quoteAmount = Precise.stringMul (amountString, priceString);
-                    amount = (cost !== undefined) ? cost : this.parseNumber (quoteAmount);
-                    request['orderQty'] = this.costToPrecision (symbol, amount);
-                }
-            }
-        } else {
-            request['orderQty'] = this.amountToPrecision (symbol, amount);
-        }
-        if ((upperCaseType === 'LIMIT') || (upperCaseType === 'LIMIT_MAKER')) {
-            if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder requires a price argument for a ' + type + ' order');
-            }
-            request['orderPrice'] = this.priceToPrecision (symbol, price);
-        }
-        const isPostOnly = this.isPostOnly (upperCaseType === 'MARKET', type === 'LIMIT_MAKER', params);
-        if (isPostOnly) {
-            request['orderType'] = 'LIMIT_MAKER';
-        }
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
-        if (clientOrderId !== undefined) {
-            request['orderLinkId'] = clientOrderId;
-        }
-        params = this.omit (params, [ 'clientOrderId', 'orderLinkId', 'postOnly' ]);
-        const brokerId = this.safeString (this.options, 'brokerId');
-        if (brokerId !== undefined) {
-            request['agentSource'] = brokerId;
-        }
-        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
-        if (triggerPrice !== undefined) {
-            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-        }
-        params = this.omit (params, 'stopPrice');
-        const response = await (this as any).privatePostSpotV3PrivateOrder (this.extend (request, params));
-        //
-        //    {
-        //        "retCode": "0",
-        //        "retMsg": "OK",
-        //        "result": {
-        //            "orderId": "1274754916287346280",
-        //            "orderLinkId": "1666798627015730",
-        //            "symbol": "AAVEUSDT",
-        //            "createTime": "1666698629821",
-        //            "orderPrice": "80",
-        //            "orderQty": "0.11",
-        //            "orderType": "LIMIT",
-        //            "side": "BUY",
-        //            "status": "NEW",
-        //            "timeInForce": "GTC",
-        //            "accountId": "13380434",
-        //            "execQty": "0",
-        //            "orderCategory": "0"
-        //        },
-        //        "retExtMap": {},
-        //        "retExtInfo": null,
-        //        "time": "1666698627926"
-        //    }
         //
         const order = this.safeValue (response, 'result', {});
         return this.parseOrder (order);
@@ -4217,45 +4085,6 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelSpotOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            // 'order_link_id': 'string', // one of order_id, stop_order_id or order_link_id is required
-            // 'orderId': id
-        };
-        if (id !== undefined) { // The user can also use argument params["order_link_id"]
-            request['orderId'] = id;
-        }
-        const response = await (this as any).privatePostSpotV3PrivateCancelOrder (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": "0",
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "orderId": "1275046248585414144",
-        //             "orderLinkId": "1666733357434617",
-        //             "symbol": "AAVEUSDT",
-        //             "status": "NEW",
-        //             "accountId": "13380434",
-        //             "createTime": "1666733357438",
-        //             "orderPrice": "80",
-        //             "orderQty": "0.11",
-        //             "execQty": "0",
-        //             "timeInForce": "GTC",
-        //             "orderType": "LIMIT",
-        //             "side": "BUY",
-        //             "orderCategory": "0"
-        //         },
-        //         "retExtMap": {},
-        //         "retExtInfo": null,
-        //         "time": "1666733839493"
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        return this.parseOrder (result, market);
-    }
-
     async cancelUnifiedMarginOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelUnifiedMarginOrder() requires a symbol argument');
@@ -4385,10 +4214,8 @@ export default class bybit extends Exchange {
         const market = this.market (symbol);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUsdcSettled = market['settle'] === 'USDC';
-        if (enableUnifiedAccount) {
+        if (market['spot'] || enableUnifiedAccount) {
             return await this.cancelUnifiedAccountOrder (id, symbol, params);
-        } else if (market['spot']) {
-            return await this.cancelSpotOrder (id, symbol, params);
         } else if (enableUnifiedMargin && !market['inverse']) {
             return await this.cancelUnifiedMarginOrder (id, symbol, params);
         } else if (isUsdcSettled) {
@@ -4451,34 +4278,6 @@ export default class bybit extends Exchange {
             return response;
         }
         return this.parseOrders (orders, market);
-    }
-
-    async cancelAllSpotOrders (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllSpotOrders() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await (this as any).privateDeleteSpotOrderBatchCancel (this.extend (request, params));
-        //
-        //    {
-        //        "ret_code": 0,
-        //        "ret_msg": "",
-        //        "ext_code": null,
-        //        "ext_info": null,
-        //        "result": {
-        //            "success": true
-        //        }
-        //    }
-        //
-        const result = this.safeValue (response, 'result', []);
-        if (!Array.isArray (result)) {
-            return response;
-        }
-        return this.parseOrders (result, market);
     }
 
     async cancelAllUnifiedMarginOrders (symbol = undefined, params = {}) {
@@ -4656,10 +4455,8 @@ export default class bybit extends Exchange {
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        if (enableUnifiedAccount) {
+        if (type === 'spot' || enableUnifiedAccount) {
             return await this.cancelAllUnifiedAccountOrders (symbol, query);
-        } else if (type === 'spot') {
-            return await this.cancelAllSpotOrders (symbol, query);
         } else if (enableUnifiedMargin && !isInverse) {
             return await this.cancelAllUnifiedMarginOrders (symbol, query);
         } else if (isUsdcSettled) {
@@ -4988,10 +4785,8 @@ export default class bybit extends Exchange {
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        if (enableUnifiedAccount && !isInverse) {
+        if ((type === 'spot') || enableUnifiedAccount) {
             return await this.fetchUnifiedAccountOrders (symbol, since, limit, query);
-        } else if (type === 'spot') {
-            throw new NotSupported (this.id + ' fetchOrders() only support ' + type + ' markets for unified trade account, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
         } else if (enableUnifiedMargin && !isInverse) {
             return await this.fetchUnifiedMarginOrders (symbol, since, limit, query);
         } else {
@@ -5217,56 +5012,6 @@ export default class bybit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'list', []);
         return this.parseOrders (data, market, since, limit);
-    }
-
-    async fetchSpotOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await (this as any).privateGetSpotV3PrivateOpenOrders (this.extend (request, params));
-        //
-        //    {
-        //         "retCode": "0",
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "list": [
-        //                 {
-        //                     "accountId": "13380434",
-        //                     "symbol": "AAVEUSDT",
-        //                     "orderLinkId": "1666734005300717",
-        //                     "orderId": "1275051683279281664",
-        //                     "orderPrice": "80",
-        //                     "orderQty": "0.11",
-        //                     "execQty": "0",
-        //                     "cummulativeQuoteQty": "0",
-        //                     "avgPrice": "0",
-        //                     "status": "NEW",
-        //                     "timeInForce": "GTC",
-        //                     "orderType": "LIMIT",
-        //                     "side": "BUY",
-        //                     "stopPrice": "0.0",
-        //                     "icebergQty": "0.0",
-        //                     "createTime": "1666734005304",
-        //                     "updateTime": "1666734005309",
-        //                     "isWorking": "1",
-        //                     "orderCategory": "0"
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": null,
-        //         "time": "1666734031592"
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        const orders = this.safeValue (result, 'list', []);
-        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchUnifiedMarginOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5523,10 +5268,8 @@ export default class bybit extends Exchange {
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        if (enableUnifiedAccount && !isInverse) {
+        if ((type === 'spot') || enableUnifiedAccount) {
             return await this.fetchUnifiedAccountOpenOrders (symbol, since, limit, query);
-        } else if (type === 'spot') {
-            return await this.fetchSpotOpenOrders (symbol, since, limit, query);
         } else if (enableUnifiedMargin && !isInverse) {
             return await this.fetchUnifiedMarginOpenOrders (symbol, since, limit, query);
         } else if (isUsdcSettled) {
@@ -5630,62 +5373,6 @@ export default class bybit extends Exchange {
         //         },
         //         "retExtInfo": {},
         //         "time": 1672283754510
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'list', []);
-        return this.parseTrades (trades, market, since, limit);
-    }
-
-    async fetchMySpotTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMySpotTrades() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            // 'orderId': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
-            // 'startTime': parseInt (since / 1000),
-            // 'endTime': 0,
-            // 'fromTradeId': '',
-            // 'toTradeId': '',
-            // 'limit' 20, // max 50
-        };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 20, max 50
-        }
-        const response = await (this as any).privateGetSpotV3PrivateMyTrades (this.extend (request, params));
-        //
-        //    {
-        //         "retCode": "0",
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "list": [
-        //                 {
-        //                     "symbol": "AAVEUSDT",
-        //                     "id": "1274785101965716992",
-        //                     "orderId": "1274784252359089664",
-        //                     "tradeId": "2270000000031365639",
-        //                     "orderPrice": "82.5",
-        //                     "orderQty": "0.016",
-        //                     "execFee": "0",
-        //                     "feeTokenId": "AAVE",
-        //                     "creatTime": "1666702226326",
-        //                     "isBuyer": "0",
-        //                     "isMaker": "0",
-        //                     "matchOrderId": "1274785101865076224",
-        //                     "makerRebate": "0",
-        //                     "executionTime": "1666702226335"
-        //                 },
-        //             ]
-        //         },
-        //         "retExtMap": {},
-        //         "retExtInfo": null,
-        //         "time": "1666768215157"
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -5915,14 +5602,12 @@ export default class bybit extends Exchange {
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        if (enableUnifiedAccount && !isInverse) {
+        if ((type === 'spot') || enableUnifiedAccount) {
             const orderId = this.safeString (params, 'orderId');
             if (orderId === undefined) {
                 this.checkRequiredSymbol ('fetchMyTrades', symbol);
             }
             return await this.fetchMyUnifiedTrades (symbol, since, limit, query);
-        } else if (type === 'spot') {
-            return await this.fetchMySpotTrades (symbol, since, limit, query);
         } else if (enableUnifiedMargin && !isInverse) {
             return await this.fetchMyUnifiedMarginTrades (symbol, since, limit, query);
         } else if (isUsdcSettled) {
