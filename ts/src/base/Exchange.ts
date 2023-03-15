@@ -633,15 +633,15 @@ export default class Exchange {
         this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
         this.token         = undefined // reserved for HTTP auth in some cases
         // placeholders for cached data
-        this.balance      = {}
-        this.orderbooks   = {}
-        this.tickers      = {}
-        this.orders       = {}
-        this.trades       = {}
-        this.transactions = {}
-        this.ohlcvs       = {}
-        this.myTrades     = {}
-        this.positions    = {}
+        this.balance      = undefined
+        this.orderbooks   = undefined
+        this.tickers      = undefined
+        this.orders       = undefined
+        this.trades       = undefined
+        this.transactions = undefined
+        this.ohlcvs       = undefined
+        this.myTrades     = undefined
+        this.positions    = undefined
         // web3 and cryptography flags
         this.requiresWeb3 = false
         this.requiresEddsa = false
