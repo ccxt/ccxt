@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '3.0.13';
+$version = '3.0.14';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.13';
+    const VERSION = '3.0.14';
 
     public $browser;
     public $marketsLoading = null;
@@ -1015,6 +1015,10 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOHLCV() is not supported yet');
+    }
+
     public function convert_trading_view_to_ohlcv($ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
         $result = array();
         $timestamps = $this->safe_value($ohlcvs, $timestamp, array());
@@ -1729,6 +1733,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchBalance() is not supported yet');
     }
 
+    public function watch_balance($params = array ()) {
+        throw new NotSupported($this->id . ' watchBalance() is not supported yet');
+    }
+
     public function fetch_partial_balance($part, $params = array ()) {
         return Async\async(function () use ($part, $params) {
             $balance = Async\await($this->fetch_balance($params));
@@ -2012,6 +2020,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOrders() is not supported yet');
     }
 
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOrders() is not supported yet');
+    }
+
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOpenOrders() is not supported yet');
     }
@@ -2022,6 +2034,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchMyTrades() is not supported yet');
+    }
+
+    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchMyTrades() is not supported yet');
     }
 
     public function fetch_transactions($symbol = null, $since = null, $limit = null, $params = array ()) {
