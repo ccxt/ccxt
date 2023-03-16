@@ -3684,93 +3684,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return {
-            'info': response,
-            'id': this.safeString (result, 'orderId'),
-        };
-    }
-
-    async editUnifiedMarginOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (!market['linear'] && !market['option']) {
-            throw new NotSupported (this.id + ' editOrder does not allow inverse market orders for ' + symbol + ' markets');
-        }
-        const lowerCaseType = type.toLowerCase ();
-        if ((price === undefined) && (lowerCaseType === 'limit')) {
-            throw new ArgumentsRequired (this.id + ' editOrder requires a price argument for limit orders');
-        }
-        const request = {
-            'orderId': id,
-            'symbol': market['id'],
-            'side': this.capitalize (side),
-            'orderType': this.capitalize (lowerCaseType), // limit or market
-            'timeInForce': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
-            'qty': this.amountToPrecision (symbol, amount),
-            // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
-            // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
-            // 'orderLinkId': 'string', // unique client order id, max 36 characters
-            // 'triggerPrice': 123.45, // trigger price, required for conditional orders
-            // 'triggerBy': 'MarkPrice', // IndexPrice, MarkPrice
-            // 'tptriggerby': 'MarkPrice', // IndexPrice, MarkPrice
-            // 'slTriggerBy': 'MarkPrice', // IndexPrice, MarkPrice
-            // 'iv': '0', // Implied volatility, for options only; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
-        };
-        if (market['linear']) {
-            request['category'] = 'linear';
-        } else {
-            request['category'] = 'option';
-        }
-        const isMarket = lowerCaseType === 'market';
-        const isLimit = lowerCaseType === 'limit';
-        if (isLimit) {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        const exchangeSpecificParam = this.safeString (params, 'time_in_force');
-        const timeInForce = this.safeStringLower (params, 'timeInForce');
-        const postOnly = this.isPostOnly (isMarket, exchangeSpecificParam === 'PostOnly', params);
-        if (postOnly) {
-            request['timeInForce'] = 'PostOnly';
-        } else if (timeInForce === 'gtc') {
-            request['timeInForce'] = 'GoodTillCancel';
-        } else if (timeInForce === 'fok') {
-            request['timeInForce'] = 'FillOrKill';
-        } else if (timeInForce === 'ioc') {
-            request['timeInForce'] = 'ImmediateOrCancel';
-        }
-        const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
-        const isStopLossOrder = stopLossPrice !== undefined;
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isTakeProfitOrder = takeProfitPrice !== undefined;
-        if (isStopLossOrder) {
-            request['stopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
-        }
-        if (isTakeProfitOrder) {
-            request['takeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
-        }
-        if (triggerPrice !== undefined) {
-            request['triggerBy'] = 'LastPrice';
-            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-        }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['orderLinkId'] = clientOrderId;
-        }
-        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ]);
-        const response = await (this as any).privatePostUnifiedV3PrivateOrderReplace (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "orderId": "42c86d66331e41998d12c2440ce90c1a",
-        //             "orderLinkId": "e80d558e-ed"
-        //         }
-        //     }
-        //
-        const order = this.safeValue (response, 'result', {});
-        return this.parseOrder (order);
+        return this.parseOrder (result);
     }
 
     async editContractV3Order (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -3828,14 +3742,14 @@ export default class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        if (enableUnifiedAccount) {
-            return await this.editUnifiedAccountOrder (id, symbol, type, side, amount, price, params);
-        } else if (market['spot']) {
+        const isUSDCSettled = market['settle'] === 'USDC';
+        if (market['spot']) {
             throw new NotSupported (this.id + ' editOrder() does not support spot markets');
-        } else if (enableUnifiedMargin && !market['inverse']) {
-            return await this.editUnifiedMarginOrder (id, symbol, type, side, amount, price, params);
+        } else if (!(enableUnifiedMargin || enableUnifiedAccount) && isUSDCSettled) {
+            return await this.editContractV3Order (id, symbol, type, side, amount, price, params);
+        } else {
+            return await this.editUnifiedAccountOrder (id, symbol, type, side, amount, price, params);
         }
-        return await this.editContractV3Order (id, symbol, type, side, amount, price, params);
     }
 
     async cancelUnifiedAccountOrder (id, symbol = undefined, params = {}) {
