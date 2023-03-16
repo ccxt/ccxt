@@ -1399,7 +1399,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         // fetchOrder
-        //    
+        //
         //    {
         //        "symbol": "ADAUSDTPERP",
         //        "leverage": "1",
@@ -1477,7 +1477,7 @@ export default class poloniexfutures extends Exchange {
         // bool
         const isActive = this.safeValue (order, 'isActive', false);
         const cancelExist = this.safeValue (order, 'cancelExist', false);
-        let status = isActive ? 'open' : 'closed';
+        const status = isActive ? 'open' : 'closed';
         let id = this.safeString (order, 'id');
         if ('cancelledOrderIds' in order) {
             const cancelledOrderIds = this.safeValue (order, 'cancelledOrderIds');
