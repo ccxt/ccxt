@@ -222,7 +222,7 @@ export default class Exchange {
 
     id = undefined
 
-    markets: Market[] = undefined
+    markets: Dictionary<Market> = undefined
     has = {}
 
     status = undefined
