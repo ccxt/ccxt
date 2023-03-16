@@ -535,10 +535,10 @@ export default class bitflyer extends Exchange {
         const result = await this.privatePostSendchildorder(this.extend(request, params));
         // { "status": - 200, "error_message": "Insufficient funds", "data": null }
         const id = this.safeString(result, 'child_order_acceptance_id');
-        return {
-            'info': result,
+        return this.safeOrder({
             'id': id,
-        };
+            'info': result,
+        });
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

@@ -2051,13 +2051,12 @@ export default class binance extends Exchange {
         const lowercaseId = this.safeStringLower(market, 'symbol');
         const baseId = this.safeString(market, 'baseAsset', optionBase);
         const quoteId = this.safeString(market, 'quoteAsset');
-        const settleId = this.safeString(market, 'marginAsset', 'USDT');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const settle = this.safeCurrencyCode(settleId);
         const contractType = this.safeString(market, 'contractType');
         let contract = ('contractType' in market);
         let expiry = this.safeInteger2(market, 'deliveryDate', 'expiryDate');
+        let settleId = this.safeString(market, 'marginAsset');
         if ((contractType === 'PERPETUAL') || (expiry === 4133404800000)) { // some swap markets do not have contract type, eg: BTCST
             expiry = undefined;
             swap = true;
@@ -2065,10 +2064,12 @@ export default class binance extends Exchange {
         else if (underlying !== undefined) {
             contract = true;
             option = true;
+            settleId = (settleId === undefined) ? 'USDT' : settleId;
         }
         else {
             future = true;
         }
+        const settle = this.safeCurrencyCode(settleId);
         const spot = !contract;
         const filters = this.safeValue(market, 'filters', []);
         const filtersByType = this.indexBy(filters, 'filterType');

@@ -3321,6 +3321,11 @@ export default class bybit extends Exchange {
         }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchOrder', market, params);
+        const accounts = await this.isUnifiedEnabled();
+        const isUnifiedAccount = this.safeValue(accounts, 1, false);
+        if (isUnifiedAccount) {
+            throw new NotSupported(this.id + ' fetchOrder() does not support unified account. Please consider using fetchOpenOrders() or fetchClosedOrders()');
+        }
         if (type === 'spot') {
             // only spot markets have a dedicated endpoint for fetching a order
             const request = {
@@ -3426,8 +3431,7 @@ export default class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': this.capitalize(side),
-            'orderType': this.capitalize(lowerCaseType),
-            'qty': this.amountToPrecision(symbol, amount),
+            'orderType': this.capitalize(lowerCaseType), // limit or market
             // 'timeInForce': 'GTC', // IOC, FOK, PostOnly
             // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
             // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
@@ -3460,6 +3464,26 @@ export default class bybit extends Exchange {
         }
         else {
             throw new NotSupported(this.id + ' createOrder does not allow inverse market orders for ' + symbol + ' markets');
+        }
+        if (market['spot'] && (type === 'market') && (side === 'buy')) {
+            // for market buy it requires the amount of quote currency to spend
+            if (this.options['createMarketBuyOrderRequiresPrice']) {
+                const cost = this.safeNumber(params, 'cost');
+                params = this.omit(params, 'cost');
+                if (price === undefined && cost === undefined) {
+                    throw new InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                }
+                else {
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    const quoteAmount = Precise.stringMul(amountString, priceString);
+                    amount = (cost !== undefined) ? cost : this.parseNumber(quoteAmount);
+                    request['qty'] = this.costToPrecision(symbol, amount);
+                }
+            }
+        }
+        else {
+            request['qty'] = this.amountToPrecision(symbol, amount);
         }
         const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
@@ -8240,6 +8264,7 @@ export default class bybit extends Exchange {
             this.checkRequiredCredentials();
             const isOpenapi = url.indexOf('openapi') >= 0;
             const isV3UnifiedMargin = url.indexOf('unified/v3') >= 0;
+            const isV3Contract = url.indexOf('contract/v3') >= 0;
             const isV5UnifiedAccount = url.indexOf('v5') >= 0;
             const timestamp = this.nonce().toString();
             if (isOpenapi) {
@@ -8260,14 +8285,14 @@ export default class bybit extends Exchange {
                     'X-BAPI-SIGN': signature,
                 };
             }
-            else if (isV3UnifiedMargin || isV5UnifiedAccount) {
+            else if (isV3UnifiedMargin || isV3Contract || isV5UnifiedAccount) {
                 headers = {
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': this.apiKey,
                     'X-BAPI-TIMESTAMP': timestamp,
                     'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString(),
                 };
-                if (isV3UnifiedMargin) {
+                if (isV3UnifiedMargin || isV3Contract) {
                     headers['X-BAPI-SIGN-TYPE'] = '2';
                 }
                 const query = params;

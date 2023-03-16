@@ -1111,7 +1111,7 @@ export default class yobit extends Exchange {
             }), market);
             result.push (trade);
         }
-        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as any;
     }
 
     async createDepositAddress (code, params = {}) {

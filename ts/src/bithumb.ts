@@ -696,13 +696,13 @@ export default class bithumb extends Exchange {
         if (id === undefined) {
             throw new InvalidOrder (this.id + ' createOrder() did not return an order id');
         }
-        return {
+        return this.safeOrder ({
             'info': response,
             'symbol': symbol,
             'type': type,
             'side': side,
             'id': id,
-        };
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

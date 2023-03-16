@@ -1493,16 +1493,15 @@ To use the async version of the library, use the `ccxt_async` namespace, as in t
 ```php
 // PHP
 <?php
-include 'ccxt.php';
+include 'vendor/autoload.php';
 
-$loop = \React\EventLoop\Factory::create();
-$kernel = \Recoil\React\ReactKernel::create($loop);
-$kernel->execute(function() use ($loop, $kernel) {
-    $poloniex = new \ccxt\async\poloniex(array('loop' => $loop, 'kernel' => $kernel, 'enableRateLimit' => true));
-    $result = yield $poloniex->fetch_ticker('ETH/BTC');
+use function React\Async\await;
+
+$okx = new \ccxt\async\okx();
+while (true) {
+    $result = await($okx->fetch_ticker('ETH/BTC'));
     var_dump($result);
-}, $loop);
-$kernel->run();
+}
 ```
 
 See further examples in the `examples/php` directory; look for filenames that include the `async` word. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react react/http`. Lastly, [this article](https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/) provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a `yield` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
@@ -1600,7 +1599,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - ...
 
 ```text
-TODO: ADD LINKS ABOVE
+TODO: better formatting
 ```
 
 ## Overriding Unified API Params
@@ -1902,7 +1901,6 @@ if ($exchange->has['fetchMyTrades']) {
 - [Leverage Tiers](#leverage-tiers)
 - [Funding Rate](#funding-rate)
 - [Funding Rate History](#funding-rate-history)
-- [Positions Risk](#positions-risk)
 - [Open Interest History](#open-interest-history)
 
 ## Order Book
@@ -2908,52 +2906,6 @@ Returns
         sumOpenInterestValue: '3508262107.38000000',
         timestamp: '1649379000000'
     }
-}
-```
-
-## Positions Risk
-
-*contract only*
-
-```javascript
-fetchPositionsRisk (symbols = undefined, params = {})
-```
-
-Parameters
-
-- **symbols** (\[String\]) Unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
-
-Returns
-
-- A [position risk structures](#position-risk-structure)
-
-#### Positions Risk Structure
-
-```javascript
-{
-    info: { ... },
-    symbol: 'CTSI/USDT',
-    contracts: 0,
-    contractSize: 1,
-    unrealizedPnl: 0,
-    leverage: 20,
-    liquidationPrice: 0.7313,
-    collateral: 0,
-    notional: 0,
-    markPrice: 0.7724,
-    entryPrice: 0,
-    timestamp: 1647420354000,
-    initialMargin: 0,
-    initialMarginPercentage: 0.05,
-    maintenanceMargin: 0,
-    maintenanceMarginPercentage: 0.01,
-    marginRatio: 0.4881,
-    datetime: "2022-03-16T08:45:54.000Z",
-    marginMode: 'cross',
-    side: "long",
-    hedged: false,
-    percentage: 78
 }
 ```
 

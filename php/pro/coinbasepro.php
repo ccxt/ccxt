@@ -323,6 +323,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             'rate' => $feeRate,
             'cost' => $feeCost,
             'currency' => $feeCurrency,
+            'type' => null,
         );
         return $parsed;
     }

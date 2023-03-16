@@ -111,19 +111,23 @@ export default class Body {
         const { buffer, byteOffset, byteLength } = await consumeBody(this);
         return buffer.slice(byteOffset, byteOffset + byteLength);
     }
-    async formData() {
+    /*async formData() {
         const ct = this.headers.get('content-type');
+
         if (ct.startsWith('application/x-www-form-urlencoded')) {
             const formData = new FormData();
             const parameters = new URLSearchParams(await this.text());
+
             for (const [name, value] of parameters) {
                 formData.append(name, value);
             }
+
             return formData;
         }
-        const { toFormData } = await import('./utils/multipart-parser.js');
+
+        const {toFormData} = await import('./utils/multipart-parser.js');
         return toFormData(this.body, ct);
-    }
+    }*/
     /**
      * Return raw response as Blob
      *
@@ -304,9 +308,9 @@ export const extractContentType = (body, request) => {
     if (Buffer.isBuffer(body) || types.isAnyArrayBuffer(body) || ArrayBuffer.isView(body)) {
         return null;
     }
-    if (body instanceof FormData) {
-        return `multipart/form-data; boundary=${request[INTERNALS].boundary}`;
-    }
+    // if (body instanceof FormData) {
+    // 	return `multipart/form-data; boundary=${request[INTERNALS].boundary}`;
+    // }
     // Detect form data input from form-data module
     if (body && typeof body.getBoundary === 'function') {
         return `multipart/form-data;boundary=${getNonSpecFormDataBoundary(body)}`;

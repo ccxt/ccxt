@@ -671,7 +671,7 @@ export default class lbank extends Exchange {
         if (numOrders === 1) {
             return orders[0];
         } else {
-            return orders;
+            return orders as any;
         }
     }
 
@@ -721,7 +721,7 @@ export default class lbank extends Exchange {
         const closed = this.filterBy (orders, 'status', 'closed');
         const canceled = this.filterBy (orders, 'status', 'cancelled'); // cancelled orders may be partially filled
         const allOrders = this.arrayConcat (closed, canceled);
-        return this.filterBySymbolSinceLimit (allOrders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (allOrders, symbol, since, limit) as any;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

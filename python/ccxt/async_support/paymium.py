@@ -376,10 +376,10 @@ class paymium(Exchange):
         if type != 'market':
             request['price'] = price
         response = await self.privatePostUserOrders(self.extend(request, params))
-        return {
+        return self.safe_order({
             'info': response,
             'id': response['uuid'],
-        }
+        }, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """

@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '3.0.4';
+$version = '3.0.13';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.4';
+    const VERSION = '3.0.13';
 
     public $browser;
     public $marketsLoading = null;
@@ -2211,10 +2211,20 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_precision($precision) {
+        /**
+         * @ignore
+         * @param {string} $precision The number of digits to the right of the decimal
+         * @return {string} a string number equal to 1e-$precision
+         */
         if ($precision === null) {
             return null;
         }
-        return '1e' . Precise::string_neg($precision);
+        $precisionNumber = intval($precision);
+        $parsedPrecision = '0.';
+        for ($i = 0; $i < $precisionNumber - 1; $i++) {
+            $parsedPrecision = $parsedPrecision . '0';
+        }
+        return $parsedPrecision . '1';
     }
 
     public function load_time_difference($params = array ()) {

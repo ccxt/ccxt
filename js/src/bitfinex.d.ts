@@ -19,7 +19,7 @@ export default class bitfinex extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     amountToPrecision(symbol: any, amount: any): any;
     priceToPrecision(symbol: any, price: any): any;
-    fetchBalance(params?: {}): Promise<object>;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     parseTransfer(transfer: any, currency?: any): {
         info: any;
@@ -34,7 +34,7 @@ export default class bitfinex extends Exchange {
     };
     parseTransferStatus(status: any): string;
     convertDerivativesId(currencyId: any, type: any): any;
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTickers(symbols?: any, params?: {}): Promise<any>;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
@@ -46,11 +46,11 @@ export default class bitfinex extends Exchange {
     cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: any, params?: {}): Promise<any>;
     parseOrder(order: any, market?: any): any;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     getCurrencyName(code: any): any;
     createDepositAddress(code: any, params?: {}): Promise<{
         currency: any;

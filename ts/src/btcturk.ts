@@ -646,7 +646,7 @@ export default class btcturk extends Exchange {
         }
         const sorted = this.sortBy (results, 0);
         const tail = (since === undefined);
-        return this.filterBySinceLimit (sorted, since, limit, 0, tail);
+        return this.filterBySinceLimit (sorted, since, limit, 0, tail) as any;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

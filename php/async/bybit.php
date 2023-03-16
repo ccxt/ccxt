@@ -3332,6 +3332,11 @@ class bybit extends Exchange {
             }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+            $accounts = Async\await($this->is_unified_enabled());
+            $isUnifiedAccount = $this->safe_value($accounts, 1, false);
+            if ($isUnifiedAccount) {
+                throw new NotSupported($this->id . ' fetchOrder() does not support unified account. Please consider using fetchOpenOrders() or fetchClosedOrders()');
+            }
             if ($type === 'spot') {
                 // only spot markets have a dedicated endpoint for fetching a order
                 $request = array(
@@ -3437,7 +3442,6 @@ class bybit extends Exchange {
                 'symbol' => $market['id'],
                 'side' => $this->capitalize($side),
                 'orderType' => $this->capitalize($lowerCaseType), // limit or $market
-                'qty' => $this->amount_to_precision($symbol, $amount),
                 // 'timeInForce' => 'GTC', // IOC, FOK, PostOnly
                 // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
                 // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
@@ -3467,6 +3471,24 @@ class bybit extends Exchange {
                 $request['category'] = 'option';
             } else {
                 throw new NotSupported($this->id . ' createOrder does not allow inverse $market orders for ' . $symbol . ' markets');
+            }
+            if ($market['spot'] && ($type === 'market') && ($side === 'buy')) {
+                // for $market buy it requires the $amount of quote currency to spend
+                if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                    $cost = $this->safe_number($params, 'cost');
+                    $params = $this->omit($params, 'cost');
+                    if ($price === null && $cost === null) {
+                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $quoteAmount = Precise::string_mul($amountString, $priceString);
+                        $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
+                        $request['qty'] = $this->cost_to_precision($symbol, $amount);
+                    }
+                }
+            } else {
+                $request['qty'] = $this->amount_to_precision($symbol, $amount);
             }
             $isMarket = $lowerCaseType === 'market';
             $isLimit = $lowerCaseType === 'limit';
@@ -8294,6 +8316,7 @@ class bybit extends Exchange {
             $this->check_required_credentials();
             $isOpenapi = mb_strpos($url, 'openapi') !== false;
             $isV3UnifiedMargin = mb_strpos($url, 'unified/v3') !== false;
+            $isV3Contract = mb_strpos($url, 'contract/v3') !== false;
             $isV5UnifiedAccount = mb_strpos($url, 'v5') !== false;
             $timestamp = (string) $this->nonce();
             if ($isOpenapi) {
@@ -8312,14 +8335,14 @@ class bybit extends Exchange {
                     'X-BAPI-TIMESTAMP' => $timestamp,
                     'X-BAPI-SIGN' => $signature,
                 );
-            } elseif ($isV3UnifiedMargin || $isV5UnifiedAccount) {
+            } elseif ($isV3UnifiedMargin || $isV3Contract || $isV5UnifiedAccount) {
                 $headers = array(
                     'Content-Type' => 'application/json',
                     'X-BAPI-API-KEY' => $this->apiKey,
                     'X-BAPI-TIMESTAMP' => $timestamp,
                     'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
                 );
-                if ($isV3UnifiedMargin) {
+                if ($isV3UnifiedMargin || $isV3Contract) {
                     $headers['X-BAPI-SIGN-TYPE'] = '2';
                 }
                 $query = $params;

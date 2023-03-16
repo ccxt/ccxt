@@ -1015,10 +1015,10 @@ class lbank2 extends Exchange {
         //      }
         //
         $result = $this->safe_value($response, 'data', array());
-        return array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($result, 'order_id'),
             'info' => $result,
-        );
+        ), $market);
     }
 
     public function parse_order_status($status) {

@@ -10,7 +10,7 @@ export default class kraken extends krakenRest {
     watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    loadMarkets(reload?: boolean, params?: {}): Promise<any>;
+    loadMarkets(reload?: boolean, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Market>>;
     watchHeartbeat(params?: {}): Promise<any>;
     handleHeartbeat(client: any, message: any): void;
     handleOrderBook(client: any, message: any, subscription: any): void;
