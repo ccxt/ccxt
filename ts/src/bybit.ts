@@ -37,7 +37,7 @@ export default class bybit extends Exchange {
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowInterest': false, // temporarily disabled, as it does not work
+                'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -2964,7 +2964,7 @@ export default class bybit extends Exchange {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
                 if (marginMode !== undefined) {
-                    method = 'privateGetSpotV3PrivateCrossMarginAccount';
+                    method = 'privateGetV5SpotCrossMarginTradeAccount';
                 } else {
                     method = 'privateGetSpotV3PrivateAccount';
                 }
@@ -3207,6 +3207,7 @@ export default class bybit extends Exchange {
         const rawTimeInForce = this.safeString (order, 'timeInForce');
         const timeInForce = this.parseTimeInForce (rawTimeInForce);
         const stopPrice = this.omitZero (this.safeString (order, 'triggerPrice'));
+        const average = this.safeStringLower (order, 'avgPrice');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -3225,7 +3226,7 @@ export default class bybit extends Exchange {
             'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
-            'average': undefined,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -3347,7 +3348,6 @@ export default class bybit extends Exchange {
          * @name bybit#createOrder
          * @description create a trade order
          * @see https://bybit-exchange.github.io/docs/v5/order/create-order
-         * @see https://bybit-exchange.github.io/docs/spot/trade/place-order
          * @see https://bybit-exchange.github.io/docs/derivatives/unified/place-order
          * @see https://bybit-exchange.github.io/docs/derivatives/contract/place-order
          * @param {string} symbol unified symbol of the market to create an order in
@@ -3364,7 +3364,7 @@ export default class bybit extends Exchange {
         symbol = market['symbol'];
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUSDCSettled = market['settle'] === 'USDC';
-        if (market['spot'] || (enableUnifiedAccount && !market['inverse'])) {
+        if (market['spot'] || enableUnifiedAccount) {
             return await this.createUnifiedAccountOrder (symbol, type, side, amount, price, params);
         } else if (enableUnifiedMargin && !market['inverse']) {
             return await this.createUnifiedMarginOrder (symbol, type, side, amount, price, params);
@@ -3414,7 +3414,7 @@ export default class bybit extends Exchange {
         } else if (market['option']) {
             request['category'] = 'option';
         } else {
-            throw new NotSupported (this.id + ' createOrder does not allow inverse market orders for ' + symbol + ' markets');
+            request['category'] = 'inverse';
         }
         if (market['spot'] && (type === 'market') && (side === 'buy')) {
             // for market buy it requires the amount of quote currency to spend
@@ -3843,8 +3843,8 @@ export default class bybit extends Exchange {
     async editUnifiedAccountOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['linear'] && !market['option']) {
-            throw new NotSupported (this.id + ' editOrder does not allow inverse market orders for ' + symbol + ' markets');
+        if (market['spot']) {
+            throw new NotSupported (this.id + ' editOrder does not allow spot market orders for ' + symbol + ' markets');
         }
         const request = {
             'symbol': market['id'],
@@ -3862,8 +3862,10 @@ export default class bybit extends Exchange {
         };
         if (market['linear']) {
             request['category'] = 'linear';
-        } else {
+        } else if (market['option']) {
             request['category'] = 'option';
+        } else {
+            request['category'] = 'inverse';
         }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -7317,7 +7319,7 @@ export default class bybit extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await (this as any).privateGetSpotV3PrivateCrossMarginLoanInfo (this.extend (request, params));
+        const response = await (this as any).privateGetV5SpotCrossMarginTradeLoanInfo (this.extend (request, params));
         //
         //    {
         //         "retCode": "0",
@@ -7362,6 +7364,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/account-info
          * @param {string|undefined} code unified currency code
          * @param {string|undefined} symbol unified market symbol when fetch interest in isolated markets
          * @param {number|undefined} since the earliest time in ms to fetch borrrow interest for
@@ -7371,7 +7374,7 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await (this as any).privateGetSpotV3PrivateCrossMarginAccount (this.extend (request, params));
+        const response = await (this as any).privateGetV5SpotCrossMarginTradeAccount (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -7553,7 +7556,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#borrowMargin
          * @description create a loan to borrow margin
-         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-borrowmarginloan
+         * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {string|undefined} symbol not used by bybit.borrowMargin ()
@@ -7570,7 +7573,7 @@ export default class bybit extends Exchange {
             'coin': currency['id'],
             'qty': this.currencyToPrecision (code, amount),
         };
-        const response = await (this as any).privatePostSpotV3PrivateCrossMarginLoan (this.extend (request, query));
+        const response = await (this as any).privatePostV5SpotCrossMarginTradeLoan (this.extend (request, query));
         //
         //     {
         //         "retCode": 0,
@@ -7595,7 +7598,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#repayMargin
          * @description repay borrowed margin and interest
-         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-repaymarginloan
+         * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {string|undefined} symbol not used by bybit.repayMargin ()
@@ -7611,8 +7614,9 @@ export default class bybit extends Exchange {
         const request = {
             'coin': currency['id'],
             'qty': this.numberToString (amount),
+            // 'completeRepayment': 0, // Whether to pay off all debts. 0(default): false, 1: true
         };
-        const response = await (this as any).privatePostSpotV3PrivateCrossMarginRepay (this.extend (request, query));
+        const response = await (this as any).privatePostV5SpotCrossMarginTradeRepay (this.extend (request, query));
         //
         //     {
         //         "retCode": 0,
