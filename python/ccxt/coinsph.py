@@ -30,7 +30,7 @@ class coinsph(Exchange):
     def describe(self):
         return self.deep_extend(super(coinsph, self).describe(), {
             'id': 'coinsph',
-            'name': 'Coinsph',
+            'name': 'Coins.ph',
             'countries': ['PH'],  # Philippines
             'version': 'v1',
             'rateLimit': 50,  # 1200 per minute

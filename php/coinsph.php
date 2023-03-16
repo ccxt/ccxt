@@ -12,7 +12,7 @@ class coinsph extends Exchange {
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinsph',
-            'name' => 'Coinsph',
+            'name' => 'Coins.ph',
             'countries' => array( 'PH' ), // Philippines
             'version' => 'v1',
             'rateLimit' => 50, // 1200 per minute

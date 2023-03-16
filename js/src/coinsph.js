@@ -12,7 +12,7 @@ export default class coinsph extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinsph',
-            'name': 'Coinsph',
+            'name': 'Coins.ph',
             'countries': ['PH'],
             'version': 'v1',
             'rateLimit': 50,
