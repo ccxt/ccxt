@@ -1235,7 +1235,7 @@ export default class exmo extends Exchange {
             const trades = this.parseTrades (items, resultMarket, since, limit);
             result = this.arrayConcat (result, trades);
         }
-        return this.filterBySinceLimit (result, since, limit);
+        return this.filterBySinceLimit (result, since, limit) as any;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1450,7 +1450,7 @@ export default class exmo extends Exchange {
             const parsedOrders = this.parseOrders (response[marketId], market);
             orders = this.arrayConcat (orders, parsedOrders);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as any;
     }
 
     parseOrder (order, market = undefined) {

@@ -358,10 +358,10 @@ export default class bl3p extends Exchange {
         }
         const response = await this.privatePostMarketMoneyOrderAdd(this.extend(order, params));
         const orderId = this.safeString(response['data'], 'order_id');
-        return {
+        return this.safeOrder({
             'info': response,
             'id': orderId,
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

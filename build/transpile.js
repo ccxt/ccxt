@@ -445,7 +445,7 @@ class Transpiler {
         return [
             //
             // Curly-braces are used for both dictionaries in the code as well as for the url-imploded params.
-            // For example: https://docs.ccxt.com/en/latest/manual.html#implicit-api-methods
+            // For example: https://docs.ccxt.com/#/?id=implicit-api-methods
             //
             // There's a conflict between the curly braces that have to be converted from dictionaries to PHP-arrays and
             // the curly braces used for url-imploded params that should not be touched.

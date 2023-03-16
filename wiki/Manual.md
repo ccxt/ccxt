@@ -617,7 +617,7 @@ while (true) {
 }
 ```
 
-Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time. Therefore, you will force-load the markets over and over as explained in the [Loading Markets](https://docs.ccxt.com/en/latest/manual.html#loading-markets) section. Abusing the markets endpoint will eventually break the rate limiter as well.
+Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time. Therefore, you will force-load the markets over and over as explained in the [Loading Markets](https://docs.ccxt.com/#/?id=loading-markets) section. Abusing the markets endpoint will eventually break the rate limiter as well.
 
 ```javascript
 // DO NOT DO THIS!
@@ -1053,7 +1053,7 @@ exchange.amountToPrecision (symbol, 123.4567890123456789) === 123.45678
 
 ## Loading Markets
 
-In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially. For that reason, your first call to a unified CCXT API method like fetchTicker, fetchBalance, etc will take more time, than the consequent calls, since it has to do more work loading the market information from the exchange API. See [Notes On Rate Limiter](https://docs.ccxt.com/en/latest/manual.html#notes-on-rate-limiter) for more details.
+In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially. For that reason, your first call to a unified CCXT API method like fetchTicker, fetchBalance, etc will take more time, than the consequent calls, since it has to do more work loading the market information from the exchange API. See [Notes On Rate Limiter](https://docs.ccxt.com/#/?id=notes-on-rate-limiter) for more details.
 
 In order to load markets manually beforehand call the `loadMarkets ()` / `load_markets ()` method on an exchange instance. It returns an associative array of markets indexed by trading symbol. If you want more control over the execution of your logic, preloading markets by hand is recommended.
 
@@ -1493,16 +1493,15 @@ To use the async version of the library, use the `ccxt_async` namespace, as in t
 ```php
 // PHP
 <?php
-include 'ccxt.php';
+include 'vendor/autoload.php';
 
-$loop = \React\EventLoop\Factory::create();
-$kernel = \Recoil\React\ReactKernel::create($loop);
-$kernel->execute(function() use ($loop, $kernel) {
-    $poloniex = new \ccxt\async\poloniex(array('loop' => $loop, 'kernel' => $kernel, 'enableRateLimit' => true));
-    $result = yield $poloniex->fetch_ticker('ETH/BTC');
+use function React\Async\await;
+
+$okx = new \ccxt\async\okx();
+while (true) {
+    $result = await($okx->fetch_ticker('ETH/BTC'));
     var_dump($result);
-}, $loop);
-$kernel->run();
+}
 ```
 
 See further examples in the `examples/php` directory; look for filenames that include the `async` word. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react react/http`. Lastly, [this article](https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/) provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a `yield` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
@@ -1600,7 +1599,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - ...
 
 ```text
-TODO: ADD LINKS ABOVE
+TODO: better formatting
 ```
 
 ## Overriding Unified API Params
@@ -1902,7 +1901,6 @@ if ($exchange->has['fetchMyTrades']) {
 - [Leverage Tiers](#leverage-tiers)
 - [Funding Rate](#funding-rate)
 - [Funding Rate History](#funding-rate-history)
-- [Positions Risk](#positions-risk)
 - [Open Interest History](#open-interest-history)
 
 ## Order Book
@@ -2911,52 +2909,6 @@ Returns
 }
 ```
 
-## Positions Risk
-
-*contract only*
-
-```javascript
-fetchPositionsRisk (symbols = undefined, params = {})
-```
-
-Parameters
-
-- **symbols** (\[String\]) Unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
-
-Returns
-
-- A [position risk structures](#position-risk-structure)
-
-#### Positions Risk Structure
-
-```javascript
-{
-    info: { ... },
-    symbol: 'CTSI/USDT',
-    contracts: 0,
-    contractSize: 1,
-    unrealizedPnl: 0,
-    leverage: 20,
-    liquidationPrice: 0.7313,
-    collateral: 0,
-    notional: 0,
-    markPrice: 0.7724,
-    entryPrice: 0,
-    timestamp: 1647420354000,
-    initialMargin: 0,
-    initialMarginPercentage: 0.05,
-    maintenanceMargin: 0,
-    maintenanceMarginPercentage: 0.01,
-    marginRatio: 0.4881,
-    datetime: "2022-03-16T08:45:54.000Z",
-    marginMode: 'cross',
-    side: "long",
-    hedged: false,
-    percentage: 78
-}
-```
-
 # Private API
 
 - [Authentication](#authentication)
@@ -2984,7 +2936,7 @@ The exchanges' private APIs will usually allow the following types of interactio
 
 - the current state of the user's account balance can be obtained with the `fetchBalance()` method as described in the [Account Balance](#account-balance) section
 - the user can place and cancel orders with `createOrder()`, `cancelOrder()`, as well as fetch current open orders and the past order history with methods like `fetchOrder`, `fetchOrders()`, `fetchOpenOrder()`, `fetchOpenOrders()`, `fetchCanceledOrders`, `fetchClosedOrder`, `fetchClosedOrders`, as described in the section on [Orders](#orders)
-- the user can query the history of past trades executed with their account using `fetchMyTrades`, as described in the [My Trades](#my-trades) section, also see [How Orders Are Related To Trades](https://docs.ccxt.com/en/latest/manual.html#how-orders-are-related-to-trades)
+- the user can query the history of past trades executed with their account using `fetchMyTrades`, as described in the [My Trades](#my-trades) section, also see [How Orders Are Related To Trades](https://docs.ccxt.com/#/?id=how-orders-are-related-to-trades)
 - the user can query their positions with `fetchPositions()` and `fetchPosition()` as described in the [Positions](#positions) section
 - the user can fetch the history of their transactions (on-chain _transactions_ which are either _deposits_ to the exchange account or _withdrawals_ from the exchange account) with `fetchTransactions()`, or with `fetchDeposit()`, `fetchDeposits()` `fetchWithdrawal()`, and `fetchWithdrawals()` separately, depending on what is available from the exchange API
 - if the exchange API provides a ledger endpoint, the user can fetch a history of all money movements that somehow affected the balance, with `fetchLedger` that will return all accounting ledger entries such as trades, deposits, withdrawals, internal transfers between accounts, rebates, bonuses, fees, staking profits and so on, as described in the [Ledger](#ledger) section.
@@ -3440,7 +3392,7 @@ The majority of the exchanges will have a way of fetching currently-open orders.
 
 Some exchanges will provide the order history, other exchanges will not. If the underlying exchange provides the order history, then the `exchange.has['fetchClosedOrders']` or the `exchange.has['fetchOrders']`. If the underlying exchange does not provide the order history, then `fetchClosedOrders()` and `fetchOrders()` are not available. In the latter case, the user is required to build a local cache of orders and track the open orders using `fetchOpenOrders()` and `fetchOrder()` for order statuses and for marking them as closed locally in the userland (when they're not open anymore).
 
-If the underlying exchange does not have methods for order history (`fetchClosedOrders()` and `fetchOrders()`), then it will provide `fetchOpenOrders` + the trade history with `fetchMyTrades` (see [How Orders Are Related To Trades](https://docs.ccxt.com/en/latest/manual.html#how-orders-are-related-to-trades)). That set of information is in many cases enough for tracking in a live-trading robot. If there's no order history – you have to track your live orders and restore historical info from open orders and historical trades.
+If the underlying exchange does not have methods for order history (`fetchClosedOrders()` and `fetchOrders()`), then it will provide `fetchOpenOrders` + the trade history with `fetchMyTrades` (see [How Orders Are Related To Trades](https://docs.ccxt.com/#/?id=how-orders-are-related-to-trades)). That set of information is in many cases enough for tracking in a live-trading robot. If there's no order history – you have to track your live orders and restore historical info from open orders and historical trades.
 
 In general, the underlying exchanges will usually provide one or more of the following types of historical data:
 

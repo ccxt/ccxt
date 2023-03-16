@@ -254,6 +254,13 @@ assert decimal_to_precision('69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS) == '0'
 assert decimal_to_precision('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_DIGITS) == '1600000000000000000000'
 
 # ----------------------------------------------------------------------------
+# decimal_to_precision: stringified precision
+assert decimal_to_precision('-0.000123456789', ROUND, '0.00000012', TICK_SIZE) == '-0.00012348'
+assert decimal_to_precision('-0.000123456789', TRUNCATE, '0.00000012', TICK_SIZE) == '-0.00012336'
+assert decimal_to_precision('-165', TRUNCATE, '110', TICK_SIZE) == '-110'
+assert decimal_to_precision('-165', ROUND, '110', TICK_SIZE) == '-220'
+
+# ----------------------------------------------------------------------------
 # testDecimalToPrecisionErrorHandling(todo)
 #
 # throws(() =>

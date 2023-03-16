@@ -560,7 +560,7 @@ export default class phemex extends Exchange {
             'valueScale': valueScale,
             'ratioScale': ratioScale,
             'precision': {
-                'amount': this.safeNumber (market, 'lotSize'),
+                'amount': this.safeNumber2 (market, 'lotSize', 'qtyStepSize'),
                 'price': this.safeNumber (market, 'tickSize'),
             },
             'limits': {
@@ -2385,16 +2385,11 @@ export default class phemex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} params extra parameters specific to the phemex api endpoint
+         * @param {string|undefined} params.posSide either 'Hedged' or 'OneWay' or 'Merged'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
-        }
-        if (type !== undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() type changing is not implemented. Try to cancel & recreate order for that purpose');
-        }
-        if (side !== undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() side changing is not implemented. Try to cancel & recreate order for that purpose');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2403,14 +2398,15 @@ export default class phemex extends Exchange {
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdID');
         params = this.omit (params, [ 'clientOrderId', 'clOrdID' ]);
+        const isUSDTSettled = (market['settle'] === 'USDT');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
         } else {
             request['orderID'] = id;
         }
         if (price !== undefined) {
-            if (market['settle'] === 'USDT') {
-                request['priceRp'] = this.priceToPrecision (symbol, price);
+            if (isUSDTSettled) {
+                request['priceRp'] = this.priceToPrecision (market['symbol'], price);
             } else {
                 request['priceEp'] = this.toEp (price, market);
             }
@@ -2421,11 +2417,15 @@ export default class phemex extends Exchange {
         if (finalQty !== undefined) {
             request['baseQtyEV'] = finalQty;
         } else if (amount !== undefined) {
-            request['baseQtyEV'] = this.toEv (amount, market);
+            if (isUSDTSettled) {
+                request['baseQtyEV'] = this.amountToPrecision (market['symbol'], amount);
+            } else {
+                request['baseQtyEV'] = this.toEv (amount, market);
+            }
         }
         const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
         if (stopPrice !== undefined) {
-            if (market['settle'] === 'USDT') {
+            if (isUSDTSettled) {
                 request['stopPxRp'] = this.priceToPrecision (symbol, stopPrice);
             } else {
                 request['stopPxEp'] = this.toEp (stopPrice, market);
@@ -2435,8 +2435,12 @@ export default class phemex extends Exchange {
         let method = 'privatePutSpotOrders';
         if (market['inverse']) {
             method = 'privatePutOrdersReplace';
-        } else if (market['settle'] === 'USDT') {
+        } else if (isUSDTSettled) {
             method = 'privatePutGOrdersReplace';
+            const posSide = this.safeString (params, 'posSide');
+            if (posSide === undefined) {
+                request['posSide'] = 'Merged';
+            }
         }
         const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});

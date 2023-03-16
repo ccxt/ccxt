@@ -1815,7 +1815,7 @@ export default class ascendex extends Exchange {
             const order = this.parseOrder (data[i], market);
             orders.push (order);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as any;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

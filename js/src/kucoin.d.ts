@@ -25,7 +25,7 @@ export default class kucoin extends Exchange {
     fetchTickers(symbols?: any, params?: {}): Promise<any>;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     createDepositAddress(code: any, params?: {}): Promise<{
         info: any;
         currency: any;
@@ -49,13 +49,13 @@ export default class kucoin extends Exchange {
     };
     fetchDepositAddressesByNetwork(code: any, params?: {}): Promise<any[]>;
     parseDepositAddressesByNetwork(depositAddresses: any, currency?: any): any[];
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: any, params?: {}): Promise<any>;
-    fetchOrdersByStatus(status: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOrdersByStatus(status: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     parseOrder(order: any, market?: any): any;
     fetchOrderTrades(id: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
@@ -115,12 +115,12 @@ export default class kucoin extends Exchange {
     };
     fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
     fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    parseBalanceHelper(entry: any): {
-        free: any;
-        used: any;
-        total: any;
-    };
-    fetchBalance(params?: {}): Promise<object>;
+    parseBalanceHelper(entry: any): import("./base/types.js").Balance;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances | {
+        info: any;
+        timestamp: any;
+        datetime: any;
+    }>;
     transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         id: string;
         currency: any;

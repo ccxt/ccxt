@@ -5,7 +5,6 @@ node_modules/
 python/
 php/
 tmp/
-doc/
 vendor/
 wiki/
 .tox/

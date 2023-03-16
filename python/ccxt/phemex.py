@@ -572,7 +572,7 @@ class phemex(Exchange):
             'valueScale': valueScale,
             'ratioScale': ratioScale,
             'precision': {
-                'amount': self.safe_number(market, 'lotSize'),
+                'amount': self.safe_number_2(market, 'lotSize', 'qtyStepSize'),
                 'price': self.safe_number(market, 'tickSize'),
             },
             'limits': {
@@ -2279,14 +2279,11 @@ class phemex(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
         :param dict params: extra parameters specific to the phemex api endpoint
+        :param str|None params['posSide']: either 'Hedged' or 'OneWay' or 'Merged'
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
-        if type is not None:
-            raise ArgumentsRequired(self.id + ' editOrder() type changing is not implemented. Try to cancel & recreate order for that purpose')
-        if side is not None:
-            raise ArgumentsRequired(self.id + ' editOrder() side changing is not implemented. Try to cancel & recreate order for that purpose')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2294,13 +2291,14 @@ class phemex(Exchange):
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdID')
         params = self.omit(params, ['clientOrderId', 'clOrdID'])
+        isUSDTSettled = (market['settle'] == 'USDT')
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId
         else:
             request['orderID'] = id
         if price is not None:
-            if market['settle'] == 'USDT':
-                request['priceRp'] = self.price_to_precision(symbol, price)
+            if isUSDTSettled:
+                request['priceRp'] = self.price_to_precision(market['symbol'], price)
             else:
                 request['priceEp'] = self.to_ep(price, market)
         # Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at self moment. However, to avoid mistakes from user side, let's support lowercased 'baseQtyEv' too
@@ -2309,10 +2307,13 @@ class phemex(Exchange):
         if finalQty is not None:
             request['baseQtyEV'] = finalQty
         elif amount is not None:
-            request['baseQtyEV'] = self.to_ev(amount, market)
+            if isUSDTSettled:
+                request['baseQtyEV'] = self.amount_to_precision(market['symbol'], amount)
+            else:
+                request['baseQtyEV'] = self.to_ev(amount, market)
         stopPrice = self.safe_string_2(params, 'stopPx', 'stopPrice')
         if stopPrice is not None:
-            if market['settle'] == 'USDT':
+            if isUSDTSettled:
                 request['stopPxRp'] = self.price_to_precision(symbol, stopPrice)
             else:
                 request['stopPxEp'] = self.to_ep(stopPrice, market)
@@ -2320,8 +2321,11 @@ class phemex(Exchange):
         method = 'privatePutSpotOrders'
         if market['inverse']:
             method = 'privatePutOrdersReplace'
-        elif market['settle'] == 'USDT':
+        elif isUSDTSettled:
             method = 'privatePutGOrdersReplace'
+            posSide = self.safe_string(params, 'posSide')
+            if posSide is None:
+                request['posSide'] = 'Merged'
         response = getattr(self, method)(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)

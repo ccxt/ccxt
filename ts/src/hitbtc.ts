@@ -1264,7 +1264,7 @@ export default class hitbtc extends Exchange {
                 orders.push (order);
             }
         }
-        return this.filterBySinceLimit (orders, since, limit);
+        return this.filterBySinceLimit (orders, since, limit) as any;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

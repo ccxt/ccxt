@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.1';
+$version = '3.0.11';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.1';
+    const VERSION = '3.0.11';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -569,6 +569,7 @@ class Exchange {
         'parseFundingRateHistory' => 'parse_funding_rate_history',
         'parseBorrowInterest' => 'parse_borrow_interest',
         'fetchFundingRates' => 'fetch_funding_rates',
+        'createDepositAddress' => 'create_deposit_address',
         'findTimeframe' => 'find_timeframe',
         'formatScientificNotationFTX' => 'format_scientific_notation_ftx',
         'orderBook' => 'order_book',
@@ -2104,12 +2105,16 @@ class Exchange {
 
     public static function decimal_to_precision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
         if ($countingMode === TICK_SIZE) {
-            if (!(is_float($numPrecisionDigits) || is_int($numPrecisionDigits)))
-                throw new BaseError('Precision must be an integer or float for TICK_SIZE');
+            if (!(is_float($numPrecisionDigits) || is_int($numPrecisionDigits) || is_string($numPrecisionDigits) ))
+                throw new BaseError('Precision must be an integer or float or string for TICK_SIZE');
         } else {
             if (!is_int($numPrecisionDigits)) {
                 throw new BaseError('Precision must be an integer');
             }
+        }
+
+        if (is_string($numPrecisionDigits)) {
+            $numPrecisionDigits = (float) $numPrecisionDigits;
         }
 
         if (!is_numeric($x)) {
@@ -4441,10 +4446,20 @@ class Exchange {
     }
 
     public function parse_precision($precision) {
+        /**
+         * @ignore
+         * @param {string} $precision The number of digits to the right of the decimal
+         * @return {string} a string number equal to 1e-$precision
+         */
         if ($precision === null) {
             return null;
         }
-        return '1e' . Precise::string_neg($precision);
+        $precisionNumber = intval($precision);
+        $parsedPrecision = '0.';
+        for ($i = 0; $i < $precisionNumber - 1; $i++) {
+            $parsedPrecision = $parsedPrecision . '0';
+        }
+        return $parsedPrecision . '1';
     }
 
     public function load_time_difference($params = array ()) {

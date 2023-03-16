@@ -643,10 +643,10 @@ class independentreserve(Exchange):
             request['price'] = price
         request['volume'] = amount
         response = getattr(self, method)(self.extend(request, params))
-        return {
+        return self.safe_order({
             'info': response,
             'id': response['OrderGuid'],
-        }
+        }, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         """

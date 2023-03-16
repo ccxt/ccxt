@@ -852,10 +852,10 @@ class coinmate(Exchange):
             method += self.capitalize(type)
         response = getattr(self, method)(self.extend(request, params))
         id = self.safe_string(response, 'data')
-        return {
+        return self.safe_order({
             'info': response,
             'id': id,
-        }
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         """

@@ -16,7 +16,7 @@ import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
 import Future from './ws/Future.js';
-import { OrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
+import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 // ----------------------------------------------------------------------------
 export default class Exchange {
     constructor(userConfig = {}) {
@@ -268,11 +268,11 @@ export default class Exchange {
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
-        this.orders = {};
+        this.orders = undefined;
         this.trades = {};
         this.transactions = {};
         this.ohlcvs = {};
-        this.myTrades = {};
+        this.myTrades = undefined;
         this.positions = {};
         // web3 and cryptography flags
         this.requiresWeb3 = false;
@@ -690,7 +690,7 @@ export default class Exchange {
                 this.fetchImplementation = module.default;
             }
             else {
-                this.fetchImplementation = window.fetch;
+                this.fetchImplementation = self.fetch;
                 AbortError = DOMException;
             }
         }
@@ -984,6 +984,15 @@ export default class Exchange {
     async fetchFundingRates(symbols = undefined, params = {}) {
         return undefined;
     }
+    async transfer(code, amount, fromAccount, toAccount, params = {}) {
+        return undefined;
+    }
+    async withdraw(code, amount, address, tag = undefined, params = {}) {
+        return undefined;
+    }
+    async createDepositAddress(code, params = {}) {
+        return undefined;
+    }
     findTimeframe(timeframe, timeframes = undefined) {
         timeframes = timeframes || this.timeframes;
         const keys = Object.keys(timeframes);
@@ -1015,7 +1024,7 @@ export default class Exchange {
     // -----------------------------------------------------------------------
     // WS/PRO methods
     orderBook(snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
-        return new OrderBook(snapshot, depth);
+        return new WsOrderBook(snapshot, depth);
     }
     indexedOrderBook(snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
         return new IndexedOrderBook(snapshot, depth);
@@ -3035,10 +3044,21 @@ export default class Exchange {
         return this.parseNumber(value, defaultNumber);
     }
     parsePrecision(precision) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} precision The number of digits to the right of the decimal
+         * @returns {string} a string number equal to 1e-precision
+         */
         if (precision === undefined) {
             return undefined;
         }
-        return '1e' + Precise.stringNeg(precision);
+        const precisionNumber = parseInt(precision);
+        let parsedPrecision = '0.';
+        for (let i = 0; i < precisionNumber - 1; i++) {
+            parsedPrecision = parsedPrecision + '0';
+        }
+        return parsedPrecision + '1';
     }
     async loadTimeDifference(params = {}) {
         const serverTime = await this.fetchTime(params);

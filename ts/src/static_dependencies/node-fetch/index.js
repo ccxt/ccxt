@@ -12,7 +12,7 @@ import zlib from 'node:zlib';
 import Stream, {PassThrough, pipeline as pump} from 'node:stream';
 import {Buffer} from 'node:buffer';
 
-import dataUriToBuffer from 'data-uri-to-buffer';
+// import dataUriToBuffer from 'data-uri-to-buffer';
 
 import {writeToStream, clone} from './body.js';
 import Response from './response.js';
@@ -56,12 +56,12 @@ export default async function fetch(url, options_) {
 			throw new TypeError(`node-fetch cannot load ${url}. URL scheme "${parsedURL.protocol.replace(/:$/, '')}" is not supported.`);
 		}
 
-		if (parsedURL.protocol === 'data:') {
+		/*if (parsedURL.protocol === 'data:') {
 			const data = dataUriToBuffer(request.url);
 			const response = new Response(data, {headers: {'Content-Type': data.typeFull}});
 			resolve(response);
 			return;
-		}
+		}*/
 
 		// Wrap http.request into fetch
 		const send = (parsedURL.protocol === 'https:' ? https : http).request;
