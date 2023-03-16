@@ -3781,7 +3781,7 @@ export default class bybit extends Exchange {
         } else if (market['linear']) {
             request['category'] = 'linear';
         } else {
-            throw new NotSupported (this.id + ' cancelOrder() does not allow inverse market orders for ' + symbol + ' markets');
+            request['category'] = 'inverse';
         }
         const response = await (this as any).privatePostV5OrderCancel (this.extend (request, params));
         //
@@ -3794,89 +3794,6 @@ export default class bybit extends Exchange {
         //         },
         //         "retExtInfo": {},
         //         "time": 1672217377164
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        return this.parseOrder (result, market);
-    }
-
-    async cancelUnifiedMarginOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelUnifiedMarginOrder() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            // 'orderLinkId': 'string',
-            // 'orderId': id,
-            // conditional orders
-            // 'orderFilter': '',
-            // 'category': '',
-        };
-        const isStop = this.safeValue (params, 'stop', false);
-        params = this.omit (params, [ 'stop' ]);
-        request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
-        if (id !== undefined) { // The user can also use argument params["orderLinkId"]
-            request['orderId'] = id;
-        }
-        if (market['option']) {
-            request['category'] = 'option';
-        } else if (market['linear']) {
-            request['category'] = 'linear';
-        } else {
-            throw new NotSupported (this.id + ' cancelUnifiedMarginOrder() does not allow inverse market orders for ' + symbol + ' markets');
-        }
-        const response = await (this as any).privatePostUnifiedV3PrivateOrderCancel (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "orderId": "42c86d66331e41998d12c2440ce90c1a",
-        //             "orderLinkId": "e80d558e-ed"
-        //         }
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        return this.parseOrder (result, market);
-    }
-
-    async cancelUSDCOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelUSDCOrder() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            // 'orderLinkId': 'string', // one of order_id, stop_order_id or order_link_id is required
-            // 'orderId': id,
-        };
-        const isStop = this.safeValue (params, 'stop', false);
-        params = this.omit (params, [ 'stop' ]);
-        let method = undefined;
-        if (id !== undefined) { // The user can also use argument params["order_link_id"]
-            request['orderId'] = id;
-        }
-        if (market['option']) {
-            method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder';
-        } else {
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder';
-            request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "outRequestId": "",
-        //             "symbol": "BTC-13MAY22-40000-C",
-        //             "orderId": "8c65df91-91fc-461d-9b14-786379ef138c",
-        //             "orderLinkId": ""
-        //         },
-        //         "retExtMap": {}
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -3917,6 +3834,8 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#cancelOrder
          * @description cancels an open order
+         * @see https://bybit-exchange.github.io/docs/derivatives/contract/cancel
+         * @see https://bybit-exchange.github.io/docs-legacy/derivativesV3/contract/#t-contract_cancelorder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bybit api endpoint
@@ -3928,15 +3847,12 @@ export default class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        const isUsdcSettled = market['settle'] === 'USDC';
-        if (market['spot'] || enableUnifiedAccount) {
+        const isUSDCSettled = market['settle'] === 'USDC';
+        if (!(enableUnifiedMargin || enableUnifiedAccount) && isUSDCSettled) {
+            return await this.cancelDerivativesOrder (id, symbol, params);
+        } else {
             return await this.cancelUnifiedAccountOrder (id, symbol, params);
-        } else if (enableUnifiedMargin && !market['inverse']) {
-            return await this.cancelUnifiedMarginOrder (id, symbol, params);
-        } else if (isUsdcSettled) {
-            return await this.cancelUSDCOrder (id, symbol, params);
         }
-        return await this.cancelDerivativesOrder (id, symbol, params);
     }
 
     async cancelAllUnifiedAccountOrders (symbol = undefined, params = {}) {
