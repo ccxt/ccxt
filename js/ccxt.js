@@ -37,7 +37,7 @@ import * as functions from './src/base/functions.js';
 import * as errors from './src/base/errors.js';
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.14';
+const version = '3.0.15';
 Exchange.ccxtVersion = version;
 //-----------------------------------------------------------------------------
 import ace from './src/ace.js';

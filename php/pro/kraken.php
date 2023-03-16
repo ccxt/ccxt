@@ -536,13 +536,10 @@ class kraken extends \ccxt\async\kraken {
     public function handle_deltas($bookside, $deltas, $timestamp = null) {
         for ($j = 0; $j < count($deltas); $j++) {
             $delta = $deltas[$j];
-            $price = floatval($delta[0]);
-            $amount = floatval($delta[1]);
+            $price = $this->parse_number($delta[0]);
+            $amount = $this->parse_number($delta[1]);
             $oldTimestamp = $timestamp ? $timestamp : 0;
-            $calcMul = $delta[2] * 1000;
-            $calcStr = $this->number_to_string($calcMul);
-            $calc = $this->number_to_string(floatval($calcStr));
-            $timestamp = max ($oldTimestamp, intval($calc));
+            $timestamp = max ($oldTimestamp, $this->parse_to_int(floatval($delta[2]) * 1000));
             $bookside->store ($price, $amount);
         }
         return $timestamp;

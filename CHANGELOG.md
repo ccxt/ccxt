@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.15 (2023-03-16)
+
+
+### Bug Fixes
+
+* **kraken:** watchOrderbook handleDeltas ([ee7b0dc](https://github.com/ccxt/ccxt/commit/ee7b0dcea4eb63210a1e9c6b011cfa995ce55018))
+
 ### 3.0.14 (2023-03-16)
 
 ### 3.0.13 (2023-03-16)
