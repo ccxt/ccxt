@@ -118,7 +118,7 @@ def method_namer_in_test(methodName):
     return full_name
 
 
-targetDir = current_dir + '/../../'
+rootDir = current_dir + '/../../'
 envVars = {}
 
 
@@ -182,8 +182,8 @@ class testMainClass(emptyClass):
 
     def expand_settings(self, exchange, symbol):
         exchangeId = exchange.id
-        keysGlobal = targetDir + 'keys.json'
-        keysLocal = targetDir + 'keys.local.json'
+        keysGlobal = rootDir + 'keys.json'
+        keysLocal = rootDir + 'keys.local.json'
         keysGlobalExists = io_file_exists(keysGlobal)
         keysLocalExists = io_file_exists(keysLocal)
         globalSettings = io_file_read(keysGlobal) if keysGlobalExists else {}
@@ -210,7 +210,7 @@ class testMainClass(emptyClass):
                 if credentialValue:
                     set_exchange_prop(exchange, credential, credentialValue)
         # skipped tests
-        skippedFile = targetDir + 'skip-tests.json'
+        skippedFile = rootDir + 'skip-tests.json'
         skippedSettings = io_file_read(skippedFile)
         skippedSettingsForExchange = exchange.safe_value(skippedSettings, exchangeId, {})
         # others

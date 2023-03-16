@@ -47,7 +47,8 @@ properties
         testFiles[property] = require (__dirname + '/Exchange/test.' + property + '.js');
     });
 
-import errors from '../base/errors';
+let errors = import('../base/errorHierarchy.js');
+errors = errors['default'];
 
 Object.keys (errors)
     // eslint-disable-next-line no-path-concat

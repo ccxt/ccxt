@@ -67,7 +67,7 @@ function method_namer_in_test($methodName) {
     $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', $snake_cased);
     return 'test_' . $snake_cased;
 }
-define('targetDir', __DIR__ . '/../../');
+define('rootDir', __DIR__ . '/../../');
 
 foreach (glob(__DIR__ . '/test_*.php') as $filename) {
     if (strpos($filename, 'test_async') === false && strpos($filename, 'test_sync') === false && strpos($filename, 'datetime_functions') === false) {
@@ -156,8 +156,8 @@ class testMainClass extends emptyClass {
 
     public function expand_settings($exchange, $symbol) {
         $exchangeId = $exchange->id;
-        $keysGlobal = targetDir . 'keys.json';
-        $keysLocal = targetDir . 'keys.local.json';
+        $keysGlobal = rootDir . 'keys.json';
+        $keysLocal = rootDir . 'keys.local.json';
         $keysGlobalExists = io_file_exists ($keysGlobal);
         $keysLocalExists = io_file_exists ($keysLocal);
         $globalSettings = $keysGlobalExists ? io_file_read ($keysGlobal) : array();
@@ -190,7 +190,7 @@ class testMainClass extends emptyClass {
             }
         }
         // skipped tests
-        $skippedFile = targetDir . 'skip-tests.json';
+        $skippedFile = rootDir . 'skip-tests.json';
         $skippedSettings = io_file_read ($skippedFile);
         $skippedSettingsForExchange = $exchange->safe_value($skippedSettings, $exchangeId, array());
         // others
