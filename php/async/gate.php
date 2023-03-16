@@ -30,7 +30,7 @@ class gate extends Exchange {
             'pro' => true,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
-                'doc' => 'https://www.gate.io/docs/apiv4/en/index.html',
+                'doc' => 'https://www.gate.io/docs/developers/apiv4/en/',
                 'www' => 'https://gate.io/',
                 'api' => array(
                     'public' => array(
@@ -57,10 +57,12 @@ class gate extends Exchange {
                     'public' => array(
                         'futures' => 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options' => 'https://fx-api-testnet.gateio.ws/api/v4',
                     ),
                     'private' => array(
                         'futures' => 'https://fx-api-testnet.gateio.ws/api/v4',
                         'delivery' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'options' => 'https://fx-api-testnet.gateio.ws/api/v4',
                     ),
                 ),
                 'referral' => array(
@@ -433,7 +435,6 @@ class gate extends Exchange {
                 'RAI' => 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC' => 'Super Bitcoin',
                 'TNC' => 'Trinity Network Credit',
-                'TON' => 'TONToken',
                 'VAI' => 'VAIOT',
             ),
             'requiredCredentials' => array(
@@ -444,6 +445,7 @@ class gate extends Exchange {
                 'X-Gate-Channel-Id' => 'ccxt',
             ),
             'options' => array(
+                'sandboxMode' => false,
                 'createOrder' => array(
                     'expiration' => 86400, // for conditional orders
                 ),
@@ -580,7 +582,7 @@ class gate extends Exchange {
                     ),
                 ),
             ),
-            // https://www.gate.io/docs/apiv4/en/index.html#label-list
+            // https://www.gate.io/docs/developers/apiv4/en/#label-list
             'exceptions' => array(
                 'exact' => array(
                     'INVALID_PARAM_VALUE' => '\\ccxt\\BadRequest',
@@ -673,28 +675,45 @@ class gate extends Exchange {
                     'TOO_BUSY' => '\\ccxt\\ExchangeNotAvailable',
                     'CROSS_ACCOUNT_NOT_FOUND' => '\\ccxt\\ExchangeError',
                     'RISK_LIMIT_TOO_LOW' => '\\ccxt\\BadRequest', // array("label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000")
+                    'AUTO_TRIGGER_PRICE_LESS_LAST' => '\\ccxt\\InvalidOrder',  // array("label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument => Trigger.Price must < last_price")
+                    'AUTO_TRIGGER_PRICE_GREATE_LAST' => '\\ccxt\\InvalidOrder', // array("label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument => Trigger.Price must > last_price")
                 ),
                 'broad' => array(),
             ),
         ));
     }
 
+    public function set_sandbox_mode($enable) {
+        parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
+    }
+
     public function fetch_markets($params = array ()) {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for gate
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currency-pairs-supported                                     // spot
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         // margin
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts                                            // swap
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2                                          // future
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time  // option
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @return {[array]} an array of objects representing market data
              */
-            $promises = array(
-                $this->fetch_spot_markets($params),
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $rawPromises = array(
                 $this->fetch_contract_markets($params),
                 $this->fetch_option_markets($params),
             );
-            $promises = Async\await(Promise\all($promises));
-            $spotMarkets = $promises[0];
-            $contractMarkets = $promises[1];
-            $optionMarkets = $promises[2];
+            if (!$sandboxMode) {
+                // gate does not have a sandbox for spot $markets
+                $mainnetOnly = array( $this->fetch_spot_markets($params) );
+                $rawPromises = $this->array_concat($rawPromises, $mainnetOnly);
+            }
+            $promises = Async\await(Promise\all($rawPromises));
+            $spotMarkets = $this->safe_value($promises, 0, array());
+            $contractMarkets = $this->safe_value($promises, 1, array());
+            $optionMarkets = $this->safe_value($promises, 2, array());
             $markets = $this->array_concat($spotMarkets, $contractMarkets);
             return $this->array_concat($markets, $optionMarkets);
         }) ();
@@ -1313,7 +1332,7 @@ class gate extends Exchange {
                     'lowerCaseId' => $currencyIdLower,
                     'name' => null,
                     'code' => $code,
-                    'precision' => $this->parse_number('1e-4'), // todo => as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix($this->value, 4);" function, so users cant set lower precision than 0.0001
+                    'precision' => $this->parse_number('1e-4'), // todo => is done completely in html, in withdrawal page's source it has predefined "num_need_fix($this->value, 4);" function, so users cant set lower precision than 0.0001
                     'info' => $entry,
                     'active' => $active,
                     'deposit' => $depositEnabled,
@@ -2409,14 +2428,18 @@ class gate extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+             * @see https://www.gate.io/docs/developers/apiv4/en/#$market-candlesticks       // spot
+             * @see https://www.gate.io/docs/developers/apiv4/en/#get-futures-candlesticks  // swap
+             * @see https://www.gate.io/docs/developers/apiv4/en/#$market-candlesticks       // future
+             * @see https://www.gate.io/docs/developers/apiv4/en/#get-options-candlesticks  // option
              * @param {string} $symbol unified $symbol of the $market $to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int|null} $since timestamp in ms of the earliest candle $to fetch
-             * @param {int|null} $limit the maximum amount of candles $to fetch
+             * @param {int|null} $limit the maximum amount of candles $to fetch, $limit is conflicted with $since and $params["until"], If either $since and $params["until"] is specified, $request will be rejected
              * @param {array} $params extra parameters specific $to the gateio api endpoint
              * @param {string|null} $params->price "mark" or "index" for mark $price and index $price candles
              * @param {int|null} $params->until timestamp in ms of the latest candle $to fetch
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2444,12 +2467,12 @@ class gate extends Exchange {
             $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
             $until = $this->safe_integer($params, 'until');
             if ($until !== null) {
-                $until = intval($until / 1000);
+                $until = $this->parse_to_int($until / 1000);
                 $params = $this->omit($params, 'until');
             }
             if ($since !== null) {
                 $duration = $this->parse_timeframe($timeframe);
-                $request['from'] = intval($since / 1000);
+                $request['from'] = $this->parse_to_int($since / 1000);
                 $toTimestamp = $this->sum($request['from'], $limit * $duration - 1);
                 $currentTimestamp = $this->seconds();
                 $to = min ($toTimestamp, $currentTimestamp);
@@ -2607,7 +2630,7 @@ class gate extends Exchange {
                 $request['limit'] = $limit; // default 100, max 1000
             }
             if ($since !== null && ($market['contract'])) {
-                $request['from'] = intval($since / 1000);
+                $request['from'] = $this->parse_to_int($since / 1000);
             }
             $response = Async\await($this->$method (array_merge($request, $query)));
             //
@@ -2722,10 +2745,10 @@ class gate extends Exchange {
                 $request['limit'] = $limit; // default 100, max 1000
             }
             if ($since !== null) {
-                $request['from'] = intval($since / 1000);
+                $request['from'] = $this->parse_to_int($since / 1000);
             }
             if ($until !== null) {
-                $request['to'] = intval($until / 1000);
+                $request['to'] = $this->parse_to_int($until / 1000);
             }
             $method = $this->get_supported_mapping($type, array(
                 'spot' => 'privateSpotGetMyTrades',
@@ -2932,7 +2955,7 @@ class gate extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($since !== null) {
-                $start = intval($since / 1000);
+                $start = $this->parse_to_int($since / 1000);
                 $request['from'] = $start;
                 $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
             }
@@ -2962,7 +2985,7 @@ class gate extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($since !== null) {
-                $start = intval($since / 1000);
+                $start = $this->parse_to_int($since / 1000);
                 $request['from'] = $start;
                 $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
             }
@@ -3000,6 +3023,8 @@ class gate extends Exchange {
             if ($network !== null) {
                 $request['chain'] = $network;
                 $params = $this->omit($params, 'network');
+            } else {
+                $request['chain'] = $currency['id'];
             }
             $response = Async\await($this->privateWithdrawalsPostWithdrawals (array_merge($request, $params)));
             //
@@ -3062,15 +3087,19 @@ class gate extends Exchange {
         //
         $id = $this->safe_string($transaction, 'id');
         $type = null;
-        $amount = $this->safe_string($transaction, 'amount');
+        $amountString = $this->safe_string($transaction, 'amount');
         if ($id !== null) {
             if ($id[0] === 'b') {
                 // GateCode handling
-                $type = Precise::string_gt($amount, '0') ? 'deposit' : 'withdrawal';
-                $amount = Precise::string_abs($amount);
+                $type = Precise::string_gt($amountString, '0') ? 'deposit' : 'withdrawal';
+                $amountString = Precise::string_abs($amountString);
             } else {
                 $type = $this->parse_transaction_type($id[0]);
             }
+        }
+        $feeCostString = $this->safe_string($transaction, 'fee');
+        if ($type === 'withdrawal') {
+            $amountString = Precise::string_sub($amountString, $feeCostString);
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
@@ -3078,7 +3107,6 @@ class gate extends Exchange {
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = $this->parse_transaction_status($rawStatus);
         $address = $this->safe_string($transaction, 'address');
-        $fee = $this->safe_number($transaction, 'fee');
         $tag = $this->safe_string($transaction, 'memo');
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         return array(
@@ -3086,7 +3114,7 @@ class gate extends Exchange {
             'id' => $id,
             'txid' => $txid,
             'currency' => $code,
-            'amount' => $this->parse_number($amount),
+            'amount' => $this->parse_number($amountString),
             'network' => null,
             'address' => $address,
             'addressTo' => null,
@@ -3099,7 +3127,10 @@ class gate extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'updated' => null,
-            'fee' => $fee,
+            'fee' => array(
+                'currency' => $code,
+                'cost' => $this->parse_number($feeCostString),
+            ),
         );
     }
 
@@ -3122,7 +3153,7 @@ class gate extends Exchange {
              * @param {bool|null} $params->auto_borrow *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
              * @param {string|null} $params->settle *$contract only* Unified Currency Code for settle currency
              * @param {bool|null} $params->reduceOnly *$contract only* Indicates if this order is to reduce the size of a position
-             * @param {bool|null} $params->close *$contract only* Set as true to close the position, with size set to 0
+             * @param {bool|null} $params->close *$contract only* Set to close the position, with size set to 0
              * @param {bool|null} $params->auto_size *$contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
              * @param {int|null} $params->price_type *$contract only* 0 latest deal $price, 1 mark $price, 2 index $price
              * @return {array|null} {@link https://docs.ccxt.com/en/latest/manual.html#order-structure An order structure}
@@ -3177,7 +3208,7 @@ class gate extends Exchange {
                         'size' => $amount, // int64, positive = bid, negative = ask
                         // 'iceberg' => 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                         // 'close' => false, // true to close the position, with size set to 0
-                        // 'reduce_only' => false, // St as true to be reduce-only order
+                        // 'reduce_only' => false, // St to be reduce-only order
                         // 'tif' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
                         // 'text' => $clientOrderId, // 't-abcdef1234567890',
                         // 'auto_size' => '', // close_long, close_short, note size also needs to be set to 0
@@ -3713,8 +3744,8 @@ class gate extends Exchange {
         $numFeeCurrencies = count($fees);
         $multipleFeeCurrencies = $numFeeCurrencies > 1;
         $status = $this->parse_order_status($rawStatus);
-        $filled = $this->parse_number(Precise::string_abs($filledString));
-        $remaining = $this->parse_number(Precise::string_abs($remainingString));
+        $filled = Precise::string_abs($filledString);
+        $remaining = Precise::string_abs($remainingString);
         // handle spot $market buy
         $account = $this->safe_string($order, 'account'); // using this instead of $market $type because of the conflicting ids
         if ($account === 'spot') {
@@ -3723,7 +3754,7 @@ class gate extends Exchange {
             if (($type === 'market') && ($side === 'buy')) {
                 $filled = Precise::string_div($filledString, $averageString);
                 $remaining = Precise::string_div($remainingString, $averageString);
-                $price = null; // arrives as 0
+                $price = null; // arrives
                 $cost = $amount;
                 $amount = Precise::string_div($amount, $averageString);
             }
@@ -3853,7 +3884,7 @@ class gate extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($since !== null && $spot) {
-                $request['from'] = intval($since / 1000);
+                $request['from'] = $this->parse_to_int($since / 1000);
             }
             $methodTail = $stop ? 'PriceOrders' : 'Orders';
             $openSpotOrders = $spot && ($status === 'open') && !$stop;
@@ -4358,7 +4389,7 @@ class gate extends Exchange {
         $unrealisedPnl = $this->safe_string($position, 'unrealised_pnl');
         // Initial Position Margin = ( Position Value / Leverage ) . Close Position Fee
         // *The default $leverage under the full $position is the highest $leverage in the $market->
-        // *Trading fee is charged as Taker Fee Rate (0.075%).
+        // *Trading fee is charged Fee Rate (0.075%).
         $takerFee = '0.00075';
         $feePaid = Precise::string_mul($takerFee, $notional);
         $initialMarginString = Precise::string_add(Precise::string_div($notional, $leverage), $feePaid);
@@ -4809,7 +4840,7 @@ class gate extends Exchange {
                 $request['currency_pair'] = $market['id'];
                 $request['side'] = 'borrow';
                 // default it to 0.01% since this is a reasonable limit
-                // as it is the smallest tick size currently offered by gateio
+                // is the smallest tick size currently offered by gateio
                 $request['rate'] = $this->safe_string($params, 'rate', '0.0001');
                 $request['auto_renew'] = true;
                 $method = 'privateMarginPostLoans';
@@ -5064,7 +5095,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#futures-stats
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} $timeframe "5m", "15m", "30m", "1h", "4h", "1d"
-             * @param {int|null} $since the time(ms) of the earliest record to retrieve as a unix timestamp
+             * @param {int|null} $since the time(ms) of the earliest record to retrieve unix timestamp
              * @param {int|null} $limit default 30
              * @param {array} $params exchange specific parameters
              * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)

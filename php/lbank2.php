@@ -664,7 +664,7 @@ class lbank2 extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         // endpoint doesnt work
         $this->load_markets();
@@ -679,7 +679,7 @@ class lbank2 extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            'time' => intval($since / 1000),
+            'time' => $this->parse_to_int($since / 1000),
             'size' => $limit, // max 2000
         );
         $response = $this->publicGetKline (array_merge($request, $params));
@@ -1015,10 +1015,10 @@ class lbank2 extends Exchange {
         //      }
         //
         $result = $this->safe_value($response, 'data', array());
-        return array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($result, 'order_id'),
             'info' => $result,
-        );
+        ), $market);
     }
 
     public function parse_order_status($status) {
@@ -2298,7 +2298,7 @@ class lbank2 extends Exchange {
     public function convert_secret_to_pem($secret) {
         $lineLength = 64;
         $secretLength = strlen($secret) - 0;
-        $numLines = intval($secretLength / $lineLength);
+        $numLines = $this->parse_to_int($secretLength / $lineLength);
         $numLines = $this->sum($numLines, 1);
         $pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for ($i = 0; $i < $numLines; $i++) {

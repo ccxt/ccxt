@@ -13,8 +13,6 @@ use React\Async;
 
 class bitfinex extends \ccxt\async\bitfinex {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -391,7 +389,7 @@ class bitfinex extends \ccxt\async\bitfinex {
     public function handle_system_status($client, $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
-        // and unified as handleStatus for any usage pattern that
+        // and unified for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {

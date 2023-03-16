@@ -529,10 +529,10 @@ class bitflyer extends Exchange {
         $result = $this->privatePostSendchildorder (array_merge($request, $params));
         // array( "status" => - 200, "error_message" => "Insufficient funds", "data" => null )
         $id = $this->safe_string($result, 'child_order_acceptance_id');
-        return array(
-            'info' => $result,
+        return $this->safe_order(array(
             'id' => $id,
-        );
+            'info' => $result,
+        ));
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

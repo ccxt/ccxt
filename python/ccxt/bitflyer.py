@@ -508,10 +508,10 @@ class bitflyer(Exchange):
         result = self.privatePostSendchildorder(self.extend(request, params))
         # {"status": - 200, "error_message": "Insufficient funds", "data": null}
         id = self.safe_string(result, 'child_order_acceptance_id')
-        return {
-            'info': result,
+        return self.safe_order({
             'id': id,
-        }
+            'info': result,
+        })
 
     def cancel_order(self, id, symbol=None, params={}):
         """

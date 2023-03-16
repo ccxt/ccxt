@@ -1,0 +1,27 @@
+declare const keys: {
+    (o: object): string[];
+    (o: {}): string[];
+};
+declare const values: (x: any) => any[];
+declare const index: (x: any) => Set<any>;
+declare const extend: (...args: any[]) => any;
+declare const clone: (x: any) => any;
+declare const ordered: (x: any) => any;
+declare const unique: (x: any) => any[];
+declare const arrayConcat: (a: any, b: any) => any;
+declare const inArray: (needle: any, haystack: any) => any;
+declare const toArray: (object: any) => unknown[];
+declare const isEmpty: (object: any) => boolean;
+declare const keysort: (x: any, out?: {}) => {};
+declare const groupBy: (x: any, k: any, out?: {}) => {};
+declare const indexBy: (x: any, k: any, out?: {}) => {};
+declare const filterBy: (x: any, k: any, value?: any, out?: any[]) => any[];
+declare const sortBy: (array: any, key: any, descending?: boolean, direction?: number) => any;
+declare const sortBy2: (array: any, key1: any, key2: any, descending?: boolean, direction?: number) => any;
+declare const flatten: (x: any, out?: any[]) => any[];
+declare const pluck: (x: any, k: any) => any[];
+declare const omit: (x: any, ...args: any[]) => any;
+declare const sum: (...xs: any[]) => any;
+declare const deepExtend: (...xs: any[]) => any;
+declare const merge: (target: any, ...args: any[]) => any;
+export { keys, values, extend, clone, index, ordered, unique, arrayConcat, inArray, toArray, isEmpty, keysort, indexBy, groupBy, filterBy, sortBy, sortBy2, flatten, pluck, omit, sum, deepExtend, merge, };

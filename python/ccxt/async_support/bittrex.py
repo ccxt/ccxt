@@ -6,19 +6,19 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
-from ccxt.base.errors import AddressPending
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import AddressPending
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
@@ -317,7 +317,7 @@ class bittrex(Exchange):
         #             "precision":8,
         #             "status":"ONLINE",  # "OFFLINE"
         #             "createdAt":"2019-05-23T00:41:21.843Z",
-        #             "notice":"USDT has swapped to an ERC20-based token as of August 5, 2019."
+        #             "notice":"USDT has swapped to an ERC20-based token August 5, 2019."
         #         }
         #     ]
         #
@@ -706,7 +706,7 @@ class bittrex(Exchange):
         isTaker = self.safe_value(trade, 'isTaker')
         if isTaker is not None:
             takerOrMaker = 'taker' if isTaker else 'maker'
-            if not isTaker:  # as noted in PR  #15655 self API provides confusing value - when it's 'maker' trade, then side value should reversed
+            if not isTaker:  # in PR  #15655 self API provides confusing value - when it's 'maker' trade, then side value should reversed
                 if side == 'buy':
                     side = 'sell'
                 elif side == 'sell':
@@ -867,7 +867,7 @@ class bittrex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1325,7 +1325,7 @@ class bittrex(Exchange):
             currency = self.currency(code)
             request['currencySymbol'] = currency['id']
         if since is not None:
-            startDate = int(since / 1000) * 1000
+            startDate = int((since / str(1000))) * 1000
             request['startDate'] = self.iso8601(startDate)
         if limit is not None:
             request['pageSize'] = limit
@@ -1339,7 +1339,7 @@ class bittrex(Exchange):
             method = 'privateGetDepositsClosed'
         params = self.omit(params, 'status')
         response = await getattr(self, method)(self.extend(request, params))
-        # we cannot filter by `since` timestamp, as it isn't set by Bittrex
+        # we cannot filter by `since` timestamp, isn't set by Bittrex
         # see https://github.com/ccxt/ccxt/issues/4067
         # return self.parse_transactions(response, currency, since, limit)
         return self.parse_transactions(response, currency, None, limit)
@@ -1398,7 +1398,7 @@ class bittrex(Exchange):
             currency = self.currency(code)
             request['currencySymbol'] = currency['id']
         if since is not None:
-            startDate = int(since / 1000) * 1000
+            startDate = int((since / str(1000))) * 1000
             request['startDate'] = self.iso8601(startDate)
         if limit is not None:
             request['pageSize'] = limit
@@ -1768,7 +1768,7 @@ class bittrex(Exchange):
             # and v3 market ids are reversed in comparison to v1
             # v3 has to be a completely separate implementation
             # otherwise we will have to shuffle symbols and currencies everywhere
-            # which is prone to errors, as was shown here
+            # which is prone to errors, shown here
             # https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
             request['marketSymbol'] = market['base'] + '-' + market['quote']
         method = 'privateGetOrdersClosed'

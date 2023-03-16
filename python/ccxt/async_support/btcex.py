@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -16,6 +16,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -228,10 +229,12 @@ class btcex(Exchange):
                     '403': AuthenticationError,  # ACCESS_DENIED_ERROR Access denied
                     '1000': ExchangeNotAvailable,  # NO_SERVICE No service found
                     '1001': BadRequest,  # BAD_REQUEST Bad requested
+                    '1005': DDoSProtection,  # {"code":1005,"message":"Operate too frequently"}
                     '2000': AuthenticationError,  # NEED_LOGIN Login is required
                     '2001': AuthenticationError,  # ACCOUNT_NOT_MATCH Account information does not match
                     '2002': AuthenticationError,  # ACCOUNT_NEED_ENABLE Account needs to be activated
                     '2003': AuthenticationError,  # ACCOUNT_NOT_AVAILABLE Account not available
+                    '2010': PermissionDenied,  # {"code":2010,"message":"Access denied","data":{}}
                     '3000': AuthenticationError,  # TEST user
                     '3002': AuthenticationError,  # NICKNAME_EXIST Nicknames exist
                     '3003': AuthenticationError,  # ACCOUNT_NOT_EXIST No account
@@ -296,6 +299,7 @@ class btcex(Exchange):
                     '5013': InvalidOrder,  # ORDER_PRICE_RANGE_IS_TOO_HIGH order price range is too high.
                     '5014': InvalidOrder,  # ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
                     '5109': InvalidOrder,  # ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
+                    '5119': InvalidOrder,  # {"code":5119,"message":"Cannot be less than the minimum order value：10USDT, instrument: GXE/USDT","data":{"coinType":"USDT","amount":"10","instrumentName":"GXE/USDT"}}
                     '5135': InvalidOrder,  # The quantity should be larger than: 0.01
                     '5901': InvalidOrder,  # TRANSFER_RESULT transfer out success.
                     '5902': InvalidOrder,  # ORDER_SUCCESS place order success.
@@ -1254,7 +1258,7 @@ class btcex(Exchange):
             'instrument_name': market['id'],
             'type': type,
         }
-        if side == 'sell':
+        if side == 'sell' or type == 'limit':
             request['amount'] = self.amount_to_precision(symbol, amount)
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)

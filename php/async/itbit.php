@@ -7,8 +7,8 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
+use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 
@@ -759,10 +759,10 @@ class itbit extends Exchange {
                 'instrument' => $market['id'],
             );
             $response = Async\await($this->privatePostWalletsWalletIdOrders (array_merge($request, $params)));
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $response['id'],
-            );
+            ), $market);
         }) ();
     }
 

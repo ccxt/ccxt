@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -19,6 +18,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -1223,21 +1223,25 @@ class bitmart(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         type = market['type']
         duration = self.parse_timeframe(timeframe)
+        parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
         request = {
             'symbol': market['id'],
-            'step': self.safe_integer(self.timeframes, timeframe, timeframe),
         }
+        if parsedTimeframe is not None:
+            request['step'] = parsedTimeframe
+        else:
+            request['step'] = timeframe
         maxLimit = 500
         if limit is None:
             limit = maxLimit
         limit = min(maxLimit, limit)
-        now = int(self.milliseconds() / 1000)
+        now = self.parse_to_int(self.milliseconds() / 1000)
         fromRequest = 'from' if (type == 'spot') else 'start_time'
         toRequest = 'to' if (type == 'spot') else 'end_time'
         if since is None:
@@ -1245,7 +1249,7 @@ class bitmart(Exchange):
             request[fromRequest] = start
             request[toRequest] = now
         else:
-            start = int(since / 1000) - 1
+            start = self.parse_to_int((since / 1000)) - 1
             end = self.sum(start, limit * duration)
             request[fromRequest] = start
             request[toRequest] = min(end, now)

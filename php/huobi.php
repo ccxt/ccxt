@@ -852,7 +852,7 @@ class huobi extends Exchange {
                     '1066' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147)
                     '1067' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413)
                     '1094' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243)
-                    '1220' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718)
+                    '1220' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1220,"err_msg":"You don’t have access permission have not opened contracts trading.","ts":1645096660718)
                     '1303' => '\\ccxt\\BadRequest', // array("code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true)
                     '1461' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits (5000USDT). Please modify.","ts":1652554651234)
                     'bad-request' => '\\ccxt\\BadRequest',
@@ -1430,6 +1430,7 @@ class huobi extends Exchange {
                 }
             }
         }
+        $promises = $promises;
         for ($i = 0; $i < count($promises); $i++) {
             $allMarkets = $this->array_concat($allMarkets, $promises[$i]);
         }
@@ -2576,7 +2577,7 @@ class huobi extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2585,7 +2586,7 @@ class huobi extends Exchange {
             // 'symbol' => $market['id'], // spot, future
             // 'contract_code' => $market['id'], // swap
             // 'size' => 1000, // max 1000 for spot, 2000 for contracts
-            // 'from' => intval($since / 1000), spot only
+            // 'from' => intval(($since / (string) 1000)), spot only
             // 'to' => $this->seconds(), spot only
         );
         $fieldName = 'symbol';
@@ -2594,7 +2595,7 @@ class huobi extends Exchange {
         $method = 'spotPublicGetMarketHistoryCandles';
         if ($market['spot']) {
             if ($since !== null) {
-                $request['from'] = intval($since / 1000);
+                $request['from'] = $this->parse_to_int($since / 1000);
             }
             if ($limit !== null) {
                 $request['size'] = $limit; // max 2000
@@ -2658,7 +2659,7 @@ class huobi extends Exchange {
                     $request['from'] = $now - $duration * ($limit - 1);
                     $request['to'] = $now;
                 } else {
-                    $start = intval($since / 1000);
+                    $start = $this->parse_to_int($since / 1000);
                     $request['from'] = $start;
                     $request['to'] = $this->sum($start, $duration * ($limit - 1));
                 }
@@ -2777,6 +2778,7 @@ class huobi extends Exchange {
         //            }
         //        )
         //    }
+        //    }
         //
         $data = $this->safe_value($response, 'data', array());
         $result = array();
@@ -2869,7 +2871,7 @@ class huobi extends Exchange {
     }
 
     public function network_id_to_code($networkId, $currencyCode = null) {
-        // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        // here network-id is provided pair of currency & chain (i.e. trc20usdt)
         $keys = is_array($this->options['networkNamesByChainIds']) ? array_keys($this->options['networkNamesByChainIds']) : array();
         $keysLength = count($keys);
         if ($keysLength === 0) {
@@ -5615,8 +5617,8 @@ class huobi extends Exchange {
                 if ($method !== 'POST') {
                     $request = array_merge($request, $query);
                 }
-                $request = $this->keysort($request);
-                $auth = $this->urlencode($request);
+                $sortedRequest = $this->keysort($request);
+                $auth = $this->urlencode($sortedRequest);
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $this->hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');

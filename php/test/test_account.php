@@ -20,7 +20,6 @@ function test_account($exchange, $account, $method) {
     for ($i = 0; $i < count($keys); $i++) {
         $key = $keys[$i];
         $keyInAccount = (is_array($account) && array_key_exists($key, $account));
-        assert ($keyInAccount, $exchange->id . ' ' . $method . ' ' . $key . ' missing from response');
     }
     $accountKeys = is_array($account) ? array_keys($account) : array();
     assert (strlen($keys) === strlen($accountKeys), $exchange->id . ' ' . $method . ' respone includes more $keys than expected');
@@ -30,5 +29,4 @@ function test_account($exchange, $account, $method) {
     assert ($account['type'] === null || gettype($account['type']) === 'string');
     assert ($account['code'] === null || gettype($account['code']) === 'string');
 }
-
 

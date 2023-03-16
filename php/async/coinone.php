@@ -689,7 +689,7 @@ class coinone extends Exchange {
              * @param {array} $params extra parameters specific to the coinone api endpoint
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
-            // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
+            // The returned amount might not be same ordered amount. If an order is partially filled, the returned amount means the remaining amount.
             // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
             if ($symbol === null) {
                 throw new ExchangeError($this->id . ' fetchOpenOrders() allows fetching closed orders with a specific symbol');
