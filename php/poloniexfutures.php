@@ -880,18 +880,20 @@ class poloniexfutures extends Exchange {
         );
         $response = $this->privateDeleteOrdersOrderId (array_merge($request, $params));
         //
-        //   {
-        //       code => "200000",
-        //       $data => {
-        //           $cancelledOrderIds => array(
+        //    {
+        //        code => "200000",
+        //        $data => {
+        //            $cancelledOrderIds => array(
         //                "619714b8b6353000014c505a",
-        //           ),
-        //           cancelFailedOrders => array(
-        //              array(
-        //                  orderId => "63a9c5c2b9e7d70007eb0cd5", orderState => "2"}
-        //          ),
-        //       ),
-        //   }
+        //            ),
+        //            cancelFailedOrders => array(
+        //                array(
+        //                    orderId => "63a9c5c2b9e7d70007eb0cd5",
+        //                    orderState => "2"
+        //                }
+        //            ),
+        //        ),
+        //    }
         //
         $data = $this->safe_value($response, 'data');
         $cancelledOrderIds = $this->safe_value($data, 'cancelledOrderIds');
@@ -899,29 +901,7 @@ class poloniexfutures extends Exchange {
         if ($cancelledOrderIdsLength === 0) {
             throw new InvalidOrder($this->id . ' cancelOrder() order already cancelled');
         }
-        return array(
-            'id' => $this->safe_string($cancelledOrderIds, 0),
-            'clientOrderId' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'lastTradeTimestamp' => null,
-            'symbol' => null,
-            'type' => null,
-            'side' => null,
-            'price' => null,
-            'amount' => null,
-            'cost' => null,
-            'average' => null,
-            'filled' => null,
-            'remaining' => null,
-            'status' => null,
-            'fee' => null,
-            'trades' => null,
-            'timeInForce' => null,
-            'postOnly' => null,
-            'stopPrice' => null,
-            'info' => $response,
-        );
+        return $this->parse_order($data);
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
@@ -1367,31 +1347,132 @@ class poloniexfutures extends Exchange {
             $request['order-id'] = $id;
         }
         $response = $this->$method (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => "200000",
+        //        "data" => {
+        //            "symbol" => "ADAUSDTPERP",
+        //            "leverage" => "1",
+        //            "hidden" => false,
+        //            "forceHold" => false,
+        //            "closeOrder" => false,
+        //            "type" => "market",
+        //            "isActive" => false,
+        //            "createdAt" => 1678929587000,
+        //            "orderTime" => 1678929587248115582,
+        //            "iceberg" => false,
+        //            "stopTriggered" => false,
+        //            "id" => "64126eb38c6919000737dcdc",
+        //            "value" => "3.1783",
+        //            "timeInForce" => "GTC",
+        //            "updatedAt" => 1678929587000,
+        //            "side" => "buy",
+        //            "stopPriceType" => "",
+        //            "dealValue" => "3.1783",
+        //            "dealSize" => 1,
+        //            "settleCurrency" => "USDT",
+        //            "trades" => array(
+        //                {
+        //                    "feePay" => "0.00158915",
+        //                    "tradeId" => "64126eb36803eb0001ff99bc"
+        //                }
+        //            ),
+        //            "endAt" => 1678929587000,
+        //            "stp" => "",
+        //            "filledValue" => "3.1783",
+        //            "postOnly" => false,
+        //            "size" => 1,
+        //            "stop" => "",
+        //            "filledSize" => 1,
+        //            "reduceOnly" => false,
+        //            "marginType" => 1,
+        //            "cancelExist" => false,
+        //            "clientOid" => "d19e8fcb-2df4-44bc-afd4-67dd42048246",
+        //            "status" => "done"
+        //        }
+        //    }
+        //
         $market = ($symbol !== null) ? $this->market($symbol) : null;
         $responseData = $this->safe_value($response, 'data');
         return $this->parse_order($responseData, $market);
     }
 
     public function parse_order($order, $market = null) {
+        //
+        // createOrder
+        //
+        //    {
+        //        code => "200000",
+        //        data => array(
+        //            orderId => "619717484f1d010001510cde",
+        //        ),
+        //    }
+        //
+        // fetchOrder
+        //
+        //    {
+        //        "symbol" => "ADAUSDTPERP",
+        //        "leverage" => "1",
+        //        "hidden" => false,
+        //        "forceHold" => false,
+        //        "closeOrder" => false,
+        //        "type" => "market",
+        //        "isActive" => false,
+        //        "createdAt" => 1678929587000,
+        //        "orderTime" => 1678929587248115582,
+        //        "iceberg" => false,
+        //        "stopTriggered" => false,
+        //        "id" => "64126eb38c6919000737dcdc",
+        //        "value" => "3.1783",
+        //        "timeInForce" => "GTC",
+        //        "updatedAt" => 1678929587000,
+        //        "side" => "buy",
+        //        "stopPriceType" => "",
+        //        "dealValue" => "3.1783",
+        //        "dealSize" => 1,
+        //        "settleCurrency" => "USDT",
+        //        "trades" => array(
+        //            {
+        //                "feePay" => "0.00158915",
+        //                "tradeId" => "64126eb36803eb0001ff99bc"
+        //            }
+        //        ),
+        //        "endAt" => 1678929587000,
+        //        "stp" => "",
+        //        "filledValue" => "3.1783",
+        //        "postOnly" => false,
+        //        "size" => 1,
+        //        "stop" => "",
+        //        "filledSize" => 1,
+        //        "reduceOnly" => false,
+        //        "marginType" => 1,
+        //        "cancelExist" => false,
+        //        "clientOid" => "d19e8fcb-2df4-44bc-afd4-67dd42048246",
+        //        "status" => "done"
+        //    }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        $cancelledOrderIds => array(
+        //            "619714b8b6353000014c505a",
+        //        ),
+        //        cancelFailedOrders => array(
+        //            array(
+        //                orderId => "63a9c5c2b9e7d70007eb0cd5",
+        //                orderState => "2"
+        //            }
+        //        ),
+        //    ),
+        //
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
-        $orderId = $this->safe_string($order, 'id');
-        $type = $this->safe_string($order, 'type');
         $timestamp = $this->safe_integer($order, 'createdAt');
-        $datetime = $this->iso8601($timestamp);
-        $price = $this->safe_string($order, 'price');
-        // $price is zero for $market $order
+        // price is zero for $market $order
         // omitZero is called in safeOrder2
-        $side = $this->safe_string($order, 'side');
         $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
-        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
-        $feeCost = $this->safe_number($order, 'fee');
-        $amount = $this->safe_string($order, 'size');
         $filled = $this->safe_string($order, 'dealSize');
         $rawCost = $this->safe_string_2($order, 'dealFunds', 'filledValue');
-        $leverage = $this->safe_string($order, 'leverage');
-        $cost = Precise::string_div($rawCost, $leverage);
         $average = null;
         if (Precise::string_gt($filled, '0')) {
             $contractSize = $this->safe_string($market, 'contractSize');
@@ -1407,34 +1488,33 @@ class poloniexfutures extends Exchange {
         $isActive = $this->safe_value($order, 'isActive', false);
         $cancelExist = $this->safe_value($order, 'cancelExist', false);
         $status = $isActive ? 'open' : 'closed';
-        $status = $cancelExist ? 'canceled' : $status;
-        $fee = array(
-            'currency' => $feeCurrency,
-            'cost' => $feeCost,
-        );
-        $clientOrderId = $this->safe_string($order, 'clientOid');
-        $timeInForce = $this->safe_string($order, 'timeInForce');
-        $stopPrice = $this->safe_number($order, 'stopPrice');
-        $postOnly = $this->safe_value($order, 'postOnly');
+        $id = $this->safe_string($order, 'id');
+        if (is_array($order) && array_key_exists('cancelledOrderIds', $order)) {
+            $cancelledOrderIds = $this->safe_value($order, 'cancelledOrderIds');
+            $id = $this->safe_string($cancelledOrderIds, 0);
+        }
         return $this->safe_order(array(
-            'id' => $orderId,
-            'clientOrderId' => $clientOrderId,
-            'symbol' => $symbol,
-            'type' => $type,
-            'timeInForce' => $timeInForce,
-            'postOnly' => $postOnly,
-            'side' => $side,
-            'amount' => $amount,
-            'price' => $price,
-            'stopPrice' => $stopPrice,
-            'cost' => $cost,
+            'info' => $order,
+            'id' => $id,
+            'clientOrderId' => $this->safe_string($order, 'clientOid'),
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'type' => $this->safe_string($order, 'type'),
+            'timeInForce' => $this->safe_string($order, 'timeInForce'),
+            'postOnly' => $this->safe_value($order, 'postOnly'),
+            'side' => $this->safe_string($order, 'side'),
+            'amount' => $this->safe_string($order, 'size'),
+            'price' => $this->safe_string($order, 'price'),
+            'stopPrice' => $this->safe_string($order, 'stopPrice'),
+            'cost' => $this->safe_string($order, 'dealValue'),
             'filled' => $filled,
             'remaining' => null,
             'timestamp' => $timestamp,
-            'datetime' => $datetime,
-            'fee' => $fee,
-            'status' => $status,
-            'info' => $order,
+            'datetime' => $this->iso8601($timestamp),
+            'fee' => array(
+                'currency' => $this->safe_currency_code($feeCurrencyId),
+                'cost' => $this->safe_string($order, 'fee'),
+            ),
+            'status' => $cancelExist ? 'canceled' : $status,
             'lastTradeTimestamp' => null,
             'average' => $average,
             'trades' => null,
