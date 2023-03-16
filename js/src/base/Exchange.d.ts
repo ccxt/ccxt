@@ -663,7 +663,7 @@ export default class Exchange {
     filterByCurrencySinceLimit(array: any, code?: any, since?: number, limit?: any, tail?: boolean): any;
     parseLastPrices(pricesData: any, symbols?: string[], params?: {}): any;
     parseTickers(tickers: any, symbols?: string[], params?: {}): any;
-    parseDepositAddresses(addresses: any, codes?: any, indexed?: boolean, params?: {}): any;
+    parseDepositAddresses(addresses: any, codes?: any, indexed?: boolean, params?: {}): {};
     parseBorrowInterests(response: any, market?: any): any[];
     parseFundingRateHistories(response: any, market?: any, since?: number, limit?: any): any;
     safeSymbol(marketId: any, market?: any, delimiter?: any, marketType?: any): any;

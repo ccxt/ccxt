@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.16 (2023-03-16)
+
+
+### Bug Fixes
+
+* **Exchange:** fetchDepositAddresses ([3cf0612](https://github.com/ccxt/ccxt/commit/3cf0612f672c4bd3c5286b08d2bc1e5a735f4879))
+
 ### 3.0.15 (2023-03-16)
 
 

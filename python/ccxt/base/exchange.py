@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.15'
+__version__ = '3.0.16'
 
 # -----------------------------------------------------------------------------
 
@@ -3512,13 +3512,14 @@ class Exchange(object):
         return self.filter_by_array(results, 'symbol', symbols)
 
     def parse_deposit_addresses(self, addresses, codes=None, indexed=True, params={}):
-        result = None
+        result = []
         for i in range(0, len(addresses)):
             address = self.extend(self.parse_deposit_address(addresses[i]), params)
             result.append(address)
         if codes is not None:
             result = self.filter_by_array(result, 'currency', codes, False)
-        result = self.index_by(result, 'currency') if indexed else result
+        if indexed:
+            return self.index_by(result, 'currency')
         return result
 
     def parse_borrow_interests(self, response, market=None):

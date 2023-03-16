@@ -14,7 +14,7 @@ export default class zb extends Exchange {
         network: any;
         info: any;
     };
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<any>;
+    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
     fetchDepositAddress(code: any, params?: {}): Promise<{
         currency: any;
         address: string;

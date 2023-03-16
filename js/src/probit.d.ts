@@ -38,7 +38,7 @@ export default class probit extends Exchange {
         network: string;
         info: any;
     }>;
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<any>;
+    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
     withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: string;
         currency: any;

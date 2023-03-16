@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.15';
+$version = '3.0.16';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.15';
+    const VERSION = '3.0.16';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4645,7 +4645,7 @@ class Exchange {
     }
 
     public function parse_deposit_addresses($addresses, $codes = null, $indexed = true, $params = array ()) {
-        $result = null;
+        $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
             $address = array_merge($this->parse_deposit_address($addresses[$i]), $params);
             $result[] = $address;
@@ -4653,7 +4653,9 @@ class Exchange {
         if ($codes !== null) {
             $result = $this->filter_by_array($result, 'currency', $codes, false);
         }
-        $result = $indexed ? $this->index_by($result, 'currency') : $result;
+        if ($indexed) {
+            return $this->index_by($result, 'currency');
+        }
         return $result;
     }
 

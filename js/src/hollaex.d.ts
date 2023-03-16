@@ -34,7 +34,7 @@ export default class hollaex extends Exchange {
         network: string;
         info: any;
     };
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<any>;
+    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
     fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchWithdrawal(id: any, code?: any, params?: {}): Promise<{
         info: any;

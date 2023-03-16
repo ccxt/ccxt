@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '3.0.15';
+$version = '3.0.16';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.15';
+    const VERSION = '3.0.16';
 
     public $browser;
     public $marketsLoading = null;
@@ -2418,7 +2418,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_deposit_addresses($addresses, $codes = null, $indexed = true, $params = array ()) {
-        $result = null;
+        $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
             $address = array_merge($this->parse_deposit_address($addresses[$i]), $params);
             $result[] = $address;
@@ -2426,7 +2426,9 @@ class Exchange extends \ccxt\Exchange {
         if ($codes !== null) {
             $result = $this->filter_by_array($result, 'currency', $codes, false);
         }
-        $result = $indexed ? $this->index_by($result, 'currency') : $result;
+        if ($indexed) {
+            return $this->index_by($result, 'currency');
+        }
         return $result;
     }
 
