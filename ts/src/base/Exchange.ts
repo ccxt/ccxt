@@ -3566,15 +3566,17 @@ export default class Exchange {
     }
 
     parseDepositAddresses (addresses, codes = undefined, indexed = true, params = {}) {
-        let result = undefined;
+        let result = [];
         for (let i = 0; i < addresses.length; i++) {
-            const address = this.extend ((this as any).parseDepositAddress (addresses[i]), params);
+            const address = this.extend (this.parseDepositAddress (addresses[i]), params);
             result.push (address);
         }
         if (codes !== undefined) {
             result = this.filterByArray (result, 'currency', codes, false);
         }
-        result = indexed ? this.indexBy (result, 'currency') : result;
+        if (indexed) {
+            return this.indexBy (result, 'currency');
+        }
         return result;
     }
 

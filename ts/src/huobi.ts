@@ -4786,7 +4786,7 @@ export default class huobi extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const allAddresses = this.parseDepositAddresses (data, [ currency['code'] ], false);
+        const allAddresses = this.parseDepositAddresses (data, [ currency['code'] ], false) as any; // cjg: to do remove this weird object or array ambiguity
         const addresses = [];
         for (let i = 0; i < allAddresses.length; i++) {
             const address = allAddresses[i];
