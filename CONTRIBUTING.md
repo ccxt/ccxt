@@ -330,7 +330,7 @@ Most of exchanges' API endpoints will require an exchange-specific market symbol
 
 **NEVER DO THIS:**
 
-```JavaScript
+```javascript
 async fetchTicker (symbol, params = {}) {
    const request = {
       'pair': symbol, // very bad, sending unified symbols to the exchange directly
@@ -342,7 +342,7 @@ async fetchTicker (symbol, params = {}) {
 
 **DO NOT DO THIS EITHER:**
 
-```JavaScript
+```javascript
 async fetchTicker (symbol, params = {}) {
    const request = {
       'symbol': symbol, // very bad, sending unified symbols to the exchange directly
@@ -361,7 +361,7 @@ To get the exchange-specific market-id by a unified CCXT symbol, use the followi
 
 **GOOD EXAMPLES:**
 
-```JavaScript
+```javascript
 async fetchTicker (symbol, params = {}) {
    const market = this.market (symbol); // the entire market structure
    const request = {
@@ -372,7 +372,7 @@ async fetchTicker (symbol, params = {}) {
 }
 ```
 
-```JavaScript
+```javascript
 async fetchTicker (symbol, params = {}) {
    const marketId = this.marketId (symbol); // just the id
    const request = {
@@ -394,7 +394,7 @@ When sending requests to the exchange unified symbols have to be _"converted"_ t
 
 **NEVER DO THIS:**:
 
-```JavaScript
+```javascript
 parseTrade (trade, market = undefined) {
    // parsing code...
    return {
@@ -407,7 +407,7 @@ parseTrade (trade, market = undefined) {
 
 **DO NOT DO THIS EITHER**
 
-```JavaScript
+```javascript
 parseTrade (trade, market = undefined) {
    // parsing code...
    return {
@@ -422,7 +422,7 @@ In order to handle the market-`id` properly it has to be looked-up in the info c
 
 **GOOD EXAMPLE:**
 
-```JavaScript
+```javascript
 parseTrade (trade, market = undefined) {
     const marketId = this.safeString (trade, 'pair');
     // safeSymbol is used to parse the market id to a unified symbol
@@ -452,7 +452,7 @@ To keep the code transpileable, please, remember this simple rule: *always use t
 
 JavaScript is less restrictive than other languages. It will tolerate an attempt to dereference a non-existent key where other languages will throw an Exception:
 
-```JavaScript
+```javascript
 // JavaScript
 
 const someObject = {}
@@ -466,7 +466,7 @@ if (someObject['nonExistentKey']) {
 
 However, the above logic with *"an undefined value by default"* will not work in Python or PHP.
 
-```Python
+```python
 # Python
 some_dictionary = {}
 
@@ -488,7 +488,7 @@ Most languages will not tolerate an attempt to access a non-existent key in an o
 
 For the above reasons, please, **never do this** in the transpiled JS files:
 
-```JavaScript
+```javascript
 // JavaScript
 const value = object['key'] || other_value; // will not work in Python or PHP!
 if (object['key'] || other_value) { /* will not work in Python or PHP! */ }
@@ -508,7 +508,7 @@ The `safeValue` function is used for objects inside objects, arrays inside objec
 
 If you need to search for several different keys within an object you have available the `safeMethodN` function's family that allows for a search with an arbitrary number of keys by accepting an array of keys as an argument.
 
-```Javascript
+```javascript
 const price = this.safeStringN (object, [ 'key1', 'key2', 'key3' ], default)
 ```
 For every safe method listed above, there is the correspondent `safeMethodN` too.
@@ -519,14 +519,14 @@ Alternatively, you could check for the key existence first...
 
 So, you have to change this:
 
-```JavaScript
+```javascript
 if (params['foo'] !== undefined) {
 }
 ```
 
 ↓
 
-```JavaScript
+```javascript
 const foo = this.safeValue (params, 'foo');
 if (foo !== undefined) {
 }
@@ -534,7 +534,7 @@ if (foo !== undefined) {
 
 Or:
 
-```JavaScript
+```javascript
 if ('foo' in params) {
 }
 ```
@@ -586,7 +586,7 @@ The `hmac()` method also supports `'base64'` for the `digest` argument. This is 
 
 In order to convert to milliseconds timestamps, CCXT implements the following methods:
 
-```JavaScript
+```javascript
 const data = {
    'unixTimestampInSeconds': 1565242530,
    'unixTimestampInMilliseconds': 1565242530165,
@@ -611,7 +611,7 @@ const timestamp = this.safeTimestamp (data, 'stringInSeconds'); // === 156524253
 
 In JavaScript the common syntax to get a length of a string or an array is to reference the `.length` property like shown here:
 
-```JavaScript
+```javascript
 someArray.length
 
 // or
@@ -621,7 +621,7 @@ someString.length
 
 And it works for both strings and arrays. In Python this is done in a similar way:
 
-```Python
+```python
 len(some_array)
 
 # or
@@ -633,7 +633,7 @@ So the length is accessible in the same way for both strings and arrays and both
 
 However, with PHP this is different, so the syntax for string lengths and array lengths is different:
 
-```PHP
+```php
 count(some_array);
 
 // or
@@ -643,7 +643,7 @@ strlen(some_string); // or mb_strlen
 
 Because the transpiler works line-by-line and does no code introspection, it cannot tell arrays from strings and cannot properly transpile `.length` to PHP without additional hinting. It will always transpile JS `.length` to PHP `strlen` and will prefer string lengths over array lengths. In order to indicate an array length properly we have to do the following:
 
-```JavaScript
+```javascript
 const arrayLength = someArray.length;
 // the above line ends with .length;
 // that ending is a hint for the transpiler that will recognize someArray
@@ -677,7 +677,7 @@ What exactly that means:
 
 Compare this pseudocode showing how it was done **before** (an example of some arbitrary parsing code for the purpose of explaining it):
 
-```JavaScript
+```javascript
 const amount = this.safeFloat (order, 'amount');
 const remaining = this.safeFloat (order, 'remaining');
 if (remaining > 0) {
@@ -697,7 +697,7 @@ return {
 
 This is how we should do it **from now on**:
 
-```JavaScript
+```javascript
 const amount = this.safeNumber (order, 'amount'); // internal string-layer
 const remaining = this.safeString (order, 'remaining'); // internal string-layer
 if (Precise.stringGt (remaining, '0')) { // internal string-layer
@@ -731,14 +731,14 @@ When using strings containing control characters like `"\n"`, `"\t"`, always enc
 
 Bad:
 
-```JavaScript
+```javascript
 const a = 'GET' + method.toLowerCase () + '\n' + path;
 const b = 'api\nfoobar.com\n';
 ```
 
 Good:
 
-```JavaScript
+```javascript
 const a = 'GET' + method.toLowerCase () + "\n" + path; // eslint-disable-line quotes
 // eslint-disable-next-line quotes
 const b = "api\nfoobar.com\n";
@@ -756,21 +756,21 @@ The brackets are needed to hint the transpiler which part of the conditional is 
 
 Here are some examples of a badly-designed code that will break the transpiler:
 
-```JavaScript
+```javascript
 // this is an example of bad code style that will likely break the transpiler
 const foo = {
    'bar': 'a' + qux === 'baz' ? this.a () : this.b () + 'b',
 };
 ```
 
-```JavaScript
+```javascript
 // this confuses the transpiler and a human developer as well
 const foo = 'bar' + baz + qux ? 'a' : '' + this.c ();
 ```
 
 Adding surrounding brackets to corresponding parts would be a more or less correct way to resolve it.
 
-```JavaScript
+```javascript
 const foo = {
    'bar': (qux === 'baz') ? this.a () : this.b (), // much better now
 };
@@ -778,7 +778,7 @@ const foo = {
 
 The universally-working way to solve it is to just break the complex line into a few simpler lines, even at a cost of adding extra lines and conditionals:
 
-```JavaScript
+```javascript
 // before:
 // const foo = {
 //    'bar': 'a' + qux === 'baz' ? this.a () : this.b () + 'b',
@@ -793,7 +793,7 @@ const foo = {
 
 Or even:
 
-```JavaScript
+```javascript
 // before:
 // const foo = 'bar' + baz + qux ? 'a' : '' + this.c ();
 // ----------------------------------------------------------------------------
@@ -906,7 +906,7 @@ Exchange API keys can be added to the `keys.local.json` in the root folder insid
 
 An example of `keys.local.json` file:
 
-```JavaScript
+```javascript
 {
     "ftx": {
         "apiKey": "XXX",
