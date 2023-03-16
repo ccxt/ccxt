@@ -455,7 +455,7 @@ export default class kuna extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchTickers
@@ -509,7 +509,7 @@ export default class kuna extends Exchange {
         return await this.fetchOrderBook (symbol, limit, params);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchTrades
@@ -607,7 +607,7 @@ export default class kuna extends Exchange {
         }, market);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchOHLCV
@@ -693,7 +693,7 @@ export default class kuna extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name kuna#cancelOrder
@@ -759,7 +759,7 @@ export default class kuna extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchOrder
@@ -776,7 +776,7 @@ export default class kuna extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchOpenOrders
@@ -802,7 +802,7 @@ export default class kuna extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchMyTrades

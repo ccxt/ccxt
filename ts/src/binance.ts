@@ -2819,7 +2819,7 @@ export default class binance extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchBidsAsks (symbols = undefined, params = {}) {
+    async fetchBidsAsks (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchBidsAsks
@@ -2851,7 +2851,7 @@ export default class binance extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchLastPrices (symbols = undefined, params = {}) {
+    async fetchLastPrices (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchLastPrices
@@ -2950,7 +2950,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchTickers
@@ -3040,7 +3040,7 @@ export default class binance extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchOHLCV
@@ -3346,7 +3346,7 @@ export default class binance extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchTrades
@@ -4081,7 +4081,7 @@ export default class binance extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchOrder
@@ -4128,7 +4128,7 @@ export default class binance extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchOrders
@@ -4246,7 +4246,7 @@ export default class binance extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchOpenOrders
@@ -4309,7 +4309,7 @@ export default class binance extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchClosedOrders
@@ -4324,7 +4324,7 @@ export default class binance extends Exchange {
         return this.filterBy (orders, 'status', 'closed');
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name binance#cancelOrder
@@ -4373,7 +4373,7 @@ export default class binance extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name binance#cancelAllOrders
@@ -4413,7 +4413,7 @@ export default class binance extends Exchange {
         }
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchOrderTrades
@@ -4441,7 +4441,7 @@ export default class binance extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchMyTrades
@@ -4578,7 +4578,7 @@ export default class binance extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchMyDustTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyDustTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchMyDustTrades
@@ -4717,7 +4717,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchDeposits
@@ -4818,7 +4818,7 @@ export default class binance extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchWithdrawals
@@ -5278,7 +5278,7 @@ export default class binance extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfers (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchTransfers
@@ -5986,7 +5986,7 @@ export default class binance extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchFundingRateHistory
@@ -6056,7 +6056,7 @@ export default class binance extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    async fetchFundingRates (symbols = undefined, params = {}) {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchFundingRates
@@ -6572,7 +6572,7 @@ export default class binance extends Exchange {
         return this.options['leverageBrackets'];
     }
 
-    async fetchLeverageTiers (symbols = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchLeverageTiers
@@ -6677,7 +6677,7 @@ export default class binance extends Exchange {
         return tiers;
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchPositions
@@ -6696,7 +6696,7 @@ export default class binance extends Exchange {
         }
     }
 
-    async fetchAccountPositions (symbols = undefined, params = {}) {
+    async fetchAccountPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchAccountPositions
@@ -6731,7 +6731,7 @@ export default class binance extends Exchange {
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
-    async fetchPositionsRisk (symbols = undefined, params = {}) {
+    async fetchPositionsRisk (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchPositionsRisk
@@ -6826,7 +6826,7 @@ export default class binance extends Exchange {
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
-    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchFundingHistory
@@ -6872,7 +6872,7 @@ export default class binance extends Exchange {
         return this.parseIncomes (response, market, since, limit);
     }
 
-    async setLeverage (leverage, symbol = undefined, params = {}) {
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name binance#setLeverage
@@ -6907,7 +6907,7 @@ export default class binance extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name binance#setMarginMode
@@ -6969,7 +6969,7 @@ export default class binance extends Exchange {
         return response;
     }
 
-    async setPositionMode (hedged, symbol = undefined, params = {}) {
+    async setPositionMode (hedged, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name binance#setPositionMode
@@ -7007,7 +7007,7 @@ export default class binance extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async fetchSettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchSettlementHistory
@@ -7094,7 +7094,7 @@ export default class binance extends Exchange {
         return result;
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchLedger
@@ -7540,7 +7540,7 @@ export default class binance extends Exchange {
         return this.parseBorrowRate (rate);
     }
 
-    async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowRateHistory (code, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchBorrowRateHistory
@@ -7704,7 +7704,7 @@ export default class binance extends Exchange {
         return response;
     }
 
-    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchBorrowInterest
@@ -7773,7 +7773,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async repayMargin (code, amount, symbol = undefined, params = {}) {
+    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name binance#repayMargin
@@ -7808,7 +7808,7 @@ export default class binance extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name binance#borrowMargin
@@ -7861,7 +7861,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOpenInterestHistory (symbol, timeframe = '5m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchOpenInterestHistory

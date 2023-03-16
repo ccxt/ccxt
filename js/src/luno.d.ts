@@ -8,17 +8,17 @@ export default class luno extends Exchange {
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    fetchOrdersByState(state?: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrdersByState(state?: any, symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTrade(trade: any, market: any): import("./base/types.js").Trade;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTradingFee(symbol: any, params?: {}): Promise<{
         info: any;
         symbol: any;
@@ -26,9 +26,9 @@ export default class luno extends Exchange {
         taker: number;
     }>;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    fetchLedgerByEntries(code?: any, entry?: number, limit?: number, params?: {}): Promise<object[]>;
-    fetchLedger(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchLedgerByEntries(code?: string, entry?: number, limit?: number, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseLedgerComment(comment: any): {
         type: string;
         referenceId: any;

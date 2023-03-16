@@ -1072,7 +1072,7 @@ export default class phemex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchOHLCV
@@ -1300,7 +1300,7 @@ export default class phemex extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchTrades
@@ -2447,7 +2447,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name phemex#cancelOrder
@@ -2489,7 +2489,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name phemex#cancelAllOrders
@@ -2519,7 +2519,7 @@ export default class phemex extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchOrder
@@ -2564,7 +2564,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchOrders
@@ -2603,7 +2603,7 @@ export default class phemex extends Exchange {
         return this.parseOrders (rows, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchOpenOrders
@@ -2647,7 +2647,7 @@ export default class phemex extends Exchange {
         }
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchClosedOrders
@@ -2726,7 +2726,7 @@ export default class phemex extends Exchange {
         }
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchMyTrades
@@ -2930,7 +2930,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchDeposits
@@ -2971,7 +2971,7 @@ export default class phemex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchWithdrawals
@@ -3098,7 +3098,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchPositions
@@ -3363,7 +3363,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchFundingHistory
@@ -3608,7 +3608,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setMarginMode
@@ -3642,7 +3642,7 @@ export default class phemex extends Exchange {
         return await (this as any).privatePutPositionsLeverage (this.extend (request, params));
     }
 
-    async setPositionMode (hedged, symbol = undefined, params = {}) {
+    async setPositionMode (hedged, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setPositionMode
@@ -3669,7 +3669,7 @@ export default class phemex extends Exchange {
         return await (this as any).privatePutGPositionsSwitchPosModeSync (this.extend (request, params));
     }
 
-    async fetchLeverageTiers (symbols = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchLeverageTiers
@@ -3834,7 +3834,7 @@ export default class phemex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async setLeverage (leverage, symbol = undefined, params = {}) {
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setLeverage
@@ -3954,7 +3954,7 @@ export default class phemex extends Exchange {
         return transfer;
     }
 
-    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfers (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchTransfers

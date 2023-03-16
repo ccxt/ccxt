@@ -308,7 +308,7 @@ export default class poloniex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOHLCV
@@ -519,7 +519,7 @@ export default class poloniex extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchTickers
@@ -752,7 +752,7 @@ export default class poloniex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchTrades
@@ -788,7 +788,7 @@ export default class poloniex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchMyTrades
@@ -993,7 +993,7 @@ export default class poloniex extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOpenOrders
@@ -1151,7 +1151,7 @@ export default class poloniex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#cancelOrder
@@ -1172,7 +1172,7 @@ export default class poloniex extends Exchange {
         return await (this as any).privateDeleteOrdersId (this.extend (request, params));
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#cancelAllOrders
@@ -1213,7 +1213,7 @@ export default class poloniex extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOrder
@@ -1254,14 +1254,14 @@ export default class poloniex extends Exchange {
         });
     }
 
-    async fetchOrderStatus (id, symbol = undefined, params = {}) {
+    async fetchOrderStatus (id, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         const orders = await this.fetchOpenOrders (symbol, undefined, undefined, params);
         const indexed = this.indexBy (orders, 'id');
         return (id in indexed) ? 'open' : 'closed';
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOrderTrades
@@ -1656,7 +1656,7 @@ export default class poloniex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchTransactionsHelper (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactionsHelper (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         const now = this.seconds ();
@@ -1740,7 +1740,7 @@ export default class poloniex extends Exchange {
         return response;
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchTransactions
@@ -1765,7 +1765,7 @@ export default class poloniex extends Exchange {
         return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchWithdrawals
@@ -1913,7 +1913,7 @@ export default class poloniex extends Exchange {
         return depositWithdrawFee;
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchDeposits

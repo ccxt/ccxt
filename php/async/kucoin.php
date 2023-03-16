@@ -2321,9 +2321,10 @@ class kucoin extends Exchange {
         $statuses = array(
             'SUCCESS' => 'ok',
             'PROCESSING' => 'pending',
+            'WALLET_PROCESSING' => 'pending',
             'FAILURE' => 'failed',
         );
-        return $this->safe_string($statuses, $status);
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_transaction($transaction, $currency = null) {

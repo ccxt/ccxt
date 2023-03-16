@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.13'
+__version__ = '3.0.14'
 
 # -----------------------------------------------------------------------------
 
@@ -2440,6 +2440,9 @@ class Exchange(object):
             ])
         return result
 
+    def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
+
     def convert_trading_view_to_ohlcv(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
         result = []
         timestamps = self.safe_value(ohlcvs, timestamp, [])
@@ -3011,6 +3014,9 @@ class Exchange(object):
     def fetch_balance(self, params={}):
         raise NotSupported(self.id + ' fetchBalance() is not supported yet')
 
+    def watch_balance(self, params={}):
+        raise NotSupported(self.id + ' watchBalance() is not supported yet')
+
     def fetch_partial_balance(self, part, params={}):
         balance = self.fetch_balance(params)
         return balance[part]
@@ -3212,6 +3218,9 @@ class Exchange(object):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
+    def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' watchOrders() is not supported yet')
+
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
 
@@ -3220,6 +3229,9 @@ class Exchange(object):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
+
+    def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
 
     def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetchTransactions() is not supported yet')

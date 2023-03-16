@@ -35,20 +35,20 @@ export default class bitfinex extends Exchange {
     parseTransferStatus(status: any): string;
     convertDerivativesId(currencyId: any, type: any): any;
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: any, since?: any, limit?: number, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     editOrder(id: any, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: any, params?: {}): Promise<any>;
+    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     parseOrder(order: any, market?: any): any;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
+    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     getCurrencyName(code: any): any;
@@ -66,7 +66,7 @@ export default class bitfinex extends Exchange {
         network: any;
         info: any;
     }>;
-    fetchTransactions(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchTransactions(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;
@@ -118,7 +118,7 @@ export default class bitfinex extends Exchange {
             rate: any;
         };
     }>;
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

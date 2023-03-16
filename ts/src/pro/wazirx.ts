@@ -188,7 +188,7 @@ export default class wazirx extends wazirxRest {
         return await this.watch (url, messageHash, request, subscribeHash);
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#watchTickers
@@ -290,7 +290,7 @@ export default class wazirx extends wazirxRest {
         }, market);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#watchTrades
@@ -357,7 +357,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#watchMyTrades
@@ -390,7 +390,7 @@ export default class wazirx extends wazirxRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#watchOHLCV
@@ -558,7 +558,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol !== undefined) {
             const market = this.market (symbol);

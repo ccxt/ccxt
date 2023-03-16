@@ -5,7 +5,7 @@ export default class bitopro extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTrade(trade: any, market: any): import("./base/types.js").Trade;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
@@ -18,14 +18,14 @@ export default class bitopro extends Exchange {
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    cancelOrders(ids: any, symbol?: any, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: any, params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    fetchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -52,8 +52,8 @@ export default class bitopro extends Exchange {
             rate: any;
         };
     };
-    fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchWithdrawal(id: any, code?: any, params?: {}): Promise<{
         info: any;
         id: string;

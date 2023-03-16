@@ -927,10 +927,16 @@ export default class Exchange {
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         return undefined;
     }
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return undefined;
+    }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         return undefined;
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        return undefined;
+    }
+    async watchOrderBook(symbol, limit = undefined, params = {}) {
         return undefined;
     }
     async fetchTime(params = {}) {
@@ -1985,6 +1991,9 @@ export default class Exchange {
         }
         return result;
     }
+    async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchOHLCV() is not supported yet');
+    }
     convertTradingViewToOHLCV(ohlcvs, timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
         const result = [];
         const timestamps = this.safeValue(ohlcvs, timestamp, []);
@@ -2646,6 +2655,9 @@ export default class Exchange {
     async fetchBalance(params = {}) {
         throw new NotSupported(this.id + ' fetchBalance() is not supported yet');
     }
+    async watchBalance(params = {}) {
+        throw new NotSupported(this.id + ' watchBalance() is not supported yet');
+    }
     async fetchPartialBalance(part, params = {}) {
         const balance = await this.fetchBalance(params);
         return balance[part];
@@ -2880,6 +2892,9 @@ export default class Exchange {
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrders() is not supported yet');
     }
+    async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchOrders() is not supported yet');
+    }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOpenOrders() is not supported yet');
     }
@@ -2888,6 +2903,9 @@ export default class Exchange {
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchMyTrades() is not supported yet');
+    }
+    async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchMyTrades() is not supported yet');
     }
     async fetchTransactions(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchTransactions() is not supported yet');

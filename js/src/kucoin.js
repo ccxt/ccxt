@@ -2300,9 +2300,10 @@ export default class kucoin extends Exchange {
         const statuses = {
             'SUCCESS': 'ok',
             'PROCESSING': 'pending',
+            'WALLET_PROCESSING': 'pending',
             'FAILURE': 'failed',
         };
-        return this.safeString(statuses, status);
+        return this.safeString(statuses, status, status);
     }
     parseTransaction(transaction, currency = undefined) {
         //

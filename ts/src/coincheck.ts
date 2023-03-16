@@ -191,7 +191,7 @@ export default class coincheck extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coincheck#fetchOpenOrders
@@ -439,7 +439,7 @@ export default class coincheck extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coincheck#fetchMyTrades
@@ -483,7 +483,7 @@ export default class coincheck extends Exchange {
         return this.parseTrades (transactions, market, since, limit);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coincheck#fetchTrades
@@ -600,7 +600,7 @@ export default class coincheck extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coincheck#cancelOrder
@@ -616,7 +616,7 @@ export default class coincheck extends Exchange {
         return await (this as any).privateDeleteExchangeOrdersId (this.extend (request, params));
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coincheck#fetchDeposits
@@ -665,7 +665,7 @@ export default class coincheck extends Exchange {
         return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coincheck#fetchWithdrawals

@@ -780,7 +780,7 @@ export default class delta extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchTickers
@@ -966,7 +966,7 @@ export default class delta extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchTrades
@@ -1023,7 +1023,7 @@ export default class delta extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchOHLCV
@@ -1147,7 +1147,7 @@ export default class delta extends Exchange {
         return this.parsePosition (result, market);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchPositions
@@ -1461,7 +1461,7 @@ export default class delta extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name delta#cancelOrder
@@ -1521,7 +1521,7 @@ export default class delta extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name delta#cancelAllOrders
@@ -1550,7 +1550,7 @@ export default class delta extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchOpenOrders
@@ -1564,7 +1564,7 @@ export default class delta extends Exchange {
         return await this.fetchOrdersWithMethod ('privateGetOrders', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchClosedOrders
@@ -1578,7 +1578,7 @@ export default class delta extends Exchange {
         return await this.fetchOrdersWithMethod ('privateGetOrdersHistory', symbol, since, limit, params);
     }
 
-    async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersWithMethod (method, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'product_ids': market['id'], // comma-separated
@@ -1629,7 +1629,7 @@ export default class delta extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchMyTrades
@@ -1711,7 +1711,7 @@ export default class delta extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchLedger

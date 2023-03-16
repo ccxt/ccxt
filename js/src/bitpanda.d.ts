@@ -13,7 +13,7 @@ export default class bitpanda extends Exchange {
     };
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
@@ -42,8 +42,8 @@ export default class bitpanda extends Exchange {
         network: any;
         info: any;
     }>;
-    fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
@@ -88,14 +88,14 @@ export default class bitpanda extends Exchange {
     parseOrder(order: any, market?: any): any;
     parseTimeInForce(timeInForce: any): string;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: any, params?: {}): Promise<any>;
-    cancelOrders(ids: any, symbol?: any, params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrderTrades(id: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
+    cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrderTrades(id: any, symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

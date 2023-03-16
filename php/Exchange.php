@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.13';
+$version = '3.0.14';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.13';
+    const VERSION = '3.0.14';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -550,8 +550,10 @@ class Exchange {
         'handleHttpStatusCode' => 'handle_http_status_code',
         'fetchAccounts' => 'fetch_accounts',
         'fetchTrades' => 'fetch_trades',
+        'watchTrades' => 'watch_trades',
         'fetchDepositAddresses' => 'fetch_deposit_addresses',
         'fetchOrderBook' => 'fetch_order_book',
+        'watchOrderBook' => 'watch_order_book',
         'fetchTime' => 'fetch_time',
         'fetchTradingLimits' => 'fetch_trading_limits',
         'parseTicker' => 'parse_ticker',
@@ -595,6 +597,7 @@ class Exchange {
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
         'safeTicker' => 'safe_ticker',
         'fetchOHLCV' => 'fetch_ohlcv',
+        'watchOHLCV' => 'watch_ohlcv',
         'convertTradingViewToOHLCV' => 'convert_trading_view_to_ohlcv',
         'convertOHLCVToTradingView' => 'convert_ohlcv_to_trading_view',
         'marketIds' => 'market_ids',
@@ -645,6 +648,7 @@ class Exchange {
         'safeMarket' => 'safe_market',
         'checkRequiredCredentials' => 'check_required_credentials',
         'fetchBalance' => 'fetch_balance',
+        'watchBalance' => 'watch_balance',
         'fetchPartialBalance' => 'fetch_partial_balance',
         'fetchFreeBalance' => 'fetch_free_balance',
         'fetchUsedBalance' => 'fetch_used_balance',
@@ -676,9 +680,11 @@ class Exchange {
         'cancelOrder' => 'cancel_order',
         'cancelUnifiedOrder' => 'cancel_unified_order',
         'fetchOrders' => 'fetch_orders',
+        'watchOrders' => 'watch_orders',
         'fetchOpenOrders' => 'fetch_open_orders',
         'fetchClosedOrders' => 'fetch_closed_orders',
         'fetchMyTrades' => 'fetch_my_trades',
+        'watchMyTrades' => 'watch_my_trades',
         'fetchTransactions' => 'fetch_transactions',
         'fetchDeposits' => 'fetch_deposits',
         'fetchWithdrawals' => 'fetch_withdrawals',
@@ -3310,6 +3316,10 @@ class Exchange {
         return $result;
     }
 
+    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOHLCV() is not supported yet');
+    }
+
     public function convert_trading_view_to_ohlcv($ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
         $result = array();
         $timestamps = $this->safe_value($ohlcvs, $timestamp, array());
@@ -4004,6 +4014,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchBalance() is not supported yet');
     }
 
+    public function watch_balance($params = array ()) {
+        throw new NotSupported($this->id . ' watchBalance() is not supported yet');
+    }
+
     public function fetch_partial_balance($part, $params = array ()) {
         $balance = $this->fetch_balance($params);
         return $balance[$part];
@@ -4261,6 +4275,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchOrders() is not supported yet');
     }
 
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOrders() is not supported yet');
+    }
+
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOpenOrders() is not supported yet');
     }
@@ -4271,6 +4289,10 @@ class Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchMyTrades() is not supported yet');
+    }
+
+    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchMyTrades() is not supported yet');
     }
 
     public function fetch_transactions($symbol = null, $since = null, $limit = null, $params = array ()) {

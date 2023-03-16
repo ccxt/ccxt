@@ -403,7 +403,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseTicker (this.safeValue (response, 'data', {}), market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchTickers
@@ -612,7 +612,7 @@ export default class poloniexfutures extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchTrades
@@ -670,7 +670,7 @@ export default class poloniexfutures extends Exchange {
         return this.safeInteger (response, 'data');
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchOHLCV
@@ -884,7 +884,7 @@ export default class poloniexfutures extends Exchange {
         };
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#cancelOrder
@@ -925,7 +925,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseOrder (data);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchPositions
@@ -1078,7 +1078,7 @@ export default class poloniexfutures extends Exchange {
         };
     }
 
-    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchFundingHistory
@@ -1152,7 +1152,7 @@ export default class poloniexfutures extends Exchange {
         return fees;
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#cancelAllOrders
@@ -1213,7 +1213,7 @@ export default class poloniexfutures extends Exchange {
         return result;
     }
 
-    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchOrdersByStatus
@@ -1318,7 +1318,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchOpenOrders
@@ -1337,7 +1337,7 @@ export default class poloniexfutures extends Exchange {
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchClosedOrders
@@ -1356,7 +1356,7 @@ export default class poloniexfutures extends Exchange {
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
-    async fetchOrder (id = undefined, symbol = undefined, params = {}) {
+    async fetchOrder (id = undefined, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchOrder
@@ -1605,7 +1605,7 @@ export default class poloniexfutures extends Exchange {
         };
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchMyTrades

@@ -125,7 +125,7 @@ export default class alpaca extends alpacaRest {
         }, market);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchOHLCV
@@ -265,7 +265,7 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchTrades
@@ -319,7 +319,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchMyTrades
@@ -352,7 +352,7 @@ export default class alpaca extends alpacaRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchOrders

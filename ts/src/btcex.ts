@@ -621,7 +621,7 @@ export default class btcex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
@@ -736,7 +736,7 @@ export default class btcex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1205,7 +1205,7 @@ export default class btcex extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         await this.signIn ();
         await this.loadMarkets ();
         const request = {
@@ -1396,7 +1396,7 @@ export default class btcex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         await this.signIn ();
         await this.loadMarkets ();
         const request = {
@@ -1419,7 +1419,7 @@ export default class btcex extends Exchange {
         return this.parseOrder (result);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
@@ -1443,7 +1443,7 @@ export default class btcex extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -1487,7 +1487,7 @@ export default class btcex extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
@@ -1535,7 +1535,7 @@ export default class btcex extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a id argument');
         }
@@ -1583,7 +1583,7 @@ export default class btcex extends Exchange {
         return this.parseTrades (trades, undefined, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a id argument');
         }
@@ -1759,7 +1759,7 @@ export default class btcex extends Exchange {
         return this.parsePosition (result);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         await this.signIn ();
         await this.loadMarkets ();
         const request = {
@@ -1879,7 +1879,7 @@ export default class btcex extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires the code argument');
         }
@@ -1914,7 +1914,7 @@ export default class btcex extends Exchange {
         return this.parseTransactions (result, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires the code argument');
         }
@@ -2094,7 +2094,7 @@ export default class btcex extends Exchange {
         return tiers;
     }
 
-    async fetchLeverageTiers (symbols = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name btcex#fetchLeverageTiers
@@ -2132,7 +2132,7 @@ export default class btcex extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+    parseLeverageTiers (response, symbols: string[] = undefined, marketIdKey = undefined) {
         //
         //     {
         //         "WAVES-USDT-PERPETUAL": [
@@ -2171,7 +2171,7 @@ export default class btcex extends Exchange {
         return result;
     }
 
-    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btcex#setMarginMode
@@ -2211,7 +2211,7 @@ export default class btcex extends Exchange {
         return result;
     }
 
-    async setLeverage (leverage, symbol = undefined, params = {}) {
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btcex#setLeverage
@@ -2253,7 +2253,7 @@ export default class btcex extends Exchange {
         return response;
     }
 
-    async fetchFundingRates (symbols = undefined, params = {}) {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name btcex#fetchFundingRates
