@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.10'
+__version__ = '3.0.11'
 
 # -----------------------------------------------------------------------------
 
@@ -3353,9 +3353,18 @@ class Exchange(object):
         return self.parse_number(value, defaultNumber)
 
     def parse_precision(self, precision):
+        """
+         * @ignore
+        :param str precision: The number of digits to the right of the decimal
+        :returns str: a string number equal to 1e-precision
+        """
         if precision is None:
             return None
-        return '1e' + Precise.string_neg(precision)
+        precisionNumber = int(precision)
+        parsedPrecision = '0.'
+        for i in range(0, precisionNumber - 1):
+            parsedPrecision = parsedPrecision + '0'
+        return parsedPrecision + '1'
 
     def load_time_difference(self, params={}):
         serverTime = self.fetchTime(params)

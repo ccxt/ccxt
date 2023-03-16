@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.10';
+$version = '3.0.11';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.10';
+    const VERSION = '3.0.11';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4446,10 +4446,20 @@ class Exchange {
     }
 
     public function parse_precision($precision) {
+        /**
+         * @ignore
+         * @param {string} $precision The number of digits to the right of the decimal
+         * @return {string} a string number equal to 1e-$precision
+         */
         if ($precision === null) {
             return null;
         }
-        return '1e' . Precise::string_neg($precision);
+        $precisionNumber = intval($precision);
+        $parsedPrecision = '0.';
+        for ($i = 0; $i < $precisionNumber - 1; $i++) {
+            $parsedPrecision = $parsedPrecision . '0';
+        }
+        return $parsedPrecision . '1';
     }
 
     public function load_time_difference($params = array ()) {
