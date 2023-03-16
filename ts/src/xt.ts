@@ -28,6 +28,9 @@ export default class xt extends Exchange {
                 'swap': true,
                 'future': true,
                 'option': false,
+                'createOrder': true,
+                'createPostOnlyOrder': false,
+                'createReduceOnlyOrder': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
@@ -594,7 +597,7 @@ export default class xt extends Exchange {
                     'Zilliqa': 'ZIL',
                 },
                 'createMarketBuyOrderRequiresPrice': true,
-                'recvWindow': 5000, // in milliseconds, spot only
+                'recvWindow': '5000', // in milliseconds, spot only
             },
         });
     }
@@ -1066,7 +1069,7 @@ export default class xt extends Exchange {
             'optionType': undefined,
             'precision': { // TODO: correct precision and limits
                 'price': this.safeNumber (market, 'pricePrecision'),
-                'amount': undefined,
+                'amount': this.safeNumber (market, 'quantityPrecision'),
             },
             'limits': {
                 'leverage': {
@@ -1674,10 +1677,6 @@ export default class xt extends Exchange {
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float|undefined} price the price to fulfill the order, in units of the quote currency, can be ignored in market orders
          * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {float|undefined} params.stopPrice price to trigger stop orders
-         * @param {float|undefined} params.triggerPrice price to trigger stop orders
-         * @param {float|undefined} params.stopLossPrice price to trigger stop-loss orders
-         * @param {float|undefined} params.takeProfitPrice price to trigger take-profit orders
          * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'FOK' or 'GTX'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1688,14 +1687,15 @@ export default class xt extends Exchange {
         };
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        let timeInForce = this.safeStringUpper (params, 'timeInForce', 'GTC');
         let method = undefined;
         if (market['spot']) {
             method = 'privateSpotPostOrder';
             request['side'] = side.toUpperCase ();
             request['type'] = type.toUpperCase ();
-            request['timeInForce'] = this.safeStringUpper (params, 'timeInForce', 'GTC');
             request['bizType'] = (marketType === 'margin') ? 'LEVER' : 'SPOT';
             if (type === 'market') {
+                timeInForce = this.safeStringUpper (params, 'timeInForce', 'FOK');
                 if (side === 'buy') {
                     const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
                     if (createMarketBuyOrderRequiresPrice) {
@@ -1705,18 +1705,19 @@ export default class xt extends Exchange {
                             const amountString = this.numberToString (amount);
                             const priceString = this.numberToString (price);
                             const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-                            request['quoteQty'] = this.amountToPrecision (symbol, cost);
+                            request['quoteQty'] = cost; // this.amountToPrecision (symbol, cost);
                         }
                     } else {
-                        request['quantity'] = this.amountToPrecision (symbol, amount);
+                        request['quoteQty'] = amount; // this.amountToPrecision (symbol, amount);
                     }
                 } else {
-                    request['quantity'] = this.amountToPrecision (symbol, amount);
+                    request['quantity'] = amount; // this.amountToPrecision (symbol, amount);
                 }
             } else {
                 request['price'] = price; // this.priceToPrecision (symbol, price);
                 request['quantity'] = amount; // this.amountToPrecision (symbol, amount);
             }
+            request['timeInForce'] = timeInForce;
         } else {
             if (market['linear']) {
                 method = 'privateLinearPostFutureTradeV1OrderCreate';
@@ -1725,11 +1726,11 @@ export default class xt extends Exchange {
             }
             request['orderSide'] = side.toUpperCase ();
             request['orderType'] = type.toUpperCase ();
-            request['origQty'] = amount; // this.amountToPrecision (symbol, amount);
+            const convertContractsToAmount = Precise.stringDiv (this.numberToString (amount), this.numberToString (market['contractSize']));
+            request['origQty'] = this.parseNumber (convertContractsToAmount);
             if (price !== undefined) {
                 request['price'] = price; // this.priceToPrecision (symbol, price);
             }
-            const timeInForce = this.safeStringUpper (params, 'timeInForce');
             if (timeInForce !== undefined) {
                 request['timeInForce'] = timeInForce;
             }
@@ -1741,9 +1742,7 @@ export default class xt extends Exchange {
                 const requestType = (reduceOnly) ? 'LONG' : 'SHORT';
                 request['positionSide'] = requestType;
             }
-            // TODO: add stop, stopLoss and takeProfit orders
         }
-        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'postOnly' ]);
         const response = await this[method] (this.extend (request, params));
         //
         // spot
@@ -1759,8 +1758,14 @@ export default class xt extends Exchange {
         //
         // swap and future
         //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": "206410760006650176"
+        //     }
         //
-        const order = this.safeValue (response, 'result', {});
+        const order = (market['spot']) ? this.safeValue (response, 'result', {}) : response;
         return this.parseOrder (order, market);
     }
 
@@ -1774,10 +1779,16 @@ export default class xt extends Exchange {
         //
         // swap and future
         //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": "206410760006650176"
+        //     }
         //
         return this.safeOrder ({
             'info': order,
-            'id': this.safeString (order, 'orderId'),
+            'id': this.safeString2 (order, 'orderId', 'result'),
             'clientOrderId': undefined,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1868,8 +1879,8 @@ export default class xt extends Exchange {
         const urlencoded = this.urlencode (this.keysort (query));
         if (signed) {
             this.checkRequiredCredentials ();
-            const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
-            const recvWindow = this.safeInteger (params, 'recvWindow', defaultRecvWindow);
+            const defaultRecvWindow = this.safeString (this.options, 'recvWindow');
+            const recvWindow = this.safeString (params, 'recvWindow', defaultRecvWindow);
             const timestamp = this.numberToString (this.nonce ());
             body = params;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create')) {
@@ -1878,7 +1889,7 @@ export default class xt extends Exchange {
             body = (method === 'GET') ? undefined : this.json (body);
             let payloadString = undefined;
             if (endpoint === 'spot') {
-                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + this.numberToString (recvWindow) + '&xt-validate-timestamp=' + timestamp;
+                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-timestamp=' + timestamp;
                 if (method === 'GET') {
                     payloadString = payloadString + '#' + method + '#' + payload;
                 } else {
@@ -1886,7 +1897,7 @@ export default class xt extends Exchange {
                 }
                 headers = {
                     'xt-validate-algorithms': 'HmacSHA256',
-                    'xt-validate-recvwindow': this.numberToString (recvWindow),
+                    'xt-validate-recvwindow': recvWindow,
                     'Content-Type': 'application/json',
                 };
             } else {
@@ -1915,4 +1926,4 @@ export default class xt extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-};
+}
