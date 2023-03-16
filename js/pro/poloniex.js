@@ -4,6 +4,7 @@
 
 const poloniexRest = require ('../poloniex.js');
 const { BadRequest } = require ('../base/errors');
+const { AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 const Precise = require ('../base/Precise');
 
@@ -903,7 +904,34 @@ module.exports = class poloniex extends poloniexRest {
             'balances': this.handleBalance,
         };
         const method = this.safeValue (methods, type);
-        return method.call (this, client, message);
+        if (type === 'auth') {
+            this.handleAuthenticate (client, message);
+        } else {
+            return method.call (this, client, message);
+        }
+    }
+
+    handleAuthenticate (client, message) {
+        //
+        //    {
+        //        success: true,
+        //        ret_msg: '',
+        //        op: 'auth',
+        //        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
+        //    }
+        //
+        const success = this.safeValue (message, 'success');
+        const messageHash = 'authenticated';
+        if (success) {
+            client.resolve (message, messageHash);
+        } else {
+            const error = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (error, messageHash);
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions[messageHash];
+            }
+        }
+        return message;
     }
 };
 
