@@ -929,12 +929,14 @@ export default class coinsph extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
         const type = undefined;
-        const fee = {} as any;
+        let fee = undefined;
         const feeCost = this.safeString (trade, 'commission');
         if (feeCost !== undefined) {
-            fee['cost'] = feeCost;
             const feeCurrencyId = this.safeString (trade, 'commissionAsset');
-            fee['currency'] = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+            };
         }
         const isBuyer = this.safeString2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
         let side = undefined;
