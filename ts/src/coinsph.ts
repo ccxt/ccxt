@@ -123,15 +123,12 @@ export default class coinsph extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': '', // todo
+                'logo': 'https://user-images.githubusercontent.com/1294454/225719995-48ab2026-4ddb-496c-9da7-0d7566617c9b.jpg',
                 'api': {
                     'public': 'https://api.pro.coins.ph',
                     'private': 'https://api.pro.coins.ph',
                 },
                 'www': 'https://coins.ph/',
-                'referral': {
-                    // todo
-                },
                 'doc': [
                     'https://coins-docs.github.io/rest-api',
                 ],
@@ -1724,7 +1721,7 @@ export default class coinsph extends Exchange {
         const keys = Object.keys (query);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (this.isArray (query[key])) {
+            if (Array.isArray (query[key])) {
                 if (i !== 0) {
                     encodedArrayParams += '&';
                 }
