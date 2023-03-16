@@ -5,48 +5,28 @@
 import fs from 'fs';
 import assert from 'assert';
 import { Agent } from 'https';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
 import ccxt from '../../ccxt.js';
 import HttpsProxyAgent from 'https-proxy-agent'
-
+import { fileURLToPath } from 'url';
+const __dirname = fileURLToPath(new URL('.', import.meta.url)); // new URL('.', import.meta.url).pathname;
 // ----------------------------------------------------------------------------
-
 const [processPath, , exchangeId = null, exchangeSymbol = undefined] = process.argv.filter ((x) => !x.startsWith ('--'));
 const verbose = process.argv.includes ('--verbose') || false;
 const debug = process.argv.includes ('--debug') || false;
 const sandbox = process.argv.includes ('--sandbox') || false;
 const privateTest = process.argv.includes ('--private') || false;
 const privateOnly = process.argv.includes ('--privateOnly') || false;
-
-import HttpsProxyAgent from 'https-proxy-agent';
-
 // ----------------------------------------------------------------------------
-
-import fs from 'fs';
-import assert from 'assert';
-import { Agent } from 'https';
-import ccxt from '../../ccxt.js';
-
-// ----------------------------------------------------------------------------
-
 process.on ('uncaughtException',  (e) => { console.log (e, e.stack); process.exit (1) });
 process.on ('unhandledRejection', (e) => { console.log (e, e.stack); process.exit (1) });
-
 // ----------------------------------------------------------------------------
-
 console.log ('\nTESTING', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' }, '\n');
-
 //-----------------------------------------------------------------------------
-
 const enableRateLimit = true;
-
 const httpsAgent = new Agent ({
     'ecdhCurve': 'auto',
 });
-
 const timeout = 20000;
-
 const exchange = new (ccxt)[exchangeId] ({
     httpsAgent,
     verbose,
@@ -54,7 +34,6 @@ const exchange = new (ccxt)[exchangeId] ({
     debug,
     timeout,
 });
-
 //-----------------------------------------------------------------------------
 const method_namer_in_test = (str) => str;
 const testFiles = {};
@@ -81,7 +60,7 @@ Object.keys (errors)
 const AuthenticationError = errors.AuthenticationError;
 
 // non-transpiled commons
-const targetDir = __dirname + '/../../';
+const rootDir = __dirname + '/../../';
 const envVars = process.env;
 
 class emptyClass {}
@@ -137,8 +116,8 @@ export default class testMainClass extends emptyClass {
 
     expandSettings (exchange, symbol) {
         const exchangeId = exchange.id;
-        const keysGlobal = targetDir + 'keys.json';
-        const keysLocal = targetDir + 'keys.local.json';
+        const keysGlobal = rootDir + 'keys.json';
+        const keysLocal = rootDir + 'keys.local.json';
         const keysGlobalExists = io_file_exists (keysGlobal);
         const keysLocalExists = io_file_exists (keysLocal);
         const globalSettings = keysGlobalExists ? io_file_read (keysGlobal) : {};
@@ -171,7 +150,7 @@ export default class testMainClass extends emptyClass {
             }
         }
         // skipped tests
-        const skippedFile = targetDir + 'skip-tests.json';
+        const skippedFile = rootDir + 'skip-tests.json';
         const skippedSettings = io_file_read (skippedFile);
         const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
         // others
