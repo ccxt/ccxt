@@ -391,7 +391,7 @@ export default class coinex extends coinexRest {
         return await this.watchTickers ([ symbol ], params);
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinex#watchTickers
@@ -426,7 +426,7 @@ export default class coinex extends coinexRest {
         return await this.watchTickers (symbols, params);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coinex#watchTrades
@@ -508,7 +508,7 @@ export default class coinex extends coinexRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coinex#watchOHLCV
@@ -654,7 +654,7 @@ export default class coinex extends coinexRest {
         }
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         await this.authenticate (params);
         let messageHash = 'orders';

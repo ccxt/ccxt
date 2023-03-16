@@ -743,7 +743,7 @@ export default class hitbtc3 extends Exchange {
         return this.safeValue (response, symbol);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchTickers
@@ -832,7 +832,7 @@ export default class hitbtc3 extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchTrades
@@ -870,7 +870,7 @@ export default class hitbtc3 extends Exchange {
         return trades;
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchMyTrades
@@ -1156,7 +1156,7 @@ export default class hitbtc3 extends Exchange {
         };
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchTransactions
@@ -1170,7 +1170,7 @@ export default class hitbtc3 extends Exchange {
         return await this.fetchTransactionsHelper ('DEPOSIT,WITHDRAW', code, since, limit, params);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchDeposits
@@ -1184,7 +1184,7 @@ export default class hitbtc3 extends Exchange {
         return await this.fetchTransactionsHelper ('DEPOSIT', code, since, limit, params);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchWithdrawals
@@ -1198,7 +1198,7 @@ export default class hitbtc3 extends Exchange {
         return await this.fetchTransactionsHelper ('WITHDRAW', code, since, limit, params);
     }
 
-    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
+    async fetchOrderBooks (symbols: string[] = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchOrderBooks
@@ -1292,7 +1292,7 @@ export default class hitbtc3 extends Exchange {
         return this.parseTradingFee (response, market);
     }
 
-    async fetchTradingFees (symbols = undefined, params = {}) {
+    async fetchTradingFees (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchTradingFees
@@ -1325,7 +1325,7 @@ export default class hitbtc3 extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchOHLCV
@@ -1429,7 +1429,7 @@ export default class hitbtc3 extends Exchange {
         ];
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchClosedOrders
@@ -1471,7 +1471,7 @@ export default class hitbtc3 extends Exchange {
         return this.filterByArray (parsed, 'status', [ 'closed', 'canceled' ], false);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchOrder
@@ -1525,7 +1525,7 @@ export default class hitbtc3 extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchOrderTrades
@@ -1600,7 +1600,7 @@ export default class hitbtc3 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchOpenOrders
@@ -1654,7 +1654,7 @@ export default class hitbtc3 extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrder (id, symbol = undefined, params = {}) {
+    async fetchOpenOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchOpenOrder
@@ -1689,7 +1689,7 @@ export default class hitbtc3 extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#cancelAllOrders
@@ -1722,7 +1722,7 @@ export default class hitbtc3 extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#cancelOrder
@@ -2126,7 +2126,7 @@ export default class hitbtc3 extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchFundingRateHistory
@@ -2199,7 +2199,7 @@ export default class hitbtc3 extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchPositions
@@ -2646,7 +2646,7 @@ export default class hitbtc3 extends Exchange {
         return this.safeNumber (response, 'leverage');
     }
 
-    async setLeverage (leverage, symbol = undefined, params = {}) {
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#setLeverage
