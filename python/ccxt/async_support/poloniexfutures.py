@@ -1192,12 +1192,10 @@ class poloniexfutures(Exchange):
         params = self.omit(params, ['stop', 'until', 'till'])
         if status == 'closed':
             status = 'done'
-        elif status == 'open':
-            status = 'active'
         request = {}
         if not stop:
-            request['status'] = status
-        elif status != 'active':
+            request['status'] = status == 'active' if 'open' else 'done'
+        elif status != 'open':
             raise BadRequest(self.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders')
         market = None
         if symbol is not None:
@@ -1209,14 +1207,62 @@ class poloniexfutures(Exchange):
             request['endAt'] = until
         method = 'privateGetStopOrders' if stop else 'privateGetOrders'
         response = await getattr(self, method)(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "totalNum": 1,
+        #            "totalPage": 1,
+        #            "pageSize": 50,
+        #            "currentPage": 1,
+        #            "items": [
+        #                {
+        #                    "symbol": "ADAUSDTPERP",
+        #                    "leverage": "1",
+        #                    "hidden": False,
+        #                    "forceHold": False,
+        #                    "closeOrder": False,
+        #                    "type": "limit",
+        #                    "isActive": True,
+        #                    "createdAt": 1678936920000,
+        #                    "orderTime": 1678936920480905922,
+        #                    "price": "0.3",
+        #                    "iceberg": False,
+        #                    "stopTriggered": False,
+        #                    "id": "64128b582cc0710007a3c840",
+        #                    "value": "3",
+        #                    "timeInForce": "GTC",
+        #                    "updatedAt": 1678936920000,
+        #                    "side": "buy",
+        #                    "stopPriceType": "",
+        #                    "dealValue": "0",
+        #                    "dealSize": 0,
+        #                    "settleCurrency": "USDT",
+        #                    "stp": "",
+        #                    "filledValue": "0",
+        #                    "postOnly": False,
+        #                    "size": 1,
+        #                    "stop": "",
+        #                    "filledSize": 0,
+        #                    "reduceOnly": False,
+        #                    "marginType": 1,
+        #                    "cancelExist": False,
+        #                    "clientOid": "ba669f39-dfcc-4664-9801-a42d06e59c2e",
+        #                    "status": "open"
+        #                }
+        #            ]
+        #        }
+        #    }
+        #
         responseData = self.safe_value(response, 'data', {})
         orders = self.safe_value(responseData, 'items', [])
         ordersLength = len(orders)
         result = []
-        if status == 'done':
-            for i in range(0, ordersLength):
-                if not orders[i]['cancelExist']:
-                    result.append(orders[i])
+        for i in range(0, ordersLength):
+            order = orders[i]
+            orderStatus = self.safe_string(order, 'status')
+            if status == orderStatus:
+                result.append(orders[i])
         return self.parse_orders(result, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -1233,7 +1279,7 @@ class poloniexfutures(Exchange):
         :param str|None params['type']: limit, or market
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        return await self.fetch_orders_by_status('active', symbol, since, limit, params)
+        return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         """

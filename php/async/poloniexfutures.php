@@ -1243,18 +1243,18 @@ class poloniexfutures extends Exchange {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             /**
              * fetches a list of $orders placed on the exchange
-             * @see https://futures-docs.poloniex.com/#get-order-list
-             * @see https://futures-docs.poloniex.com/#get-untriggered-$stop-order-list
+             * @see https://futures-docs.poloniex.com/#get-$order-list
+             * @see https://futures-docs.poloniex.com/#get-untriggered-$stop-$order-list
              * @param {string} $status 'active' or 'closed', only 'active' is valid for $stop $orders
              * @param {string|null} $symbol unified $symbol for the $market to retrieve $orders from
-             * @param {int|null} $since timestamp in ms of the earliest order to retrieve
+             * @param {int|null} $since timestamp in ms of the earliest $order to retrieve
              * @param {int|null} $limit The maximum number of $orders to retrieve
              * @param {array} $params exchange specific parameters
              * @param {bool|null} $params->stop set to true to retrieve untriggered $stop $orders
              * @param {int|null} $params->until End time in ms
              * @param {string|null} $params->side buy or sell
              * @param {string|null} $params->type $limit or $market
-             * @return An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure array of order structures}
+             * @return An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure array of $order structures}
              */
             Async\await($this->load_markets());
             $stop = $this->safe_value($params, 'stop');
@@ -1262,13 +1262,11 @@ class poloniexfutures extends Exchange {
             $params = $this->omit($params, array( 'stop', 'until', 'till' ));
             if ($status === 'closed') {
                 $status = 'done';
-            } elseif ($status === 'open') {
-                $status = 'active';
             }
             $request = array();
             if (!$stop) {
-                $request['status'] = $status;
-            } elseif ($status !== 'active') {
+                $request['status'] = $status === 'open' ? 'active' : 'done';
+            } elseif ($status !== 'open') {
                 throw new BadRequest($this->id . ' fetchOrdersByStatus() can only fetch untriggered $stop orders');
             }
             $market = null;
@@ -1284,15 +1282,62 @@ class poloniexfutures extends Exchange {
             }
             $method = $stop ? 'privateGetStopOrders' : 'privateGetOrders';
             $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            //    {
+            //        "code" => "200000",
+            //        "data" => {
+            //            "totalNum" => 1,
+            //            "totalPage" => 1,
+            //            "pageSize" => 50,
+            //            "currentPage" => 1,
+            //            "items" => array(
+            //                {
+            //                    "symbol" => "ADAUSDTPERP",
+            //                    "leverage" => "1",
+            //                    "hidden" => false,
+            //                    "forceHold" => false,
+            //                    "closeOrder" => false,
+            //                    "type" => "limit",
+            //                    "isActive" => true,
+            //                    "createdAt" => 1678936920000,
+            //                    "orderTime" => 1678936920480905922,
+            //                    "price" => "0.3",
+            //                    "iceberg" => false,
+            //                    "stopTriggered" => false,
+            //                    "id" => "64128b582cc0710007a3c840",
+            //                    "value" => "3",
+            //                    "timeInForce" => "GTC",
+            //                    "updatedAt" => 1678936920000,
+            //                    "side" => "buy",
+            //                    "stopPriceType" => "",
+            //                    "dealValue" => "0",
+            //                    "dealSize" => 0,
+            //                    "settleCurrency" => "USDT",
+            //                    "stp" => "",
+            //                    "filledValue" => "0",
+            //                    "postOnly" => false,
+            //                    "size" => 1,
+            //                    "stop" => "",
+            //                    "filledSize" => 0,
+            //                    "reduceOnly" => false,
+            //                    "marginType" => 1,
+            //                    "cancelExist" => false,
+            //                    "clientOid" => "ba669f39-dfcc-4664-9801-a42d06e59c2e",
+            //                    "status" => "open"
+            //                }
+            //            )
+            //        }
+            //    }
+            //
             $responseData = $this->safe_value($response, 'data', array());
             $orders = $this->safe_value($responseData, 'items', array());
             $ordersLength = count($orders);
             $result = array();
-            if ($status === 'done') {
-                for ($i = 0; $i < $ordersLength; $i++) {
-                    if (!$orders[$i]['cancelExist']) {
-                        $result[] = $orders[$i];
-                    }
+            for ($i = 0; $i < $ordersLength; $i++) {
+                $order = $orders[$i];
+                $orderStatus = $this->safe_string($order, 'status');
+                if ($status === $orderStatus) {
+                    $result[] = $orders[$i];
                 }
             }
             return $this->parse_orders($result, $market, $since, $limit);
@@ -1314,7 +1359,7 @@ class poloniexfutures extends Exchange {
              * @param {string|null} $params->type $limit, or market
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
-            return Async\await($this->fetch_orders_by_status('active', $symbol, $since, $limit, $params));
+            return Async\await($this->fetch_orders_by_status('open', $symbol, $since, $limit, $params));
         }) ();
     }
 
