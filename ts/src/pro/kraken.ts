@@ -525,13 +525,10 @@ export default class kraken extends krakenRest {
     handleDeltas (bookside, deltas, timestamp = undefined) {
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
-            const price = parseFloat (delta[0]);
-            const amount = parseFloat (delta[1]);
+            const price = this.parseNumber (delta[0]);
+            const amount = this.parseNumber (delta[1]);
             const oldTimestamp = timestamp ? timestamp : 0;
-            const calcMul = delta[2] * 1000;
-            const calcStr = this.numberToString (calcMul);
-            const calc = this.numberToString (parseFloat (calcStr));
-            timestamp = Math.max (oldTimestamp, parseInt (calc));
+            timestamp = Math.max (oldTimestamp, this.parseToInt (parseFloat (delta[2]) * 1000));
             bookside.store (price, amount);
         }
         return timestamp;
