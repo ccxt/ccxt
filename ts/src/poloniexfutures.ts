@@ -1257,13 +1257,11 @@ export default class poloniexfutures extends Exchange {
         params = this.omit (params, [ 'stop', 'until', 'till' ]);
         if (status === 'closed') {
             status = 'done';
-        } else if (status === 'open') {
-            status = 'active';
         }
         const request = {};
         if (!stop) {
-            request['status'] = status;
-        } else if (status !== 'active') {
+            request['status'] = status === 'open' ? 'active' : 'done';
+        } else if (status !== 'open') {
             throw new BadRequest (this.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders');
         }
         let market = undefined;
@@ -1279,15 +1277,62 @@ export default class poloniexfutures extends Exchange {
         }
         const method = stop ? 'privateGetStopOrders' : 'privateGetOrders';
         const response = await this[method] (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "totalNum": 1,
+        //            "totalPage": 1,
+        //            "pageSize": 50,
+        //            "currentPage": 1,
+        //            "items": [
+        //                {
+        //                    "symbol": "ADAUSDTPERP",
+        //                    "leverage": "1",
+        //                    "hidden": false,
+        //                    "forceHold": false,
+        //                    "closeOrder": false,
+        //                    "type": "limit",
+        //                    "isActive": true,
+        //                    "createdAt": 1678936920000,
+        //                    "orderTime": 1678936920480905922,
+        //                    "price": "0.3",
+        //                    "iceberg": false,
+        //                    "stopTriggered": false,
+        //                    "id": "64128b582cc0710007a3c840",
+        //                    "value": "3",
+        //                    "timeInForce": "GTC",
+        //                    "updatedAt": 1678936920000,
+        //                    "side": "buy",
+        //                    "stopPriceType": "",
+        //                    "dealValue": "0",
+        //                    "dealSize": 0,
+        //                    "settleCurrency": "USDT",
+        //                    "stp": "",
+        //                    "filledValue": "0",
+        //                    "postOnly": false,
+        //                    "size": 1,
+        //                    "stop": "",
+        //                    "filledSize": 0,
+        //                    "reduceOnly": false,
+        //                    "marginType": 1,
+        //                    "cancelExist": false,
+        //                    "clientOid": "ba669f39-dfcc-4664-9801-a42d06e59c2e",
+        //                    "status": "open"
+        //                }
+        //            ]
+        //        }
+        //    }
+        //
         const responseData = this.safeValue (response, 'data', {});
         const orders = this.safeValue (responseData, 'items', []);
         const ordersLength = orders.length;
         const result = [];
-        if (status === 'done') {
-            for (let i = 0; i < ordersLength; i++) {
-                if (!orders[i]['cancelExist']) {
-                    result.push (orders[i]);
-                }
+        for (let i = 0; i < ordersLength; i++) {
+            const order = orders[i];
+            const orderStatus = this.safeString (order, 'status');
+            if (status === orderStatus) {
+                result.push (orders[i]);
             }
         }
         return this.parseOrders (result, market, since, limit);
@@ -1309,7 +1354,7 @@ export default class poloniexfutures extends Exchange {
          * @param {string|undefined} params.type limit, or market
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        return await this.fetchOrdersByStatus ('active', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
