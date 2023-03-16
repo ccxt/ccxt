@@ -1634,27 +1634,38 @@ class okx(Exchange):
     def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
-        #         "1621447080000",  # timestamp
-        #         "0.07073",  # open
-        #         "0.07073",  # high
-        #         "0.07064",  # low
-        #         "0.07064",  # close
-        #         "12.08863",  # base volume
-        #         "0.854309"  # quote volume
+        #         "1678928760000",  # timestamp
+        #         "24341.4",  # open
+        #         "24344",  # high
+        #         "24313.2",  # low
+        #         "24323",  # close
+        #         "628",  # contract volume
+        #         "2.5819",  # base volume
+        #         "62800",  # quote volume
+        #         "0"  # candlestick state
         #     ]
         #
+        res = self.handle_market_type_and_params('fetchOHLCV', market, None)
+        type = res[0]
+        volumeIndex = 5 if (type == 'spot') else 6
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
             self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),
             self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, 5),
+            self.safe_number(ohlcv, volumeIndex),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-candlesticks
+        see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
+        see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks
+        see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks-history
+        see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks
+        see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks-history
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
@@ -1711,9 +1722,9 @@ class okx(Exchange):
         #         "code": "0",
         #         "msg": "",
         #         "data": [
-        #             ["1621447080000","0.07073","0.07073","0.07064","0.07064","12.08863","0.854309"],
-        #             ["1621447020000","0.0708","0.0709","0.0707","0.07072","58.517435","4.143309"],
-        #             ["1621446960000","0.0707","0.07082","0.0707","0.07076","53.850841","3.810921"],
+        #             ["1678928760000","24341.4","24344","24313.2","24323","628","2.5819","62800","0"],
+        #             ["1678928700000","24324.1","24347.6","24321.7","24341.4","2565","10.5401","256500","1"],
+        #             ["1678928640000","24300.2","24324.1","24288","24324.1","3304","13.5937","330400","1"],
         #         ]
         #     }
         #
