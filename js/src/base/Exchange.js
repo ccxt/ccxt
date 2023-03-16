@@ -268,11 +268,11 @@ export default class Exchange {
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
-        this.orders = {};
+        this.orders = undefined;
         this.trades = {};
         this.transactions = {};
         this.ohlcvs = {};
-        this.myTrades = {};
+        this.myTrades = undefined;
         this.positions = {};
         // web3 and cryptography flags
         this.requiresWeb3 = false;
@@ -3044,10 +3044,21 @@ export default class Exchange {
         return this.parseNumber(value, defaultNumber);
     }
     parsePrecision(precision) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} precision The number of digits to the right of the decimal
+         * @returns {string} a string number equal to 1e-precision
+         */
         if (precision === undefined) {
             return undefined;
         }
-        return '1e' + Precise.stringNeg(precision);
+        const precisionNumber = parseInt(precision);
+        let parsedPrecision = '0.';
+        for (let i = 0; i < precisionNumber - 1; i++) {
+            parsedPrecision = parsedPrecision + '0';
+        }
+        return parsedPrecision + '1';
     }
     async loadTimeDifference(params = {}) {
         const serverTime = await this.fetchTime(params);
