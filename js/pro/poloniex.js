@@ -59,7 +59,7 @@ module.exports = class poloniex extends poloniexRest {
         });
     }
 
-    async authenticate () {
+    async authenticate (params = {}) {
         /**
          * @ignore
          * @method
@@ -69,22 +69,52 @@ module.exports = class poloniex extends poloniexRest {
          */
         this.checkRequiredCredentials ();
         const timestamp = this.milliseconds ();
-        const accessPath = '/ws/private';
-        const requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
         const url = this.urls['api']['ws']['private'];
-        const signature = this.hmac (this.encode (requestString), this.base64ToBinary (this.secret), 'sha256', 'base64');
-        const request = {
-            'event': 'subscribe',
-            'channel': [ 'auth' ],
-            'params': {
-                'key': this.apiKey,
-                'signTimestamp': timestamp,
-                'signature': signature,
-                'signatureMethod': 'HmacSHA256',  // optional
-                'signatureVersion': '2',          // optional
-            },
-        };
-        return await this.watch (url, accessPath, request, accessPath);
+        const messageHash = 'authenticated';
+        const client = this.client (url);
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            const accessPath = '/ws/private';
+            const requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
+            // let expires = this.milliseconds () + 10000;
+            // expires = expires.toString ();
+            const signature = this.hmac (this.encode (requestString), this.base64ToBinary (this.secret), 'sha256', 'base64');
+            const request = {
+                'event': 'subscribe',
+                'channel': [ 'auth' ],
+                'params': {
+                    'key': this.apiKey,
+                    'signTimestamp': timestamp,
+                    'signature': signature,
+                    'signatureMethod': 'HmacSHA256',  // optional
+                    'signatureVersion': '2',          // optional
+                },
+            };
+            const message = this.extend (request, params);
+            future = this.watch (url, messageHash, message);
+            //
+            //    {
+            //        "data": {
+            //            "success": true,
+            //            "ts": 1645597033915
+            //        },
+            //        "channel": "auth"
+            //    }
+            //
+            //    # Failure to return results
+            //
+            //    {
+            //        "data": {
+            //            "success": false,
+            //            "message": "Authentication failed!",
+            //            "ts": 1646276295075
+            //        },
+            //        "channel": "auth"
+            //    }
+            //
+            client.subscriptions[messageHash] = future;
+        }
+        return future;
     }
 
     async subscribe (name, isPrivate, symbols = undefined, params = {}) {
