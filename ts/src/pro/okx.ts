@@ -97,7 +97,7 @@ export default class okx extends okxRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchTrades
@@ -205,7 +205,7 @@ export default class okx extends okxRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchOHLCV
@@ -620,7 +620,7 @@ export default class okx extends okxRest {
         client.resolve (this.balance[type], channel);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchOrders

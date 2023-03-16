@@ -1008,7 +1008,7 @@ export default class deribit extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchTickers
@@ -1065,7 +1065,7 @@ export default class deribit extends Exchange {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchOHLCV
@@ -1214,7 +1214,7 @@ export default class deribit extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchTrades
@@ -1582,7 +1582,7 @@ export default class deribit extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchOrder
@@ -1824,7 +1824,7 @@ export default class deribit extends Exchange {
         return this.parseOrder (order);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name deribit#cancelOrder
@@ -1843,7 +1843,7 @@ export default class deribit extends Exchange {
         return this.parseOrder (result);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name deribit#cancelAllOrders
@@ -1866,7 +1866,7 @@ export default class deribit extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchOpenOrders
@@ -1896,7 +1896,7 @@ export default class deribit extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchClosedOrders
@@ -1926,7 +1926,7 @@ export default class deribit extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchOrderTrades
@@ -1980,7 +1980,7 @@ export default class deribit extends Exchange {
         return this.parseTrades (result, undefined, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchMyTrades
@@ -2059,7 +2059,7 @@ export default class deribit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchDeposits
@@ -2107,7 +2107,7 @@ export default class deribit extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchWithdrawals
@@ -2342,7 +2342,7 @@ export default class deribit extends Exchange {
         return this.parsePosition (result);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchPositions
@@ -2443,7 +2443,7 @@ export default class deribit extends Exchange {
         return result;
     }
 
-    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfers (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchTransfers

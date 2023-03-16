@@ -178,7 +178,7 @@ export default class zb extends zbRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot']) {
@@ -244,7 +244,7 @@ export default class zb extends zbRest {
         return message;
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let messageHash = undefined;

@@ -449,7 +449,7 @@ export default class lbank2 extends Exchange {
         return this.parseTicker (first, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchTickers
@@ -595,7 +595,7 @@ export default class lbank2 extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchTrades
@@ -666,7 +666,7 @@ export default class lbank2 extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchOHLCV
@@ -1179,7 +1179,7 @@ export default class lbank2 extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchOrder
@@ -1198,7 +1198,7 @@ export default class lbank2 extends Exchange {
         return result;
     }
 
-    async fetchOrderSupplement (id, symbol = undefined, params = {}) {
+    async fetchOrderSupplement (id, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder () requires a symbol argument');
@@ -1234,7 +1234,7 @@ export default class lbank2 extends Exchange {
         return this.parseOrder (result);
     }
 
-    async fetchOrderDefault (id, symbol = undefined, params = {}) {
+    async fetchOrderDefault (id, symbol: string = undefined, params = {}) {
         // Id can be a list of ids delimited by a comma
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -1280,7 +1280,7 @@ export default class lbank2 extends Exchange {
         }
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchMyTrades
@@ -1338,7 +1338,7 @@ export default class lbank2 extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchOrders
@@ -1398,7 +1398,7 @@ export default class lbank2 extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchOpenOrders
@@ -1455,7 +1455,7 @@ export default class lbank2 extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#cancelOrder
@@ -1497,7 +1497,7 @@ export default class lbank2 extends Exchange {
         return result;
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#cancelAllOrders
@@ -1812,7 +1812,7 @@ export default class lbank2 extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchDeposits
@@ -1865,7 +1865,7 @@ export default class lbank2 extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchWithdrawals
