@@ -3800,29 +3800,41 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelDerivativesOrder (id, symbol = undefined, params = {}) {
+    async cancelUSDCOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelDerivativesOrder() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelUSDCOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'orderId': id,
+            // 'orderLinkId': 'string', // one of order_id, stop_order_id or order_link_id is required
+            // 'orderId': id,
         };
-        const response = await (this as any).privatePostContractV3PrivateOrderCancel (this.extend (request, params));
-        //
-        // contract v3
+        const isStop = this.safeValue (params, 'stop', false);
+        params = this.omit (params, [ 'stop' ]);
+        let method = undefined;
+        if (id !== undefined) { // The user can also use argument params["order_link_id"]
+            request['orderId'] = id;
+        }
+        if (market['option']) {
+            method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder';
+        } else {
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder';
+            request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
-        //         "retCode":0,
-        //         "retMsg":"OK",
-        //         "result":{
-        //             "orderId": "4030430d-1dba-4134-ac77-3d81c14aaa00",
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "outRequestId": "",
+        //             "symbol": "BTC-13MAY22-40000-C",
+        //             "orderId": "8c65df91-91fc-461d-9b14-786379ef138c",
         //             "orderLinkId": ""
         //         },
-        //         "retExtInfo":null,
-        //         "time":1658850321861
+        //         "retExtMap": {}
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -3835,7 +3847,7 @@ export default class bybit extends Exchange {
          * @name bybit#cancelOrder
          * @description cancels an open order
          * @see https://bybit-exchange.github.io/docs/derivatives/contract/cancel
-         * @see https://bybit-exchange.github.io/docs-legacy/derivativesV3/contract/#t-contract_cancelorder
+         * @see https://bybit-exchange.github.io/docs-legacy/usdc/perpetual/#t-usdccancelorder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bybit api endpoint
@@ -3849,7 +3861,7 @@ export default class bybit extends Exchange {
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUSDCSettled = market['settle'] === 'USDC';
         if (!(enableUnifiedMargin || enableUnifiedAccount) && isUSDCSettled) {
-            return await this.cancelDerivativesOrder (id, symbol, params);
+            return await this.cancelUSDCOrder (id, symbol, params);
         } else {
             return await this.cancelUnifiedAccountOrder (id, symbol, params);
         }
