@@ -1463,8 +1463,6 @@ export default class poloniexfutures extends Exchange {
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const filled = this.safeString (order, 'dealSize');
         const rawCost = this.safeString2 (order, 'dealFunds', 'filledValue');
-        const leverage = this.safeString (order, 'leverage');
-        const cost = Precise.stringDiv (rawCost, leverage);
         let average = undefined;
         if (Precise.stringGt (filled, '0')) {
             const contractSize = this.safeString (market, 'contractSize');
@@ -1496,15 +1494,15 @@ export default class poloniexfutures extends Exchange {
             'side': this.safeString (order, 'side'),
             'amount': this.safeString (order, 'size'),
             'price': this.safeString (order, 'price'),
-            'stopPrice': this.safeNumber (order, 'stopPrice'),
-            'cost': cost,
+            'stopPrice': this.safeString (order, 'stopPrice'),
+            'cost': this.safeString (order, 'dealValue'),
             'filled': filled,
             'remaining': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': {
                 'currency': this.safeCurrencyCode (feeCurrencyId),
-                'cost': this.safeNumber (order, 'fee'),
+                'cost': this.safeString (order, 'fee'),
             },
             'status': cancelExist ? 'canceled' : status,
             'lastTradeTimestamp': undefined,
