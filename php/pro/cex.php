@@ -13,8 +13,6 @@ use React\Async;
 
 class cex extends \ccxt\async\cex {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -95,7 +93,9 @@ class cex extends \ccxt\async\cex {
         $data = $this->safe_value($message, 'data', array());
         $freeBalance = $this->safe_value($data, 'balance', array());
         $usedBalance = $this->safe_value($data, 'obalance', array());
-        $result = array();
+        $result = array(
+            'info' => $data,
+        );
         $currencyIds = is_array($freeBalance) ? array_keys($freeBalance) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
@@ -146,7 +146,7 @@ class cex extends \ccxt\async\cex {
             );
             $request = $this->deep_extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
-            // assing $symbol to the $trades as $message does not contain $symbol information
+            // assing $symbol to the $trades does not contain $symbol information
             for ($i = 0; $i < count($trades); $i++) {
                 $trades[$i]['symbol'] = $symbol;
             }
@@ -848,7 +848,7 @@ class cex extends \ccxt\async\cex {
         //         ok => 'ok'
         //     }
         //
-        $symbol = $this->safe_string($message, 'oid'); // $symbol is set as requestId in watchOrders
+        $symbol = $this->safe_string($message, 'oid'); // $symbol is set in watchOrders
         $rawOrders = $this->safe_value($message, 'data', array());
         $myOrders = $this->orders;
         if ($this->orders === null) {
@@ -901,7 +901,7 @@ class cex extends \ccxt\async\cex {
             );
             $request = $this->deep_extend($subscribe, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -975,10 +975,11 @@ class cex extends \ccxt\async\cex {
         $pair = $this->safe_string($data, 'pair', '');
         $symbol = $this->pair_to_symbol($pair);
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($incrementalId !== $storedOrderBook['nonce'] + 1) {
-            throw new ExchangeError($this->id . ' watchOrderBook() skipped a message');
-        }
         $messageHash = 'orderbook:' . $symbol;
+        if ($incrementalId !== $storedOrderBook['nonce'] + 1) {
+            unset($client->subscriptions[$messageHash]);
+            $client->reject ($this->id . ' watchOrderBook() skipped a message', $messageHash);
+        }
         $timestamp = $this->safe_integer($data, 'time');
         $asks = $this->safe_value($data, 'asks', array());
         $bids = $this->safe_value($data, 'bids', array());
@@ -1011,7 +1012,7 @@ class cex extends \ccxt\async\cex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1236,7 +1237,7 @@ class cex extends \ccxt\async\cex {
                         'timestamp' => $nonce,
                     ),
                 );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, array_merge($request, $params), $messageHash);
+                Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
             }
             return Async\await($future);
         }) ();

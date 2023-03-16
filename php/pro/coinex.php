@@ -13,8 +13,6 @@ use React\Async;
 
 class coinex extends \ccxt\async\coinex {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -257,6 +255,7 @@ class coinex extends \ccxt\async\coinex {
         //
         $params = $this->safe_value($message, 'params', array());
         $first = $this->safe_value($params, 0, array());
+        $this->balance['info'] = $first;
         $currencies = is_array($first) ? array_keys($first) : array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currencyId = $currencies[$i];
@@ -515,7 +514,7 @@ class coinex extends \ccxt\async\coinex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -540,7 +539,7 @@ class coinex extends \ccxt\async\coinex {
                 'id' => $this->request_id(),
                 'params' => [
                     $market['id'],
-                    $this->safe_integer($timeframes, $timeframe, $timeframe),
+                    $this->safe_string($timeframes, $timeframe, $timeframe),
                 ],
             );
             $subscription = array(
@@ -923,7 +922,7 @@ class coinex extends \ccxt\async\coinex {
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => $this->safe_timestamp($order, 'last_deal_time'),
             'symbol' => $market['symbol'],
-            'type' => $type === 1 ? 'limit' : 'market',
+            'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,

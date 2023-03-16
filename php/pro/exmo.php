@@ -11,8 +11,6 @@ use React\Async;
 
 class exmo extends \ccxt\async\exmo {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -152,6 +150,7 @@ class exmo extends \ccxt\async\exmo {
         //
         $event = $this->safe_string($message, 'event');
         $data = $this->safe_value($message, 'data');
+        $this->balance['info'] = $data;
         if ($event === 'snapshot') {
             $balances = $this->safe_value($data, 'balances', array());
             $reserved = $this->safe_value($data, 'reserved', array());
@@ -193,6 +192,7 @@ class exmo extends \ccxt\async\exmo {
         //     }
         //
         $data = $this->safe_value($message, 'data');
+        $this->balance['info'] = $data;
         $currencies = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currencyId = $currencies[$i];

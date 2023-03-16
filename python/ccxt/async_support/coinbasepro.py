@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
@@ -16,6 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -762,7 +762,7 @@ class coinbasepro(Exchange):
         :param dict params: extra parameters specific to the coinbasepro api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
-        # as of 2018-08-23
+        # 2018-08-23
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
@@ -852,15 +852,18 @@ class coinbasepro(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the coinbasepro api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
-        granularity = self.safe_integer(self.timeframes, timeframe, timeframe)
+        parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
         request = {
             'id': market['id'],
-            'granularity': granularity,
         }
+        if parsedTimeframe is not None:
+            request['granularity'] = parsedTimeframe
+        else:
+            request['granularity'] = timeframe
         if since is not None:
             request['start'] = self.iso8601(since)
             if limit is None:
@@ -868,7 +871,7 @@ class coinbasepro(Exchange):
                 limit = 300  # max = 300
             else:
                 limit = min(300, limit)
-            request['end'] = self.iso8601(self.sum((limit - 1) * granularity * 1000, since))
+            request['end'] = self.iso8601(self.sum((limit - 1) * parsedTimeframe * 1000, since))
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         #
         #     [
@@ -1196,7 +1199,7 @@ class coinbasepro(Exchange):
 
     async def deposit(self, code, amount, address, params={}):
         """
-        Creates a new deposit address, as required by coinbasepro
+        Creates a new deposit address, by coinbasepro
         :param str code: Unified CCXT currency code(e.g. `"USDT"`)
         :param float amount: The amount of currency to send in the deposit(e.g. `20`)
         :param str address: Not used by coinbasepro
@@ -1265,8 +1268,8 @@ class coinbasepro(Exchange):
     def parse_ledger_entry_type(self, type):
         types = {
             'transfer': 'transfer',  # Funds moved between portfolios
-            'match': 'trade',       # Funds moved as a result of a trade
-            'fee': 'fee',           # Fee as a result of a trade
+            'match': 'trade',       # Funds moved result of a trade
+            'fee': 'fee',           # Fee result of a trade
             'rebate': 'rebate',     # Fee rebate
             'conversion': 'trade',  # Funds converted between fiat currency and a stablecoin
         }

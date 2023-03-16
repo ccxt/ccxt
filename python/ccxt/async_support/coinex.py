@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import asyncio
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -17,6 +16,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -171,12 +171,12 @@ class coinex(Exchange):
                         'margin/transfer/history': 40,
                         'order/deals': 40,
                         'order/finished': 40,
-                        'order/pending': 4,
-                        'order/status': 4,
-                        'order/status/batch': 4,
+                        'order/pending': 8,
+                        'order/status': 8,
+                        'order/status/batch': 8,
                         'order/user/deals': 40,
                         'order/stop/finished': 40,
-                        'order/stop/pending': 4,
+                        'order/stop/pending': 8,
                         'order/user/trade/fee': 1,
                         'order/market/trade/info': 1,
                         'sub_account/balance': 1,
@@ -189,14 +189,14 @@ class coinex(Exchange):
                         'margin/flat': 40,
                         'margin/loan': 40,
                         'margin/transfer': 40,
-                        'order/limit/batch': 13.334,
-                        'order/ioc': 6.667,
-                        'order/limit': 6.667,
-                        'order/market': 6.667,
-                        'order/modify': 6.667,
-                        'order/stop/limit': 6.667,
-                        'order/stop/market': 6.667,
-                        'order/stop/modify': 6.667,
+                        'order/limit/batch': 40,
+                        'order/ioc': 13.334,
+                        'order/limit': 13.334,
+                        'order/market': 13.334,
+                        'order/modify': 13.334,
+                        'order/stop/limit': 13.334,
+                        'order/stop/market': 13.334,
+                        'order/stop/modify': 13.334,
                         'sub_account/transfer': 40,
                         'sub_account/register': 1,
                         'sub_account/unfrozen': 40,
@@ -210,9 +210,9 @@ class coinex(Exchange):
                     },
                     'delete': {
                         'balance/coin/withdraw': 40,
-                        'order/pending/batch': 13.334,
-                        'order/pending': 6.667,
-                        'order/stop/pending': 13.334,
+                        'order/pending/batch': 40,
+                        'order/pending': 13.334,
+                        'order/stop/pending': 40,
                         'order/stop/pending/{id}': 13.334,
                         'sub_account/auth/api/{user_auth_id}': 40,
                     },
@@ -235,35 +235,35 @@ class coinex(Exchange):
                 'perpetualPrivate': {
                     'get': {
                         'asset/query': 40,
-                        'order/pending': 4,
+                        'order/pending': 8,
                         'order/finished': 40,
                         'order/stop_finished': 40,
-                        'order/stop_pending': 4,
-                        'order/status': 4,
-                        'order/stop_status': 4,
+                        'order/stop_pending': 8,
+                        'order/status': 8,
+                        'order/stop_status': 8,
                         'position/pending': 40,
                         'position/funding': 40,
                     },
                     'post': {
                         'market/adjust_leverage': 1,
                         'market/position_expect': 1,
-                        'order/put_limit': 10,
-                        'order/put_market': 10,
-                        'order/put_stop_limit': 10,
-                        'order/put_stop_market': 10,
-                        'order/modify': 10,
-                        'order/modify_stop': 10,
-                        'order/cancel': 10,
-                        'order/cancel_all': 20,
-                        'order/cancel_batch': 20,
-                        'order/cancel_stop': 10,
-                        'order/cancel_stop_all': 20,
-                        'order/close_limit': 10,
-                        'order/close_market': 10,
-                        'position/adjust_margin': 10,
-                        'position/stop_loss': 10,
-                        'position/take_profit': 10,
-                        'position/market_close': 10,
+                        'order/put_limit': 20,
+                        'order/put_market': 20,
+                        'order/put_stop_limit': 20,
+                        'order/put_stop_market': 20,
+                        'order/modify': 20,
+                        'order/modify_stop': 20,
+                        'order/cancel': 20,
+                        'order/cancel_all': 40,
+                        'order/cancel_batch': 40,
+                        'order/cancel_stop': 20,
+                        'order/cancel_stop_all': 40,
+                        'order/close_limit': 20,
+                        'order/close_market': 20,
+                        'position/adjust_margin': 20,
+                        'position/stop_loss': 20,
+                        'position/take_profit': 20,
+                        'position/market_close': 20,
                     },
                 },
             },
@@ -526,8 +526,8 @@ class coinex(Exchange):
             fees = self.fees
             leverages = self.safe_value(entry, 'leverages', [])
             subType = self.safe_integer(entry, 'type')
-            linear = True if (subType == 1) else False
-            inverse = True if (subType == 2) else False
+            linear = (subType == 1)
+            inverse = (subType == 2)
             id = self.safe_string(entry, 'name')
             baseId = self.safe_string(entry, 'stock')
             quoteId = self.safe_string(entry, 'money')
@@ -558,22 +558,22 @@ class coinex(Exchange):
                 'inverse': inverse,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
-                'contractSize': None,
+                'contractSize': self.safe_number(entry, 'multiplier'),
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'stock_prec'))),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'amount_prec'))),
                     'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'money_prec'))),
                 },
                 'limits': {
                     'leverage': {
-                        'min': self.safe_string(leverages, 0),
-                        'max': self.safe_string(leverages, leveragesLength - 1),
+                        'min': self.safe_number(leverages, 0),
+                        'max': self.safe_number(leverages, leveragesLength - 1),
                     },
                     'amount': {
-                        'min': self.safe_string(entry, 'amount_min'),
+                        'min': self.safe_number(entry, 'amount_min'),
                         'max': None,
                     },
                     'price': {
@@ -1170,7 +1170,7 @@ class coinex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1623,20 +1623,24 @@ class coinex(Exchange):
         if feeCurrency is None:
             feeCurrency = market['quote']
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        side = self.safe_integer(order, 'side')
-        if side == 1:
+        rawSide = self.safe_integer(order, 'side')
+        side = None
+        if rawSide == 1:
             side = 'sell'
-        elif side == 2:
+        elif rawSide == 2:
             side = 'buy'
         else:
             side = self.safe_string(order, 'type')
-        type = self.safe_string(order, 'order_type')
-        if type is None:
+        rawType = self.safe_string(order, 'order_type')
+        type = None
+        if rawType is None:
             type = self.safe_integer(order, 'type')
             if type == 1:
                 type = 'limit'
             elif type == 2:
                 type = 'market'
+        else:
+            type = rawType
         return self.safe_order({
             'id': self.safe_string_2(order, 'id', 'order_id'),
             'clientOrderId': None,
@@ -1694,7 +1698,7 @@ class coinex(Exchange):
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, option == 'MAKER_ONLY', params)
         positionId = self.safe_integer_2(params, 'position_id', 'positionId')  # Required for closing swap positions
-        timeInForce = self.safe_string(params, 'timeInForce')  # Spot: IOC, FOK, PO, GTC, ... NORMAL(default), MAKER_ONLY
+        timeInForceRaw = self.safe_string(params, 'timeInForce')  # Spot: IOC, FOK, PO, GTC, ... NORMAL(default), MAKER_ONLY
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is not None:
             if market['type'] != 'swap':
@@ -1729,13 +1733,14 @@ class coinex(Exchange):
                     elif type == 'market':
                         method = 'perpetualPrivatePostOrderPutStopMarket'
                     request['amount'] = self.amount_to_precision(symbol, amount)
+                timeInForce = None
                 if (type != 'market') or (stopPrice is not None):
                     if postOnly:
                         request['option'] = 1
-                    elif timeInForce is not None:
-                        if timeInForce == 'IOC':
+                    elif timeInForceRaw is not None:
+                        if timeInForceRaw == 'IOC':
                             timeInForce = 2
-                        elif timeInForce == 'FOK':
+                        elif timeInForceRaw == 'FOK':
                             timeInForce = 3
                         else:
                             timeInForce = 1
@@ -1782,14 +1787,14 @@ class coinex(Exchange):
                     method = 'privatePostOrderStopMarket'
             if (type != 'market') or (stopPrice is not None):
                 # following options cannot be applied to vanilla market orders(but can be applied to stop-market orders)
-                if (timeInForce is not None) or postOnly:
-                    if (postOnly or (timeInForce != 'IOC')) and ((type == 'limit') and (stopPrice is not None)):
+                if (timeInForceRaw is not None) or postOnly:
+                    if (postOnly or (timeInForceRaw != 'IOC')) and ((type == 'limit') and (stopPrice is not None)):
                         raise InvalidOrder(self.id + ' createOrder() only supports the IOC option for stop-limit orders')
                     if postOnly:
                         request['option'] = 'MAKER_ONLY'
                     else:
-                        if timeInForce is not None:
-                            request['option'] = timeInForce  # exchange takes 'IOC' and 'FOK'
+                        if timeInForceRaw is not None:
+                            request['option'] = timeInForceRaw  # exchange takes 'IOC' and 'FOK'
         accountId = self.safe_integer(params, 'account_id')
         defaultType = self.safe_string(self.options, 'defaultType')
         if defaultType == 'margin':

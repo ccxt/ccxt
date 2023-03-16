@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import math
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -17,6 +16,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -820,15 +820,14 @@ class probit(Exchange):
             parts = iso8601.split('-')
             year = self.safe_string(parts, 0)
             month = self.safe_integer(parts, 1)
+            monthString = None
             if after:
-                month = self.sum(month, 1)
+                monthString = self.sum(month, str(1))
             if month < 10:
-                month = '0' + str(month)
-            else:
-                month = str(month)
-            return year + '-' + month + '-01T00:00:00.000Z'
+                monthString = '0' + str(month)
+            return year + '-' + monthString + '-01T00:00:00.000Z'
         elif timeframe == '1w':
-            timestamp = int(timestamp / 1000)
+            timestamp = self.parse_to_int(timestamp / 1000)
             firstSunday = 259200  # 1970-01-04T00:00:00.000Z
             difference = timestamp - firstSunday
             numWeeks = int(math.floor(difference / duration))
@@ -837,8 +836,8 @@ class probit(Exchange):
                 previousSunday = self.sum(previousSunday, duration)
             return self.iso8601(previousSunday * 1000)
         else:
-            timestamp = int(timestamp / 1000)
-            timestamp = duration * int(timestamp / duration)
+            timestamp = self.parse_to_int(timestamp / 1000)
+            timestamp = duration * self.parse_to_int(timestamp / duration)
             if after:
                 timestamp = self.sum(timestamp, duration)
             return self.iso8601(timestamp * 1000)
@@ -851,7 +850,7 @@ class probit(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the probit api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)

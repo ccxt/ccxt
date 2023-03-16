@@ -396,7 +396,7 @@ class bitmex extends Exchange {
                 $settle = $this->safe_currency_code($settleId);
                 $basequote = $baseId . $quoteId;
                 $swap = ($id === $basequote);
-                // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
+                // 'positionCurrency' may be empty ("", currently returns for ETHUSD)
                 // so let's take the settlCurrency first and then adjust if needed
                 $type = null;
                 $future = false;
@@ -1462,7 +1462,7 @@ class bitmex extends Exchange {
              * @param {int|null} $since $timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitmex api endpoint
-             * @return {[[int]]} A list of candles ordered as $timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             // send JSON key/value pairs, such as array("key" => "value")
@@ -2819,8 +2819,7 @@ class bitmex extends Exchange {
                 'Content-Type' => 'application/json',
                 'api-key' => $this->apiKey,
             );
-            $expires = $this->sum($this->seconds(), $expires);
-            $expires = (string) $expires;
+            $expires = $this->sum($this->seconds(), (string) $expires);
             $auth .= $expires;
             $headers['api-expires'] = $expires;
             if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {

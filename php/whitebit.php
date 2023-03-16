@@ -1023,7 +1023,7 @@ class whitebit extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the whitebit api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1037,7 +1037,7 @@ class whitebit extends Exchange {
                 $limit = $maxLimit;
             }
             $limit = min ($limit, $maxLimit);
-            $start = intval($since / 1000);
+            $start = $this->parse_to_int($since / 1000);
             $duration = $this->parse_timeframe($timeframe);
             $end = $this->sum($start, $duration * $limit);
             $request['start'] = $start;

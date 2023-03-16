@@ -6,12 +6,11 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\NetworkError;
 use ccxt\AuthenticationError;
 use React\Async;
 
 class ascendex extends \ccxt\async\ascendex {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -91,7 +90,7 @@ class ascendex extends \ccxt\async\ascendex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the ascendex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -492,6 +491,7 @@ class ascendex extends \ccxt\async\ascendex {
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://ascendex.github.io/ascendex-pro-api/#$channel-order-and-balance
              * watches information on multiple $orders made by the user
              * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int|null} $since the earliest time in ms to fetch $orders for
@@ -508,7 +508,7 @@ class ascendex extends \ccxt\async\ascendex {
             list($type, $query) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             $messageHash = null;
             $channel = null;
-            if ($type !== 'spot') {
+            if ($type !== 'spot' && $type !== 'margin') {
                 $channel = 'futures-order';
                 $messageHash = 'order:FUTURES';
             } else {
@@ -947,14 +947,21 @@ class ascendex extends \ccxt\async\ascendex {
     }
 
     public function handle_ping($client, $message) {
-        $this->spawn(array($this, 'pong'), $client, $message);
+        return Async\async(function () use ($client, $message) {
+            try {
+                Async\await($this->spawn(array($this, 'pong'), $client, $message));
+            } catch (Exception $e) {
+                $error = new NetworkError ($this->id . ' handlePing failed with $error ' . $this->json($e));
+                $client->reset ($error);
+            }
+        }) ();
     }
 
     public function authenticate($url, $params = array ()) {
         $this->check_required_credentials();
         $messageHash = 'authenticated';
         $client = $this->client($url);
-        $future = $this->safe_value($client->futures, $messageHash);
+        $future = $this->safe_value($client->subscriptions, $messageHash);
         if ($future === null) {
             $timestamp = (string) $this->milliseconds();
             $urlParts = explode('/', $url);

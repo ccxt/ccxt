@@ -11,8 +11,6 @@ use React\Async;
 
 class bitrue extends \ccxt\async\bitrue {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -149,6 +147,7 @@ class bitrue extends \ccxt\async\bitrue {
         //         t => 1657799510000
         //     )]
         //
+        $this->balance['info'] = $balances;
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'a');

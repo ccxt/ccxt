@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -26,6 +25,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
@@ -89,7 +89,7 @@ class binance(Exchange):
                 'fetchIndexOHLCV': True,
                 'fetchL3OrderBook': None,
                 'fetchLastPrices': True,
-                'fetchLedger': None,
+                'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -97,6 +97,7 @@ class binance(Exchange):
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
@@ -109,6 +110,7 @@ class binance(Exchange):
                 'fetchPositions': True,
                 'fetchPositionsRisk': True,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -251,6 +253,7 @@ class binance(Exchange):
                         'margin/crossMarginCollateralRatio': 10,
                         'margin/exchange-small-liability': 0.6667,
                         'margin/exchange-small-liability-history': 0.6667,
+                        'margin/next-hourly-interest-rate': 0.6667,
                         'loan/income': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/ongoing/orders': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/ltv/adjustment/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
@@ -389,6 +392,8 @@ class binance(Exchange):
                         'portfolio/account': 0.1,
                         'portfolio/collateralRate': 5,
                         'portfolio/pmLoan': 3.3335,
+                        'portfolio/interest-history': 0.6667,
+                        'portfolio/interest-rate': 0.6667,
                         # staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -1442,6 +1447,14 @@ class binance(Exchange):
         super(binance, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
+    def convert_expire_date(self, date):
+        # parse YYMMDD to timestamp
+        year = date[0:2]
+        month = date[2:4]
+        day = date[4:6]
+        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
+        return reconstructedDate
+
     def create_expired_option_market(self, symbol):
         # support expired option contracts
         settle = 'USDT'
@@ -1455,6 +1468,8 @@ class binance(Exchange):
         expiry = self.safe_string(optionParts, 1)
         strike = self.safe_string(optionParts, 2)
         optionType = self.safe_string(optionParts, 3)
+        datetime = self.convert_expire_date(expiry)
+        timestamp = self.parse8601(datetime)
         return {
             'id': base + '-' + expiry + '-' + strike + '-' + optionType,
             'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
@@ -1473,8 +1488,8 @@ class binance(Exchange):
             'margin': False,
             'contract': True,
             'contractSize': None,
-            'expiry': None,
-            'expiryDatetime': None,
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
             'optionType': 'call' if (optionType == 'C') else 'put',
             'strike': strike,
             'settle': settle,
@@ -1543,9 +1558,16 @@ class binance(Exchange):
                 futuresSymbol = symbol + ':' + settle
                 if futuresSymbol in self.markets:
                     return self.markets[futuresSymbol]
-            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):  # both exchange-id and unified symbols are supported self way regardless of the  defaultType
+            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):  # both exchange-id and unified symbols are supported self way regardless of the defaultType
                 return self.create_expired_option_market(symbol)
         raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
+
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+        isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1))
+        if isOption and not (marketId in self.markets_by_id):
+            # handle expired option contracts
+            return self.create_expired_option_market(marketId)
+        return super(binance, self).safe_market(marketId, market, delimiter, marketType)
 
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['quote'], self.precisionMode, self.paddingMode)
@@ -1772,6 +1794,7 @@ class binance(Exchange):
                 promises.append(self.eapiPublicGetExchangeInfo(params))
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
+        promises = promises
         spotMarkets = self.safe_value(self.safe_value(promises, 0), 'symbols', [])
         futureMarkets = self.safe_value(self.safe_value(promises, 1), 'symbols', [])
         deliveryMarkets = self.safe_value(self.safe_value(promises, 2), 'symbols', [])
@@ -2000,21 +2023,22 @@ class binance(Exchange):
         lowercaseId = self.safe_string_lower(market, 'symbol')
         baseId = self.safe_string(market, 'baseAsset', optionBase)
         quoteId = self.safe_string(market, 'quoteAsset')
-        settleId = self.safe_string(market, 'marginAsset', 'USDT')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        settle = self.safe_currency_code(settleId)
         contractType = self.safe_string(market, 'contractType')
         contract = ('contractType' in market)
         expiry = self.safe_integer_2(market, 'deliveryDate', 'expiryDate')
+        settleId = self.safe_string(market, 'marginAsset')
         if (contractType == 'PERPETUAL') or (expiry == 4133404800000):  # some swap markets do not have contract type, eg: BTCST
             expiry = None
             swap = True
         elif underlying is not None:
             contract = True
             option = True
+            settleId = 'USDT' if (settleId is None) else settleId
         else:
             future = True
+        settle = self.safe_currency_code(settleId)
         spot = not contract
         filters = self.safe_value(market, 'filters', [])
         filtersByType = self.index_by(filters, 'filterType')
@@ -2206,17 +2230,6 @@ class binance(Exchange):
                 locked = self.safe_string(entry, 'locked')
                 account['used'] = Precise.string_add(frozen, Precise.string_add(locked, withdrawing))
                 result[code] = account
-        elif type == 'option':
-            timestamp = self.safe_integer(response, 'time')
-            assets = self.safe_value(response, 'asset', [])
-            for i in range(0, len(assets)):
-                balance = assets[i]
-                currencyId = self.safe_string(balance, 'asset')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(balance, 'available')
-                account['used'] = self.safe_string(balance, 'locked')
-                result[code] = account
         else:
             balances = response
             if not isinstance(response, list):
@@ -2281,8 +2294,6 @@ class binance(Exchange):
             method = 'sapiGetLendingUnionAccount'
         elif type == 'funding':
             method = 'sapiPostAssetGetFundingAsset'
-        elif type == 'option':
-            method = 'eapiPrivateGetAccount'
         requestParams = self.omit(query, ['type', 'symbols'])
         response = getattr(self, method)(self.extend(request, requestParams))
         #
@@ -2510,22 +2521,6 @@ class binance(Exchange):
         #         "withdrawing": "0"
         #       }
         #     ]
-        #
-        # options(eapi)
-        #
-        #     {
-        #         "asset": [
-        #             {
-        #                 "asset": "USDT",
-        #                 "marginBalance": "25.45130462",
-        #                 "equity": "25.45130462",
-        #                 "available": "25.45130462",
-        #                 "locked": "0.00000000",
-        #                 "unrealizedPNL": "0.00000000"
-        #             }
-        #         ],
-        #         "time": 1676328152755
-        #     }
         #
         return self.parse_balance(response, type, marginMode)
 
@@ -2969,7 +2964,7 @@ class binance(Exchange):
         :param dict params: extra parameters specific to the binance api endpoint
         :param str|None params['price']: "mark" or "index" for mark price and index price candles
         :param int|None params['until']: timestamp in ms of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3186,7 +3181,8 @@ class binance(Exchange):
         amount = self.safe_string(trade, 'quantity', amount)
         cost = self.safe_string_2(trade, 'quoteQty', 'baseQty')  # inverse futures
         marketId = self.safe_string(trade, 'symbol')
-        marketType = ('isIsolated' in trade) or ('M' in trade) or 'spot' if ('orderListId' in trade) else 'contract'
+        isSpotTrade = ('isIsolated' in trade) or ('M' in trade) or ('orderListId' in trade)
+        marketType = 'spot' if isSpotTrade else 'contract'
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         id = self.safe_string_2(trade, 't', 'a')
@@ -3892,7 +3888,7 @@ class binance(Exchange):
                 if stopPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
-                # check for delta price as well
+                # check for delta price
                 trailingDelta = self.safe_value(params, 'trailingDelta')
                 if trailingDelta is None and stopPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a stopPrice or trailingDelta param for a ' + type + ' order')
@@ -4079,7 +4075,7 @@ class binance(Exchange):
         elif self.options['warnOnFetchOpenOrdersWithoutSymbol']:
             symbols = self.symbols
             numSymbols = len(symbols)
-            fetchOpenOrdersRateLimit = int(numSymbols / 2)
+            fetchOpenOrdersRateLimit = self.parse_to_int(numSymbols / 2)
             raise ExchangeError(self.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + str(fetchOpenOrdersRateLimit) + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = False to suppress self warning message.')
         else:
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
@@ -5847,7 +5843,7 @@ class binance(Exchange):
         rational = (1000 % leverage) == 0
         if not rational:
             initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
-        # as oppose to notionalValue
+        # to notionalValue
         usdm = ('notional' in position)
         maintenanceMarginString = self.safe_string(position, 'maintMargin')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
@@ -6051,7 +6047,7 @@ class binance(Exchange):
         entryPrice = self.parse_number(entryPriceString)
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        # as oppose to notionalValue
+        # to notionalValue
         linear = ('notional' in position)
         if marginMode == 'cross':
             # calculate collateral
@@ -6551,6 +6547,226 @@ class binance(Exchange):
         #     }
         #
         return getattr(self, method)(self.extend(request, params))
+
+    def fetch_settlement_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches historical settlement records
+        see https://binance-docs.github.io/apidocs/voptions/en/#historical-exercise-records
+        :param str symbol: unified market symbol of the settlement history
+        :param int since: timestamp in ms
+        :param int limit: number of records, default 100, max 100
+        :param dict params: exchange specific params
+        :returns [dict]: a list of [settlement history objects]
+        """
+        self.load_markets()
+        market = None if (symbol is None) else self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchSettlementHistory', market, params)
+        if type != 'option':
+            raise NotSupported(self.id + ' fetchSettlementHistory() supports option markets only')
+        request = {}
+        if symbol is not None:
+            symbol = market['symbol']
+            request['underlying'] = market['baseId'] + market['quoteId']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.eapiPublicGetExerciseHistory(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "symbol": "ETH-230223-1900-P",
+        #             "strikePrice": "1900",
+        #             "realStrikePrice": "1665.5897334",
+        #             "expiryDate": 1677139200000,
+        #             "strikeResult": "REALISTIC_VALUE_STRICKEN"
+        #         }
+        #     ]
+        #
+        settlements = self.parse_settlements(response, market)
+        sorted = self.sort_by(settlements, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_settlement(self, settlement, market):
+        #
+        #     {
+        #         "symbol": "ETH-230223-1900-P",
+        #         "strikePrice": "1900",
+        #         "realStrikePrice": "1665.5897334",
+        #         "expiryDate": 1677139200000,
+        #         "strikeResult": "REALISTIC_VALUE_STRICKEN"
+        #     }
+        #
+        timestamp = self.safe_integer(settlement, 'expiryDate')
+        marketId = self.safe_string(settlement, 'symbol')
+        return {
+            'info': settlement,
+            'symbol': self.safe_symbol(marketId, market),
+            'price': self.safe_number(settlement, 'realStrikePrice'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
+    def parse_settlements(self, settlements, market):
+        #
+        #     [
+        #         {
+        #             "symbol": "ETH-230223-1900-P",
+        #             "strikePrice": "1900",
+        #             "realStrikePrice": "1665.5897334",
+        #             "expiryDate": 1677139200000,
+        #             "strikeResult": "EXTRINSIC_VALUE_EXPIRED"
+        #         }
+        #     ]
+        #
+        result = []
+        for i in range(0, len(settlements)):
+            result.append(self.parse_settlement(settlements[i], market))
+        return result
+
+    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+        see https://binance-docs.github.io/apidocs/voptions/en/#account-funding-flow-user_data
+        see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
+        :param str|None code: unified currency code
+        :param int|None since: timestamp in ms of the earliest ledger entry
+        :param int|None limit: max number of ledger entrys to return
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
+        self.load_markets()
+        type = None
+        subType = None
+        currency = None
+        method = None
+        request = {}
+        type, params = self.handle_market_type_and_params('fetchLedger', None, params)
+        subType, params = self.handle_sub_type_and_params('fetchLedger', None, params)
+        if type == 'option':
+            self.check_required_argument('fetchLedger', code, 'code')
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+            method = 'eapiPrivateGetBill'
+        elif self.is_linear(type, subType):
+            method = 'fapiPrivateGetIncome'
+        elif self.is_inverse(type, subType):
+            method = 'dapiPrivateGetIncome'
+        else:
+            raise NotSupported(self.id + ' fetchLedger() supports contract wallets only')
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # options(eapi)
+        #
+        #     [
+        #         {
+        #             "id": "1125899906845701870",
+        #             "asset": "USDT",
+        #             "amount": "-0.16518203",
+        #             "type": "FEE",
+        #             "createDate": 1676621042489
+        #         }
+        #     ]
+        #
+        # futures(fapi, dapi)
+        #
+        #     [
+        #         {
+        #             "symbol": "",
+        #             "incomeType": "TRANSFER",
+        #             "income": "10.00000000",
+        #             "asset": "USDT",
+        #             "time": 1677645250000,
+        #             "info": "TRANSFER",
+        #             "tranId": 131001573082,
+        #             "tradeId": ""
+        #         }
+        #     ]
+        #
+        return self.parse_ledger(response, currency, since, limit)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        # options(eapi)
+        #
+        #     {
+        #         "id": "1125899906845701870",
+        #         "asset": "USDT",
+        #         "amount": "-0.16518203",
+        #         "type": "FEE",
+        #         "createDate": 1676621042489
+        #     }
+        #
+        # futures(fapi, dapi)
+        #
+        #     {
+        #         "symbol": "",
+        #         "incomeType": "TRANSFER",
+        #         "income": "10.00000000",
+        #         "asset": "USDT",
+        #         "time": 1677645250000,
+        #         "info": "TRANSFER",
+        #         "tranId": 131001573082,
+        #         "tradeId": ""
+        #     }
+        #
+        amount = self.safe_string_2(item, 'amount', 'income')
+        direction = None
+        if Precise.string_le(amount, '0'):
+            direction = 'out'
+            amount = Precise.string_mul('-1', amount)
+        else:
+            direction = 'in'
+        currencyId = self.safe_string(item, 'asset')
+        timestamp = self.safe_integer_2(item, 'createDate', 'time')
+        type = self.safe_string_2(item, 'type', 'incomeType')
+        return {
+            'id': self.safe_string_2(item, 'id', 'tranId'),
+            'direction': direction,
+            'account': None,
+            'referenceAccount': None,
+            'referenceId': self.safe_string(item, 'tradeId'),
+            'type': self.parse_ledger_entry_type(type),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.parse_number(amount),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'before': None,
+            'after': None,
+            'status': None,
+            'fee': None,
+            'info': item,
+        }
+
+    def parse_ledger_entry_type(self, type):
+        ledgerType = {
+            'FEE': 'fee',
+            'FUNDING_FEE': 'fee',
+            'OPTIONS_PREMIUM_FEE': 'fee',
+            'POSITION_LIMIT_INCREASE_FEE': 'fee',
+            'CONTRACT': 'trade',
+            'REALIZED_PNL': 'trade',
+            'TRANSFER': 'transfer',
+            'CROSS_COLLATERAL_TRANSFER': 'transfer',
+            'INTERNAL_TRANSFER': 'transfer',
+            'COIN_SWAP_DEPOSIT': 'deposit',
+            'COIN_SWAP_WITHDRAW': 'withdrawal',
+            'OPTIONS_SETTLE_PROFIT': 'settlement',
+            'DELIVERED_SETTELMENT': 'settlement',
+            'WELCOME_BONUS': 'cashback',
+            'CONTEST_REWARD': 'cashback',
+            'COMMISSION_REBATE': 'rebate',
+            'API_REBATE': 'rebate',
+            'REFERRAL_KICKBACK': 'referral',
+            'COMMISSION': 'commission',
+        }
+        return self.safe_string(ledgerType, type, type)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if not (api in self.urls['api']):
@@ -7087,10 +7303,10 @@ class binance(Exchange):
         Retrieves the open interest history of a currency
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
-        :param int|None since: the time(ms) of the earliest record to retrieve as a unix timestamp
+        :param int|None since: the time(ms) of the earliest record to retrieve unix timestamp
         :param int|None limit: default 30, max 500
         :param dict params: exchange specific parameters
-        :param int|None params['until']: the time(ms) of the latest record to retrieve as a unix timestamp
+        :param int|None params['until']: the time(ms) of the latest record to retrieve unix timestamp
         :returns dict: an array of `open interest history structure <https://docs.ccxt.com/en/latest/manual.html#interest-history-structure>`
         """
         if timeframe == '1m':
@@ -7135,14 +7351,75 @@ class binance(Exchange):
         #
         return self.parse_open_interests(response, symbol, since, limit)
 
+    def fetch_open_interest(self, symbol, params={}):
+        """
+        retrieves the open interest of a contract trading pair
+        see https://binance-docs.github.io/apidocs/futures/en/#open-interest
+        see https://binance-docs.github.io/apidocs/delivery/en/#open-interest
+        see https://binance-docs.github.io/apidocs/voptions/en/#open-interest
+        :param str symbol: unified CCXT market symbol
+        :param dict params: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {}
+        if market['option']:
+            request['underlyingAsset'] = market['baseId']
+            request['expiration'] = self.yymmdd(market['expiry'])
+        else:
+            request['symbol'] = market['id']
+        method = 'fapiPublicGetOpenInterest'
+        if market['option']:
+            method = 'eapiPublicGetOpenInterest'
+        elif market['inverse']:
+            method = 'dapiPublicGetOpenInterest'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # futures(fapi)
+        #
+        #     {
+        #         "symbol": "ETHUSDT_230331",
+        #         "openInterest": "23581.677",
+        #         "time": 1677356872265
+        #     }
+        #
+        # futures(dapi)
+        #
+        #     {
+        #         "symbol": "ETHUSD_PERP",
+        #         "pair": "ETHUSD",
+        #         "openInterest": "26542436",
+        #         "contractType": "PERPETUAL",
+        #         "time": 1677360272224
+        #     }
+        #
+        # options(eapi)
+        #
+        #     [
+        #         {
+        #             "symbol": "ETH-230225-1625-C",
+        #             "sumOpenInterest": "460.50",
+        #             "sumOpenInterestUsd": "734957.4358092150",
+        #             "timestamp": "1677304860000"
+        #         }
+        #     ]
+        #
+        if market['option']:
+            return self.parse_open_interests(response, market)
+        else:
+            return self.parse_open_interest(response, market)
+
     def parse_open_interest(self, interest, market=None):
         timestamp = self.safe_integer(interest, 'timestamp')
         id = self.safe_string(interest, 'symbol')
-        amount = self.safe_number(interest, 'sumOpenInterest')
-        value = self.safe_number(interest, 'sumOpenInterestValue')
+        amount = self.safe_number_2(interest, 'sumOpenInterest', 'openInterest')
+        value = self.safe_number_2(interest, 'sumOpenInterestValue', 'sumOpenInterestUsd')
+        # Inverse returns the number of contracts different from the base or quote volume in self case
+        # compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         return {
-            'symbol': self.safe_symbol(id, None, None, 'contract'),
-            'baseVolume': amount,  # deprecated
+            'symbol': self.safe_symbol(id, market, None, 'contract'),
+            'baseVolume': None if market['inverse'] else amount,  # deprecated
             'quoteVolume': value,  # deprecated
             'openInterestAmount': amount,
             'openInterestValue': value,

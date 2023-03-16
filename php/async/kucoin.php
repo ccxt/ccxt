@@ -422,6 +422,9 @@ class kucoin extends Exchange {
                 'fetchMarkets' => array(
                     'fetchTickersFees' => true,
                 ),
+                'withdraw' => array(
+                    'includeFee' => false,
+                ),
                 // endpoint versions
                 'versions' => array(
                     'public' => array(
@@ -462,7 +465,7 @@ class kucoin extends Exchange {
                     ),
                 ),
                 'partner' => array(
-                    // the support for spot and future exchanges as separate settings
+                    // the support for spot and future exchanges settings
                     'spot' => array(
                         'id' => 'ccxt',
                         'key' => '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
@@ -1153,7 +1156,7 @@ class kucoin extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the kucoin api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1165,7 +1168,7 @@ class kucoin extends Exchange {
             $duration = $this->parse_timeframe($timeframe) * 1000;
             $endAt = $this->milliseconds(); // required param
             if ($since !== null) {
-                $request['startAt'] = intval((int) floor($since / 1000));
+                $request['startAt'] = $this->parse_to_int((int) floor($since / 1000));
                 if ($limit === null) {
                     // https://docs.kucoin.com/#get-klines
                     // https://docs.kucoin.com/#details
@@ -1176,9 +1179,9 @@ class kucoin extends Exchange {
                 $endAt = $this->sum($since, $limit * $duration);
             } elseif ($limit !== null) {
                 $since = $endAt - $limit * $duration;
-                $request['startAt'] = intval((int) floor($since / 1000));
+                $request['startAt'] = $this->parse_to_int((int) floor($since / 1000));
             }
-            $request['endAt'] = intval((int) floor($endAt / 1000));
+            $request['endAt'] = $this->parse_to_int((int) floor($endAt / 1000));
             $response = Async\await($this->publicGetMarketCandles (array_merge($request, $params)));
             //
             //     {
@@ -1260,7 +1263,7 @@ class kucoin extends Exchange {
                 // for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
                 // 'chain' => 'ERC20', // optional
             );
-            // same as for withdraw
+            // same withdraw
             $networks = $this->safe_value($this->options, 'networks', array());
             $network = $this->safe_string_upper_2($params, 'chain', 'network'); // this line allows the user to specify either ERC20 or ETH
             $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
@@ -1981,14 +1984,14 @@ class kucoin extends Exchange {
             } elseif ($method === 'private_get_limit_fills') {
                 // does not return $trades earlier than 2019-02-18T00:00:00Z
                 // takes no $params
-                // only returns first 1000 $trades (not only "in the last 24 hours" as stated in the docs)
+                // only returns first 1000 $trades (not only "in the last 24 hours" in the docs)
                 $parseResponseData = true;
             } elseif ($method === 'private_get_hist_orders') {
                 // despite that this endpoint is called `HistOrders`
                 // it returns historical $trades instead of orders
                 // returns $trades earlier than 2019-02-18T00:00:00Z only
                 if ($since !== null) {
-                    $request['startAt'] = intval($since / 1000);
+                    $request['startAt'] = $this->parse_to_int($since / 1000);
                 }
             } else {
                 throw new ExchangeError($this->id . ' fetchMyTradesMethod() invalid method');
@@ -2171,7 +2174,7 @@ class kucoin extends Exchange {
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
         $timestamp = $this->safe_integer($trade, 'time');
         if ($timestamp !== null) {
-            $timestamp = intval($timestamp / 1000000);
+            $timestamp = $this->parse_to_int($timestamp / 1000000);
         } else {
             $timestamp = $this->safe_integer($trade, 'createdAt');
             // if it's a historical v1 $trade, the exchange returns $timestamp in seconds
@@ -2293,6 +2296,11 @@ class kucoin extends Exchange {
                 $request['chain'] = $network;
                 $params = $this->omit($params, 'network');
             }
+            $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+            $includeFee = $this->safe_value($withdrawOptions, 'includeFee', false);
+            if ($includeFee) {
+                $request['feeDeductType'] = 'INTERNAL';
+            }
             $response = Async\await($this->privatePostWithdrawals (array_merge($request, $params)));
             //
             // https://github.com/ccxt/ccxt/issues/5558
@@ -2312,7 +2320,7 @@ class kucoin extends Exchange {
     public function parse_transaction_status($status) {
         $statuses = array(
             'SUCCESS' => 'ok',
-            'PROCESSING' => 'ok',
+            'PROCESSING' => 'pending',
             'FAILURE' => 'failed',
         );
         return $this->safe_string($statuses, $status);
@@ -2455,7 +2463,7 @@ class kucoin extends Exchange {
             if ($since !== null) {
                 // if $since is earlier than 2019-02-18T00:00:00Z
                 if ($since < 1550448000000) {
-                    $request['startAt'] = intval($since / 1000);
+                    $request['startAt'] = $this->parse_to_int($since / 1000);
                     $method = 'privateGetHistDeposits';
                 } else {
                     $request['startAt'] = $since;
@@ -2529,7 +2537,7 @@ class kucoin extends Exchange {
             if ($since !== null) {
                 // if $since is earlier than 2019-02-18T00:00:00Z
                 if ($since < 1550448000000) {
-                    $request['startAt'] = intval($since / 1000);
+                    $request['startAt'] = $this->parse_to_int($since / 1000);
                     $method = 'privateGetHistWithdrawals';
                 } else {
                     $request['startAt'] = $since;
@@ -2901,7 +2909,7 @@ class kucoin extends Exchange {
             'KuCoin Bonus' => 'bonus', // KuCoin Bonus
             'Referral Bonus' => 'referral', // Referral Bonus
             'Rewards' => 'bonus', // Activities Rewards
-            // 'Distribution' => 'Distribution', // Distribution, such as get GAS by holding NEO
+            // 'Distribution' => 'Distribution', // Distribution, such GAS by holding NEO
             'Airdrop/Fork' => 'airdrop', // Airdrop/Fork
             'Other rewards' => 'bonus', // Other rewards, except Vote, Airdrop, Fork
             'Fee Rebate' => 'rebate', // Fee Rebate
@@ -2940,7 +2948,7 @@ class kucoin extends Exchange {
         //     {
         //         "id" => "611a1e7c6a053300067a88d9", //unique key for each ledger entry
         //         "currency" => "USDT", //Currency
-        //         "amount" => "10.00059547", //The total $amount of assets (fees included) involved in assets changes such as transaction, withdrawal and bonus distribution.
+        //         "amount" => "10.00059547", //The total $amount of assets (fees included) involved in assets changes such, withdrawal and bonus distribution.
         //         "fee" => "0", //Deposit or withdrawal $fee
         //         "balance" => "0", //Total assets of a $currency remaining funds after transaction
         //         "accountType" => "MAIN", //Account Type
@@ -3196,7 +3204,7 @@ class kucoin extends Exchange {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params);
             if ($marginMode === null) {
-                $marginMode = 'cross'; // cross as default $marginMode
+                $marginMode = 'cross'; // cross $marginMode
             }
             $request = array();
             $method = 'privateGetMarginBorrowOutstanding';

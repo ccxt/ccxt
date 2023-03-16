@@ -477,6 +477,7 @@ class gemini extends Exchange {
             //     }
             //
         }
+        $promises = $promises;
         for ($i = 0; $i < count($promises); $i++) {
             $response = $promises[$i];
             $marketId = $this->safe_string_lower($response, 'symbol');
@@ -1217,7 +1218,7 @@ class gemini extends Exchange {
         $amountString = $this->amount_to_precision($symbol, $amount);
         $priceString = $this->price_to_precision($symbol, $price);
         $request = array(
-            'client_order_id' => (string) $clientOrderId,
+            'client_order_id' => $clientOrderId,
             'symbol' => $market['id'],
             'amount' => $amountString,
             'price' => $priceString,
@@ -1347,7 +1348,7 @@ class gemini extends Exchange {
             $request['limit_trades'] = $limit;
         }
         if ($since !== null) {
-            $request['timestamp'] = intval($since / 1000);
+            $request['timestamp'] = $this->parse_to_int($since / 1000);
         }
         $response = $this->privatePostV1Mytrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
@@ -1628,7 +1629,7 @@ class gemini extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the gemini api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);

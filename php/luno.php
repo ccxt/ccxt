@@ -48,7 +48,7 @@ class luno extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => false, // overload of base fetchOHLCV, as it doesn't work in this exchange
+                'fetchOHLCV' => false, // overload of base fetchOHLCV, doesn't work in this exchange
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -797,7 +797,7 @@ class luno extends Exchange {
         if ($type === 'market') {
             $method .= 'Marketorder';
             $request['type'] = strtoupper($side);
-            // todo add createMarketBuyOrderRequires $price logic as it is implemented in the other exchanges
+            // todo add createMarketBuyOrderRequires $price logic is implemented in the other exchanges
             if ($side === 'buy') {
                 $request['counter_volume'] = $this->amount_to_precision($market['symbol'], $amount);
             } else {
@@ -810,10 +810,10 @@ class luno extends Exchange {
             $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
         }
         $response = $this->$method (array_merge($request, $params));
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $response['order_id'],
-        );
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
