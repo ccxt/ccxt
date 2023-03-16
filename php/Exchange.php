@@ -382,6 +382,7 @@ class Exchange {
         'coinfalcon',
         'coinmate',
         'coinone',
+        'coinsph',
         'coinspot',
         'cryptocom',
         'currencycom',

@@ -94,6 +94,7 @@ import coinex from  './src/coinex.js'
 import coinfalcon from  './src/coinfalcon.js'
 import coinmate from  './src/coinmate.js'
 import coinone from  './src/coinone.js'
+import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
 import cryptocom from  './src/cryptocom.js'
 import currencycom from  './src/currencycom.js'
@@ -264,6 +265,7 @@ const exchanges = {
     'coinfalcon':             coinfalcon,
     'coinmate':               coinmate,
     'coinone':                coinone,
+    'coinsph':                coinsph,
     'coinspot':               coinspot,
     'cryptocom':              cryptocom,
     'currencycom':            currencycom,
@@ -473,6 +475,7 @@ export {
     coinfalcon,
     coinmate,
     coinone,
+    coinsph,
     coinspot,
     cryptocom,
     currencycom,
