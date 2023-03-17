@@ -1885,7 +1885,7 @@ export default class bitrue extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseDepositWithdrawFee (fee, currency: string = undefined) {
+    parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //   {
         //       coin: 'adx',
