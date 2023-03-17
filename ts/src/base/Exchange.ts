@@ -180,6 +180,8 @@ export default class Exchange {
 
     // do not delete this line, it is needed for users to be able to define their own fetchImplementation
     fetchImplementation: any
+    AbortError: any
+
     validateServerSsl = true
     validateClientSsl = false
 
@@ -279,9 +281,6 @@ export default class Exchange {
     clients = {}
     newUpdates = true
     streaming = {}
-
-    // fetch options
-    AbortError = undefined
 
     deepExtend = deepExtend
     isNode = isNode
