@@ -132,7 +132,6 @@ import {inflate, inflate64, gunzip} from './ws/functions.js'
     , ArgumentsRequired
     , RateLimitExceeded } from "./errors.js"
 
-import BN from '../static_dependencies/BN/bn.cjs'
 import { Precise } from './Precise.js'
 
 //-----------------------------------------------------------------------------
@@ -144,7 +143,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Hash, Digest } from './types.js'
+import { Market, Trade, Fee, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Hash, Digest, Curve } from './types.js'
 export { Market, Trade, Fee, Ticker } from './types.js'
 
 
@@ -1059,12 +1058,12 @@ export default class Exchange {
     hashMessage (message: string) {
         // takes a hex encoded message
         const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message))
-        const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes)
+        const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength)
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), Hash.Keccak, Digest.Hex)
     }
 
     signHash (hash: string, privateKey: string) {
-        const signature = this.ecdsa (hash.slice (-64), privateKey.slice (-64), 'secp256k1', undefined)
+        const signature = this.ecdsa (hash.slice (-64), privateKey.slice (-64), Curve.Secp256k1, undefined)
         return {
             'r': '0x' + signature['r'],
             's': '0x' + signature['s'],
@@ -1080,6 +1079,7 @@ export default class Exchange {
         // still takes the input as a hex string
         // same as above but returns a string instead of an object
         const signature = this.signMessage (message, privateKey)
+        // @ts-ignore
         return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']))
     }
 

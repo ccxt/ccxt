@@ -6,18 +6,12 @@ import { keccak_256 as keccak } from '../../static_dependencies/noble-hashes/sha
 import { sha256 } from '../../static_dependencies/noble-hashes/sha256.js';
 import { sha512, sha384 } from '../../static_dependencies/noble-hashes/sha512.js';
 import { hmac as _hmac } from '../../static_dependencies/noble-hashes/hmac.js';
-import { base16, base32, base64, base64url, utf8 } from "../../static_dependencies/scure-base/index.js";
+import { base16, base32, base64 } from "../../static_dependencies/scure-base/index.js";
 import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
 import { x25519 } from "../../static_dependencies/noble-curves/ed25519.js";
 import { Digest, Hash, Curve } from "../types.js";
 import { stringToBase64, urlencodeBase64 } from './encode.js';
 
-
-// import errors from './../errors.js'
-import { ExchangeError } from '../errors.js';
-
-// const EC = elliptic.ec;
-// const EDDSA = elliptic.eddsa;
 /*  ------------------------------------------------------------------------ */
 
 const hashes = { sha1, sha256, sha384, sha512, keccak }

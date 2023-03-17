@@ -205,11 +205,7 @@ export enum Hash {
     Keccak = 'keccak',
 }
 
-export enum Hmac {
-    Md5 = 'md5',
-    Sha1 = 'sha1',
-    Sha3 = 'sha3',
-    Sha256 = 'sha256',
-    Sha384 = 'sha384',
-    Sha512 = 'sha512',
+export enum Curve {
+    Secp256k1 = 'secp256k1',
+    Ed25519 = 'ed25519'
 }
