@@ -1337,7 +1337,10 @@ class exmo(Exchange):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            parsedOrders = self.parse_orders(response[marketId], market)
+            params = self.extend(params, {
+                'status': 'open',
+            })
+            parsedOrders = self.parse_orders(response[marketId], market, since, limit, params)
             orders = self.array_concat(orders, parsedOrders)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
@@ -1454,6 +1457,9 @@ class exmo(Exchange):
         #         "amount": "1"
         #     }]
         #
+        params = self.extend(params, {
+            'status': 'canceled',
+        })
         return self.parse_orders(response, market, since, limit, params)
 
     def fetch_deposit_address(self, code, params={}):

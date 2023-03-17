@@ -1430,7 +1430,10 @@ export default class exmo extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
-            const parsedOrders = this.parseOrders(response[marketId], market);
+            params = this.extend(params, {
+                'status': 'open',
+            });
+            const parsedOrders = this.parseOrders(response[marketId], market, since, limit, params);
             orders = this.arrayConcat(orders, parsedOrders);
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
@@ -1558,6 +1561,9 @@ export default class exmo extends Exchange {
         //         "amount": "1"
         //     }]
         //
+        params = this.extend(params, {
+            'status': 'canceled',
+        });
         return this.parseOrders(response, market, since, limit, params);
     }
     async fetchDepositAddress(code, params = {}) {

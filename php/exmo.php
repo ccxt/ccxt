@@ -1407,7 +1407,10 @@ class exmo extends Exchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
-            $parsedOrders = $this->parse_orders($response[$marketId], $market);
+            $params = array_merge($params, array(
+                'status' => 'open',
+            ));
+            $parsedOrders = $this->parse_orders($response[$marketId], $market, $since, $limit, $params);
             $orders = $this->array_concat($orders, $parsedOrders);
         }
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
@@ -1533,6 +1536,9 @@ class exmo extends Exchange {
         //         "amount" => "1"
         //     )]
         //
+        $params = array_merge($params, array(
+            'status' => 'canceled',
+        ));
         return $this->parse_orders($response, $market, $since, $limit, $params);
     }
 
