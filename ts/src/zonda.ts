@@ -1654,7 +1654,7 @@ export default class zonda extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]);
         if (api === 'public') {
             const query = this.omit (params, this.extractParams (path));

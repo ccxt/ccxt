@@ -2088,7 +2088,7 @@ export default class bittrex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    sign (path, api = 'v3', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'v3', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         }) + '/';

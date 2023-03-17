@@ -3774,7 +3774,7 @@ export default class okcoin extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const isArray = Array.isArray (params);
         let request = '/api/' + api + '/' + this.version + '/';
         request += isArray ? path : this.implodeParams (path, params);

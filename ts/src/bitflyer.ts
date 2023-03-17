@@ -979,7 +979,7 @@ export default class bitflyer extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let request = '/' + this.version + '/';
         if (api === 'private') {
             request += 'me/';

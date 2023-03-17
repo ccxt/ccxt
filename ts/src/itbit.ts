@@ -798,7 +798,7 @@ export default class itbit extends Exchange {
         return await (this as any).privateDeleteWalletsWalletIdOrdersId (this.extend (request, params));
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET' && Object.keys (query).length) {

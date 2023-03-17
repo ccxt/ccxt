@@ -4891,7 +4891,7 @@ export default class mexc3 extends Exchange {
         return [ marginMode, params ];
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const [ section, access ] = api;
         [ path, params ] = this.resolvePath (path, params);
         let url = undefined;

@@ -841,7 +841,7 @@ export default class Exchange {
         console.log (... args)
     }
 
-    async fetch (url, method = 'GET', headers = undefined, body = undefined) {
+    async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
         if (isNode && this.userAgent) {
             if (typeof this.userAgent === 'string') {
                 headers = this.extend ({ 'User-Agent': this.userAgent }, headers)
@@ -1115,8 +1115,7 @@ export default class Exchange {
     }
 
         // method to override
-
-        sign (path, api: string | object, method = 'GET', params = {}, headers = undefined, body = undefined) {
+        sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
             return {};
         }
 
@@ -2721,7 +2720,7 @@ export default class Exchange {
         return indexed ? this.indexBy (results, key) : results;
     }
 
-    async fetch2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+    async fetch2 (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}, context = {}) {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config, context);
             await this.throttle (cost);
@@ -2731,7 +2730,7 @@ export default class Exchange {
         return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+    async request (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}, context = {}) {
         return await this.fetch2 (path, api, method, params, headers, body, config, context);
     }
 

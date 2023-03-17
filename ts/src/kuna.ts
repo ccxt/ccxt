@@ -862,7 +862,7 @@ export default class kuna extends Exchange {
         return this.urlencode (this.keysort (params));
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = undefined;
         if (Array.isArray (api)) {
             const [ version, access ] = api;

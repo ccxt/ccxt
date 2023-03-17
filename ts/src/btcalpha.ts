@@ -881,7 +881,7 @@ export default class btcalpha extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const query = this.urlencode (this.keysort (this.omit (params, this.extractParams (path))));
         let url = this.urls['api']['rest'] + '/';
         if (path !== 'charts/{pair}/{type}/chart/') {

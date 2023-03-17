@@ -2966,7 +2966,7 @@ export default class ascendex extends Exchange {
         return 'failed';
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const version = api[0];
         const access = api[1];
         const type = this.safeString (api as any, 2);

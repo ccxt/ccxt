@@ -5660,7 +5660,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = '/';
         const query = this.omit (params, this.extractParams (path));
         if (typeof api === 'string') {
