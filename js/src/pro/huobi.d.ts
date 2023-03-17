@@ -4,9 +4,9 @@ export default class huobi extends huobiRest {
     requestId(): any;
     watchTicker(symbol: any, params?: {}): Promise<any>;
     handleTicker(client: any, message: any): any;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): any;
-    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOHLCV(client: any, message: any): void;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     handleOrderBookSnapshot(client: any, message: any, subscription: any): void;
@@ -16,9 +16,9 @@ export default class huobi extends huobiRest {
     handleOrderBookMessage(client: any, message: any, orderbook: any): any;
     handleOrderBook(client: any, message: any): void;
     handleOrderBookSubscription(client: any, message: any, subscription: any): void;
-    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     getOrderChannelAndMessageHash(type: any, subType: any, market?: any, params?: {}): any[];
-    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrder(client: any, message: any): void;
     parseWsOrder(order: any, market?: any): any;
     parseOrderTrade(trade: any, market?: any): import("../base/types.js").Trade;

@@ -108,7 +108,7 @@ export default class Body {
 		return buffer.slice(byteOffset, byteOffset + byteLength);
 	}
 
-	async formData() {
+	/*async formData() {
 		const ct = this.headers.get('content-type');
 
 		if (ct.startsWith('application/x-www-form-urlencoded')) {
@@ -124,7 +124,7 @@ export default class Body {
 
 		const {toFormData} = await import('./utils/multipart-parser.js');
 		return toFormData(this.body, ct);
-	}
+	}*/
 
 	/**
 	 * Return raw response as Blob
@@ -326,9 +326,9 @@ export const extractContentType = (body, request) => {
 		return null;
 	}
 
-	if (body instanceof FormData) {
-		return `multipart/form-data; boundary=${request[INTERNALS].boundary}`;
-	}
+	// if (body instanceof FormData) {
+	// 	return `multipart/form-data; boundary=${request[INTERNALS].boundary}`;
+	// }
 
 	// Detect form data input from form-data module
 	if (body && typeof body.getBoundary === 'function') {
