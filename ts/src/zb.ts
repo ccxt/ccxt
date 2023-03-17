@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { BadRequest, BadSymbol, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, NotSupported, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended, NetworkError, DDoSProtection, DuplicateOrderId, BadResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hmac, Digest, Hash } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -4330,7 +4330,7 @@ export default class zb extends Exchange {
                 }
             }
             const secret = this.hash (this.encode (this.secret), Hash.Sha1);
-            const signature = this.hmac (this.encode (signedString), this.encode (secret), Hmac.Sha256, Digest.Base64);
+            const signature = this.hmac (this.encode (signedString), this.encode (secret), Hash.Sha256, Digest.Base64);
             headers['ZB-SIGN'] = signature;
         } else {
             let query = this.keysort (this.extend ({
@@ -4341,7 +4341,7 @@ export default class zb extends Exchange {
             query = this.keysort (query);
             const auth = this.rawencode (query);
             const secret = this.hash (this.encode (this.secret), Hash.Sha1);
-            const signature = this.hmac (this.encode (auth), this.encode (secret), Hmac.Md5);
+            const signature = this.hmac (this.encode (auth), this.encode (secret), Hash.Md5);
             const suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
             url += '/' + path + '?' + auth + '&' + suffix;
         }

@@ -4,7 +4,7 @@
 import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Hmac } from '../base/types.js';
+import { Hash } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1091,7 +1091,7 @@ export default class phemex extends phemexRest {
             const expiryDelta = this.safeInteger (this.options, 'expires', 120);
             const expiration = this.seconds () + expiryDelta;
             const payload = this.apiKey + expiration.toString ();
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), Hmac.Sha256);
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), Hash.Sha256);
             const request = {
                 'method': 'user.auth',
                 'params': [ 'API', this.apiKey, signature, expiration ],

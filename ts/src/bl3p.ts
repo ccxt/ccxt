@@ -4,7 +4,7 @@
 import { Exchange } from './base/Exchange.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hmac, Digest } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -404,7 +404,7 @@ export default class bl3p extends Exchange {
             const secret = this.base64ToBinary (this.secret);
             // eslint-disable-next-line quotes
             const auth = request + "\0" + body;
-            const signature = this.hmac (this.encode (auth), secret, Hmac.Sha512, Digest.Base64);
+            const signature = this.hmac (this.encode (auth), secret, Hash.Sha512, Digest.Base64);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': this.apiKey,

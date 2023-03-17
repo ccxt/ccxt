@@ -5,6 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { Hash } from "./base/types.js";
 
 //  ---------------------------------------------------------------------------
 
@@ -835,7 +836,7 @@ export default class lbank extends Exchange {
             } else {
                 pem = this.convertSecretToPem (this.secret);
             }
-            query['sign'] = this.rsa (message, pem, 'RS256');
+            query['sign'] = this.rsa (message, pem, Hash.Sha256);
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         }

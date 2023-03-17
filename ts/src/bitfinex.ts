@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
-import { Hmac, Digest } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1648,7 +1648,7 @@ export default class bitfinex extends Exchange {
             body = this.json (query);
             const payload = this.stringToBase64 (body);
             const secret = this.encode (this.secret);
-            const signature = this.hmac (payload, secret, Hmac.Sha384, Digest.Hex);
+            const signature = this.hmac (payload, secret, Hash.Sha384, Digest.Hex);
             headers = {
                 'X-BFX-APIKEY': this.apiKey,
                 'X-BFX-PAYLOAD': this.decode (payload),

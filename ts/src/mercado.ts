@@ -4,7 +4,7 @@
 import { Exchange } from './base/Exchange.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hmac } from './base/types.js';
+import { Hash } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -880,7 +880,7 @@ export default class mercado extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'TAPI-ID': this.apiKey,
-                'TAPI-MAC': this.hmac (this.encode (auth), this.encode (this.secret), Hmac.Sha512),
+                'TAPI-MAC': this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

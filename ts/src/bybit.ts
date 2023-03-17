@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Hmac, Digest } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -8226,7 +8226,7 @@ export default class bybit extends Exchange {
                     body = '{}';
                 }
                 const payload = timestamp + this.apiKey + body;
-                const signature = this.hmac (this.encode (payload), this.encode (this.secret), Hmac.Sha256, Digest.Hex);
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), Hash.Sha256, Digest.Hex);
                 headers = {
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': this.apiKey,

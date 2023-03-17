@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hmac, Digest } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -882,7 +882,7 @@ export default class coinone extends Exchange {
             const payload = this.stringToBase64 (json);
             body = this.decode (payload);
             const secret = this.secret.toUpperCase ();
-            const signature = this.hmac (payload, this.encode (secret), Hmac.Sha256, Digest.Hex);
+            const signature = this.hmac (payload, this.encode (secret), Hash.Sha256, Digest.Hex);
             headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,

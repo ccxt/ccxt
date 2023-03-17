@@ -4,7 +4,7 @@ import { Exchange } from './base/Exchange.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
-import { Hmac, Hash } from './base/types.js';
+import { Hash } from './base/types.js';
 
 export default class gate extends Exchange {
     describe () {
@@ -4978,7 +4978,7 @@ export default class gate extends Exchange {
             const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestampString ];
             // eslint-disable-next-line quotes
             const payload = payloadArray.join ("\n");
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), Hmac.Sha512);
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), Hash.Sha512);
             headers = {
                 'KEY': this.apiKey,
                 'Timestamp': timestampString,

@@ -4,7 +4,7 @@ import { Precise } from './base/Precise.js';
 import { Exchange } from './base/Exchange.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
-import { Hmac, Digest } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1732,7 +1732,7 @@ export default class poloniexfutures extends Exchange {
                 endpart = body;
             }
             const payload = now + method + endpoint + endpart;
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), Hmac.Sha256, Digest.Base64);
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), Hash.Sha256, Digest.Base64);
             headers = {
                 'PF-API-SIGN': signature,
                 'PF-API-TIMESTAMP': now,

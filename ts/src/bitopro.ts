@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, InsufficientFunds, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hmac, Digest } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1615,7 +1615,7 @@ export default class bitopro extends Exchange {
             if (method === 'POST' || method === 'PUT') {
                 body = this.json (params);
                 const payload = this.stringToBase64 (body);
-                const signature = this.hmac (payload, this.encode (this.secret), Hmac.Sha384, Digest.Hex);
+                const signature = this.hmac (payload, this.encode (this.secret), Hash.Sha384, Digest.Hex);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
@@ -1629,7 +1629,7 @@ export default class bitopro extends Exchange {
                 };
                 const data = this.json (rawData);
                 const payload = this.stringToBase64 (data);
-                const signature = this.hmac (payload, this.encode (this.secret), Hmac.Sha384, Digest.Hex);
+                const signature = this.hmac (payload, this.encode (this.secret), Hash.Sha384, Digest.Hex);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;

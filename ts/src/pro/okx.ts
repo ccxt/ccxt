@@ -4,7 +4,7 @@
 import okxRest from '../okx.js';
 import { AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Digest, Hmac } from '../base/types.js';
+import { Hash, Digest } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -534,7 +534,7 @@ export default class okx extends okxRest {
             const method = 'GET';
             const path = '/users/self/verify';
             const auth = timestamp + method + path;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hmac.Sha256, Digest.Base64);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha256, Digest.Base64);
             const operation = 'login';
             const request = {
                 'op': operation,

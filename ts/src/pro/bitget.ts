@@ -4,7 +4,7 @@ import bitgetRest from '../bitget.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Hmac, Digest } from '../base/types.js';
+import { Hash, Digest } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1073,7 +1073,7 @@ export default class bitget extends bitgetRest {
         if (future === undefined) {
             const timestamp = this.seconds ().toString ();
             const auth = timestamp + 'GET' + '/user/verify';
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hmac.Sha256, Digest.Base64);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha256, Digest.Base64);
             const operation = 'login';
             const request = {
                 'op': operation,

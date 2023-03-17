@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeError, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hmac, Digest, Hash } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -818,7 +818,7 @@ export default class itbit extends Exchange {
             const hash = this.hash (this.encode (message), Hash.Sha256, Digest.Binary);
             const binaryUrl = this.stringToBinary (this.encode (url));
             const binhash = this.binaryConcat (binaryUrl, hash);
-            const signature = this.hmac (binhash, this.encode (this.secret), Hmac.Sha512, Digest.Base64);
+            const signature = this.hmac (binhash, this.encode (this.secret), Hash.Sha512, Digest.Base64);
             headers = {
                 'Authorization': this.apiKey + ':' + signature,
                 'Content-Type': 'application/json',

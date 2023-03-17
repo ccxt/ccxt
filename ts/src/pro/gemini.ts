@@ -3,7 +3,7 @@
 import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError } from '../base/errors.js';
-import { Hmac, Digest } from '../base/types.js';
+import { Hash, Digest } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
@@ -641,7 +641,7 @@ export default class gemini extends geminiRest {
             'nonce': this.nonce (),
         };
         const b64 = this.stringToBase64 (this.encode (this.json (payload)));
-        const signature = this.hmac (b64, this.encode (this.secret), Hmac.Sha384, Digest.Hex);
+        const signature = this.hmac (b64, this.encode (this.secret), Hash.Sha384, Digest.Hex);
         const defaultOptions = {
             'ws': {
                 'options': {

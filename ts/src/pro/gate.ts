@@ -4,7 +4,7 @@
 import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Hmac, Digest } from '../base/types.js';
+import { Hash, Digest } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1102,7 +1102,7 @@ export default class gate extends gateRest {
         const time = this.seconds ();
         const event = 'subscribe';
         const signaturePayload = 'channel=' + subscriptionHash + '&' + 'event=' + event + '&' + 'time=' + time.toString ();
-        const signature = this.hmac (this.encode (signaturePayload), this.encode (this.secret), Hmac.Sha512, Digest.Hex);
+        const signature = this.hmac (this.encode (signaturePayload), this.encode (this.secret), Hash.Sha512, Digest.Hex);
         const auth = {
             'method': 'api_key',
             'KEY': this.apiKey,

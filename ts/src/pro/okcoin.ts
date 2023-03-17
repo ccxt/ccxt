@@ -4,7 +4,7 @@
 import okcoinRest from '../okcoin.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Hmac, Digest } from '../base/types.js';
+import { Hash, Digest } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -478,7 +478,7 @@ export default class okcoin extends okcoinRest {
             const method = 'GET';
             const path = '/users/self/verify';
             const auth = timestamp + method + path;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hmac.Sha256, Digest.Base64);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha256, Digest.Base64);
             const request = {
                 'op': messageHash,
                 'args': [

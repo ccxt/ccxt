@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hmac, Digest } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -4320,7 +4320,7 @@ export default class bitget extends Exchange {
                     auth += query;
                 }
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hmac.Sha256, Digest.Base64);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha256, Digest.Base64);
             const broker = this.safeString (this.options, 'broker');
             headers = {
                 'ACCESS-KEY': this.apiKey,

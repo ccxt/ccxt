@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { AccountNotEnabled, InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hmac } from './base/types.js';
+import { Hash } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -3153,7 +3153,7 @@ export default class mexc extends Exchange {
                 }
             }
             auth = this.apiKey + timestamp + auth;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hmac.Sha256);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha256);
             headers['Signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

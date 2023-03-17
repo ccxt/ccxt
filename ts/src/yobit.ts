@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hmac } from './base/types.js';
+import { Hash } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1217,7 +1217,7 @@ export default class yobit extends Exchange {
                 'nonce': nonce,
                 'method': path,
             }, query));
-            const signature = this.hmac (this.encode (body), this.encode (this.secret), Hmac.Sha512);
+            const signature = this.hmac (this.encode (body), this.encode (this.secret), Hash.Sha512);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,

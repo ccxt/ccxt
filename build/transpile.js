@@ -627,8 +627,8 @@ class Transpiler {
             [ /\((\w+)\sas\s\w+\)/g, '$1'], // remove (this as any) or (x as number) paren included
             [ /\sas \w+(\[])?/g, ''], // remove any "as any" or "as number" or "as trade[]"
             [ /([let|const][^:]+):([^=]+)(\s+=.*$)/g, '$1$3'], // remove variable type
-            [ /\s(?:Hmac|Hash).Sha(1|3(?!8)|256|384|512)/g, ' \'sha$1\''], // remove an enum type
-            [ /\s(?:Hmac|Hash).Md5/g, ' \'md5\'' ],
+            [ /\sHash.Sha(1|3(?!8)|256|384|512)/g, ' \'sha$1\''], // remove an enum type
+            [ /\sHash.Md5/g, ' \'md5\'' ],
             [ /\sHash.Keccak/g, ' \'keccak\'' ],
             [ /\sDigest.Hex/g, ' \'hex\'' ],
             [ /\sDigest.Base64/g, ' \'base64\'' ],

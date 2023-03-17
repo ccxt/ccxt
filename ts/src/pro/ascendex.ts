@@ -4,7 +4,7 @@
 import ascendexRest from '../ascendex.js';
 import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Hmac, Digest } from '../base/types.js';
+import { Hash, Digest } from '../base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class ascendex extends ascendexRest {
@@ -956,7 +956,7 @@ export default class ascendex extends ascendexRest {
             const version = this.safeString (urlParts, partsLength - 2);
             const auth = timestamp + '+' + version + '/' + path;
             const secret = this.base64ToBinary (this.secret);
-            const signature = this.hmac (this.encode (auth), secret, Hmac.Sha256, Digest.Base64);
+            const signature = this.hmac (this.encode (auth), secret, Hash.Sha256, Digest.Base64);
             const request = {
                 'op': 'auth',
                 'id': this.nonce ().toString (),

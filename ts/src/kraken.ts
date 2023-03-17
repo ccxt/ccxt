@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { Hmac, Digest, Hash } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2457,7 +2457,7 @@ export default class kraken extends Exchange {
             const binary = this.stringToBinary (this.encode (url));
             const binhash = this.binaryConcat (binary, hash);
             const secret = this.base64ToBinary (this.secret);
-            const signature = this.hmac (binhash, secret, Hmac.Sha512, Digest.Base64);
+            const signature = this.hmac (binhash, secret, Hash.Sha512, Digest.Base64);
             headers = {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,

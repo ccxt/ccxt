@@ -4,7 +4,7 @@
 import { Exchange } from './base/Exchange.js';
 import { ArgumentsRequired, BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { Hash, Hmac, Digest } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2114,7 +2114,7 @@ export default class bittrex extends Exchange {
             if (subaccountId !== undefined) {
                 auth += subaccountId;
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hmac.Sha512, Digest.Hex);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha512, Digest.Hex);
             headers = {
                 'Api-Key': this.apiKey,
                 'Api-Timestamp': timestamp,

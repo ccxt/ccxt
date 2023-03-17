@@ -3,7 +3,7 @@
 import deribitRest from '../deribit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Hmac } from '../base/types.js';
+import { Hash } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -822,7 +822,7 @@ export default class deribit extends deribitRest {
         if (authenticated === undefined) {
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
-            const signature = this.hmac (this.encode (timeString + '\n' + nonce + '\n'), this.encode (this.secret), Hmac.Sha256);
+            const signature = this.hmac (this.encode (timeString + '\n' + nonce + '\n'), this.encode (this.secret), Hash.Sha256);
             const request = {
                 'jsonrpc': '2.0',
                 'id': requestId,

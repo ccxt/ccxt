@@ -4,7 +4,7 @@ import { Exchange } from './base/Exchange.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Hmac, Digest, Hash } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1985,7 +1985,7 @@ export default class krakenfutures extends Exchange {
             const auth = postData + '/api/' + endpoint; // 1
             const hash = this.hash (this.encode (auth), Hash.Sha256, Digest.Binary); // 2
             const secret = this.base64ToBinary (this.secret); // 3
-            const signature = this.hmac (hash, secret, Hmac.Sha512, Digest.Base64); // 4-5
+            const signature = this.hmac (hash, secret, Hash.Sha512, Digest.Base64); // 4-5
             headers = {
                 'Content-Type': 'application/json',
                 'APIKey': this.apiKey,

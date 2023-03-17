@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Hmac, Digest, Hash } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1733,7 +1733,7 @@ export default class idex extends Exchange {
             } else {
                 payload = body;
             }
-            headers['IDEX-HMAC-Signature'] = this.hmac (this.encode (payload), this.encode (this.secret), Hmac.Sha256, Digest.Hex);
+            headers['IDEX-HMAC-Signature'] = this.hmac (this.encode (payload), this.encode (this.secret), Hash.Sha256, Digest.Hex);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

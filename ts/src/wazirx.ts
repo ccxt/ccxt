@@ -2,7 +2,7 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hmac, Digest } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 export default class wazirx extends Exchange {
     describe () {
@@ -892,7 +892,7 @@ export default class wazirx extends Exchange {
             const timestamp = this.milliseconds ();
             let data = this.extend ({ 'recvWindow': this.options['recvWindow'], 'timestamp': timestamp }, params);
             data = this.keysort (data);
-            const signature = this.hmac (this.encode (this.urlencode (data)), this.encode (this.secret), Hmac.Sha256, Digest.Hex);
+            const signature = this.hmac (this.encode (this.urlencode (data)), this.encode (this.secret), Hash.Sha256, Digest.Hex);
             url += '?' + this.urlencode (data);
             url += '&' + 'signature=' + signature;
             headers = {

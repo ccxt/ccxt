@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hmac } from './base/types.js';
+import { Hash } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -720,7 +720,7 @@ export default class zaif extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), Hmac.Sha512),
+                'Sign': this.hmac (this.encode (body), this.encode (this.secret), Hash.Sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

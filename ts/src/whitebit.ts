@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hmac } from './base/types.js';
+import { Hash } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2091,7 +2091,7 @@ export default class whitebit extends Exchange {
             const request = '/' + 'api' + '/' + version + pathWithParams;
             body = this.json (this.extend ({ 'request': request, 'nonce': nonce }, params));
             const payload = this.stringToBase64 (body);
-            const signature = this.hmac (payload, secret, Hmac.Sha512);
+            const signature = this.hmac (payload, secret, Hash.Sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,

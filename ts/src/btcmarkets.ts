@@ -5,7 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Hmac, Digest } from './base/types.js';
+import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1208,7 +1208,7 @@ export default class btcmarkets extends Exchange {
                 body = this.json (query);
                 auth += body;
             }
-            const signature = this.hmac (this.encode (auth), secret, Hmac.Sha512, Digest.Base64);
+            const signature = this.hmac (this.encode (auth), secret, Hash.Sha512, Digest.Base64);
             headers = {
                 'Accept': 'application/json',
                 'Accept-Charset': 'UTF-8',
