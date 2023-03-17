@@ -8,9 +8,9 @@ export default class exmo extends exmoRest {
     parseMarginBalance(message: any): void;
     watchTicker(symbol: any, params?: {}): Promise<any>;
     handleTicker(client: any, message: any): void;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): void;
-    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleMyTrades(client: any, message: any): void;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     handleOrderBook(client: any, message: any): void;

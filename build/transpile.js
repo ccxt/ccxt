@@ -1983,11 +1983,14 @@ class Transpiler {
         this.getAllFilesRecursively(jsFolder, jsFiles);
 
         jsFiles.filter(f => !f.includes(".d.ts")).map (jsFilePath => {
-            let contents = [
-                this.getJsPreamble(),
-                fs.readFileSync (jsFilePath, 'utf8')
-            ].join ("\n")
-            overwriteFile (jsFilePath, contents)
+            const content = fs.readFileSync (jsFilePath, 'utf8');
+            if (content.indexOf (this.getJsPreamble()) === -1) {
+                let contents = [
+                    this.getJsPreamble(),
+                    content
+                ].join ("\n")
+                overwriteFile (jsFilePath, contents)
+            }
         })
         log.bright.yellow ('Added JS preamble to all ', jsFiles.length + ' files.')
     }

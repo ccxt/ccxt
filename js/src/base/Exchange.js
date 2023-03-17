@@ -268,11 +268,11 @@ export default class Exchange {
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
-        this.orders = {};
+        this.orders = undefined;
         this.trades = {};
         this.transactions = {};
         this.ohlcvs = {};
-        this.myTrades = {};
+        this.myTrades = undefined;
         this.positions = {};
         // web3 and cryptography flags
         this.requiresWeb3 = false;
@@ -927,10 +927,16 @@ export default class Exchange {
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         return undefined;
     }
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return undefined;
+    }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         return undefined;
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        return undefined;
+    }
+    async watchOrderBook(symbol, limit = undefined, params = {}) {
         return undefined;
     }
     async fetchTime(params = {}) {
@@ -1985,6 +1991,9 @@ export default class Exchange {
         }
         return result;
     }
+    async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchOHLCV() is not supported yet');
+    }
     convertTradingViewToOHLCV(ohlcvs, timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
         const result = [];
         const timestamps = this.safeValue(ohlcvs, timestamp, []);
@@ -2646,6 +2655,9 @@ export default class Exchange {
     async fetchBalance(params = {}) {
         throw new NotSupported(this.id + ' fetchBalance() is not supported yet');
     }
+    async watchBalance(params = {}) {
+        throw new NotSupported(this.id + ' watchBalance() is not supported yet');
+    }
     async fetchPartialBalance(part, params = {}) {
         const balance = await this.fetchBalance(params);
         return balance[part];
@@ -2880,6 +2892,9 @@ export default class Exchange {
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrders() is not supported yet');
     }
+    async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchOrders() is not supported yet');
+    }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOpenOrders() is not supported yet');
     }
@@ -2888,6 +2903,9 @@ export default class Exchange {
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchMyTrades() is not supported yet');
+    }
+    async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchMyTrades() is not supported yet');
     }
     async fetchTransactions(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchTransactions() is not supported yet');
@@ -3044,10 +3062,21 @@ export default class Exchange {
         return this.parseNumber(value, defaultNumber);
     }
     parsePrecision(precision) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} precision The number of digits to the right of the decimal
+         * @returns {string} a string number equal to 1e-precision
+         */
         if (precision === undefined) {
             return undefined;
         }
-        return '1e' + Precise.stringNeg(precision);
+        const precisionNumber = parseInt(precision);
+        let parsedPrecision = '0.';
+        for (let i = 0; i < precisionNumber - 1; i++) {
+            parsedPrecision = parsedPrecision + '0';
+        }
+        return parsedPrecision + '1';
     }
     async loadTimeDifference(params = {}) {
         const serverTime = await this.fetchTime(params);
@@ -3200,7 +3229,7 @@ export default class Exchange {
         return this.filterByArray(results, 'symbol', symbols);
     }
     parseDepositAddresses(addresses, codes = undefined, indexed = true, params = {}) {
-        let result = undefined;
+        let result = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend(this.parseDepositAddress(addresses[i]), params);
             result.push(address);
@@ -3208,7 +3237,9 @@ export default class Exchange {
         if (codes !== undefined) {
             result = this.filterByArray(result, 'currency', codes, false);
         }
-        result = indexed ? this.indexBy(result, 'currency') : result;
+        if (indexed) {
+            return this.indexBy(result, 'currency');
+        }
         return result;
     }
     parseBorrowInterests(response, market = undefined) {

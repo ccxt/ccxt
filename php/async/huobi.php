@@ -4823,7 +4823,7 @@ class huobi extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $allAddresses = $this->parse_deposit_addresses($data, [ $currency['code'] ], false);
+            $allAddresses = $this->parse_deposit_addresses($data, [ $currency['code'] ], false); // cjg => to do remove this weird object or array ambiguity
             $addresses = array();
             for ($i = 0; $i < count($allAddresses); $i++) {
                 $address = $allAddresses[$i];

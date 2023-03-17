@@ -1296,7 +1296,7 @@ export default class okcoin extends Exchange {
         return this.parseTicker (response);
     }
 
-    async fetchTickersByType (type, symbols = undefined, params = {}) {
+    async fetchTickersByType (type, symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const method = type + 'GetInstrumentsTicker';
@@ -1310,7 +1310,7 @@ export default class okcoin extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchTickers
@@ -1435,7 +1435,7 @@ export default class okcoin extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchTrades
@@ -1543,7 +1543,7 @@ export default class okcoin extends Exchange {
         }
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchOHLCV
@@ -2043,7 +2043,7 @@ export default class okcoin extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#cancelOrder
@@ -2278,7 +2278,7 @@ export default class okcoin extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchOrder
@@ -2361,7 +2361,7 @@ export default class okcoin extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByState (state, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersByState() requires a symbol argument');
         }
@@ -2478,7 +2478,7 @@ export default class okcoin extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchOpenOrders
@@ -2501,7 +2501,7 @@ export default class okcoin extends Exchange {
         return await this.fetchOrdersByState ('6', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchClosedOrders
@@ -2714,7 +2714,7 @@ export default class okcoin extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchDeposits
@@ -2738,7 +2738,7 @@ export default class okcoin extends Exchange {
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchWithdrawals
@@ -3031,7 +3031,7 @@ export default class okcoin extends Exchange {
         }, market);
     }
 
-    parseMyTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+    parseMyTrades (trades, market = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         const grouped = this.groupBy (trades, 'trade_id');
         const tradeIds = Object.keys (grouped);
         const result = [];
@@ -3049,7 +3049,7 @@ export default class okcoin extends Exchange {
         return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchMyTrades
@@ -3157,7 +3157,7 @@ export default class okcoin extends Exchange {
         return this.parseMyTrades (response, market, since, limit, params) as any;
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchOrderTrades
@@ -3389,7 +3389,7 @@ export default class okcoin extends Exchange {
         return response;
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchPositions
@@ -3466,7 +3466,7 @@ export default class okcoin extends Exchange {
         return response;
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchLedger

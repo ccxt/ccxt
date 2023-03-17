@@ -8264,6 +8264,7 @@ export default class bybit extends Exchange {
             this.checkRequiredCredentials();
             const isOpenapi = url.indexOf('openapi') >= 0;
             const isV3UnifiedMargin = url.indexOf('unified/v3') >= 0;
+            const isV3Contract = url.indexOf('contract/v3') >= 0;
             const isV5UnifiedAccount = url.indexOf('v5') >= 0;
             const timestamp = this.nonce().toString();
             if (isOpenapi) {
@@ -8284,14 +8285,14 @@ export default class bybit extends Exchange {
                     'X-BAPI-SIGN': signature,
                 };
             }
-            else if (isV3UnifiedMargin || isV5UnifiedAccount) {
+            else if (isV3UnifiedMargin || isV3Contract || isV5UnifiedAccount) {
                 headers = {
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': this.apiKey,
                     'X-BAPI-TIMESTAMP': timestamp,
                     'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString(),
                 };
-                if (isV3UnifiedMargin) {
+                if (isV3UnifiedMargin || isV3Contract) {
                     headers['X-BAPI-SIGN-TYPE'] = '2';
                 }
                 const query = params;

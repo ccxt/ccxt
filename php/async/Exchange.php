@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '3.0.8';
+$version = '3.0.17';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.8';
+    const VERSION = '3.0.17';
 
     public $browser;
     public $marketsLoading = null;
@@ -1015,6 +1015,10 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOHLCV() is not supported yet');
+    }
+
     public function convert_trading_view_to_ohlcv($ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
         $result = array();
         $timestamps = $this->safe_value($ohlcvs, $timestamp, array());
@@ -1729,6 +1733,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchBalance() is not supported yet');
     }
 
+    public function watch_balance($params = array ()) {
+        throw new NotSupported($this->id . ' watchBalance() is not supported yet');
+    }
+
     public function fetch_partial_balance($part, $params = array ()) {
         return Async\async(function () use ($part, $params) {
             $balance = Async\await($this->fetch_balance($params));
@@ -2012,6 +2020,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOrders() is not supported yet');
     }
 
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOrders() is not supported yet');
+    }
+
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOpenOrders() is not supported yet');
     }
@@ -2022,6 +2034,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchMyTrades() is not supported yet');
+    }
+
+    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchMyTrades() is not supported yet');
     }
 
     public function fetch_transactions($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -2211,10 +2227,20 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_precision($precision) {
+        /**
+         * @ignore
+         * @param {string} $precision The number of digits to the right of the decimal
+         * @return {string} a string number equal to 1e-$precision
+         */
         if ($precision === null) {
             return null;
         }
-        return '1e' . Precise::string_neg($precision);
+        $precisionNumber = intval($precision);
+        $parsedPrecision = '0.';
+        for ($i = 0; $i < $precisionNumber - 1; $i++) {
+            $parsedPrecision = $parsedPrecision . '0';
+        }
+        return $parsedPrecision . '1';
     }
 
     public function load_time_difference($params = array ()) {
@@ -2392,7 +2418,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_deposit_addresses($addresses, $codes = null, $indexed = true, $params = array ()) {
-        $result = null;
+        $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
             $address = array_merge($this->parse_deposit_address($addresses[$i]), $params);
             $result[] = $address;
@@ -2400,7 +2426,9 @@ class Exchange extends \ccxt\Exchange {
         if ($codes !== null) {
             $result = $this->filter_by_array($result, 'currency', $codes, false);
         }
-        $result = $indexed ? $this->index_by($result, 'currency') : $result;
+        if ($indexed) {
+            return $this->index_by($result, 'currency');
+        }
         return $result;
     }
 

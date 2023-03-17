@@ -242,7 +242,7 @@ export default class kraken extends krakenRest {
         return await this.watchPublic ('ticker', symbol, params);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchTrades
@@ -288,7 +288,7 @@ export default class kraken extends krakenRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchOHLCV
@@ -525,13 +525,10 @@ export default class kraken extends krakenRest {
     handleDeltas (bookside, deltas, timestamp = undefined) {
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
-            const price = parseFloat (delta[0]);
-            const amount = parseFloat (delta[1]);
+            const price = this.parseNumber (delta[0]);
+            const amount = this.parseNumber (delta[1]);
             const oldTimestamp = timestamp ? timestamp : 0;
-            const calcMul = delta[2] * 1000;
-            const calcStr = this.numberToString (calcMul);
-            const calc = this.numberToString (parseFloat (calcStr));
-            timestamp = Math.max (oldTimestamp, parseInt (calc));
+            timestamp = Math.max (oldTimestamp, this.parseToInt (parseFloat (delta[2]) * 1000));
             bookside.store (price, amount);
         }
         return timestamp;
@@ -575,7 +572,7 @@ export default class kraken extends krakenRest {
         return this.safeString (subscription, 'token');
     }
 
-    async watchPrivate (name, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchPrivate (name, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         const token = await this.authenticate ();
         const subscriptionHash = name;
@@ -602,7 +599,7 @@ export default class kraken extends krakenRest {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, true);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchMyTrades
@@ -766,7 +763,7 @@ export default class kraken extends krakenRest {
         };
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchOrders

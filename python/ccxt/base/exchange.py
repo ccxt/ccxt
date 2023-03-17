@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.8'
+__version__ = '3.0.17'
 
 # -----------------------------------------------------------------------------
 
@@ -2440,6 +2440,9 @@ class Exchange(object):
             ])
         return result
 
+    def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
+
     def convert_trading_view_to_ohlcv(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
         result = []
         timestamps = self.safe_value(ohlcvs, timestamp, [])
@@ -3011,6 +3014,9 @@ class Exchange(object):
     def fetch_balance(self, params={}):
         raise NotSupported(self.id + ' fetchBalance() is not supported yet')
 
+    def watch_balance(self, params={}):
+        raise NotSupported(self.id + ' watchBalance() is not supported yet')
+
     def fetch_partial_balance(self, part, params={}):
         balance = self.fetch_balance(params)
         return balance[part]
@@ -3212,6 +3218,9 @@ class Exchange(object):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
+    def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' watchOrders() is not supported yet')
+
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
 
@@ -3220,6 +3229,9 @@ class Exchange(object):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
+
+    def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
 
     def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
@@ -3353,9 +3365,18 @@ class Exchange(object):
         return self.parse_number(value, defaultNumber)
 
     def parse_precision(self, precision):
+        """
+         * @ignore
+        :param str precision: The number of digits to the right of the decimal
+        :returns str: a string number equal to 1e-precision
+        """
         if precision is None:
             return None
-        return '1e' + Precise.string_neg(precision)
+        precisionNumber = int(precision)
+        parsedPrecision = '0.'
+        for i in range(0, precisionNumber - 1):
+            parsedPrecision = parsedPrecision + '0'
+        return parsedPrecision + '1'
 
     def load_time_difference(self, params={}):
         serverTime = self.fetchTime(params)
@@ -3491,13 +3512,14 @@ class Exchange(object):
         return self.filter_by_array(results, 'symbol', symbols)
 
     def parse_deposit_addresses(self, addresses, codes=None, indexed=True, params={}):
-        result = None
+        result = []
         for i in range(0, len(addresses)):
             address = self.extend(self.parse_deposit_address(addresses[i]), params)
             result.append(address)
         if codes is not None:
             result = self.filter_by_array(result, 'currency', codes, False)
-        result = self.index_by(result, 'currency') if indexed else result
+        if indexed:
+            return self.index_by(result, 'currency')
         return result
 
     def parse_borrow_interests(self, response, market=None):

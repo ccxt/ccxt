@@ -359,7 +359,7 @@ export default class phemex extends phemexRest {
         return await this.watch (url, messageHash, request, subscriptionHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name phemex#watchTrades
@@ -423,7 +423,7 @@ export default class phemex extends phemexRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name phemex#watchOHLCV
@@ -525,7 +525,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name phemex#watchMyTrades
@@ -620,7 +620,7 @@ export default class phemex extends phemexRest {
         client.resolve (cachedTrades, messageHash);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name phemex#watchOrders
