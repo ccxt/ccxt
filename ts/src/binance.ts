@@ -4971,7 +4971,6 @@ export default class binance extends Exchange {
             '0': 'pending',
             '1': 'ok', // success
             '6': 'ok', // credited but cannot withdraw
-
         });
         return this.safeString (statuses, status, status);
     }
