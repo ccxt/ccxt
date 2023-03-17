@@ -32,9 +32,9 @@ export default class currencycom extends currencycomRest {
     watchPrivate(destination: any, params?: {}): Promise<any>;
     watchBalance(params?: {}): Promise<any>;
     watchTicker(symbol: any, params?: {}): Promise<any>;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
-    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: any, message: any): void;
     handleMessage(client: any, message: any): any;

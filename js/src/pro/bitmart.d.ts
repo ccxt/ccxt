@@ -3,14 +3,14 @@ export default class bitmart extends bitmartRest {
     describe(): any;
     subscribe(channel: any, symbol: any, params?: {}): Promise<any>;
     subscribePrivate(channel: any, symbol: any, params?: {}): Promise<any>;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     watchTicker(symbol: any, params?: {}): Promise<any>;
-    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrders(client: any, message: any): void;
     parseWsOrder(order: any, market?: any): any;
     handleTrade(client: any, message: any): any;
     handleTicker(client: any, message: any): any;
-    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOHLCV(client: any, message: any): void;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;

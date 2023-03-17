@@ -1249,7 +1249,7 @@ class btcex(Exchange):
         :param str|None params['timeInForce']: 'GTC', 'IOC', 'FOK'
         :param bool|None params.postOnly:
         :param bool|None params.reduceOnly:
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.sign_in()
         await self.load_markets()
@@ -1925,7 +1925,7 @@ class btcex(Exchange):
         fetch the set leverage for a market
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns dict: a `leverage structure <https://docs.ccxt.com/en/latest/manual.html#leverage-structure>`
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
         """
         await self.sign_in()
         await self.load_markets()
@@ -1957,7 +1957,7 @@ class btcex(Exchange):
         retrieve information on the maximum leverage, for different trade sizes for a single market
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2024,7 +2024,7 @@ class btcex(Exchange):
         retrieve information on the maximum leverage, for different trade sizes
         :param [str]|None symbols: a list of unified market symbols
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`, indexed by market symbols
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         await self.load_markets()
         response = await self.publicGetGetPerpetualLeverageBracketAll(params)
@@ -2164,7 +2164,7 @@ class btcex(Exchange):
         see https://docs.btcex.com/#contracts
         :param [str] symbols: unified market symbols
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -2222,7 +2222,7 @@ class btcex(Exchange):
         see https://docs.btcex.com/#contracts
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2325,7 +2325,7 @@ class btcex(Exchange):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.sign_in()
         await self.load_markets()
@@ -2381,7 +2381,7 @@ class btcex(Exchange):
         see https://docs.btcex.com/#contracts
         :param str symbol: unified CCXT market symbol
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure:
         """
         await self.load_markets()
         market = self.market(symbol)

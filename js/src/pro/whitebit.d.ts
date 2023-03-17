@@ -1,7 +1,7 @@
 import whitebitRest from '../whitebit.js';
 export default class whitebit extends whitebitRest {
     describe(): any;
-    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOHLCV(client: any, message: any): any;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     handleOrderBook(client: any, message: any): void;
@@ -9,12 +9,12 @@ export default class whitebit extends whitebitRest {
     handleDeltas(bookside: any, deltas: any): void;
     watchTicker(symbol: any, params?: {}): Promise<any>;
     handleTicker(client: any, message: any): any;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): void;
-    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleMyTrades(client: any, message: any, subscription?: any): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
-    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrder(client: any, message: any, subscription?: any): void;
     parseWsOrder(order: any, status: any, market?: any): any;
     parseWsOrderType(status: any): string;

@@ -5,10 +5,10 @@ export default class digifinex extends Exchange {
     fetchMarkets(params?: {}): Promise<any>;
     fetchMarketsV2(params?: {}): Promise<any[]>;
     fetchMarketsV1(params?: {}): Promise<any[]>;
-    parseBalance(response: any): object;
-    fetchBalance(params?: {}): Promise<object>;
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    parseBalance(response: any): import("./base/types.js").Balances;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
@@ -22,16 +22,16 @@ export default class digifinex extends Exchange {
     }>;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    cancelOrders(ids: any, symbol?: any, params?: {}): Promise<any>;
+    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: any): {
         info: any;
@@ -50,7 +50,7 @@ export default class digifinex extends Exchange {
         datetime: string;
         fee: any;
     };
-    fetchLedger(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchLedger(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         info: any;
         currency: any;
@@ -59,9 +59,9 @@ export default class digifinex extends Exchange {
         network: any;
     };
     fetchDepositAddress(code: any, params?: {}): Promise<any>;
-    fetchTransactionsByType(type: any, code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchTransactionsByType(type: any, code?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -126,7 +126,7 @@ export default class digifinex extends Exchange {
         updated: number;
         fee: any;
     }>;
-    fetchBorrowInterest(code?: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchBorrowInterest(code?: string, symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market: any): {
         account: any;
         currency: any;
@@ -193,7 +193,7 @@ export default class digifinex extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    fetchFundingRateHistory(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchFundingRateHistory(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchTradingFee(symbol: any, params?: {}): Promise<{
         info: any;
         symbol: any;
@@ -206,7 +206,7 @@ export default class digifinex extends Exchange {
         maker: number;
         taker: number;
     };
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     fetchPosition(symbol: any, params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): {
         info: any;
@@ -233,10 +233,10 @@ export default class digifinex extends Exchange {
         marginRatio: number;
         percentage: any;
     };
-    setLeverage(leverage: any, symbol?: any, params?: {}): Promise<any>;
-    fetchTransfers(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchLeverageTiers(symbols?: any, params?: {}): Promise<{}>;
-    parseLeverageTiers(response: any, symbols?: any, marketIdKey?: any): {};
+    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
+    fetchTransfers(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
+    parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     fetchMarketLeverageTiers(symbol: any, params?: {}): Promise<any[]>;
     parseMarketLeverageTiers(info: any, market: any): any[];
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];

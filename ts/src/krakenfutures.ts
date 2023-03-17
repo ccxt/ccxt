@@ -394,7 +394,7 @@ export default class krakenfutures extends Exchange {
          * @param {string} symbol Unified market symbol
          * @param {int|undefined} limit Not used by krakenfutures
          * @param {object} params exchange specific params
-         * @returns An [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
+         * @returns An [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -436,7 +436,7 @@ export default class krakenfutures extends Exchange {
         return this.parseOrderBook (response['orderBook'], symbol, timestamp);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await (this as any).publicGetTickers (params);
         //
@@ -546,7 +546,7 @@ export default class krakenfutures extends Exchange {
         });
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -615,7 +615,7 @@ export default class krakenfutures extends Exchange {
         ];
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#fetchTrades
@@ -625,7 +625,7 @@ export default class krakenfutures extends Exchange {
          * @param {int|undefined} limit Total number of trades, cannot exceed 100
          * @param {object} params Exchange specific params
          * @param {int|undefined} params.until Timestamp in ms of latest trade
-         * @returns An array of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns An array of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -798,12 +798,15 @@ export default class krakenfutures extends Exchange {
          * @param {bool|undefined} params.postOnly Set as true if you wish to make a postOnly order, Default false
          * @param {string|undefined} params.triggerSignal If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
          * @param {string|undefined} params.cliOrdId UUID The order identity that is specified from the user, It must be globally unique
+         * @param {string|undefined} params.clientOrderId UUID The order identity that is specified from the user, It must be globally unique
          */
         await this.loadMarkets ();
         type = this.safeString (params, 'orderType', type);
         const timeInForce = this.safeString (params, 'timeInForce');
         const stopPrice = this.safeString (params, 'stopPrice');
         const postOnly = this.safeString (params, 'postOnly');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'cliOrdId');
+        params = this.omit (params, [ 'clientOrderId', 'cliOrdId' ]);
         if ((type === 'stp' || type === 'take_profit') && stopPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires params.stopPrice when type is ' + type);
         }
@@ -826,6 +829,9 @@ export default class krakenfutures extends Exchange {
         };
         if (price !== undefined) {
             request['limitPrice'] = price;
+        }
+        if (clientOrderId !== undefined) {
+            request['cliOrdId'] = clientOrderId;
         }
         const response = await (this as any).privatePostSendorder (this.extend (request, params));
         //
@@ -876,7 +882,7 @@ export default class krakenfutures extends Exchange {
          * @param {float|undefined} amount Order size
          * @param {float|undefined} price Price to fill order at
          * @param {object} params Exchange specific params
-         * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -895,12 +901,12 @@ export default class krakenfutures extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @param {string} id Order id
          * @param {string|undefined} symbol Not used by Krakenfutures
          * @param {object} params Exchange specific params
-         * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const response = await (this as any).privatePostCancelorder (this.extend ({ 'order_id': id }, params));
@@ -913,7 +919,7 @@ export default class krakenfutures extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#cancelAllOrders
@@ -930,7 +936,7 @@ export default class krakenfutures extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#fetchOpenOrders
@@ -939,7 +945,7 @@ export default class krakenfutures extends Exchange {
          * @param {int} since Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
          * @param {int} limit How many orders to return. (Not used by kraken api but filtered internally by CCXT)
          * @param {object} params Exchange specific parameters
-         * @returns An array of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns An array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1326,7 +1332,7 @@ export default class krakenfutures extends Exchange {
         });
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -1364,7 +1370,7 @@ export default class krakenfutures extends Exchange {
          * @param {object} params Exchange specific parameters
          * @param {string} params.type The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'cash' *
          * @param {string} params.symbol A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
-         * @returns A [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html#balance-structure}
+         * @returns A [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         let type = this.safeString2 (params, 'type', 'account');
@@ -1579,7 +1585,7 @@ export default class krakenfutures extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1619,7 +1625,7 @@ export default class krakenfutures extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#fetchPositions
@@ -1651,7 +1657,7 @@ export default class krakenfutures extends Exchange {
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
-    parsePositions (response, symbols = undefined, params = {}) {
+    parsePositions (response, symbols: string[] = undefined, params = {}) {
         const result = [];
         const positions = this.safeValue (response, 'openPositions');
         for (let i = 0; i < positions.length; i++) {
@@ -1717,7 +1723,7 @@ export default class krakenfutures extends Exchange {
         };
     }
 
-    async fetchLeverageTiers (symbols = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await (this as any).publicGetInstruments (params);
         //
@@ -1890,7 +1896,7 @@ export default class krakenfutures extends Exchange {
          * @param {str} code Unified currency code
          * @param {float} amount Size of the transfer
          * @param {dict} params Exchange specific parameters
-         * @returns a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @returns a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         return await this.transfer (code, amount, 'future', 'spot', params);
     }
@@ -1905,7 +1911,7 @@ export default class krakenfutures extends Exchange {
          * @param {string} fromAccount 'main'/'funding'/'future', 'flex', or a unified market symbol
          * @param {string} toAccount 'main'/'funding', 'flex', 'spot' or a unified market symbol
          * @param {object} params Exchange specific parameters
-         * @returns a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @returns a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1962,7 +1968,7 @@ export default class krakenfutures extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiVersions = this.safeValue (this.options['versions'], api, {});
         const methodVersions = this.safeValue (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);

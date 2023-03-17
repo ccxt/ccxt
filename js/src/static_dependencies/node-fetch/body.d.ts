@@ -22,7 +22,6 @@ export default class Body {
      * @return  Promise
      */
     arrayBuffer(): Promise<ArrayBuffer>;
-    formData(): Promise<any>;
     /**
      * Return raw response as Blob
      *

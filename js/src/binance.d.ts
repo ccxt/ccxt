@@ -110,14 +110,14 @@ export default class binance extends Exchange {
         };
         info: any;
     };
-    parseBalanceHelper(entry: any): {
-        free: any;
-        used: any;
-        total: any;
+    parseBalanceHelper(entry: any): import("./base/types.js").Balance;
+    parseBalance(response: any, type?: any, marginMode?: any): {
+        info: any;
     };
-    parseBalance(response: any, type?: any, marginMode?: any): object;
-    fetchBalance(params?: {}): Promise<object>;
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
+    fetchBalance(params?: {}): Promise<{
+        info: any;
+    }>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchStatus(params?: {}): Promise<{
         status: string;
@@ -127,8 +127,8 @@ export default class binance extends Exchange {
         info: any;
     }>;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchBidsAsks(symbols?: any, params?: {}): Promise<any>;
-    fetchLastPrices(symbols?: any, params?: {}): Promise<any>;
+    fetchBidsAsks(symbols?: string[], params?: {}): Promise<any>;
+    fetchLastPrices(symbols?: string[], params?: {}): Promise<any>;
     parseLastPrice(info: any, market?: any): {
         symbol: any;
         timestamp: number;
@@ -139,9 +139,9 @@ export default class binance extends Exchange {
         quoteVolume: any;
         info: any;
     };
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade | {
         id: any;
         timestamp: number;
@@ -165,15 +165,15 @@ export default class binance extends Exchange {
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    fetchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any[]>;
-    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: any, params?: {}): Promise<any>;
-    fetchOrderTrades(id: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyDustTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any[]>;
+    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
+    fetchOrderTrades(id: any, symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyDustTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseDustTrade(trade: any, market?: any): {
         id: any;
         timestamp: number;
@@ -192,8 +192,8 @@ export default class binance extends Exchange {
         };
         info: any;
     };
-    fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseTransactionStatusByType(status: any, type?: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -248,7 +248,7 @@ export default class binance extends Exchange {
         toAccount: any;
         status: string;
     }>;
-    fetchTransfers(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchTransfers(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchDepositAddress(code: any, params?: {}): Promise<{
         currency: any;
         address: string;
@@ -338,8 +338,8 @@ export default class binance extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     }>;
-    fetchFundingRateHistory(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchFundingRates(symbols?: any, params?: {}): Promise<any>;
+    fetchFundingRateHistory(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     parseFundingRate(contract: any, market?: any): {
         info: any;
         symbol: any;
@@ -412,16 +412,16 @@ export default class binance extends Exchange {
         percentage: any;
     };
     loadLeverageBrackets(reload?: boolean, params?: {}): Promise<any>;
-    fetchLeverageTiers(symbols?: any, params?: {}): Promise<{}>;
+    fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market: any): any[];
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
-    fetchAccountPositions(symbols?: any, params?: {}): Promise<any>;
-    fetchPositionsRisk(symbols?: any, params?: {}): Promise<any>;
-    fetchFundingHistory(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    setLeverage(leverage: any, symbol?: any, params?: {}): Promise<any>;
-    setMarginMode(marginMode: any, symbol?: any, params?: {}): Promise<any>;
-    setPositionMode(hedged: any, symbol?: any, params?: {}): Promise<any>;
-    fetchSettlementHistory(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchAccountPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchPositionsRisk(symbols?: string[], params?: {}): Promise<any>;
+    fetchFundingHistory(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
+    setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
+    setPositionMode(hedged: any, symbol?: string, params?: {}): Promise<any>;
+    fetchSettlementHistory(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {
         info: any;
         symbol: any;
@@ -430,7 +430,7 @@ export default class binance extends Exchange {
         datetime: string;
     };
     parseSettlements(settlements: any, market: any): any[];
-    fetchLedger(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchLedger(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: any): {
         id: string;
         direction: any;
@@ -449,7 +449,7 @@ export default class binance extends Exchange {
         info: any;
     };
     parseLedgerEntryType(type: any): string;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;
@@ -457,7 +457,7 @@ export default class binance extends Exchange {
     };
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}, context?: {}): any;
-    request(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
+    request(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
     modifyMarginHelper(symbol: any, amount: any, addOrReduce: any, params?: {}): Promise<any>;
     parseMarginModification(data: any, market?: any): {
         info: any;
@@ -477,8 +477,8 @@ export default class binance extends Exchange {
         datetime: string;
         info: any;
     }>;
-    fetchBorrowRateHistory(code: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    parseBorrowRateHistory(response: any, code: any, since: any, limit: any): object[];
+    fetchBorrowRateHistory(code: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    parseBorrowRateHistory(response: any, code: any, since: any, limit: any): any;
     parseBorrowRate(info: any, currency?: any): {
         currency: any;
         rate: number;
@@ -496,7 +496,7 @@ export default class binance extends Exchange {
     }>;
     redeemGiftCode(giftcardCode: any, params?: {}): Promise<any>;
     verifyGiftCode(id: any, params?: {}): Promise<any>;
-    fetchBorrowInterest(code?: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchBorrowInterest(code?: string, symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market: any): {
         account: string;
         symbol: string;
@@ -509,7 +509,7 @@ export default class binance extends Exchange {
         datetime: string;
         info: any;
     };
-    repayMargin(code: any, amount: any, symbol?: any, params?: {}): Promise<{
+    repayMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<{
         id: number;
         currency: any;
         amount: any;
@@ -518,7 +518,7 @@ export default class binance extends Exchange {
         datetime: any;
         info: any;
     }>;
-    borrowMargin(code: any, amount: any, symbol?: any, params?: {}): Promise<{
+    borrowMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<{
         id: number;
         currency: any;
         amount: any;
@@ -536,17 +536,8 @@ export default class binance extends Exchange {
         datetime: any;
         info: any;
     };
-    fetchOpenInterestHistory(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchOpenInterest(symbol: any, params?: {}): Promise<object[] | {
-        symbol: any;
-        baseVolume: number;
-        quoteVolume: number;
-        openInterestAmount: number;
-        openInterestValue: number;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
+    fetchOpenInterestHistory(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchOpenInterest(symbol: any, params?: {}): Promise<any>;
     parseOpenInterest(interest: any, market?: any): {
         symbol: any;
         baseVolume: number;
