@@ -15,6 +15,7 @@ export default {
       test: /\.ts$/,
       use: 'ts-loader',
       exclude: [ /node_modules/ ],
+      sideEffects: false,
     }],
   },
   resolve: {
@@ -23,11 +24,14 @@ export default {
     extensionAlias: {
      ".js": [ ".js", ".ts" ],
     },
+    modules: [ './ts/src/static_dependencies' ]
   },
   externals: [ 'ws', 'zlib' ],
   mode: 'production',
   target: 'es2019',
   optimization: {
     minimize: false,
+    usedExports: true,
+    concatenateModules: false
   },
 }
