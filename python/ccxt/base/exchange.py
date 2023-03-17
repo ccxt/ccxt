@@ -3815,7 +3815,7 @@ class Exchange(object):
         :param dict|None market: ccxt market
         :param int|None since: when defined, the response items are filtered to only include items after self timestamp
         :param int|None limit: limits the number of items in the response
-        :returns [dict]: an array of `funding history structures <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        :returns [dict]: an array of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
         result = []
         for i in range(0, len(incomes)):
