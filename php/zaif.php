@@ -459,10 +459,10 @@ class zaif extends Exchange {
             'price' => $price,
         );
         $response = $this->privatePostTrade (array_merge($request, $params));
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => (string) $response['return']['order_id'],
-        );
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -670,8 +670,9 @@ class zaif extends Exchange {
         );
     }
 
-    public function nonce() {
-        $nonce = floatval($this->milliseconds() / 1000);
+    public function custom_nonce() {
+        $num = ($this->milliseconds() / (string) 1000);
+        $nonce = floatval($num);
         return sprintf('%.8f', $nonce);
     }
 
@@ -690,7 +691,7 @@ class zaif extends Exchange {
             } else {
                 $url .= 'tapi';
             }
-            $nonce = $this->nonce();
+            $nonce = $this->custom_nonce();
             $body = $this->urlencode(array_merge(array(
                 'method' => $path,
                 'nonce' => $nonce,

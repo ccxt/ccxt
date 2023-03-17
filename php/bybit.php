@@ -37,7 +37,7 @@ class bybit extends Exchange {
                 'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
-                'fetchBorrowInterest' => false, // temporarily disabled, as it does not work
+                'fetchBorrowInterest' => false, // temporarily disabled, does not work
                 'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -669,7 +669,7 @@ class bybit extends Exchange {
                     '110045' => '\\ccxt\\InsufficientFunds', // Insufficient wallet balance
                     '110046' => '\\ccxt\\BadRequest', // Any adjustments made will trigger immediate liquidation
                     '110047' => '\\ccxt\\BadRequest', // Risk limit cannot be adjusted due to insufficient available margin
-                    '110048' => '\\ccxt\\BadRequest', // Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
+                    '110048' => '\\ccxt\\BadRequest', // Risk limit cannot be adjusted current/expected position value held exceeds the revised risk limit
                     '110049' => '\\ccxt\\BadRequest', // Tick notes can only be numbers
                     '110050' => '\\ccxt\\BadRequest', // Coin is not in the range of selected
                     '110051' => '\\ccxt\\InsufficientFunds', // The user's available balance cannot cover the lowest price of the current market
@@ -711,7 +711,7 @@ class bybit extends Exchange {
                     '131208' => '\\ccxt\\ExchangeError', // Forbid transfer
                     '131209' => '\\ccxt\\BadRequest', // Get subMember relation error
                     '131210' => '\\ccxt\\BadRequest', // Amount accuracy error
-                    '131211' => '\\ccxt\\BadRequest', // fromAccountType can't be the same as toAccountType
+                    '131211' => '\\ccxt\\BadRequest', // fromAccountType can't be the same
                     '131212' => '\\ccxt\\InsufficientFunds', // Insufficient balance
                     '131213' => '\\ccxt\\BadRequest', // TransferLTV check error
                     '131214' => '\\ccxt\\BadRequest', // TransferId exist
@@ -780,7 +780,7 @@ class bybit extends Exchange {
                     '140045' => '\\ccxt\\InsufficientFunds', // Insufficient wallet balance
                     '140046' => '\\ccxt\\BadRequest', // Any adjustments made will trigger immediate liquidation
                     '140047' => '\\ccxt\\BadRequest', // Risk limit cannot be adjusted due to insufficient available margin
-                    '140048' => '\\ccxt\\BadRequest', // Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
+                    '140048' => '\\ccxt\\BadRequest', // Risk limit cannot be adjusted current/expected position value held exceeds the revised risk limit
                     '140049' => '\\ccxt\\BadRequest', // Tick notes can only be numbers
                     '140050' => '\\ccxt\\InvalidOrder', // Coin is not in the range of selected
                     '140051' => '\\ccxt\\InsufficientFunds', // The user's available balance cannot cover the lowest price of the current market
@@ -969,8 +969,8 @@ class bybit extends Exchange {
                     '30008' => '\\ccxt\\InvalidOrder', // invalid order_type
                     '30009' => '\\ccxt\\ExchangeError', // no position found
                     '30010' => '\\ccxt\\InsufficientFunds', // insufficient wallet balance
-                    '30011' => '\\ccxt\\PermissionDenied', // operation not allowed as position is undergoing liquidation
-                    '30012' => '\\ccxt\\PermissionDenied', // operation not allowed as position is undergoing ADL
+                    '30011' => '\\ccxt\\PermissionDenied', // operation not allowed is undergoing liquidation
+                    '30012' => '\\ccxt\\PermissionDenied', // operation not allowed is undergoing ADL
                     '30013' => '\\ccxt\\PermissionDenied', // position is in liq or adl status
                     '30014' => '\\ccxt\\InvalidOrder', // invalid closing order, qty should not greater than size
                     '30015' => '\\ccxt\\InvalidOrder', // invalid closing order, side should be opposite
@@ -998,9 +998,9 @@ class bybit extends Exchange {
                     '30037' => '\\ccxt\\InvalidOrder', // order already cancelled
                     '30041' => '\\ccxt\\ExchangeError', // no position found
                     '30042' => '\\ccxt\\InsufficientFunds', // insufficient wallet balance
-                    '30043' => '\\ccxt\\InvalidOrder', // operation not allowed as position is undergoing liquidation
-                    '30044' => '\\ccxt\\InvalidOrder', // operation not allowed as position is undergoing AD
-                    '30045' => '\\ccxt\\InvalidOrder', // operation not allowed as position is not normal status
+                    '30043' => '\\ccxt\\InvalidOrder', // operation not allowed is undergoing liquidation
+                    '30044' => '\\ccxt\\InvalidOrder', // operation not allowed is undergoing AD
+                    '30045' => '\\ccxt\\InvalidOrder', // operation not allowed is not normal status
                     '30049' => '\\ccxt\\InsufficientFunds', // insufficient available balance
                     '30050' => '\\ccxt\\ExchangeError', // any adjustments made will trigger immediate liquidation
                     '30051' => '\\ccxt\\ExchangeError', // due to risk limit, cannot adjust leverage
@@ -1028,7 +1028,7 @@ class bybit extends Exchange {
                     'Request timeout' => '\\ccxt\\RequestTimeout', // array("retCode":10016,"retMsg":"Request timeout, please try again later","result":array(),"retExtInfo":array(),"time":1675307914985)
                     'unknown orderInfo' => '\\ccxt\\OrderNotFound', // array("ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100)
                     'invalid api_key' => '\\ccxt\\AuthenticationError', // array("ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797")
-                    // the below two issues are caused as described => issues/9149#issuecomment-1146559498, when response is such =>  array("ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100)
+                    // the below two issues are caused => issues/9149#issuecomment-1146559498, when response is such =>  array("ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100)
                     'oc_diff' => '\\ccxt\\InsufficientFunds',
                     'new_oc' => '\\ccxt\\InsufficientFunds',
                     'openapi sign params error!' => '\\ccxt\\AuthenticationError', // array("retCode":10001,"retMsg":"empty value => apiTimestamparray() apiKeyarray() apiSignature[xxxxxxxxxxxxxxxxxxxxxxx] => openapi sign params error!","result":null,"retExtInfo":null,"time":1664789597123)
@@ -1316,11 +1316,12 @@ class bybit extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             $this->load_time_difference();
         }
-        $promises = array(
+        $promisesUnresolved = array(
             $this->fetch_spot_markets($params),
             $this->fetch_derivatives_markets(array( 'category' => 'linear' )),
             $this->fetch_derivatives_markets(array( 'category' => 'inverse' )),
         );
+        $promises = $promisesUnresolved;
         $spotMarkets = $promises[0];
         $linearMarkets = $promises[1];
         $inverseMarkets = $promises[2];
@@ -1963,7 +1964,7 @@ class bybit extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bybit api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->check_required_symbol('fetchOHLCV', $symbol);
         $this->load_markets();
@@ -3289,6 +3290,11 @@ class bybit extends Exchange {
         }
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+        $accounts = $this->is_unified_enabled();
+        $isUnifiedAccount = $this->safe_value($accounts, 1, false);
+        if ($isUnifiedAccount) {
+            throw new NotSupported($this->id . ' fetchOrder() does not support unified account. Please consider using fetchOpenOrders() or fetchClosedOrders()');
+        }
         if ($type === 'spot') {
             // only spot markets have a dedicated endpoint for fetching a order
             $request = array(
@@ -3390,7 +3396,6 @@ class bybit extends Exchange {
             'symbol' => $market['id'],
             'side' => $this->capitalize($side),
             'orderType' => $this->capitalize($lowerCaseType), // limit or $market
-            'qty' => $this->amount_to_precision($symbol, $amount),
             // 'timeInForce' => 'GTC', // IOC, FOK, PostOnly
             // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
             // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
@@ -3420,6 +3425,24 @@ class bybit extends Exchange {
             $request['category'] = 'option';
         } else {
             throw new NotSupported($this->id . ' createOrder does not allow inverse $market orders for ' . $symbol . ' markets');
+        }
+        if ($market['spot'] && ($type === 'market') && ($side === 'buy')) {
+            // for $market buy it requires the $amount of quote currency to spend
+            if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                $cost = $this->safe_number($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($price === null && $cost === null) {
+                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
+                } else {
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $quoteAmount = Precise::string_mul($amountString, $priceString);
+                    $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
+                    $request['qty'] = $this->cost_to_precision($symbol, $amount);
+                }
+            }
+        } else {
+            $request['qty'] = $this->amount_to_precision($symbol, $amount);
         }
         $isMarket = $lowerCaseType === 'market';
         $isLimit = $lowerCaseType === 'limit';
@@ -8108,6 +8131,7 @@ class bybit extends Exchange {
             $this->check_required_credentials();
             $isOpenapi = mb_strpos($url, 'openapi') !== false;
             $isV3UnifiedMargin = mb_strpos($url, 'unified/v3') !== false;
+            $isV3Contract = mb_strpos($url, 'contract/v3') !== false;
             $isV5UnifiedAccount = mb_strpos($url, 'v5') !== false;
             $timestamp = (string) $this->nonce();
             if ($isOpenapi) {
@@ -8126,14 +8150,14 @@ class bybit extends Exchange {
                     'X-BAPI-TIMESTAMP' => $timestamp,
                     'X-BAPI-SIGN' => $signature,
                 );
-            } elseif ($isV3UnifiedMargin || $isV5UnifiedAccount) {
+            } elseif ($isV3UnifiedMargin || $isV3Contract || $isV5UnifiedAccount) {
                 $headers = array(
                     'Content-Type' => 'application/json',
                     'X-BAPI-API-KEY' => $this->apiKey,
                     'X-BAPI-TIMESTAMP' => $timestamp,
                     'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
                 );
-                if ($isV3UnifiedMargin) {
+                if ($isV3UnifiedMargin || $isV3Contract) {
                     $headers['X-BAPI-SIGN-TYPE'] = '2';
                 }
                 $query = $params;

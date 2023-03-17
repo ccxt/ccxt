@@ -304,7 +304,7 @@ class ascendex extends Exchange {
                     '200011' => '\\ccxt\\ExchangeError', // CODE_GEN_FAILED Do not generate required code promptly
                     '200012' => '\\ccxt\\ExchangeError', // FAKE_COKE_VERIFY
                     '200013' => '\\ccxt\\ExchangeError', // SECURITY_ALERT Provide security alert message
-                    '200014' => '\\ccxt\\PermissionDenied', // RESTRICTED_ACCOUNT Account is restricted for certain activity, such as trading, or withdraw.
+                    '200014' => '\\ccxt\\PermissionDenied', // RESTRICTED_ACCOUNT Account is restricted for certain activity, such, or withdraw.
                     '200015' => '\\ccxt\\PermissionDenied', // PERMISSION_DENIED No enough permission for the operation
                     '300001' => '\\ccxt\\InvalidOrder', // INVALID_PRICE Order price is invalid
                     '300002' => '\\ccxt\\InvalidOrder', // INVALID_QTY Order size is invalid
@@ -1085,7 +1085,7 @@ class ascendex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the ascendex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

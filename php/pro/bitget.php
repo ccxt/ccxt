@@ -6,16 +6,14 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\InvalidNonce;
+use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 
 class bitget extends \ccxt\async\bitget {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -68,7 +66,7 @@ class bitget extends \ccxt\async\bitget {
 
     public function get_ws_market_id($market) {
         // WS don't use the same 'id'
-        // as the rest version
+        // rest version
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         if ($market['spot']) {
             return $market['info']['symbolName'];
@@ -252,7 +250,7 @@ class bitget extends \ccxt\async\bitget {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitget api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -469,7 +467,7 @@ class bitget extends \ccxt\async\bitget {
     public function handle_delta($bookside, $delta) {
         $bidAsk = $this->parse_bid_ask($delta, 0, 1);
         // we store the string representations in the orderbook for checksum calculation
-        // this simplifies the code for generating checksums as we do not need to do any complex number transformations
+        // this simplifies the code for generating checksums do not need to do any complex number transformations
         $bidAsk[] = $delta;
         $bookside->storeArray ($bidAsk);
     }

@@ -217,7 +217,7 @@ class krakenfutures extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
-         * Fetches the available trading markets from the exchange, Multi-collateral markets are returned as $linear markets, but can be settled in multiple $currencies
+         * Fetches the available trading markets from the exchange, Multi-collateral markets are returned markets, but can be settled in multiple $currencies
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-$instruments
          * @param {array} $params exchange specific $params
          * @return An array of $market structures
@@ -554,7 +554,7 @@ class krakenfutures extends Exchange {
         $params = $this->omit($params, 'price');
         if ($since !== null) {
             $duration = $this->parse_timeframe($timeframe);
-            $request['from'] = intval($since / 1000);
+            $request['from'] = $this->parse_to_int($since / 1000);
             if ($limit === null) {
                 $limit = 5000;
             } elseif ($limit > 5000) {
@@ -569,7 +569,7 @@ class krakenfutures extends Exchange {
             }
             $duration = $this->parse_timeframe($timeframe);
             $request['to'] = $this->seconds();
-            $request['from'] = intval($request['to'] - ($duration * $limit));
+            $request['from'] = $this->parse_to_int($request['to'] - ($duration * $limit));
         }
         $response = $this->chartsGetPriceTypeSymbolInterval (array_merge($request, $params));
         //
@@ -787,8 +787,8 @@ class krakenfutures extends Exchange {
          * @param {int} $amount Contract quantity
          * @param {float} $price Limit order $price
          * @param {float|null} $params->stopPrice The stop $price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst $price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
-         * @param {bool|null} $params->reduceOnly Set as true if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default false,
-         * @param {bool|null} $params->postOnly Set as true if you wish to make a $postOnly order, Default false
+         * @param {bool|null} $params->reduceOnly Set if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default false,
+         * @param {bool|null} $params->postOnly Set if you wish to make a $postOnly order, Default false
          * @param {string|null} $params->triggerSignal If placing a stp or take_profit, the signal used for trigger, One of => 'mark', 'index', 'last', last is market $price
          * @param {string|null} $params->cliOrdId UUID The order identity that is specified from the user, It must be globally unique
          */

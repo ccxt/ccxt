@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -15,6 +14,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -557,7 +557,7 @@ class poloniexfutures(Exchange):
         takerOrMaker = self.safe_string(trade, 'liquidity')
         timestamp = self.safe_integer(trade, 'ts')
         if timestamp is not None:
-            timestamp = int(timestamp / 1000000)
+            timestamp = self.parse_to_int(timestamp / 1000000)
         else:
             timestamp = self.safe_integer(trade, 'createdAt')
             # if it's a historical v1 trade, the exchange returns timestamp in seconds
@@ -659,15 +659,19 @@ class poloniexfutures(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
+        parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
         request = {
             'symbol': marketId,
-            'granularity': self.safe_integer(self.timeframes, timeframe, timeframe),
         }
+        if parsedTimeframe is not None:
+            request['granularity'] = parsedTimeframe
+        else:
+            request['granularity'] = timeframe
         duration = self.parse_timeframe(timeframe) * 1000
         endAt = self.milliseconds()
         if since is not None:
@@ -853,47 +857,27 @@ class poloniexfutures(Exchange):
         }
         response = self.privateDeleteOrdersOrderId(self.extend(request, params))
         #
-        #   {
-        #       code: "200000",
-        #       data: {
-        #           cancelledOrderIds: [
+        #    {
+        #        code: "200000",
+        #        data: {
+        #            cancelledOrderIds: [
         #                "619714b8b6353000014c505a",
-        #           ],
-        #           cancelFailedOrders: [
-        #              {
-        #                  orderId: "63a9c5c2b9e7d70007eb0cd5", orderState: "2"}
-        #          ],
-        #       },
-        #   }
+        #            ],
+        #            cancelFailedOrders: [
+        #                {
+        #                    orderId: "63a9c5c2b9e7d70007eb0cd5",
+        #                    orderState: "2"
+        #                }
+        #            ],
+        #        },
+        #    }
         #
         data = self.safe_value(response, 'data')
         cancelledOrderIds = self.safe_value(data, 'cancelledOrderIds')
         cancelledOrderIdsLength = len(cancelledOrderIds)
         if cancelledOrderIdsLength == 0:
             raise InvalidOrder(self.id + ' cancelOrder() order already cancelled')
-        return {
-            'id': self.safe_string(cancelledOrderIds, 0),
-            'clientOrderId': None,
-            'timestamp': None,
-            'datetime': None,
-            'lastTradeTimestamp': None,
-            'symbol': None,
-            'type': None,
-            'side': None,
-            'price': None,
-            'amount': None,
-            'cost': None,
-            'average': None,
-            'filled': None,
-            'remaining': None,
-            'status': None,
-            'fee': None,
-            'trades': None,
-            'timeInForce': None,
-            'postOnly': None,
-            'stopPrice': None,
-            'info': response,
-        }
+        return self.parse_order(data)
 
     def fetch_positions(self, symbols=None, params={}):
         """
@@ -1188,12 +1172,10 @@ class poloniexfutures(Exchange):
         params = self.omit(params, ['stop', 'until', 'till'])
         if status == 'closed':
             status = 'done'
-        elif status == 'open':
-            status = 'active'
         request = {}
         if not stop:
-            request['status'] = status
-        elif status != 'active':
+            request['status'] = status == 'active' if 'open' else 'done'
+        elif status != 'open':
             raise BadRequest(self.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders')
         market = None
         if symbol is not None:
@@ -1205,14 +1187,62 @@ class poloniexfutures(Exchange):
             request['endAt'] = until
         method = 'privateGetStopOrders' if stop else 'privateGetOrders'
         response = getattr(self, method)(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "totalNum": 1,
+        #            "totalPage": 1,
+        #            "pageSize": 50,
+        #            "currentPage": 1,
+        #            "items": [
+        #                {
+        #                    "symbol": "ADAUSDTPERP",
+        #                    "leverage": "1",
+        #                    "hidden": False,
+        #                    "forceHold": False,
+        #                    "closeOrder": False,
+        #                    "type": "limit",
+        #                    "isActive": True,
+        #                    "createdAt": 1678936920000,
+        #                    "orderTime": 1678936920480905922,
+        #                    "price": "0.3",
+        #                    "iceberg": False,
+        #                    "stopTriggered": False,
+        #                    "id": "64128b582cc0710007a3c840",
+        #                    "value": "3",
+        #                    "timeInForce": "GTC",
+        #                    "updatedAt": 1678936920000,
+        #                    "side": "buy",
+        #                    "stopPriceType": "",
+        #                    "dealValue": "0",
+        #                    "dealSize": 0,
+        #                    "settleCurrency": "USDT",
+        #                    "stp": "",
+        #                    "filledValue": "0",
+        #                    "postOnly": False,
+        #                    "size": 1,
+        #                    "stop": "",
+        #                    "filledSize": 0,
+        #                    "reduceOnly": False,
+        #                    "marginType": 1,
+        #                    "cancelExist": False,
+        #                    "clientOid": "ba669f39-dfcc-4664-9801-a42d06e59c2e",
+        #                    "status": "open"
+        #                }
+        #            ]
+        #        }
+        #    }
+        #
         responseData = self.safe_value(response, 'data', {})
         orders = self.safe_value(responseData, 'items', [])
         ordersLength = len(orders)
         result = []
-        if status == 'done':
-            for i in range(0, ordersLength):
-                if not orders[i]['cancelExist']:
-                    result.append(orders[i])
+        for i in range(0, ordersLength):
+            order = orders[i]
+            orderStatus = self.safe_string(order, 'status')
+            if status == orderStatus:
+                result.append(orders[i])
         return self.parse_orders(result, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -1229,7 +1259,7 @@ class poloniexfutures(Exchange):
         :param str|None params['type']: limit, or market
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        return self.fetch_orders_by_status('active', symbol, since, limit, params)
+        return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -1269,30 +1299,131 @@ class poloniexfutures(Exchange):
         else:
             request['order-id'] = id
         response = getattr(self, method)(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "symbol": "ADAUSDTPERP",
+        #            "leverage": "1",
+        #            "hidden": False,
+        #            "forceHold": False,
+        #            "closeOrder": False,
+        #            "type": "market",
+        #            "isActive": False,
+        #            "createdAt": 1678929587000,
+        #            "orderTime": 1678929587248115582,
+        #            "iceberg": False,
+        #            "stopTriggered": False,
+        #            "id": "64126eb38c6919000737dcdc",
+        #            "value": "3.1783",
+        #            "timeInForce": "GTC",
+        #            "updatedAt": 1678929587000,
+        #            "side": "buy",
+        #            "stopPriceType": "",
+        #            "dealValue": "3.1783",
+        #            "dealSize": 1,
+        #            "settleCurrency": "USDT",
+        #            "trades": [
+        #                {
+        #                    "feePay": "0.00158915",
+        #                    "tradeId": "64126eb36803eb0001ff99bc"
+        #                }
+        #            ],
+        #            "endAt": 1678929587000,
+        #            "stp": "",
+        #            "filledValue": "3.1783",
+        #            "postOnly": False,
+        #            "size": 1,
+        #            "stop": "",
+        #            "filledSize": 1,
+        #            "reduceOnly": False,
+        #            "marginType": 1,
+        #            "cancelExist": False,
+        #            "clientOid": "d19e8fcb-2df4-44bc-afd4-67dd42048246",
+        #            "status": "done"
+        #        }
+        #    }
+        #
         market = self.market(symbol) if (symbol is not None) else None
         responseData = self.safe_value(response, 'data')
         return self.parse_order(responseData, market)
 
     def parse_order(self, order, market=None):
+        #
+        # createOrder
+        #
+        #    {
+        #        code: "200000",
+        #        data: {
+        #            orderId: "619717484f1d010001510cde",
+        #        },
+        #    }
+        #
+        # fetchOrder
+        #
+        #    {
+        #        "symbol": "ADAUSDTPERP",
+        #        "leverage": "1",
+        #        "hidden": False,
+        #        "forceHold": False,
+        #        "closeOrder": False,
+        #        "type": "market",
+        #        "isActive": False,
+        #        "createdAt": 1678929587000,
+        #        "orderTime": 1678929587248115582,
+        #        "iceberg": False,
+        #        "stopTriggered": False,
+        #        "id": "64126eb38c6919000737dcdc",
+        #        "value": "3.1783",
+        #        "timeInForce": "GTC",
+        #        "updatedAt": 1678929587000,
+        #        "side": "buy",
+        #        "stopPriceType": "",
+        #        "dealValue": "3.1783",
+        #        "dealSize": 1,
+        #        "settleCurrency": "USDT",
+        #        "trades": [
+        #            {
+        #                "feePay": "0.00158915",
+        #                "tradeId": "64126eb36803eb0001ff99bc"
+        #            }
+        #        ],
+        #        "endAt": 1678929587000,
+        #        "stp": "",
+        #        "filledValue": "3.1783",
+        #        "postOnly": False,
+        #        "size": 1,
+        #        "stop": "",
+        #        "filledSize": 1,
+        #        "reduceOnly": False,
+        #        "marginType": 1,
+        #        "cancelExist": False,
+        #        "clientOid": "d19e8fcb-2df4-44bc-afd4-67dd42048246",
+        #        "status": "done"
+        #    }
+        #
+        # cancelOrder
+        #
+        #    {
+        #        cancelledOrderIds: [
+        #            "619714b8b6353000014c505a",
+        #        ],
+        #        cancelFailedOrders: [
+        #            {
+        #                orderId: "63a9c5c2b9e7d70007eb0cd5",
+        #                orderState: "2"
+        #            }
+        #        ],
+        #    },
+        #
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
-        symbol = market['symbol']
-        orderId = self.safe_string(order, 'id')
-        type = self.safe_string(order, 'type')
         timestamp = self.safe_integer(order, 'createdAt')
-        datetime = self.iso8601(timestamp)
-        price = self.safe_string(order, 'price')
         # price is zero for market order
         # omitZero is called in safeOrder2
-        side = self.safe_string(order, 'side')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
-        feeCurrency = self.safe_currency_code(feeCurrencyId)
-        feeCost = self.safe_number(order, 'fee')
-        amount = self.safe_string(order, 'size')
         filled = self.safe_string(order, 'dealSize')
         rawCost = self.safe_string_2(order, 'dealFunds', 'filledValue')
-        leverage = self.safe_string(order, 'leverage')
-        cost = Precise.string_div(rawCost, leverage)
         average = None
         if Precise.string_gt(filled, '0'):
             contractSize = self.safe_string(market, 'contractSize')
@@ -1306,34 +1437,32 @@ class poloniexfutures(Exchange):
         isActive = self.safe_value(order, 'isActive', False)
         cancelExist = self.safe_value(order, 'cancelExist', False)
         status = 'open' if isActive else 'closed'
-        status = 'canceled' if cancelExist else status
-        fee = {
-            'currency': feeCurrency,
-            'cost': feeCost,
-        }
-        clientOrderId = self.safe_string(order, 'clientOid')
-        timeInForce = self.safe_string(order, 'timeInForce')
-        stopPrice = self.safe_number(order, 'stopPrice')
-        postOnly = self.safe_value(order, 'postOnly')
+        id = self.safe_string(order, 'id')
+        if 'cancelledOrderIds' in order:
+            cancelledOrderIds = self.safe_value(order, 'cancelledOrderIds')
+            id = self.safe_string(cancelledOrderIds, 0)
         return self.safe_order({
-            'id': orderId,
-            'clientOrderId': clientOrderId,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
-            'side': side,
-            'amount': amount,
-            'price': price,
-            'stopPrice': stopPrice,
-            'cost': cost,
+            'info': order,
+            'id': id,
+            'clientOrderId': self.safe_string(order, 'clientOid'),
+            'symbol': self.safe_string(market, 'symbol'),
+            'type': self.safe_string(order, 'type'),
+            'timeInForce': self.safe_string(order, 'timeInForce'),
+            'postOnly': self.safe_value(order, 'postOnly'),
+            'side': self.safe_string(order, 'side'),
+            'amount': self.safe_string(order, 'size'),
+            'price': self.safe_string(order, 'price'),
+            'stopPrice': self.safe_string(order, 'stopPrice'),
+            'cost': self.safe_string(order, 'dealValue'),
             'filled': filled,
             'remaining': None,
             'timestamp': timestamp,
-            'datetime': datetime,
-            'fee': fee,
-            'status': status,
-            'info': order,
+            'datetime': self.iso8601(timestamp),
+            'fee': {
+                'currency': self.safe_currency_code(feeCurrencyId),
+                'cost': self.safe_string(order, 'fee'),
+            },
+            'status': 'canceled' if cancelExist else status,
             'lastTradeTimestamp': None,
             'average': average,
             'trades': None,

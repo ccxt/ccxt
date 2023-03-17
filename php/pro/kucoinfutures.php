@@ -11,8 +11,6 @@ use React\Async;
 
 class kucoinfutures extends \ccxt\async\kucoinfutures {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -405,7 +403,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
     public function handle_system_status($client, $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
-        // and unified as handleStatus for any usage pattern that
+        // and unified for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {

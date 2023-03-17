@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.17 (2023-03-16)
+
+### 3.0.16 (2023-03-16)
+
+
+### Bug Fixes
+
+* **Exchange:** fetchDepositAddresses ([3cf0612](https://github.com/ccxt/ccxt/commit/3cf0612f672c4bd3c5286b08d2bc1e5a735f4879))
+
+### 3.0.15 (2023-03-16)
+
+
+### Bug Fixes
+
+* **kraken:** watchOrderbook handleDeltas ([ee7b0dc](https://github.com/ccxt/ccxt/commit/ee7b0dcea4eb63210a1e9c6b011cfa995ce55018))
+
+### 3.0.14 (2023-03-16)
+
+### 3.0.13 (2023-03-16)
+
+### 3.0.11 (2023-03-16)
+
+### 3.0.10 (2023-03-15)
+
+### 3.0.9 (2023-03-15)
+
+### 3.0.8 (2023-03-14)
+
+### 3.0.7 (2023-03-14)
+
+### 3.0.6 (2023-03-14)
+
+### 3.0.5 (2023-03-14)
+
+### 3.0.4 (2023-03-13)
+
+### 3.0.3 (2023-03-13)
+
+### 3.0.2 (2023-03-13)
+
+### 3.0.1 (2023-03-13)
+
+### 2.9.16 (2023-03-13)
+
+### 2.9.15 (2023-03-13)
+
+### 2.9.14 (2023-03-13)
+
 ### 2.9.13 (2023-03-12)
 
 

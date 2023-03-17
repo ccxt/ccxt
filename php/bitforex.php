@@ -437,7 +437,7 @@ class bitforex extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bitforex api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -641,10 +641,10 @@ class bitforex extends Exchange {
         );
         $response = $this->privatePostApiV1TradePlaceOrder (array_merge($request, $params));
         $data = $response['data'];
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $this->safe_string($data, 'orderId'),
-        );
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

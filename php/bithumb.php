@@ -500,7 +500,7 @@ class bithumb extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bithumb api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -680,13 +680,13 @@ class bithumb extends Exchange {
         if ($id === null) {
             throw new InvalidOrder($this->id . ' createOrder() did not return an order id');
         }
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'id' => $id,
-        );
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

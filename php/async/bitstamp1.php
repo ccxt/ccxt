@@ -321,10 +321,10 @@ class bitstamp1 extends Exchange {
             );
             $response = Async\await($this->$method (array_merge($request, $params)));
             $id = $this->safe_string($response, 'id');
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $id,
-            );
+            ));
         }) ();
     }
 

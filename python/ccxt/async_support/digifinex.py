@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadRequest
@@ -22,6 +21,7 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -608,7 +608,7 @@ class digifinex(Exchange):
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
             #
-            # The status is documented in the exchange API docs as follows:
+            # The status is documented in the exchange API docs:
             # TRADING, HALT(delisted), BREAK(trading paused)
             # https://docs.digifinex.vip/en-ww/v3/#/public/spot/symbols
             # However, all spot markets actually have status == 'HALT'
@@ -632,7 +632,7 @@ class digifinex(Exchange):
                 isLinear = True if (not isInverse) else False
                 isTrading = self.safe_value(market, 'isTrading')
                 if isTrading:
-                    isAllowed = True
+                    isAllowed = 1
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -1431,7 +1431,7 @@ class digifinex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the digifinex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1447,7 +1447,7 @@ class digifinex(Exchange):
             request['symbol'] = market['id']
             request['period'] = self.safe_string(self.timeframes, timeframe, timeframe)
             if since is not None:
-                startTime = int(since / 1000)
+                startTime = self.parse_to_int(since / 1000)
                 request['start_time'] = startTime
                 if limit is not None:
                     duration = self.parse_timeframe(timeframe)
@@ -1530,6 +1530,7 @@ class digifinex(Exchange):
         marketIdRequest = 'instrument_id' if swap else 'symbol'
         request[marketIdRequest] = market['id']
         postOnly = self.is_post_only(isMarketOrder, False, params)
+        postOnlyParsed = None
         if swap:
             reduceOnly = self.safe_value(params, 'reduceOnly', False)
             timeInForce = self.safe_string(params, 'timeInForce')
@@ -1556,7 +1557,7 @@ class digifinex(Exchange):
             request['size'] = amount  # swap orders require the amount to be the number of contracts
             params = self.omit(params, ['reduceOnly', 'timeInForce'])
         else:
-            postOnly = 1 if (postOnly is True) else 2
+            postOnlyParsed = 1 if (postOnly is True) else 2
             request['market'] = marketType
             suffix = ''
             if type == 'market':
@@ -1567,7 +1568,10 @@ class digifinex(Exchange):
             # limit orders require the amount in the base currency, market orders require the amount in the quote currency
             request['amount'] = self.amount_to_precision(symbol, amount)
         if postOnly:
-            request['postOnly'] = postOnly
+            if postOnlyParsed:
+                request['postOnly'] = postOnlyParsed
+            else:
+                request['postOnly'] = postOnly
         query = self.omit(params, ['postOnly', 'post_only'])
         response = await getattr(self, method)(self.extend(request, query))
         #
@@ -1951,7 +1955,7 @@ class digifinex(Exchange):
         else:
             request['market'] = marketType
             if since is not None:
-                request['start_time'] = int(since / 1000)  # default 3 days from now, max 30 days
+                request['start_time'] = self.parse_to_int(since / 1000)  # default 3 days from now, max 30 days
         if market is not None:
             marketIdRequest = 'instrument_id' if (marketType == 'swap') else 'symbol'
             request[marketIdRequest] = market['id']
@@ -2133,7 +2137,7 @@ class digifinex(Exchange):
         else:
             request['market'] = marketType
             if since is not None:
-                request['start_time'] = int(since / 1000)  # default 3 days from now, max 30 days
+                request['start_time'] = self.parse_to_int(since / 1000)  # default 3 days from now, max 30 days
         marketIdRequest = 'instrument_id' if (marketType == 'swap') else 'symbol'
         if symbol is not None:
             request[marketIdRequest] = market['id']
@@ -2269,7 +2273,7 @@ class digifinex(Exchange):
         else:
             request['market'] = marketType
             if since is not None:
-                request['start_time'] = int(since / 1000)  # default 3 days from now, max 30 days
+                request['start_time'] = self.parse_to_int(since / 1000)  # default 3 days from now, max 30 days
         currencyIdRequest = 'currency' if (marketType == 'swap') else 'currency_mark'
         currency = None
         if code is not None:

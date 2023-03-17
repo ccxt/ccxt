@@ -4,13 +4,13 @@
 //      npm run update-badges
 // ---------------------------------------------------------------------------
 
-"use strict";
 
-const fs = require ('fs')
-const ccxt = require ('../ccxt')
-const log  = require ('ololog')
-const ansi = require ('ansicolor').nice
+import fs from 'fs';
+import ccxt from '../js/ccxt.js';
+import log from 'ololog';
+import ansicolor from 'ansicolor';
 
+ansicolor.nice
 //-----------------------------------------------------------------------------
 
 function updateExchangeCount (fileName) {

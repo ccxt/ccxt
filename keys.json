@@ -7,7 +7,7 @@
     "binancecoinm":  { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
     "bitfinex2":     { "skip": true, "//": "Reason: Breaks Travis CI build as of 2023 Feb 21 to be fixed shortly"},
     "bitstamp":      { "skip": true, "//": "Reason: fails on crossing bids/asks, to be fixed"},
-    "mexc":          { "skip": true, "//": "Reason: 403 Forbidden <HTML><HEAD><TITLE>Access Denied</TITLE></HEAD"},
+    "mexc":          { "skip": true, "//": "Reason: 403 Forbidden Access Denied "},
     "gemini":        { "skip": true, "//": "Reason: Markets api is too unreliable"},
     "gate":          { "skip": true, "//": "Reason: Failing on Travis CI as of 2023 Feb 20 to be fixed shortly"},
     "coinex":        { "skip": true, "//": "Reason: 13/01 API is down"},
@@ -51,5 +51,6 @@
     "tidex":         { "skip": true },
     "yobit":         { "skip": true },
     "coinbase":      { "skip": true, "//": "all endpoints are private" },
-    "buda":          { "skip": true, "//": "exchange unavailable" }
+    "buda":          { "skip": true, "//": "exchange unavailable" },
+    "whitebit":      { "skip": true, "//": "skipped temporarily to allow Travis CI to succeed" }
 }

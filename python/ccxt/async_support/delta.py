@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -13,6 +12,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -197,12 +197,12 @@ class delta(Exchange):
                     # Margin required to place order with selected leverage and quantity is insufficient.
                     'insufficient_margin': InsufficientFunds,  # {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
                     'order_size_exceed_available': InvalidOrder,  # The order book doesn't have sufficient liquidity, hence the order couldnt be filled, for example, ioc orders
-                    'risk_limits_breached': BadRequest,  # orders couldn't be placed as it will breach allowed risk limits.
+                    'risk_limits_breached': BadRequest,  # orders couldn't be placed will breach allowed risk limits.
                     'invalid_contract': BadSymbol,  # The contract/product is either doesn't exist or has already expired.
                     'immediate_liquidation': InvalidOrder,  # Order will cause immediate liquidation.
                     'out_of_bankruptcy': InvalidOrder,  # Order prices are out of position bankruptcy limits.
                     'self_matching_disrupted_post_only': InvalidOrder,  # Self matching is not allowed during auction.
-                    'immediate_execution_post_only': InvalidOrder,  # orders couldn't be placed as it includes post only orders which will be immediately executed
+                    'immediate_execution_post_only': InvalidOrder,  # orders couldn't be placed includes post only orders which will be immediately executed
                     'bad_schema': BadRequest,  # {"error":{"code":"bad_schema","context":{"schema_errors":[{"code":"validation_error","message":"id is required","param":""}]}},"success":false}
                     'invalid_api_key': AuthenticationError,  # {"success":false,"error":{"code":"invalid_api_key"}}
                     'invalid_signature': AuthenticationError,  # {"success":false,"error":{"code":"invalid_signature"}}
@@ -997,7 +997,7 @@ class delta(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the delta api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1012,7 +1012,7 @@ class delta(Exchange):
             request['end'] = end
             request['start'] = end - limit * duration
         else:
-            start = int(since / 1000)
+            start = self.parse_to_int(since / 1000)
             request['start'] = start
             request['end'] = self.sum(start, limit * duration)
         response = await self.publicGetHistoryCandles(self.extend(request, params))

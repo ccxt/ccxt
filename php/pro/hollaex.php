@@ -11,8 +11,6 @@ use React\Async;
 
 class hollaex extends \ccxt\async\hollaex {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -101,8 +99,8 @@ class hollaex extends \ccxt\async\hollaex {
         $symbol = $market['symbol'];
         $data = $this->safe_value($message, 'data');
         $timestamp = $this->safe_string($data, 'timestamp');
-        $timestamp = $this->parse8601($timestamp);
-        $snapshot = $this->parse_order_book($data, $symbol, $timestamp);
+        $timestampMs = $this->parse8601($timestamp);
+        $snapshot = $this->parse_order_book($data, $symbol, $timestampMs);
         $orderbook = null;
         if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
             $orderbook = $this->order_book($snapshot);
@@ -445,7 +443,7 @@ class hollaex extends \ccxt\async\hollaex {
             $this->check_required_credentials();
             $expires = $this->safe_string($this->options, 'ws-expires');
             if ($expires === null) {
-                $timeout = intval($this->timeout / 1000);
+                $timeout = intval(($this->timeout / (string) 1000));
                 $expires = $this->sum($this->seconds(), $timeout);
                 $expires = (string) $expires;
                 // we need to memoize these values to avoid generating a new $url on each method execution
@@ -609,11 +607,11 @@ class hollaex extends \ccxt\async\hollaex {
 
     public function on_error($client, $error) {
         $this->options['ws-expires'] = null;
-        parent::on_error($client, $error);
+        $this->on_error($client, $error);
     }
 
     public function on_close($client, $error) {
         $this->options['ws-expires'] = null;
-        parent::on_close($client, $error);
+        $this->on_close($client, $error);
     }
 }

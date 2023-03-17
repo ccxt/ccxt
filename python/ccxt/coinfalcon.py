@@ -5,9 +5,9 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -596,8 +596,8 @@ class coinfalcon(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'operation_type')
         if type is not None:
-            type = type.split('_')
-            type = type[0]
+            typeParts = type.split('_')
+            type = typeParts[0]
         side = self.safe_string(order, 'order_type')
         postOnly = self.safe_value(order, 'post_only')
         return self.safe_order({

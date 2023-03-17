@@ -5,12 +5,12 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -852,10 +852,10 @@ class coinmate(Exchange):
             method += self.capitalize(type)
         response = await getattr(self, method)(self.extend(request, params))
         id = self.safe_string(response, 'data')
-        return {
+        return self.safe_order({
             'info': response,
             'id': id,
-        }
+        }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         """

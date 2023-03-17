@@ -6,8 +6,8 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -696,10 +696,10 @@ class itbit(Exchange):
             'instrument': market['id'],
         }
         response = self.privatePostWalletsWalletIdOrders(self.extend(request, params))
-        return {
+        return self.safe_order({
             'info': response,
             'id': response['id'],
-        }
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         """
