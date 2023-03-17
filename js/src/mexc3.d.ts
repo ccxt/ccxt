@@ -234,7 +234,7 @@ export default class mexc3 extends Exchange {
         info: any;
     };
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;

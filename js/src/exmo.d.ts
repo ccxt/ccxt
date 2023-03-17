@@ -91,7 +91,7 @@ export default class exmo extends Exchange {
         network: any;
         info: any;
     }>;
-    getMarketFromTrades(trades: any): any;
+    getMarketFromTrades(trades: any): import("./base/types.js").Market;
     withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
@@ -196,7 +196,7 @@ export default class exmo extends Exchange {
         };
     }>;
     fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

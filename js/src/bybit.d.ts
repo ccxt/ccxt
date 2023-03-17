@@ -295,7 +295,7 @@ export default class bybit extends Exchange {
         taker: number;
     }>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;
