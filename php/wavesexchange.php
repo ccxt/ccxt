@@ -14,7 +14,7 @@ class wavesexchange extends Exchange {
             'id' => 'wavesexchange',
             'name' => 'Waves.Exchange',
             'countries' => array( 'CH' ), // Switzerland
-            'certified' => false,
+            'certified' => true,
             'pro' => false,
             'has' => array(
                 'CORS' => null,
@@ -358,8 +358,8 @@ class wavesexchange extends Exchange {
     public function get_fees_for_asset($symbol, $side, $amount, $price, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $amount = $this->amount_to_precision($symbol, $amount);
-        $price = $this->price_to_precision($symbol, $price);
+        $amount = $this->custom_amount_to_precision($symbol, $amount);
+        $price = $this->custom_price_to_precision($symbol, $price);
         $request = array_merge(array(
             'amountAsset' => $market['baseId'],
             'priceAsset' => $market['quoteId'],
@@ -370,7 +370,7 @@ class wavesexchange extends Exchange {
         return $this->matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee ($request);
     }
 
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+    public function custom_calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $response = $this->get_fees_for_asset($symbol, $side, $amount, $price);
         // {
         //     "base":array(
@@ -411,7 +411,7 @@ class wavesexchange extends Exchange {
             return $quotes;
         } else {
             // currencies can have any name because you can create you own token
-            // as a result someone can create a fake token called BTC
+            // result someone can create a fake token called BTC
             // we use this mapping to determine the real tokens
             // https://docs.waves.exchange/en/waves-matcher/matcher-api#asset-pair
             $response = $this->matcherGetMatcherSettings ();
@@ -577,7 +577,7 @@ class wavesexchange extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -764,17 +764,31 @@ class wavesexchange extends Exchange {
         //           "timestamp":1640232379124
         //       }
         //
+        //  fetch $ticker
+        //
+        //       {
+        //           firstPrice => '21749',
+        //           lastPrice => '22000',
+        //           volume => '0.73747149',
+        //           $quoteVolume => '16409.44564928645471',
+        //           $high => '23589.999941',
+        //           $low => '21010.000845',
+        //           weightedAveragePrice => '22250.955964',
+        //           txsCount => '148',
+        //           volumeWaves => '0.0000000000680511203072'
+        //       }
+        //
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, '/');
         $symbol = $market['symbol'];
-        $last = $this->safe_string($ticker, '24h_close');
-        $low = $this->safe_string($ticker, '24h_low');
-        $high = $this->safe_string($ticker, '24h_high');
-        $vwap = $this->safe_string($ticker, '24h_vwap');
-        $baseVolume = $this->safe_string($ticker, '24h_volume');
-        $quoteVolume = $this->safe_string($ticker, '24h_priceVolume');
-        $open = $this->safe_string($ticker, '24h_open');
+        $last = $this->safe_string_2($ticker, '24h_close', 'lastPrice');
+        $low = $this->safe_string_2($ticker, '24h_low', 'low');
+        $high = $this->safe_string_2($ticker, '24h_high', 'high');
+        $vwap = $this->safe_string_2($ticker, '24h_vwap', 'weightedAveragePrice');
+        $baseVolume = $this->safe_string_2($ticker, '24h_volume', 'volume');
+        $quoteVolume = $this->safe_string_2($ticker, '24h_priceVolume', 'quoteVolume');
+        $open = $this->safe_string_2($ticker, '24h_open', 'firstPrice');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -804,7 +818,7 @@ class wavesexchange extends Exchange {
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -837,7 +851,8 @@ class wavesexchange extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $ticker = $this->safe_value($data, 0, array());
-        return $this->parse_ticker($ticker, $market);
+        $dataTicker = $this->safe_value($ticker, 'data', array());
+        return $this->parse_ticker($dataTicker, $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -845,7 +860,7 @@ class wavesexchange extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the aax api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $response = $this->marketGetTickers ($params);
@@ -888,14 +903,14 @@ class wavesexchange extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, $open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, $open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'baseId' => $market['baseId'],
             'quoteId' => $market['quoteId'],
-            'interval' => $this->timeframes[$timeframe],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $allowedCandles = $this->safe_integer($this->options, 'allowedCandles', 1440);
         if ($limit === null) {
@@ -904,7 +919,7 @@ class wavesexchange extends Exchange {
         $limit = min ($allowedCandles, $limit);
         $duration = $this->parse_timeframe($timeframe) * 1000;
         if ($since === null) {
-            $durationRoundedTimestamp = intval($this->milliseconds() / $duration) * $duration;
+            $durationRoundedTimestamp = $this->parse_to_int($this->milliseconds() / $duration) * $duration;
             $delta = ($limit - 1) * $duration;
             $timeStart = $durationRoundedTimestamp - $delta;
             $request['timeStart'] = (string) $timeStart;
@@ -1006,7 +1021,7 @@ class wavesexchange extends Exchange {
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
          */
         $this->sign_in();
         $networks = $this->safe_value($this->options, 'networks', array());
@@ -1167,19 +1182,19 @@ class wavesexchange extends Exchange {
         return $currencyId;
     }
 
-    public function price_to_precision($symbol, $price) {
+    public function custom_price_to_precision($symbol, $price) {
         $market = $this->markets[$symbol];
         $wavesPrecision = $this->safe_integer($this->options, 'wavesPrecision', 8);
         $difference = $market['precision']['amount'] - $market['precision']['price'];
-        return intval(floatval($this->to_precision($price, $wavesPrecision - $difference)));
+        return $this->parse_to_int(floatval($this->to_precision($price, $wavesPrecision - $difference)));
     }
 
-    public function amount_to_precision($symbol, $amount) {
-        return intval(floatval($this->to_precision($amount, $this->markets[$symbol]['precision']['amount'])));
+    public function custom_amount_to_precision($symbol, $amount) {
+        return $this->parse_to_int(floatval($this->to_precision($amount, $this->markets[$symbol]['precision']['amount'])));
     }
 
     public function currency_to_precision($code, $amount, $networkCode = null) {
-        return intval(floatval($this->to_precision($amount, $this->currencies[$code]['precision'])));
+        return $this->parse_to_int(floatval($this->to_precision($amount, $this->currencies[$code]['precision'])));
     }
 
     public function from_precision($amount, $scale) {
@@ -1238,7 +1253,7 @@ class wavesexchange extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of $base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->check_required_dependencies();
         $this->check_required_keys();
@@ -1313,8 +1328,8 @@ class wavesexchange extends Exchange {
         if ($matcherFeeAssetId === null) {
             throw new InsufficientFunds($this->id . ' not enough funds on none of the eligible asset fees');
         }
-        $amount = $this->amount_to_precision($symbol, $amount);
-        $price = $this->price_to_precision($symbol, $price);
+        $amount = $this->custom_amount_to_precision($symbol, $amount);
+        $price = $this->custom_price_to_precision($symbol, $price);
         $byteArray = [
             $this->number_to_be(3, 1),
             $this->base58_to_binary($this->apiKey),
@@ -1394,7 +1409,7 @@ class wavesexchange extends Exchange {
          * @param {string} $id order $id
          * @param {string|null} $symbol unified $symbol of the market the order was made in
          * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->check_required_dependencies();
         $this->check_required_keys();
@@ -1440,7 +1455,7 @@ class wavesexchange extends Exchange {
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the order was made in
          * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->check_required_dependencies();
         $this->check_required_keys();
@@ -1474,7 +1489,7 @@ class wavesexchange extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->check_required_dependencies();
         $this->check_required_keys();
@@ -1525,7 +1540,7 @@ class wavesexchange extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $this->sign_in();
@@ -1549,7 +1564,7 @@ class wavesexchange extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $this->sign_in();
@@ -1888,7 +1903,7 @@ class wavesexchange extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades structures to retrieve
          * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $address = $this->get_waves_address();
@@ -2181,7 +2196,7 @@ class wavesexchange extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string|null} $tag
          * @param {array} $params extra parameters specific to the wavesexchange api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         // currently only works for BTC and WAVES

@@ -16,6 +16,8 @@ from ccxt.base.decimal_to_precision import ROUND_UP, ROUND_DOWN  # noqa F401
 
 # ----------------------------------------------------------------------------
 
+# @ts-nocheck
+
 exchange = ccxt.Exchange({
     'id': 'regirock',
 })

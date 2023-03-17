@@ -13,15 +13,13 @@ use React\Async;
 
 class coinex extends \ccxt\async\coinex {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
                 'watchTicker' => true,
-                'watchTickers' => false,
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchMyTrades' => false, // can query but can't subscribe
                 'watchOrders' => true,
@@ -37,6 +35,7 @@ class coinex extends \ccxt\async\coinex {
                 ),
             ),
             'options' => array(
+                'watchOHLCVWarning' => true,
                 'timeframes' => array(
                     '1m' => 60,
                     '3m' => 180,
@@ -133,16 +132,21 @@ class coinex extends \ccxt\async\coinex {
         //
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $params = $this->safe_value($message, 'params', array());
-        $first = $this->safe_value($params, 0, array());
-        $keys = is_array($first) ? array_keys($first) : array();
-        $marketId = $this->safe_string($keys, 0);
-        $symbol = $this->safe_symbol($marketId, null, null, $defaultType);
-        $ticker = $this->safe_value($first, $marketId, array());
-        $market = $this->safe_market($marketId, null, null, $defaultType);
-        $parsedTicker = $this->parse_ws_ticker($ticker, $market);
-        $messageHash = 'ticker:' . $symbol;
-        $this->tickers[$symbol] = $parsedTicker;
-        $client->resolve ($parsedTicker, $messageHash);
+        $rawTickers = $this->safe_value($params, 0, array());
+        $keys = is_array($rawTickers) ? array_keys($rawTickers) : array();
+        $newTickers = array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $marketId = $keys[$i];
+            $rawTicker = $rawTickers[$marketId];
+            $symbol = $this->safe_symbol($marketId, null, null, $defaultType);
+            $market = $this->safe_market($marketId, null, null, $defaultType);
+            $parsedTicker = $this->parse_ws_ticker($rawTicker, $market);
+            $messageHash = 'ticker:' . $symbol;
+            $this->tickers[$symbol] = $parsedTicker;
+            $newTickers[] = $parsedTicker;
+            $client->resolve ($parsedTicker, $messageHash);
+        }
+        $client->resolve ($newTickers, 'tickers');
     }
 
     public function parse_ws_ticker($ticker, $market = null) {
@@ -251,6 +255,7 @@ class coinex extends \ccxt\async\coinex {
         //
         $params = $this->safe_value($message, 'params', array());
         $first = $this->safe_value($params, 0, array());
+        $this->balance['info'] = $first;
         $currencies = is_array($first) ? array_keys($first) : array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currencyId = $currencies[$i];
@@ -358,7 +363,8 @@ class coinex extends \ccxt\async\coinex {
         $candles = $this->safe_value($message, 'params', array());
         $messageHash = 'ohlcv';
         $ohlcvs = $this->parse_ohlcvs($candles);
-        if ($this->ohlcvs === 0) {
+        $keysLength = $this->ohlcvs;
+        if ($keysLength === 0) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs = new ArrayCacheByTimestamp ($limit);
         }
@@ -372,32 +378,56 @@ class coinex extends \ccxt\async\coinex {
     public function watch_ticker($symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            return Async\await($this->watch_tickers(array( $symbol ), $params));
+        }) ();
+    }
+
+    public function watch_tickers($symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {[string]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the coinex api endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
+            $symbols = $this->market_symbols($symbols);
             $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('watchTicker', $market, $params);
+            list($type, $params) = $this->handle_market_type_and_params('watchTickers', null, $params);
             $url = $this->urls['api']['ws'][$type];
-            $messageHash = 'ticker:' . $symbol;
+            $messageHash = 'tickers';
             $subscribe = array(
                 'method' => 'state.subscribe',
                 'id' => $this->request_id(),
-                'params' => [
-                    $market['id'],
-                ],
+                'params' => array(),
             );
             $request = $this->deep_extend($subscribe, $params);
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
+            $tickers = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            $result = $this->filter_by_array($tickers, 'symbol', $symbols);
+            $keys = is_array($result) ? array_keys($result) : array();
+            $resultLength = count($keys);
+            if ($resultLength > 0) {
+                if ($this->newUpdates) {
+                    return $result;
+                }
+                return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+            }
+            return Async\await($this->watch_tickers($symbols, $params));
         }) ();
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
@@ -407,20 +437,21 @@ class coinex extends \ccxt\async\coinex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchTrades', $market, $params);
             $url = $this->urls['api']['ws'][$type];
             $messageHash = 'trades:' . $symbol;
+            $subscriptionHash = 'trades';
+            $subscribedSymbols = $this->safe_value($this->options, 'watchTradesSubscriptions', array());
+            $subscribedSymbols[] = $market['id'];
             $message = array(
                 'method' => 'deals.subscribe',
-                'params' => [
-                    $market['id'],
-                ],
+                'params' => $subscribedSymbols,
                 'id' => $this->request_id(),
             );
+            $this->options['watchTradesSubscriptions'] = $subscribedSymbols;
             $request = $this->deep_extend($message, $params);
-            $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
+            $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
@@ -428,11 +459,13 @@ class coinex extends \ccxt\async\coinex {
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -457,18 +490,17 @@ class coinex extends \ccxt\async\coinex {
                 throw new NotSupported($this->id . ' watchOrderBook() $aggregation must be one of ' . implode(', ', $aggregations));
             }
             $params = $this->omit($params, 'aggregation');
+            $watchOrderBookSubscriptions = $this->safe_value($this->options, 'watchOrderBookSubscriptions', array());
+            $watchOrderBookSubscriptions[$symbol] = [ $market['id'], $limit, $aggregation, true ];
             $subscribe = array(
-                'method' => 'depth.subscribe',
+                'method' => 'depth.subscribe_multi',
                 'id' => $this->request_id(),
-                'params' => [
-                    $market['id'],
-                    $limit,
-                    $aggregation,
-                    true,
-                ],
+                'params' => is_array($watchOrderBookSubscriptions) ? array_values($watchOrderBookSubscriptions) : array(),
             );
+            $this->options['watchOrderBookSubscriptions'] = $watchOrderBookSubscriptions;
+            $subscriptionHash = $this->hash($this->encode($this->json($watchOrderBookSubscriptions)));
             $request = $this->deep_extend($subscribe, $params);
-            $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            $orderbook = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $request));
             return $orderbook->limit ();
         }) ();
     }
@@ -482,29 +514,40 @@ class coinex extends \ccxt\async\coinex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $messageHash = 'ohlcv';
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOHLCV', $market, $params);
             if ($type !== 'swap') {
                 throw new NotSupported($this->id . ' watchOHLCV() is only supported for swap markets');
             }
             $url = $this->urls['api']['ws'][$type];
+            $messageHash = 'ohlcv';
+            $watchOHLCVWarning = $this->safe_value($this->options, 'watchOHLCVWarning', true);
+            $client = $this->safe_value($this->clients, $url, array());
+            $existingSubscription = $this->safe_value($client->subscriptions, $messageHash);
+            // due to nature of coinex response can only watch one $symbol at a time
+            if ($watchOHLCVWarning && $existingSubscription !== null && ($existingSubscription['symbol'] !== $symbol || $existingSubscription['timeframe'] !== $timeframe)) {
+                throw new ExchangeError($this->id . ' watchOHLCV() can only watch one $symbol and $timeframe at a time. To supress this warning set $watchOHLCVWarning to false in options');
+            }
             $timeframes = $this->safe_value($this->options, 'timeframes', array());
             $subscribe = array(
                 'method' => 'kline.subscribe',
                 'id' => $this->request_id(),
                 'params' => [
                     $market['id'],
-                    $this->safe_integer($timeframes, $timeframe, $timeframe),
+                    $this->safe_string($timeframes, $timeframe, $timeframe),
                 ],
             );
+            $subscription = array(
+                'symbol' => $symbol,
+                'timeframe' => $timeframe,
+            );
             $request = $this->deep_extend($subscribe, $params);
-            $ohlcvs = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            $ohlcvs = Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
             if ($this->newUpdates) {
                 $limit = $ohlcvs->getLimit ($symbol, $limit);
             }
@@ -879,7 +922,7 @@ class coinex extends \ccxt\async\coinex {
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => $this->safe_timestamp($order, 'last_deal_time'),
             'symbol' => $market['symbol'],
-            'type' => $type === 1 ? 'limit' : 'market',
+            'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
