@@ -798,12 +798,15 @@ export default class krakenfutures extends Exchange {
          * @param {bool|undefined} params.postOnly Set as true if you wish to make a postOnly order, Default false
          * @param {string|undefined} params.triggerSignal If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
          * @param {string|undefined} params.cliOrdId UUID The order identity that is specified from the user, It must be globally unique
+         * @param {string|undefined} params.clientOrderId UUID The order identity that is specified from the user, It must be globally unique
          */
         await this.loadMarkets ();
         type = this.safeString (params, 'orderType', type);
         const timeInForce = this.safeString (params, 'timeInForce');
         const stopPrice = this.safeString (params, 'stopPrice');
         const postOnly = this.safeString (params, 'postOnly');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'cliOrdId');
+        params = this.omit (params, [ 'clientOrderId', 'cliOrdId' ]);
         if ((type === 'stp' || type === 'take_profit') && stopPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires params.stopPrice when type is ' + type);
         }
@@ -826,6 +829,9 @@ export default class krakenfutures extends Exchange {
         };
         if (price !== undefined) {
             request['limitPrice'] = price;
+        }
+        if (clientOrderId !== undefined) {
+            request['cliOrdId'] = clientOrderId;
         }
         const response = await (this as any).privatePostSendorder (this.extend (request, params));
         //
