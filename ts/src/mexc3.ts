@@ -185,6 +185,7 @@ export default class mexc3 extends Exchange {
                             'rebate/detail/kickback': 1,
                             'rebate/referCode': 1,
                             'mxDeduct/enable': 1,
+                            'userDataStream': 1,
                         },
                         'post': {
                             'order': 1,

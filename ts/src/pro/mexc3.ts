@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const mexc3Rest = require ('../mexc3.js');
-const { BadRequest, ExchangeError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
+import mexc3Rest from '../mexc3.js';
+import { BadRequest, ExchangeError } from '../base/errors';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class mexc3 extends mexc3Rest {
+export default class mexc3 extends mexc3Rest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -245,7 +244,7 @@ module.exports = class mexc3 extends mexc3Rest {
             this.safeNumber (ohlcv, 'h'),
             this.safeNumber (ohlcv, 'l'),
             this.safeNumber (ohlcv, 'c'),
-            this.safeNumber2 (ohlcv, 'v'),
+            this.safeNumber (ohlcv, 'v'),
         ];
     }
 
@@ -523,7 +522,7 @@ module.exports = class mexc3 extends mexc3Rest {
             tradeId = undefined;
         }
         const priceString = this.safeString (trade, 'p');
-        const amountString = this.safeString2 (trade, 'v');
+        const amountString = this.safeString (trade, 'v');
         const rawSide = this.safeString (trade, 'S');
         const side = (rawSide === '1') ? 'buy' : 'sell';
         const isMaker = this.safeInteger (trade, 'm');
@@ -869,7 +868,7 @@ module.exports = class mexc3 extends mexc3Rest {
             throw new ExchangeError (this.id + ' has reached the maximum number of listen keys (' + listenKeysLimit.toString () + ')');
         }
         const time = this.milliseconds ();
-        const response = await this.spotPrivatePostUserDataStream (params);
+        const response = await (this as any).spotPrivatePostUserDataStream (params);
         //
         //    {
         //        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
@@ -892,7 +891,7 @@ module.exports = class mexc3 extends mexc3Rest {
         };
         const time = this.milliseconds ();
         try {
-            await this.spotPrivatePutUserDataStream (this.extend (request, params));
+            await (this as any).spotPrivatePutUserDataStream (this.extend (request, params));
             this.options['listenKeys'][listenKey] = time;
             const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
@@ -959,4 +958,4 @@ module.exports = class mexc3 extends mexc3Rest {
     ping (client) {
         return { 'method': 'PING' };
     }
-};
+}
