@@ -18,10 +18,10 @@ export default {
     }],
   },
   resolve: {
-    extensions: [".ts", ".js"],
+    extensions: [ ".ts" ],
     // Add support for TypeScripts fully qualified ESM imports.
     extensionAlias: {
-     ".js": [".js", ".ts"],
+     ".js": [ ".js", ".ts" ],
     },
   },
   externals: [ 'ws', 'zlib' ],
