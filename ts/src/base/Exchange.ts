@@ -180,6 +180,8 @@ export default class Exchange {
 
     // do not delete this line, it is needed for users to be able to define their own fetchImplementation
     fetchImplementation: any
+    AbortError: any
+
     validateServerSsl = true
     validateClientSsl = false
 
@@ -865,15 +867,14 @@ export default class Exchange {
         if (this.verbose) {
             this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
         }
-        let AbortError
         if (this.fetchImplementation === undefined) {
             if (isNode) {
                 const module = await import ('../static_dependencies/node-fetch/index.js')
-                AbortError = module.AbortError
+                this.AbortError = module.AbortError
                 this.fetchImplementation = module.default
             } else {
                 this.fetchImplementation = self.fetch
-                AbortError = DOMException
+                this.AbortError = DOMException
             }
         }
         // fetchImplementation cannot be called on this. in browsers:
@@ -897,7 +898,7 @@ export default class Exchange {
             clearTimeout (timeout)
             return this.handleRestResponse (response, url, method, headers, body);
         } catch (e) {
-            if (e instanceof AbortError) {
+            if (e instanceof this.AbortError) {
                 throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
             }
             throw e
