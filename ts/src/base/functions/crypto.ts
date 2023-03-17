@@ -1,85 +1,52 @@
 /*  ------------------------------------------------------------------------ */
 
-import BN from '../../static_dependencies/BN/bn.cjs';
-import elliptic from '../../static_dependencies/elliptic/lib/elliptic.cjs';
-import NodeRSA from '../../static_dependencies/node-rsa/NodeRSA.cjs';
-import { sha1, hmacSHA1 } from '../../static_dependencies/crypto-js/sha1.js';
-import { sha3, hmacSHA3 } from '../../static_dependencies/crypto-js/sha3.js';
-import { sha256, hmacSHA256 } from '../../static_dependencies/crypto-js/sha256.js';
-import { sha384, hmacSHA384 } from '../../static_dependencies/crypto-js/sha384.js';
-import { sha512, hmacSHA512 } from '../../static_dependencies/crypto-js/sha512.js';
-import { md5, hmacMD5 } from '../../static_dependencies/crypto-js/md5.js';
-import base64 from '../../static_dependencies/crypto-js/enc-base64.js';
-import { Hex, Latin1 } from '../../static_dependencies/crypto-js/core.js';
+import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
+import { sha1 } from '../../static_dependencies/noble-hashes/sha1.js'
+import { keccak_256 as keccak } from '../../static_dependencies/noble-hashes/sha3.js';
+import { sha256 } from '../../static_dependencies/noble-hashes/sha256.js';
+import { sha512, sha384 } from '../../static_dependencies/noble-hashes/sha512.js';
+import { hmac as _hmac } from '../../static_dependencies/noble-hashes/hmac.js';
+import { base16, base32, base64, base64url, utf8 } from "../../static_dependencies/scure-base/index.js";
+import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
+import { x25519 } from "../../static_dependencies/noble-curves/ed25519.js";
+import { Digest, Hash, Curve } from "../types.js";
+import { stringToBase64, urlencodeBase64 } from './encode.js';
 
-import { Digest, Hash, Hmac } from "../types.js";
-import { binaryToBase58, byteArrayToWordArray, stringToBase64, urlencodeBase64 } from './encode.js';
+
 // import errors from './../errors.js'
 import { ExchangeError } from '../errors.js';
 
-const EC = elliptic.ec;
-const EDDSA = elliptic.eddsa;
+// const EC = elliptic.ec;
+// const EDDSA = elliptic.eddsa;
 /*  ------------------------------------------------------------------------ */
 
-const hex = Hex
-const latin1 = Latin1
-const hashes = { md5, sha1, sha3, sha256, sha384, sha512 }
-const digests = { hex, base64, latin1 }
-
-const hash = (request, hash = Hash.Md5, digest = Digest.Hex) => {
-    const options = {};
-    if (hash === Hash.Keccak) {
-        hash = Hash.Sha3;
-        options['outputLength'] = 256;
-    }
-    const encoder = hashes[hash]
-    const result = encoder (request, options)
-    if (digest === 'binary') {
-        return result
-    } else {
-        const digester = digests[digest]
-        return result.toString (digester)
-    }
-};
-
-/*  .............................................   */
-
-const hmacs = {
-    [Hash.Md5]: hmacMD5,
-    [Hash.Sha1]: hmacSHA1,
-    [Hash.Sha3]: hmacSHA3,
-    [Hash.Sha256]: hmacSHA256,
-    [Hash.Sha384]: hmacSHA384,
-    [Hash.Sha512]: hmacSHA512,
+const hashes = { sha1, sha256, sha384, sha512, keccak }
+const encoders = {
+    [Digest.Binary]: x => x,
+    [Digest.Hex]: base16.encode,
+    [Digest.Base64]: base64.encode,
 }
 
-const hmac = (request, secret, hash = Hmac.Sha256, digest = Digest.Hex) => {
-    const encoder = hmacs[hash]
-    const result = encoder (request, secret);
-    if (digest) {
-        const encoding = (digest === 'binary') ? 'latin1' : digest;
-        const digester = digests[encoding]
-        return result.toString (digester);
-    }
-    return result;
+const hash = (request, hash = Hash.Md5, digest = Digest.Hex) => {
+    const binary = hashes[hash] (request)
+    return encoders[digest] (binary)
 };
 
 /*  .............................................   */
 
-function rsa (request, secret, alg = 'RS256') {
-    const algos = {
-        'RS256': 'pkcs1-sha256',
-        'RS512': 'pkcs1-sha512',
-    };
-    if (!(alg in algos)) {
-        throw new ExchangeError (alg + ' is not a supported rsa signing algorithm.');
-    }
-    const algorithm = algos[alg];
-    const key = new NodeRSA (secret, {
-        'environment': 'browser',
-        'signingScheme': algorithm,
-    });
-    return key.sign (request, 'base64', 'binary');
+const hmac = (request, secret, hash = Hash.Sha256, digest = Digest.Hex) => {
+    const binary = _hmac (hashes[hash], secret, request)
+    return encoders[digest] (binary)
+};
+
+/*  .............................................   */
+
+const RSA = new JSEncrypt ()
+function rsa (request, secret, hash = Hash.Sha256) {
+    const digest = hashes[hash]
+    const digester = (input) => base16.encode (digest (input))
+    RSA.setPrivateKey (secret)
+    return RSA.sign (request, digester, hash)
 }
 
 /**
@@ -87,9 +54,11 @@ function rsa (request, secret, alg = 'RS256') {
  */
 function jwt (request, secret, alg = 'HS256') {
     const algos = {
-        'HS256': 'sha256',
-        'HS384': 'sha384',
-        'HS512': 'sha512',
+        'RS256': Hash.Sha256,
+        'RS512': Hash.Sha512,
+        'HS256': Hash.Sha256,
+        'HS384': Hash.Sha384,
+        'HS512': Hash.Sha512,
     };
     const encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })));
     const encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)));
@@ -100,37 +69,42 @@ function jwt (request, secret, alg = 'HS256') {
     if (algoType === 'HS') {
         signature = urlencodeBase64 (hmac (token, secret, algorithm, Digest.Base64));
     } else if (algoType === 'RS') {
-        signature = urlencodeBase64 (rsa (token, secret, alg));
+        signature = urlencodeBase64 (rsa (token, secret, algorithm));
     }
     return [ token, signature ].join ('.');
 }
 
-function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, fixedLength = false) {
-    let digest = request;
-    if (hashFunction !== undefined) {
-        digest = hash (request, hashFunction, Digest.Hex);
+const curves = { secp256k1 }
+
+function ecdsa (request: string, secret: string, algorithm: Curve.Secp256k1, prehash: Hash = null) {
+    const curve = curves[algorithm]
+    if (prehash) {
+        request = hash (request, prehash, Digest.Hex)
     }
-    const curve = new EC (algorithm);
-    let signature = curve.sign (digest, secret, 'hex', { 'canonical': true });
-    let counter = new BN ('0');
-    const minimum_size = new BN ('1').shln (8 * 31).sub (new BN ('1'));
-    while (fixedLength && (signature.r.gt (curve.nh) || signature.r.lte (minimum_size) || signature.s.lte (minimum_size))) {
-        signature = curve.sign (digest, secret, 'hex', { 'canonical': true, 'extraEntropy': counter.toArray ('le', 32) });
-        counter = counter.add (new BN ('1'));
-    }
+    const signature = curve.sign (request, secret)
     return {
-        'r': signature.r.toString (16).padStart (64, '0'),
-        's': signature.s.toString (16).padStart (64, '0'),
-        'v': signature.recoveryParam,
-    };
+        'r': signature.r.toString (16),
+        's': signature.s.toString (16),
+        'v': signature.recovery,
+    }
 }
 
-function eddsa (request, secret, algorithm = 'ed25519') {
+function eddsa (request, secret, _) {
     // used for waves.exchange (that's why the output is base58)
-    const curve = new EDDSA (algorithm);
-    const signature = curve.signModified (request, secret);
-    return binaryToBase58 (byteArrayToWordArray (signature.toBytes ()));
+    const publicKey = x25519.getPublicKey (secret)
+    console.log (publicKey)
+    // const s = hashToCurve (request)
+    // const signature = curve.signModified (request, secret);
+    // return binaryToBase58 (byteArrayToWordArray (signature.toBytes ()));
 }
+function old (request, secret, _) {
+    // const curve = new EDDSA ('ed25519');
+    // const signature = curve.signModified (request, secret);
+    //return binaryToBase58 (byteArrayToWordArray (signature.toBytes ()));
+}
+
+// old ('aa', 'aa'.repeat (16), '')
+
 
 /*  ------------------------------------------------------------------------ */
 
@@ -140,26 +114,11 @@ const totp = (secret) => {
     const hex2dec = (s) => parseInt (s, 16);
     const leftpad = (s, p) => (p + s).slice (-p.length); // both s and p are short strings
 
-    const base32tohex = (base32) => {
-        const base32chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-        let bits = '';
-        let hex = '';
-        for (let i = 0; i < base32.length; i++) {
-            const val = base32chars.indexOf (base32.charAt (i).toUpperCase ());
-            bits += leftpad (val.toString (2), '00000');
-        }
-        for (let i = 0; i + 4 <= bits.length; i += 4) {
-            const chunk = bits.substr (i, 4);
-            hex = hex + parseInt (chunk, 2).toString (16);
-        }
-        return hex;
-    };
-
     const getOTP = (secret) => {
         secret = secret.replace (' ', ''); // support 2fa-secrets with spaces like "4TDV WOGO" → "4TDVWOGO"
         const epoch = Math.round (new Date ().getTime () / 1000.0);
         const time = leftpad (dec2hex (Math.floor (epoch / 30)), '0000000000000000');
-        const hmacRes = hmac (hex.parse (time), hex.parse (base32tohex (secret)), Hmac.Sha1, Digest.Hex);
+        const hmacRes = hmac (base16.decode (time), base32.decode (secret), Hash.Sha1, Digest.Hex);
         const offset = hex2dec (hmacRes.substring (hmacRes.length - 1));
         // eslint-disable-next-line
         let otp = (hex2dec (hmacRes.substr (offset * 2, 8)) & hex2dec ('7fffffff')) + '';
