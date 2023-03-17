@@ -160,10 +160,10 @@ module.exports = class poloniex extends poloniexRest {
                 const symbol = symbols[i];
                 marketIds.push (this.marketId (symbol));
             }
-            subscribe['symbols'] = marketIds;
         } else {
             marketIds.push ('all');
         }
+        subscribe['symbols'] = marketIds;
         const messageHash = name + ':' + marketIds.join (',');
         const request = this.extend (subscribe, params);
         return await this.watch (url, messageHash, request, name);
@@ -719,6 +719,7 @@ module.exports = class poloniex extends poloniexRest {
                     this.tickers[symbol] = ticker;
                     const messageHash = 'ticker:' + marketId;
                     client.resolve (ticker, messageHash);
+                    client.resolve (ticker, 'ticker:all');
                 }
             }
             return message;
