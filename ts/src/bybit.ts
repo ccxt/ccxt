@@ -4641,9 +4641,6 @@ export default class bybit extends Exchange {
         } else {
             let subType = undefined;
             [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
-            if (subType === 'inverse') {
-                throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + subType + ' markets.');
-            }
             request['category'] = subType;
         }
         if (since !== undefined) {
@@ -4767,83 +4764,6 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyContractTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyContractTrades() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        let market = undefined;
-        const request = {
-            // 'symbol': market['id'],
-            // 'category': '', // Product type. spot,linear,option
-            // 'orderId': '', // Order ID
-            // 'orderLinkId': '', // User customised order ID
-            // 'baseCoin': '', // Base coin
-            // 'startTime': 0, // The start timestamp (ms)
-            // 'endTime': 0, // The end timestamp (ms)
-            // 'execType': '', // Execution type
-            // 'limit': 0, // Limit for data size per page. [1, 100]. Default: 50
-            // 'cursor': '', // Cursor. Used for pagination
-        };
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
-        request['category'] = subType;
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 50, max 100
-        }
-        const response = await (this as any).privateGetV5ExecutionList (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "nextPageCursor": "132766%3A2%2C132766%3A2",
-        //             "category": "linear",
-        //             "list": [
-        //                 {
-        //                     "symbol": "ETHPERP",
-        //                     "orderType": "Market",
-        //                     "underlyingPrice": "",
-        //                     "orderLinkId": "",
-        //                     "side": "Buy",
-        //                     "indexPrice": "",
-        //                     "orderId": "8c065341-7b52-4ca9-ac2c-37e31ac55c94",
-        //                     "stopOrderType": "UNKNOWN",
-        //                     "leavesQty": "0",
-        //                     "execTime": "1672282722429",
-        //                     "isMaker": false,
-        //                     "execFee": "0.071409",
-        //                     "feeRate": "0.0006",
-        //                     "execId": "e0cbe81d-0f18-5866-9415-cf319b5dab3b",
-        //                     "tradeIv": "",
-        //                     "blockTradeId": "",
-        //                     "markPrice": "1183.54",
-        //                     "execPrice": "1190.15",
-        //                     "markIv": "",
-        //                     "orderQty": "0.1",
-        //                     "orderPrice": "1236.9",
-        //                     "execValue": "119.015",
-        //                     "execType": "Trade",
-        //                     "execQty": "0.1"
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": {},
-        //         "time": 1672283754510
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'list', []);
-        return this.parseTrades (trades, market, since, limit);
-    }
-
     async fetchMyUsdcTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -4920,18 +4840,16 @@ export default class bybit extends Exchange {
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        if ((type === 'spot') || enableUnifiedAccount) {
+        if (!(enableUnifiedMargin || enableUnifiedAccount) && isUsdcSettled) {
+            return await this.fetchMyUsdcTrades (symbol, since, limit, query);
+        } else if (type === 'spot' && enableUnifiedMargin) {
+            return await this.fetchMyUnifiedMarginTrades (symbol, since, limit, query);
+        } else {
             const orderId = this.safeString (params, 'orderId');
             if (orderId === undefined) {
                 this.checkRequiredSymbol ('fetchMyTrades', symbol);
             }
             return await this.fetchMyUnifiedTrades (symbol, since, limit, query);
-        } else if (enableUnifiedMargin && !isInverse) {
-            return await this.fetchMyUnifiedMarginTrades (symbol, since, limit, query);
-        } else if (isUsdcSettled) {
-            return await this.fetchMyUsdcTrades (symbol, since, limit, query);
-        } else {
-            return await this.fetchMyContractTrades (symbol, since, limit, query);
         }
     }
 
