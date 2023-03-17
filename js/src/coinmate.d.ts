@@ -27,7 +27,7 @@ export default class coinmate extends Exchange {
         quoteVolume: any;
         info: any;
     }>;
-    fetchTransactions(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchTransactions(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         id: string;
@@ -73,7 +73,7 @@ export default class coinmate extends Exchange {
         };
         info: any;
     }>;
-    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTradingFee(symbol: any, params?: {}): Promise<{
@@ -84,14 +84,14 @@ export default class coinmate extends Exchange {
         percentage: boolean;
         tierBased: boolean;
     }>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     parseOrderStatus(status: any): string;
     parseOrderType(type: any): string;
     parseOrder(order: any, market?: any): any;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: any, params?: {}): Promise<{
+    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: any, symbol?: string, params?: {}): Promise<{
         info: any;
     }>;
     nonce(): number;

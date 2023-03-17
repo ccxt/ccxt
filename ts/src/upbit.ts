@@ -514,7 +514,7 @@ export default class upbit extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
+    async fetchOrderBooks (symbols: string[] = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOrderBooks
@@ -658,7 +658,7 @@ export default class upbit extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchTickers
@@ -807,7 +807,7 @@ export default class upbit extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchTrades
@@ -944,7 +944,7 @@ export default class upbit extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOHLCV
@@ -1093,7 +1093,7 @@ export default class upbit extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name upbit#cancelOrder
@@ -1130,7 +1130,7 @@ export default class upbit extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchDeposits
@@ -1174,7 +1174,7 @@ export default class upbit extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchWithdrawals
@@ -1444,7 +1444,7 @@ export default class upbit extends Exchange {
         return result;
     }
 
-    async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByState (state, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'market': this.marketId (symbol),
@@ -1482,7 +1482,7 @@ export default class upbit extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOpenOrders
@@ -1496,7 +1496,7 @@ export default class upbit extends Exchange {
         return await this.fetchOrdersByState ('wait', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchClosedOrders
@@ -1510,7 +1510,7 @@ export default class upbit extends Exchange {
         return await this.fetchOrdersByState ('done', symbol, since, limit, params);
     }
 
-    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchCanceledOrders
@@ -1524,7 +1524,7 @@ export default class upbit extends Exchange {
         return await this.fetchOrdersByState ('cancel', symbol, since, limit, params);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOrder

@@ -260,7 +260,7 @@ export default class wazirx extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchOHLCV
@@ -383,7 +383,7 @@ export default class wazirx extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchTickers
@@ -421,7 +421,7 @@ export default class wazirx extends Exchange {
         return result;
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchTrades
@@ -621,7 +621,7 @@ export default class wazirx extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchOrders
@@ -681,7 +681,7 @@ export default class wazirx extends Exchange {
         return orders;
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchOpenOrders
@@ -731,7 +731,7 @@ export default class wazirx extends Exchange {
         return orders;
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#cancelAllOrders
@@ -751,7 +751,7 @@ export default class wazirx extends Exchange {
         return await (this as any).privateDeleteOpenOrders (this.extend (request, params));
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#cancelOrder

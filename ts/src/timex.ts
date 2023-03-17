@@ -335,7 +335,7 @@ export default class timex extends Exchange {
         return this.indexBy (result, 'code');
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchDeposits
@@ -370,7 +370,7 @@ export default class timex extends Exchange {
         return this.parseTransactions (response, code, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchWithdrawals
@@ -454,7 +454,7 @@ export default class timex extends Exchange {
         };
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchTickers
@@ -574,7 +574,7 @@ export default class timex extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchTrades
@@ -622,7 +622,7 @@ export default class timex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchOHLCV
@@ -837,7 +837,7 @@ export default class timex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name timex#cancelOrder
@@ -851,7 +851,7 @@ export default class timex extends Exchange {
         return await this.cancelOrders ([ id ], symbol, params);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelOrders (ids, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name timex#cancelOrders
@@ -893,7 +893,7 @@ export default class timex extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchOrder
@@ -945,7 +945,7 @@ export default class timex extends Exchange {
         return this.parseOrder (this.extend (order, { 'trades': trades }));
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchOpenOrders
@@ -1000,7 +1000,7 @@ export default class timex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchClosedOrders
@@ -1060,7 +1060,7 @@ export default class timex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchMyTrades

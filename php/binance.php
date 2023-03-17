@@ -2042,22 +2042,23 @@ class binance extends Exchange {
         $lowercaseId = $this->safe_string_lower($market, 'symbol');
         $baseId = $this->safe_string($market, 'baseAsset', $optionBase);
         $quoteId = $this->safe_string($market, 'quoteAsset');
-        $settleId = $this->safe_string($market, 'marginAsset', 'USDT');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $settle = $this->safe_currency_code($settleId);
         $contractType = $this->safe_string($market, 'contractType');
         $contract = (is_array($market) && array_key_exists('contractType', $market));
         $expiry = $this->safe_integer_2($market, 'deliveryDate', 'expiryDate');
+        $settleId = $this->safe_string($market, 'marginAsset');
         if (($contractType === 'PERPETUAL') || ($expiry === 4133404800000)) { // some $swap markets do not have $contract type, eg => BTCST
             $expiry = null;
             $swap = true;
         } elseif ($underlying !== null) {
             $contract = true;
             $option = true;
+            $settleId = ($settleId === null) ? 'USDT' : $settleId;
         } else {
             $future = true;
         }
+        $settle = $this->safe_currency_code($settleId);
         $spot = !$contract;
         $filters = $this->safe_value($market, 'filters', array());
         $filtersByType = $this->index_by($filters, 'filterType');

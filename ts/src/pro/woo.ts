@@ -204,7 +204,7 @@ export default class woo extends wooRest {
         return message;
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'tickers';
         const topic = name;
@@ -261,7 +261,7 @@ export default class woo extends wooRest {
         client.resolve (result, topic);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         if ((timeframe !== '1m') && (timeframe !== '5m') && (timeframe !== '15m') && (timeframe !== '30m') && (timeframe !== '1h') && (timeframe !== '1d') && (timeframe !== '1w') && (timeframe !== '1M')) {
             throw new ExchangeError (this.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
@@ -327,7 +327,7 @@ export default class woo extends wooRest {
         client.resolve (stored, topic);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const topic = market['id'] + '@trade';
@@ -458,7 +458,7 @@ export default class woo extends wooRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         const topic = 'executionreport';
         let messageHash = topic;

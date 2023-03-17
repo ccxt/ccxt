@@ -326,9 +326,9 @@ export const extractContentType = (body, request) => {
 		return null;
 	}
 
-	if (body instanceof FormData) {
-		return `multipart/form-data; boundary=${request[INTERNALS].boundary}`;
-	}
+	// if (body instanceof FormData) {
+	// 	return `multipart/form-data; boundary=${request[INTERNALS].boundary}`;
+	// }
 
 	// Detect form data input from form-data module
 	if (body && typeof body.getBoundary === 'function') {

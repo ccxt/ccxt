@@ -2179,9 +2179,10 @@ class kucoin(Exchange):
         statuses = {
             'SUCCESS': 'ok',
             'PROCESSING': 'pending',
+            'WALLET_PROCESSING': 'pending',
             'FAILURE': 'failed',
         }
-        return self.safe_string(statuses, status)
+        return self.safe_string(statuses, status, status)
 
     def parse_transaction(self, transaction, currency=None):
         #

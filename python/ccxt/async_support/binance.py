@@ -2024,21 +2024,22 @@ class binance(Exchange):
         lowercaseId = self.safe_string_lower(market, 'symbol')
         baseId = self.safe_string(market, 'baseAsset', optionBase)
         quoteId = self.safe_string(market, 'quoteAsset')
-        settleId = self.safe_string(market, 'marginAsset', 'USDT')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        settle = self.safe_currency_code(settleId)
         contractType = self.safe_string(market, 'contractType')
         contract = ('contractType' in market)
         expiry = self.safe_integer_2(market, 'deliveryDate', 'expiryDate')
+        settleId = self.safe_string(market, 'marginAsset')
         if (contractType == 'PERPETUAL') or (expiry == 4133404800000):  # some swap markets do not have contract type, eg: BTCST
             expiry = None
             swap = True
         elif underlying is not None:
             contract = True
             option = True
+            settleId = 'USDT' if (settleId is None) else settleId
         else:
             future = True
+        settle = self.safe_currency_code(settleId)
         spot = not contract
         filters = self.safe_value(market, 'filters', [])
         filtersByType = self.index_by(filters, 'filterType')

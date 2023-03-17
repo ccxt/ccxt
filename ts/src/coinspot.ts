@@ -277,7 +277,7 @@ export default class coinspot extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#fetchTickers
@@ -321,7 +321,7 @@ export default class coinspot extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#fetchTrades
@@ -414,7 +414,7 @@ export default class coinspot extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#cancelOrder

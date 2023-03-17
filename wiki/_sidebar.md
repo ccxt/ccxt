@@ -1,5 +1,5 @@
-* [Manual](Manual.md)
 * [Install](Install.md)
+* [Manual](Manual.md)
 * [CCXT Pro](ccxt.pro.manual.md)
 * [FAQ](FAQ.md)
 * [Contributing](CONTRIBUTING.md)

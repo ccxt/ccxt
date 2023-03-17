@@ -761,7 +761,7 @@ export default class kraken extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchTickers
@@ -844,7 +844,7 @@ export default class kraken extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchOHLCV
@@ -957,7 +957,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchLedger
@@ -1136,7 +1136,7 @@ export default class kraken extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchTrades
@@ -1575,7 +1575,7 @@ export default class kraken extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchOrder
@@ -1644,7 +1644,7 @@ export default class kraken extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchOrderTrades
@@ -1725,7 +1725,7 @@ export default class kraken extends Exchange {
         return result;
     }
 
-    async fetchOrdersByIds (ids, symbol = undefined, params = {}) {
+    async fetchOrdersByIds (ids, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await (this as any).privatePostQueryOrders (this.extend ({
             'trades': true, // whether or not to include trades in output (optional, default false)
@@ -1743,7 +1743,7 @@ export default class kraken extends Exchange {
         return orders;
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchMyTrades
@@ -1803,7 +1803,7 @@ export default class kraken extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name kraken#cancelOrder
@@ -1833,7 +1833,7 @@ export default class kraken extends Exchange {
         return response;
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelOrders (ids, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name kraken#cancelOrders
@@ -1858,7 +1858,7 @@ export default class kraken extends Exchange {
         return response;
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name kraken#cancelAllOrders
@@ -1871,7 +1871,7 @@ export default class kraken extends Exchange {
         return await (this as any).privatePostCancelAll (params);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchOpenOrders
@@ -1903,7 +1903,7 @@ export default class kraken extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchClosedOrders
@@ -2104,7 +2104,7 @@ export default class kraken extends Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchDeposits
@@ -2164,7 +2164,7 @@ export default class kraken extends Exchange {
         return this.safeTimestamp (result, 'unixtime');
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchWithdrawals
@@ -2369,7 +2369,7 @@ export default class kraken extends Exchange {
         throw new ExchangeError (this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchPositions

@@ -4,14 +4,14 @@ export default class cryptocom extends cryptocomRest {
     pong(client: any, message: any): Promise<void>;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     handleOrderBookSnapshot(client: any, message: any): void;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): void;
-    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     watchTicker(symbol: any, params?: {}): Promise<any>;
     handleTicker(client: any, message: any): void;
-    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOHLCV(client: any, message: any): void;
-    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrders(client: any, message: any, subscription?: any): void;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: any, message: any): void;

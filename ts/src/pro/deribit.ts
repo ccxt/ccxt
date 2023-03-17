@@ -215,7 +215,7 @@ export default class deribit extends deribitRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name deribit#watchTrades
@@ -294,7 +294,7 @@ export default class deribit extends deribitRest {
         client.resolve (this.trades[symbol], channel);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name deribit#watchMyTrades
@@ -515,7 +515,7 @@ export default class deribit extends deribitRest {
         }
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name deribit#watchOrders
@@ -609,7 +609,7 @@ export default class deribit extends deribitRest {
         client.resolve (this.orders, channel);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name deribit#watchOHLCV
