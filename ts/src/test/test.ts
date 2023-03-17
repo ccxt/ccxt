@@ -41,14 +41,15 @@ const properties = Object.keys (exchange.has);
 properties.push ('loadMarkets');
 for (let i = 0; i < properties.length; i++) {
     const property = properties[i];
-    const filePath = __dirname + '/Exchange/test.' + property + '.ts';
-    if (fs.existsSync (filePath)) {
+    const filePath = __dirname + '/Exchange/test.' + property;
+    if (fs.existsSync (filePath + '.ts')) {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        testFiles[property+'a'] = 123;
-        testFiles[property] = await import ('file://'+__dirname + '/Exchange/test.' + property + '.ts');
+        type ModuleType = typeof import(filePath); // This is the import type!
+        const imp : Promise<ModuleType>= import(filePath);
+        testFiles[property] = await imp;
     }
 }
-import errors from '../base/errorHierarchy.js';
+import errors from '../base/errorHierarchy';
 
 Object.keys (errors)
     // eslint-disable-next-line no-path-concat
