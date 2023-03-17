@@ -75,11 +75,11 @@ module.exports = class poloniex extends poloniexRest {
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
-            const accessPath = '/ws/private';
+            const accessPath = '/ws';
             const requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
             // let expires = this.milliseconds () + 10000;
             // expires = expires.toString ();
-            const signature = this.hmac (this.encode (requestString), this.base64ToBinary (this.secret), 'sha256', 'base64');
+            const signature = this.hmac (this.encode (requestString), this.encode (this.secret), 'sha256', 'base64');
             const request = {
                 'event': 'subscribe',
                 'channel': [ 'auth' ],
@@ -92,7 +92,7 @@ module.exports = class poloniex extends poloniexRest {
                 },
             };
             const message = this.extend (request, params);
-            future = this.watch (url, messageHash, message);
+            future = await this.watch (url, messageHash, message);
             //
             //    {
             //        "data": {
@@ -293,13 +293,10 @@ module.exports = class poloniex extends poloniexRest {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        await this.loadMarkets ();
         const name = 'balances';
         await this.authenticate ();
-        const orders = await this.subscribe (name, true, undefined, params);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        return await this.subscribe (name, true, undefined, params);
     }
 
     parseWsOHLCV (ohlcv, market = undefined) {
@@ -881,6 +878,10 @@ module.exports = class poloniex extends poloniexRest {
 
     handleMessage (client, message) {
         const type = this.safeString (message, 'channel');
+        const event = this.safeString (message, 'event');
+        if (event === 'pong') {
+            return this.handlePong (client, message);
+        }
         const methods = {
             'candles_minute_1': this.handleOHLCV,
             'candles_minute_5': this.handleOHLCV,
@@ -920,7 +921,8 @@ module.exports = class poloniex extends poloniexRest {
         //        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
         //    }
         //
-        const success = this.safeValue (message, 'success');
+        const data = this.safeValue (message, 'data');
+        const success = this.safeValue (data, 'success');
         const messageHash = 'authenticated';
         if (success) {
             client.resolve (message, messageHash);
@@ -931,6 +933,17 @@ module.exports = class poloniex extends poloniexRest {
                 delete client.subscriptions[messageHash];
             }
         }
+        return message;
+    }
+
+    ping (client) {
+        return {
+            'event': 'ping',
+        };
+    }
+
+    handlePong (client, message) {
+        client.lastPong = this.milliseconds ();
         return message;
     }
 };
