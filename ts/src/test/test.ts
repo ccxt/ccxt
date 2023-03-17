@@ -39,16 +39,16 @@ const method_namer_in_test = (str) => str;
 const testFiles = {};
 const properties = Object.keys (exchange.has);
 properties.push ('loadMarkets');
-properties
-    // eslint-disable-next-line no-path-concat
-    .filter ((property) => fs.existsSync (__dirname + '/Exchange/test.' + property + '.js'))
-    .forEach ((property) => {
+for (let i = 0; i < properties.length; i++) {
+    const property = properties[i];
+    const filePath = __dirname + '/Exchange/test.' + property + '.ts';
+    if (fs.existsSync (filePath)) {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        testFiles[property] = require (__dirname + '/Exchange/test.' + property + '.js');
-    });
-
-let errors = import('../base/errorHierarchy.js');
-errors = errors['default'];
+        testFiles[property+'a'] = 123;
+        testFiles[property] = await import ('file://'+__dirname + '/Exchange/test.' + property + '.ts');
+    }
+}
+import errors from '../base/errorHierarchy.js';
 
 Object.keys (errors)
     // eslint-disable-next-line no-path-concat
@@ -61,7 +61,7 @@ Object.keys (errors)
 const AuthenticationError = errors.AuthenticationError;
 
 // non-transpiled commons
-const rootDir = __dirname + '/../../';
+const rootDir = __dirname + '/../../../';
 const envVars = process.env;
 
 class emptyClass {}
@@ -104,7 +104,7 @@ function get_exchange_prop (exchange, prop, defaultValue = undefined) {
 function set_exchange_prop (exchange, prop, value) {
     exchange[prop] = value;
 }
-
+var exports = {};
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
 
@@ -600,4 +600,4 @@ export default class testMainClass extends emptyClass {
 
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new MainTest ()).init (exchange, exchangeSymbol);
+(new testMainClass ()).init (exchange, exchangeSymbol);
