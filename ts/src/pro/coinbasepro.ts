@@ -78,7 +78,7 @@ export default class coinbasepro extends coinbaseproRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/README?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const name = 'ticker';
         return await this.subscribe (name, symbol, name, params);
@@ -114,7 +114,7 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/README?id=order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         if (symbol === undefined) {
             throw new BadSymbol (this.id + ' watchMyTrades requires a symbol');
@@ -140,7 +140,7 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/README?id=order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new BadSymbol (this.id + ' watchMyTrades requires a symbol');
@@ -165,7 +165,7 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/README?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const name = 'level2';
         await this.loadMarkets ();

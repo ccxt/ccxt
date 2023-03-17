@@ -319,7 +319,7 @@ export default class kucoinfutures extends kucoin {
          * @name kucoinfutures#fetchStatus
          * @description the latest known information on the availability of the exchange API
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/README?id=exchange-status-structure}
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
         const response = await (this as any).futuresPublicGetStatus (params);
         //
@@ -605,7 +605,7 @@ export default class kucoinfutures extends kucoin {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/README?id=address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -646,7 +646,7 @@ export default class kucoinfutures extends kucoin {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/README?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const level = this.safeNumber (params, 'level');
@@ -703,7 +703,7 @@ export default class kucoinfutures extends kucoin {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/README?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -788,7 +788,7 @@ export default class kucoinfutures extends kucoin {
          * @param {int|undefined} since the earliest time in ms to fetch funding history for
          * @param {int|undefined} limit the maximum number of funding history structures to retrieve
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/README?id=funding-history-structure}
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         //
         if (symbol === undefined) {
@@ -859,7 +859,7 @@ export default class kucoinfutures extends kucoin {
          * @description fetch all open positions
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/README?id=position-structure}
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         const response = await (this as any).futuresPrivateGetPositions (params);
@@ -1031,7 +1031,7 @@ export default class kucoinfutures extends kucoin {
          * @param {string} params.stopPriceType  TP, IP or MP, defaults to MP: Mark Price
          * @param {bool} params.closeOrder set to true to close position
          * @param {bool} params.forceHold A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/README?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1139,7 +1139,7 @@ export default class kucoinfutures extends kucoin {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/README?id=order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1198,7 +1198,7 @@ export default class kucoinfutures extends kucoin {
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/README?id=add-margin-structure}
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1342,7 +1342,7 @@ export default class kucoinfutures extends kucoin {
          * @param {int|undefined} params.until End time in ms
          * @param {string|undefined} params.side buy or sell
          * @param {string|undefined} params.type limit or market
-         * @returns An [array of order structures]{@link https://docs.ccxt.com/#/README?id=order-structure}
+         * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
@@ -1389,7 +1389,7 @@ export default class kucoinfutures extends kucoin {
          * @param {int|undefined} params.till end time in ms
          * @param {string|undefined} params.side buy or sell
          * @param {string|undefined} params.type limit, or market
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/README?id=order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }
@@ -1401,7 +1401,7 @@ export default class kucoinfutures extends kucoin {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/README?id=order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1500,7 +1500,7 @@ export default class kucoinfutures extends kucoin {
          * @description fetch the current funding rate
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/README?id=funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1607,7 +1607,7 @@ export default class kucoinfutures extends kucoin {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/README?id=transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         if ((toAccount !== 'main' && toAccount !== 'funding') || (fromAccount !== 'futures' && fromAccount !== 'future' && fromAccount !== 'contract')) {
             throw new BadRequest (this.id + ' transfer() only supports transfers from contract(future) account to main(funding) account');
@@ -1675,7 +1675,7 @@ export default class kucoinfutures extends kucoin {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/README?id=trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1915,7 +1915,7 @@ export default class kucoinfutures extends kucoin {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/README?id=transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1971,7 +1971,7 @@ export default class kucoinfutures extends kucoin {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/README?id=transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -2025,7 +2025,7 @@ export default class kucoinfutures extends kucoin {
          * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/README?id=fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         // throw new BadRequest (this.id + ' fetchTransactionFee() is not supported');
         return undefined;
@@ -2038,7 +2038,7 @@ export default class kucoinfutures extends kucoin {
          * @description Not supported
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/README?id=fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         throw new BadRequest (this.id + ' fetchDepositWithdrawFee() is not supported');
     }
@@ -2055,7 +2055,7 @@ export default class kucoinfutures extends kucoin {
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/README?id=leverage-tiers-structure}
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
