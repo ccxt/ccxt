@@ -23,24 +23,24 @@ export default class coinw extends Exchange {
                 'swap': undefined, // has but unimplemented
                 'future': undefined,
                 'option': undefined,
-                'cancelAllOrders': true, // https://api.coinw.com/api/v1/private?command=cancelAllOrder
-                'cancelOrder': true, // https://api.coinw.com/api/v1/private?command=cancelOrder
-                'createOrder': true, // https://api.coinw.com/api/v1/private?command=doTrade
+                'cancelAllOrders': true, // https://api.coinw.com/api/v1/private?command=cancelAllOrder TODO: symbol as input -> error
+                'cancelOrder': true,
+                'createOrder': true, // https://api.coinw.com/api/v1/private?command=doTrade TODO: 2 `rate` input params
                 'fetchBalance': true,
                 'fetchCurrencies': true,
-                'fetchDeposists': true, // https://api.coinw.com/api/v1/private?command=returnDepositsWithdrawals
+                'fetchDeposists': true,
                 'fetchMarkets': true,
-                'fetchMyTrades': true, // https://api.coinw.com/api/v1/private?command=getUserTrades
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchOrder': true, // https://api.coinw.com/api/v1/private?command=returnOrderTrades
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchWithdrawals': true, // https://api.coinw.com/api/v1/private?command=returnDepositsWithdrawals
-                'transfer': true, // https://api.coinw.com/api/v1/public?command=spotWealthTransfer
-                'withdraw': true, // https://api.coinw.com/api/v1/private?command=doWithdraw
+                'fetchWithdrawals': true,
+                'transfer': true, // https://api.coinw.com/api/v1/public?command=spotWealthTransfer TODO: public ???
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '60',
@@ -145,6 +145,17 @@ export default class coinw extends Exchange {
             'commonCurrencies': {
             },
             'options': {
+                // ERC20,TRC20,BSC
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'BSC': 'BEP20',
+                },
+                'networksById': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'BEP20': 'BSC',
+                },
             },
         });
     }
@@ -390,28 +401,40 @@ export default class coinw extends Exchange {
         //        type: 'SELL'
         //    }
         //
-        // TODO: fetchMyTrades
+        // fetchMyTrades
         //
+        //    {
+        //        "fee": 0.14,
+        //        "orderId": 4612803122241208330,
+        //        "orderType": "LIMIT",
+        //        "price": 7E+1,
+        //        "side": "BUY",
+        //        "size": 1,
+        //        "time": 1628068267298,
+        //        "tradeId": 1029953
+        //    }
         //
         const datetime = this.safeString (trade, 'time');
         const timestamp = this.parse8601 (datetime) - (8 * 3600000); // 8 hours ahead on UTC time
-        const orderId = this.safeString (trade, 'id');
+        const tradeId = this.safeString (trade, 'tradeId');
+        const orderId = this.safeString2 (trade, 'id', 'orderId');
+        const type = this.safeStringLower (trade, 'orderType');
         return this.safeTrade ({
             'info': trade,
-            'id': orderId,
+            'id': tradeId,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'type': undefined,
+            'type': type,
             'takerOrMaker': undefined,
-            'side': this.safeStringLower (trade, 'type'),
+            'side': this.safeStringLower2 (trade, 'type', 'side'),
             'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'amount'),
+            'amount': this.safeString2 (trade, 'amount', 'size'),
             'cost': this.safeString (trade, 'total'),
             'fee': {
-                'cost': undefined,
-                'currency': undefined,
+                'cost': this.safeString (trade, 'fee'),
+                'currency': market['quote'],
             },
         }, market);
     }
@@ -682,22 +705,33 @@ export default class coinw extends Exchange {
         //
         const id = this.safeString2 (order, 'orderNumber', 'tradeID');
         const marketId = this.safeString (order, 'currencyPair');
+        if (market === undefined) {
+            market = this.market (marketId);
+        }
         const side = this.safeString (order, 'type');
-        const price = this.safeString (order, 'price');
+        const price = this.safeString (order, 'prize'); // typo in their API
         const status = this.safeString (order, 'status') === '1' ? 'open' : 'closed';
         const amount = this.safeString2 (order, 'startingAmount', 'amount');
         let symbol = undefined;
         let timestamp = undefined;
         let datetime = undefined;
-        let cost = undefined;
         if (marketId === undefined) {
-            symbol = market['id'];
+            symbol = this.safeSymbol (market['id']);
             timestamp = this.safeNumber (order, 'date');
             datetime = this.iso8601 (timestamp);
         } else {
             symbol = this.safeSymbol (marketId);
             datetime = this.safeString (order, 'date') + '.000';
             timestamp = this.parse8601 (datetime);
+        }
+        const feeCost = this.safeString (order, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
         }
         return this.safeOrder ({
             'info': order,
@@ -715,12 +749,12 @@ export default class coinw extends Exchange {
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'average': undefined,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
             'filled': this.safeString (order, 'success_amount'),
             'remaining': undefined,
             'status': status,
-            'fee': this.safeString (order, 'fee'),
+            'fee': fee,
             'trades': undefined,
         }, market);
     }
@@ -764,7 +798,6 @@ export default class coinw extends Exchange {
         //     msg: 'SUCCESS'
         // }
         //
-        console.log (response);
         const data = this.safeValue (response, 'data', {});
         return this.parseOrders (data, market);
     }
@@ -780,7 +813,7 @@ export default class coinw extends Exchange {
          */
         await this.loadMarkets ();
         const request = { 'orderNumber': id };
-        const response = (this as any).privatePostReturnOrderTrades (this.extend (request, params));
+        const response = await (this as any).privatePostReturnOrderTrades (this.extend (request, params));
         //
         // {
         //     "code":"200",
@@ -799,7 +832,6 @@ export default class coinw extends Exchange {
         //     "msg":"SUCCESS"
         // }
         //
-        console.log (response);
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data);
     }
@@ -820,8 +852,10 @@ export default class coinw extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const typeId = type === 'buy' ? 0 : 1;
         const request = {
             'symbol': market['id'],
+            'type': typeId,
         };
         const response = (this as any).privatePostDoTrade (this.extend (request, params));
         //
@@ -866,17 +900,17 @@ export default class coinw extends Exchange {
     async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
-         * @name bitget#cancelOrders
-         * @description cancel multiple orders
-         * @param {[string]} ids order ids
-         * @param {string} symbol unified market symbol, default is undefined
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @name coinw#cancelAllOrders
+         * @description cancel all open orders
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} params extra parameters specific to the coinw api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
+        const market = this.market (symbol);
         if (symbol !== undefined) {
-            request['currencyPair'] = symbol;
+            request['currencyPair'] = market['id'];
         }
         const response = await (this as any).privatePostCancelAllOrder (this.extend (request, params));
         //
@@ -969,8 +1003,54 @@ export default class coinw extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        // TODO: fetchWithdrawals, fetchDeposits
+        // fetchWithdrawals, fetchDeposits
+        //
+        //     {
+        //         "amount":31659.654543,
+        //         "depositNumber":937963,
+        //         "address":"123",
+        //         "txid":"已提交autocoinone937963Mon Oct 08 20:19:25 CST 2018",
+        //         "currency":"HC",
+        //         "confirmations":0,
+        //         "status":3
+        //     }
+        //
         // TODO: withdraw
+        //
+        //
+        const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'));
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': this.safeString (transaction, 'txid'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'address': this.safeString (transaction, 'address'),
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'currency': code,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'updated': undefined,
+            'fee': {
+                'currency': code,
+                'cost': undefined,
+                'rate': undefined,
+            },
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            1: '',
+            2: '',
+            3: '',
+        }
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1043,29 +1123,23 @@ export default class coinw extends Exchange {
             'amount': amount,
             'currency': currency['id'].toLowerCase (),
         };
-        if (tag !== undefined) {
-            request['addr-tag'] = tag; // only for XRP?
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
+        if (networkId !== undefined) {
+            request['chain'] = networkId.toUpperCase ();
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
-        if (network !== undefined) {
-            // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
-            if (network === 'erc20') {
-                request['chain'] = currency['id'] + network;
-            } else {
-                request['chain'] = network + currency['id'];
-            }
-            params = this.omit (params, 'network');
+        if (tag !== undefined) {
+            request['memo'] = tag;
         }
         const response = await (this as any).privatePostDoWithdraw (this.extend (request, params));
         //
-        //     {
-        //         "status": "ok",
-        //         "data": "99562054"
-        //     }
+        // {
+        //     "code": "200",
+        //     "data": null,
+        //     "msg": "SUCCESS"
+        // }
         //
-        return this.parseTransaction (response, currency);
+        return this.safeValue (response, 'data');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
