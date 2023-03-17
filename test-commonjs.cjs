@@ -1,4 +1,4 @@
-const ccxt = require ('./dist/ccxt.bundle.cjs');
+const ccxt = require ('./dist/ccxt.cjs');
 const log = require ('ololog');
 const ansi = require ('ansicolor').nice;
 const assert = require ('assert');
@@ -11,7 +11,7 @@ process.on ('unhandledRejection', (e) => {
 });
 
 // ----------------------------------------------------------------------------
-// Simple test just to make sure that the CJS bundle works
+// Simple test just to make sure that the CJS code works
 
 const symbol = 'BTC/USDT:USDT';
 async function main() {
@@ -20,10 +20,10 @@ async function main() {
         const ticker = await exchange.fetchTicker(symbol);
         assert(ticker !== undefined);
         assert(ticker['symbol'] === symbol);
-        log.bright.green('[CJS Bundle] OK');
+        log.bright.green('[CJS Code] OK');
         process.exit(0);
     } catch (e) {
-        log.bright.red('[CJS Bundle] Error: ' + e);
+        log.bright.red('[CJS Code] Error: ' + e);
         process.exit (1);
     }
 }
