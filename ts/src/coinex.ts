@@ -4507,7 +4507,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchDepositWithdrawFees
@@ -4555,7 +4555,7 @@ export default class coinex extends Exchange {
         return this.parseDepositWithdrawFees (response, codes);
     }
 
-    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined) {
         const depositWithdrawFees = {};
         codes = this.marketCodes (codes);
         const data = this.safeValue (response, 'data');

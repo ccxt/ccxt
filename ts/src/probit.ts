@@ -1318,7 +1318,7 @@ export default class probit extends Exchange {
         return this.parseDepositAddress (firstAddress, currency);
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchDepositAddresses
@@ -1444,7 +1444,7 @@ export default class probit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchDepositWithdrawFees

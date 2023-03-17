@@ -1922,7 +1922,7 @@ export default class lbank2 extends Exchange {
         return this.parseTransactions (withdraws, currency, since, limit);
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchTransactionFees
@@ -2069,7 +2069,7 @@ export default class lbank2 extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchDepositWithdrawFees
@@ -2094,7 +2094,7 @@ export default class lbank2 extends Exchange {
         return await this[method] (codes, params);
     }
 
-    async fetchPrivateDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchPrivateDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
@@ -2133,7 +2133,7 @@ export default class lbank2 extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'coin');
     }
 
-    async fetchPublicDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchPublicDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         // extremely incomplete response
         // vast majority fees undefined
         await this.loadMarkets ();

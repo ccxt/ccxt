@@ -1650,7 +1650,7 @@ export default class bkex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchTransactionFees
@@ -1728,7 +1728,7 @@ export default class bkex extends Exchange {
         return this.safeNumber (transaction, 'withdrawFee');
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchDepositWithdrawFees

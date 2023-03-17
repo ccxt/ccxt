@@ -2411,7 +2411,7 @@ export default class stex extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchTransactionFees
@@ -2479,7 +2479,7 @@ export default class stex extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchDepositWithdrawFees

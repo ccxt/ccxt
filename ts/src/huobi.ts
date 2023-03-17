@@ -7254,7 +7254,7 @@ export default class huobi extends Exchange {
         return this.sortBy (settlements, 'timestamp');
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchDepositWithdrawFees
