@@ -483,13 +483,10 @@ class kraken(ccxt.async_support.kraken):
     def handle_deltas(self, bookside, deltas, timestamp=None):
         for j in range(0, len(deltas)):
             delta = deltas[j]
-            price = float(delta[0])
-            amount = float(delta[1])
+            price = self.parse_number(delta[0])
+            amount = self.parse_number(delta[1])
             oldTimestamp = timestamp if timestamp else 0
-            calcMul = delta[2] * 1000
-            calcStr = self.number_to_string(calcMul)
-            calc = self.number_to_string(float(calcStr))
-            timestamp = max(oldTimestamp, int(calc))
+            timestamp = max(oldTimestamp, self.parse_to_int(float(delta[2]) * 1000))
             bookside.store(price, amount)
         return timestamp
 

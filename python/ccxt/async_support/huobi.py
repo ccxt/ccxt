@@ -4502,7 +4502,7 @@ class huobi(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        allAddresses = self.parse_deposit_addresses(data, [currency['code']], False)
+        allAddresses = self.parse_deposit_addresses(data, [currency['code']], False)  # cjg: to do remove self weird object or array ambiguity
         addresses = []
         for i in range(0, len(allAddresses)):
             address = allAddresses[i]
