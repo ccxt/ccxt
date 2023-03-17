@@ -14,7 +14,7 @@ export default class wavesexchange extends Exchange {
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     parseOrderBookSide(bookSide: any, market?: any, limit?: any): any[];
     checkRequiredKeys(): void;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

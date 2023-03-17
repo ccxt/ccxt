@@ -169,7 +169,7 @@ export default class bybit extends bybitRest {
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -432,7 +432,7 @@ export default class bybit extends bybitRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return.
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -543,7 +543,7 @@ export default class bybit extends bybitRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -694,7 +694,7 @@ export default class bybit extends bybitRest {
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @param {boolean} params.unifiedMargin use unified margin account
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         const method = 'watchMyTrades';
         let messageHash = 'myTrades';
@@ -821,7 +821,7 @@ export default class bybit extends bybitRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         const method = 'watchOrders';

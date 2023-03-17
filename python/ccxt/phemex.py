@@ -932,7 +932,7 @@ class phemex(Exchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1199,7 +1199,7 @@ class phemex(Exchange):
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2074,7 +2074,7 @@ class phemex(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2280,7 +2280,7 @@ class phemex(Exchange):
         :param float|None price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
         :param dict params: extra parameters specific to the phemex api endpoint
         :param str|None params['posSide']: either 'Hedged' or 'OneWay' or 'Merged'
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
@@ -2338,7 +2338,7 @@ class phemex(Exchange):
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the phemex api endpoint
         :param str|None params['posSide']: either 'Hedged' or 'OneWay' or 'Merged'
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -2371,7 +2371,7 @@ class phemex(Exchange):
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -2395,7 +2395,7 @@ class phemex(Exchange):
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -2434,7 +2434,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -2466,7 +2466,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -2502,7 +2502,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -2574,7 +2574,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -2715,7 +2715,7 @@ class phemex(Exchange):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -2761,7 +2761,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -2798,7 +2798,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -2918,7 +2918,7 @@ class phemex(Exchange):
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
         :param [str]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -3173,7 +3173,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch funding history for
         :param int|None limit: the maximum number of funding history structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
         self.load_markets()
         if symbol is None:
@@ -3236,7 +3236,7 @@ class phemex(Exchange):
         fetch the current funding rate
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3344,7 +3344,7 @@ class phemex(Exchange):
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
         :param dict params: parameters specific to the phemex api endpoint
-        :returns dict: A `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        :returns dict: A `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3445,7 +3445,7 @@ class phemex(Exchange):
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param [str]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`, indexed by market symbols
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         self.load_markets()
         response = self.publicGetCfgV2Products(params)
@@ -3632,7 +3632,7 @@ class phemex(Exchange):
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the phemex api endpoint
         :param str|None params['bizType']: for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
-        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -3706,7 +3706,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch transfers for
         :param int|None limit: the maximum number of  transfers structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
         if code is None:

@@ -406,7 +406,7 @@ export default class bittrex extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -560,7 +560,7 @@ export default class bittrex extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -610,7 +610,7 @@ export default class bittrex extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -655,7 +655,7 @@ export default class bittrex extends Exchange {
          * @description fetches the bid and ask price and volume for multiple markets
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} params extra parameters specific to the binance api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const response = await (this as any).publicGetMarketsTickers (params);
@@ -809,7 +809,7 @@ export default class bittrex extends Exchange {
          * @description fetch the trading fees for a market
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -833,7 +833,7 @@ export default class bittrex extends Exchange {
          * @name bittrex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await (this as any).privateGetAccountFeesTrading (params);
@@ -967,7 +967,7 @@ export default class bittrex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1039,7 +1039,7 @@ export default class bittrex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1064,7 +1064,7 @@ export default class bittrex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // A ceiling order is a market or limit order that allows you to specify
         // the amount of quote currency you want to spend (or receive, if selling)
@@ -1246,7 +1246,7 @@ export default class bittrex extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
@@ -1327,7 +1327,7 @@ export default class bittrex extends Exchange {
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1377,7 +1377,7 @@ export default class bittrex extends Exchange {
          * @param {string} id deposit id
          * @param {string|undefined} code filter by currency code
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1404,7 +1404,7 @@ export default class bittrex extends Exchange {
          * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
          * @param {string|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
          * @param {string|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         // https://support.bittrex.com/hc/en-us/articles/115003723911
@@ -1450,7 +1450,7 @@ export default class bittrex extends Exchange {
          * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
          * @param {string|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
          * @param {string|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         return this.fetchDeposits (code, since, limit, this.extend (params, { 'status': 'pending' }));
@@ -1464,7 +1464,7 @@ export default class bittrex extends Exchange {
          * @param {string} id withdrawal id
          * @param {string|undefined} code filter by currency code
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1491,7 +1491,7 @@ export default class bittrex extends Exchange {
          * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
          * @param {string|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
          * @param {string|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         // https://support.bittrex.com/hc/en-us/articles/115003723911
@@ -1534,7 +1534,7 @@ export default class bittrex extends Exchange {
          * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
          * @param {string|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
          * @param {string|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         return this.fetchWithdrawals (code, since, limit, this.extend (params, { 'status': 'pending' }));
@@ -1828,7 +1828,7 @@ export default class bittrex extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
@@ -1870,7 +1870,7 @@ export default class bittrex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1900,7 +1900,7 @@ export default class bittrex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
@@ -1982,7 +1982,7 @@ export default class bittrex extends Exchange {
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2020,7 +2020,7 @@ export default class bittrex extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2061,7 +2061,7 @@ export default class bittrex extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -2089,7 +2089,7 @@ export default class bittrex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    sign (path, api = 'v3', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'v3', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         }) + '/';

@@ -237,7 +237,7 @@ export default class kraken extends krakenRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.watchPublic ('ticker', symbol, params);
     }
@@ -271,7 +271,7 @@ export default class kraken extends krakenRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const name = 'book';
         const request = {};
@@ -608,7 +608,7 @@ export default class kraken extends krakenRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         return await this.watchPrivate ('ownTrades', symbol, since, limit, params);
     }
@@ -773,7 +773,7 @@ export default class kraken extends krakenRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.watchPrivate ('openOrders', symbol, since, limit, params);
     }

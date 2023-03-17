@@ -154,7 +154,7 @@ export default class ascendex extends Exchange {
         status: string;
     };
     parseTransferStatus(status: any): "ok" | "failed";
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

@@ -24,6 +24,7 @@ export default class Exchange {
     handleContentTypeApplicationZip: boolean;
     reduceFees: boolean;
     fetchImplementation: any;
+    AbortError: any;
     validateServerSsl: boolean;
     validateClientSsl: boolean;
     timeout: number;
@@ -59,7 +60,7 @@ export default class Exchange {
     last_json_response: any;
     last_response_headers: any;
     id: any;
-    markets: Market[];
+    markets: Dictionary<Market>;
     has: {};
     status: any;
     requiredCredentials: any;
@@ -420,7 +421,7 @@ export default class Exchange {
     handleRestResponse(response: any, url: any, method?: string, requestHeaders?: any, requestBody?: any): any;
     onRestResponse(statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, requestHeaders: any, requestBody: any): any;
     onJsonResponse(responseBody: any): any;
-    loadMarketsHelper(reload?: boolean, params?: {}): Promise<Market[]>;
+    loadMarketsHelper(reload?: boolean, params?: {}): Promise<Dictionary<Market>>;
     loadMarkets(reload?: boolean, params?: {}): Promise<Dictionary<Market>>;
     fetchCurrencies(params?: {}): Promise<unknown>;
     fetchMarkets(params?: {}): Promise<Market[]>;
@@ -443,7 +444,7 @@ export default class Exchange {
     parseNumber(value: string | number, d?: number): number;
     checkOrderArguments(market: any, type: any, side: any, amount: any, price: any, params: any): void;
     handleHttpStatusCode(code: any, reason: any, url: any, method: any, body: any): void;
-    sign(path: any, api: string | object, method?: string, params?: {}, headers?: any, body?: any): {};
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {};
     fetchAccounts(params?: {}): Promise<any>;
     fetchTrades(symbol: string, since?: number, limit?: any, params?: {}): Promise<Trade[]>;
     watchTrades(symbol: string, since?: number, limit?: any, params?: {}): Promise<Trade[]>;
@@ -519,7 +520,7 @@ export default class Exchange {
         fee: any;
         info: object;
     };
-    setMarkets(markets: any, currencies?: any): Market[];
+    setMarkets(markets: any, currencies?: any): Dictionary<Market>;
     safeBalance(balance: object): Balances;
     safeOrder(order: object, market?: object): any;
     parseOrders(orders: object, market?: object, since?: number, limit?: any, params?: {}): Order[];
@@ -556,7 +557,7 @@ export default class Exchange {
     parseOrderBook(orderbook: object, symbol: string, timestamp?: number, bidsKey?: string, asksKey?: string, priceKey?: number | string, amountKey?: number | string): OrderBook;
     parseOHLCVs(ohlcvs: object[], market?: string, timeframe?: string, since?: number, limit?: any): OHLCV[];
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
-    loadTradingLimits(symbols?: string[], reload?: boolean, params?: {}): Promise<Market[]>;
+    loadTradingLimits(symbols?: string[], reload?: boolean, params?: {}): Promise<Dictionary<Market>>;
     parsePositions(positions: any, symbols?: string[], params?: {}): any;
     parseAccounts(accounts: any, params?: {}): any[];
     parseTrades(trades: any, market?: object, since?: number, limit?: any, params?: {}): Trade[];
@@ -569,8 +570,8 @@ export default class Exchange {
     symbol(symbol: string): string;
     resolvePath(path: any, params: any): any[];
     filterByArray(objects: any, key: string | number, values?: any, indexed?: boolean): any;
-    fetch2(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
-    request(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
+    fetch2(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
+    request(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
     loadAccounts(reload?: boolean, params?: {}): Promise<any>;
     fetchOHLCVC(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any[]>;
     parseTradingViewOHLCV(ohlcvs: any, market?: any, timeframe?: string, since?: number, limit?: any): OHLCV[];

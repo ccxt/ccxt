@@ -126,7 +126,7 @@ export default class cryptocom extends Exchange {
     parseBorrowRates(info: any, codeKey: any): any[];
     customHandleMarginModeAndParams(methodName: any, params?: {}): any[];
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

@@ -179,6 +179,8 @@ export default class Exchange {
 
     // do not delete this line, it is needed for users to be able to define their own fetchImplementation
     fetchImplementation: any
+    AbortError: any
+
     validateServerSsl = true
     validateClientSsl = false
 
@@ -221,7 +223,7 @@ export default class Exchange {
 
     id = undefined
 
-    markets: Market[] = undefined
+    markets: Dictionary<Market> = undefined
     has = {}
 
     status = undefined
@@ -840,7 +842,7 @@ export default class Exchange {
         console.log (... args)
     }
 
-    async fetch (url, method = 'GET', headers = undefined, body = undefined) {
+    async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
         if (isNode && this.userAgent) {
             if (typeof this.userAgent === 'string') {
                 headers = this.extend ({ 'User-Agent': this.userAgent }, headers)
@@ -864,15 +866,14 @@ export default class Exchange {
         if (this.verbose) {
             this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
         }
-        let AbortError
         if (this.fetchImplementation === undefined) {
             if (isNode) {
                 const module = await import ('../static_dependencies/node-fetch/index.js')
-                AbortError = module.AbortError
+                this.AbortError = module.AbortError
                 this.fetchImplementation = module.default
             } else {
                 this.fetchImplementation = self.fetch
-                AbortError = DOMException
+                this.AbortError = DOMException
             }
         }
         // fetchImplementation cannot be called on this. in browsers:
@@ -896,7 +897,7 @@ export default class Exchange {
             clearTimeout (timeout)
             return this.handleRestResponse (response, url, method, headers, body);
         } catch (e) {
-            if (e instanceof AbortError) {
+            if (e instanceof this.AbortError) {
                 throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
             }
             throw e
@@ -1115,8 +1116,7 @@ export default class Exchange {
     }
 
         // method to override
-
-        sign (path, api: string | object, method = 'GET', params = {}, headers = undefined, body = undefined) {
+        sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
             return {};
         }
 
@@ -1132,7 +1132,7 @@ export default class Exchange {
             return undefined;
         }
 
-        async fetchDepositAddresses (codes = undefined, params = {}) {
+        async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
             return undefined;
         }
 
@@ -2721,7 +2721,7 @@ export default class Exchange {
         return indexed ? this.indexBy (results, key) : results;
     }
 
-    async fetch2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+    async fetch2 (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}, context = {}) {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config, context);
             await this.throttle (cost);
@@ -2731,7 +2731,7 @@ export default class Exchange {
         return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+    async request (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}, context = {}) {
         return await this.fetch2 (path, api, method, params, headers, body, config, context);
     }
 
@@ -2975,7 +2975,7 @@ export default class Exchange {
         return await this.fetchTransactionFee (code, params);
     }
 
-    async fetchFundingFees (codes = undefined, params = {}) {
+    async fetchFundingFees (codes: string[] = undefined, params = {}) {
         const warnOnFetchFundingFees = this.safeValue (this.options, 'warnOnFetchFundingFees', true);
         if (warnOnFetchFundingFees) {
             throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
@@ -2990,7 +2990,7 @@ export default class Exchange {
         return await this.fetchTransactionFees ([ code ], params);
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
         // eslint-disable-next-line
         return undefined;
@@ -3565,7 +3565,7 @@ export default class Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseDepositAddresses (addresses, codes = undefined, indexed = true, params = {}) {
+    parseDepositAddresses (addresses, codes: string[] = undefined, indexed = true, params = {}) {
         let result = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend (this.parseDepositAddress (addresses[i]), params);
@@ -3855,7 +3855,7 @@ export default class Exchange {
         this.checkRequiredArgument (methodName, symbol, 'symbol');
     }
 
-    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined) {
         /**
          * @ignore
          * @method
@@ -3939,7 +3939,7 @@ export default class Exchange {
          * @param {object|undefined} market ccxt market
          * @param {int|undefined} since when defined, the response items are filtered to only include items after this timestamp
          * @param {int|undefined} limit limits the number of items in the response
-         * @returns {[object]} an array of [funding history structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         * @returns {[object]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         const result = [];
         for (let i = 0; i < incomes.length; i++) {

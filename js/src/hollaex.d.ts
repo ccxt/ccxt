@@ -98,7 +98,7 @@ export default class hollaex extends Exchange {
         fee: any;
     }>;
     normalizeNumberIfNeeded(number: any): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;

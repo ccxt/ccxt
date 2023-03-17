@@ -682,16 +682,15 @@ export default class Exchange {
         if (this.verbose) {
             this.log("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n");
         }
-        let AbortError;
         if (this.fetchImplementation === undefined) {
             if (isNode) {
                 const module = await import('../static_dependencies/node-fetch/index.js');
-                AbortError = module.AbortError;
+                this.AbortError = module.AbortError;
                 this.fetchImplementation = module.default;
             }
             else {
                 this.fetchImplementation = self.fetch;
-                AbortError = DOMException;
+                this.AbortError = DOMException;
             }
         }
         // fetchImplementation cannot be called on this. in browsers:
@@ -718,7 +717,7 @@ export default class Exchange {
             return this.handleRestResponse(response, url, method, headers, body);
         }
         catch (e) {
-            if (e instanceof AbortError) {
+            if (e instanceof this.AbortError) {
                 throw new RequestTimeout(this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
             }
             throw e;
@@ -918,7 +917,7 @@ export default class Exchange {
         }
     }
     // method to override
-    sign(path, api, method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         return {};
     }
     async fetchAccounts(params = {}) {
@@ -3587,7 +3586,7 @@ export default class Exchange {
          * @param {object|undefined} market ccxt market
          * @param {int|undefined} since when defined, the response items are filtered to only include items after this timestamp
          * @param {int|undefined} limit limits the number of items in the response
-         * @returns {[object]} an array of [funding history structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         * @returns {[object]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         const result = [];
         for (let i = 0; i < incomes.length; i++) {

@@ -91,7 +91,7 @@ export default class bkex extends Exchange {
     fetchFundingRateHistory(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchMarketLeverageTiers(symbol: any, params?: {}): Promise<any[]>;
     parseMarketLeverageTiers(info: any, market: any): any[];
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;
