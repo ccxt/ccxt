@@ -808,12 +808,15 @@ class krakenfutures extends Exchange {
              * @param {bool|null} $params->postOnly Set if you wish to make a $postOnly order, Default false
              * @param {string|null} $params->triggerSignal If placing a stp or take_profit, the signal used for trigger, One of => 'mark', 'index', 'last', last is market $price
              * @param {string|null} $params->cliOrdId UUID The order identity that is specified from the user, It must be globally unique
+             * @param {string|null} $params->clientOrderId UUID The order identity that is specified from the user, It must be globally unique
              */
             Async\await($this->load_markets());
             $type = $this->safe_string($params, 'orderType', $type);
             $timeInForce = $this->safe_string($params, 'timeInForce');
             $stopPrice = $this->safe_string($params, 'stopPrice');
             $postOnly = $this->safe_string($params, 'postOnly');
+            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'cliOrdId');
+            $params = $this->omit($params, array( 'clientOrderId', 'cliOrdId' ));
             if (($type === 'stp' || $type === 'take_profit') && $stopPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder requires $params->stopPrice when $type is ' . $type);
             }
@@ -836,6 +839,9 @@ class krakenfutures extends Exchange {
             );
             if ($price !== null) {
                 $request['limitPrice'] = $price;
+            }
+            if ($clientOrderId !== null) {
+                $request['cliOrdId'] = $clientOrderId;
             }
             $response = Async\await($this->privatePostSendorder (array_merge($request, $params)));
             //

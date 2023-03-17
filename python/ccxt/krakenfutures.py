@@ -777,12 +777,15 @@ class krakenfutures(Exchange):
         :param bool|None params['postOnly']: Set if you wish to make a postOnly order, Default False
         :param str|None params['triggerSignal']: If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
         :param str|None params['cliOrdId']: UUID The order identity that is specified from the user, It must be globally unique
+        :param str|None params['clientOrderId']: UUID The order identity that is specified from the user, It must be globally unique
         """
         self.load_markets()
         type = self.safe_string(params, 'orderType', type)
         timeInForce = self.safe_string(params, 'timeInForce')
         stopPrice = self.safe_string(params, 'stopPrice')
         postOnly = self.safe_string(params, 'postOnly')
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'cliOrdId')
+        params = self.omit(params, ['clientOrderId', 'cliOrdId'])
         if (type == 'stp' or type == 'take_profit') and stopPrice is None:
             raise ArgumentsRequired(self.id + ' createOrder requires params.stopPrice when type is ' + type)
         if stopPrice is not None:
@@ -803,6 +806,8 @@ class krakenfutures(Exchange):
         }
         if price is not None:
             request['limitPrice'] = price
+        if clientOrderId is not None:
+            request['cliOrdId'] = clientOrderId
         response = self.privatePostSendorder(self.extend(request, params))
         #
         #    {
