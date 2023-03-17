@@ -7,7 +7,7 @@ import assert from 'assert';
 import { Agent } from 'https';
 import ccxt from '../../ccxt.js';
 import HttpsProxyAgent from 'https-proxy-agent'
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 const __dirname = fileURLToPath(new URL('.', import.meta.url)); // new URL('.', import.meta.url).pathname;
 // ----------------------------------------------------------------------------
 const [processPath, , exchangeId = null, exchangeSymbol = undefined] = process.argv.filter ((x) => !x.startsWith ('--'));
@@ -44,12 +44,10 @@ for (let i = 0; i < properties.length; i++) {
     const filePath = __dirname + '/Exchange/test.' + property;
     if (fs.existsSync (filePath + '.ts')) {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        type ModuleType = typeof import(filePath); // This is the import type!
-        const imp : Promise<ModuleType>= import(filePath);
-        testFiles[property] = await imp;
+        testFiles[property] = await import(pathToFileURL(filePath)) as any;
     }
 }
-import errors from '../base/errorHierarchy';
+//import errors from '../base/errorHierarchy';
 
 Object.keys (errors)
     // eslint-disable-next-line no-path-concat
