@@ -334,7 +334,7 @@ class bigone extends Exchange {
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -367,7 +367,7 @@ class bigone extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $request = array();
@@ -432,7 +432,7 @@ class bigone extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($data, 'timestamp');
-        return intval($timestamp / 1000000);
+        return $this->parse_to_int($timestamp / 1000000);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -441,7 +441,7 @@ class bigone extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -678,7 +678,7 @@ class bigone extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -691,7 +691,7 @@ class bigone extends Exchange {
             'limit' => $limit,
         );
         if ($since !== null) {
-            // $start = intval($since / 1000);
+            // $start = $this->parse_to_int($since / 1000);
             $duration = $this->parse_timeframe($timeframe);
             $end = $this->sum($since, $limit * $duration * 1000);
             $request['time'] = $this->iso8601($end);
@@ -833,7 +833,7 @@ class bigone extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -891,7 +891,7 @@ class bigone extends Exchange {
          * @param {string} $id $order $id
          * @param {string|null} $symbol Not used by bigone cancelOrder ()
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $request = array( 'id' => $id );
@@ -917,7 +917,7 @@ class bigone extends Exchange {
          * cancel all open orders
          * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -945,7 +945,7 @@ class bigone extends Exchange {
          * fetches information on an $order made by the user
          * @param {string|null} $symbol not used by bigone fetchOrder
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $request = array( 'id' => $id );
@@ -961,7 +961,7 @@ class bigone extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -1010,7 +1010,7 @@ class bigone extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $trades for
          * @param {int|null} $limit the maximum number of $trades structures to retrieve
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         if ($symbol === null) {
@@ -1079,7 +1079,7 @@ class bigone extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $request = array(
             'state' => 'PENDING',
@@ -1094,7 +1094,7 @@ class bigone extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $request = array(
             'state' => 'FILLED',
@@ -1145,7 +1145,7 @@ class bigone extends Exchange {
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1154,7 +1154,7 @@ class bigone extends Exchange {
         );
         $response = $this->privateGetAssetsAssetSymbolAddress (array_merge($request, $params));
         //
-        // the actual $response format is not the same as the documented one
+        // the actual $response format is not the same documented one
         // the $data key contains an array in the actual $response
         //
         //     {
@@ -1292,7 +1292,7 @@ class bigone extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $deposits for
          * @param {int|null} $limit the maximum number of $deposits structures to retrieve
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $request = array(
@@ -1342,7 +1342,7 @@ class bigone extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
          * @param {int|null} $limit the maximum number of $withdrawals structures to retrieve
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $request = array(
@@ -1393,7 +1393,7 @@ class bigone extends Exchange {
          * @param {string} $fromAccount account to $transfer from
          * @param {string} $toAccount account to $transfer to
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1465,7 +1465,7 @@ class bigone extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string|null} $tag
          * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();

@@ -281,16 +281,16 @@ class deribit extends Exchange {
                 '10019' => '\\ccxt\\PermissionDenied', // 'locked_by_admin' Trading is temporary locked by admin.
                 '10020' => '\\ccxt\\ExchangeError', // 'invalid_or_unsupported_instrument' Instrument name is not valid.
                 '10021' => '\\ccxt\\InvalidOrder', // 'invalid_amount' Amount is not valid.
-                '10022' => '\\ccxt\\InvalidOrder', // 'invalid_quantity' quantity was not recognized as a valid number (for API v1).
-                '10023' => '\\ccxt\\InvalidOrder', // 'invalid_price' price was not recognized as a valid number.
-                '10024' => '\\ccxt\\InvalidOrder', // 'invalid_max_show' max_show parameter was not recognized as a valid number.
-                '10025' => '\\ccxt\\InvalidOrder', // 'invalid_order_id' Order id is missing or its format was not recognized as valid.
+                '10022' => '\\ccxt\\InvalidOrder', // 'invalid_quantity' quantity was not recognized valid number (for API v1).
+                '10023' => '\\ccxt\\InvalidOrder', // 'invalid_price' price was not recognized valid number.
+                '10024' => '\\ccxt\\InvalidOrder', // 'invalid_max_show' max_show parameter was not recognized valid number.
+                '10025' => '\\ccxt\\InvalidOrder', // 'invalid_order_id' Order id is missing or its format was not recognized.
                 '10026' => '\\ccxt\\InvalidOrder', // 'price_precision_exceeded' Extra precision of the price is not supported.
-                '10027' => '\\ccxt\\InvalidOrder', // 'non_integer_contract_amount' Futures contract amount was not recognized as integer.
+                '10027' => '\\ccxt\\InvalidOrder', // 'non_integer_contract_amount' Futures contract amount was not recognized.
                 '10028' => '\\ccxt\\DDoSProtection', // 'too_many_requests' Allowed request rate has been exceeded.
                 '10029' => '\\ccxt\\OrderNotFound', // 'not_owner_of_order' Attempt to operate with not own order.
                 '10030' => '\\ccxt\\ExchangeError', // 'must_be_websocket_request' REST request where Websocket is expected.
-                '10031' => '\\ccxt\\ExchangeError', // 'invalid_args_for_instrument' Some of arguments are not recognized as valid.
+                '10031' => '\\ccxt\\ExchangeError', // 'invalid_args_for_instrument' Some of arguments are not recognized.
                 '10032' => '\\ccxt\\InvalidOrder', // 'whole_cost_too_low' Total cost is too low.
                 '10033' => '\\ccxt\\NotSupported', // 'not_implemented' Method is not implemented yet.
                 '10034' => '\\ccxt\\InvalidOrder', // 'stop_price_too_high' Stop price is too high.
@@ -306,10 +306,10 @@ class deribit extends Exchange {
                 '10048' => '\\ccxt\\ExchangeError', // 'not_on_this_server' The requested operation is not available on this server.
                 '11008' => '\\ccxt\\InvalidOrder', // 'already_filled' This request is not allowed in regards to the filled order.
                 '11029' => '\\ccxt\\BadRequest', // 'invalid_arguments' Some invalid input has been detected.
-                '11030' => '\\ccxt\\ExchangeError', // 'other_reject <Reason>' Some rejects which are not considered as very often, more info may be specified in <Reason>.
-                '11031' => '\\ccxt\\ExchangeError', // 'other_error <Error>' Some errors which are not considered as very often, more info may be specified in <Error>.
+                '11030' => '\\ccxt\\ExchangeError', // 'other_reject <Reason>' Some rejects which are not considered often, more info may be specified in <Reason>.
+                '11031' => '\\ccxt\\ExchangeError', // 'other_error <Error>' Some errors which are not considered often, more info may be specified in <Error>.
                 '11035' => '\\ccxt\\DDoSProtection', // 'no_more_stops <Limit>' Allowed amount of stop orders has been exceeded.
-                '11036' => '\\ccxt\\InvalidOrder', // 'invalid_stoppx_for_index_or_last' Invalid StopPx (too high or too low) as to current index or market.
+                '11036' => '\\ccxt\\InvalidOrder', // 'invalid_stoppx_for_index_or_last' Invalid StopPx (too high or too low) current index or market.
                 '11037' => '\\ccxt\\BadRequest', // 'outdated_instrument_for_IV_order' Instrument already not available for trading.
                 '11038' => '\\ccxt\\InvalidOrder', // 'no_adv_for_futures' Advanced orders are not available for futures.
                 '11039' => '\\ccxt\\InvalidOrder', // 'no_adv_postonly' Advanced post-only orders are not supported yet.
@@ -324,7 +324,7 @@ class deribit extends Exchange {
                 '11049' => '\\ccxt\\BadRequest', // 'bad_arguments' Several bad arguments have been passed.
                 '11050' => '\\ccxt\\BadRequest', // 'bad_request' Request has not been parsed properly.
                 '11051' => '\\ccxt\\OnMaintenance', // 'system_maintenance' System is under maintenance.
-                '11052' => '\\ccxt\\ExchangeError', // 'subscribe_error_unsubscribed' Subscription error. However, subscription may fail without this error, please check list of subscribed channels returned, as some channels can be not subscribed due to wrong input or lack of permissions.
+                '11052' => '\\ccxt\\ExchangeError', // 'subscribe_error_unsubscribed' Subscription error. However, subscription may fail without this error, please check list of subscribed channels returned, channels can be not subscribed due to wrong input or lack of permissions.
                 '11053' => '\\ccxt\\ExchangeError', // 'transfer_not_found' Specified transfer is not found.
                 '11090' => '\\ccxt\\InvalidAddress', // 'invalid_addr' Invalid address.
                 '11091' => '\\ccxt\\InvalidAddress', // 'invalid_transfer_address' Invalid addres for the transfer.
@@ -335,7 +335,7 @@ class deribit extends Exchange {
                 '11096' => '\\ccxt\\ExchangeError', // 'address_belongs_to_user' Withdrawal instead of transfer.
                 '12000' => '\\ccxt\\AuthenticationError', // 'bad_tfa' Wrong TFA code
                 '12001' => '\\ccxt\\DDoSProtection', // 'too_many_subaccounts' Limit of subbacounts is reached.
-                '12002' => '\\ccxt\\ExchangeError', // 'wrong_subaccount_name' The input is not allowed as name of subaccount.
+                '12002' => '\\ccxt\\ExchangeError', // 'wrong_subaccount_name' The input is not allowed of subaccount.
                 '12998' => '\\ccxt\\AuthenticationError', // 'tfa_over_limit' The number of failed TFA attempts is limited.
                 '12003' => '\\ccxt\\AuthenticationError', // 'login_over_limit' The number of failed login attempts is limited.
                 '12004' => '\\ccxt\\AuthenticationError', // 'registration_over_limit' The number of registration requests is limited.
@@ -418,7 +418,7 @@ class deribit extends Exchange {
         /**
          * the latest known information on the availability of the exchange API
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure status structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
          */
         $response = $this->publicGetStatus ($params);
         //
@@ -449,7 +449,7 @@ class deribit extends Exchange {
         /**
          * fetch all the accounts associated with a profile
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
         $this->load_markets();
         $response = $this->privateGetGetSubaccounts ($params);
@@ -799,7 +799,7 @@ class deribit extends Exchange {
          * create a $currency deposit $address
          * @param {string} $code unified $currency $code of the $currency for the deposit $address
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -835,7 +835,7 @@ class deribit extends Exchange {
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -953,7 +953,7 @@ class deribit extends Exchange {
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -998,7 +998,7 @@ class deribit extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1056,7 +1056,7 @@ class deribit extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1253,7 +1253,7 @@ class deribit extends Exchange {
         /**
          * fetch the trading $fees for multiple markets
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by $market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market symbols
          */
         $this->load_markets();
         $code = $this->code_from_options('fetchTradingFees', $params);
@@ -1370,7 +1370,7 @@ class deribit extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1562,7 +1562,7 @@ class deribit extends Exchange {
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the market the order was made in
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -1611,7 +1611,7 @@ class deribit extends Exchange {
          * @param {float} $amount how much of currency you want to trade. For perpetual and futures the $amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
          * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1801,7 +1801,7 @@ class deribit extends Exchange {
          * @param {string} $id order $id
          * @param {string|null} $symbol not used by deribit cancelOrder ()
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -1817,7 +1817,7 @@ class deribit extends Exchange {
          * cancel all open orders
          * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array();
@@ -1840,7 +1840,7 @@ class deribit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array();
@@ -1868,7 +1868,7 @@ class deribit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array();
@@ -1897,7 +1897,7 @@ class deribit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades to retrieve
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array(
@@ -1948,7 +1948,7 @@ class deribit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $trades for
          * @param {int|null} $limit the maximum number of $trades structures to retrieve
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array(
@@ -2025,7 +2025,7 @@ class deribit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
@@ -2071,7 +2071,7 @@ class deribit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
@@ -2257,7 +2257,7 @@ class deribit extends Exchange {
          * fetch data on a single open contract trade position
          * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2300,7 +2300,7 @@ class deribit extends Exchange {
          * fetch all open positions
          * @param {[string]|null} $symbols list of unified $market $symbols
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
         $this->load_markets();
         $code = null;
@@ -2401,7 +2401,7 @@ class deribit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $transfers for
          * @param {int|null} $limit the maximum number of  $transfers structures to retrieve
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
          */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $currency $code argument');
@@ -2461,7 +2461,7 @@ class deribit extends Exchange {
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2548,7 +2548,7 @@ class deribit extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string|null} $tag
          * @param {array} $params extra parameters specific to the deribit api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);

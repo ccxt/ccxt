@@ -197,7 +197,7 @@ class btcmarkets extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
              * @param {int|null} $limit max number of transactions to return, default is null
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             return Async\await($this->fetch_transactions_with_method('privateGetTransfers', $code, $since, $limit, $params));
         }) ();
@@ -211,7 +211,7 @@ class btcmarkets extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch deposits for
              * @param {int|null} $limit the maximum number of deposits structures to retrieve
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             return Async\await($this->fetch_transactions_with_method('privateGetDeposits', $code, $since, $limit, $params));
         }) ();
@@ -225,7 +225,7 @@ class btcmarkets extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch withdrawals for
              * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             return Async\await($this->fetch_transactions_with_method('privateGetWithdrawals', $code, $since, $limit, $params));
         }) ();
@@ -520,7 +520,7 @@ class btcmarkets extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -558,7 +558,7 @@ class btcmarkets extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -646,7 +646,7 @@ class btcmarkets extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -790,7 +790,7 @@ class btcmarkets extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -883,7 +883,7 @@ class btcmarkets extends Exchange {
              * @param {[string]} $ids order $ids
              * @param {string|null} $symbol not used by btcmarkets cancelOrders ()
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             for ($i = 0; $i < count($ids); $i++) {
@@ -903,7 +903,7 @@ class btcmarkets extends Exchange {
              * @param {string} $id order $id
              * @param {string|null} $symbol not used by btcmarket cancelOrder ()
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1023,7 +1023,7 @@ class btcmarkets extends Exchange {
              * fetches information on an order made by the user
              * @param {string|null} $symbol not used by btcmarkets fetchOrder
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1042,7 +1042,7 @@ class btcmarkets extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1072,7 +1072,7 @@ class btcmarkets extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $request = array( 'status' => 'open' );
             return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
@@ -1087,7 +1087,7 @@ class btcmarkets extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $orders = Async\await($this->fetch_orders($symbol, $since, $limit, $params));
             return $this->filter_by($orders, 'status', 'closed');
@@ -1102,7 +1102,7 @@ class btcmarkets extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1158,7 +1158,7 @@ class btcmarkets extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string|null} $tag
              * @param {array} $params extra parameters specific to the btcmarkets api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             Async\await($this->load_markets());

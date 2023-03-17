@@ -13,8 +13,6 @@ use React\Async;
 
 class cex extends \ccxt\async\cex {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -148,7 +146,7 @@ class cex extends \ccxt\async\cex {
             );
             $request = $this->deep_extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
-            // assing $symbol to the $trades as $message does not contain $symbol information
+            // assing $symbol to the $trades does not contain $symbol information
             for ($i = 0; $i < count($trades); $i++) {
                 $trades[$i]['symbol'] = $symbol;
             }
@@ -240,7 +238,7 @@ class cex extends \ccxt\async\cex {
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the cex api endpoint
              * @param {string|null} $params->method public or private
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -278,7 +276,7 @@ class cex extends \ccxt\async\cex {
              * watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -850,7 +848,7 @@ class cex extends \ccxt\async\cex {
         //         ok => 'ok'
         //     }
         //
-        $symbol = $this->safe_string($message, 'oid'); // $symbol is set as requestId in watchOrders
+        $symbol = $this->safe_string($message, 'oid'); // $symbol is set in watchOrders
         $rawOrders = $this->safe_value($message, 'data', array());
         $myOrders = $this->orders;
         if ($this->orders === null) {
@@ -880,7 +878,7 @@ class cex extends \ccxt\async\cex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -903,7 +901,7 @@ class cex extends \ccxt\async\cex {
             );
             $request = $this->deep_extend($subscribe, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -977,10 +975,11 @@ class cex extends \ccxt\async\cex {
         $pair = $this->safe_string($data, 'pair', '');
         $symbol = $this->pair_to_symbol($pair);
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($incrementalId !== $storedOrderBook['nonce'] + 1) {
-            throw new ExchangeError($this->id . ' watchOrderBook() skipped a message');
-        }
         $messageHash = 'orderbook:' . $symbol;
+        if ($incrementalId !== $storedOrderBook['nonce'] + 1) {
+            unset($client->subscriptions[$messageHash]);
+            $client->reject ($this->id . ' watchOrderBook() skipped a message', $messageHash);
+        }
         $timestamp = $this->safe_integer($data, 'time');
         $asks = $this->safe_value($data, 'asks', array());
         $bids = $this->safe_value($data, 'bids', array());
@@ -1013,7 +1012,7 @@ class cex extends \ccxt\async\cex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1238,7 +1237,7 @@ class cex extends \ccxt\async\cex {
                         'timestamp' => $nonce,
                     ),
                 );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, array_merge($request, $params), $messageHash);
+                Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
             }
             return Async\await($future);
         }) ();

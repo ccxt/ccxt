@@ -350,7 +350,7 @@ class bitflyer extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the bitflyer api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -396,7 +396,7 @@ class bitflyer extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the bitflyer api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -500,7 +500,7 @@ class bitflyer extends Exchange {
              * fetch the trading fees for a $market
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the bitflyer api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -533,7 +533,7 @@ class bitflyer extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
              * @param {array} $params extra parameters specific to the bitflyer api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -546,10 +546,10 @@ class bitflyer extends Exchange {
             $result = Async\await($this->privatePostSendchildorder (array_merge($request, $params)));
             // array( "status" => - 200, "error_message" => "Insufficient funds", "data" => null )
             $id = $this->safe_string($result, 'child_order_acceptance_id');
-            return array(
-                'info' => $result,
+            return $this->safe_order(array(
                 'id' => $id,
-            );
+                'info' => $result,
+            ));
         }) ();
     }
 
@@ -560,7 +560,7 @@ class bitflyer extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} $params extra parameters specific to the bitflyer api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
@@ -640,7 +640,7 @@ class bitflyer extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bitflyer api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
@@ -668,7 +668,7 @@ class bitflyer extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the bitflyer api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $request = array(
                 'child_order_state' => 'ACTIVE',
@@ -685,7 +685,7 @@ class bitflyer extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bitflyer api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $request = array(
                 'child_order_state' => 'COMPLETED',
@@ -700,7 +700,7 @@ class bitflyer extends Exchange {
              * fetches information on an order made by the user
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} $params extra parameters specific to the bitflyer api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a `$symbol` argument');
@@ -722,7 +722,7 @@ class bitflyer extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
              * @param {array} $params extra parameters specific to the bitflyer api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a `$symbol` argument');
@@ -746,7 +746,7 @@ class bitflyer extends Exchange {
              * fetch all open positions
              * @param {[string]} $symbols list of unified market $symbols
              * @param {array} $params extra parameters specific to the bitflyer api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() requires a `$symbols` argument, exactly one symbol in an array');
@@ -787,7 +787,7 @@ class bitflyer extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string|null} $tag
              * @param {array} $params extra parameters specific to the bitflyer api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             $this->check_address($address);
             Async\await($this->load_markets());
@@ -818,7 +818,7 @@ class bitflyer extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch deposits for
              * @param {int|null} $limit the maximum number of deposits structures to retrieve
              * @param {array} $params extra parameters specific to the bitflyer api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -856,7 +856,7 @@ class bitflyer extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch withdrawals for
              * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
              * @param {array} $params extra parameters specific to the bitflyer api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $currency = null;

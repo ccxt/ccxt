@@ -11,8 +11,6 @@ use React\Async;
 
 class bitrue extends \ccxt\async\bitrue {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -183,7 +181,7 @@ class bitrue extends \ccxt\async\bitrue {
              * @param {int|null} $since timestamp in ms of the earliest order
              * @param {int|null} $limit the maximum amount of $orders to return
              * @param {array} $params extra parameters specific to the bitrue api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-structure order structure~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             if ($symbol !== null) {

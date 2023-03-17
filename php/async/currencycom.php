@@ -461,7 +461,7 @@ class currencycom extends Exchange {
                 $spot = ($type === 'SPOT');
                 $futures = false;
                 $swap = ($type === 'LEVERAGE');
-                $margin = $swap; // as we decided to set
+                $margin = $swap; // decided to set
                 if ($swap) {
                     $symbol = str_replace($this->options['leverage_markets_suffix'], '', $symbol);
                     $symbol .= ':' . $quote;
@@ -579,7 +579,7 @@ class currencycom extends Exchange {
             /**
              * fetch all the $accounts associated with a profile
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$account-structure $account structures} indexed by the $account type
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account type
              */
             $response = Async\await($this->privateGetV2Account ($params));
             //
@@ -636,7 +636,7 @@ class currencycom extends Exchange {
             /**
              * fetch the trading fees for multiple markets
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetV2Account ($params));
@@ -760,7 +760,7 @@ class currencycom extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -877,7 +877,7 @@ class currencycom extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -915,7 +915,7 @@ class currencycom extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetV2Ticker24hr ($params));
@@ -971,7 +971,7 @@ class currencycom extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1279,7 +1279,7 @@ class currencycom extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1372,7 +1372,7 @@ class currencycom extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1383,7 +1383,7 @@ class currencycom extends Exchange {
             } elseif ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
                 $symbols = $this->symbols;
                 $numSymbols = count($symbols);
-                $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
+                $fetchOpenOrdersRateLimit = $this->parse_to_int($numSymbols / 2);
                 throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
             }
             $response = Async\await($this->privateGetV2OpenOrders (array_merge($request, $params)));
@@ -1417,7 +1417,7 @@ class currencycom extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -1461,7 +1461,7 @@ class currencycom extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -1505,7 +1505,7 @@ class currencycom extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch deposits for
              * @param {int|null} $limit the maximum number of deposits structures to retrieve
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             return Async\await($this->fetch_transactions_by_method('privateGetV2Deposits', $code, $since, $limit, $params));
         }) ();
@@ -1519,7 +1519,7 @@ class currencycom extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch withdrawals for
              * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             return Async\await($this->fetch_transactions_by_method('privateGetV2Withdrawals', $code, $since, $limit, $params));
         }) ();
@@ -1533,7 +1533,7 @@ class currencycom extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
              * @param {int|null} $limit max number of transactions to return, default is null
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             return Async\await($this->fetch_transactions_by_method('privateGetV2Transactions', $code, $since, $limit, $params));
         }) ();
@@ -1650,7 +1650,7 @@ class currencycom extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
              * @param {int|null} $limit max number of ledger entrys to return, default is null
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1753,7 +1753,7 @@ class currencycom extends Exchange {
              * fetch the set leverage for a $market
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1777,7 +1777,7 @@ class currencycom extends Exchange {
              * fetch the deposit address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1844,7 +1844,7 @@ class currencycom extends Exchange {
              * fetch all open positions
              * @param {[string]|null} $symbols list of unified market $symbols
              * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetV2TradingPositions ($params));
