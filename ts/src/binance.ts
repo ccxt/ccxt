@@ -4967,7 +4967,12 @@ export default class binance extends Exchange {
                 'Refund Failed': 'failed',
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {});
+        const statuses = this.safeValue (statusesByType, type, {
+            '0': 'pending',
+            '1': 'ok', // success
+            '6': 'ok', // credited but cannot withdraw
+
+        });
         return this.safeString (statuses, status, status);
     }
 
