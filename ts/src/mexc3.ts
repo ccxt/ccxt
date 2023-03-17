@@ -4663,7 +4663,7 @@ export default class mexc3 extends Exchange {
         });
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchTransactionFees
@@ -4764,7 +4764,7 @@ export default class mexc3 extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchDepositWithdrawFees

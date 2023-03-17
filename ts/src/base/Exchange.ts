@@ -1132,7 +1132,7 @@ export default class Exchange {
             return undefined;
         }
 
-        async fetchDepositAddresses (codes = undefined, params = {}) {
+        async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
             return undefined;
         }
 
@@ -2975,7 +2975,7 @@ export default class Exchange {
         return await this.fetchTransactionFee (code, params);
     }
 
-    async fetchFundingFees (codes = undefined, params = {}) {
+    async fetchFundingFees (codes: string[] = undefined, params = {}) {
         const warnOnFetchFundingFees = this.safeValue (this.options, 'warnOnFetchFundingFees', true);
         if (warnOnFetchFundingFees) {
             throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
@@ -2990,7 +2990,7 @@ export default class Exchange {
         return await this.fetchTransactionFees ([ code ], params);
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
         // eslint-disable-next-line
         return undefined;
@@ -3565,7 +3565,7 @@ export default class Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseDepositAddresses (addresses, codes = undefined, indexed = true, params = {}) {
+    parseDepositAddresses (addresses, codes: string[] = undefined, indexed = true, params = {}) {
         let result = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend (this.parseDepositAddress (addresses[i]), params);
@@ -3855,7 +3855,7 @@ export default class Exchange {
         this.checkRequiredArgument (methodName, symbol, 'symbol');
     }
 
-    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined) {
         /**
          * @ignore
          * @method

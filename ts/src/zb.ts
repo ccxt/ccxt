@@ -1180,7 +1180,7 @@ export default class zb extends Exchange {
         };
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await (this as any).spotV1PrivateGetGetPayinAddress (params);
         //
