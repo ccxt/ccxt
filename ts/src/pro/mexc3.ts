@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import mexc3Rest from '../mexc3.js';
-import { BadRequest, ExchangeError } from '../base/errors';
+import { BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
