@@ -1894,7 +1894,7 @@ export default class bitrue extends Exchange {
         //       chainDetail: [ [Object] ]
         //   }
         //
-        const chainDetails = this.safeValue (fee, 'chainDetail');
+        const chainDetails = this.safeValue (fee, 'chainDetail', []);
         const chainDetailLength = chainDetails.length;
         const result = {
             'info': fee,
@@ -1908,7 +1908,7 @@ export default class bitrue extends Exchange {
             },
             'networks': {},
         };
-        if (chainDetails !== undefined) {
+        if (chainDetailLength !== 0) {
             for (let i = 0; i < chainDetailLength; i++) {
                 const chainDetail = chainDetails[i];
                 const networkId = this.safeString (chainDetail, 'chain');
