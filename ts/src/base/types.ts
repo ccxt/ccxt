@@ -188,7 +188,6 @@ export interface DepositAddressResponse {
 /** [ timestamp, open, high, low, close, volume ] */
 export type OHLCV = [number, number, number, number, number, number];
 
-
 export enum Digest {
     Hex = 'hex',
     Base64 ='base64',
