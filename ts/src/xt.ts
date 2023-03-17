@@ -3,9 +3,8 @@
 
 import { Exchange } from './base/Exchange.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
-import { ExchangeError, InvalidOrder, AuthenticationError } from './base/errors.js';
-// ^^^ BadSymbol, BadRequest, OnMaintenance, ArgumentsRequired, AccountSuspended, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds
+import { DECIMAL_PLACES } from './base/functions/number.js';
+import { AuthenticationError, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -40,7 +39,7 @@ export default class xt extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': DECIMAL_PLACES,
             'urls': {
                 'logo': '', // TODO: Add logo
                 'api': {
@@ -1067,7 +1066,7 @@ export default class xt extends Exchange {
             'expiryDatetime': this.iso8601 (expiry),
             'strike': undefined,
             'optionType': undefined,
-            'precision': { // TODO: correct precision and limits
+            'precision': {
                 'price': this.safeNumber (market, 'pricePrecision'),
                 'amount': this.safeNumber (market, 'quantityPrecision'),
             },
@@ -1398,6 +1397,9 @@ export default class xt extends Exchange {
             method = 'publicSpotGetTicker24h';
             request['symbols'] = symbols;
         } else {
+            if (symbols !== undefined) {
+                throw new NotSupported (this.id + ' the symbols argument is not supported for swap and future markets');
+            }
             if (market['linear']) {
                 method = 'publicLinearGetFutureMarketV1PublicQAggTickers';
             } else if (market['inverse']) {
@@ -1705,17 +1707,17 @@ export default class xt extends Exchange {
                             const amountString = this.numberToString (amount);
                             const priceString = this.numberToString (price);
                             const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-                            request['quoteQty'] = cost; // this.amountToPrecision (symbol, cost);
+                            request['quoteQty'] = this.costToPrecision (symbol, cost);
                         }
                     } else {
-                        request['quoteQty'] = amount; // this.amountToPrecision (symbol, amount);
+                        request['quoteQty'] = this.amountToPrecision (symbol, amount);
                     }
                 } else {
-                    request['quantity'] = amount; // this.amountToPrecision (symbol, amount);
+                    request['quantity'] = this.amountToPrecision (symbol, amount);
                 }
             } else {
-                request['price'] = price; // this.priceToPrecision (symbol, price);
-                request['quantity'] = amount; // this.amountToPrecision (symbol, amount);
+                request['price'] = this.priceToPrecision (symbol, price);
+                request['quantity'] = this.amountToPrecision (symbol, amount);
             }
             request['timeInForce'] = timeInForce;
         } else {
@@ -1727,9 +1729,9 @@ export default class xt extends Exchange {
             request['orderSide'] = side.toUpperCase ();
             request['orderType'] = type.toUpperCase ();
             const convertContractsToAmount = Precise.stringDiv (this.numberToString (amount), this.numberToString (market['contractSize']));
-            request['origQty'] = this.parseNumber (convertContractsToAmount);
+            request['origQty'] = this.amountToPrecision (symbol, this.parseNumber (convertContractsToAmount));
             if (price !== undefined) {
-                request['price'] = price; // this.priceToPrecision (symbol, price);
+                request['price'] = this.priceToPrecision (symbol, price);
             }
             if (timeInForce !== undefined) {
                 request['timeInForce'] = timeInForce;
