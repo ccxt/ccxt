@@ -1797,7 +1797,7 @@ export default class currencycom extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (path === 'historicalTrades') {
             headers = {

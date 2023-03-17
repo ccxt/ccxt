@@ -1704,7 +1704,7 @@ export default class idex extends Exchange {
         return authenticated ? (defaultCost / 2) : defaultCost;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const network = this.safeString (this.options, 'network', 'ETH');
         const version = this.safeString (this.options, 'version', 'v1');
         let url = this.urls['api'][network] + '/' + version + '/' + path;

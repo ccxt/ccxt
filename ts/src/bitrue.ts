@@ -1879,7 +1879,7 @@ export default class bitrue extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const [ version, access ] = api;
         let url = this.urls['api'][version] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));

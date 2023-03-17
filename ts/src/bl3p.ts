@@ -388,7 +388,7 @@ export default class bl3p extends Exchange {
         return await (this as any).privatePostMarketMoneyOrderCancel (this.extend (request, params));
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const request = this.implodeParams (path, params);
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + request;
         const query = this.omit (params, this.extractParams (path));

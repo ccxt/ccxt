@@ -1479,7 +1479,7 @@ export default class novadax extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + request;
         const query = this.omit (params, this.extractParams (path));

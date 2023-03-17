@@ -4294,7 +4294,7 @@ export default class zb extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const [ section, version, access ] = api;
         let url = this.implodeHostname (this.urls['api'][section][version][access]);
         if (access === 'public') {

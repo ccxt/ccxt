@@ -3123,7 +3123,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const [ section, access ] = api;
         let url = this.urls['api'][section][access] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));

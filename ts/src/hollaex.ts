@@ -1725,7 +1725,7 @@ export default class hollaex extends Exchange {
         return number;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const query = this.omit (params, this.extractParams (path));
         path = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {

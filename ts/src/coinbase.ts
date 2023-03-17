@@ -2722,7 +2722,7 @@ export default class coinbase extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = [], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
         const pathPart = (version === 'v3') ? 'api/v3' : 'v2';

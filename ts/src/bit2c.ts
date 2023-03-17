@@ -854,7 +854,7 @@ export default class bit2c extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         if (api === 'public') {
             url += '.json';

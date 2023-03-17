@@ -1146,7 +1146,7 @@ export default class bitbns extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'www', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'www', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         if (!(api in this.urls['api'])) {
             throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }

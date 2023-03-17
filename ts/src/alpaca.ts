@@ -798,7 +798,7 @@ export default class alpaca extends Exchange {
         }, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const versions = this.safeValue (this.options, 'versions');
         const version = this.safeString (versions, api);
         let endpoint = '/' + this.implodeParams (path, params);

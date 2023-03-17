@@ -1968,7 +1968,7 @@ export default class krakenfutures extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiVersions = this.safeValue (this.options['versions'], api, {});
         const methodVersions = this.safeValue (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);
