@@ -56,6 +56,22 @@ module.exports = class poloniex extends poloniexRest {
                     'candles_week_1': '1w',
                     'candles_month_1': '1m',
                 },
+                'ohlcvChannels': {
+                    '1m': 'candles_minute_1',
+                    '5m': 'candles_minute_5',
+                    '10m': 'candles_minute_10',
+                    '15m': 'candles_minute_15',
+                    '30m': 'candles_minute_30',
+                    '1h': 'candles_hour_1',
+                    '2h': 'candles_hour_2',
+                    '4h': 'candles_hour_4',
+                    '6h': 'candles_hour_6',
+                    '12h': 'candles_hour_12',
+                    '1d': 'candles_day_1',
+                    '3d': 'candles_day_3',
+                    '1w': 'candles_week_1',
+                    '1M': 'candles_month_1',
+                },
             },
         });
     }
@@ -166,22 +182,7 @@ module.exports = class poloniex extends poloniexRest {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns [[int]] A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        const channels = {
-            '1m': 'candles_minute_1',
-            '5m': 'candles_minute_5',
-            '10m': 'candles_minute_10',
-            '15m': 'candles_minute_15',
-            '30m': 'candles_minute_30',
-            '1h': 'candles_hour_1',
-            '2h': 'candles_hour_2',
-            '4h': 'candles_hour_4',
-            '6h': 'candles_hour_6',
-            '12h': 'candles_hour_12',
-            '1d': 'candles_day_1',
-            '3d': 'candles_day_3',
-            '1w': 'candles_week_1',
-            '1M': 'candles_month_1',
-        };
+        const channels = this.options['ohlcvChannels'];
         const channel = this.safeString (channels, timeframe);
         if (channel === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
