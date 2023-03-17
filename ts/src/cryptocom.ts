@@ -2488,7 +2488,7 @@ export default class cryptocom extends Exchange {
         return [ marginMode, params ];
     }
 
-    parseDepositWithdrawFee (fee, currency: string = undefined) {
+    parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //    {
         //        full_name: 'Alchemix',
