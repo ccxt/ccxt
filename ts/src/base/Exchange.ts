@@ -3168,8 +3168,16 @@ export default class Exchange {
         }
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<any> {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        throw new NotSupported (this.id + ' watchTicker() is not supported yet');
+    }
+
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
+    }
+
+    async watchTickers (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
+        throw new NotSupported (this.id + ' watchTickers() is not supported yet');
     }
 
     async fetchOrder (id: string, symbol: string = undefined, params = {}): Promise<Order> {
