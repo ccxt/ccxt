@@ -720,6 +720,9 @@ module.exports = class poloniex extends poloniexRest {
                     const messageHash = 'ticker:' + marketId;
                     client.resolve (ticker, messageHash);
                     client.resolve (ticker, 'ticker:all');
+                    if (i < data.length - 1) {
+                        client.futures['ticker:all'] = client.future ('ticker:all');
+                    }
                 }
             }
             return message;
