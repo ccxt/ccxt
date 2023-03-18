@@ -24,7 +24,6 @@ export default {
     extensionAlias: {
      ".js": [ ".js", ".ts" ],
     },
-    modules: [ './ts/src/static_dependencies' ]
   },
   externals: [ 'ws', 'zlib' ],
   mode: 'production',
