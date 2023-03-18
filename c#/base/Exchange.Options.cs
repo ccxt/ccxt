@@ -1,0 +1,287 @@
+using System.Net.Http.Headers;
+using System.Text.Json.Serialization;
+
+namespace Main;
+using Main;
+using dict = Dictionary<string, object>;
+using list = List<object>;
+
+public partial class Exchange
+{
+    public dict has { get; set; } = new dict();
+    public dict options { get; set; } = new dict();
+    public dict markets { get; set; } = null;
+    public dict currencies { get; set; } = new dict();
+    public dict fees { get; set; } = new dict();
+    public dict requiredCredentials { get; set; } = new dict();
+    public list timeframes { get; set; } = new list();
+    public dict rateLimit { get; set; } = new dict();
+    public dict exceptions { get; set; } = new dict();
+    public dict urls { get; set; } = new dict();
+    public dict precision { get; set; } = new dict();
+
+    public string secret { get; set; }
+    public string apiKey { get; set; }
+    public string password { get; set; }
+    public string uid { get; set; }
+
+    public dict userAgents;
+
+    public string twofa { get; set; }
+    public string privateKey { get; set; }
+    public string walletAddress { get; set; }
+    public string token { get; set; }
+    public string login { get; set; }
+    public string proxy { get; set; }
+    public string agent { get; set; }
+    public Int64 timeout { get; set; }
+
+
+    // public class exchangeError : Exception { }
+    // public class dDoSProtection : Exception { }
+    // public class rateLimitExceeded : Exception { }
+    // public class exchangeNotAvailable : Exception { }
+    // public class requestTimeout : Exception { }
+    // public class authenticationError : Exception { }
+    // public class badSymbol : Exception { }
+    // public class permissionDenied : Exception { }
+
+    // public Type ExchangeError = typeof(exchangeError);
+    // public Type DoSProtection = typeof(dDoSProtection);
+    // public Type RateLimitExceeded = typeof(rateLimitExceeded);
+    // public Type ExchangeNotAvailable = typeof(exchangeNotAvailable);
+    // public Type RequestTimeout = typeof(requestTimeout);
+    // public Type BadSymbol = typeof(badSymbol);
+    // public Type AuthenticationError = typeof(authenticationError);
+    // public Type InsufficientFunds = typeof(authenticationError);
+    // public Type PermissionDenied = typeof(authenticationError);
+    // public Type BadRequest = typeof(authenticationError);
+    // public Type InvalidOrder = typeof(authenticationError);
+
+    public virtual Dictionary<string, object> describe()
+    {
+        return new Dictionary<string, object>() {
+            { "id", null },
+            { "name", null },
+            { "countries", null },
+            { "enableRateLimit", true },
+            { "rateLimit", 2000 },
+            { "certified", false },
+            { "pro", false },
+            { "alias", false },
+            { "has", new Dictionary<string, object>() {
+                { "publicAPI", true },
+                { "privateAPI", true },
+                { "CORS", null },
+                { "spot", null },
+                { "margin", null },
+                { "swap", null },
+                { "future", null },
+                { "option", null },
+                { "addMargin", null },
+                { "cancelAllOrders", null },
+                { "cancelOrder", true },
+                { "cancelOrders", null },
+                { "createDepositAddress", null },
+                { "createLimitOrder", true },
+                { "createMarketOrder", true },
+                { "createOrder", true },
+                { "createPostOnlyOrder", null },
+                { "createReduceOnlyOrder", null },
+                { "createStopOrder", null },
+                { "createStopLimitOrder", null },
+                { "createStopMarketOrder", null },
+                { "editOrder", "emulated" },
+                { "fetchAccounts", null },
+                { "fetchBalance", true },
+                { "fetchBidsAsks", null },
+                { "fetchBorrowInterest", null },
+                { "fetchBorrowRate", null },
+                { "fetchBorrowRateHistory", null },
+                { "fetchBorrowRatesPerSymbol", null },
+                { "fetchBorrowRates", null },
+                { "fetchCanceledOrders", null },
+                { "fetchClosedOrder", null },
+                { "fetchClosedOrders", null },
+                { "fetchCurrencies", "emulated" },
+                { "fetchDeposit", null },
+                { "fetchDepositAddress", null },
+                { "fetchDepositAddresses", null },
+                { "fetchDepositAddressesByNetwork", null },
+                { "fetchDeposits", null },
+                { "fetchTransactionFee", null },
+                { "fetchTransactionFees", null },
+                { "fetchFundingHistory", null },
+                { "fetchFundingRate", null },
+                { "fetchFundingRateHistory", null },
+                { "fetchFundingRates", null },
+                { "fetchIndexOHLCV", null },
+                { "fetchL2OrderBook", true },
+                { "fetchLedger", null },
+                { "fetchLedgerEntry", null },
+                { "fetchLeverageTiers", null },
+                { "fetchMarketLeverageTiers", null },
+                { "fetchMarkets", true },
+                { "fetchMarkOHLCV", null },
+                { "fetchMyTrades", null },
+                { "fetchOHLCV", "emulated" },
+                { "fetchOpenOrder", null },
+                { "fetchOpenOrders", null },
+                { "fetchOrder", null },
+                { "fetchOrderBook", true },
+                { "fetchOrderBooks", null },
+                { "fetchOrders", null },
+                { "fetchOrderTrades", null },
+                { "fetchPermissions", null },
+                { "fetchPosition", null },
+                { "fetchPositions", null },
+                { "fetchPositionsRisk", null },
+                { "fetchPremiumIndexOHLCV", null },
+                { "fetchStatus", "emulated" },
+                { "fetchTicker", true },
+                { "fetchTickers", null },
+                { "fetchTime", null },
+                { "fetchTrades", true },
+                { "fetchTradingFee", null },
+                { "fetchTradingFees", null },
+                { "fetchTradingLimits", null },
+                { "fetchTransactions", null },
+                { "fetchTransfers", null },
+                { "fetchWithdrawal", null },
+                { "fetchWithdrawals", null },
+                { "reduceMargin", null },
+                { "setLeverage", null },
+                { "setMargin", null },
+                { "setMarginMode", null },
+                { "setPositionMode", null },
+                { "signIn", null },
+                { "transfer", null },
+                { "withdraw", null },
+            } },
+            { "urls", new Dictionary<string, object>() {
+                { "logo", null },
+                { "api", null },
+                { "www", null },
+                { "doc", null },
+                { "fees", null },
+            } },
+            { "api", null },
+            { "requiredCredentials", new Dictionary<string, object>() {
+                { "apiKey", true },
+                { "secret", true },
+                { "uid", false },
+                { "login", false },
+                { "password", false },
+                { "twofa", false },
+                { "privateKey", false },
+                { "walletAddress", false },
+                { "token", false },
+            } },
+            { "markets", null },
+            { "currencies", new Dictionary<string, object>() {} },
+            { "timeframes", null },
+            { "fees", new Dictionary<string, object>() {
+                { "trading", new Dictionary<string, object>() {
+                    { "tierBased", null },
+                    { "percentage", null },
+                    { "taker", null },
+                    { "maker", null },
+                } },
+                { "funding", new Dictionary<string, object>() {
+                    { "tierBased", null },
+                    { "percentage", null },
+                    { "withdraw", new Dictionary<string, object>() {} },
+                    { "deposit", new Dictionary<string, object>() {} },
+                } },
+            } },
+            { "status", new Dictionary<string, object>() {
+                { "status", "ok" },
+                { "updated", null },
+                { "eta", null },
+                { "url", null },
+            } },
+            { "exceptions", null },
+            { "httpExceptions", new Dictionary<string, object>() {
+                { "422", typeof(ExchangeError) },
+                { "418", typeof(DDoSProtection) },
+                { "429", typeof(RateLimitExceeded) },
+                { "404", typeof(ExchangeNotAvailable) },
+                { "409", typeof(ExchangeNotAvailable) },
+                { "410", typeof(ExchangeNotAvailable) },
+                { "500", typeof(ExchangeNotAvailable) },
+                { "501", typeof(ExchangeNotAvailable) },
+                { "502", typeof(ExchangeNotAvailable) },
+                { "520", typeof(ExchangeNotAvailable) },
+                { "521", typeof(ExchangeNotAvailable) },
+                { "522", typeof(ExchangeNotAvailable) },
+                { "525", typeof(ExchangeNotAvailable) },
+                { "526", typeof(ExchangeNotAvailable) },
+                { "400", typeof(ExchangeNotAvailable) },
+                { "403", typeof(ExchangeNotAvailable) },
+                { "405", typeof(ExchangeNotAvailable) },
+                { "503", typeof(ExchangeNotAvailable) },
+                { "530", typeof(ExchangeNotAvailable) },
+                { "408", typeof(RequestTimeout) },
+                { "504", typeof(RequestTimeout) },
+                { "401", typeof(AuthenticationError) },
+                { "511", typeof(AuthenticationError) },
+            } },
+            { "commonCurrencies", new Dictionary<string, object>() {
+                { "XBT", "BTC" },
+                { "BCC", "BCH" },
+                { "BCHABC", "BCH" },
+                { "BCHSV", "BSV" },
+            } },
+            { "precisionMode", DECIMAL_PLACES },
+            { "paddingMode", NO_PADDING },
+            { "limits", new Dictionary<string, object>() {
+                { "leverage", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "price", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "cost", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+        };  // return
+    }
+
+    void initializeProperties()
+    {
+        var properties = this.describe();
+
+        this.version = this.safeString(properties, "version", "");
+
+        // credentials initis
+        this.requiredCredentials = this.safeValue(properties, "requiredCredentials") as dict;
+        this.apiKey = this.safeValue(properties, "apiKey", "") as string;
+        this.secret = this.safeValue(properties, "secret", "") as string;
+        this.password = this.safeValue(properties, "password", "") as string;
+        this.login = this.safeValue(properties, "login", "") as string;
+        this.twofa = this.safeValue(properties, "twofa", "") as string;
+        this.privateKey = this.safeValue(properties, "privateKey", "") as string;
+        this.walletAddress = this.safeValue(properties, "walletAddress", "") as string;
+        this.token = this.safeValue(properties, "token", "") as string;
+        this.uid = this.safeValue(properties, "uid", "") as string;
+
+        this.userAgents = this.safeValue(properties, "userAgents") as dict;
+        this.timeout = (Int64)this.safeInteger(properties, "timeout", 10000);
+        this.id = this.safeString(properties, "id");
+
+        this.api = this.safeValue(properties, "api") as dict;
+        this.hostname = this.safeString(properties, "hostname");
+        this.urls = this.safeValue(properties, "urls") as dict;
+        this.options = this.safeValue(properties, "options") as dict;
+        this.verbose = (bool)this.safeValue(properties, "verbose", false);
+        this.has = this.safeValue(properties, "has") as dict;
+    }
+}

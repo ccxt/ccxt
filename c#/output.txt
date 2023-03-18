@@ -1,0 +1,2629 @@
+System.Collections.Generic.Dictionary`2[System.String,System.Object]
+fetch Request:
+whitebit POST https://whitebit.com/api/v4/trade-account/balance
+RequestHeaders:
+Content-Type, application/json
+X-TXC-APIKEY, 379bd8d205cf01b232eb442cf1eae7c3
+X-TXC-PAYLOAD, eyJyZXF1ZXN0IjoiL2FwaS92NC90cmFkZS1hY2NvdW50L2JhbGFuY2UiLCJub25jZSI6IjE2NzI0ODcxMDEifQ==
+X-TXC-SIGNATURE, 50bb9952a937f823a52bc2cd4bcdc7d05d39f742c17025b57daf103f960dee47ea66f619520309f4c04a014369e0c05fd8c6db35dfd86d34a087089f0f88316b
+
+RequestBody:
+
+
+handleRestResponse:
+whitebitPOSThttps://whitebit.com/api/v4/trade-account/balance OK OK
+ResponseHeaders:
+
+ResponseBody:
+{"1INCH":{"available":"0","freeze":"0"},"AAVE":{"available":"0","freeze":"0"},"ADA":{"available":"0","freeze":"0"},"ADK":{"available":"0","freeze":"0"},"ADX":{"available":"0","freeze":"0"},"AGLD":{"available":"0","freeze":"0"},"AGRS":{"available":"0","freeze":"0"},"AKITA":{"available":"0","freeze":"0"},"AKRO":{"available":"0","freeze":"0"},"ALGO":{"available":"0","freeze":"0"},"ALICE":{"available":"0","freeze":"0"},"ALN":{"available":"0","freeze":"0"},"ALPACA":{"available":"0","freeze":"0"},"AMB":{"available":"0","freeze":"0"},"AMP":{"available":"0","freeze":"0"},"ANKR":{"available":"0","freeze":"0"},"ANT":{"available":"0","freeze":"0"},"APE":{"available":"0","freeze":"0"},"API3":{"available":"0","freeze":"0"},"APT":{"available":"0","freeze":"0"},"AQN":{"available":"0","freeze":"0"},"AR":{"available":"0","freeze":"0"},"ARPA":{"available":"0","freeze":"0"},"ARV":{"available":"0","freeze":"0"},"ASH":{"available":"0","freeze":"0"},"ASTR":{"available":"0","freeze":"0"},"ATOM":{"available":"0","freeze":"0"},"AUDIO":{"available":"0","freeze":"0"},"AVAX":{"available":"0","freeze":"0"},"AXEL":{"available":"0","freeze":"0"},"AXS":{"available":"0","freeze":"0"},"AZU":{"available":"0","freeze":"0"},"BADGER":{"available":"0","freeze":"0"},"BAL":{"available":"0","freeze":"0"},"BAND":{"available":"0","freeze":"0"},"BAT":{"available":"0","freeze":"0"},"BBC":{"available":"0","freeze":"0"},"BCCN":{"available":"0","freeze":"0"},"BCH":{"available":"0","freeze":"0"},"BELL":{"available":"0","freeze":"0"},"BERRY":{"available":"0","freeze":"0"},"BICO":{"available":"0","freeze":"0"},"BITCCA":{"available":"0","freeze":"0"},"BITCI":{"available":"0","freeze":"0"},"BLCT":{"available":"0","freeze":"0"},"BLOCS":{"available":"0","freeze":"0"},"BLXM":{"available":"0","freeze":"0"},"BLZ":{"available":"0","freeze":"0"},"BNT":{"available":"0","freeze":"0"},"BOLC":{"available":"0","freeze":"0"},"BRZ":{"available":"0","freeze":"0"},"BTC":{"available":"0.00000095","freeze":"0"},"BTCZ":{"available":"0","freeze":"0"},"BTT":{"available":"0","freeze":"0"},"BTTC":{"available":"0","freeze":"0"},"C98":{"available":"0","freeze":"0"},"CAKE":{"available":"0","freeze":"0"},"CBO":{"available":"0","freeze":"0"},"CCAT":{"available":"0","freeze":"0"},"CCOH":{"available":"0","freeze":"0"},"CELO":{"available":"0","freeze":"0"},"CENT":{"available":"0","freeze":"0"},"CHR":{"available":"0","freeze":"0"},"CHZ":{"available":"0","freeze":"0"},"CLV":{"available":"0","freeze":"0"},"COMP":{"available":"0","freeze":"0"},"COP":{"available":"0","freeze":"0"},"CRV":{"available":"0","freeze":"0"},"CSC":{"available":"0","freeze":"0"},"CT":{"available":"0","freeze":"0"},"CTSI":{"available":"0","freeze":"0"},"CUC":{"available":"0","freeze":"0"},"CVC":{"available":"0","freeze":"0"},"CVP":{"available":"0","freeze":"0"},"CXRBN":{"available":"0","freeze":"0"},"CYCE":{"available":"0","freeze":"0"},"DAI":{"available":"0","freeze":"0"},"DASH":{"available":"0","freeze":"0"},"DATA":{"available":"0","freeze":"0"},"DBTC":{"available":"0","freeze":"0"},"DBX":{"available":"0","freeze":"0"},"DECL":{"available":"0","freeze":"0"},"DEXR":{"available":"0","freeze":"0"},"DF":{"available":"0","freeze":"0"},"DGB":{"available":"0","freeze":"0"},"DNT":{"available":"0","freeze":"0"},"DODO":{"available":"0","freeze":"0"},"DOGE":{"available":"0","freeze":"0"},"DOT":{"available":"0","freeze":"0"},"DTNG":{"available":"0","freeze":"0"},"DUSDT":{"available":"0","freeze":"0"},"DYDX":{"available":"0","freeze":"0"},"DYN":{"available":"0","freeze":"0"},"EAI":{"available":"0","freeze":"0"},"EDC":{"available":"0","freeze":"0"},"ELAN":{"available":"0","freeze":"0"},"EMPIRE":{"available":"0","freeze":"0"},"ENJ":{"available":"0","freeze":"0"},"ENS":{"available":"0","freeze":"0"},"EOS":{"available":"0","freeze":"0"},"EQ":{"available":"0","freeze":"0"},"ESHK":{"available":"0","freeze":"0"},"ETC":{"available":"0","freeze":"0"},"ETH":{"available":"0","freeze":"0"},"ETHW":{"available":"0","freeze":"0"},"EUR":{"available":"0","freeze":"0"},"EURT":{"available":"0","freeze":"0"},"EXFI":{"available":"0","freeze":"0"},"FIL":{"available":"0","freeze":"0"},"FIO":{"available":"0","freeze":"0"},"FIS":{"available":"0","freeze":"0"},"FLIX":{"available":"0","freeze":"0"},"FLOW":{"available":"0","freeze":"0"},"FNT":{"available":"0","freeze":"0"},"FOF":{"available":"0","freeze":"0"},"FOR":{"available":"0","freeze":"0"},"FRONT":{"available":"0","freeze":"0"},"FTM":{"available":"0","freeze":"0"},"FUTURE":{"available":"0","freeze":"0"},"GAL":{"available":"0","freeze":"0"},"GALA":{"available":"0","freeze":"0"},"GARI":{"available":"0","freeze":"0"},"GAS":{"available":"0","freeze":"0"},"GBC":{"available":"0","freeze":"0"},"GFG":{"available":"0","freeze":"0"},"GLM":{"available":"0","freeze":"0"},"GLMR":{"available":"0","freeze":"0"},"GMT":{"available":"0","freeze":"0"},"GRT":{"available":"0","freeze":"0"},"GULF":{"available":"0","freeze":"0"},"HBAR":{"available":"0","freeze":"0"},"HDX":{"available":"0","freeze":"0"},"HEC":{"available":"0","freeze":"0"},"HLO":{"available":"0","freeze":"0"},"HMETA":{"available":"0","freeze":"0"},"HMR":{"available":"0","freeze":"0"},"HOGE":{"available":"0","freeze":"0"},"HOKK":{"available":"0","freeze":"0"},"HZM":{"available":"0","freeze":"0"},"ICP":{"available":"0","freeze":"0"},"ICX":{"available":"0","freeze":"0"},"IDEX":{"available":"0","freeze":"0"},"IHC":{"available":"0","freeze":"0"},"IJZ":{"available":"0","freeze":"0"},"ILC":{"available":"0","freeze":"0"},"IMX":{"available":"0","freeze":"0"},"INJ":{"available":"0","freeze":"0"},"INTX":{"available":"0","freeze":"0"},"IOST":{"available":"0","freeze":"0"},"IOTX":{"available":"0","freeze":"0"},"JAM":{"available":"0","freeze":"0"},"JASMY":{"available":"0","freeze":"0"},"JNB":{"available":"0","freeze":"0"},"JST":{"available":"0","freeze":"0"},"KALA":{"available":"0","freeze":"0"},"KAVA":{"available":"0","freeze":"0"},"KLAY":{"available":"0","freeze":"0"},"KLC":{"available":"0","freeze":"0"},"KLEE":{"available":"0","freeze":"0"},"KNC":{"available":"0","freeze":"0"},"KOCJ":{"available":"0","freeze":"0"},"KOJI":{"available":"0","freeze":"0"},"KSM":{"available":"0","freeze":"0"},"KZT":{"available":"0","freeze":"0"},"LDO":{"available":"0","freeze":"0"},"LEND":{"available":"0","freeze":"0"},"LINA":{"available":"0","freeze":"0"},"LINK":{"available":"0","freeze":"0"},"LOFI":{"available":"0","freeze":"0"},"LOKA":{"available":"0","freeze":"0"},"LOT":{"available":"0","freeze":"0"},"LPT":{"available":"0","freeze":"0"},"LRC":{"available":"0","freeze":"0"},"LTC":{"available":"0","freeze":"0"},"LUFFY":{"available":"0","freeze":"0"},"LUNA":{"available":"0","freeze":"0"},"LUNC":{"available":"0","freeze":"0"},"MANA":{"available":"0","freeze":"0"},"MASK":{"available":"0","freeze":"0"},"MATIC":{"available":"0","freeze":"0"},"MBOX":{"available":"0","freeze":"0"},"MDX":{"available":"0","freeze":"0"},"MIR":{"available":"0","freeze":"0"},"MKR":{"available":"0","freeze":"0"},"MLN":{"available":"0","freeze":"0"},"MLNK":{"available":"0","freeze":"0"},"MPC":{"available":"0","freeze":"0"},"MTO":{"available":"0","freeze":"0"},"MVEDA":{"available":"0","freeze":"0"},"MWC":{"available":"0","freeze":"0"},"MYL":{"available":"0","freeze":"0"},"NCAT":{"available":"0","freeze":"0"},"NCDT":{"available":"0","freeze":"0"},"NEAR":{"available":"0","freeze":"0"},"NEEO":{"available":"0","freeze":"0"},"NEO":{"available":"0","freeze":"0"},"NEXO":{"available":"0","freeze":"0"},"NKN":{"available":"0","freeze":"0"},"NOOFT":{"available":"0","freeze":"0"},"OCEAN":{"available":"0","freeze":"0"},"OGN":{"available":"0","freeze":"0"},"OMG":{"available":"0","freeze":"0"},"ONT":{"available":"0","freeze":"0"},"OP":{"available":"0","freeze":"0"},"OVO":{"available":"0","freeze":"0"},"OXT":{"available":"0","freeze":"0"},"PAC":{"available":"0","freeze":"0"},"PAX":{"available":"0","freeze":"0"},"PEOPLE":{"available":"0","freeze":"0"},"PHA":{"available":"0","freeze":"0"},"PIVX":{"available":"0","freeze":"0"},"PLCU":{"available":"0","freeze":"0"},"POLS":{"available":"0","freeze":"0"},"POND":{"available":"0","freeze":"0"},"POODL2":{"available":"0","freeze":"0"},"POWR":{"available":"0","freeze":"0"},"PPT":{"available":"0","freeze":"0"},"PSI":{"available":"0","freeze":"0"},"PXP":{"available":"0","freeze":"0"},"PYR":{"available":"0","freeze":"0"},"QTUM":{"available":"0","freeze":"0"},"QUA":{"available":"0","freeze":"0"},"RAD":{"available":"0","freeze":"0"},"RARE":{"available":"0","freeze":"0"},"RBT":{"available":"0","freeze":"0"},"REEF":{"available":"0","freeze":"0"},"REN":{"available":"0","freeze":"0"},"REQ":{"available":"0","freeze":"0"},"RLC":{"available":"0","freeze":"0"},"RNDR":{"available":"0","freeze":"0"},"RVN":{"available":"0","freeze":"0"},"RXC":{"available":"0","freeze":"0"},"SAND":{"available":"0","freeze":"0"},"SCAP":{"available":"0","freeze":"0"},"SFC":{"available":"0","freeze":"0"},"SFM":{"available":"0","freeze":"0"},"SHIB":{"available":"0","freeze":"0"},"SKL":{"available":"0","freeze":"0"},"SL":{"available":"0","freeze":"0"},"SNT":{"available":"0","freeze":"0"},"SNX":{"available":"0","freeze":"0"},"SOL":{"available":"0","freeze":"0"},"SON":{"available":"0","freeze":"0"},"SONO":{"available":"0","freeze":"0"},"SPE":{"available":"0","freeze":"0"},"SRO":{"available":"0","freeze":"0"},"SSLX":{"available":"0","freeze":"0"},"STEEM":{"available":"0","freeze":"0"},"STEMX":{"available":"0","freeze":"0"},"STG":{"available":"0","freeze":"0"},"STON":{"available":"0","freeze":"0"},"STORJ":{"available":"0","freeze":"0"},"STORY":{"available":"0","freeze":"0"},"STPT":{"available":"0","freeze":"0"},"STRM":{"available":"0","freeze":"0"},"SUN":{"available":"0","freeze":"0"},"SUPER":{"available":"0","freeze":"0"},"SUSHI":{"available":"0","freeze":"0"},"SXP":{"available":"0","freeze":"0"},"TABOO":{"available":"0","freeze":"0"},"TCG2":{"available":"0","freeze":"0"},"TELOS":{"available":"0","freeze":"0"},"THETA":{"available":"0","freeze":"0"},"TLW":{"available":"0","freeze":"0"},"TNC":{"available":"0","freeze":"0"},"TOMO":{"available":"0","freeze":"0"},"TRB":{"available":"0","freeze":"0"},"TRIBE":{"available":"0","freeze":"0"},"TRUXTR":{"available":"0","freeze":"0"},"TRX":{"available":"0","freeze":"0"},"TRY":{"available":"0","freeze":"0"},"TUSD":{"available":"1999","freeze":"0"},"TYC":{"available":"0","freeze":"0"},"TYV":{"available":"0","freeze":"0"},"UAH":{"available":"0","freeze":"0"},"UCA":{"available":"0","freeze":"0"},"UMA":{"available":"0","freeze":"0"},"UNFI":{"available":"0","freeze":"0"},"UNI":{"available":"0","freeze":"0"},"USD":{"available":"0","freeze":"0"},"USDC":{"available":"0","freeze":"0"},"USDG":{"available":"0","freeze":"0"},"USDT":{"available":"0","freeze":"0"},"UST":{"available":"0","freeze":"0"},"USTC":{"available":"0","freeze":"0"},"UTED":{"available":"0","freeze":"0"},"UTK":{"available":"0","freeze":"0"},"VCG":{"available":"0","freeze":"0"},"VEED":{"available":"0","freeze":"0"},"VET":{"available":"0","freeze":"0"},"VICA":{"available":"0","freeze":"0"},"VITAE":{"available":"0","freeze":"0"},"VOLT":{"available":"0","freeze":"0"},"VOXEL":{"available":"0","freeze":"0"},"VRSC":{"available":"0","freeze":"0"},"WAVES":{"available":"0","freeze":"0"},"WAXP":{"available":"0","freeze":"0"},"WBT":{"available":"0","freeze":"0"},"WIN":{"available":"0","freeze":"0"},"WNXM":{"available":"0","freeze":"0"},"WOO":{"available":"0","freeze":"0"},"WRT":{"available":"0","freeze":"0"},"WSD":{"available":"0","freeze":"0"},"WTC":{"available":"0","freeze":"0"},"XDC":{"available":"0","freeze":"0"},"XDEN":{"available":"0","freeze":"0"},"XEM":{"available":"0","freeze":"0"},"XFC":{"available":"0","freeze":"0"},"XLM":{"available":"0","freeze":"0"},"XMR":{"available":"0","freeze":"0"},"XNR":{"available":"0","freeze":"0"},"XRD":{"available":"0","freeze":"0"},"XRDOGE":{"available":"0","freeze":"0"},"XRP":{"available":"0","freeze":"0"},"XSN":{"available":"0","freeze":"0"},"XSPECT":{"available":"0","freeze":"0"},"XTZ":{"available":"0","freeze":"0"},"YFI":{"available":"0","freeze":"0"},"YFII":{"available":"0","freeze":"0"},"YGG":{"available":"0","freeze":"0"},"ZAMZAM":{"available":"0","freeze":"0"},"ZEC":{"available":"0","freeze":"0"},"ZEN":{"available":"0","freeze":"0"},"ZIL":{"available":"0","freeze":"0"},"ZRX":{"available":"0","freeze":"0"}}
+
+Will print the balance!!!!
+
+{
+  "1INCH": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "AAVE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ADA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ADK": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ADX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "AGLD": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "AGRS": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "AKITA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "AKRO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ALGO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ALICE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ALN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ALPACA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "AMB": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "AMP": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ANKR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ANT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "APE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "API3": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "APT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "AQN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "AR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ARPA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ARV": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ASH": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ASTR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ATOM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "AUDIO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "AVAX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "AXEL": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "AXS": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "AZU": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BADGER": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BAL": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BAND": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BAT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BBC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BCCN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BCH": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BELL": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BERRY": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BICO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BITCCA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BITCI": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BLCT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BLOCS": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BLXM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BLZ": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BNT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BOLC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BRZ": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BTC": {
+    "free": 9.5E-07,
+    "used": 0.0,
+    "total": null
+  },
+  "BTCZ": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BTT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "BTTC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "C98": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CAKE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CBO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CCAT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CCOH": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CELO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CENT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CHR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CHZ": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CLV": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "COMP": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "COP": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CRV": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CSC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CTSI": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CUC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CVC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CVP": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CXRBN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "CYCE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DAI": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DASH": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DATA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DBTC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DBX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DECL": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DEXR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DF": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DGB": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DNT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DODO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DOGE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DOT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DTNG": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DUSDT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DYDX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "DYN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "EAI": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "EDC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ELAN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "EMPIRE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ENJ": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ENS": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "EOS": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "EQ": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ESHK": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ETC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ETH": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ETHW": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "EUR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "EURT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "EXFI": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "FIL": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "FIO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "FIS": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "FLIX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "FLOW": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "FNT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "FOF": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "FOR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "FRONT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "FTM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "FUTURE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "GAL": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "GALA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "GARI": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "GAS": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "GBC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "GFG": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "GLM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "GLMR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "GMT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "GRT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "GULF": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "HBAR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "HDX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "HEC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "HLO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "HMETA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "HMR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "HOGE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "HOKK": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "HZM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ICP": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ICX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "IDEX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "IHC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "IJZ": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ILC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "IMX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "INJ": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "INTX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "IOST": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "IOTX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "JAM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "JASMY": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "JNB": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "JST": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "KALA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "KAVA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "KLAY": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "KLC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "KLEE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "KNC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "KOCJ": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "KOJI": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "KSM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "KZT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "LDO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "LEND": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "LINA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "LINK": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "LOFI": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "LOKA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "LOT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "LPT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "LRC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "LTC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "LUFFY": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "LUNA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "LUNC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "MANA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "MASK": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "MATIC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "MBOX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "MDX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "MIR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "MKR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "MLN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "MLNK": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "MPC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "MTO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "MVEDA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "MWC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "MYL": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "NCAT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "NCDT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "NEAR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "NEEO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "NEO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "NEXO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "NKN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "NOOFT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "OCEAN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "OGN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "OMG": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ONT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "OP": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "OVO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "OXT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "PAC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "PAX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "PEOPLE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "PHA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "PIVX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "PLCU": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "POLS": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "POND": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "POODL2": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "POWR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "PPT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "PSI": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "PXP": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "PYR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "QTUM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "QUA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "RAD": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "RARE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "RBT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "REEF": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "REN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "REQ": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "RLC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "RNDR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "RVN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "RXC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SAND": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SCAP": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SFC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SFM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SHIB": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SKL": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SL": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SNT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SNX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SOL": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SON": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SONO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SPE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SRO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SSLX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "STEEM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "STEMX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "STG": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "STON": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "STORJ": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "STORY": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "STPT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "STRM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SUN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SUPER": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SUSHI": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "SXP": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "TABOO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "TCG2": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "TELOS": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "THETA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "TLW": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "TNC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "TOMO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "TRB": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "TRIBE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "TRUXTR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "TRX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "TRY": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "TUSD": {
+    "free": 1999.0,
+    "used": 0.0,
+    "total": null
+  },
+  "TYC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "TYV": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "UAH": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "UCA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "UMA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "UNFI": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "UNI": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "USD": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "USDC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "USDG": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "USDT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "UST": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "USTC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "UTED": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "UTK": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "VCG": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "VEED": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "VET": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "VICA": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "VITAE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "VOLT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "VOXEL": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "VRSC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "WAVES": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "WAXP": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "WBT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "WIN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "WNXM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "WOO": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "WRT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "WSD": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "WTC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "XDC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "XDEN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "XEM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "XFC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "XLM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "XMR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "XNR": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "XRD": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "XRDOGE": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "XRP": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "XSN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "XSPECT": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "XTZ": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "YFI": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "YFII": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "YGG": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ZAMZAM": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ZEC": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ZEN": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ZIL": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "ZRX": {
+    "free": 0.0,
+    "used": 0.0,
+    "total": null
+  },
+  "free": {
+    "1INCH": 0.0,
+    "AAVE": 0.0,
+    "ADA": 0.0,
+    "ADK": 0.0,
+    "ADX": 0.0,
+    "AGLD": 0.0,
+    "AGRS": 0.0,
+    "AKITA": 0.0,
+    "AKRO": 0.0,
+    "ALGO": 0.0,
+    "ALICE": 0.0,
+    "ALN": 0.0,
+    "ALPACA": 0.0,
+    "AMB": 0.0,
+    "AMP": 0.0,
+    "ANKR": 0.0,
+    "ANT": 0.0,
+    "APE": 0.0,
+    "API3": 0.0,
+    "APT": 0.0,
+    "AQN": 0.0,
+    "AR": 0.0,
+    "ARPA": 0.0,
+    "ARV": 0.0,
+    "ASH": 0.0,
+    "ASTR": 0.0,
+    "ATOM": 0.0,
+    "AUDIO": 0.0,
+    "AVAX": 0.0,
+    "AXEL": 0.0,
+    "AXS": 0.0,
+    "AZU": 0.0,
+    "BADGER": 0.0,
+    "BAL": 0.0,
+    "BAND": 0.0,
+    "BAT": 0.0,
+    "BBC": 0.0,
+    "BCCN": 0.0,
+    "BCH": 0.0,
+    "BELL": 0.0,
+    "BERRY": 0.0,
+    "BICO": 0.0,
+    "BITCCA": 0.0,
+    "BITCI": 0.0,
+    "BLCT": 0.0,
+    "BLOCS": 0.0,
+    "BLXM": 0.0,
+    "BLZ": 0.0,
+    "BNT": 0.0,
+    "BOLC": 0.0,
+    "BRZ": 0.0,
+    "BTC": 9.5E-07,
+    "BTCZ": 0.0,
+    "BTT": 0.0,
+    "BTTC": 0.0,
+    "C98": 0.0,
+    "CAKE": 0.0,
+    "CBO": 0.0,
+    "CCAT": 0.0,
+    "CCOH": 0.0,
+    "CELO": 0.0,
+    "CENT": 0.0,
+    "CHR": 0.0,
+    "CHZ": 0.0,
+    "CLV": 0.0,
+    "COMP": 0.0,
+    "COP": 0.0,
+    "CRV": 0.0,
+    "CSC": 0.0,
+    "CT": 0.0,
+    "CTSI": 0.0,
+    "CUC": 0.0,
+    "CVC": 0.0,
+    "CVP": 0.0,
+    "CXRBN": 0.0,
+    "CYCE": 0.0,
+    "DAI": 0.0,
+    "DASH": 0.0,
+    "DATA": 0.0,
+    "DBTC": 0.0,
+    "DBX": 0.0,
+    "DECL": 0.0,
+    "DEXR": 0.0,
+    "DF": 0.0,
+    "DGB": 0.0,
+    "DNT": 0.0,
+    "DODO": 0.0,
+    "DOGE": 0.0,
+    "DOT": 0.0,
+    "DTNG": 0.0,
+    "DUSDT": 0.0,
+    "DYDX": 0.0,
+    "DYN": 0.0,
+    "EAI": 0.0,
+    "EDC": 0.0,
+    "ELAN": 0.0,
+    "EMPIRE": 0.0,
+    "ENJ": 0.0,
+    "ENS": 0.0,
+    "EOS": 0.0,
+    "EQ": 0.0,
+    "ESHK": 0.0,
+    "ETC": 0.0,
+    "ETH": 0.0,
+    "ETHW": 0.0,
+    "EUR": 0.0,
+    "EURT": 0.0,
+    "EXFI": 0.0,
+    "FIL": 0.0,
+    "FIO": 0.0,
+    "FIS": 0.0,
+    "FLIX": 0.0,
+    "FLOW": 0.0,
+    "FNT": 0.0,
+    "FOF": 0.0,
+    "FOR": 0.0,
+    "FRONT": 0.0,
+    "FTM": 0.0,
+    "FUTURE": 0.0,
+    "GAL": 0.0,
+    "GALA": 0.0,
+    "GARI": 0.0,
+    "GAS": 0.0,
+    "GBC": 0.0,
+    "GFG": 0.0,
+    "GLM": 0.0,
+    "GLMR": 0.0,
+    "GMT": 0.0,
+    "GRT": 0.0,
+    "GULF": 0.0,
+    "HBAR": 0.0,
+    "HDX": 0.0,
+    "HEC": 0.0,
+    "HLO": 0.0,
+    "HMETA": 0.0,
+    "HMR": 0.0,
+    "HOGE": 0.0,
+    "HOKK": 0.0,
+    "HZM": 0.0,
+    "ICP": 0.0,
+    "ICX": 0.0,
+    "IDEX": 0.0,
+    "IHC": 0.0,
+    "IJZ": 0.0,
+    "ILC": 0.0,
+    "IMX": 0.0,
+    "INJ": 0.0,
+    "INTX": 0.0,
+    "IOST": 0.0,
+    "IOTX": 0.0,
+    "JAM": 0.0,
+    "JASMY": 0.0,
+    "JNB": 0.0,
+    "JST": 0.0,
+    "KALA": 0.0,
+    "KAVA": 0.0,
+    "KLAY": 0.0,
+    "KLC": 0.0,
+    "KLEE": 0.0,
+    "KNC": 0.0,
+    "KOCJ": 0.0,
+    "KOJI": 0.0,
+    "KSM": 0.0,
+    "KZT": 0.0,
+    "LDO": 0.0,
+    "LEND": 0.0,
+    "LINA": 0.0,
+    "LINK": 0.0,
+    "LOFI": 0.0,
+    "LOKA": 0.0,
+    "LOT": 0.0,
+    "LPT": 0.0,
+    "LRC": 0.0,
+    "LTC": 0.0,
+    "LUFFY": 0.0,
+    "LUNA": 0.0,
+    "LUNC": 0.0,
+    "MANA": 0.0,
+    "MASK": 0.0,
+    "MATIC": 0.0,
+    "MBOX": 0.0,
+    "MDX": 0.0,
+    "MIR": 0.0,
+    "MKR": 0.0,
+    "MLN": 0.0,
+    "MLNK": 0.0,
+    "MPC": 0.0,
+    "MTO": 0.0,
+    "MVEDA": 0.0,
+    "MWC": 0.0,
+    "MYL": 0.0,
+    "NCAT": 0.0,
+    "NCDT": 0.0,
+    "NEAR": 0.0,
+    "NEEO": 0.0,
+    "NEO": 0.0,
+    "NEXO": 0.0,
+    "NKN": 0.0,
+    "NOOFT": 0.0,
+    "OCEAN": 0.0,
+    "OGN": 0.0,
+    "OMG": 0.0,
+    "ONT": 0.0,
+    "OP": 0.0,
+    "OVO": 0.0,
+    "OXT": 0.0,
+    "PAC": 0.0,
+    "PAX": 0.0,
+    "PEOPLE": 0.0,
+    "PHA": 0.0,
+    "PIVX": 0.0,
+    "PLCU": 0.0,
+    "POLS": 0.0,
+    "POND": 0.0,
+    "POODL2": 0.0,
+    "POWR": 0.0,
+    "PPT": 0.0,
+    "PSI": 0.0,
+    "PXP": 0.0,
+    "PYR": 0.0,
+    "QTUM": 0.0,
+    "QUA": 0.0,
+    "RAD": 0.0,
+    "RARE": 0.0,
+    "RBT": 0.0,
+    "REEF": 0.0,
+    "REN": 0.0,
+    "REQ": 0.0,
+    "RLC": 0.0,
+    "RNDR": 0.0,
+    "RVN": 0.0,
+    "RXC": 0.0,
+    "SAND": 0.0,
+    "SCAP": 0.0,
+    "SFC": 0.0,
+    "SFM": 0.0,
+    "SHIB": 0.0,
+    "SKL": 0.0,
+    "SL": 0.0,
+    "SNT": 0.0,
+    "SNX": 0.0,
+    "SOL": 0.0,
+    "SON": 0.0,
+    "SONO": 0.0,
+    "SPE": 0.0,
+    "SRO": 0.0,
+    "SSLX": 0.0,
+    "STEEM": 0.0,
+    "STEMX": 0.0,
+    "STG": 0.0,
+    "STON": 0.0,
+    "STORJ": 0.0,
+    "STORY": 0.0,
+    "STPT": 0.0,
+    "STRM": 0.0,
+    "SUN": 0.0,
+    "SUPER": 0.0,
+    "SUSHI": 0.0,
+    "SXP": 0.0,
+    "TABOO": 0.0,
+    "TCG2": 0.0,
+    "TELOS": 0.0,
+    "THETA": 0.0,
+    "TLW": 0.0,
+    "TNC": 0.0,
+    "TOMO": 0.0,
+    "TRB": 0.0,
+    "TRIBE": 0.0,
+    "TRUXTR": 0.0,
+    "TRX": 0.0,
+    "TRY": 0.0,
+    "TUSD": 1999.0,
+    "TYC": 0.0,
+    "TYV": 0.0,
+    "UAH": 0.0,
+    "UCA": 0.0,
+    "UMA": 0.0,
+    "UNFI": 0.0,
+    "UNI": 0.0,
+    "USD": 0.0,
+    "USDC": 0.0,
+    "USDG": 0.0,
+    "USDT": 0.0,
+    "UST": 0.0,
+    "USTC": 0.0,
+    "UTED": 0.0,
+    "UTK": 0.0,
+    "VCG": 0.0,
+    "VEED": 0.0,
+    "VET": 0.0,
+    "VICA": 0.0,
+    "VITAE": 0.0,
+    "VOLT": 0.0,
+    "VOXEL": 0.0,
+    "VRSC": 0.0,
+    "WAVES": 0.0,
+    "WAXP": 0.0,
+    "WBT": 0.0,
+    "WIN": 0.0,
+    "WNXM": 0.0,
+    "WOO": 0.0,
+    "WRT": 0.0,
+    "WSD": 0.0,
+    "WTC": 0.0,
+    "XDC": 0.0,
+    "XDEN": 0.0,
+    "XEM": 0.0,
+    "XFC": 0.0,
+    "XLM": 0.0,
+    "XMR": 0.0,
+    "XNR": 0.0,
+    "XRD": 0.0,
+    "XRDOGE": 0.0,
+    "XRP": 0.0,
+    "XSN": 0.0,
+    "XSPECT": 0.0,
+    "XTZ": 0.0,
+    "YFI": 0.0,
+    "YFII": 0.0,
+    "YGG": 0.0,
+    "ZAMZAM": 0.0,
+    "ZEC": 0.0,
+    "ZEN": 0.0,
+    "ZIL": 0.0,
+    "ZRX": 0.0
+  },
+  "used": {
+    "1INCH": 0.0,
+    "AAVE": 0.0,
+    "ADA": 0.0,
+    "ADK": 0.0,
+    "ADX": 0.0,
+    "AGLD": 0.0,
+    "AGRS": 0.0,
+    "AKITA": 0.0,
+    "AKRO": 0.0,
+    "ALGO": 0.0,
+    "ALICE": 0.0,
+    "ALN": 0.0,
+    "ALPACA": 0.0,
+    "AMB": 0.0,
+    "AMP": 0.0,
+    "ANKR": 0.0,
+    "ANT": 0.0,
+    "APE": 0.0,
+    "API3": 0.0,
+    "APT": 0.0,
+    "AQN": 0.0,
+    "AR": 0.0,
+    "ARPA": 0.0,
+    "ARV": 0.0,
+    "ASH": 0.0,
+    "ASTR": 0.0,
+    "ATOM": 0.0,
+    "AUDIO": 0.0,
+    "AVAX": 0.0,
+    "AXEL": 0.0,
+    "AXS": 0.0,
+    "AZU": 0.0,
+    "BADGER": 0.0,
+    "BAL": 0.0,
+    "BAND": 0.0,
+    "BAT": 0.0,
+    "BBC": 0.0,
+    "BCCN": 0.0,
+    "BCH": 0.0,
+    "BELL": 0.0,
+    "BERRY": 0.0,
+    "BICO": 0.0,
+    "BITCCA": 0.0,
+    "BITCI": 0.0,
+    "BLCT": 0.0,
+    "BLOCS": 0.0,
+    "BLXM": 0.0,
+    "BLZ": 0.0,
+    "BNT": 0.0,
+    "BOLC": 0.0,
+    "BRZ": 0.0,
+    "BTC": 0.0,
+    "BTCZ": 0.0,
+    "BTT": 0.0,
+    "BTTC": 0.0,
+    "C98": 0.0,
+    "CAKE": 0.0,
+    "CBO": 0.0,
+    "CCAT": 0.0,
+    "CCOH": 0.0,
+    "CELO": 0.0,
+    "CENT": 0.0,
+    "CHR": 0.0,
+    "CHZ": 0.0,
+    "CLV": 0.0,
+    "COMP": 0.0,
+    "COP": 0.0,
+    "CRV": 0.0,
+    "CSC": 0.0,
+    "CT": 0.0,
+    "CTSI": 0.0,
+    "CUC": 0.0,
+    "CVC": 0.0,
+    "CVP": 0.0,
+    "CXRBN": 0.0,
+    "CYCE": 0.0,
+    "DAI": 0.0,
+    "DASH": 0.0,
+    "DATA": 0.0,
+    "DBTC": 0.0,
+    "DBX": 0.0,
+    "DECL": 0.0,
+    "DEXR": 0.0,
+    "DF": 0.0,
+    "DGB": 0.0,
+    "DNT": 0.0,
+    "DODO": 0.0,
+    "DOGE": 0.0,
+    "DOT": 0.0,
+    "DTNG": 0.0,
+    "DUSDT": 0.0,
+    "DYDX": 0.0,
+    "DYN": 0.0,
+    "EAI": 0.0,
+    "EDC": 0.0,
+    "ELAN": 0.0,
+    "EMPIRE": 0.0,
+    "ENJ": 0.0,
+    "ENS": 0.0,
+    "EOS": 0.0,
+    "EQ": 0.0,
+    "ESHK": 0.0,
+    "ETC": 0.0,
+    "ETH": 0.0,
+    "ETHW": 0.0,
+    "EUR": 0.0,
+    "EURT": 0.0,
+    "EXFI": 0.0,
+    "FIL": 0.0,
+    "FIO": 0.0,
+    "FIS": 0.0,
+    "FLIX": 0.0,
+    "FLOW": 0.0,
+    "FNT": 0.0,
+    "FOF": 0.0,
+    "FOR": 0.0,
+    "FRONT": 0.0,
+    "FTM": 0.0,
+    "FUTURE": 0.0,
+    "GAL": 0.0,
+    "GALA": 0.0,
+    "GARI": 0.0,
+    "GAS": 0.0,
+    "GBC": 0.0,
+    "GFG": 0.0,
+    "GLM": 0.0,
+    "GLMR": 0.0,
+    "GMT": 0.0,
+    "GRT": 0.0,
+    "GULF": 0.0,
+    "HBAR": 0.0,
+    "HDX": 0.0,
+    "HEC": 0.0,
+    "HLO": 0.0,
+    "HMETA": 0.0,
+    "HMR": 0.0,
+    "HOGE": 0.0,
+    "HOKK": 0.0,
+    "HZM": 0.0,
+    "ICP": 0.0,
+    "ICX": 0.0,
+    "IDEX": 0.0,
+    "IHC": 0.0,
+    "IJZ": 0.0,
+    "ILC": 0.0,
+    "IMX": 0.0,
+    "INJ": 0.0,
+    "INTX": 0.0,
+    "IOST": 0.0,
+    "IOTX": 0.0,
+    "JAM": 0.0,
+    "JASMY": 0.0,
+    "JNB": 0.0,
+    "JST": 0.0,
+    "KALA": 0.0,
+    "KAVA": 0.0,
+    "KLAY": 0.0,
+    "KLC": 0.0,
+    "KLEE": 0.0,
+    "KNC": 0.0,
+    "KOCJ": 0.0,
+    "KOJI": 0.0,
+    "KSM": 0.0,
+    "KZT": 0.0,
+    "LDO": 0.0,
+    "LEND": 0.0,
+    "LINA": 0.0,
+    "LINK": 0.0,
+    "LOFI": 0.0,
+    "LOKA": 0.0,
+    "LOT": 0.0,
+    "LPT": 0.0,
+    "LRC": 0.0,
+    "LTC": 0.0,
+    "LUFFY": 0.0,
+    "LUNA": 0.0,
+    "LUNC": 0.0,
+    "MANA": 0.0,
+    "MASK": 0.0,
+    "MATIC": 0.0,
+    "MBOX": 0.0,
+    "MDX": 0.0,
+    "MIR": 0.0,
+    "MKR": 0.0,
+    "MLN": 0.0,
+    "MLNK": 0.0,
+    "MPC": 0.0,
+    "MTO": 0.0,
+    "MVEDA": 0.0,
+    "MWC": 0.0,
+    "MYL": 0.0,
+    "NCAT": 0.0,
+    "NCDT": 0.0,
+    "NEAR": 0.0,
+    "NEEO": 0.0,
+    "NEO": 0.0,
+    "NEXO": 0.0,
+    "NKN": 0.0,
+    "NOOFT": 0.0,
+    "OCEAN": 0.0,
+    "OGN": 0.0,
+    "OMG": 0.0,
+    "ONT": 0.0,
+    "OP": 0.0,
+    "OVO": 0.0,
+    "OXT": 0.0,
+    "PAC": 0.0,
+    "PAX": 0.0,
+    "PEOPLE": 0.0,
+    "PHA": 0.0,
+    "PIVX": 0.0,
+    "PLCU": 0.0,
+    "POLS": 0.0,
+    "POND": 0.0,
+    "POODL2": 0.0,
+    "POWR": 0.0,
+    "PPT": 0.0,
+    "PSI": 0.0,
+    "PXP": 0.0,
+    "PYR": 0.0,
+    "QTUM": 0.0,
+    "QUA": 0.0,
+    "RAD": 0.0,
+    "RARE": 0.0,
+    "RBT": 0.0,
+    "REEF": 0.0,
+    "REN": 0.0,
+    "REQ": 0.0,
+    "RLC": 0.0,
+    "RNDR": 0.0,
+    "RVN": 0.0,
+    "RXC": 0.0,
+    "SAND": 0.0,
+    "SCAP": 0.0,
+    "SFC": 0.0,
+    "SFM": 0.0,
+    "SHIB": 0.0,
+    "SKL": 0.0,
+    "SL": 0.0,
+    "SNT": 0.0,
+    "SNX": 0.0,
+    "SOL": 0.0,
+    "SON": 0.0,
+    "SONO": 0.0,
+    "SPE": 0.0,
+    "SRO": 0.0,
+    "SSLX": 0.0,
+    "STEEM": 0.0,
+    "STEMX": 0.0,
+    "STG": 0.0,
+    "STON": 0.0,
+    "STORJ": 0.0,
+    "STORY": 0.0,
+    "STPT": 0.0,
+    "STRM": 0.0,
+    "SUN": 0.0,
+    "SUPER": 0.0,
+    "SUSHI": 0.0,
+    "SXP": 0.0,
+    "TABOO": 0.0,
+    "TCG2": 0.0,
+    "TELOS": 0.0,
+    "THETA": 0.0,
+    "TLW": 0.0,
+    "TNC": 0.0,
+    "TOMO": 0.0,
+    "TRB": 0.0,
+    "TRIBE": 0.0,
+    "TRUXTR": 0.0,
+    "TRX": 0.0,
+    "TRY": 0.0,
+    "TUSD": 0.0,
+    "TYC": 0.0,
+    "TYV": 0.0,
+    "UAH": 0.0,
+    "UCA": 0.0,
+    "UMA": 0.0,
+    "UNFI": 0.0,
+    "UNI": 0.0,
+    "USD": 0.0,
+    "USDC": 0.0,
+    "USDG": 0.0,
+    "USDT": 0.0,
+    "UST": 0.0,
+    "USTC": 0.0,
+    "UTED": 0.0,
+    "UTK": 0.0,
+    "VCG": 0.0,
+    "VEED": 0.0,
+    "VET": 0.0,
+    "VICA": 0.0,
+    "VITAE": 0.0,
+    "VOLT": 0.0,
+    "VOXEL": 0.0,
+    "VRSC": 0.0,
+    "WAVES": 0.0,
+    "WAXP": 0.0,
+    "WBT": 0.0,
+    "WIN": 0.0,
+    "WNXM": 0.0,
+    "WOO": 0.0,
+    "WRT": 0.0,
+    "WSD": 0.0,
+    "WTC": 0.0,
+    "XDC": 0.0,
+    "XDEN": 0.0,
+    "XEM": 0.0,
+    "XFC": 0.0,
+    "XLM": 0.0,
+    "XMR": 0.0,
+    "XNR": 0.0,
+    "XRD": 0.0,
+    "XRDOGE": 0.0,
+    "XRP": 0.0,
+    "XSN": 0.0,
+    "XSPECT": 0.0,
+    "XTZ": 0.0,
+    "YFI": 0.0,
+    "YFII": 0.0,
+    "YGG": 0.0,
+    "ZAMZAM": 0.0,
+    "ZEC": 0.0,
+    "ZEN": 0.0,
+    "ZIL": 0.0,
+    "ZRX": 0.0
+  },
+  "total": {
+    "1INCH": null,
+    "AAVE": null,
+    "ADA": null,
+    "ADK": null,
+    "ADX": null,
+    "AGLD": null,
+    "AGRS": null,
+    "AKITA": null,
+    "AKRO": null,
+    "ALGO": null,
+    "ALICE": null,
+    "ALN": null,
+    "ALPACA": null,
+    "AMB": null,
+    "AMP": null,
+    "ANKR": null,
+    "ANT": null,
+    "APE": null,
+    "API3": null,
+    "APT": null,
+    "AQN": null,
+    "AR": null,
+    "ARPA": null,
+    "ARV": null,
+    "ASH": null,
+    "ASTR": null,
+    "ATOM": null,
+    "AUDIO": null,
+    "AVAX": null,
+    "AXEL": null,
+    "AXS": null,
+    "AZU": null,
+    "BADGER": null,
+    "BAL": null,
+    "BAND": null,
+    "BAT": null,
+    "BBC": null,
+    "BCCN": null,
+    "BCH": null,
+    "BELL": null,
+    "BERRY": null,
+    "BICO": null,
+    "BITCCA": null,
+    "BITCI": null,
+    "BLCT": null,
+    "BLOCS": null,
+    "BLXM": null,
+    "BLZ": null,
+    "BNT": null,
+    "BOLC": null,
+    "BRZ": null,
+    "BTC": null,
+    "BTCZ": null,
+    "BTT": null,
+    "BTTC": null,
+    "C98": null,
+    "CAKE": null,
+    "CBO": null,
+    "CCAT": null,
+    "CCOH": null,
+    "CELO": null,
+    "CENT": null,
+    "CHR": null,
+    "CHZ": null,
+    "CLV": null,
+    "COMP": null,
+    "COP": null,
+    "CRV": null,
+    "CSC": null,
+    "CT": null,
+    "CTSI": null,
+    "CUC": null,
+    "CVC": null,
+    "CVP": null,
+    "CXRBN": null,
+    "CYCE": null,
+    "DAI": null,
+    "DASH": null,
+    "DATA": null,
+    "DBTC": null,
+    "DBX": null,
+    "DECL": null,
+    "DEXR": null,
+    "DF": null,
+    "DGB": null,
+    "DNT": null,
+    "DODO": null,
+    "DOGE": null,
+    "DOT": null,
+    "DTNG": null,
+    "DUSDT": null,
+    "DYDX": null,
+    "DYN": null,
+    "EAI": null,
+    "EDC": null,
+    "ELAN": null,
+    "EMPIRE": null,
+    "ENJ": null,
+    "ENS": null,
+    "EOS": null,
+    "EQ": null,
+    "ESHK": null,
+    "ETC": null,
+    "ETH": null,
+    "ETHW": null,
+    "EUR": null,
+    "EURT": null,
+    "EXFI": null,
+    "FIL": null,
+    "FIO": null,
+    "FIS": null,
+    "FLIX": null,
+    "FLOW": null,
+    "FNT": null,
+    "FOF": null,
+    "FOR": null,
+    "FRONT": null,
+    "FTM": null,
+    "FUTURE": null,
+    "GAL": null,
+    "GALA": null,
+    "GARI": null,
+    "GAS": null,
+    "GBC": null,
+    "GFG": null,
+    "GLM": null,
+    "GLMR": null,
+    "GMT": null,
+    "GRT": null,
+    "GULF": null,
+    "HBAR": null,
+    "HDX": null,
+    "HEC": null,
+    "HLO": null,
+    "HMETA": null,
+    "HMR": null,
+    "HOGE": null,
+    "HOKK": null,
+    "HZM": null,
+    "ICP": null,
+    "ICX": null,
+    "IDEX": null,
+    "IHC": null,
+    "IJZ": null,
+    "ILC": null,
+    "IMX": null,
+    "INJ": null,
+    "INTX": null,
+    "IOST": null,
+    "IOTX": null,
+    "JAM": null,
+    "JASMY": null,
+    "JNB": null,
+    "JST": null,
+    "KALA": null,
+    "KAVA": null,
+    "KLAY": null,
+    "KLC": null,
+    "KLEE": null,
+    "KNC": null,
+    "KOCJ": null,
+    "KOJI": null,
+    "KSM": null,
+    "KZT": null,
+    "LDO": null,
+    "LEND": null,
+    "LINA": null,
+    "LINK": null,
+    "LOFI": null,
+    "LOKA": null,
+    "LOT": null,
+    "LPT": null,
+    "LRC": null,
+    "LTC": null,
+    "LUFFY": null,
+    "LUNA": null,
+    "LUNC": null,
+    "MANA": null,
+    "MASK": null,
+    "MATIC": null,
+    "MBOX": null,
+    "MDX": null,
+    "MIR": null,
+    "MKR": null,
+    "MLN": null,
+    "MLNK": null,
+    "MPC": null,
+    "MTO": null,
+    "MVEDA": null,
+    "MWC": null,
+    "MYL": null,
+    "NCAT": null,
+    "NCDT": null,
+    "NEAR": null,
+    "NEEO": null,
+    "NEO": null,
+    "NEXO": null,
+    "NKN": null,
+    "NOOFT": null,
+    "OCEAN": null,
+    "OGN": null,
+    "OMG": null,
+    "ONT": null,
+    "OP": null,
+    "OVO": null,
+    "OXT": null,
+    "PAC": null,
+    "PAX": null,
+    "PEOPLE": null,
+    "PHA": null,
+    "PIVX": null,
+    "PLCU": null,
+    "POLS": null,
+    "POND": null,
+    "POODL2": null,
+    "POWR": null,
+    "PPT": null,
+    "PSI": null,
+    "PXP": null,
+    "PYR": null,
+    "QTUM": null,
+    "QUA": null,
+    "RAD": null,
+    "RARE": null,
+    "RBT": null,
+    "REEF": null,
+    "REN": null,
+    "REQ": null,
+    "RLC": null,
+    "RNDR": null,
+    "RVN": null,
+    "RXC": null,
+    "SAND": null,
+    "SCAP": null,
+    "SFC": null,
+    "SFM": null,
+    "SHIB": null,
+    "SKL": null,
+    "SL": null,
+    "SNT": null,
+    "SNX": null,
+    "SOL": null,
+    "SON": null,
+    "SONO": null,
+    "SPE": null,
+    "SRO": null,
+    "SSLX": null,
+    "STEEM": null,
+    "STEMX": null,
+    "STG": null,
+    "STON": null,
+    "STORJ": null,
+    "STORY": null,
+    "STPT": null,
+    "STRM": null,
+    "SUN": null,
+    "SUPER": null,
+    "SUSHI": null,
+    "SXP": null,
+    "TABOO": null,
+    "TCG2": null,
+    "TELOS": null,
+    "THETA": null,
+    "TLW": null,
+    "TNC": null,
+    "TOMO": null,
+    "TRB": null,
+    "TRIBE": null,
+    "TRUXTR": null,
+    "TRX": null,
+    "TRY": null,
+    "TUSD": null,
+    "TYC": null,
+    "TYV": null,
+    "UAH": null,
+    "UCA": null,
+    "UMA": null,
+    "UNFI": null,
+    "UNI": null,
+    "USD": null,
+    "USDC": null,
+    "USDG": null,
+    "USDT": null,
+    "UST": null,
+    "USTC": null,
+    "UTED": null,
+    "UTK": null,
+    "VCG": null,
+    "VEED": null,
+    "VET": null,
+    "VICA": null,
+    "VITAE": null,
+    "VOLT": null,
+    "VOXEL": null,
+    "VRSC": null,
+    "WAVES": null,
+    "WAXP": null,
+    "WBT": null,
+    "WIN": null,
+    "WNXM": null,
+    "WOO": null,
+    "WRT": null,
+    "WSD": null,
+    "WTC": null,
+    "XDC": null,
+    "XDEN": null,
+    "XEM": null,
+    "XFC": null,
+    "XLM": null,
+    "XMR": null,
+    "XNR": null,
+    "XRD": null,
+    "XRDOGE": null,
+    "XRP": null,
+    "XSN": null,
+    "XSPECT": null,
+    "XTZ": null,
+    "YFI": null,
+    "YFII": null,
+    "YGG": null,
+    "ZAMZAM": null,
+    "ZEC": null,
+    "ZEN": null,
+    "ZIL": null,
+    "ZRX": null
+  }
+}
