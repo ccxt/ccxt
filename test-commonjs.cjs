@@ -1,4 +1,5 @@
 const ccxt = require ('./dist/ccxt.cjs');
+const ccxtBundle = require ('./dist/ccxt.bundle.cjs');
 const log = require ('ololog');
 const ansi = require ('ansicolor').nice;
 const assert = require ('assert');
@@ -16,11 +17,18 @@ process.on ('unhandledRejection', (e) => {
 const symbol = 'BTC/USDT:USDT';
 async function main() {
     try {
+        // test cjs version
         const exchange = new ccxt.bybit({});
         const ticker = await exchange.fetchTicker(symbol);
         assert(ticker !== undefined);
         assert(ticker['symbol'] === symbol);
         log.bright.green('[CJS Code] OK');
+        // test cjs bundle version
+        const exchangeBundle = new ccxtBundle.bybit({});
+        const tickeBundle = await exchangeBundle.fetchTicker(symbol);
+        assert(tickeBundle !== undefined);
+        assert(tickeBundle['symbol'] === symbol);
+        log.bright.green('[CJS Bundle Code] OK');
         process.exit(0);
     } catch (e) {
         log.bright.red('[CJS Code] Error: ' + e);
