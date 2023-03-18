@@ -30,6 +30,7 @@ export default class xt extends Exchange {
                 'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': true,
+                'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
@@ -60,8 +61,6 @@ export default class xt extends Exchange {
                 'public': {
                     'spot': {
                         'get': {
-                            'balance': 1,
-                            'balances': 1,
                             'currencies': 1,
                             'depth': 2,
                             'kline': 1,
@@ -128,6 +127,8 @@ export default class xt extends Exchange {
                 'private': {
                     'spot': {
                         'get': {
+                            'balance': 1,
+                            'balances': 1,
                             'batch-order': 1,
                             'deposit/address': 1,
                             'deposit/history': 1,
@@ -1092,7 +1093,7 @@ export default class xt extends Exchange {
         };
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name xt#fetchOHLCV
@@ -1208,7 +1209,7 @@ export default class xt extends Exchange {
         ];
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name xt#fetchOrderBook
@@ -1374,7 +1375,7 @@ export default class xt extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name xt#fetchTickers
@@ -1530,7 +1531,7 @@ export default class xt extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name xt#fetchTrades
@@ -1666,7 +1667,129 @@ export default class xt extends Exchange {
         };
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name xt#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://doc.xt.com/#balancebalancesGet
+         * @see https://doc.xt.com/#futures_usergetBalances
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
+        let method = 'privateSpotGetBalances';
+        if (subType === 'linear') {
+            method = 'privateLinearGetFutureUserV1BalanceList';
+        } else if (subType === 'inverse') {
+            method = 'privateInverseGetFutureUserV1BalanceList';
+        }
+        const response = await this[method] (params);
+        //
+        // spot
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {
+        //             "totalUsdtAmount": "31.75931133",
+        //             "totalBtcAmount": "0.00115951",
+        //             "assets": [
+        //                 {
+        //                     "currency": "usdt",
+        //                     "currencyId": 11,
+        //                     "frozenAmount": "0.03834082",
+        //                     "availableAmount": "31.70995965",
+        //                     "totalAmount": "31.74830047",
+        //                     "convertBtcAmount": "0.00115911",
+        //                     "convertUsdtAmount": "31.74830047"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": [
+        //             {
+        //                 "coin": "usdt",
+        //                 "walletBalance": "19.29849875",
+        //                 "openOrderMarginFrozen": "0",
+        //                 "isolatedMargin": "0.709475",
+        //                 "crossedMargin": "0",
+        //                 "availableBalance": "18.58902375",
+        //                 "bonus": "0",
+        //                 "coupon":"0"
+        //             }
+        //         ]
+        //     }
+        //
+        let balances = undefined;
+        if (subType !== undefined) {
+            balances = this.safeValue (response, 'result', []);
+        } else {
+            const data = this.safeValue (response, 'result', {});
+            balances = this.safeValue (data, 'assets', []);
+        }
+        return this.parseBalance (balances);
+    }
+
+    parseBalance (response) {
+        //
+        // spot
+        //
+        //     {
+        //         "currency": "usdt",
+        //         "currencyId": 11,
+        //         "frozenAmount": "0.03834082",
+        //         "availableAmount": "31.70995965",
+        //         "totalAmount": "31.74830047",
+        //         "convertBtcAmount": "0.00115911",
+        //         "convertUsdtAmount": "31.74830047"
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "coin": "usdt",
+        //         "walletBalance": "19.29849875",
+        //         "openOrderMarginFrozen": "0",
+        //         "isolatedMargin": "0.709475",
+        //         "crossedMargin": "0",
+        //         "availableBalance": "18.58902375",
+        //         "bonus": "0",
+        //         "coupon":"0"
+        //     }
+        //
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString2 (balance, 'currency', 'coin');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            const free = this.safeString2 (balance, 'availableAmount', 'availableBalance');
+            let used = this.safeString (balance, 'frozenAmount');
+            const total = this.safeString2 (balance, 'totalAmount', 'walletBalance');
+            if (used === undefined) {
+                const crossedAndIsolatedMargin = Precise.stringAdd (this.safeString (balance, 'crossedMargin'), this.safeString (balance, 'isolatedMargin'));
+                used = Precise.stringAdd (this.safeString (balance, 'openOrderMarginFrozen'), crossedAndIsolatedMargin);
+            }
+            account['free'] = free;
+            account['used'] = used;
+            account['total'] = total;
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    async createOrder (symbol, type, side, amount, price: any = undefined, params = {}) {
         /**
          * @method
          * @name xt#createOrder
@@ -1862,7 +1985,7 @@ export default class xt extends Exchange {
         }
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = [], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams (path, params);
