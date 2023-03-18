@@ -7704,7 +7704,7 @@ export default class bybit extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market) {
+    parseBorrowInterest (info, market = undefined) {
         //
         //     {
         //         "tokenId": "BTC",
@@ -8068,7 +8068,7 @@ export default class bybit extends Exchange {
         return await this.fetchDerivativesMarketLeverageTiers (symbol, params);
     }
 
-    parseMarketLeverageTiers (info, market) {
+    parseMarketLeverageTiers (info, market = undefined) {
         //
         //     {
         //         "id": 1,
