@@ -4533,6 +4533,7 @@ export default class okx extends Exchange {
          * @method
          * @name okx#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
