@@ -62,6 +62,8 @@ class bitrue(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -259,6 +261,10 @@ class bitrue(Exchange):
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                     'TRON': 'TRX',
+                },
+                'networksById': {
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
                 },
             },
             'commonCurrencies': {
@@ -1771,6 +1777,57 @@ class bitrue(Exchange):
         #
         data = self.safe_value(response, 'data')
         return self.parse_transaction(data, currency)
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #   {
+        #       coin: 'adx',
+        #       coinFulName: 'Ambire AdEx',
+        #       chains: ['BSC'],
+        #       chainDetail: [[Object]]
+        #   }
+        #
+        chainDetails = self.safe_value(fee, 'chainDetail', [])
+        chainDetailLength = len(chainDetails)
+        result = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        if chainDetailLength != 0:
+            for i in range(0, chainDetailLength):
+                chainDetail = chainDetails[i]
+                networkId = self.safe_string(chainDetail, 'chain')
+                currencyCode = self.safe_string(currency, 'code')
+                networkCode = self.network_id_to_code(networkId, currencyCode)
+                result['networks'][networkCode] = {
+                    'deposit': {'fee': None, 'percentage': None},
+                    'withdraw': {'fee': self.safe_number(chainDetail, 'withdrawFee'), 'percentage': False},
+                }
+                if chainDetailLength == 1:
+                    result['withdraw']['fee'] = self.safe_number(chainDetail, 'withdrawFee')
+                    result['withdraw']['percentage'] = False
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.v1PublicGetExchangeInfo(params)
+        coins = self.safe_value(response, 'coins')
+        return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version, access = api
