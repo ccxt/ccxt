@@ -1453,7 +1453,7 @@ export default class Exchange {
         return undefined;
     }
 
-    parseMarketLeverageTiers (info, market) {
+    parseMarketLeverageTiers (info, market = undefined) {
         return undefined;
     }
 
