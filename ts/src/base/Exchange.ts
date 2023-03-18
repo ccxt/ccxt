@@ -868,7 +868,7 @@ export default class Exchange {
         }
         if (this.fetchImplementation === undefined) {
             if (isNode) {
-                const module = await import ('../static_dependencies/node-fetch/index.js')
+                const module = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js')
                 this.AbortError = module.AbortError
                 this.fetchImplementation = module.default
             } else {
