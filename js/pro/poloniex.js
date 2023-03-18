@@ -163,7 +163,9 @@ module.exports = class poloniex extends poloniexRest {
         } else {
             marketIds.push ('all');
         }
-        subscribe['symbols'] = marketIds;
+        if (name !== 'balances') {
+            subscribe['symbols'] = marketIds;
+        }
         const messageHash = name + ':' + marketIds.join (',');
         const request = this.extend (subscribe, params);
         return await this.watch (url, messageHash, request, name);
@@ -842,7 +844,7 @@ module.exports = class poloniex extends poloniexRest {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const messageHash = 'balances';
+        const messageHash = 'balances:all';
         this.balance = this.parseWsBalance (data);
         client.resolve (this.balance, messageHash);
     }
