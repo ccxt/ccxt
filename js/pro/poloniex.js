@@ -544,20 +544,21 @@ module.exports = class poloniex extends poloniexRest {
             orders = new ArrayCacheBySymbolById (limit);
             this.orders = orders;
         }
-        const marketId = this.safeString (data, 'symbol');
+        const order = this.safeValue (data, 0);
+        const marketId = this.safeString (order, 'symbol');
         if (marketId !== undefined) {
             const messageHash = 'orders:' + marketId;
             const symbol = this.safeSymbol (marketId);
-            const orderId = this.safeString (data, 'orderId');
-            const clientOrderId = this.safeString (data, 'clientOrderId');
+            const orderId = this.safeString (order, 'orderId');
+            const clientOrderId = this.safeString (order, 'clientOrderId');
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
             const previousOrder = this.safeValue2 (previousOrders, orderId, clientOrderId);
             if (previousOrder === undefined) {
-                const parsed = this.parseWsOrder (data);
+                const parsed = this.parseWsOrder (order);
                 orders.append (parsed);
                 client.resolve (orders, messageHash);
             } else {
-                const trade = this.parseWsTrade (data);
+                const trade = this.parseWsTrade (order);
                 if (previousOrder['trades'] === undefined) {
                     previousOrder['trades'] = [];
                 }
@@ -613,6 +614,7 @@ module.exports = class poloniex extends poloniexRest {
                 // }
             }
         }
+        return message;
     }
 
     parseWsOrder (order, market = undefined) {
