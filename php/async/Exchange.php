@@ -266,6 +266,114 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        return array();
+    }
+
+    public function fetch_accounts($params = array ()) {
+        return null;
+    }
+
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        return null;
+    }
+
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        return null;
+    }
+
+    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        return null;
+    }
+
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        return null;
+    }
+
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+        return null;
+    }
+
+    public function fetch_time($params = array ()) {
+        return null;
+    }
+
+    public function fetch_trading_limits($symbols = null, $params = array ()) {
+        return null;
+    }
+
+    public function parse_ticker($ticker, $market = null) {
+        return null;
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        return null;
+    }
+
+    public function parse_trade($trade, $market = null) {
+        return null;
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        return null;
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        return null;
+    }
+
+    public function parse_account($account) {
+        return null;
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        return null;
+    }
+
+    public function parse_order($order, $market = null) {
+        return null;
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        return null;
+    }
+
+    public function parse_market_leverage_tiers($info, $market) {
+        return null;
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        return null;
+    }
+
+    public function parse_position($position, $market = null) {
+        return null;
+    }
+
+    public function parse_funding_rate_history($info, $market = null) {
+        return null;
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        return null;
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        return null;
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        return null;
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        return null;
+    }
+
+    public function create_deposit_address($code, $params = array ()) {
+        return null;
+    }
+
     public function parse_to_int($number) {
         // Solve Common intvalmisuse ex => intval((since / (string) 1000))
         // using a $number which is not valid in ts
@@ -1808,8 +1916,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTransactionFees() is not supported yet');
-        // eslint-disable-next-line
-        return null;
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchDepositWithdrawFees() is not supported yet');
     }
 
     public function fetch_deposit_withdraw_fee($code, $params = array ()) {
@@ -2739,6 +2849,10 @@ class Exchange extends \ccxt\Exchange {
             }
         }
         return $depositWithdrawFees;
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        throw new NotSupported($this->id . ' parseDepositWithdrawFee() is not supported yet');
     }
 
     public function deposit_withdraw_fee($info) {

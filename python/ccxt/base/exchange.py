@@ -1578,9 +1578,6 @@ class Exchange(object):
             array = array[-limit:] if tail else array[:limit]
         return array
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
-
     def vwap(self, baseVolume, quoteVolume):
         return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0) else None
 
@@ -1810,6 +1807,87 @@ class Exchange(object):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        return {}
+
+    def fetch_accounts(self, params={}):
+        return None
+
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        return None
+
+    def watch_trades(self, symbol, since=None, limit=None, params={}):
+        return None
+
+    def fetch_deposit_addresses(self, codes=None, params={}):
+        return None
+
+    def fetch_order_book(self, symbol, limit=None, params={}):
+        return None
+
+    def watch_order_book(self, symbol, limit=None, params={}):
+        return None
+
+    def fetch_time(self, params={}):
+        return None
+
+    def fetch_trading_limits(self, symbols=None, params={}):
+        return None
+
+    def parse_ticker(self, ticker, market=None):
+        return None
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        return None
+
+    def parse_trade(self, trade, market=None):
+        return None
+
+    def parse_transaction(self, transaction, currency=None):
+        return None
+
+    def parse_transfer(self, transfer, currency=None):
+        return None
+
+    def parse_account(self, account):
+        return None
+
+    def parse_ledger_entry(self, item, currency=None):
+        return None
+
+    def parse_order(self, order, market=None):
+        return None
+
+    def fetch_borrow_rates(self, params={}):
+        return None
+
+    def parse_market_leverage_tiers(self, info, market):
+        return None
+
+    def fetch_leverage_tiers(self, symbols=None, params={}):
+        return None
+
+    def parse_position(self, position, market=None):
+        return None
+
+    def parse_funding_rate_history(self, info, market=None):
+        return None
+
+    def parse_borrow_interest(self, info, market=None):
+        return None
+
+    def fetch_funding_rates(self, symbols=None, params={}):
+        return None
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        return None
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        return None
+
+    def create_deposit_address(self, code, params={}):
+        return None
 
     def parse_to_int(self, number):
         # Solve Common intmisuse ex: int((since / str(1000)))
@@ -3059,8 +3137,9 @@ class Exchange(object):
 
     def fetch_transaction_fees(self, codes=None, params={}):
         raise NotSupported(self.id + ' fetchTransactionFees() is not supported yet')
-        # eslint-disable-next-line
-        return None
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        raise NotSupported(self.id + ' fetchDepositWithdrawFees() is not supported yet')
 
     def fetch_deposit_withdraw_fee(self, code, params={}):
         if not self.has['fetchDepositWithdrawFees']:
@@ -3773,6 +3852,9 @@ class Exchange(object):
             if (codes is None) or (self.in_array(code, codes)):
                 depositWithdrawFees[code] = self.parseDepositWithdrawFee(dictionary, currency)
         return depositWithdrawFees
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        raise NotSupported(self.id + ' parseDepositWithdrawFee() is not supported yet')
 
     def deposit_withdraw_fee(self, info):
         return {

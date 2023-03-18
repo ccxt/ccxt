@@ -249,15 +249,6 @@ class Exchange(BaseExchange):
         # and may be changed for consistency later
         return self.currencies
 
-    async def perform_order_book_request(self, market, limit=None, params={}):
-        raise NotSupported(self.id + ' performOrderBookRequest() is not supported yet')
-
-    async def fetch_order_book(self, symbol, limit=None, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        orderbook = await self.perform_order_book_request(market, limit, params)
-        return self.parse_order_book(orderbook, market, limit, params)
-
     async def fetchOHLCVC(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         return await self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
 
@@ -483,6 +474,87 @@ class Exchange(BaseExchange):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        return {}
+
+    async def fetch_accounts(self, params={}):
+        return None
+
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        return None
+
+    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        return None
+
+    async def fetch_deposit_addresses(self, codes=None, params={}):
+        return None
+
+    async def fetch_order_book(self, symbol, limit=None, params={}):
+        return None
+
+    async def watch_order_book(self, symbol, limit=None, params={}):
+        return None
+
+    async def fetch_time(self, params={}):
+        return None
+
+    async def fetch_trading_limits(self, symbols=None, params={}):
+        return None
+
+    def parse_ticker(self, ticker, market=None):
+        return None
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        return None
+
+    def parse_trade(self, trade, market=None):
+        return None
+
+    def parse_transaction(self, transaction, currency=None):
+        return None
+
+    def parse_transfer(self, transfer, currency=None):
+        return None
+
+    def parse_account(self, account):
+        return None
+
+    def parse_ledger_entry(self, item, currency=None):
+        return None
+
+    def parse_order(self, order, market=None):
+        return None
+
+    async def fetch_borrow_rates(self, params={}):
+        return None
+
+    def parse_market_leverage_tiers(self, info, market):
+        return None
+
+    async def fetch_leverage_tiers(self, symbols=None, params={}):
+        return None
+
+    def parse_position(self, position, market=None):
+        return None
+
+    def parse_funding_rate_history(self, info, market=None):
+        return None
+
+    def parse_borrow_interest(self, info, market=None):
+        return None
+
+    async def fetch_funding_rates(self, symbols=None, params={}):
+        return None
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        return None
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        return None
+
+    async def create_deposit_address(self, code, params={}):
+        return None
 
     def parse_to_int(self, number):
         # Solve Common intmisuse ex: int((since / str(1000)))
@@ -1732,8 +1804,9 @@ class Exchange(BaseExchange):
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         raise NotSupported(self.id + ' fetchTransactionFees() is not supported yet')
-        # eslint-disable-next-line
-        return None
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        raise NotSupported(self.id + ' fetchDepositWithdrawFees() is not supported yet')
 
     async def fetch_deposit_withdraw_fee(self, code, params={}):
         if not self.has['fetchDepositWithdrawFees']:
@@ -2446,6 +2519,9 @@ class Exchange(BaseExchange):
             if (codes is None) or (self.in_array(code, codes)):
                 depositWithdrawFees[code] = self.parseDepositWithdrawFee(dictionary, currency)
         return depositWithdrawFees
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        raise NotSupported(self.id + ' parseDepositWithdrawFee() is not supported yet')
 
     def deposit_withdraw_fee(self, info):
         return {
