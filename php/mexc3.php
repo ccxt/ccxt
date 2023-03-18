@@ -3709,7 +3709,7 @@ class mexc3 extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_market_leverage_tiers($info, $market) {
+    public function parse_market_leverage_tiers($info, $market = null) {
         /**
             @param $info => Exchange response for 1 $market
             {

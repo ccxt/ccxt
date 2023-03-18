@@ -922,87 +922,6 @@ export default class Exchange {
         }
     }
     // method to override
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return {};
-    }
-    async fetchAccounts(params = {}) {
-        return undefined;
-    }
-    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return undefined;
-    }
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return undefined;
-    }
-    async fetchDepositAddresses(codes = undefined, params = {}) {
-        return undefined;
-    }
-    async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        return undefined;
-    }
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
-        return undefined;
-    }
-    async fetchTime(params = {}) {
-        return undefined;
-    }
-    async fetchTradingLimits(symbols = undefined, params = {}) {
-        return undefined;
-    }
-    parseTicker(ticker, market = undefined) {
-        return undefined;
-    }
-    parseDepositAddress(depositAddress, currency = undefined) {
-        return undefined;
-    }
-    parseTrade(trade, market = undefined) {
-        return undefined;
-    }
-    parseTransaction(transaction, currency = undefined) {
-        return undefined;
-    }
-    parseTransfer(transfer, currency = undefined) {
-        return undefined;
-    }
-    parseAccount(account) {
-        return undefined;
-    }
-    parseLedgerEntry(item, currency = undefined) {
-        return undefined;
-    }
-    parseOrder(order, market = undefined) {
-        return undefined;
-    }
-    async fetchBorrowRates(params = {}) {
-        return undefined;
-    }
-    parseMarketLeverageTiers(info, market) {
-        return undefined;
-    }
-    async fetchLeverageTiers(symbols = undefined, params = {}) {
-        return undefined;
-    }
-    parsePosition(position, market = undefined) {
-        return undefined;
-    }
-    parseFundingRateHistory(info, market = undefined) {
-        return undefined;
-    }
-    parseBorrowInterest(info, market = undefined) {
-        return undefined;
-    }
-    async fetchFundingRates(symbols = undefined, params = {}) {
-        return undefined;
-    }
-    async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        return undefined;
-    }
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        return undefined;
-    }
-    async createDepositAddress(code, params = {}) {
-        return undefined;
-    }
     findTimeframe(timeframe, timeframes = undefined) {
         timeframes = timeframes || this.timeframes;
         const keys = Object.keys(timeframes);
@@ -1241,6 +1160,87 @@ export default class Exchange {
     // ########################################################################
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return {};
+    }
+    async fetchAccounts(params = {}) {
+        return undefined;
+    }
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return undefined;
+    }
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return undefined;
+    }
+    async fetchDepositAddresses(codes = undefined, params = {}) {
+        return undefined;
+    }
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        return undefined;
+    }
+    async watchOrderBook(symbol, limit = undefined, params = {}) {
+        return undefined;
+    }
+    async fetchTime(params = {}) {
+        return undefined;
+    }
+    async fetchTradingLimits(symbols = undefined, params = {}) {
+        return undefined;
+    }
+    parseTicker(ticker, market = undefined) {
+        return undefined;
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        return undefined;
+    }
+    parseTrade(trade, market = undefined) {
+        return undefined;
+    }
+    parseTransaction(transaction, currency = undefined) {
+        return undefined;
+    }
+    parseTransfer(transfer, currency = undefined) {
+        return undefined;
+    }
+    parseAccount(account) {
+        return undefined;
+    }
+    parseLedgerEntry(item, currency = undefined) {
+        return undefined;
+    }
+    parseOrder(order, market = undefined) {
+        return undefined;
+    }
+    async fetchBorrowRates(params = {}) {
+        return undefined;
+    }
+    parseMarketLeverageTiers(info, market = undefined) {
+        return undefined;
+    }
+    async fetchLeverageTiers(symbols = undefined, params = {}) {
+        return undefined;
+    }
+    parsePosition(position, market = undefined) {
+        return undefined;
+    }
+    parseFundingRateHistory(info, market = undefined) {
+        return undefined;
+    }
+    parseBorrowInterest(info, market = undefined) {
+        return undefined;
+    }
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        return undefined;
+    }
+    async transfer(code, amount, fromAccount, toAccount, params = {}) {
+        return undefined;
+    }
+    async withdraw(code, amount, address, tag = undefined, params = {}) {
+        return undefined;
+    }
+    async createDepositAddress(code, params = {}) {
+        return undefined;
+    }
     parseToInt(number) {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
@@ -2709,8 +2709,9 @@ export default class Exchange {
     }
     async fetchTransactionFees(codes = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchTransactionFees() is not supported yet');
-        // eslint-disable-next-line
-        return undefined;
+    }
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchDepositWithdrawFees() is not supported yet');
     }
     async fetchDepositWithdrawFee(code, params = {}) {
         if (!this.has['fetchDepositWithdrawFees']) {
@@ -3544,6 +3545,9 @@ export default class Exchange {
             }
         }
         return depositWithdrawFees;
+    }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        throw new NotSupported(this.id + ' parseDepositWithdrawFee() is not supported yet');
     }
     depositWithdrawFee(info) {
         return {

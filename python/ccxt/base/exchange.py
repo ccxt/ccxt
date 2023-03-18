@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.20'
+__version__ = '3.0.21'
 
 # -----------------------------------------------------------------------------
 
@@ -1862,7 +1862,7 @@ class Exchange(object):
     def fetch_borrow_rates(self, params={}):
         return None
 
-    def parse_market_leverage_tiers(self, info, market):
+    def parse_market_leverage_tiers(self, info, market=None):
         return None
 
     def fetch_leverage_tiers(self, symbols=None, params={}):

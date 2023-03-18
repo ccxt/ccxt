@@ -7805,7 +7805,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, $market) {
+    public function parse_borrow_interest($info, $market = null) {
         //
         //     array(
         //         "tokenId" => "BTC",
@@ -8171,7 +8171,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, $market) {
+    public function parse_market_leverage_tiers($info, $market = null) {
         //
         //     {
         //         "id" => 1,

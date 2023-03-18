@@ -1477,7 +1477,7 @@ class probit extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'id');
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency) {
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
         //
         // {
         //     id => 'USDT',

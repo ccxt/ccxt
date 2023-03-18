@@ -7636,7 +7636,7 @@ class bybit extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest($info, $market) {
+    public function parse_borrow_interest($info, $market = null) {
         //
         //     array(
         //         "tokenId" => "BTC",
@@ -7990,7 +7990,7 @@ class bybit extends Exchange {
         return $this->fetch_derivatives_market_leverage_tiers($symbol, $params);
     }
 
-    public function parse_market_leverage_tiers($info, $market) {
+    public function parse_market_leverage_tiers($info, $market = null) {
         //
         //     {
         //         "id" => 1,

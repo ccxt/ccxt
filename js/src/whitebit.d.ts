@@ -56,7 +56,7 @@ export default class whitebit extends Exchange {
         toAccount: any;
         status: any;
     }>;
-    parseTransfer(transfer: any, currency: any): {
+    parseTransfer(transfer: any, currency?: any): {
         info: any;
         id: any;
         timestamp: any;

@@ -88,21 +88,10 @@ export default class lbank2 extends Exchange {
         info: any;
     }>;
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
-    fetchPrivateDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchPrivateDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     fetchPublicDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parsePublicDepositWithdrawFees(response: any, codes?: any): {};
-    parseDepositWithdrawFee(fee: any, currency?: any): {
-        info: any;
-        withdraw: {
-            fee: any;
-            percentage: any;
-        };
-        deposit: {
-            fee: any;
-            percentage: any;
-        };
-        networks: {};
-    };
+    parseDepositWithdrawFee(fee: any, currency?: any): any;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

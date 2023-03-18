@@ -1848,7 +1848,7 @@ export default class bkex extends Exchange {
         const data = this.safeValue(response, 'data', []);
         return this.parseMarketLeverageTiers(data, market);
     }
-    parseMarketLeverageTiers(info, market) {
+    parseMarketLeverageTiers(info, market = undefined) {
         //
         //     [
         //         {

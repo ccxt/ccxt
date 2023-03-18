@@ -3223,7 +3223,7 @@ class mexc(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_market_leverage_tiers(self, info, market):
+    def parse_market_leverage_tiers(self, info, market=None):
         """
          * @ignore
         :param dict info: Exchange response for 1 market

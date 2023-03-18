@@ -1416,7 +1416,7 @@ class probit(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'id')
 
-    def parse_deposit_withdraw_fee(self, fee, currency):
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
         #
         # {
         #     id: 'USDT',

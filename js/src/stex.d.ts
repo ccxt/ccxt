@@ -157,7 +157,7 @@ export default class stex extends Exchange {
         fee: any;
     }>;
     fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): {
         withdraw: {
             fee: number;

@@ -2648,7 +2648,7 @@ class digifinex(Exchange):
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info, market):
+    def parse_borrow_interest(self, info, market=None):
         #
         #     {
         #         "amount": 0.0006103,
@@ -3423,7 +3423,7 @@ class digifinex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market):
+    def parse_market_leverage_tiers(self, info, market=None):
         #
         #     {
         #         "instrument_id": "BTCUSDTPERP",

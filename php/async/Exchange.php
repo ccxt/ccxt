@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '3.0.20';
+$version = '3.0.21';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.20';
+    const VERSION = '3.0.21';
 
     public $browser;
     public $marketsLoading = null;
@@ -338,7 +338,7 @@ class Exchange extends \ccxt\Exchange {
         return null;
     }
 
-    public function parse_market_leverage_tiers($info, $market) {
+    public function parse_market_leverage_tiers($info, $market = null) {
         return null;
     }
 

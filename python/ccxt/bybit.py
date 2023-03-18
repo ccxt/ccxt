@@ -7213,7 +7213,7 @@ class bybit(Exchange):
         interest = self.parse_borrow_interests(rows, None)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info, market):
+    def parse_borrow_interest(self, info, market=None):
         #
         #     {
         #         "tokenId": "BTC",
@@ -7549,7 +7549,7 @@ class bybit(Exchange):
         request['symbol'] = market['id']
         return self.fetch_derivatives_market_leverage_tiers(symbol, params)
 
-    def parse_market_leverage_tiers(self, info, market):
+    def parse_market_leverage_tiers(self, info, market=None):
         #
         #     {
         #         "id": 1,

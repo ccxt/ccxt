@@ -80,19 +80,8 @@ export default class probit extends Exchange {
         info: any;
     };
     parseTransactionStatus(status: any): string;
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
-    parseDepositWithdrawFee(fee: any, currency: any): {
-        info: any;
-        withdraw: {
-            fee: any;
-            percentage: any;
-        };
-        deposit: {
-            fee: any;
-            percentage: any;
-        };
-        networks: {};
-    };
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
+    parseDepositWithdrawFee(fee: any, currency?: any): any;
     nonce(): number;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
