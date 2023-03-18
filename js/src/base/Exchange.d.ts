@@ -25,6 +25,7 @@ export default class Exchange {
     reduceFees: boolean;
     fetchImplementation: any;
     AbortError: any;
+    FetchError: any;
     validateServerSsl: boolean;
     validateClientSsl: boolean;
     timeout: number;
@@ -448,7 +449,7 @@ export default class Exchange {
     fetchAccounts(params?: {}): Promise<any>;
     fetchTrades(symbol: string, since?: number, limit?: any, params?: {}): Promise<Trade[]>;
     watchTrades(symbol: string, since?: number, limit?: any, params?: {}): Promise<Trade[]>;
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<any>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<any>;
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<OrderBook>;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<OrderBook>;
     fetchTime(params?: {}): Promise<any>;
@@ -597,9 +598,9 @@ export default class Exchange {
     fetchTotalBalance(params?: {}): Promise<any>;
     fetchStatus(params?: {}): Promise<any>;
     fetchFundingFee(code: string, params?: {}): Promise<any>;
-    fetchFundingFees(codes?: any, params?: {}): Promise<any>;
+    fetchFundingFees(codes?: string[], params?: {}): Promise<any>;
     fetchTransactionFee(code: any, params?: {}): Promise<any>;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<any>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<any>;
     fetchDepositWithdrawFee(code: any, params?: {}): Promise<any>;
     getSupportedMapping(key: any, mapping?: {}): any;
     fetchBorrowRate(code: string, params?: {}): Promise<any>;
@@ -664,7 +665,7 @@ export default class Exchange {
     filterByCurrencySinceLimit(array: any, code?: any, since?: number, limit?: any, tail?: boolean): any;
     parseLastPrices(pricesData: any, symbols?: string[], params?: {}): any;
     parseTickers(tickers: any, symbols?: string[], params?: {}): any;
-    parseDepositAddresses(addresses: any, codes?: any, indexed?: boolean, params?: {}): {};
+    parseDepositAddresses(addresses: any, codes?: string[], indexed?: boolean, params?: {}): {};
     parseBorrowInterests(response: any, market?: any): any[];
     parseFundingRateHistories(response: any, market?: any, since?: number, limit?: any): any;
     safeSymbol(marketId: any, market?: any, delimiter?: any, marketType?: any): any;
@@ -686,7 +687,7 @@ export default class Exchange {
     checkRequiredArgument(methodName: any, argument: any, argumentName: any, options?: any[]): void;
     checkRequiredMarginArgument(methodName: string, symbol: string, marginMode: string): void;
     checkRequiredSymbol(methodName: string, symbol: string): void;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+    parseDepositWithdrawFees(response: any, codes?: string[], currencyIdKey?: any): {};
     depositWithdrawFee(info: any): {
         info: any;
         withdraw: {

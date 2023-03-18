@@ -240,8 +240,8 @@ export default class digifinex extends Exchange {
     fetchMarketLeverageTiers(symbol: any, params?: {}): Promise<any[]>;
     parseMarketLeverageTiers(info: any, market: any): any[];
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    parseDepositWithdrawFees(response: any, codes?: string[], currencyIdKey?: any): {};
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

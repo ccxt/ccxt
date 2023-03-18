@@ -93,8 +93,8 @@ export default class poloniex extends Exchange {
     fetchTransactionsHelper(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchTransactions(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    parseDepositWithdrawFees(response: any, codes?: string[], currencyIdKey?: any): {};
     parseDepositWithdrawFee(fee: any, currency?: any): {
         info: any;
         withdraw: {

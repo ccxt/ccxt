@@ -22,7 +22,7 @@ export default class paymium extends Exchange {
         tag: any;
         network: any;
     }>;
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         info: any;
         currency: any;

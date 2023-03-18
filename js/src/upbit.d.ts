@@ -278,7 +278,7 @@ export default class upbit extends Exchange {
         fee: any;
         trades: any;
     }>;
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: any;
         address: string;

@@ -4,7 +4,7 @@ export default class buda extends Exchange {
     fetchCurrencyInfo(currency: any, currencies?: any): Promise<any>;
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<{
         withdraw: {};
         deposit: {};
         info: {};

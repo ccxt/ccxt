@@ -256,12 +256,12 @@ export default class binance extends Exchange {
         network: any;
         info: any;
     }>;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<{
         withdraw: {};
         deposit: {};
         info: any;
     }>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFee(fee: any, currency?: any): {
         info: any;
         withdraw: {

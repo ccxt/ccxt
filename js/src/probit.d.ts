@@ -38,7 +38,7 @@ export default class probit extends Exchange {
         network: string;
         info: any;
     }>;
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
     withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: string;
         currency: any;
@@ -80,7 +80,7 @@ export default class probit extends Exchange {
         info: any;
     };
     parseTransactionStatus(status: any): string;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFee(fee: any, currency: any): {
         info: any;
         withdraw: {

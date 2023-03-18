@@ -334,7 +334,7 @@ export default class huobi extends Exchange {
         info: any;
     };
     fetchSettlementHistory(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFee(fee: any, currency?: any): {
         info: any;
         withdraw: {

@@ -72,10 +72,10 @@ export default class bkex extends Exchange {
     parseOrderSide(side: any): string;
     parseOrderStatus(status: any): string;
     parseOrderType(status: any): string;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
     parseTransactionFees(response: any, codes?: any): {};
     parseTransactionFee(transaction: any, currency?: any): number;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFee(fee: any, currency?: any): {
         info: any;
         withdraw: {

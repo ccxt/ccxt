@@ -11,7 +11,7 @@ const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexB
 import { inflate, inflate64, gunzip } from './ws/functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
-ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded } from "./errors.js";
+ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded } from "./errors.js";
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
@@ -687,10 +687,12 @@ export default class Exchange {
                 const module = await import('../static_dependencies/node-fetch/index.js');
                 this.AbortError = module.AbortError;
                 this.fetchImplementation = module.default;
+                this.FetchError = module.FetchError;
             }
             else {
                 this.fetchImplementation = self.fetch;
                 this.AbortError = DOMException;
+                this.FetchError = TypeError;
             }
         }
         // fetchImplementation cannot be called on this. in browsers:
@@ -719,6 +721,9 @@ export default class Exchange {
         catch (e) {
             if (e instanceof this.AbortError) {
                 throw new RequestTimeout(this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
+            }
+            else if (e instanceof this.FetchError) {
+                throw new NetworkError(this.id + ' ' + method + ' ' + url + ' fetch failed');
             }
             throw e;
         }
