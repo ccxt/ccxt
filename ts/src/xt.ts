@@ -34,6 +34,7 @@ export default class xt extends Exchange {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -1393,6 +1394,8 @@ export default class xt extends Exchange {
             market = this.market (symbols[0]);
         }
         const request = {};
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         let method = undefined;
         if (market['spot']) {
             method = 'publicSpotGetTicker24h';
@@ -1401,9 +1404,9 @@ export default class xt extends Exchange {
             if (symbols !== undefined) {
                 throw new NotSupported (this.id + ' the symbols argument is not supported for swap and future markets');
             }
-            if (market['linear']) {
+            if (subType === 'linear') {
                 method = 'publicLinearGetFutureMarketV1PublicQAggTickers';
-            } else if (market['inverse']) {
+            } else if (subType === 'inverse') {
                 method = 'publicInverseGetFutureMarketV1PublicQAggTickers';
             }
         }
@@ -1894,15 +1897,124 @@ export default class xt extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    parseOrder (order, market = undefined) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://doc.xt.com/#orderorderGet
+         * @see https://doc.xt.com/#futures_ordergetById
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
+        const request = {
+            'orderId': id,
+        };
+        let method = 'privateSpotGetOrderOrderId';
+        if (subType === 'linear') {
+            method = 'privateLinearGetFutureTradeV1OrderDetail';
+        } else if (subType === 'inverse') {
+            method = 'privateInverseGetFutureTradeV1OrderDetail';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {
+        //             "symbol": "btc_usdt",
+        //             "orderId": "207505997850909952",
+        //             "clientOrderId": null,
+        //             "baseCurrency": "btc",
+        //             "quoteCurrency": "usdt",
+        //             "side": "BUY",
+        //             "type": "LIMIT",
+        //             "timeInForce": "GTC",
+        //             "price": "20000.00",
+        //             "origQty": "0.001000",
+        //             "origQuoteQty": "20.00",
+        //             "executedQty": "0.000000",
+        //             "leavingQty": "0.001000",
+        //             "tradeBase": "0.000000",
+        //             "tradeQuote": "0.00",
+        //             "avgPrice": null,
+        //             "fee": null,
+        //             "feeCurrency": null,
+        //             "closed": false,
+        //             "state": "NEW",
+        //             "time": 1679175285162,
+        //             "updatedTime": 1679175285255
+        //         }
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "error": {
+        //             "code": "",
+        //             "msg": ""
+        //         },
+        //         "msgInfo": "",
+        //         "result": {
+        //             "avgPrice": 0,
+        //             "closePosition": false,
+        //             "closeProfit": 0,
+        //             "createdTime": 0,
+        //             "executedQty": 0,
+        //             "forceClose": false,
+        //             "marginFrozen": 0,
+        //             "orderId": 0,
+        //             "orderSide": "",
+        //             "orderType": "",
+        //             "origQty": 0,
+        //             "positionSide": "",
+        //             "price": 0,
+        //             "sourceId": 0,
+        //             "state": "",
+        //             "symbol": "",
+        //             "timeInForce": "",
+        //             "triggerProfitPrice": 0,
+        //             "triggerStopPrice": 0
+        //         }
+        //         "returnCode": 0
+        //     }
+        //
+        const order = this.safeValue (response, 'result', {});
+        return this.parseOrder (order, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+            'REJECTED': 'canceled',
+            'EXPIRED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // createOrder: spot
         //
         //     {
         //         "orderId": "204371980095156544"
         //     }
         //
-        // swap and future
+        // createOrder: swap and future
         //
         //     {
         //         "returnCode": 0,
@@ -1911,30 +2023,92 @@ export default class xt extends Exchange {
         //         "result": "206410760006650176"
         //     }
         //
+        // fetchOrder: spot
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "orderId": "207505997850909952",
+        //         "clientOrderId": null,
+        //         "baseCurrency": "btc",
+        //         "quoteCurrency": "usdt",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "timeInForce": "GTC",
+        //         "price": "20000.00",
+        //         "origQty": "0.001000",
+        //         "origQuoteQty": "20.00",
+        //         "executedQty": "0.000000",
+        //         "leavingQty": "0.001000",
+        //         "tradeBase": "0.000000",
+        //         "tradeQuote": "0.00",
+        //         "avgPrice": null,
+        //         "fee": null,
+        //         "feeCurrency": null,
+        //         "closed": false,
+        //         "state": "NEW",
+        //         "time": 1679175285162,
+        //         "updatedTime": 1679175285255
+        //     }
+        //
+        // fetchOrder: swap and future
+        //
+        //     {
+        //         "avgPrice": 0,
+        //         "closePosition": false,
+        //         "closeProfit": 0,
+        //         "createdTime": 0,
+        //         "executedQty": 0,
+        //         "forceClose": false,
+        //         "marginFrozen": 0,
+        //         "orderId": 0,
+        //         "orderSide": "",
+        //         "orderType": "",
+        //         "origQty": 0,
+        //         "positionSide": "",
+        //         "price": 0,
+        //         "sourceId": 0,
+        //         "state": "",
+        //         "symbol": "",
+        //         "timeInForce": "",
+        //         "triggerProfitPrice": 0,
+        //         "triggerStopPrice": 0
+        //     }
+        //
+        const marketId = this.safeString (order, 'symbol');
+        const marketType = ('result' in order) || ('closePosition' in order) ? 'contract' : 'spot';
+        market = this.safeMarket (marketId, market, undefined, marketType);
+        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
+        const timestamp = this.safeInteger2 (order, 'time', 'createdTime');
+        const quantity = this.safeNumber (order, 'origQty');
+        const amount = (marketType === 'spot') ? quantity : Precise.stringDiv (this.numberToString (quantity), this.numberToString (market['contractSize']));
+        const filledQuantity = this.safeNumber (order, 'executedQty');
+        const filled = (marketType === 'spot') ? filledQuantity : Precise.stringDiv (this.numberToString (filledQuantity), this.numberToString (market['contractSize']));
+        const triggerStopPrice = this.safeNumber (order, 'triggerStopPrice');
+        const triggerProfitPrice = this.safeNumber (order, 'triggerProfitPrice');
+        const triggerPrice = (triggerStopPrice !== 0) ? triggerStopPrice : triggerProfitPrice;
         return this.safeOrder ({
             'info': order,
             'id': this.safeString2 (order, 'orderId', 'result'),
-            'clientOrderId': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
-            'symbol': undefined,
-            'type': undefined,
-            'timeInForce': undefined,
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': this.safeInteger (order, 'updatedTime'),
+            'symbol': symbol,
+            'type': this.safeStringLower2 (order, 'type', 'orderType'),
+            'timeInForce': this.safeString (order, 'timeInForce'),
             'postOnly': undefined,
-            'side': undefined,
-            'price': undefined,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': undefined,
-            'filled': undefined,
-            'remaining': undefined,
+            'side': this.safeStringLower2 (order, 'side', 'orderSide'),
+            'price': this.safeNumber (order, 'price'),
+            'triggerPrice': (triggerPrice !== 0) ? triggerPrice : undefined,
+            'amount': amount,
+            'filled': filled,
+            'remaining': this.safeNumber (order, 'leavingQty'),
             'cost': undefined,
-            'average': undefined,
-            'status': undefined,
+            'average': this.safeNumber (order, 'avgPrice'),
+            'status': this.parseOrderStatus (this.safeString (order, 'state')),
             'fee': {
-                'cost': undefined,
-                'currency': undefined,
+                'currency': this.safeString (order, 'feeCurrency'),
+                'cost': this.safeNumber (order, 'fee'),
             },
             'trades': undefined,
         }, market);
