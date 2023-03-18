@@ -767,7 +767,7 @@ class okx extends Exchange {
                 'fetchLedger' => array(
                     'method' => 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
                 ),
-                // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                // 6 => Funding account, 18 => Trading account
                 'fetchOrder' => array(
                     'method' => 'privateGetTradeOrder', // privateGetTradeOrdersAlgoHistory
                 ),
@@ -792,22 +792,17 @@ class okx extends Exchange {
                     'twap' => true,
                 ),
                 'accountsByType' => array(
-                    'spot' => '1',
-                    'future' => '3',
-                    'futures' => '3',
-                    'margin' => '5',
                     'funding' => '6',
-                    'swap' => '9',
-                    'option' => '12',
                     'trading' => '18', // unified trading account
+                    'spot' => '18',
+                    'future' => '18',
+                    'futures' => '18',
+                    'margin' => '18',
+                    'swap' => '18',
+                    'option' => '18',
                 ),
                 'accountsById' => array(
-                    '1' => 'spot',
-                    '3' => 'future',
-                    '5' => 'margin',
                     '6' => 'funding',
-                    '9' => 'swap',
-                    '12' => 'option',
                     '18' => 'trading', // unified trading account
                 ),
                 'exchangeType' => array(
@@ -4548,6 +4543,7 @@ class okx extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             * @see https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
@@ -4563,12 +4559,13 @@ class okx extends Exchange {
             $request = array(
                 'ccy' => $currency['id'],
                 'amt' => $this->currency_to_precision($code, $amount),
-                'type' => '0', // 0 = transfer within account by default, 1 = master account to sub-account, 2 = sub-account to master account
-                'from' => $fromId, // remitting account, 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
-                'to' => $toId, // beneficiary account, 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
-                // 'subAcct' => 'sub-account-name', // optional, only required when type is 1 or 2
-                // 'instId' => market['id'], // required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred out
-                // 'toInstId' => market['id'], // required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred in
+                'type' => '0', // 0 = transfer within account by default, 1 = master account to sub-account, 2 = sub-account to master account, 3 = sub-account to master account (Only applicable to APIKey from sub-account), 4 = sub-account to sub-account
+                'from' => $fromId, // remitting account, 6 => Funding account, 18 => Trading account
+                'to' => $toId, // beneficiary account, 6 => Funding account, 18 => Trading account
+                // 'subAcct' => 'sub-account-name', // optional, only required when type is 1, 2 or 4
+                // 'loanTrans' => false, // Whether or not borrowed coins can be transferred out under Multi-$currency margin and Portfolio margin. The default is false
+                // 'clientId' => 'client-supplied id', // A combination of case-sensitive alphanumerics, all numbers, or all letters of up to 32 characters
+                // 'omitPosRisk' => false, // Ignore position risk. Default is false. Applicable to Portfolio margin
             );
             if ($fromId === 'master') {
                 $request['type'] = '1';

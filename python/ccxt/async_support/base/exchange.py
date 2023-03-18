@@ -1866,8 +1866,14 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchTicker() is not supported yet')
 
+    async def watch_ticker(self, symbol, params={}):
+        raise NotSupported(self.id + ' watchTicker() is not supported yet')
+
     async def fetch_tickers(self, symbols=None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
+
+    async def watch_tickers(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' watchTickers() is not supported yet')
 
     async def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
