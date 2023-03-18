@@ -1121,145 +1121,38 @@ export default class Exchange {
         }
     }
 
-        // method to override
-        sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
-            return {};
-        }
+    // method to override
 
-        async fetchAccounts (params = {}) {
-            return undefined;
-        }
-
-        async fetchTrades (symbol: string, since: number = undefined, limit: any = undefined, params = {}): Promise<Trade[]> {
-            return undefined;
-        }
-
-        async watchTrades (symbol: string, since: number = undefined, limit: any = undefined, params = {}): Promise<Trade[]> {
-            return undefined;
-        }
-
-        async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
-            return undefined;
-        }
-
-        async fetchOrderBook (symbol, limit: any = undefined, params = {}): Promise<OrderBook> {
-            return undefined;
-        }
-
-        async watchOrderBook (symbol, limit: any = undefined, params = {}): Promise<OrderBook> {
-            return undefined;
-        }
-
-        async fetchTime (params = {}) {
-            return undefined;
-        }
-
-        async fetchTradingLimits (symbols: string[] = undefined, params = {}) {
-            return undefined
-        }
-
-        parseTicker (ticker: object, market = undefined): Ticker {
-            return undefined;
-        }
-
-        parseDepositAddress (depositAddress, currency = undefined) {
-            return undefined;
-        }
-
-        parseTrade (trade: object, market = undefined): Trade {
-            return undefined;
-        }
-
-        parseTransaction (transaction, currency = undefined) {
-            return undefined;
-        }
-
-        parseTransfer (transfer, currency = undefined) {
-            return undefined;
-        }
-
-        parseAccount(account) {
-            return undefined;
-        }
-
-        parseLedgerEntry (item, currency = undefined) {
-            return undefined;
-        }
-
-        parseOrder (order, market = undefined): Order {
-            return undefined;
-        }
-
-        async fetchBorrowRates (params = {}) {
-            return undefined;
-        }
-
-        parseMarketLeverageTiers (info, market) {
-            return undefined;
-        }
-
-        async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
-            return undefined;
-        }
-
-        parsePosition(position, market = undefined) {
-            return undefined;
-        }
-
-        parseFundingRateHistory(info, market = undefined) {
-            return undefined;
-        }
-
-        parseBorrowInterest(info, market = undefined) {
-            return undefined;
-        }
-
-        async fetchFundingRates (symbols: string[] = undefined, params = {}) {
-            return undefined;
-        }
-
-        async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
-            return undefined;
-        }
-
-        async withdraw(code: string, amount, address, tag = undefined, params = {}) {
-            return undefined;
-        }
-
-        async createDepositAddress (code, params = {}): Promise<DepositAddressResponse>{
-            return undefined;
-        }
-
-        findTimeframe (timeframe, timeframes = undefined) {
-            timeframes = timeframes || this.timeframes;
-            const keys = Object.keys (timeframes);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                if (timeframes[key] === timeframe) {
-                    return key;
-                }
+    findTimeframe (timeframe, timeframes = undefined) {
+        timeframes = timeframes || this.timeframes;
+        const keys = Object.keys (timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (timeframes[key] === timeframe) {
+                return key;
             }
-            return undefined;
         }
+        return undefined;
+    }
 
-        formatScientificNotationFTX(n) {
-            if (n === 0) {
-                return '0e-00';
-            }
-            return n.toExponential().replace('e-', 'e-0');
+    formatScientificNotationFTX(n) {
+        if (n === 0) {
+            return '0e-00';
         }
+        return n.toExponential().replace('e-', 'e-0');
+    }
 
-        spawn (method, ... args) {
-            const future = Future ()
-            method.apply (this, args).then ((future as any).resolve).catch ((future as any).reject)
-            return future
-        }
+    spawn (method, ... args) {
+        const future = Future ()
+        method.apply (this, args).then ((future as any).resolve).catch ((future as any).reject)
+        return future
+    }
 
-        delay (timeout, method, ... args) {
-            setTimeout (() => {
-                this.spawn (method, ... args)
-            }, timeout);
-        }
+    delay (timeout, method, ... args) {
+        setTimeout (() => {
+            this.spawn (method, ... args)
+        }, timeout);
+    }
 
     // -----------------------------------------------------------------------
     // -----------------------------------------------------------------------
@@ -1487,6 +1380,114 @@ export default class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+        return {};
+    }
+
+    async fetchAccounts (params = {}) {
+        return undefined;
+    }
+
+    async fetchTrades (symbol: string, since: number = undefined, limit: any = undefined, params = {}): Promise<Trade[]> {
+        return undefined;
+    }
+
+    async watchTrades (symbol: string, since: number = undefined, limit: any = undefined, params = {}): Promise<Trade[]> {
+        return undefined;
+    }
+
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+        return undefined;
+    }
+
+    async fetchOrderBook (symbol, limit: any = undefined, params = {}): Promise<OrderBook> {
+        return undefined;
+    }
+
+    async watchOrderBook (symbol, limit: any = undefined, params = {}): Promise<OrderBook> {
+        return undefined;
+    }
+
+    async fetchTime (params = {}) {
+        return undefined;
+    }
+
+    async fetchTradingLimits (symbols: string[] = undefined, params = {}) {
+        return undefined;
+    }
+
+    parseTicker (ticker: object, market = undefined): Ticker {
+        return undefined;
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        return undefined;
+    }
+
+    parseTrade (trade: object, market = undefined): Trade {
+        return undefined;
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        return undefined;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        return undefined;
+    }
+
+    parseAccount (account) {
+        return undefined;
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        return undefined;
+    }
+
+    parseOrder (order, market = undefined): Order {
+        return undefined;
+    }
+
+    async fetchBorrowRates (params = {}) {
+        return undefined;
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        return undefined;
+    }
+
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
+        return undefined;
+    }
+
+    parsePosition (position, market = undefined) {
+        return undefined;
+    }
+
+    parseFundingRateHistory (info, market = undefined) {
+        return undefined;
+    }
+
+    parseBorrowInterest (info, market = undefined) {
+        return undefined;
+    }
+
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+        return undefined;
+    }
+
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+        return undefined;
+    }
+
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+        return undefined;
+    }
+
+    async createDepositAddress (code, params = {}): Promise<DepositAddressResponse> {
+        return undefined;
+    }
 
     parseToInt (number: string | number) {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
