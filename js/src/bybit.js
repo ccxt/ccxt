@@ -1872,9 +1872,9 @@ export default class bybit extends Exchange {
             market = this.market(symbols[0]);
         }
         const request = {
-        // 'symbol': market['id'],
-        // 'baseCoin': '', Base coin. For option only
-        // 'expDate': '', Expiry date. e.g., 25DEC22. For option only
+            // 'symbol': market['id'],
+            // 'baseCoin': '', Base coin. For option only
+            // 'expDate': '', Expiry date. e.g., 25DEC22. For option only
         };
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
@@ -2210,11 +2210,11 @@ export default class bybit extends Exchange {
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
         const request = {
-        // 'category': '', // Product type. linear,inverse
-        // 'symbol': '', // Symbol name
-        // 'startTime': 0, // The start timestamp (ms)
-        // 'endTime': 0, // The end timestamp (ms)
-        // 'limit': 0, // Limit for data size per page. [1, 200]. Default: 200
+            // 'category': '', // Product type. linear,inverse
+            // 'symbol': '', // Symbol name
+            // 'startTime': 0, // The start timestamp (ms)
+            // 'endTime': 0, // The end timestamp (ms)
+            // 'limit': 0, // Limit for data size per page. [1, 200]. Default: 200
         };
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -3514,16 +3514,16 @@ export default class bybit extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
-        const isBuy = side === 'buy';
-        const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
         if (triggerPrice !== undefined) {
+            const isBuy = side === 'buy';
+            const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
             request['triggerDirection'] = ascending ? 2 : 1;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
             if (isStopLossTriggerOrder) {
-                request['triggerDirection'] = ascending ? 2 : 1;
                 request['triggerPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                request['triggerDirection'] = 2;
             }
             else {
                 request['triggerPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
@@ -4264,8 +4264,8 @@ export default class bybit extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-        // 'order_link_id': 'string', // one of order_id, stop_order_id or order_link_id is required
-        // 'orderId': id
+            // 'order_link_id': 'string', // one of order_id, stop_order_id or order_link_id is required
+            // 'orderId': id
         };
         if (id !== undefined) { // The user can also use argument params["order_link_id"]
             request['orderId'] = id;
@@ -4720,15 +4720,15 @@ export default class bybit extends Exchange {
     async fetchUnifiedAccountOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const request = {
-        // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: spot, linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderStatus': string, // Return all status orders if not passed
-        // 'orderFilter': string, Conditional order or active order
-        // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            // 'symbol': market['id'],
+            // 'category': string, Type of derivatives product: spot, linear or option.
+            // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            // 'orderId': string, Order ID
+            // 'orderLinkId': string, Unique user-set order ID
+            // 'orderStatus': string, // Return all status orders if not passed
+            // 'orderFilter': string, Conditional order or active order
+            // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
+            // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         };
         let market = undefined;
         if (symbol === undefined) {
@@ -4829,16 +4829,16 @@ export default class bybit extends Exchange {
     async fetchUnifiedMarginOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const request = {
-        // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderStatus': string, Query list of orders in designated states. If this parameter is not passed, the orders in all states shall be enquired by default. This parameter supports multi-state inquiry. States should be separated with English commas.
-        // 'orderFilter': string, Conditional order or active order
-        // 'direction': string, prev: prev, next: next.
-        // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            // 'symbol': market['id'],
+            // 'category': string, Type of derivatives product: linear or option.
+            // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            // 'orderId': string, Order ID
+            // 'orderLinkId': string, Unique user-set order ID
+            // 'orderStatus': string, Query list of orders in designated states. If this parameter is not passed, the orders in all states shall be enquired by default. This parameter supports multi-state inquiry. States should be separated with English commas.
+            // 'orderFilter': string, Conditional order or active order
+            // 'direction': string, prev: prev, next: next.
+            // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
+            // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         };
         let market = undefined;
         if (symbol === undefined) {
@@ -4919,15 +4919,15 @@ export default class bybit extends Exchange {
         await this.loadMarkets();
         let market = undefined;
         const request = {
-        // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: spot, linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderStatus': string, // Return all status orders if not passed
-        // 'orderFilter': string, Conditional order or active order
-        // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            // 'symbol': market['id'],
+            // 'category': string, Type of derivatives product: spot, linear or option.
+            // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            // 'orderId': string, Order ID
+            // 'orderLinkId': string, Unique user-set order ID
+            // 'orderStatus': string, // Return all status orders if not passed
+            // 'orderFilter': string, Conditional order or active order
+            // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
+            // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         };
         if (symbol === undefined) {
             let type = undefined;
@@ -5169,16 +5169,16 @@ export default class bybit extends Exchange {
     async fetchUnifiedAccountOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const request = {
-        // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'settleCoin': string, Settle coin. For linear, either symbol or settleCoin is required
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderFilter': string, Conditional order or active order
-        // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
-        // 'openOnly': 0,
+            // 'symbol': market['id'],
+            // 'category': string, Type of derivatives product: linear or option.
+            // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            // 'settleCoin': string, Settle coin. For linear, either symbol or settleCoin is required
+            // 'orderId': string, Order ID
+            // 'orderLinkId': string, Unique user-set order ID
+            // 'orderFilter': string, Conditional order or active order
+            // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
+            // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            // 'openOnly': 0,
         };
         let market = undefined;
         if (symbol === undefined) {
@@ -5415,16 +5415,16 @@ export default class bybit extends Exchange {
         let market = undefined;
         let settle = undefined;
         const request = {
-        // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'settleCoin': string, Settle coin. For linear, either symbol or settleCoin is required
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderFilter': string, Conditional order or active order
-        // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
-        // 'openOnly': 0,
+            // 'symbol': market['id'],
+            // 'category': string, Type of derivatives product: linear or option.
+            // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            // 'settleCoin': string, Settle coin. For linear, either symbol or settleCoin is required
+            // 'orderId': string, Order ID
+            // 'orderLinkId': string, Unique user-set order ID
+            // 'orderFilter': string, Conditional order or active order
+            // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
+            // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            // 'openOnly': 0,
         };
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -5622,16 +5622,16 @@ export default class bybit extends Exchange {
         await this.loadMarkets();
         let market = undefined;
         const request = {
-        // 'symbol': market['id'],
-        // 'category': '', // Product type. spot,linear,option
-        // 'orderId': '', // Order ID
-        // 'orderLinkId': '', // User customised order ID
-        // 'baseCoin': '', // Base coin
-        // 'startTime': 0, // The start timestamp (ms)
-        // 'endTime': 0, // The end timestamp (ms)
-        // 'execType': '', // Execution type
-        // 'limit': 0, // Limit for data size per page. [1, 100]. Default: 50
-        // 'cursor': '', // Cursor. Used for pagination
+            // 'symbol': market['id'],
+            // 'category': '', // Product type. spot,linear,option
+            // 'orderId': '', // Order ID
+            // 'orderLinkId': '', // User customised order ID
+            // 'baseCoin': '', // Base coin
+            // 'startTime': 0, // The start timestamp (ms)
+            // 'endTime': 0, // The end timestamp (ms)
+            // 'execType': '', // Execution type
+            // 'limit': 0, // Limit for data size per page. [1, 100]. Default: 50
+            // 'cursor': '', // Cursor. Used for pagination
         };
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -5761,12 +5761,12 @@ export default class bybit extends Exchange {
         let market = undefined;
         let settle = undefined;
         const request = {
-        // 'symbol': market['id'],
-        // 'orderId': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
-        // 'startTime': parseInt (since / 1000),
-        // 'endTime': 0,
-        // 'category': ''
-        // 'limit' 20, // max 50
+            // 'symbol': market['id'],
+            // 'orderId': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
+            // 'startTime': parseInt (since / 1000),
+            // 'endTime': 0,
+            // 'category': ''
+            // 'limit' 20, // max 50
         };
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -5831,16 +5831,16 @@ export default class bybit extends Exchange {
         await this.loadMarkets();
         let market = undefined;
         const request = {
-        // 'symbol': market['id'],
-        // 'category': '', // Product type. spot,linear,option
-        // 'orderId': '', // Order ID
-        // 'orderLinkId': '', // User customised order ID
-        // 'baseCoin': '', // Base coin
-        // 'startTime': 0, // The start timestamp (ms)
-        // 'endTime': 0, // The end timestamp (ms)
-        // 'execType': '', // Execution type
-        // 'limit': 0, // Limit for data size per page. [1, 100]. Default: 50
-        // 'cursor': '', // Cursor. Used for pagination
+            // 'symbol': market['id'],
+            // 'category': '', // Product type. spot,linear,option
+            // 'orderId': '', // Order ID
+            // 'orderLinkId': '', // User customised order ID
+            // 'baseCoin': '', // Base coin
+            // 'startTime': 0, // The start timestamp (ms)
+            // 'endTime': 0, // The end timestamp (ms)
+            // 'execType': '', // Execution type
+            // 'limit': 0, // Limit for data size per page. [1, 100]. Default: 50
+            // 'cursor': '', // Cursor. Used for pagination
         };
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -6124,12 +6124,12 @@ export default class bybit extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string|undefined} params.cursor used for pagination
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
+         */
         await this.loadMarkets();
         const request = {
-        // 'coin': currency['id'],
-        // 'limit': 20, // max 50
-        // 'cursor': '',
+            // 'coin': currency['id'],
+            // 'limit': 20, // max 50
+            // 'cursor': '',
         };
         let currency = undefined;
         if (code !== undefined) {
@@ -6188,9 +6188,9 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets();
         const request = {
-        // 'coin': currency['id'],
-        // 'limit': 20, // max 50
-        // 'cusor': '',
+            // 'coin': currency['id'],
+            // 'limit': 20, // max 50
+            // 'cusor': '',
         };
         let currency = undefined;
         if (code !== undefined) {
@@ -6364,23 +6364,23 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets();
         const request = {
-        // 'coin': currency['id'],
-        // 'currency': currency['id'], // alias
-        // 'start_date': this.iso8601 (since),
-        // 'end_date': this.iso8601 (till),
-        // 'wallet_fund_type': 'Deposit', // Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
-        // 'page': 1,
-        // 'limit': 20, // max 50
-        // v5 transaction log
-        // 'accountType': '', Account Type. UNIFIED
-        // 'category': '', Product type. spot,linear,option
-        // 'currency': '', Currency
-        // 'baseCoin': '', BaseCoin. e.g., BTC of BTCPERP
-        // 'type': '', Types of transaction logs
-        // 'startTime': 0, The start timestamp (ms)
-        // 'endTime': 0, The end timestamp (ms)
-        // 'limit': 0, Limit for data size per page. [1, 50]. Default: 20
-        // 'cursor': '', Cursor. Used for pagination
+            // 'coin': currency['id'],
+            // 'currency': currency['id'], // alias
+            // 'start_date': this.iso8601 (since),
+            // 'end_date': this.iso8601 (till),
+            // 'wallet_fund_type': 'Deposit', // Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
+            // 'page': 1,
+            // 'limit': 20, // max 50
+            // v5 transaction log
+            // 'accountType': '', Account Type. UNIFIED
+            // 'category': '', Product type. spot,linear,option
+            // 'currency': '', Currency
+            // 'baseCoin': '', BaseCoin. e.g., BTC of BTCPERP
+            // 'type': '', Types of transaction logs
+            // 'startTime': 0, The start timestamp (ms)
+            // 'endTime': 0, The end timestamp (ms)
+            // 'limit': 0, Limit for data size per page. [1, 50]. Default: 20
+            // 'cursor': '', Cursor. Used for pagination
         };
         const enableUnified = await this.isUnifiedEnabled();
         let currency = undefined;
