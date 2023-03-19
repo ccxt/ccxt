@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.17';
+$version = '3.0.22';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.17';
+    const VERSION = '3.0.22';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -549,6 +549,19 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'findTimeframe' => 'find_timeframe',
+        'formatScientificNotationFTX' => 'format_scientific_notation_ftx',
+        'orderBook' => 'order_book',
+        'indexedOrderBook' => 'indexed_order_book',
+        'countedOrderBook' => 'counted_order_book',
+        'handleMessage' => 'handle_message',
+        'onConnected' => 'on_connected',
+        'onError' => 'on_error',
+        'onClose' => 'on_close',
+        'handleDelta' => 'handle_delta',
+        'loadOrderBook' => 'load_order_book',
+        'handleDeltas' => 'handle_deltas',
+        'getCacheIndex' => 'get_cache_index',
         'fetchAccounts' => 'fetch_accounts',
         'fetchTrades' => 'fetch_trades',
         'watchTrades' => 'watch_trades',
@@ -573,19 +586,6 @@ class Exchange {
         'parseBorrowInterest' => 'parse_borrow_interest',
         'fetchFundingRates' => 'fetch_funding_rates',
         'createDepositAddress' => 'create_deposit_address',
-        'findTimeframe' => 'find_timeframe',
-        'formatScientificNotationFTX' => 'format_scientific_notation_ftx',
-        'orderBook' => 'order_book',
-        'indexedOrderBook' => 'indexed_order_book',
-        'countedOrderBook' => 'counted_order_book',
-        'handleMessage' => 'handle_message',
-        'onConnected' => 'on_connected',
-        'onError' => 'on_error',
-        'onClose' => 'on_close',
-        'handleDelta' => 'handle_delta',
-        'loadOrderBook' => 'load_order_book',
-        'handleDeltas' => 'handle_deltas',
-        'getCacheIndex' => 'get_cache_index',
         'parseToInt' => 'parse_to_int',
         'getDefaultOptions' => 'get_default_options',
         'safeLedgerEntry' => 'safe_ledger_entry',
@@ -659,6 +659,7 @@ class Exchange {
         'fetchFundingFees' => 'fetch_funding_fees',
         'fetchTransactionFee' => 'fetch_transaction_fee',
         'fetchTransactionFees' => 'fetch_transaction_fees',
+        'fetchDepositWithdrawFees' => 'fetch_deposit_withdraw_fees',
         'fetchDepositWithdrawFee' => 'fetch_deposit_withdraw_fee',
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
@@ -673,7 +674,9 @@ class Exchange {
         'handleErrors' => 'handle_errors',
         'calculateRateLimiterCost' => 'calculate_rate_limiter_cost',
         'fetchTicker' => 'fetch_ticker',
+        'watchTicker' => 'watch_ticker',
         'fetchTickers' => 'fetch_tickers',
+        'watchTickers' => 'watch_tickers',
         'fetchOrder' => 'fetch_order',
         'fetchOrderStatus' => 'fetch_order_status',
         'fetchUnifiedOrder' => 'fetch_unified_order',
@@ -743,6 +746,7 @@ class Exchange {
         'checkRequiredMarginArgument' => 'check_required_margin_argument',
         'checkRequiredSymbol' => 'check_required_symbol',
         'parseDepositWithdrawFees' => 'parse_deposit_withdraw_fees',
+        'parseDepositWithdrawFee' => 'parse_deposit_withdraw_fee',
         'depositWithdrawFee' => 'deposit_withdraw_fee',
         'assignDefaultDepositWithdrawFees' => 'assign_default_deposit_withdraw_fees',
         'parseIncome' => 'parse_income',
@@ -1693,10 +1697,6 @@ class Exchange {
         }
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
-        throw new NotSupported($this->id . ' sign() is not supported yet');
-    }
-
     public function parse_json($json_string, $as_associative_array = true) {
         return json_decode($this->on_json_response($json_string), $as_associative_array);
     }
@@ -2569,6 +2569,114 @@ class Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        return array();
+    }
+
+    public function fetch_accounts($params = array ()) {
+        return null;
+    }
+
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        return null;
+    }
+
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        return null;
+    }
+
+    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        return null;
+    }
+
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        return null;
+    }
+
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+        return null;
+    }
+
+    public function fetch_time($params = array ()) {
+        return null;
+    }
+
+    public function fetch_trading_limits($symbols = null, $params = array ()) {
+        return null;
+    }
+
+    public function parse_ticker($ticker, $market = null) {
+        return null;
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        return null;
+    }
+
+    public function parse_trade($trade, $market = null) {
+        return null;
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        return null;
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        return null;
+    }
+
+    public function parse_account($account) {
+        return null;
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        return null;
+    }
+
+    public function parse_order($order, $market = null) {
+        return null;
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        return null;
+    }
+
+    public function parse_market_leverage_tiers($info, $market = null) {
+        return null;
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        return null;
+    }
+
+    public function parse_position($position, $market = null) {
+        return null;
+    }
+
+    public function parse_funding_rate_history($info, $market = null) {
+        return null;
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        return null;
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        return null;
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        return null;
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        return null;
+    }
+
+    public function create_deposit_address($code, $params = array ()) {
+        return null;
+    }
 
     public function parse_to_int($number) {
         // Solve Common intvalmisuse ex => intval((since / (string) 1000))
@@ -4074,8 +4182,10 @@ class Exchange {
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTransactionFees() is not supported yet');
-        // eslint-disable-next-line
-        return null;
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchDepositWithdrawFees() is not supported yet');
     }
 
     public function fetch_deposit_withdraw_fee($code, $params = array ()) {
@@ -4243,8 +4353,16 @@ class Exchange {
         }
     }
 
+    public function watch_ticker($symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTicker() is not supported yet');
+    }
+
     public function fetch_tickers($symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
+    public function watch_tickers($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTickers() is not supported yet');
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -4951,6 +5069,10 @@ class Exchange {
         return $depositWithdrawFees;
     }
 
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        throw new NotSupported($this->id . ' parseDepositWithdrawFee() is not supported yet');
+    }
+
     public function deposit_withdraw_fee($info) {
         return array(
             'info' => $info,
@@ -5004,7 +5126,7 @@ class Exchange {
          * @param {array|null} $market ccxt $market
          * @param {int|null} $since when defined, the response items are filtered to only include items after this timestamp
          * @param {int|null} $limit limits the number of items in the response
-         * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structures}
+         * @return {[array]} an array of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
          */
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {

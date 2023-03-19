@@ -143,7 +143,7 @@ export default class timex extends Exchange {
     };
     parseOHLCV(ohlcv: any, market?: any): number[];
     parseOrder(order: any, market?: any): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

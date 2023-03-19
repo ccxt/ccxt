@@ -34,7 +34,7 @@ export default class hollaex extends Exchange {
         network: string;
         info: any;
     };
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
     fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchWithdrawal(id: any, code?: any, params?: {}): Promise<{
         info: any;
@@ -98,7 +98,7 @@ export default class hollaex extends Exchange {
         fee: any;
     }>;
     normalizeNumberIfNeeded(number: any): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;

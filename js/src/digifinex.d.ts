@@ -127,7 +127,7 @@ export default class digifinex extends Exchange {
         fee: any;
     }>;
     fetchBorrowInterest(code?: string, symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    parseBorrowInterest(info: any, market: any): {
+    parseBorrowInterest(info: any, market?: any): {
         account: any;
         currency: any;
         interest: any;
@@ -238,10 +238,10 @@ export default class digifinex extends Exchange {
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     fetchMarketLeverageTiers(symbol: any, params?: {}): Promise<any[]>;
-    parseMarketLeverageTiers(info: any, market: any): any[];
+    parseMarketLeverageTiers(info: any, market?: any): any[];
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    parseDepositWithdrawFees(response: any, codes?: string[], currencyIdKey?: any): {};
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

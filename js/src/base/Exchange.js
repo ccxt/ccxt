@@ -11,7 +11,7 @@ const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexB
 import { inflate, inflate64, gunzip } from './ws/functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
-ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded } from "./errors.js";
+ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded } from "./errors.js";
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
@@ -682,16 +682,17 @@ export default class Exchange {
         if (this.verbose) {
             this.log("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n");
         }
-        let AbortError;
         if (this.fetchImplementation === undefined) {
             if (isNode) {
                 const module = await import('../static_dependencies/node-fetch/index.js');
-                AbortError = module.AbortError;
+                this.AbortError = module.AbortError;
                 this.fetchImplementation = module.default;
+                this.FetchError = module.FetchError;
             }
             else {
                 this.fetchImplementation = self.fetch;
-                AbortError = DOMException;
+                this.AbortError = DOMException;
+                this.FetchError = TypeError;
             }
         }
         // fetchImplementation cannot be called on this. in browsers:
@@ -718,8 +719,11 @@ export default class Exchange {
             return this.handleRestResponse(response, url, method, headers, body);
         }
         catch (e) {
-            if (e instanceof AbortError) {
+            if (e instanceof this.AbortError) {
                 throw new RequestTimeout(this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
+            }
+            else if (e instanceof this.FetchError) {
+                throw new NetworkError(this.id + ' ' + method + ' ' + url + ' fetch failed');
             }
             throw e;
         }
@@ -918,87 +922,6 @@ export default class Exchange {
         }
     }
     // method to override
-    sign(path, api, method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return {};
-    }
-    async fetchAccounts(params = {}) {
-        return undefined;
-    }
-    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return undefined;
-    }
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return undefined;
-    }
-    async fetchDepositAddresses(codes = undefined, params = {}) {
-        return undefined;
-    }
-    async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        return undefined;
-    }
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
-        return undefined;
-    }
-    async fetchTime(params = {}) {
-        return undefined;
-    }
-    async fetchTradingLimits(symbols = undefined, params = {}) {
-        return undefined;
-    }
-    parseTicker(ticker, market = undefined) {
-        return undefined;
-    }
-    parseDepositAddress(depositAddress, currency = undefined) {
-        return undefined;
-    }
-    parseTrade(trade, market = undefined) {
-        return undefined;
-    }
-    parseTransaction(transaction, currency = undefined) {
-        return undefined;
-    }
-    parseTransfer(transfer, currency = undefined) {
-        return undefined;
-    }
-    parseAccount(account) {
-        return undefined;
-    }
-    parseLedgerEntry(item, currency = undefined) {
-        return undefined;
-    }
-    parseOrder(order, market = undefined) {
-        return undefined;
-    }
-    async fetchBorrowRates(params = {}) {
-        return undefined;
-    }
-    parseMarketLeverageTiers(info, market) {
-        return undefined;
-    }
-    async fetchLeverageTiers(symbols = undefined, params = {}) {
-        return undefined;
-    }
-    parsePosition(position, market = undefined) {
-        return undefined;
-    }
-    parseFundingRateHistory(info, market = undefined) {
-        return undefined;
-    }
-    parseBorrowInterest(info, market = undefined) {
-        return undefined;
-    }
-    async fetchFundingRates(symbols = undefined, params = {}) {
-        return undefined;
-    }
-    async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        return undefined;
-    }
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        return undefined;
-    }
-    async createDepositAddress(code, params = {}) {
-        return undefined;
-    }
     findTimeframe(timeframe, timeframes = undefined) {
         timeframes = timeframes || this.timeframes;
         const keys = Object.keys(timeframes);
@@ -1237,6 +1160,87 @@ export default class Exchange {
     // ########################################################################
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return {};
+    }
+    async fetchAccounts(params = {}) {
+        return undefined;
+    }
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return undefined;
+    }
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return undefined;
+    }
+    async fetchDepositAddresses(codes = undefined, params = {}) {
+        return undefined;
+    }
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        return undefined;
+    }
+    async watchOrderBook(symbol, limit = undefined, params = {}) {
+        return undefined;
+    }
+    async fetchTime(params = {}) {
+        return undefined;
+    }
+    async fetchTradingLimits(symbols = undefined, params = {}) {
+        return undefined;
+    }
+    parseTicker(ticker, market = undefined) {
+        return undefined;
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        return undefined;
+    }
+    parseTrade(trade, market = undefined) {
+        return undefined;
+    }
+    parseTransaction(transaction, currency = undefined) {
+        return undefined;
+    }
+    parseTransfer(transfer, currency = undefined) {
+        return undefined;
+    }
+    parseAccount(account) {
+        return undefined;
+    }
+    parseLedgerEntry(item, currency = undefined) {
+        return undefined;
+    }
+    parseOrder(order, market = undefined) {
+        return undefined;
+    }
+    async fetchBorrowRates(params = {}) {
+        return undefined;
+    }
+    parseMarketLeverageTiers(info, market = undefined) {
+        return undefined;
+    }
+    async fetchLeverageTiers(symbols = undefined, params = {}) {
+        return undefined;
+    }
+    parsePosition(position, market = undefined) {
+        return undefined;
+    }
+    parseFundingRateHistory(info, market = undefined) {
+        return undefined;
+    }
+    parseBorrowInterest(info, market = undefined) {
+        return undefined;
+    }
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        return undefined;
+    }
+    async transfer(code, amount, fromAccount, toAccount, params = {}) {
+        return undefined;
+    }
+    async withdraw(code, amount, address, tag = undefined, params = {}) {
+        return undefined;
+    }
+    async createDepositAddress(code, params = {}) {
+        return undefined;
+    }
     parseToInt(number) {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
@@ -2705,8 +2709,9 @@ export default class Exchange {
     }
     async fetchTransactionFees(codes = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchTransactionFees() is not supported yet');
-        // eslint-disable-next-line
-        return undefined;
+    }
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchDepositWithdrawFees() is not supported yet');
     }
     async fetchDepositWithdrawFee(code, params = {}) {
         if (!this.has['fetchDepositWithdrawFees']) {
@@ -2867,8 +2872,14 @@ export default class Exchange {
             throw new NotSupported(this.id + ' fetchTicker() is not supported yet');
         }
     }
+    async watchTicker(symbol, params = {}) {
+        throw new NotSupported(this.id + ' watchTicker() is not supported yet');
+    }
     async fetchTickers(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchTickers() is not supported yet');
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchTickers() is not supported yet');
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrder() is not supported yet');
@@ -3535,6 +3546,9 @@ export default class Exchange {
         }
         return depositWithdrawFees;
     }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        throw new NotSupported(this.id + ' parseDepositWithdrawFee() is not supported yet');
+    }
     depositWithdrawFee(info) {
         return {
             'info': info,
@@ -3587,7 +3601,7 @@ export default class Exchange {
          * @param {object|undefined} market ccxt market
          * @param {int|undefined} since when defined, the response items are filtered to only include items after this timestamp
          * @param {int|undefined} limit limits the number of items in the response
-         * @returns {[object]} an array of [funding history structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         * @returns {[object]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         const result = [];
         for (let i = 0; i < incomes.length; i++) {
