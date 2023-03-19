@@ -994,7 +994,7 @@ export default class Exchange {
         return this.setMarkets (markets, currencies)
     }
 
-    loadMarkets (reload = false, params = {}): Promise<Dictionary<Market>> {
+    async loadMarkets (reload = false, params = {}): Promise<Dictionary<Market>> {
         // this method is async, it returns a promise
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
             this.reloadingMarkets = true
@@ -1009,7 +1009,7 @@ export default class Exchange {
         return this.marketsLoading
     }
 
-    fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -1017,7 +1017,7 @@ export default class Exchange {
         return new Promise ((resolve, reject) => resolve (this.currencies));
     }
 
-    fetchMarkets (params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -1461,27 +1461,27 @@ export default class Exchange {
         return undefined;
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market = undefined): any {
         return undefined;
     }
 
-    parseFundingRateHistory (info, market = undefined) {
+    parseFundingRateHistory (info, market = undefined): any {
         return undefined;
     }
 
-    parseBorrowInterest (info, market = undefined) {
+    parseBorrowInterest (info, market = undefined): any {
         return undefined;
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}): Promise<any> {
         return undefined;
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}): Promise<any> {
         return undefined;
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}): Promise<any> {
         return undefined;
     }
 
@@ -2799,11 +2799,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
     }
 
-    async fetchPositionsRisk (symbols: string[] = undefined, params = {}) {
+    async fetchPositionsRisk (symbols: string[] = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
     }
 
-    async fetchBidsAsks (symbols: string[] = undefined, params = {}) {
+    async fetchBidsAsks (symbols: string[] = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet');
     }
 
@@ -3435,7 +3435,7 @@ export default class Exchange {
 
     async fetchMarketLeverageTiers (symbol: string, params = {}) {
         if (this.has['fetchLeverageTiers']) {
-            const market = await this.market (symbol);
+            const market = this.market (symbol);
             if (!market['contract']) {
                 throw new BadSymbol (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
@@ -3672,7 +3672,7 @@ export default class Exchange {
         }
     }
 
-    async fetchLastPrices (params = {}) {
+    async fetchLastPrices (params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchLastPrices() is not supported yet');
     }
 
@@ -3847,7 +3847,7 @@ export default class Exchange {
         }
     }
 
-    checkRequiredMarginArgument (methodName: string, symbol: string, marginMode: string) {
+    checkRequiredMarginArgument (methodName: string, symbol: string, marginMode: string): void {
         /**
          * @ignore
          * @method
@@ -3862,7 +3862,7 @@ export default class Exchange {
         }
     }
 
-    checkRequiredSymbol (methodName: string, symbol: string) {
+    checkRequiredSymbol (methodName: string, symbol: string): void {
         /**
          * @ignore
          * @method
@@ -3947,7 +3947,7 @@ export default class Exchange {
         return fee;
     }
 
-    parseIncome (info, market = undefined) {
+    parseIncome (info, market = undefined): any {
         throw new NotSupported (this.id + ' parseIncome () is not supported yet');
     }
 
