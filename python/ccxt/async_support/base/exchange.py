@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.22'
+__version__ = '3.0.23'
 
 # -----------------------------------------------------------------------------
 
@@ -1963,6 +1963,9 @@ class Exchange(BaseExchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
+
+    async def cancel_all_orders(self, symbol=None, params={}):
+        raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
     async def cancel_unified_order(self, order, params={}):
         return self.cancelOrder(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)

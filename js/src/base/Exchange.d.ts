@@ -624,6 +624,7 @@ export default class Exchange {
     fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     cancelUnifiedOrder(order: any, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: number, limit?: any, params?: {}): Promise<Order[]>;
     watchOrders(symbol?: string, since?: number, limit?: any, params?: {}): Promise<Order[]>;
@@ -634,13 +635,13 @@ export default class Exchange {
     fetchTransactions(symbol?: string, since?: number, limit?: any, params?: {}): Promise<any>;
     fetchDeposits(symbol?: string, since?: number, limit?: any, params?: {}): Promise<any>;
     fetchWithdrawals(symbol?: string, since?: number, limit?: any, params?: {}): Promise<any>;
-    parseLastPrice(price: any, market?: any): void;
+    parseLastPrice(price: any, market?: any): any;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     account(): Balance;
     commonCurrencyCode(currency: string): string;
     currency(code: any): any;
     market(symbol: string): any;
-    handleWithdrawTagAndParams(tag: any, params: any): any[];
+    handleWithdrawTagAndParams(tag: any, params: any): any;
     createLimitOrder(symbol: string, side: string, amount: any, price: any, params?: {}): Promise<Order>;
     createMarketOrder(symbol: string, side: string, amount: any, price?: any, params?: {}): Promise<Order>;
     createLimitBuyOrder(symbol: string, amount: any, price: any, params?: {}): Promise<Order>;

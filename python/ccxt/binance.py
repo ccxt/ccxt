@@ -3431,6 +3431,9 @@ class binance(Exchange):
                 raise InvalidOrder(self.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+        # remove timeInForce from params because PO is only used by self.is_post_onlyand it's not a valid value for Binance
+        if self.safe_string(params, 'timeInForce') == 'PO':
+            params = self.omit(params, ['timeInForce'])
         requestParams = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly'])
         response = self.privatePostOrderCancelReplace(self.extend(request, requestParams))
         #
@@ -3894,6 +3897,9 @@ class binance(Exchange):
                     raise InvalidOrder(self.id + ' createOrder() requires a stopPrice or trailingDelta param for a ' + type + ' order')
             if stopPrice is not None:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+        # remove timeInForce from params because PO is only used by self.is_post_onlyand it's not a valid value for Binance
+        if self.safe_string(params, 'timeInForce') == 'PO':
+            params = self.omit(params, ['timeInForce'])
         requestParams = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly'])
         response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)

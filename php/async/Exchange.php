@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '3.0.22';
+$version = '3.0.23';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.22';
+    const VERSION = '3.0.23';
 
     public $browser;
     public $marketsLoading = null;
@@ -2128,6 +2128,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
     }
 
     public function cancel_unified_order($order, $params = array ()) {

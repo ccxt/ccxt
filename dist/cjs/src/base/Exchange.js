@@ -2884,6 +2884,9 @@ class Exchange {
     async cancelOrder(id, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' cancelOrder() is not supported yet');
     }
+    async cancelAllOrders(symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelAllOrders() is not supported yet');
+    }
     async cancelUnifiedOrder(order, params = {}) {
         return this.cancelOrder(this.safeValue(order, 'id'), this.safeValue(order, 'symbol'), params);
     }

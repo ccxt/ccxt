@@ -3607,6 +3607,10 @@ export default class binance extends Exchange {
                 request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
             }
         }
+        // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
+        if (this.safeString(params, 'timeInForce') === 'PO') {
+            params = this.omit(params, ['timeInForce']);
+        }
         const requestParams = this.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly']);
         const response = await this.privatePostOrderCancelReplace(this.extend(request, requestParams));
         //
@@ -4136,6 +4140,10 @@ export default class binance extends Exchange {
             if (stopPrice !== undefined) {
                 request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
             }
+        }
+        // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
+        if (this.safeString(params, 'timeInForce') === 'PO') {
+            params = this.omit(params, ['timeInForce']);
         }
         const requestParams = this.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly']);
         const response = await this[method](this.extend(request, requestParams));

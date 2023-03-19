@@ -3580,6 +3580,10 @@ class binance extends Exchange {
                     $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
                 }
             }
+            // remove timeInForce from $params because PO is only used by $this->is_post_onlyand it's not a valid value for Binance
+            if ($this->safe_string($params, 'timeInForce') === 'PO') {
+                $params = $this->omit($params, array( 'timeInForce' ));
+            }
             $requestParams = $this->omit($params, array( 'quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly' ));
             $response = Async\await($this->privatePostOrderCancelReplace (array_merge($request, $requestParams)));
             //
@@ -4086,6 +4090,10 @@ class binance extends Exchange {
                 if ($stopPrice !== null) {
                     $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
                 }
+            }
+            // remove timeInForce from $params because PO is only used by $this->is_post_onlyand it's not a valid value for Binance
+            if ($this->safe_string($params, 'timeInForce') === 'PO') {
+                $params = $this->omit($params, array( 'timeInForce' ));
             }
             $requestParams = $this->omit($params, array( 'quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ));
             $response = Async\await($this->$method (array_merge($request, $requestParams)));

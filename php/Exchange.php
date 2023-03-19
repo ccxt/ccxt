@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.22';
+$version = '3.0.23';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.22';
+    const VERSION = '3.0.23';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -682,6 +682,7 @@ class Exchange {
         'fetchUnifiedOrder' => 'fetch_unified_order',
         'createOrder' => 'create_order',
         'cancelOrder' => 'cancel_order',
+        'cancelAllOrders' => 'cancel_all_orders',
         'cancelUnifiedOrder' => 'cancel_unified_order',
         'fetchOrders' => 'fetch_orders',
         'watchOrders' => 'watch_orders',
@@ -4384,6 +4385,10 @@ class Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
     }
 
     public function cancel_unified_order($order, $params = array ()) {
