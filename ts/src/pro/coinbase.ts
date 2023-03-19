@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const coinbaseRest = require ('../coinbase.js');
-const { BadSymbol } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+import coinbaseRest from '../coinbase.js';
+import { BadSymbol } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coinbase extends coinbaseRest {
+export default class coinbase extends coinbaseRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -48,6 +48,30 @@ module.exports = class coinbase extends coinbaseRest {
             'timestamp': timestamp,
             'api_key': this.apiKey,
         };
+    }
+
+    async authenticate (params = {}) {
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const messageHash = 'authenticated';
+        const future = client.future ('authenticated');
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            this.checkRequiredCredentials ();
+            const nonce = this.seconds ().toString ();
+            const auth = nonce + this.apiKey;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            const request = {
+                'e': 'auth',
+                'auth': {
+                    'key': this.apiKey,
+                    'signature': signature.toUpperCase (),
+                    'timestamp': nonce,
+                },
+            };
+            await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        }
+        return await future;
     }
 
     async subscribe (name, symbol, messageHashStart, params = {}) {
@@ -795,5 +819,4 @@ module.exports = class coinbase extends coinbaseRest {
         const method = this.safeValue (methods, channel);
         return method.call (this, client, message);
     }
-};
-
+}
