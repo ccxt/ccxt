@@ -4815,6 +4815,9 @@ export default class binance extends Exchange {
             //     }
             //   ]
         }
+        for (let i = 0; i < response.length; i++) {
+            response[i]['type'] = 'deposit';
+        }
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -4931,6 +4934,9 @@ export default class binance extends Exchange {
             //       }
             //     ]
         }
+        for (let i = 0; i < response.length; i++) {
+            response[i]['type'] = 'withdrawal';
+        }
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -4967,11 +4973,7 @@ export default class binance extends Exchange {
                 'Refund Failed': 'failed',
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {
-            '0': 'pending',
-            '1': 'ok', // success
-            '6': 'ok', // credited but cannot withdraw
-        });
+        const statuses = this.safeValue (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
