@@ -58,12 +58,16 @@ export default class mexc3 extends mexc3Rest {
     }
 
     checkSubscriptionLimit (url, subscriptionHash) {
-        const client = this.safeValue (this.clients, url, {});
-        const subscription = this.safeValue (client.subscriptions, subscriptionHash);
-        if (client.subscriptions === undefined || subscription !== undefined) {
+        const client = this.safeValue (this.clients, url);
+        if (client === undefined) {
             return;
         }
-        const numberOfSubscriptions = Object.keys (client.subscriptions).length;
+        const subscription = this.safeValue (client.subscriptions, subscriptionHash);
+        if (subscription !== undefined) {
+            return;
+        }
+        const subscriptionKeys = Object.keys (client.subscriptions);
+        const numberOfSubscriptions = subscriptionKeys.length;
         const subscriptionsLimit = this.safeInteger (this.options, 'subscriptionsLimit', 30);
         if (numberOfSubscriptions >= subscriptionsLimit) {
             throw new BadRequest (this.id + ' has reached its subscription limit of ' + subscriptionsLimit.toString () + ' subscriptions');
