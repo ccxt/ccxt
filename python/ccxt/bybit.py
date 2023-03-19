@@ -3359,15 +3359,15 @@ class bybit(Exchange):
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLoss = stopLoss is not None
         isTakeProfit = takeProfit is not None
+        isBuy = side == 'buy'
+        ascending = not isBuy if stopLossTriggerPrice else isBuy
         if triggerPrice is not None:
-            isBuy = side == 'buy'
-            ascending = not isBuy if stopLossTriggerPrice else isBuy
             request['triggerDirection'] = 2 if ascending else 1
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
             if isStopLossTriggerOrder:
+                request['triggerDirection'] = 2 if ascending else 1
                 request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-                request['triggerDirection'] = 2
             else:
                 request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                 request['triggerDirection'] = 1

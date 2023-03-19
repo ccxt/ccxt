@@ -3516,15 +3516,15 @@ class bybit extends Exchange {
             $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
             $isStopLoss = $stopLoss !== null;
             $isTakeProfit = $takeProfit !== null;
+            $isBuy = $side === 'buy';
+            $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
             if ($triggerPrice !== null) {
-                $isBuy = $side === 'buy';
-                $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
                 $request['triggerDirection'] = $ascending ? 2 : 1;
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                 if ($isStopLossTriggerOrder) {
+                    $request['triggerDirection'] = $ascending ? 2 : 1;
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-                    $request['triggerDirection'] = 2;
                 } else {
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                     $request['triggerDirection'] = 1;
