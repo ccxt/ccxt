@@ -6,13 +6,11 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
+use ccxt\AuthenticationError;
 use React\Async;
 
 class okcoin extends \ccxt\async\okcoin {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -74,6 +72,16 @@ class okcoin extends \ccxt\async\okcoin {
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the market to fetch $trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of $trades to fetch
+             * @param {array} $params extra parameters specific to the okcoin api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $trades = Async\await($this->subscribe('trade', $symbol, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -84,7 +92,19 @@ class okcoin extends \ccxt\async\okcoin {
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * watches information on multiple orders made by the user
+             * @param {string|null} $symbol unified market $symbol of the market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the okcoin api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
             Async\await($this->authenticate());
+            if ($symbol !== null) {
+                $symbol = $this->symbol($symbol);
+            }
             $orderType = $this->safe_string($this->options, 'watchOrders', 'order');
             $trades = Async\await($this->subscribe($orderType, $symbol, $params));
             if ($this->newUpdates) {
@@ -160,6 +180,12 @@ class okcoin extends \ccxt\async\okcoin {
 
     public function watch_ticker($symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the okcoin api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
             return Async\await($this->subscribe('ticker', $symbol, $params));
         }) ();
     }
@@ -237,7 +263,18 @@ class okcoin extends \ccxt\async\okcoin {
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            $interval = $this->timeframes[$timeframe];
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the okcoin api endpoint
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $name = 'candle' . $interval . 's';
             $ohlcv = Async\await($this->subscribe($name, $symbol, $params));
             if ($this->newUpdates) {
@@ -295,10 +332,17 @@ class okcoin extends \ccxt\async\okcoin {
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the okcoin api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             */
             $options = $this->safe_value($this->options, 'watchOrderBook', array());
             $depth = $this->safe_string($options, 'depth', 'depth_l2_tbt');
             $orderbook = Async\await($this->subscribe($depth, $symbol, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -458,6 +502,11 @@ class okcoin extends \ccxt\async\okcoin {
 
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
+            /**
+             * $query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the okcoin api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
             $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType');
             $type = $this->safe_string($params, 'type', $defaultType);
             if ($type === null) {
@@ -483,16 +532,8 @@ class okcoin extends \ccxt\async\okcoin {
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $marketId = $this->safe_string($params, 'instrument_id');
             $symbol = $this->safe_string($params, 'symbol');
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            } elseif ($marketId !== null) {
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                }
-            }
+            $market = $this->market($symbol);
             $marketUndefined = ($market === null);
             $currencyUndefined = ($currency === null);
             if ($type === 'spot') {
@@ -563,6 +604,8 @@ class okcoin extends \ccxt\async\okcoin {
         //
         $table = $this->safe_string($message, 'table');
         $parts = explode('/', $table);
+        $data = $this->safe_value($message, 'data', array());
+        $this->balance['info'] = $data;
         $type = $this->safe_string($parts, 0);
         if ($type === 'spot') {
             $part1 = $this->safe_string($parts, 1);
@@ -570,7 +613,6 @@ class okcoin extends \ccxt\async\okcoin {
                 $type = 'margin';
             }
         }
-        $data = $this->safe_value($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $balance = $this->parseBalanceByType ($type, $data);
             $oldBalance = $this->safe_value($this->balance, $type, array());

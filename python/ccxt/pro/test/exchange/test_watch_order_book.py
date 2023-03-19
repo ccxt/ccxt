@@ -9,9 +9,12 @@ async def test_watch_order_book(exchange, symbol):
     method = 'watchOrderBook'
     # we have to skip some exchanges here due to the frequency of trading or for other reasons
     skipped_exchanges = [
+        'cex',  # requires authentication for watch_order_book
         'ripio',
         'gopax',  # requires authentication for watch_order_book
-        'mexc',   # orderbook is crossing
+        'woo',
+        'luno',  # requires authentication for watch_order_book
+        'alpaca',  # requires auth
     ]
     if exchange.id in skipped_exchanges:
         print(exchange.id, method, 'test skipped')
@@ -23,7 +26,6 @@ async def test_watch_order_book(exchange, symbol):
         i = 0
         while now < end:
             try:
-                exchange.verbose = True
                 response = await getattr(exchange, method)(symbol)
                 i += 1
                 now = exchange.milliseconds()

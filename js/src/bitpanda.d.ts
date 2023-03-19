@@ -1,0 +1,106 @@
+import { Exchange } from './base/Exchange.js';
+export default class bitpanda extends Exchange {
+    describe(): any;
+    fetchTime(params?: {}): Promise<number>;
+    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchTradingFees(params?: {}): Promise<any>;
+    fetchPublicTradingFees(params?: {}): Promise<{}>;
+    fetchPrivateTradingFees(params?: {}): Promise<{}>;
+    parseFeeTiers(feeTiers: any, market?: any): {
+        maker: any[];
+        taker: any[];
+    };
+    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
+    fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    parseOHLCV(ohlcv: any, market?: any): number[];
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
+    fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    parseBalance(response: any): import("./base/types.js").Balances;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    parseDepositAddress(depositAddress: any, currency?: any): {
+        currency: any;
+        address: string;
+        tag: string;
+        network: any;
+        info: any;
+    };
+    createDepositAddress(code: any, params?: {}): Promise<{
+        currency: any;
+        address: string;
+        tag: string;
+        network: any;
+        info: any;
+    }>;
+    fetchDepositAddress(code: any, params?: {}): Promise<{
+        currency: any;
+        address: string;
+        tag: string;
+        network: any;
+        info: any;
+    }>;
+    fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+        info: any;
+        id: string;
+        currency: any;
+        amount: number;
+        network: any;
+        address: string;
+        addressFrom: any;
+        addressTo: string;
+        tag: string;
+        tagFrom: any;
+        tagTo: string;
+        status: string;
+        type: any;
+        updated: any;
+        txid: string;
+        timestamp: number;
+        datetime: string;
+        fee: any;
+    }>;
+    parseTransaction(transaction: any, currency?: any): {
+        info: any;
+        id: string;
+        currency: any;
+        amount: number;
+        network: any;
+        address: string;
+        addressFrom: any;
+        addressTo: string;
+        tag: string;
+        tagFrom: any;
+        tagTo: string;
+        status: string;
+        type: any;
+        updated: any;
+        txid: string;
+        timestamp: number;
+        datetime: string;
+        fee: any;
+    };
+    parseOrderStatus(status: any): string;
+    parseOrder(order: any, market?: any): any;
+    parseTimeInForce(timeInForce: any): string;
+    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
+    cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrderTrades(id: any, symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+        url: string;
+        method: string;
+        body: any;
+        headers: any;
+    };
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+}

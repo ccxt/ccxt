@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 
@@ -32,14 +33,15 @@ class poloniex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
-                'createMarketOrder' => null,
                 'createOrder' => true,
-                'editOrder' => false,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -84,8 +86,12 @@ class poloniex extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
-                'api' => 'https://api.poloniex.com',
-                'test' => 'https://sand-spot-api-gateway.poloniex.com',
+                'api' => array(
+                    'rest' => 'https://api.poloniex.com',
+                ),
+                'test' => array(
+                    'rest' => 'https://sand-spot-api-gateway.poloniex.com',
+                ),
                 'www' => 'https://www.poloniex.com',
                 'doc' => 'https://docs.poloniex.com',
                 'fees' => 'https://poloniex.com/fees',
@@ -116,6 +122,11 @@ class poloniex extends Exchange {
                         'accounts/{id}/balances' => 4,
                         'accounts/transfer' => 20,
                         'accounts/transfer/{id}' => 4,
+                        'subaccounts' => 4,
+                        'subaccounts/balances' => 20,
+                        'subaccounts/{id}/balances' => 4,
+                        'subaccounts/transfer' => 20,
+                        'subaccounts/transfer/{id}' => 4,
                         'feeinfo' => 20,
                         'wallets/addresses' => 20,
                         'wallets/activity' => 20,
@@ -123,6 +134,7 @@ class poloniex extends Exchange {
                         'orders' => 20,
                         'orders/{id}' => 4,
                         'orders/history' => 20,
+                        'orders/killSwitchStatus' => 4,
                         'smartorders' => 20,
                         'smartorders/{id}' => 4,
                         'smartorders/history' => 20,
@@ -131,9 +143,12 @@ class poloniex extends Exchange {
                     ),
                     'post' => array(
                         'accounts/transfer' => 4,
+                        'subaccounts/transfer' => 20,
                         'wallets/address' => 20,
                         'wallets/withdraw' => 20,
                         'orders' => 4,
+                        'orders/killSwitch' => 4,
+                        'orders/batch' => 20,
                         'smartorders' => 4,
                     ),
                     'delete' => array(
@@ -143,6 +158,10 @@ class poloniex extends Exchange {
                         'smartorders/{id}' => 4,
                         'smartorders/cancelByIds' => 20,
                         'smartorders' => 20,
+                    ),
+                    'put' => array(
+                        'orders/{id}' => 4,
+                        'smartorders/{id}' => 4,
                     ),
                 ),
             ),
@@ -193,8 +212,12 @@ class poloniex extends Exchange {
                 'networks' => array(
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
-                    'TRX' => 'TRON',
                     'TRC20' => 'TRON',
+                ),
+                'networksById' => array(
+                    'BSC' => 'BEP20',
+                    'ETH' => 'ERC20',
+                    'TRON' => 'TRC20',
                 ),
                 'limits' => array(
                     'cost' => array(
@@ -222,7 +245,7 @@ class poloniex extends Exchange {
                     'futures' => 'future',
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'You may only place orders that reduce your position.' => '\\ccxt\\InvalidOrder',
@@ -299,13 +322,13 @@ class poloniex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
-                'interval' => $this->timeframes[$timeframe],
+                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -418,8 +441,8 @@ class poloniex extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->safe_integer($symbolTradeLimit, 'quantityScale'),
-                        'price' => $this->safe_integer($symbolTradeLimit, 'priceScale'),
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($symbolTradeLimit, 'quantityScale'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($symbolTradeLimit, 'priceScale'))),
                     ),
                     'limits' => array(
                         'amount' => array(
@@ -474,7 +497,7 @@ class poloniex extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->market($marketId);
+        $market = $this->safe_market($marketId);
         $close = $this->safe_string($ticker, 'close');
         $relativeChange = $this->safe_string($ticker, 'percentChange');
         $percentage = Precise::string_mul($relativeChange, '100');
@@ -509,7 +532,7 @@ class poloniex extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -615,7 +638,7 @@ class poloniex extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -780,7 +803,7 @@ class poloniex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -881,7 +904,7 @@ class poloniex extends Exchange {
         //         "updateTime" => 1646925216548
         //     }
         //
-        // createOrder
+        // createOrder, editOrder
         //
         //     {
         //         "id" => "29772698821328896",
@@ -942,6 +965,7 @@ class poloniex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'average' => $this->safe_string($order, 'avgPrice'),
             'amount' => $amount,
@@ -984,7 +1008,7 @@ class poloniex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1028,51 +1052,99 @@ class poloniex extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             // if ($type === 'market') {
             //     throw new ExchangeError($this->id . ' createOrder() does not accept $market orders');
             // }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $upperCaseType = strtoupper($type);
-            $isMarket = $upperCaseType === 'MARKET';
-            $isPostOnly = $this->is_post_only($isMarket, $upperCaseType === 'LIMIT_MAKER', $params);
-            if ($isPostOnly) {
-                $upperCaseType = 'LIMIT_MAKER';
-                $params = $this->omit($params, 'postOnly');
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' createOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
             }
             $request = array(
                 'symbol' => $market['id'],
                 'side' => $side,
-                'type' => $upperCaseType,
                 // 'timeInForce' => timeInForce,
                 // 'accountType' => 'SPOT',
                 // 'amount' => $amount,
             );
-            if ($isMarket) {
-                if ($side === 'buy') {
-                    $request['amount'] = $this->currency_to_precision($market['quote'], $amount);
-                } else {
-                    $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-                }
+            $orderRequest = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
+            $response = Async\await($this->privatePostOrders (array_merge($orderRequest[0], $orderRequest[1])));
+            //
+            //     {
+            //         "id" : "78923648051920896",
+            //         "clientOrderId" : ""
+            //     }
+            //
+            $response = array_merge($response, array(
+                'type' => $side,
+            ));
+            return $this->parse_order($response, $market);
+        }) ();
+    }
+
+    public function order_request($symbol, $type, $side, $amount, $request, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $upperCaseType = strtoupper($type);
+        $isMarket = $upperCaseType === 'MARKET';
+        $isPostOnly = $this->is_post_only($isMarket, $upperCaseType === 'LIMIT_MAKER', $params);
+        if ($isPostOnly) {
+            $upperCaseType = 'LIMIT_MAKER';
+            $params = $this->omit($params, 'postOnly');
+        }
+        $request['type'] = $upperCaseType;
+        if ($isMarket) {
+            if ($side === 'buy') {
+                $request['amount'] = $this->currency_to_precision($market['quote'], $amount);
             } else {
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-                $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $request['clientOrderId'] = $clientOrderId;
-                $params = $this->omit($params, 'clientOrderId');
+        } else {
+            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clientOrderId'] = $clientOrderId;
+            $params = $this->omit($params, 'clientOrderId');
+        }
+        // remember the timestamp before issuing the $request
+        return array( $request, $params );
+    }
+
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit a trade order
+             * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of the currency you want to trade in units of the base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the poloniex api endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
             }
-            // remember the timestamp before issuing the $request
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $request = array(
+                'id' => $id,
+                // 'timeInForce' => timeInForce,
+            );
+            $orderRequest = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
+            $response = Async\await($this->privatePutOrdersId (array_merge($orderRequest[0], $orderRequest[1])));
             //
             //     {
             //         "id" : "78923648051920896",
@@ -1093,7 +1165,7 @@ class poloniex extends Exchange {
              * @param {string} $id order $id
              * @param {string|null} $symbol unified $symbol of the market the order was made in
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1113,7 +1185,7 @@ class poloniex extends Exchange {
              * cancel all open orders
              * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1155,7 +1227,7 @@ class poloniex extends Exchange {
              * @param {string} $id order $id
              * @param {string|null} $symbol unified market $symbol, default is null
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $id = (string) $id;
@@ -1207,7 +1279,7 @@ class poloniex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $trades for
              * @param {int|null} $limit the maximum number of $trades to retrieve
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1298,7 +1370,7 @@ class poloniex extends Exchange {
             /**
              * fetch the trading fees for multiple markets
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetFeeinfo ($params));
@@ -1333,7 +1405,7 @@ class poloniex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum $amount of order book entries to return
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1389,7 +1461,7 @@ class poloniex extends Exchange {
              * create a $currency deposit $address
              * @param {string} $code unified $currency $code of the $currency for the deposit $address
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1439,7 +1511,7 @@ class poloniex extends Exchange {
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1492,7 +1564,7 @@ class poloniex extends Exchange {
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1560,7 +1632,7 @@ class poloniex extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string|null} $tag
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
@@ -1598,7 +1670,7 @@ class poloniex extends Exchange {
             Async\await($this->load_markets());
             $year = 31104000; // 60 * 60 * 24 * 30 * 12 = one $year of history, why not
             $now = $this->seconds();
-            $start = ($since !== null) ? intval($since / 1000) : $now - 10 * $year;
+            $start = ($since !== null) ? intval(($since / (string) 1000)) : $now - 10 * $year;
             $request = array(
                 'start' => $start, // UNIX timestamp, required
                 'end' => $now, // UNIX timestamp, required
@@ -1687,7 +1759,7 @@ class poloniex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
              * @param {int|null} $limit max number of $transactions to return, default is null
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $params));
@@ -1712,7 +1784,7 @@ class poloniex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
              * @param {int|null} $limit the maximum number of $withdrawals structures to retrieve
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $params));
             $currency = null;
@@ -1725,6 +1797,133 @@ class poloniex extends Exchange {
         }) ();
     }
 
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://docs.poloniex.com/#public-endpoints-reference-$data-currency-information
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the poloniex api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetCurrencies (array_merge($params, array( 'includeMultiChainCurrencies' => true ))));
+            //
+            //     array(
+            //         {
+            //             "1CR" => {
+            //                 "id" => 1,
+            //                 "name" => "1CRedit",
+            //                 "description" => "BTC Clone",
+            //                 "type" => "address",
+            //                 "withdrawalFee" => "0.01000000",
+            //                 "minConf" => 10000,
+            //                 "depositAddress" => null,
+            //                 "blockchain" => "1CR",
+            //                 "delisted" => false,
+            //                 "tradingState" => "NORMAL",
+            //                 "walletState" => "DISABLED",
+            //                 "parentChain" => null,
+            //                 "isMultiChain" => false,
+            //                 "isChildChain" => false,
+            //                 "childChains" => array()
+            //             }
+            //         }
+            //     )
+            //
+            $data = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $currencies = is_array($entry) ? array_keys($entry) : array();
+                $currencyId = $this->safe_string($currencies, 0);
+                $data[$currencyId] = $entry[$currencyId];
+            }
+            return $this->parse_deposit_withdraw_fees($data, $codes);
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+        //
+        //         {
+        //             "1CR" => array(
+        //                 "id" => 1,
+        //                 "name" => "1CRedit",
+        //                 "description" => "BTC Clone",
+        //                 "type" => "address",
+        //                 "withdrawalFee" => "0.01000000",
+        //                 "minConf" => 10000,
+        //                 "depositAddress" => null,
+        //                 "blockchain" => "1CR",
+        //                 "delisted" => false,
+        //                 "tradingState" => "NORMAL",
+        //                 "walletState" => "DISABLED",
+        //                 "parentChain" => null,
+        //                 "isMultiChain" => false,
+        //                 "isChildChain" => false,
+        //                 "childChains" => array()
+        //             ),
+        //         }
+        //
+        $depositWithdrawFees = array();
+        $codes = $this->market_codes($codes);
+        $responseKeys = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($responseKeys); $i++) {
+            $currencyId = $responseKeys[$i];
+            $code = $this->safe_currency_code($currencyId);
+            $feeInfo = $response[$currencyId];
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($feeInfo, $code);
+                $childChains = $this->safe_value($feeInfo, 'childChains');
+                $chainsLength = count($childChains);
+                if ($chainsLength > 0) {
+                    for ($j = 0; $j < count($childChains); $j++) {
+                        $networkId = $childChains[$j];
+                        $networkId = str_replace($code, '', $networkId);
+                        $networkCode = $this->network_id_to_code($networkId);
+                        $networkInfo = $this->safe_value($response, $networkId);
+                        $networkObject = array();
+                        $withdrawFee = $this->safe_number($networkInfo, 'withdrawalFee');
+                        $networkObject[$networkCode] = array(
+                            'withdraw' => array(
+                                'fee' => $withdrawFee,
+                                'percentage' => ($withdrawFee !== null) ? false : null,
+                            ),
+                            'deposit' => array(
+                                'fee' => null,
+                                'percentage' => null,
+                            ),
+                        );
+                        $depositWithdrawFees[$code]['networks'] = array_merge($depositWithdrawFees[$code]['networks'], $networkObject);
+                    }
+                }
+            }
+        }
+        return $depositWithdrawFees;
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        $depositWithdrawFee = $this->deposit_withdraw_fee(array());
+        $depositWithdrawFee['info'][$currency] = $fee;
+        $networkId = $this->safe_string($fee, 'blockchain');
+        $withdrawFee = $this->safe_number($fee, 'withdrawalFee');
+        $withdrawResult = array(
+            'fee' => $withdrawFee,
+            'percentage' => ($withdrawFee !== null) ? false : null,
+        );
+        $depositResult = array(
+            'fee' => null,
+            'percentage' => null,
+        );
+        $depositWithdrawFee['withdraw'] = $withdrawResult;
+        $depositWithdrawFee['deposit'] = $depositResult;
+        $networkCode = $this->network_id_to_code($networkId);
+        $depositWithdrawFee['networks'][$networkCode] = array(
+            'withdraw' => $withdrawResult,
+            'deposit' => $depositResult,
+        );
+        return $depositWithdrawFee;
+    }
+
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
@@ -1733,7 +1932,7 @@ class poloniex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $deposits for
              * @param {int|null} $limit the maximum number of $deposits structures to retrieve
              * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $params));
             $currency = null;
@@ -1841,7 +2040,7 @@ class poloniex extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'];
+        $url = $this->urls['api']['rest'];
         $query = $this->omit($params, $this->extract_params($path));
         $implodedPath = $this->implode_params($path, $params);
         if ($api === 'public') {

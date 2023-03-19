@@ -10,8 +10,6 @@ use React\Async;
 
 class ripio extends \ccxt\async\ripio {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -36,6 +34,7 @@ class ripio extends \ccxt\async\ripio {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = 'trades';
             $messageHash = $name . '_' . strtolower($market['id']);
             $url = $this->urls['api']['ws'] . $messageHash . '/' . $this->options['uuid'];
@@ -97,8 +96,15 @@ class ripio extends \ccxt\async\ripio {
 
     public function watch_ticker($symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the ripio api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = 'rate';
             $messageHash = $name . '_' . strtolower($market['id']);
             $url = $this->urls['api']['ws'] . $messageHash . '/' . $this->options['uuid'];
@@ -151,8 +157,16 @@ class ripio extends \ccxt\async\ripio {
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the ripio api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = 'orderbook';
             $messageHash = $name . '_' . strtolower($market['id']);
             $url = $this->urls['api']['ws'] . $messageHash . '/' . $this->options['uuid'];
@@ -172,7 +186,7 @@ class ripio extends \ccxt\async\ripio {
                 $this->delay($delay, array($this, 'fetch_order_book_snapshot'), $client, $subscription);
             }
             $orderbook = Async\await($this->watch($url, $messageHash, null, $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -244,8 +258,8 @@ class ripio extends \ccxt\async\ripio {
         if ($nonce > $orderbook['nonce']) {
             $asks = $this->safe_value($data, 'sell', array());
             $bids = $this->safe_value($data, 'buy', array());
-            $this->handle_deltas($orderbook['asks'], $asks, $orderbook['nonce']);
-            $this->handle_deltas($orderbook['bids'], $bids, $orderbook['nonce']);
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['nonce'] = $nonce;
             $timestamp = $this->parse8601($this->safe_string($message, 'publishTime'));
             $orderbook['timestamp'] = $timestamp;

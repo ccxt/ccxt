@@ -63,7 +63,7 @@ class mercado(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
-                'fetchTickers': None,
+                'fetchTickers': False,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
@@ -93,7 +93,6 @@ class mercado(Exchange):
                 'doc': [
                     'https://www.mercadobitcoin.com.br/api-doc',
                     'https://www.mercadobitcoin.com.br/trade-api',
-                    'https://api.mercadobitcoin.net/api/v4/docs/',
                 ],
             },
             'api': {
@@ -190,7 +189,6 @@ class mercado(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             id = quote + base
-            priceLimit = '1e-5'
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -216,8 +214,8 @@ class mercado(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number('0.00000001'),
-                    'price': self.parse_number('0.00001'),
+                    'amount': self.parse_number('1e-8'),
+                    'price': self.parse_number('1e-5'),
                 },
                 'limits': {
                     'leverage': {
@@ -229,7 +227,7 @@ class mercado(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_number(priceLimit),
+                        'min': self.parse_number('1e-5'),
                         'max': None,
                     },
                     'cost': {
@@ -247,7 +245,7 @@ class mercado(Exchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -301,7 +299,7 @@ class mercado(Exchange):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -374,7 +372,7 @@ class mercado(Exchange):
         }
         if since is not None:
             method += 'From'
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
         to = self.safe_integer(params, 'to')
         if to is not None:
             method += 'To'
@@ -416,7 +414,7 @@ class mercado(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -438,10 +436,10 @@ class mercado(Exchange):
                 request['quantity'] = self.amount_to_precision(market['symbol'], amount)
         response = await getattr(self, method)(self.extend(request, params))
         # TODO: replace self with a call to parseOrder for unification
-        return {
+        return self.safe_order({
             'info': response,
             'id': str(response['response_data']['order']['order_id']),
-        }
+        }, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """
@@ -449,7 +447,7 @@ class mercado(Exchange):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -555,6 +553,7 @@ class mercado(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'average': average,
             'amount': amount,
@@ -570,7 +569,7 @@ class mercado(Exchange):
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -593,7 +592,7 @@ class mercado(Exchange):
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -681,7 +680,7 @@ class mercado(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None):
         return [
-            self.safe_timestamp(ohlcv, 0),
+            self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
             self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),
@@ -697,18 +696,18 @@ class mercado(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'symbol': market['base'] + '-' + market['quote'],  # exceptional endpoint, that needs custom symbol syntax
         }
         if limit is None:
-            limit = 100  # set some default limit, as it's required if user doesn't provide it
+            limit = 100  # set some default limit,'s required if user doesn't provide it
         if since is not None:
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
             request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe))
         else:
             request['to'] = self.seconds()
@@ -724,7 +723,7 @@ class mercado(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -745,7 +744,7 @@ class mercado(Exchange):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -767,7 +766,7 @@ class mercado(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')

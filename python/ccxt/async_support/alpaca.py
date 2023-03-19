@@ -23,6 +23,7 @@ class alpaca(Exchange):
             'countries': ['US'],
             'rateLimit': 333,  # 3 req per second
             'hostname': 'alpaca.markets',
+            'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg',
                 'www': 'https://alpaca.markets',
@@ -65,7 +66,7 @@ class alpaca(Exchange):
                 'fetchL2OrderBook': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': False,
-                'fetchOHLCV': False,
+                'fetchOHLCV': True,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -205,7 +206,7 @@ class alpaca(Exchange):
                     '40310000': InsufficientFunds,  # {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT(requested: 221.63, available: 0)","symbol":"USDT"}
                 },
                 'broad': {
-                    'Invalid format for parameter': BadRequest,  # {"message":"Invalid format for parameter start: error parsing '0' as RFC3339 or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
+                    'Invalid format for parameter': BadRequest,  # {"message":"Invalid format for parameter start: error parsing '0' or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
                     'Invalid symbol': BadSymbol,  # {"message":"Invalid symbol(s): BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$"}
                 },
             },
@@ -354,7 +355,7 @@ class alpaca(Exchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the alpaca api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -413,18 +414,18 @@ class alpaca(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the alpha api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbols': market['id'],
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['start'] = int(since / 1000)
+            request['start'] = self.yyyymmdd(since)
         method = self.safe_string(self.options, 'fetchOHLCVMethod', 'cryptoPublicGetCryptoBars')
         response = await getattr(self, method)(self.extend(request, params))
         #
@@ -494,7 +495,7 @@ class alpaca(Exchange):
         :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the alpaca api endpoint
         :param float params['triggerPrice']: The price at which a trigger order is triggered at
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -572,7 +573,7 @@ class alpaca(Exchange):
         :param str id: order id
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the alpaca api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'order_id': id,
@@ -591,7 +592,7 @@ class alpaca(Exchange):
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the alpaca api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -609,7 +610,7 @@ class alpaca(Exchange):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the alpaca api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -689,6 +690,7 @@ class alpaca(Exchange):
             'side': self.safe_string(order, 'side'),
             'price': self.safe_number(order, 'limit_price'),
             'stopPrice': self.safe_number(order, 'stop_price'),
+            'triggerPrice': self.safe_number(order, 'stop_price'),
             'cost': None,
             'average': self.safe_number(order, 'filled_avg_price'),
             'amount': self.safe_number(order, 'qty'),
@@ -727,7 +729,8 @@ class alpaca(Exchange):
         #       "i":"355681339"
         #   }
         #
-        symbol = self.safe_symbol(None, market)
+        marketId = self.safe_string(trade, 'S')
+        symbol = self.safe_symbol(marketId, market)
         datetime = self.safe_string(trade, 't')
         timestamp = self.parse8601(datetime)
         alpacaSide = self.safe_string(trade, 'tks')

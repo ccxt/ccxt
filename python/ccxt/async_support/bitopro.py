@@ -7,11 +7,11 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -185,6 +185,8 @@ class bitopro(Exchange):
                     'ETH': 'ERC20',
                     'TRX': 'TRX',
                     'TRC20': 'TRX',
+                    'BEP20': 'BSC',
+                    'BSC': 'BSC',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -401,7 +403,7 @@ class bitopro(Exchange):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -430,7 +432,7 @@ class bitopro(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         response = await self.publicGetTickers()
@@ -458,7 +460,7 @@ class bitopro(Exchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -490,7 +492,7 @@ class bitopro(Exchange):
         #
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         #
         # fetchTrades
         #         {
@@ -603,7 +605,7 @@ class bitopro(Exchange):
         """
         fetch the trading fees for multiple markets
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.publicGetProvisioningLimitationsAndFees(params)
@@ -703,11 +705,11 @@ class bitopro(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
-        resolution = self.timeframes[timeframe]
+        resolution = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
             'pair': market['id'],
             'resolution': resolution,
@@ -837,6 +839,7 @@ class bitopro(Exchange):
             '2': 'closed',
             '3': 'closed',
             '4': 'canceled',
+            '6': 'canceled',
         }
         return self.safe_string(statuses, status, None)
 
@@ -891,6 +894,9 @@ class bitopro(Exchange):
         filled = self.safe_string(order, 'executedAmount')
         remaining = self.safe_string(order, 'remainingAmount')
         timeInForce = self.safe_string(order, 'timeInForce')
+        postOnly = None
+        if timeInForce == 'POST_ONLY':
+            postOnly = True
         fee = None
         feeAmount = self.safe_string(order, 'fee')
         feeSymbol = self.safe_currency_code(self.safe_string(order, 'feeSymbol'))
@@ -908,10 +914,11 @@ class bitopro(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': None,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': average,
@@ -932,7 +939,7 @@ class bitopro(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -959,6 +966,9 @@ class bitopro(Exchange):
                 raise InvalidOrder(self.id + ' createOrder() requires a condition parameter for ' + orderType + ' orders')
             else:
                 request['condition'] = condition
+        postOnly = self.is_post_only(orderType == 'MARKET', None, params)
+        if postOnly:
+            request['timeInForce'] = 'POST_ONLY'
         response = await self.privatePostOrdersPair(self.extend(request, params), params)
         #
         #     {
@@ -978,7 +988,7 @@ class bitopro(Exchange):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires the symbol argument')
@@ -1006,7 +1016,7 @@ class bitopro(Exchange):
         :param [str] ids: order ids
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
@@ -1033,7 +1043,7 @@ class bitopro(Exchange):
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1064,7 +1074,7 @@ class bitopro(Exchange):
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires the symbol argument')
@@ -1107,7 +1117,7 @@ class bitopro(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires the symbol argument')
@@ -1169,7 +1179,7 @@ class bitopro(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'statusKind': 'DONE',
@@ -1183,7 +1193,7 @@ class bitopro(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires the symbol argument')
@@ -1232,76 +1242,79 @@ class bitopro(Exchange):
     def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits
-        #             {
-        #                 "serial":"20220214X766799",
-        #                 "timestamp":"1644833015053",
-        #                 "address":"bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
-        #                 "amount":"0.20000000",
-        #                 "fee":"0.00000000",
-        #                 "total":"0.20000000",
-        #                 "status":"COMPLETE",
-        #                 "txid":"A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
-        #                 "message":"778553959",
-        #                 "protocol":"MAIN",
-        #                 "id":"2905906537"
-        #             }
+        #
+        #    {
+        #        "serial": "20220214X766799",
+        #        "timestamp": "1644833015053",
+        #        "address": "bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
+        #        "amount": "0.20000000",
+        #        "fee": "0.00000000",
+        #        "total": "0.20000000",
+        #        "status": "COMPLETE",
+        #        "txid": "A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
+        #        "message": "778553959",
+        #        "protocol": "MAIN",
+        #        "id": "2905906537"
+        #    }
         #
         # fetchWithdrawals or fetchWithdraw
-        #             {
-        #                 "serial":"20220215BW14069838",
-        #                 "timestamp":"1644907716044",
-        #                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        #                 "amount":"8.00000000",
-        #                 "fee":"2.00000000",
-        #                 "total":"10.00000000",
-        #                 "status":"COMPLETE",
-        #                 "txid":"50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
-        #                 "protocol":"TRX",
-        #                 "id":"9925310345"
-        #             }
+        #
+        #    {
+        #        "serial": "20220215BW14069838",
+        #        "timestamp": "1644907716044",
+        #        "address": "TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        #        "amount": "8.00000000",
+        #        "fee": "2.00000000",
+        #        "total": "10.00000000",
+        #        "status": "COMPLETE",
+        #        "txid": "50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
+        #        "protocol": "TRX",
+        #        "id": "9925310345"
+        #    }
         #
         # withdraw
-        #             {
-        #                 "serial":"20220215BW14069838",
-        #                 "currency":"USDT",
-        #                 "protocol":"TRX",
-        #                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        #                 "amount":"8",
-        #                 "fee":"2",
-        #                 "total":"10"
-        #             }
+        #
+        #    {
+        #        "serial": "20220215BW14069838",
+        #        "currency": "USDT",
+        #        "protocol": "TRX",
+        #        "address": "TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        #        "amount": "8",
+        #        "fee": "2",
+        #        "total": "10"
+        #    }
         #
         currencyId = self.safe_string(transaction, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        id = self.safe_string(transaction, 'serial')
-        txId = self.safe_string(transaction, 'txid')
         timestamp = self.safe_integer(transaction, 'timestamp')
-        amount = self.safe_number(transaction, 'total')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'message')
         status = self.safe_string(transaction, 'status')
-        fee = self.safe_number(transaction, 'fee')
+        networkId = self.safe_string(transaction, 'protocol')
+        if networkId == 'MAIN':
+            networkId = code
         return {
             'info': transaction,
-            'id': id,
-            'txid': txId,
+            'id': self.safe_string(transaction, 'serial'),
+            'txid': self.safe_string(transaction, 'txid'),
+            'type': None,
+            'currency': code,
+            'network': self.network_id_to_code(networkId),
+            'amount': self.safe_number(transaction, 'total'),
+            'status': self.parse_transaction_status(status),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
-            'addressFrom': None,
             'address': address,
+            'addressFrom': None,
             'addressTo': address,
-            'tagFrom': None,
             'tag': tag,
+            'tagFrom': None,
             'tagTo': tag,
-            'type': None,
-            'amount': amount,
-            'currency': code,
-            'status': self.parse_transaction_status(status),
             'updated': None,
+            'comment': None,
             'fee': {
                 'currency': code,
-                'cost': fee,
+                'cost': self.safe_number(transaction, 'fee'),
                 'rate': None,
             },
         }
@@ -1313,7 +1326,7 @@ class bitopro(Exchange):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires the code argument')
@@ -1359,7 +1372,7 @@ class bitopro(Exchange):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires the code argument')
@@ -1403,7 +1416,7 @@ class bitopro(Exchange):
         :param str id: withdrawal id
         :param str code: unified currency code of the currency withdrawn, default is None
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawal() requires the code argument')
@@ -1441,7 +1454,7 @@ class bitopro(Exchange):
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
@@ -1501,8 +1514,8 @@ class bitopro(Exchange):
                 rawData = {
                     'nonce': nonce,
                 }
-                rawData = self.json(rawData)
-                payload = self.string_to_base64(rawData)
+                data = self.json(rawData)
+                payload = self.string_to_base64(data)
                 signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
                 headers['X-BITOPRO-APIKEY'] = self.apiKey
                 headers['X-BITOPRO-PAYLOAD'] = payload
