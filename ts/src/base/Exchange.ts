@@ -3622,11 +3622,11 @@ export default class Exchange {
         return market['symbol'];
     }
 
-    parseFundingRate (contract: string, market = undefined) {
+    parseFundingRate (contract: string, market = undefined): any {
         throw new NotSupported (this.id + ' parseFundingRate() is not supported yet');
     }
 
-    parseFundingRates (response, market = undefined) {
+    parseFundingRates (response, market = undefined): any {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const parsed = this.parseFundingRate (response[i], market);

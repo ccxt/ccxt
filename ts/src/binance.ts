@@ -1791,7 +1791,7 @@ export default class binance extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let promises = [];
+        const promisesRaw = [];
         const rawFetchMarkets = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         const fetchMarkets = [];
@@ -1805,18 +1805,18 @@ export default class binance extends Exchange {
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
-                promises.push ((this as any).publicGetExchangeInfo (params));
+                promisesRaw.push ((this as any).publicGetExchangeInfo (params));
             } else if (marketType === 'linear') {
-                promises.push ((this as any).fapiPublicGetExchangeInfo (params));
+                promisesRaw.push ((this as any).fapiPublicGetExchangeInfo (params));
             } else if (marketType === 'inverse') {
-                promises.push ((this as any).dapiPublicGetExchangeInfo (params));
+                promisesRaw.push ((this as any).dapiPublicGetExchangeInfo (params));
             } else if (marketType === 'option') {
-                promises.push ((this as any).eapiPublicGetExchangeInfo (params));
+                promisesRaw.push ((this as any).eapiPublicGetExchangeInfo (params));
             } else {
                 throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
         }
-        promises = await Promise.all (promises);
+        const promises = await Promise.all (promisesRaw);
         const spotMarkets = this.safeValue (this.safeValue (promises, 0), 'symbols', []);
         const futureMarkets = this.safeValue (this.safeValue (promises, 1), 'symbols', []);
         const deliveryMarkets = this.safeValue (this.safeValue (promises, 2), 'symbols', []);
@@ -3519,10 +3519,10 @@ export default class binance extends Exchange {
         if (uppercaseType === 'MARKET') {
             const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
             if (quoteOrderQty) {
-                const quoteOrderQty = this.safeValue2 (params, 'quoteOrderQty', 'cost');
+                const quoteOrderQtyNew = this.safeValue2 (params, 'quoteOrderQty', 'cost');
                 const precision = market['precision']['price'];
-                if (quoteOrderQty !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
+                if (quoteOrderQtyNew !== undefined) {
+                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
                 } else if (price !== undefined) {
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
@@ -3992,10 +3992,10 @@ export default class binance extends Exchange {
             if (market['spot']) {
                 const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
                 if (quoteOrderQty) {
-                    const quoteOrderQty = this.safeValue2 (query, 'quoteOrderQty', 'cost');
+                    const quoteOrderQtyNew = this.safeValue2 (query, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
-                    if (quoteOrderQty !== undefined) {
-                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
+                    if (quoteOrderQtyNew !== undefined) {
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
                     } else if (price !== undefined) {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
@@ -7342,17 +7342,17 @@ export default class binance extends Exchange {
             }
         }
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeValue (response, 'success', true);
         if (!success) {
-            const message = this.safeString (response, 'msg');
+            const messageNew = this.safeString (response, 'msg');
             let parsedMessage = undefined;
-            if (message !== undefined) {
+            if (messageNew !== undefined) {
                 try {
-                    parsedMessage = JSON.parse (message);
+                    parsedMessage = JSON.parse (messageNew);
                 } catch (e) {
                     // do nothing
                     parsedMessage = undefined;
@@ -7396,6 +7396,7 @@ export default class binance extends Exchange {
         if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
@@ -7419,7 +7420,7 @@ export default class binance extends Exchange {
     }
 
     async request (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}, context = {}) {
-        const response = await (this as any).fetch2 (path, api, method, params, headers, body, config, context);
+        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if ((api === 'private') || (api === 'wapi')) {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
