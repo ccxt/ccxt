@@ -3511,16 +3511,16 @@ class bybit extends Exchange["default"] {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
-        const isBuy = side === 'buy';
-        const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
         if (triggerPrice !== undefined) {
+            const isBuy = side === 'buy';
+            const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
             request['triggerDirection'] = ascending ? 2 : 1;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
             if (isStopLossTriggerOrder) {
-                request['triggerDirection'] = ascending ? 2 : 1;
                 request['triggerPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                request['triggerDirection'] = 2;
             }
             else {
                 request['triggerPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
