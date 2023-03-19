@@ -4,9 +4,11 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.9.14'
+__version__ = '3.0.22'
 
 # ----------------------------------------------------------------------------
+
+from ccxt.base.exchange import Exchange  # noqa: F401
 
 # CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 

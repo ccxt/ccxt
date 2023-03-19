@@ -663,7 +663,7 @@ export default class coinex extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -729,7 +729,7 @@ export default class coinex extends Exchange {
         return this.parseTicker (response['data'], market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchTickers
@@ -738,7 +738,7 @@ export default class coinex extends Exchange {
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -854,7 +854,7 @@ export default class coinex extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
@@ -1044,7 +1044,7 @@ export default class coinex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchTrades
@@ -1094,7 +1094,7 @@ export default class coinex extends Exchange {
          * @description fetch the trading fees for a market
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1128,7 +1128,7 @@ export default class coinex extends Exchange {
          * @name coinex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await (this as any).publicGetMarketInfo (params);
@@ -1197,7 +1197,7 @@ export default class coinex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchOHLCV
@@ -1743,7 +1743,7 @@ export default class coinex extends Exchange {
          * @param {string} params.timeInForce "GTC", "IOC", "FOK", "PO"
          * @param {bool} params.postOnly
          * @param {bool} params.reduceOnly
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1968,7 +1968,7 @@ export default class coinex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinex#cancelOrder
@@ -1976,7 +1976,7 @@ export default class coinex extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2115,14 +2115,14 @@ export default class coinex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinex#cancelAllOrders
          * @description cancel all open orders in a market
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancellAllOrders() requires a symbol argument');
@@ -2165,14 +2165,14 @@ export default class coinex extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -2298,7 +2298,7 @@ export default class coinex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         limit = (limit === undefined) ? 100 : limit;
         const request = {
@@ -2504,7 +2504,7 @@ export default class coinex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchOpenOrders
@@ -2513,12 +2513,12 @@ export default class coinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus ('pending', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchClosedOrders
@@ -2527,7 +2527,7 @@ export default class coinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
     }
@@ -2539,7 +2539,7 @@ export default class coinex extends Exchange {
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2572,7 +2572,7 @@ export default class coinex extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2662,7 +2662,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchMyTrades
@@ -2671,7 +2671,7 @@ export default class coinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -2800,14 +2800,14 @@ export default class coinex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchPositions
          * @description fetch all open positions
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -2902,7 +2902,7 @@ export default class coinex extends Exchange {
          * @description fetch data on a single open contract trade position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3072,7 +3072,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinex#setMarginMode
@@ -3120,7 +3120,7 @@ export default class coinex extends Exchange {
         return await (this as any).perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
     }
 
-    async setLeverage (leverage, symbol = undefined, params = {}) {
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinex#setLeverage
@@ -3161,14 +3161,14 @@ export default class coinex extends Exchange {
         return await (this as any).perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
     }
 
-    async fetchLeverageTiers (symbols = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await (this as any).perpetualPublicGetMarketLimitConfig (params);
@@ -3193,7 +3193,7 @@ export default class coinex extends Exchange {
         return this.parseLeverageTiers (data, symbols, undefined);
     }
 
-    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+    parseLeverageTiers (response, symbols: string[] = undefined, marketIdKey = undefined) {
         //
         //     {
         //         "BTCUSD": [
@@ -3338,7 +3338,7 @@ export default class coinex extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
@@ -3351,12 +3351,12 @@ export default class coinex extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 2, params);
     }
 
-    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchFundingHistory
@@ -3365,7 +3365,7 @@ export default class coinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch funding history for
          * @param {int|undefined} limit the maximum number of funding history structures to retrieve
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
@@ -3439,7 +3439,7 @@ export default class coinex extends Exchange {
          * @description fetch the current funding rate
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3542,14 +3542,14 @@ export default class coinex extends Exchange {
         };
     }
 
-    async fetchFundingRates (symbols = undefined, params = {}) {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
         /**
          *  @method
          * @name coinex#fetchFundingRates
          * @description fetch the current funding rates
          * @param {[string]} symbols unified market symbols
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -3622,7 +3622,7 @@ export default class coinex extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -3674,7 +3674,7 @@ export default class coinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since = undefined, limit = 100, params = {}) {
         /**
          * @method
          * @name coinex#fetchFundingRateHistory
@@ -3859,7 +3859,7 @@ export default class coinex extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -3960,7 +3960,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfers (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchTransfers
@@ -3969,7 +3969,7 @@ export default class coinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -4045,7 +4045,7 @@ export default class coinex extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchWithdrawals
@@ -4054,7 +4054,7 @@ export default class coinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
@@ -4113,7 +4113,7 @@ export default class coinex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchDeposits
@@ -4122,7 +4122,7 @@ export default class coinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
@@ -4217,7 +4217,7 @@ export default class coinex extends Exchange {
          * @description fetch the rate of interest to borrow a currency for margin trading
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -4261,7 +4261,7 @@ export default class coinex extends Exchange {
          * @name coinex#fetchBorrowRates
          * @description fetch the borrow interest rates of all currencies
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
         const response = await (this as any).privateGetMarginConfig (params);
@@ -4307,7 +4307,7 @@ export default class coinex extends Exchange {
         return rates;
     }
 
-    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -4396,7 +4396,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinex#borrowMargin
@@ -4406,7 +4406,7 @@ export default class coinex extends Exchange {
          * @param {float} amount the amount to borrow
          * @param {string} symbol unified market symbol, required for coinex
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
@@ -4437,7 +4437,7 @@ export default class coinex extends Exchange {
         });
     }
 
-    async repayMargin (code, amount, symbol = undefined, params = {}) {
+    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinex#repayMargin
@@ -4448,7 +4448,7 @@ export default class coinex extends Exchange {
          * @param {string} symbol unified market symbol, required for coinex
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @param {string|undefined} params.loan_id extra parameter that is not required
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
@@ -4507,7 +4507,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchDepositWithdrawFees
@@ -4515,7 +4515,7 @@ export default class coinex extends Exchange {
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -4555,7 +4555,7 @@ export default class coinex extends Exchange {
         return this.parseDepositWithdrawFees (response, codes);
     }
 
-    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined) {
         const depositWithdrawFees = {};
         codes = this.marketCodes (codes);
         const data = this.safeValue (response, 'data');
@@ -4608,7 +4608,7 @@ export default class coinex extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         path = this.implodeParams (path, params);
         let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         let query = this.omit (params, this.extractParams (path));

@@ -40,13 +40,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.9.14/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@2.9.14/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@3.0.22/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@3.0.22/dist/ccxt.browser.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.9.14/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@3.0.22/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -153,7 +153,7 @@ docker run -it ccxt
 
 ## Proxy
 
-In some specific cases you may want a proxy, if you experience issues with [DDoS protection by Cloudflare](https://docs.ccxt.com/en/latest/manual.html#ddos-protection-by-cloudflare-incapsula) or your network / country / IP is rejected by their filters.
+In some specific cases you may want a proxy, if you experience issues with [DDoS protection by Cloudflare](https://docs.ccxt.com/#/?id=ddos-protection-by-cloudflare-incapsula) or your network / country / IP is rejected by their filters.
 
 **Bear in mind that each added intermediary contributes to the overall latency and roundtrip time. Longer delays can result in price slippage.**
 
@@ -274,7 +274,7 @@ async def test_gdax():
 
     exchange = ccxt.poloniex({
         #
-        # ↓ The "proxy" property setting below is for CORS-proxying only!
+        # The "proxy" property setting below is for CORS-proxying only!
         # Do not use it if you don't know what a CORS proxy is.
         # https://docs.ccxt.com/en/latest/install.html#cors-access-control-allow-origin
         # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
@@ -282,7 +282,7 @@ async def test_gdax():
         #
         # 'proxy': 'https://cors-anywhere.herokuapp.com/',
         #
-        # ↓ The "aiohttp_proxy" setting is for HTTP(S)-proxying (SOCKS, etc...)
+        # The "aiohttp_proxy" setting is for HTTP(S)-proxying (SOCKS, etc...)
         # It is a standard method of sending your requests through your proxies
         # This gets passed to the `asyncio` and `aiohttp` implementation directly
         # You can use this setting as documented here:
@@ -362,31 +362,6 @@ To run your own CORS proxy locally you can either set up one of the existing one
 // It will listen for your requests on the port you pass in command line or port 8080 by default
 let port = (process.argv.length > 2) ? parseInt (process.argv[2]) : 8080; // default
 require ('cors-anywhere').createServer ().listen (port, 'localhost')
-```
-
-### Python CORS Proxy
-
-```python
-#!/usr/bin/env python
-# Python CORS Proxy
-# Save this in a file like cors.py and run with `python cors.py [port]` or `cors [port]`
-try:
-    # Python 3
-    from http.server import HTTPServer, SimpleHTTPRequestHandler, test as test_orig
-    import sys
-    def test (*args):
-        test_orig (*args, port = int (sys.argv[1]) if len (sys.argv) > 1 else 8080)
-except ImportError: # Python 2
-    from BaseHTTPServer import HTTPServer, test
-    from SimpleHTTPServer import SimpleHTTPRequestHandler
-
-class CORSRequestHandler (SimpleHTTPRequestHandler):
-    def end_headers (self):
-        self.send_header ('Access-Control-Allow-Origin', '*')
-        SimpleHTTPRequestHandler.end_headers (self)
-
-if __name__ == '__main__':
-    test (CORSRequestHandler, HTTPServer)
 ```
 
 ### Testing CORS

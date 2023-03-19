@@ -168,7 +168,7 @@ class Precise {
         return sign + integerArray.join ('');
     }
 
-    static stringMul (string1, string2) {
+    static stringMul (string1: string, string2: string) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }
@@ -186,7 +186,7 @@ class Precise {
         return (new Precise (string1)).div (string2Precise, precision).toString ();
     }
 
-    static stringAdd (string1, string2) {
+    static stringAdd (string1: string, string2: string) {
         if ((string1 === undefined) && (string2 === undefined)) {
             return undefined;
         }
@@ -198,7 +198,7 @@ class Precise {
         return (new Precise (string1)).add (new Precise (string2)).toString ();
     }
 
-    static stringSub (string1, string2) {
+    static stringSub (string1: string, string2: string) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }
@@ -219,63 +219,63 @@ class Precise {
         return (new Precise (string)).neg ().toString ();
     }
 
-    static stringMod (string1, string2) {
+    static stringMod (string1: string, string2: string) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }
         return (new Precise (string1)).mod (new Precise (string2)).toString ();
     }
 
-    static stringEquals (string1, string2) {
+    static stringEquals (string1: string, string2: string) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }
         return (new Precise (string1)).equals (new Precise (string2));
     }
 
-    static stringEq (string1, string2) {
+    static stringEq (string1: string, string2: string) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }
         return (new Precise (string1)).equals (new Precise (string2));
     }
 
-    static stringMin (string1, string2) {
+    static stringMin (string1: string, string2: string) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }
         return (new Precise (string1)).min (new Precise (string2)).toString ();
     }
 
-    static stringMax (string1, string2) {
+    static stringMax (string1: string, string2: string) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }
         return (new Precise (string1)).max (new Precise (string2)).toString ();
     }
 
-    static stringGt (string1, string2) {
+    static stringGt (string1: string, string2: string) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }
         return (new Precise (string1)).gt (new Precise (string2));
     }
 
-    static stringGe (string1, string2) {
+    static stringGe (string1: string, string2: string) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }
         return (new Precise (string1)).ge (new Precise (string2));
     }
 
-    static stringLt (string1, string2) {
+    static stringLt (string1: string, string2: string) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }
         return (new Precise (string1)).lt (new Precise (string2));
     }
 
-    static stringLe (string1, string2) {
+    static stringLe (string1: string, string2: string) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }

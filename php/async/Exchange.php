@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '2.9.14';
+$version = '3.0.22';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.9.14';
+    const VERSION = '3.0.22';
 
     public $browser;
     public $marketsLoading = null;
@@ -265,6 +265,114 @@ class Exchange extends \ccxt\Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        return array();
+    }
+
+    public function fetch_accounts($params = array ()) {
+        return null;
+    }
+
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        return null;
+    }
+
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        return null;
+    }
+
+    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        return null;
+    }
+
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        return null;
+    }
+
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+        return null;
+    }
+
+    public function fetch_time($params = array ()) {
+        return null;
+    }
+
+    public function fetch_trading_limits($symbols = null, $params = array ()) {
+        return null;
+    }
+
+    public function parse_ticker($ticker, $market = null) {
+        return null;
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        return null;
+    }
+
+    public function parse_trade($trade, $market = null) {
+        return null;
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        return null;
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        return null;
+    }
+
+    public function parse_account($account) {
+        return null;
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        return null;
+    }
+
+    public function parse_order($order, $market = null) {
+        return null;
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        return null;
+    }
+
+    public function parse_market_leverage_tiers($info, $market = null) {
+        return null;
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        return null;
+    }
+
+    public function parse_position($position, $market = null) {
+        return null;
+    }
+
+    public function parse_funding_rate_history($info, $market = null) {
+        return null;
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        return null;
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        return null;
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        return null;
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        return null;
+    }
+
+    public function create_deposit_address($code, $params = array ()) {
+        return null;
+    }
 
     public function parse_to_int($number) {
         // Solve Common intvalmisuse ex => intval((since / (string) 1000))
@@ -675,8 +783,8 @@ class Exchange extends \ccxt\Exchange {
         return array_merge($order, array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
-            'timestamp' => $datetime,
-            'datetime' => $timestamp,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
             'symbol' => $symbol,
             'type' => $this->safe_string($order, 'type'),
             'side' => $side,
@@ -1013,6 +1121,10 @@ class Exchange extends \ccxt\Exchange {
             }
             return $result;
         }) ();
+    }
+
+    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOHLCV() is not supported yet');
     }
 
     public function convert_trading_view_to_ohlcv($ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
@@ -1729,6 +1841,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchBalance() is not supported yet');
     }
 
+    public function watch_balance($params = array ()) {
+        throw new NotSupported($this->id . ' watchBalance() is not supported yet');
+    }
+
     public function fetch_partial_balance($part, $params = array ()) {
         return Async\async(function () use ($part, $params) {
             $balance = Async\await($this->fetch_balance($params));
@@ -1800,8 +1916,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTransactionFees() is not supported yet');
-        // eslint-disable-next-line
-        return null;
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchDepositWithdrawFees() is not supported yet');
     }
 
     public function fetch_deposit_withdraw_fee($code, $params = array ()) {
@@ -1975,8 +2093,16 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function watch_ticker($symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTicker() is not supported yet');
+    }
+
     public function fetch_tickers($symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
+    public function watch_tickers($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTickers() is not supported yet');
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -2012,6 +2138,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOrders() is not supported yet');
     }
 
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOrders() is not supported yet');
+    }
+
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOpenOrders() is not supported yet');
     }
@@ -2022,6 +2152,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchMyTrades() is not supported yet');
+    }
+
+    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchMyTrades() is not supported yet');
     }
 
     public function fetch_transactions($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -2211,10 +2345,20 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_precision($precision) {
+        /**
+         * @ignore
+         * @param {string} $precision The number of digits to the right of the decimal
+         * @return {string} a string number equal to 1e-$precision
+         */
         if ($precision === null) {
             return null;
         }
-        return '1e' . Precise::string_neg($precision);
+        $precisionNumber = intval($precision);
+        $parsedPrecision = '0.';
+        for ($i = 0; $i < $precisionNumber - 1; $i++) {
+            $parsedPrecision = $parsedPrecision . '0';
+        }
+        return $parsedPrecision . '1';
     }
 
     public function load_time_difference($params = array ()) {
@@ -2392,7 +2536,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_deposit_addresses($addresses, $codes = null, $indexed = true, $params = array ()) {
-        $result = null;
+        $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
             $address = array_merge($this->parse_deposit_address($addresses[$i]), $params);
             $result[] = $address;
@@ -2400,7 +2544,9 @@ class Exchange extends \ccxt\Exchange {
         if ($codes !== null) {
             $result = $this->filter_by_array($result, 'currency', $codes, false);
         }
-        $result = $indexed ? $this->index_by($result, 'currency') : $result;
+        if ($indexed) {
+            return $this->index_by($result, 'currency');
+        }
         return $result;
     }
 
@@ -2705,6 +2851,10 @@ class Exchange extends \ccxt\Exchange {
         return $depositWithdrawFees;
     }
 
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        throw new NotSupported($this->id . ' parseDepositWithdrawFee() is not supported yet');
+    }
+
     public function deposit_withdraw_fee($info) {
         return array(
             'info' => $info,
@@ -2758,7 +2908,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {array|null} $market ccxt $market
          * @param {int|null} $since when defined, the response items are filtered to only include items after this timestamp
          * @param {int|null} $limit limits the number of items in the response
-         * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structures}
+         * @return {[array]} an array of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
          */
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {

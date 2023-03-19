@@ -31,7 +31,7 @@ export default class bittrex extends bittrexRest {
     createSignalRQuery(params?: {}): any;
     negotiate(params?: {}): Promise<any>;
     start(negotiation: any, params?: {}): Promise<any>;
-    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     subscribeToOrders(authentication: any, params?: {}): Promise<any>;
     handleOrder(client: any, message: any): void;
     watchBalance(params?: {}): Promise<any>;
@@ -43,13 +43,13 @@ export default class bittrex extends bittrexRest {
     watchTicker(symbol: any, params?: {}): Promise<any>;
     subscribeToTicker(negotiation: any, symbol: any, params?: {}): Promise<any>;
     handleTicker(client: any, message: any): void;
-    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     subscribeToOHLCV(negotiation: any, symbol: any, timeframe?: string, params?: {}): Promise<any>;
     handleOHLCV(client: any, message: any): void;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     subscribeToTrades(negotiation: any, symbol: any, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): void;
-    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     subscribeToMyTrades(authentication: any, params?: {}): Promise<any>;
     handleMyTrades(client: any, message: any): void;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;

@@ -104,6 +104,6 @@
   "exclude": [
     "node_modules",
     "./ts/src/static_dependencies/**/*.cjs",
-    "ts/src/static_dependencies/**/*",
+    "ts/src/static_dependencies/elliptic/*",
   ]
 }
