@@ -117,7 +117,7 @@ export default class btcex extends Exchange {
     }>;
     fetchLeverage(symbol: any, params?: {}): Promise<number>;
     fetchMarketLeverageTiers(symbol: any, params?: {}): Promise<any[]>;
-    parseMarketLeverageTiers(info: any, market: any): any[];
+    parseMarketLeverageTiers(info: any, market?: any): any[];
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;

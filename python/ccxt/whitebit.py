@@ -1596,7 +1596,7 @@ class whitebit(Exchange):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency):
+    def parse_transfer(self, transfer, currency=None):
         #
         #    []
         #

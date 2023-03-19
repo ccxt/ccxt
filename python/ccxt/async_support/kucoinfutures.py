@@ -1958,7 +1958,7 @@ class kucoinfutures(kucoin):
         data = self.safe_value(response, 'data')
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market):
+    def parse_market_leverage_tiers(self, info, market=None):
         """
          * @ignore
         :param dict info: Exchange market response for 1 market

@@ -6715,7 +6715,7 @@ export default class binance extends Exchange {
         //
         return this.parseLeverageTiers(response, symbols, 'symbol');
     }
-    parseMarketLeverageTiers(info, market) {
+    parseMarketLeverageTiers(info, market = undefined) {
         /**
          * @ignore
          * @method
@@ -7839,7 +7839,7 @@ export default class binance extends Exchange {
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
-    parseBorrowInterest(info, market) {
+    parseBorrowInterest(info, market = undefined) {
         const symbol = this.safeString(info, 'isolatedSymbol');
         const timestamp = this.safeNumber(info, 'interestAccuredTime');
         const marginMode = (symbol === undefined) ? 'cross' : 'isolated';

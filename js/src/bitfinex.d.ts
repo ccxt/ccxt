@@ -1,8 +1,8 @@
 import { Exchange } from './base/Exchange.js';
 export default class bitfinex extends Exchange {
     describe(): any;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): {
         withdraw: {
             fee: number;

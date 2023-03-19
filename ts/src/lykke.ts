@@ -546,7 +546,7 @@ export default class lykke extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'p', 'v');
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         //
         //  public fetchTrades
         //

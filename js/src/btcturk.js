@@ -769,7 +769,7 @@ export default class btcturk extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
-    parseOrder(order, market) {
+    parseOrder(order, market = undefined) {
         //
         // fetchOrders / fetchOpenOrders
         //     {

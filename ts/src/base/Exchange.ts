@@ -128,6 +128,7 @@ import {inflate, inflate64, gunzip} from './ws/functions.js'
     , AuthenticationError
     , DDoSProtection
     , RequestTimeout
+    , NetworkError
     , ExchangeNotAvailable
     , ArgumentsRequired
     , RateLimitExceeded } from "./errors.js"
@@ -181,6 +182,7 @@ export default class Exchange {
     // do not delete this line, it is needed for users to be able to define their own fetchImplementation
     fetchImplementation: any
     AbortError: any
+    FetchError: any
 
     validateServerSsl = true
     validateClientSsl = false
@@ -872,9 +874,11 @@ export default class Exchange {
                 const module = await import ('../static_dependencies/node-fetch/index.js')
                 this.AbortError = module.AbortError
                 this.fetchImplementation = module.default
+                this.FetchError = module.FetchError
             } else {
                 this.fetchImplementation = self.fetch
                 this.AbortError = DOMException
+                this.FetchError = TypeError
             }
         }
         // fetchImplementation cannot be called on this. in browsers:
@@ -900,6 +904,8 @@ export default class Exchange {
         } catch (e) {
             if (e instanceof this.AbortError) {
                 throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
+            } else if (e instanceof this.FetchError) {
+                throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed');
             }
             throw e
         }
@@ -1115,145 +1121,38 @@ export default class Exchange {
         }
     }
 
-        // method to override
-        sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
-            return {};
-        }
+    // method to override
 
-        async fetchAccounts (params = {}) {
-            return undefined;
-        }
-
-        async fetchTrades (symbol: string, since: number = undefined, limit: any = undefined, params = {}): Promise<Trade[]> {
-            return undefined;
-        }
-
-        async watchTrades (symbol: string, since: number = undefined, limit: any = undefined, params = {}): Promise<Trade[]> {
-            return undefined;
-        }
-
-        async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
-            return undefined;
-        }
-
-        async fetchOrderBook (symbol, limit: any = undefined, params = {}): Promise<OrderBook> {
-            return undefined;
-        }
-
-        async watchOrderBook (symbol, limit: any = undefined, params = {}): Promise<OrderBook> {
-            return undefined;
-        }
-
-        async fetchTime (params = {}) {
-            return undefined;
-        }
-
-        async fetchTradingLimits (symbols: string[] = undefined, params = {}) {
-            return undefined
-        }
-
-        parseTicker (ticker: object, market = undefined): Ticker {
-            return undefined;
-        }
-
-        parseDepositAddress (depositAddress, currency = undefined) {
-            return undefined;
-        }
-
-        parseTrade (trade: object, market = undefined): Trade {
-            return undefined;
-        }
-
-        parseTransaction (transaction, currency = undefined) {
-            return undefined;
-        }
-
-        parseTransfer (transfer, currency = undefined) {
-            return undefined;
-        }
-
-        parseAccount(account) {
-            return undefined;
-        }
-
-        parseLedgerEntry (item, currency = undefined) {
-            return undefined;
-        }
-
-        parseOrder (order, market = undefined): Order {
-            return undefined;
-        }
-
-        async fetchBorrowRates (params = {}) {
-            return undefined;
-        }
-
-        parseMarketLeverageTiers (info, market) {
-            return undefined;
-        }
-
-        async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
-            return undefined;
-        }
-
-        parsePosition(position, market = undefined) {
-            return undefined;
-        }
-
-        parseFundingRateHistory(info, market = undefined) {
-            return undefined;
-        }
-
-        parseBorrowInterest(info, market = undefined) {
-            return undefined;
-        }
-
-        async fetchFundingRates (symbols: string[] = undefined, params = {}) {
-            return undefined;
-        }
-
-        async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
-            return undefined;
-        }
-
-        async withdraw(code: string, amount, address, tag = undefined, params = {}) {
-            return undefined;
-        }
-
-        async createDepositAddress (code, params = {}): Promise<DepositAddressResponse>{
-            return undefined;
-        }
-
-        findTimeframe (timeframe, timeframes = undefined) {
-            timeframes = timeframes || this.timeframes;
-            const keys = Object.keys (timeframes);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                if (timeframes[key] === timeframe) {
-                    return key;
-                }
+    findTimeframe (timeframe, timeframes = undefined) {
+        timeframes = timeframes || this.timeframes;
+        const keys = Object.keys (timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (timeframes[key] === timeframe) {
+                return key;
             }
-            return undefined;
         }
+        return undefined;
+    }
 
-        formatScientificNotationFTX(n) {
-            if (n === 0) {
-                return '0e-00';
-            }
-            return n.toExponential().replace('e-', 'e-0');
+    formatScientificNotationFTX(n) {
+        if (n === 0) {
+            return '0e-00';
         }
+        return n.toExponential().replace('e-', 'e-0');
+    }
 
-        spawn (method, ... args) {
-            const future = Future ()
-            method.apply (this, args).then ((future as any).resolve).catch ((future as any).reject)
-            return future
-        }
+    spawn (method, ... args) {
+        const future = Future ()
+        method.apply (this, args).then ((future as any).resolve).catch ((future as any).reject)
+        return future
+    }
 
-        delay (timeout, method, ... args) {
-            setTimeout (() => {
-                this.spawn (method, ... args)
-            }, timeout);
-        }
+    delay (timeout, method, ... args) {
+        setTimeout (() => {
+            this.spawn (method, ... args)
+        }, timeout);
+    }
 
     // -----------------------------------------------------------------------
     // -----------------------------------------------------------------------
@@ -1481,6 +1380,114 @@ export default class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+        return {};
+    }
+
+    async fetchAccounts (params = {}) {
+        return undefined;
+    }
+
+    async fetchTrades (symbol: string, since: number = undefined, limit: any = undefined, params = {}): Promise<Trade[]> {
+        return undefined;
+    }
+
+    async watchTrades (symbol: string, since: number = undefined, limit: any = undefined, params = {}): Promise<Trade[]> {
+        return undefined;
+    }
+
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+        return undefined;
+    }
+
+    async fetchOrderBook (symbol, limit: any = undefined, params = {}): Promise<OrderBook> {
+        return undefined;
+    }
+
+    async watchOrderBook (symbol, limit: any = undefined, params = {}): Promise<OrderBook> {
+        return undefined;
+    }
+
+    async fetchTime (params = {}) {
+        return undefined;
+    }
+
+    async fetchTradingLimits (symbols: string[] = undefined, params = {}) {
+        return undefined;
+    }
+
+    parseTicker (ticker: object, market = undefined): Ticker {
+        return undefined;
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        return undefined;
+    }
+
+    parseTrade (trade: object, market = undefined): Trade {
+        return undefined;
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        return undefined;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        return undefined;
+    }
+
+    parseAccount (account) {
+        return undefined;
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        return undefined;
+    }
+
+    parseOrder (order, market = undefined): Order {
+        return undefined;
+    }
+
+    async fetchBorrowRates (params = {}) {
+        return undefined;
+    }
+
+    parseMarketLeverageTiers (info, market = undefined) {
+        return undefined;
+    }
+
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
+        return undefined;
+    }
+
+    parsePosition (position, market = undefined) {
+        return undefined;
+    }
+
+    parseFundingRateHistory (info, market = undefined) {
+        return undefined;
+    }
+
+    parseBorrowInterest (info, market = undefined) {
+        return undefined;
+    }
+
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+        return undefined;
+    }
+
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+        return undefined;
+    }
+
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+        return undefined;
+    }
+
+    async createDepositAddress (code, params = {}): Promise<DepositAddressResponse> {
+        return undefined;
+    }
 
     parseToInt (number: string | number) {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
@@ -2213,7 +2220,7 @@ export default class Exchange {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
         }
         await this.loadMarkets ();
-        const trades = await (this as any).fetchTrades (symbol, since, limit, params);
+        const trades = await this.fetchTrades (symbol, since, limit, params);
         const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit);
         const result = [];
         for (let i = 0; i < ohlcvc.length; i++) {
@@ -2317,7 +2324,7 @@ export default class Exchange {
     }
 
     async fetchL2OrderBook (symbol: string, limit: any = undefined, params = {}) {
-        const orderbook = await (this as any).fetchOrderBook (symbol, limit, params);
+        const orderbook = await this.fetchOrderBook (symbol, limit, params);
         return this.extend (orderbook, {
             'asks': this.sortBy (this.aggregate (orderbook['asks']), 0),
             'bids': this.sortBy (this.aggregate (orderbook['bids']), 0, true),
@@ -2588,7 +2595,7 @@ export default class Exchange {
     async loadTradingLimits (symbols: string[] = undefined, reload = false, params = {}) {
         if (this.has['fetchTradingLimits']) {
             if (reload || !('limitsLoaded' in this.options)) {
-                const response = await (this as any).fetchTradingLimits (symbols);
+                const response = await this.fetchTradingLimits (symbols);
                 for (let i = 0; i < symbols.length; i++) {
                     const symbol = symbols[i];
                     this.markets[symbol] = this.deepExtend (this.markets[symbol], response[symbol]);
@@ -2737,12 +2744,12 @@ export default class Exchange {
 
     async loadAccounts (reload = false, params = {}) {
         if (reload) {
-            this.accounts = await (this as any).fetchAccounts (params);
+            this.accounts = await this.fetchAccounts (params);
         } else {
             if (this.accounts) {
                 return this.accounts;
             } else {
-                this.accounts = await (this as any).fetchAccounts (params);
+                this.accounts = await this.fetchAccounts (params);
             }
         }
         this.accountsById = this.indexBy (this.accounts, 'id') as any;
@@ -2754,7 +2761,7 @@ export default class Exchange {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
         }
         await this.loadMarkets ();
-        const trades = await (this as any).fetchTrades (symbol, since, limit, params);
+        const trades = await this.fetchTrades (symbol, since, limit, params);
         return this.buildOHLCVC (trades, timeframe, since, limit);
     }
 
@@ -2938,7 +2945,7 @@ export default class Exchange {
     }
 
     async fetchPartialBalance (part, params = {}) {
-        const balance = await (this as any).fetchBalance (params);
+        const balance = await this.fetchBalance (params);
         return balance[part];
     }
 
@@ -2956,7 +2963,7 @@ export default class Exchange {
 
     async fetchStatus (params = {}) {
         if (this.has['fetchTime']) {
-            const time = await (this as any).fetchTime (params);
+            const time = await this.fetchTime (params);
             this.status = this.extend (this.status, {
                 'updated': time,
             });
@@ -2990,17 +2997,19 @@ export default class Exchange {
         return await this.fetchTransactionFees ([ code ], params);
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
-        // eslint-disable-next-line
-        return undefined;
+    }
+
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchDepositWithdrawFees() is not supported yet');
     }
 
     async fetchDepositWithdrawFee (code, params = {}) {
         if (!this.has['fetchDepositWithdrawFees']) {
             throw new NotSupported (this.id + ' fetchDepositWithdrawFee() is not supported yet');
         }
-        const fees = await (this as any).fetchDepositWithdrawFees ([ code ], params);
+        const fees = await this.fetchDepositWithdrawFees ([ code ], params);
         return this.safeValue (fees, code);
     }
 
@@ -3017,7 +3026,7 @@ export default class Exchange {
         if (!this.has['fetchBorrowRates']) {
             throw new NotSupported (this.id + ' fetchBorrowRate() is not supported yet');
         }
-        const borrowRates = await (this as any).fetchBorrowRates (params);
+        const borrowRates = await this.fetchBorrowRates (params);
         const rate = this.safeValue (borrowRates, code);
         if (rate === undefined) {
             throw new ExchangeError (this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
@@ -3162,8 +3171,16 @@ export default class Exchange {
         }
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<any> {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        throw new NotSupported (this.id + ' watchTicker() is not supported yet');
+    }
+
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
+    }
+
+    async watchTickers (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
+        throw new NotSupported (this.id + ' watchTickers() is not supported yet');
     }
 
     async fetchOrder (id: string, symbol: string = undefined, params = {}): Promise<Order> {
@@ -3171,7 +3188,7 @@ export default class Exchange {
     }
 
     async fetchOrderStatus (id: string, symbol: string = undefined, params = {}) {
-        const order = await (this as any).fetchOrder (id, symbol, params);
+        const order = await this.fetchOrder (id, symbol, params);
         return order['status'];
     }
 
@@ -3233,7 +3250,7 @@ export default class Exchange {
 
     async fetchDepositAddress (code: string, params = {}) {
         if (this.has['fetchDepositAddresses']) {
-            const depositAddresses = await (this as any).fetchDepositAddresses ([ code ], params);
+            const depositAddresses = await this.fetchDepositAddresses ([ code ], params);
             const depositAddress = this.safeValue (depositAddresses, code);
             if (depositAddress === undefined) {
                 throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
@@ -3406,7 +3423,7 @@ export default class Exchange {
     }
 
     async loadTimeDifference (params = {}) {
-        const serverTime = await (this as any).fetchTime (params);
+        const serverTime = await this.fetchTime (params);
         const after = this.milliseconds ();
         this.options['timeDifference'] = after - serverTime;
         return this.options['timeDifference'];
@@ -3418,11 +3435,11 @@ export default class Exchange {
 
     async fetchMarketLeverageTiers (symbol: string, params = {}) {
         if (this.has['fetchLeverageTiers']) {
-            const market = await (this as any).market (symbol);
+            const market = await this.market (symbol);
             if (!market['contract']) {
                 throw new BadSymbol (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
-            const tiers = await (this as any).fetchLeverageTiers ([ symbol ]);
+            const tiers = await this.fetchLeverageTiers ([ symbol ]);
             return this.safeValue (tiers, symbol);
         } else {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
@@ -3693,7 +3710,7 @@ export default class Exchange {
             if (!market['contract']) {
                 throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
             }
-            const rates = await (this as any).fetchFundingRates ([ symbol ], params);
+            const rates = await this.fetchFundingRates ([ symbol ], params);
             const rate = this.safeValue (rates, symbol);
             if (rate === undefined) {
                 throw new NullResponse (this.id + ' fetchFundingRate () returned no data for ' + symbol);
@@ -3855,7 +3872,7 @@ export default class Exchange {
         this.checkRequiredArgument (methodName, symbol, 'symbol');
     }
 
-    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined): any {
         /**
          * @ignore
          * @method
@@ -3878,13 +3895,17 @@ export default class Exchange {
             const currency = this.safeValue (this.currencies_by_id, currencyId);
             const code = this.safeString (currency, 'code', currencyId);
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                depositWithdrawFees[code] = (this as any).parseDepositWithdrawFee (dictionary, currency);
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee (dictionary, currency);
             }
         }
         return depositWithdrawFees;
     }
 
-    depositWithdrawFee (info) {
+    parseDepositWithdrawFee (fee, currency = undefined): any {
+        throw new NotSupported (this.id + ' parseDepositWithdrawFee() is not supported yet');
+    }
+
+    depositWithdrawFee (info): any {
         return {
             'info': info,
             'withdraw': {
@@ -3899,7 +3920,7 @@ export default class Exchange {
         };
     }
 
-    assignDefaultDepositWithdrawFees (fee, currency = undefined) {
+    assignDefaultDepositWithdrawFees (fee, currency = undefined): any {
         /**
          * @ignore
          * @method

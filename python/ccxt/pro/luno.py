@@ -98,7 +98,7 @@ class luno(ccxt.async_support.luno):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         #
         # watchTrades(public)
         #

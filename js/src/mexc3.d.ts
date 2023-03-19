@@ -99,7 +99,7 @@ export default class mexc3 extends Exchange {
     }>;
     fetchFundingRateHistory(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
-    parseMarketLeverageTiers(info: any, market: any): any[];
+    parseMarketLeverageTiers(info: any, market?: any): any[];
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: any;
         address: string;
@@ -211,7 +211,7 @@ export default class mexc3 extends Exchange {
     }>;
     borrowMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<any>;
     repayMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<any>;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<{
         withdraw: {};
         deposit: {};
         info: any;
@@ -222,7 +222,7 @@ export default class mexc3 extends Exchange {
         info: any;
     };
     parseTransactionFee(transaction: any, currency?: any): {};
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     parseMarginLoan(info: any, currency?: any): {
         id: string;

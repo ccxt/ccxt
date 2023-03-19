@@ -1523,7 +1523,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency) {
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
         //
         // {
         //     id => 'USDT',
