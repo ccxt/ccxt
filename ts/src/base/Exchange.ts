@@ -3204,6 +3204,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
+    async cancelAllOrders (symbol: string = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
+    }
+
     async cancelUnifiedOrder (order, params = {}) {
         return this.cancelOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
     }
@@ -3244,7 +3248,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
-    parseLastPrice (price, market = undefined) {
+    parseLastPrice (price, market = undefined): any {
         throw new NotSupported (this.id + ' parseLastPrice() is not supported yet');
     }
 
@@ -3313,7 +3317,7 @@ export default class Exchange {
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
     }
 
-    handleWithdrawTagAndParams (tag, params) {
+    handleWithdrawTagAndParams (tag, params): any {
         if (typeof tag === 'object') {
             params = this.extend (tag, params);
             tag = undefined;
