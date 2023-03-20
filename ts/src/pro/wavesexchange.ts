@@ -1,15 +1,14 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const wavesexchangeRest = require ('../wavesexchange');
-const { NotSupported, ExchangeError } = require ('../base/errors');
-const Precise = require ('../base/Precise');
-const { ArrayCacheBySymbolById } = require ('./base/Cache');
+import wavesexchangeRest from '../wavesexchange.js';
+import { NotSupported, ExchangeError } from '../base/errors.js';
+import Precise from '../base/Precise.js';
+import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class wavesexchange extends wavesexchangeRest {
+export default class wavesexchange extends wavesexchangeRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -34,6 +33,9 @@ module.exports = class wavesexchange extends wavesexchangeRest {
             'options': {
                 'balanceLimit': 1000,
                 'ordersLimit': 1000,
+                'watchOrderBook': {
+                    'subscriptionLimit': 10,
+                },
             },
             'streaming': {
             },
@@ -87,7 +89,7 @@ module.exports = class wavesexchange extends wavesexchangeRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#watchOrderBook
@@ -96,23 +98,32 @@ module.exports = class wavesexchange extends wavesexchangeRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the wavesexchange api endpoint
-         * @param {string} params.depth orderbook depth
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        this.checkOrderBookSubscriptionLimit ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
-        const depth = this.safeNumber (params, 'depth', 10);
+        limit = (limit === undefined) ? 10 : limit;
         params = this.omit (params, 'depth');
         const subscriptionId = market['baseId'] + '-' + market['quoteId'];
         const subscribe = {
             'T': 'obs',
             'S': subscriptionId,
-            'd': depth,
+            'd': limit,
         };
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, subscriptionId, request, subscriptionId);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
+    }
+
+    checkOrderBookSubscriptionLimit () {
+        const subscriptionLimit = this.safeInteger (this.options['watchOrderBook'], 'subscriptionLimit', 10);
+        const numSubscriptions = this.safeInteger (this.options['watchOrderBook'], 'numSubscriptions', 0);
+        if (numSubscriptions >= subscriptionLimit) {
+            throw new ExchangeError (this.id + ' watchOrderBook() subscription limit exceeded (' + subscriptionLimit.toString () + ')');
+        }
+        this.options['watchOrderBook']['numSubscriptions'] = this.sum (numSubscriptions, 1);
     }
 
     handleOrderBook (client, message) {
@@ -185,7 +196,7 @@ module.exports = class wavesexchange extends wavesexchangeRest {
         }
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#watchOrders
@@ -203,7 +214,7 @@ module.exports = class wavesexchange extends wavesexchangeRest {
             symbol = this.symbol (symbol);
         }
         const address = await this.getWavesAddress ();
-        const messageHash = 'someorders:' + address;
+        const messageHash = 'orders:' + address;
         const url = this.urls['api']['ws'];
         const accessToken = this.safeString (this.options, 'accessToken');
         const subscribe = {
@@ -214,7 +225,7 @@ module.exports = class wavesexchange extends wavesexchangeRest {
         };
         const request = this.deepExtend (subscribe, params);
         const orders = await this.watch (url, messageHash, request, messageHash, request);
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, params);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     handleBalanceAndOrders (client, message) {
@@ -294,7 +305,7 @@ module.exports = class wavesexchange extends wavesexchangeRest {
                 const order = this.parseWSOrder (orders[i]);
                 this.orders.append (order);
             }
-            client.resolve (this.orders, 'someorders:' + subscriptionId);
+            client.resolve (this.orders, 'orders:' + subscriptionId);
         }
     }
 
@@ -511,4 +522,4 @@ module.exports = class wavesexchange extends wavesexchangeRest {
         }
         throw new NotSupported (this.id + ' no handler found for this message ' + this.json (message));
     }
-};
+}
