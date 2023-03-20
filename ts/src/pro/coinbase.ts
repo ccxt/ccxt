@@ -36,45 +36,17 @@ export default class coinbase extends coinbaseRest {
         });
     }
 
-    timestampAndSign (message, channel, products = []) {
-        this.checkRequiredCredentials ();
-        // const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), 'sha256', 'base64');
-        const timestamp = Math.floor (Date.now () / 1000).toString ();
-        const auth = `${timestamp}${channel}${products.join (',')}`;
-        const sig = this.hmac (this.encode (auth), this.encode (this.secret));
-        return {
-            'message': message,
-            'signature': sig,
-            'timestamp': timestamp,
-            'api_key': this.apiKey,
-        };
-    }
-
-    async authenticate (params = {}) {
-        const url = this.urls['api']['ws'];
-        const client = this.client (url);
-        const messageHash = 'authenticated';
-        const future = client.future ('authenticated');
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
-            this.checkRequiredCredentials ();
-            const nonce = this.seconds ().toString ();
-            const auth = nonce + this.apiKey;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            const request = {
-                'e': 'auth',
-                'auth': {
-                    'key': this.apiKey,
-                    'signature': signature.toUpperCase (),
-                    'timestamp': nonce,
-                },
-            };
-            await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        }
-        return await future;
-    }
-
-    async subscribe (name, symbol, messageHashStart, params = {}) {
+    async subscribe (name, symbol, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description subscribes to a websocket channel
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+         * @param {string} name the name of the channel
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the cex api endpoint
+         * @returns {object} subscription to a websocket channel
+         */
         await this.loadMarkets ();
         let market = undefined;
         let messageHash = undefined;
@@ -82,23 +54,25 @@ export default class coinbase extends coinbaseRest {
         if (Array.isArray (symbol)) {
             const symbols = this.marketSymbols (symbol);
             const marketIds = this.marketIds (symbols);
-            messageHash = messageHashStart + ':';
+            messageHash = name;
             productIds = marketIds;
         } else {
             market = this.market (symbol);
-            messageHash = messageHashStart + ':' + market['id'];
+            messageHash = name + ':' + market['id'];
             productIds = [ market['id'] ];
         }
         const url = this.urls['api']['ws'];
+        const timestamp = this.seconds ().toString ();
+        const auth = timestamp + name + productIds.join (',');
         const subscribe = {
             'type': 'subscribe',
             'product_ids': productIds,
             'channel': name,
+            'api_key': this.apiKey,
+            'timestamp': timestamp,
+            'signature': this.hmac (this.encode (auth), this.encode (this.secret), 'sha256'),
         };
-        const authentication = this.timestampAndSign ('subscribe', name, productIds);
-        const authedParams = this.extend (authentication, params);
-        const request = this.extend (subscribe, authedParams);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -112,7 +86,7 @@ export default class coinbase extends coinbaseRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const name = 'ticker';
-        return await this.subscribe (name, symbol, name, params);
+        return await this.subscribe (name, symbol, params);
     }
 
     async watchTickers (symbols = undefined, params = {}) {
@@ -126,7 +100,7 @@ export default class coinbase extends coinbaseRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const name = 'ticker_batch';
-        const tickers = await this.subscribe (name, symbols, name, params);
+        const tickers = await this.subscribe (name, symbols, params);
         return tickers;
         // todo: like binance
         // const result = {};
@@ -289,7 +263,7 @@ export default class coinbase extends coinbaseRest {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const name = 'market_trades';
-        const trades = await this.subscribe (name, symbol, name, params);
+        const trades = await this.subscribe (name, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -314,9 +288,7 @@ export default class coinbase extends coinbaseRest {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const name = 'user';
-        const messageHash = 'orders';
-        const authentication = this.authenticate ();
-        const orders = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
+        const orders = await this.subscribe (name, symbol, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
