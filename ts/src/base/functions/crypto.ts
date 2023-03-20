@@ -10,9 +10,12 @@ import { capitalize } from './string.js';
 import { binaryToBase58, byteArrayToWordArray, urlencodeBase64, stringToBase64 } from './encode.js';
 // import errors from './../errors.js'
 import { ExchangeError } from '../errors.js';
+import sigUtil from 'eth-sig-util';
+import crypto from 'crypto';
 
 const EC = elliptic.ec;
 const EDDSA = elliptic.eddsa;
+
 /*  ------------------------------------------------------------------------ */
 
 const hash = (request, hash = 'md5', digest = 'hex') => {
@@ -164,6 +167,12 @@ function crc32 (str, signed = false) {
         return unsigned;
     }
 }
+function createCipheriv(mode, key, nonceBytes) {
+    return crypto.createCipheriv(mode, key, nonceBytes);
+}
+function signTypedData(keyBuffer, data) {
+    return sigUtil.signTypedData(keyBuffer, data);
+}
 
 /*  ------------------------------------------------------------------------ */
 
@@ -176,6 +185,8 @@ export {
     ecdsa,
     eddsa,
     crc32,
+    createCipheriv,
+    signTypedData,
 };
 
 /*  ------------------------------------------------------------------------ */
