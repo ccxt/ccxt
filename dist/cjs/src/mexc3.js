@@ -429,6 +429,8 @@ class mexc3 extends Exchange["default"] {
                 'FLUX1': 'FLUX',
                 'FLUX': 'FLUX1',
                 'FREE': 'FreeRossDAO',
+                'GAS': 'GASDAO',
+                'GASNEO': 'GAS',
                 'GMT': 'GMT Token',
                 'STEPN': 'GMT',
                 'HERO': 'Step Hero',

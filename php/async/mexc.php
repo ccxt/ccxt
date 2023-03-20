@@ -305,6 +305,7 @@ class mexc extends Exchange {
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
                 'GAS' => 'GASDAO',
+                'GASNEO' => 'GAS',
                 'GMT' => 'GMT Token',
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',

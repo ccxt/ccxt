@@ -299,6 +299,7 @@ export default class mexc extends Exchange {
                 'FLUX': 'FLUX1',
                 'FREE': 'FreeRossDAO',
                 'GAS': 'GASDAO',
+                'GASNEO': 'GAS',
                 'GMT': 'GMT Token',
                 'HERO': 'Step Hero',
                 'MIMO': 'Mimosa',

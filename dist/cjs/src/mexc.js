@@ -296,6 +296,7 @@ class mexc extends Exchange["default"] {
                 'FLUX': 'FLUX1',
                 'FREE': 'FreeRossDAO',
                 'GAS': 'GASDAO',
+                'GASNEO': 'GAS',
                 'GMT': 'GMT Token',
                 'HERO': 'Step Hero',
                 'MIMO': 'Mimosa',
