@@ -19,6 +19,11 @@ Current feature list:
 - works in Node 10.4+, Python 3, PHP 8.1+, and web browsers
 
 
+## Sponsored Promotion
+
+[![Join the CCXT x Gate.io Campaign: Win 100% Trading Fee Discount and VIP Upgrade on Gate.io](https://user-images.githubusercontent.com/1294454/226325169-42b98991-5111-4053-b220-16cc3e978795.jpg)](https://github.com/ccxt/ccxt/issues/17273)
+
+
 ## See Also
 
 - <sub>[![TabTrader](https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png)](https://tab-trader.com/?utm_source=ccxt)</sub> **[TabTrader](https://tab-trader.com/?utm_source=ccxt)** – trading on all exchanges in one app. Available on **[Android](https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt)** and **[iOS](https://itunes.apple.com/app/apple-store/id1095716562?mt=8)**!
@@ -215,13 +220,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@3.0.23/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@3.0.23/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@3.0.24/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@3.0.24/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@3.0.23/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@3.0.24/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
