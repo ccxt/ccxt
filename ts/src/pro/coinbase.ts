@@ -36,7 +36,7 @@ export default class coinbase extends coinbaseRest {
         });
     }
 
-    async subscribe (name, symbol, params = {}) {
+    async subscribe (name, symbol = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -56,13 +56,13 @@ export default class coinbase extends coinbaseRest {
             const marketIds = this.marketIds (symbols);
             messageHash = name;
             productIds = marketIds;
-        } else {
+        } else if (symbol !== undefined) {
             market = this.market (symbol);
             messageHash = name + ':' + market['id'];
             productIds = [ market['id'] ];
         }
         const url = this.urls['api']['ws'];
-        const timestamp = this.seconds ().toString ();
+        const timestamp = this.numberToString (this.seconds ());
         const auth = timestamp + name + productIds.join (',');
         const subscribe = {
             'type': 'subscribe',
