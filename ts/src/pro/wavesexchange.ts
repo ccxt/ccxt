@@ -73,6 +73,7 @@ export default class wavesexchange extends wavesexchangeRest {
          * @param {object} params extra parameters specific to the wavesexchange api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
+        this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
         await this.signIn ();
         const address = await this.getWavesAddress ();
@@ -101,29 +102,37 @@ export default class wavesexchange extends wavesexchangeRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        this.checkOrderBookSubscriptionLimit ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
+        this.checkOrderBookSubscriptionLimit (url);
         limit = (limit === undefined) ? 10 : limit;
         params = this.omit (params, 'depth');
         const subscriptionId = market['baseId'] + '-' + market['quoteId'];
+        const subscriptionHash = 'orderbook:' + subscriptionId;
         const subscribe = {
             'T': 'obs',
             'S': subscriptionId,
             'd': limit,
         };
         const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, subscriptionId, request, subscriptionId);
+        const orderbook = await this.watch (url, subscriptionId, request, subscriptionHash);
         return orderbook.limit ();
     }
 
-    checkOrderBookSubscriptionLimit () {
+    checkOrderBookSubscriptionLimit (url) {
         const subscriptionLimit = this.safeInteger (this.options['watchOrderBook'], 'subscriptionLimit', 10);
-        const numSubscriptions = this.safeInteger (this.options['watchOrderBook'], 'numSubscriptions', 0);
-        if (numSubscriptions >= subscriptionLimit) {
+        const client = this.client (url);
+        let numOrderBookSubscriptions = 0;
+        const subscriptions = Object.keys (client.subscriptions);
+        for (let i = 0; i < subscriptions.length; i++) {
+            const subscription = subscriptions[i];
+            if (subscription.indexOf ('orderbook:') >= 0) {
+                numOrderBookSubscriptions = this.sum (numOrderBookSubscriptions, 1);
+            }
+        }
+        if (numOrderBookSubscriptions >= subscriptionLimit) {
             throw new ExchangeError (this.id + ' watchOrderBook() subscription limit exceeded (' + subscriptionLimit.toString () + ')');
         }
-        this.options['watchOrderBook']['numSubscriptions'] = this.sum (numSubscriptions, 1);
     }
 
     handleOrderBook (client, message) {
@@ -165,7 +174,7 @@ export default class wavesexchange extends wavesexchangeRest {
         const baseQuote = subscriptionId.split ('-');
         const marketId = this.safeString (baseQuote, 0) + '/' + this.safeString (baseQuote, 1);
         const symbol = this.safeSymbol (marketId);
-        const timestamp = this.safeNumber (message, '_');
+        const timestamp = this.safeInteger (message, '_');
         const snapshot = this.parseOrderBook (message, symbol, timestamp, 'b', 'a');
         let currentOrderBook = this.safeValue (this.orderbooks, symbol);
         if (currentOrderBook === undefined) {
@@ -208,6 +217,7 @@ export default class wavesexchange extends wavesexchangeRest {
          * @param {object} params extra parameters specific to the wavesexchange api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
+        this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
         await this.signIn ();
         if (symbol !== undefined) {
@@ -289,7 +299,9 @@ export default class wavesexchange extends wavesexchangeRest {
         const timestamp = this.safeNumber (message, '_');
         const balances = this.safeValue (message, 'b', {});
         if (balances !== undefined) {
-            this.balance = {};
+            this.balance = {
+                'info': {},
+            };
         }
         this.balance = this.parseWSBalances (balances);
         this.balance['timestamp'] = timestamp;
@@ -319,9 +331,6 @@ export default class wavesexchange extends wavesexchangeRest {
         //             ...
         //     }
         //
-        if (this.balance['info'] === undefined) {
-            this.balance['info'] = {};
-        }
         const currencyIds = Object.keys (response);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
