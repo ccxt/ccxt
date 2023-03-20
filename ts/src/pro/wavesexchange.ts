@@ -57,7 +57,12 @@ export default class wavesexchange extends wavesexchangeRest {
         //         _: 1655785850615
         //     }
         //
-        await client.send (message);
+        try {
+            await client.send (message);
+        } catch (e) {
+            const error = new ExchangeError (this.id + ' pong failed: ' + this.json (e));
+            client.reset (error);
+        }
     }
 
     handlePing (client, message) {
