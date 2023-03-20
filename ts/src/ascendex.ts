@@ -2560,19 +2560,19 @@ export default class ascendex extends Exchange {
         if (marginMode === 'isolated') {
             collateral = this.safeString (position, 'isolatedMargin');
         }
-        return this.safePosition ({
+        return {
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
-            'notional': notional,
+            'notional': this.parseNumber (notional),
             'marginMode': marginMode,
             'liquidationPrice': undefined,
-            'entryPrice': this.safeString (position, 'avgOpenPrice'),
-            'unrealizedPnl': this.safeString (position, 'unrealizedPnl'),
+            'entryPrice': this.safeNumber (position, 'avgOpenPrice'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
             'percentage': undefined,
-            'contracts': this.safeString (position, 'position'),
-            'contractSize': this.safeString (market, 'contractSize'),
-            'markPrice': this.safeString (position, 'markPrice'),
+            'contracts': this.safeNumber (position, 'position'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
             'side': this.safeStringLower (position, 'side'),
             'hedged': undefined,
             'timestamp': undefined,
@@ -2584,7 +2584,7 @@ export default class ascendex extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': this.safeInteger (position, 'leverage'),
             'marginRatio': undefined,
-        });
+        };
     }
 
     parseFundingRate (contract, market = undefined) {
