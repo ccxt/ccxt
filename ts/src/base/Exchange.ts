@@ -2886,9 +2886,9 @@ export default class Exchange {
                         throw new ArgumentsRequired (this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
                     }
                     for (let i = 0; i < markets.length; i++) {
-                        const market = markets[i];
-                        if (market[marketType]) {
-                            return market;
+                        const marketNew = markets[i];
+                        if (marketNew[marketType]) {
+                            return marketNew;
                         }
                     }
                 }
@@ -3244,7 +3244,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
-    parseLastPrice (price, market = undefined) {
+    parseLastPrice (price, market = undefined): any {
         throw new NotSupported (this.id + ' parseLastPrice() is not supported yet');
     }
 
@@ -3672,7 +3672,7 @@ export default class Exchange {
         }
     }
 
-    async fetchLastPrices (params = {}): Promise<any> {
+    async fetchLastPrices (symbols: string[] = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchLastPrices() is not supported yet');
     }
 

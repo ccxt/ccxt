@@ -5912,6 +5912,7 @@ export default class binance extends Exchange {
             }
             return result;
         }
+        return undefined;
     }
 
     async futuresTransfer (code, amount, type, params = {}) {
@@ -6233,8 +6234,8 @@ export default class binance extends Exchange {
         let contractsStringAbs = Precise.stringAbs (contractsString);
         if (contractsString === undefined) {
             const entryNotional = Precise.stringMul (Precise.stringMul (leverageString, initialMarginString), entryPriceString);
-            const contractSize = this.safeString (market, 'contractSize');
-            contractsString = Precise.stringDiv (entryNotional, contractSize);
+            const contractSizeNew = this.safeString (market, 'contractSize');
+            contractsString = Precise.stringDiv (entryNotional, contractSizeNew);
             contractsStringAbs = Precise.stringDiv (Precise.stringAdd (contractsString, '0.5'), '1', 0);
         }
         const contracts = this.parseNumber (contractsStringAbs);
