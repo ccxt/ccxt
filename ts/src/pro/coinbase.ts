@@ -221,16 +221,15 @@ export default class coinbase extends coinbaseRest {
             return super.parseTicker (ticker, market);
         }
         const marketId = this.safeString (ticker, 'product_id');
-        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = undefined;
         const last = this.safeNumber (ticker, 'price');
-        return {
+        return this.safeTicker ({
             'info': ticker,
-            'symbol': symbol,
+            'symbol': this.safeSymbol (marketId, market, '-'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high_24_h'),
-            'low': this.safeNumber (ticker, 'low_24_h'),
+            'high': this.safeString (ticker, 'high_24_h'),
+            'low': this.safeString (ticker, 'low_24_h'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -241,11 +240,11 @@ export default class coinbase extends coinbaseRest {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': undefined,
+            'percentage': this.safeString (ticker, 'price_percent_chg_24_h'),
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume_24_h'),
+            'baseVolume': this.safeString (ticker, 'volume_24_h'),
             'quoteVolume': undefined,
-        };
+        });
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
