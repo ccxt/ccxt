@@ -13,14 +13,14 @@ endif()
 # Compiler config
 # ---------------------------------------------------------------------------------------
 if(NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD 20)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
+# ---------------------------------------------------------------------------------------
 # Options
+# ---------------------------------------------------------------------------------------
 option(ENABLE_DOCTESTS "Include tests in the library. Setting this to OFF will remove all doctest related code.
                         Tests in tests/*.cpp will still be enabled." ON)
-
-# find_package()
 
 add_subdirectory(cpp)

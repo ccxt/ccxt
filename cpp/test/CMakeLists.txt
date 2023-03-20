@@ -13,7 +13,7 @@ if(ENABLE_DOCTESTS)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
     add_executable(test-base main.cpp base/TestErrors.cpp base/TestExchange.cpp)
-    target_compile_features(test-base PRIVATE cxx_std_17)
+    target_compile_features(test-base PRIVATE cxx_std_20)
     target_link_libraries(test-base PRIVATE ccxt doctest::doctest fmt::fmt)
     target_include_directories(test-base PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/cpp>")
     target_include_directories(test-base PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/cpp/test>")
