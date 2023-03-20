@@ -1,6 +1,9 @@
 name: linux
 
-on: [push, pull_request]
+on: 
+  push:
+  pull_request:
+    types: [ opened, synchronize, closed, ready_for_review, review_requested ]
 
 permissions:
   contents: read
