@@ -2537,7 +2537,7 @@ export default class cryptocom extends Exchange {
         }
         return result;
     }
-    
+
     async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
