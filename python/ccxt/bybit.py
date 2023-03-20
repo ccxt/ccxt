@@ -6406,6 +6406,7 @@ class bybit(Exchange):
             first = self.safe_value(symbols, 0)
             market = self.market(first)
             settle = market['settle']
+            request['symbol'] = market['id']
         if enableUnified[1]:
             request['settleCoin'] = settle
         # market None

@@ -6879,6 +6879,7 @@ class bybit extends Exchange["default"] {
             const first = this.safeValue(symbols, 0);
             const market = this.market(first);
             settle = market['settle'];
+            request['symbol'] = market['id'];
         }
         if (enableUnified[1]) {
             request['settleCoin'] = settle;
