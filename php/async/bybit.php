@@ -6001,7 +6001,7 @@ class bybit extends Exchange {
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             if ($enableUnifiedAccount && !$isInverse) {
                 $orderId = $this->safe_string($params, 'orderId');
-                if ($orderId === null) {
+                if ($orderId === null && $type !== 'spot') {
                     $this->check_required_symbol('fetchMyTrades', $symbol);
                 }
                 return Async\await($this->fetch_my_unified_trades($symbol, $since, $limit, $query));
