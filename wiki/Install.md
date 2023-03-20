@@ -2,7 +2,7 @@
 
 The easiest way to install the ccxt library is to use builtin package managers:
 
-- [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
+- [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v15+)
 - [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
@@ -22,7 +22,7 @@ An alternative way of installing this library is to build a custom bundle from s
 
 ### JavaScript (NPM)
 
-JavaScript version of ccxt works both in Node and web browsers. Requires ES6 and `async/await` syntax support (Node 10.4.0+). When compiling with Webpack and Babel, make sure it is [not excluded](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275) in your `babel-loader` config.
+JavaScript version of ccxt works both in Node and web browsers. Requires ES6 and `async/await` syntax support (Node 15+). When compiling with Webpack and Babel, make sure it is [not excluded](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275) in your `babel-loader` config.
 
 [ccxt crypto trading library in npm](http://npmjs.com/package/ccxt)
 

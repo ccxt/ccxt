@@ -8,7 +8,7 @@
 - fully implemented public and private APIs
 - optional normalized data for cross-exchange analytics and arbitrage
 - an out of the box unified API that is extremely easy to integrate
-- works in Node 10.4+, Python 3, PHP 8.1+, and web browsers
+- works in Node 15+, Python 3, PHP 8.1+, and web browsers
 
 [GitHub](https://github.com/ccxt/ccxt/)
 [Get Started](#Overview)
