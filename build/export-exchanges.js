@@ -4,21 +4,20 @@
 //      npm run export-exchanges
 // ----------------------------------------------------------------------------
 
-"use strict";
+import fs from 'fs'
+import log  from 'ololog'
+import ansi from 'ansicolor'
+import { pathToFileURL } from 'url'
+import { countries } from './countries.js'
+import { execSync } from 'child_process';
+import { replaceInFile } from './fsLocal.js'
+import asTable from 'as-table'
 
-const fs        = require ('fs')
-    , countries = require ('./countries')
-    , asTable   = require ('as-table').configure ({
-        delimiter: '|',
-        print: (x) => ' ' + x + ' '
-    })
-    , execSync  = require ('child_process').execSync
-    , log       = require ('ololog').unlimited
-    , ansi      = require ('ansicolor').nice
-    , { keys, values, entries, fromEntries } = Object
-    , { replaceInFile } = require ('./fs.js')
+const { keys, values, entries, fromEntries } = Object
 
-// ----------------------------------------------------------------------------
+ansi.nice
+
+const unlimitedLog = log.unlimited;
 
 function cloneGitHubWiki (gitWikiPath) {
 
@@ -47,7 +46,7 @@ function getIncludedExchangeIds (path) {
 
     const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
     const ids = fs.readdirSync (path)
-        .filter (file => file.match (/[a-zA-Z0-9_-]+.js$/))
+        .filter (file => file.match (/[a-zA-Z0-9_-]+.ts$/))
         .map (file => file.slice (0, -3))
         .filter (isIncluded);
 
@@ -69,9 +68,10 @@ function exportExchanges (replacements) {
 
 // ----------------------------------------------------------------------------
 
-function createExchanges (ids) {
+async function createExchanges (ids) {
 
-    const ccxt = require ('../ccxt.js')
+    let ccxt = await import ('../js/ccxt.js')
+    ccxt = ccxt.default
 
     const createExchange = (id) => {
         ccxt[id].prototype.checkRequiredDependencies = () => {} // suppress it
@@ -232,7 +232,12 @@ function createMarkdownTable (array, markdownMethod, centeredColumns) {
 
     array = markdownMethod (array)
 
-    const table = asTable (array)
+    const asTableDelimiter = asTable.configure ({
+        delimiter: '|',
+        print: (x) => ' ' + x + ' '
+    })
+
+    const table = asTableDelimiter (array)
     const lines = table.split ("\n")
 
     //
@@ -395,25 +400,47 @@ function flatten (nested, result = []) {
 
 // ----------------------------------------------------------------------------
 
-function exportEverything () {
-    const ids = getIncludedExchangeIds ('./js')
+async function exportEverything () {
+    const ids = getIncludedExchangeIds ('./ts/src')
 
-    const wsIds = getIncludedExchangeIds ('./js/pro')
+    const wsIds = getIncludedExchangeIds ('./ts/src/pro')
 
-    const errorHierarchy = require ('../js/base/errorHierarchy.js')
-    const flat = flatten (errorHierarchy)
+    const errorHierarchy = await import ('../js/src/base/errorHierarchy.js')
+    const flat = flatten (errorHierarchy['default'])
     flat.push ('error_hierarchy')
 
+    const typeExports = ['Market', 'Trade' , 'Fee', 'Ticker', 'OrderBook', 'Order', 'Transaction', 'Tickers', 'Currency', 'Balance', 'DepositAddress', 'WithdrawalResponse', 'DepositAddressResponse', 'OHLCV', 'Balances', 'PartialBalances' ]
+    const errorsExports = ['BaseError', 'ExchangeError', 'PermissionDenied', 'AccountNotEnabled', 'AccountSuspended', 'ArgumentsRequired', 'BadRequest', 'BadSymbol', 'MarginModeAlreadySet', 'BadResponse', 'NullResponse', 'InsufficientFunds', 'InvalidAddress', 'InvalidOrder', 'OrderNotFound', 'OrderNotCached', 'CancelPending', 'OrderImmediatelyFillable', 'OrderNotFillable', 'DuplicateOrderId', 'NotSupported', 'NetworkError', 'DDoSProtection', 'RateLimitExceeded', 'ExchangeNotAvailable', 'OnMaintenance', 'InvalidNonce', 'RequestTimeout', 'AuthenticationError', 'AddressPending']
+    const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
+
+    const fullExports  = staticExports.concat(ids)
+
+    const ccxtFileDir = './ts/ccxt.ts'
     const replacements = [
         {
-            file: './ccxt.js',
-            regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
-            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/" + id + ".js'),") .join ("\n") + "\n}",
+            file: ccxtFileDir,
+            regex:  /(?:(import)\s(\w+)\sfrom\s+'.\/src\/(\2).js'\n)+/g,
+            replacement: ids.map (id => "import " + id + ' from ' + " './src/" + id + ".js'").join("\n") + "\n" // update these paths
         },
         {
-            file: './ccxt.js',
+            file: ccxtFileDir,
+            regex:  /(?:(import)\s(\w+)Pro\sfrom\s+'.\/src\/pro\/(\2).js'\n)+/g,
+            replacement: wsIds.map (id => "import " + id + 'Pro from ' + " './src/pro/" + id + ".js'").join("\n") + "\n"
+        },
+        {
+            file: ccxtFileDir,
+            regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
+            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + id + ",") .join ("\n") + "\n}",
+        },
+        {
+            file: ccxtFileDir,
+            regex:  /export\s+{\n[^\}]+\}/,
+            replacement: "export {\n" + fullExports.map (id => "    " +id + ',').join ("\n") + "    \n}",
+        },
+        {
+            file: ccxtFileDir,
             regex:  /(?:const|var)\s+pro\s+\=\s+\{[^\}]+\}/,
-            replacement: "const pro = {\n" + wsIds.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/pro/" + id + ".js'),") .join ("\n") + "\n}",
+            replacement: "const pro = {\n" + wsIds.map (id => ("    '" + id + "':").padEnd (30) + id + "Pro,") .join ("\n") + "\n}",
         },
         {
             file: './python/ccxt/__init__.py',
@@ -467,15 +494,21 @@ function exportEverything () {
         },
     ]
 
-    exportExchanges (replacements)
+    exportExchanges (replacements, unlimitedLog)
+
+    // we just updated ccxt.ts but we need the changes to be applied in ccxt.js
+    // so we run tsc here
+    log.yellow("Running tsc to build ccxt.js...")
+    execSync("npm run tsBuild");
+
 
     // strategically placed exactly here (we can require it AFTER the export)
-    const exchanges = createExchanges (ids)
+    const exchanges = await createExchanges (ids)
 
     const wikiPath = 'wiki'
         , gitWikiPath = 'build/ccxt.wiki'
 
-    cloneGitHubWiki (gitWikiPath)
+    cloneGitHubWiki (gitWikiPath, unlimitedLog)
 
     exportSupportedAndCertifiedExchanges (exchanges, {
         allExchangesPaths: [
@@ -492,24 +525,32 @@ function exportEverything () {
         proExchangesPaths: [
             wikiPath + '/ccxt.pro.manual.md',
         ],
-    })
+    }, unlimitedLog)
 
     exportExchangeIdsToExchangesJson (keys(exchanges), wsIds)
     exportWikiToGitHub (wikiPath, gitWikiPath)
     // skip this step to reduce the size of the package metadata
     // exportKeywordsToPackageJson (exchanges)
 
-    log.bright.green ('Exported successfully.')
+    unlimitedLog.bright.green ('Exported successfully.')
 }
 
 // ============================================================================
 // main entry point
-
-if (require.main === module) {
+let metaUrl = import.meta.url
+metaUrl = metaUrl.substring(0, metaUrl.lastIndexOf(".")) // remove extension
+const url = pathToFileURL(process.argv[1]);
+const href = (url.href.indexOf('.') !== -1) ? url.href.substring(0, url.href.lastIndexOf(".")) : url.href;
+if (metaUrl === href) {
 
     // if called directly like `node module`
+    try {
+        await exportEverything ()
+    } catch (e) {
+        console.log(e);
+    }
 
-    exportEverything ()
+    console.log('finished')
 
 } else {
 
@@ -518,24 +559,6 @@ if (require.main === module) {
 
 // ============================================================================
 
-module.exports = {
-    cloneGitHubWiki,
-    createExchanges,
-    createMarkdownExchange,
-    createMarkdownListOfExchanges,
-    createMarkdownListOfCertifiedExchanges,
-    createMarkdownListOfExchangesByCountries,
-    getFirstWebsiteUrl,
-    getReferralUrlOrWebsiteUrl,
-    getFirstDocUrl,
-    getVersion,
-    getVersionLink,
-    getVersionBadge,
-    getIncludedExchangeIds,
-    exportExchanges,
-    exportSupportedAndCertifiedExchanges,
-    exportExchangeIdsToExchangesJson,
-    exportWikiToGitHub,
-    exportKeywordsToPackageJson,
-    exportEverything,
+export {
+    exportEverything
 }

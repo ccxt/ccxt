@@ -150,7 +150,7 @@ class paymium extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the paymium api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -217,7 +217,7 @@ class paymium extends Exchange {
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} $params extra parameters specific to the paymium api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -247,7 +247,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'created_at_int');
         $id = $this->safe_string($trade, 'uuid');
         $market = $this->safe_market(null, $market);
@@ -298,7 +298,7 @@ class paymium extends Exchange {
              * create a currency deposit address
              * @param {string} $code unified currency $code of the currency for the deposit address
              * @param {array} $params extra parameters specific to the paymium api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostUserAddresses ($params));
@@ -320,7 +320,7 @@ class paymium extends Exchange {
              * fetch the deposit address for a currency associated with this account
              * @param {string} $code unified currency $code
              * @param {array} $params extra parameters specific to the paymium api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -345,7 +345,7 @@ class paymium extends Exchange {
              * fetch deposit addresses for multiple currencies and chain types
              * @param {[string]|null} $codes list of unified currency $codes, default is null
              * @param {array} $params extra parameters specific to the paymium api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetUserAddresses ($params));
@@ -393,7 +393,7 @@ class paymium extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the paymium api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -407,10 +407,10 @@ class paymium extends Exchange {
                 $request['price'] = $price;
             }
             $response = Async\await($this->privatePostUserOrders (array_merge($request, $params)));
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $response['uuid'],
-            );
+            ), $market);
         }) ();
     }
 
@@ -421,7 +421,7 @@ class paymium extends Exchange {
              * @param {string} $id order $id
              * @param {string|null} $symbol not used by paymium cancelOrder ()
              * @param {array} $params extra parameters specific to the paymium api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $request = array(
                 'uuid' => $id,
@@ -439,7 +439,7 @@ class paymium extends Exchange {
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
              * @param {array} $params extra parameters specific to the paymium api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);

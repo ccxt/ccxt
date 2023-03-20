@@ -11,8 +11,6 @@ use React\Async;
 
 class bitopro extends \ccxt\async\bitopro {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -64,7 +62,7 @@ class bitopro extends \ccxt\async\bitopro {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the bitopro api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             if ($limit !== null) {
                 if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
@@ -137,7 +135,7 @@ class bitopro extends \ccxt\async\bitopro {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'TRADE' . ':' . $symbol;
-            $trades = Async\await($this->watch_public('trades', $messageHash, $market['id'], $limit));
+            $trades = Async\await($this->watch_public('trades', $messageHash, $market['id']));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -190,7 +188,7 @@ class bitopro extends \ccxt\async\bitopro {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the bitopro api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -254,12 +252,13 @@ class bitopro extends \ccxt\async\bitopro {
         );
         $this->options = array_merge($defaultOptions, $this->options);
         $originalHeaders = $this->options['ws']['options']['headers'];
-        $this->options['ws']['options']['headers'] = array(
+        $headers = array(
             'X-BITOPRO-API' => 'ccxt',
             'X-BITOPRO-APIKEY' => $this->apiKey,
             'X-BITOPRO-PAYLOAD' => $payload,
             'X-BITOPRO-SIGNATURE' => $signature,
         );
+        $this->options['ws']['options']['headers'] = $headers;
         // instantiate client
         $this->client($url);
         $this->options['ws']['options']['headers'] = $originalHeaders;

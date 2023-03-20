@@ -10,8 +10,6 @@ use React\Async;
 
 class ripio extends \ccxt\async\ripio {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -102,7 +100,7 @@ class ripio extends \ccxt\async\ripio {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the ripio api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -164,7 +162,7 @@ class ripio extends \ccxt\async\ripio {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the ripio api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -260,8 +258,8 @@ class ripio extends \ccxt\async\ripio {
         if ($nonce > $orderbook['nonce']) {
             $asks = $this->safe_value($data, 'sell', array());
             $bids = $this->safe_value($data, 'buy', array());
-            $this->handle_deltas($orderbook['asks'], $asks, $orderbook['nonce']);
-            $this->handle_deltas($orderbook['bids'], $bids, $orderbook['nonce']);
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['nonce'] = $nonce;
             $timestamp = $this->parse8601($this->safe_string($message, 'publishTime'));
             $orderbook['timestamp'] = $timestamp;

@@ -13,8 +13,6 @@ use React\Async;
 
 class coinex extends \ccxt\async\coinex {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -384,7 +382,7 @@ class coinex extends \ccxt\async\coinex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             return Async\await($this->watch_tickers(array( $symbol ), $params));
         }) ();
@@ -397,7 +395,7 @@ class coinex extends \ccxt\async\coinex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {[string]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -467,7 +465,7 @@ class coinex extends \ccxt\async\coinex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -516,7 +514,7 @@ class coinex extends \ccxt\async\coinex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -541,7 +539,7 @@ class coinex extends \ccxt\async\coinex {
                 'id' => $this->request_id(),
                 'params' => [
                     $market['id'],
-                    $this->safe_integer($timeframes, $timeframe, $timeframe),
+                    $this->safe_string($timeframes, $timeframe, $timeframe),
                 ],
             );
             $subscription = array(
@@ -924,7 +922,7 @@ class coinex extends \ccxt\async\coinex {
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => $this->safe_timestamp($order, 'last_deal_time'),
             'symbol' => $market['symbol'],
-            'type' => $type === 1 ? 'limit' : 'market',
+            'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,

@@ -10,8 +10,6 @@ use React\Async;
 
 class luno extends \ccxt\async\luno {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -110,7 +108,7 @@ class luno extends \ccxt\async\luno {
         $client->resolve ($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_trade($trade, $market) {
+    public function parse_trade($trade, $market = null) {
         //
         // watchTrades (public)
         //
@@ -148,7 +146,7 @@ class luno extends \ccxt\async\luno {
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {arrayConstructor} $params extra parameters specific to the luno api endpoint
              * @param {string|null} $params->type accepts l2 or l3 for level 2 or level 3 order book
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->check_required_credentials());
             Async\await($this->load_markets());
@@ -164,7 +162,7 @@ class luno extends \ccxt\async\luno {
             );
             $request = $this->deep_extend($subscribe, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -211,7 +209,7 @@ class luno extends \ccxt\async\luno {
         }
         $asks = $this->safe_value($message, 'asks');
         if ($asks !== null) {
-            $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume', 'id');
+            $snapshot = $this->custom_parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume', 'id');
             $storedOrderBook->reset ($snapshot);
         } else {
             $this->handle_delta($storedOrderBook, $message);
@@ -223,7 +221,7 @@ class luno extends \ccxt\async\luno {
         $client->resolve ($storedOrderBook, $messageHash);
     }
 
-    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $thirdKey = null) {
+    public function custom_parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 'price', $amountKey = 'volume', $thirdKey = null) {
         $bids = $this->parse_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $thirdKey);
         $asks = $this->parse_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $thirdKey);
         return array(
@@ -236,16 +234,16 @@ class luno extends \ccxt\async\luno {
         );
     }
 
-    public function parse_bids_asks($bidasks, $priceKey = 0, $amountKey = 1, $thirdKey = null) {
+    public function parse_bids_asks($bidasks, $priceKey = 'price', $amountKey = 'volume', $thirdKey = null) {
         $bidasks = $this->to_array($bidasks);
         $result = array();
         for ($i = 0; $i < count($bidasks); $i++) {
-            $result[] = $this->parse_bid_ask($bidasks[$i], $priceKey, $amountKey, $thirdKey);
+            $result[] = $this->custom_parse_bid_ask($bidasks[$i], $priceKey, $amountKey, $thirdKey);
         }
         return $result;
     }
 
-    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $thirdKey = null) {
+    public function custom_parse_bid_ask($bidask, $priceKey = 'price', $amountKey = 'volume', $thirdKey = null) {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
         $result = array( $price, $amount );
@@ -304,7 +302,7 @@ class luno extends \ccxt\async\luno {
         $asksOrderSide = $orderbook['asks'];
         $bidsOrderSide = $orderbook['bids'];
         if ($createUpdate !== null) {
-            $array = $this->parse_bid_ask($createUpdate, 'price', 'volume', 'order_id');
+            $array = $this->custom_parse_bid_ask($createUpdate, 'price', 'volume', 'order_id');
             $type = $this->safe_string($createUpdate, 'type');
             if ($type === 'ASK') {
                 $asksOrderSide->storeArray ($array);

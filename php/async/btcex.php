@@ -7,10 +7,10 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
+use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 
@@ -1299,7 +1299,7 @@ class btcex extends Exchange {
              * @param {string|null} $params->timeInForce 'GTC', 'IOC', 'FOK'
              * @param {bool|null} $params->postOnly
              * @param {bool|null} $params->reduceOnly
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->sign_in());
             Async\await($this->load_markets());
@@ -2041,7 +2041,7 @@ class btcex extends Exchange {
              * fetch the set leverage for a $market
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
              */
             Async\await($this->sign_in());
             Async\await($this->load_markets());
@@ -2076,7 +2076,7 @@ class btcex extends Exchange {
              * retrieve information on the maximum leverage, for different trade sizes for a single $market
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2111,7 +2111,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, $market) {
+    public function parse_market_leverage_tiers($info, $market = null) {
         //
         //     array(
         //         array(
@@ -2149,7 +2149,7 @@ class btcex extends Exchange {
              * retrieve information on the maximum leverage, for different trade sizes
              * @param {[string]|null} $symbols a list of unified market $symbols
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetGetPerpetualLeverageBracketAll ($params));
@@ -2308,7 +2308,7 @@ class btcex extends Exchange {
              * @see https://docs.btcex.com/#contracts
              * @param {[string]} $symbols unified $market $symbols
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
+             * @return {[array]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -2372,7 +2372,7 @@ class btcex extends Exchange {
              * @see https://docs.btcex.com/#contracts
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2481,7 +2481,7 @@ class btcex extends Exchange {
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             Async\await($this->sign_in());
             Async\await($this->load_markets());
@@ -2541,7 +2541,7 @@ class btcex extends Exchange {
              * @see https://docs.btcex.com/#contracts
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=interest-history-structure)
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

@@ -12,8 +12,6 @@ use React\Async;
 
 class bittrex extends \ccxt\async\bittrex {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -238,7 +236,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             if ($symbol !== null) {
@@ -380,7 +378,7 @@ class bittrex extends \ccxt\async\bittrex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $negotiation = Async\await($this->negotiate());
@@ -437,7 +435,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -582,7 +580,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -643,7 +641,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $limit = ($limit === null) ? 25 : $limit; // 25 by default
             if (($limit !== 1) && ($limit !== 25) && ($limit !== 500)) {
@@ -655,11 +653,11 @@ class bittrex extends \ccxt\async\bittrex {
             //
             //     1. Subscribe to the relevant socket streams
             //     2. Begin to queue up messages without processing them
-            //     3. Call the equivalent v3 REST API and record both the results and the value of the returned Sequence header. Refer to the descriptions of individual streams to find the corresponding REST API. Note that you must call the REST API with the same parameters as you used to subscribed to the stream to get the right snapshot. For example, $orderbook snapshots of different depths will have different sequence numbers.
+            //     3. Call the equivalent v3 REST API and record both the results and the value of the returned Sequence header. Refer to the descriptions of individual streams to find the corresponding REST API. Note that you must call the REST API with the same parameters used to subscribed to the stream to get the right snapshot. For example, $orderbook snapshots of different depths will have different sequence numbers.
             //     4. If the Sequence header is less than the sequence number of the first queued socket message received (unlikely), discard the results of step 3 and then repeat step 3 until this check passes.
             //     5. Discard all socket messages where the sequence number is less than or equal to the Sequence header retrieved from the REST call
-            //     6. Apply the remaining socket messages in order on top of the results of the REST call. The objects received in the socket deltas have the same schemas as the objects returned by the REST API. Each socket delta is a snapshot of an object. The identity of the object is defined by a unique key made up of one or more fields in the message (see documentation of individual streams for details). To apply socket deltas to a local cache of data, simply replace the objects in the cache with those coming from the socket where the keys match.
-            //     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message (Note => for private streams, the sequence number is scoped to a single account or subaccount).
+            //     6. Apply the remaining socket messages in order on top of the results of the REST call. The objects received in the socket deltas have the same schemas objects returned by the REST API. Each socket delta is a snapshot of an object. The identity of the object is defined by a unique key made up of one or more fields in the message (see documentation of individual streams for details). To apply socket deltas to a local cache of data, simply replace the objects in the cache with those coming from the socket where the keys match.
+            //     7. Continue to apply messages are received from the socket number on the stream is always increasing by 1 each message (Note => for private streams, the sequence number is scoped to a single account or subaccount).
             //     8. If a message is received that is not the next in order, return to step 2 in this process
             //
             $orderbook = Async\await($this->subscribe_to_order_book($negotiation, $symbol, $limit, $params));
@@ -697,7 +695,7 @@ class bittrex extends \ccxt\async\bittrex {
                 $messages = $orderbook->cache;
                 // make sure we have at least one delta before fetching the $snapshot
                 // otherwise we cannot synchronize the feed with the $snapshot
-                // and that will lead to a bidask cross as reported here
+                // and that will lead to a bidask cross here
                 // https://github.com/ccxt/ccxt/issues/6762
                 $firstMessage = $this->safe_value($messages, 0, array());
                 $sequence = $this->safe_integer($firstMessage, 'sequence');

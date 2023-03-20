@@ -10,13 +10,13 @@ namespace ccxt;
 
 function test_margin_modification($exchange, $marginModification) {
     $format = array(
-        info => array(),
-        type => 'add',
-        amount => 0.1,
-        total => 0.29934828,
-        code => 'USDT',
-        symbol => 'ADA/USDT:USDT',
-        status => 'ok',
+        'info' => array(),
+        'type' => 'add',
+        'amount' => 0.1,
+        'total' => 0.29934828,
+        'code' => 'USDT',
+        'symbol' => 'ADA/USDT:USDT',
+        'status' => 'ok',
     );
     $keys = is_array($format) ? array_keys($format) : array();
     for ($i = 0; $i < count($keys); $i++) {
@@ -42,5 +42,4 @@ function test_margin_modification($exchange, $marginModification) {
         assert ($exchange->in_array($marginModification['status'], array( 'ok', 'pending', 'canceled', 'failed' )));
     }
 }
-
 
