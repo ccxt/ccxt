@@ -843,6 +843,7 @@ module.exports = class coinbase extends Exchange {
         const costString = this.safeString (subtotalObject, 'amount', v3Cost);
         let priceString = undefined;
         let cost = undefined;
+        let amount = undefined;
         if ((costString !== undefined) && (amountString !== undefined)) {
             priceString = Precise.stringDiv (costString, amountString);
         } else {
@@ -852,6 +853,11 @@ module.exports = class coinbase extends Exchange {
             cost = Precise.stringMul (priceString, amountString);
         } else {
             cost = costString;
+        }
+        if((costString !== undefined) && (amountString === undefined) && (priceString !== undefined)) {
+            amount = Precise.stringDiv(costString, priceString);
+        } else {
+            amount = amountString;
         }
         const feeCurrencyId = this.safeString (feeObject, 'currency');
         const datetime = this.safeStringN (trade, [ 'created_at', 'trade_time', 'time' ]);
@@ -868,7 +874,7 @@ module.exports = class coinbase extends Exchange {
             'side': (side === 'unknown_order_side') ? undefined : side,
             'takerOrMaker': (takerOrMaker === 'unknown_liquidity_indicator') ? undefined : takerOrMaker,
             'price': priceString,
-            'amount': amountString,
+            'amount': amount,
             'cost': cost,
             'fee': {
                 'cost': this.safeNumber (feeObject, 'amount', v3FeeCost),
