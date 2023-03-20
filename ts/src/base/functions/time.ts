@@ -15,33 +15,33 @@ const uuidv1 = () => {
     const macAddress = 'ff'.repeat (6);
     return arranged + clockId + macAddress;
 };
-// const setTimeout_original = setTimeout;
-// const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overrideable for mocking purposes */, targetTime = now () + ms) => {
-//     // avoid MAX_INT issue https://github.com/ccxt/ccxt/issues/10761
-//     if (ms >= 2147483647) {
-//         throw new Error ('setTimeout() function was called with unrealistic value of ' + ms.toString ());
-//     }
-//     // The built-in setTimeout function can fire its callback earlier than specified, so we
-//     // need to ensure that it does not happen: sleep recursively until `targetTime` is reached...
-//     let clearInnerTimeout = () => {};
-//     let active = true;
-//     const id = setTimeout (() => {
-//         active = true;
-//         const rest = targetTime - now ();
-//         if (rest > 0) {
-//             clearInnerTimeout = setTimeout_safe (done, rest, setTimeout, targetTime); // try sleep more
-//         } else {
-//             done ();
-//         }
-//     }, ms);
-//     return function clear () {
-//         if (active) {
-//             active = false; // dunno if IDs are unique on various platforms, so it's better to rely on this flag to exclude the possible cancellation of the wrong timer (if called after completion)
-//             clearTimeout (id);
-//         }
-//         clearInnerTimeout ();
-//     };
-// };
+const setTimeout_original = setTimeout;
+const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overrideable for mocking purposes */, targetTime = now () + ms) => {
+    // avoid MAX_INT issue https://github.com/ccxt/ccxt/issues/10761
+    if (ms >= 2147483647) {
+        throw new Error ('setTimeout() function was called with unrealistic value of ' + ms.toString ());
+    }
+    // The built-in setTimeout function can fire its callback earlier than specified, so we
+    // need to ensure that it does not happen: sleep recursively until `targetTime` is reached...
+    let clearInnerTimeout = () => {};
+    let active = true;
+    const id = setTimeout (() => {
+        active = true;
+        const rest = targetTime - now ();
+        if (rest > 0) {
+            clearInnerTimeout = setTimeout_safe (done, rest, setTimeout, targetTime); // try sleep more
+        } else {
+            done ();
+        }
+    }, ms);
+    return function clear () {
+        if (active) {
+            active = false; // dunno if IDs are unique on various platforms, so it's better to rely on this flag to exclude the possible cancellation of the wrong timer (if called after completion)
+            clearTimeout (id);
+        }
+        clearInnerTimeout ();
+    };
+};
 class TimedOut extends Error {
     constructor () {
         const message = 'timed out';
