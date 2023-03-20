@@ -153,7 +153,7 @@ export default class coinbase extends coinbaseRest {
         //    {
         //        "channel": "ticker",
         //        "client_id": "",
-        //        "timestamp": "2023-03-01T12:16:31.714675066Z",
+        //        "timestamp": "2023-02-09T20:30:37.167359596Z",
         //        "sequence_num": 0,
         //        "events": [
         //            {
@@ -161,14 +161,14 @@ export default class coinbase extends coinbaseRest {
         //                "tickers": [
         //                    {
         //                        "type": "ticker",
-        //                        "product_id": "DOGE-USD",
-        //                        "price": "0.08211",
-        //                        "volume_24_h": "242625971.7",
-        //                        "low_24_h": "0.07989",
-        //                        "high_24_h": "0.08308",
-        //                        "low_52_w": "0.04908",
-        //                        "high_52_w": "0.1801",
-        //                        "price_percent_chg_24_h": "0.47723935389134"
+        //                        "product_id": "BTC-USD",
+        //                        "price": "21932.98",
+        //                        "volume_24_h": "16038.28770938",
+        //                        "low_24_h": "21835.29",
+        //                        "high_24_h": "23011.18",
+        //                        "low_52_w": "15460",
+        //                        "high_52_w": "48240",
+        //                        "price_percent_chg_24_h": "-4.15775596190603"
         //                    }
         //                ]
         //            }
@@ -362,18 +362,27 @@ export default class coinbase extends coinbaseRest {
 
     handleTrade (client, message) {
         //
-        //     {
-        //         type: 'match',
-        //         trade_id: 82047307,
-        //         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
-        //         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
-        //         side: 'sell',
-        //         size: '0.00513192',
-        //         price: '9314.78',
-        //         product_id: 'BTC-USD',
-        //         sequence: 12038915443,
-        //         time: '2020-01-31T20:03:41.158814Z'
-        //     }
+        //    {
+        //        "channel": "market_trades",
+        //        "client_id": "",
+        //        "timestamp": "2023-02-09T20:19:35.39625135Z",
+        //        "sequence_num": 0,
+        //        "events": [
+        //            {
+        //                "type": "snapshot",
+        //                "trades": [
+        //                    {
+        //                        "trade_id": "000000000",
+        //                        "product_id": "ETH-USD",
+        //                        "price": "1260.01",
+        //                        "size": "0.3",
+        //                        "side": "BUY",
+        //                        "time": "2019-08-14T20:42:27.265Z",
+        //                    }
+        //                ]
+        //            }
+        //        ]
+        //    }
         //
         const marketId = this.safeString (message, 'product_id');
         if (marketId !== undefined) {
@@ -498,82 +507,32 @@ export default class coinbase extends coinbaseRest {
 
     handleOrder (client, message) {
         //
-        // Order is created
-        //
-        //     {
-        //         type: 'received',
-        //         side: 'sell',
-        //         product_id: 'BTC-USDC',
-        //         time: '2021-03-05T16:42:21.878177Z',
-        //         sequence: 5641953814,
-        //         profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         user_id: '54fc141576dcf32596000133',
-        //         order_id: '11838707-bf9c-4d65-8cec-b57c9a7cab42',
-        //         order_type: 'limit',
-        //         size: '0.0001',
-        //         price: '50000',
-        //         client_oid: 'a317abb9-2b30-4370-ebfe-0deecb300180'
-        //     }
-        //
-        //     {
-        //         "type": "received",
-        //         "time": "2014-11-09T08:19:27.028459Z",
-        //         "product_id": "BTC-USD",
-        //         "sequence": 12,
-        //         "order_id": "dddec984-77a8-460a-b958-66f114b0de9b",
-        //         "funds": "3000.234",
-        //         "side": "buy",
-        //         "order_type": "market"
-        //     }
-        //
-        // Order is on the order book
-        //
-        //     {
-        //         type: 'open',
-        //         side: 'sell',
-        //         product_id: 'BTC-USDC',
-        //         time: '2021-03-05T16:42:21.878177Z',
-        //         sequence: 5641953815,
-        //         profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         user_id: '54fc141576dcf32596000133',
-        //         price: '50000',
-        //         order_id: '11838707-bf9c-4d65-8cec-b57c9a7cab42',
-        //         remaining_size: '0.0001'
-        //     }
-        //
-        // Order is partially or completely filled
-        //
-        //     {
-        //         type: 'match',
-        //         side: 'sell',
-        //         product_id: 'BTC-USDC',
-        //         time: '2021-03-05T16:37:13.396107Z',
-        //         sequence: 5641897876,
-        //         profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         user_id: '54fc141576dcf32596000133',
-        //         trade_id: 5455505,
-        //         maker_order_id: 'e5f5754d-70a3-4346-95a6-209bcb503629',
-        //         taker_order_id: '88bf7086-7b15-40ff-8b19-ab4e08516d69',
-        //         size: '0.00021019',
-        //         price: '47338.46',
-        //         taker_profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         taker_user_id: '54fc141576dcf32596000133',
-        //         taker_fee_rate: '0.005'
-        //     }
-        //
-        // Order is canceled / closed
-        //
-        //     {
-        //         type: 'done',
-        //         side: 'buy',
-        //         product_id: 'BTC-USDC',
-        //         time: '2021-03-05T16:37:13.396107Z',
-        //         sequence: 5641897877,
-        //         profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         user_id: '54fc141576dcf32596000133',
-        //         order_id: '88bf7086-7b15-40ff-8b19-ab4e08516d69',
-        //         reason: 'filled'
-        //     }
+        //    {
+        //        "channel": "user",
+        //        "client_id": "",
+        //        "timestamp": "2023-02-09T20:33:57.609931463Z",
+        //        "sequence_num": 0,
+        //        "events": [
+        //            {
+        //                "type": "snapshot",
+        //                "orders": [
+        //                    {
+        //                        "order_id": "XXX",
+        //                        "client_order_id": "YYY",
+        //                        "cumulative_quantity": "0",
+        //                        "leaves_quantity": "0.000994",
+        //                        "avg_price": "0",
+        //                        "total_fees": "0",
+        //                        "status": "OPEN",
+        //                        "product_id": "BTC-USD",
+        //                        "creation_time": "2022-12-07T19:42:18.719312Z",
+        //                        "order_side": "BUY",
+        //                        "order_type": "Limit"
+        //                    },
+        //                ]
+        //            }
+        //        ]
+        //    }
         //
         let orders = this.orders;
         if (orders === undefined) {
@@ -729,29 +688,32 @@ export default class coinbase extends coinbaseRest {
 
     handleOrderBook (client, message) {
         //
-        // first message (snapshot)
-        //
-        //     {
-        //         "type": "snapshot",
-        //         "product_id": "BTC-USD",
-        //         "bids": [
-        //             ["10101.10", "0.45054140"]
-        //         ],
-        //         "asks": [
-        //             ["10102.55", "0.57753524"]
-        //         ]
-        //     }
-        //
-        // subsequent updates
-        //
-        //     {
-        //         "type": "l2update",
-        //         "product_id": "BTC-USD",
-        //         "time": "2019-08-14T20:42:27.265Z",
-        //         "changes": [
-        //             [ "buy", "10101.80000000", "0.162567" ]
-        //         ]
-        //     }
+        //    {
+        //        "channel": "l2_data",
+        //        "client_id": "",
+        //        "timestamp": "2023-02-09T20:32:50.714964855Z",
+        //        "sequence_num": 0,
+        //        "events": [
+        //            {
+        //                "type": "snapshot",
+        //                "product_id": "BTC-USD",
+        //                "updates": [
+        //                    {
+        //                        "side": "bid",
+        //                        "event_time": "1970-01-01T00:00:00Z",
+        //                        "price_level": "21921.73",
+        //                        "new_quantity": "0.06317902"
+        //                    },
+        //                    {
+        //                        "side": "bid",
+        //                        "event_time": "1970-01-01T00:00:00Z",
+        //                        "price_level": "21921.3",
+        //                        "new_quantity": "0.02"
+        //                    },
+        //                ]
+        //            }
+        //        ]
+        //    }
         //
         const type = this.safeString (message, 'type');
         const marketId = this.safeString (message, 'product_id');
@@ -810,11 +772,12 @@ export default class coinbase extends coinbaseRest {
     handleMessage (client, message) {
         const channel = this.safeString (message, 'channel');
         const methods = {
-            // 'snapshot': this.handleOrderBook,
-            // 'l2update': this.handleOrderBook,
             'subscriptions': this.handleSubscriptionStatus,
             'ticker': this.handleTicker,
             'ticker_batch': this.handleTickers,
+            'market_trades': this.handleTrade,
+            'user': this.handleOrder,
+            'level2': this.handleOrderBook,
         };
         const method = this.safeValue (methods, channel);
         return method.call (this, client, message);
