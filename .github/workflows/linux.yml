@@ -12,13 +12,8 @@ jobs:
       matrix:
         cxx: [g++-11]
         build_type: [Debug, Release]
-        std: [17]
-        include:
-          - cxx: g++-11
-            build_type: Debug
-            std: 20
-            install: sudo apt install g++-11
-
+        std: [20]
+        
     steps:
     - uses: actions/checkout@v3
 
