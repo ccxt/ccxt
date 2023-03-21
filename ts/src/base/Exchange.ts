@@ -1413,108 +1413,112 @@ export default class Exchange {
         return {};
     }
 
-    async fetchAccounts (params = {}) {
-        return undefined;
+    async fetchAccounts (params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchAccounts() is not supported yet');
     }
 
     async fetchTrades (symbol: string, since: number = undefined, limit: any = undefined, params = {}): Promise<Trade[]> {
-        return undefined;
+        throw new NotSupported (this.id + ' fetchTrades() is not supported yet');
     }
 
     async watchTrades (symbol: string, since: number = undefined, limit: any = undefined, params = {}): Promise<Trade[]> {
-        return undefined;
+        throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
-        return undefined;
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchDepositAddresses() is not supported yet');
     }
 
     async fetchOrderBook (symbol, limit: any = undefined, params = {}): Promise<OrderBook> {
-        return undefined;
+        throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
     async watchOrderBook (symbol, limit: any = undefined, params = {}): Promise<OrderBook> {
-        return undefined;
+        throw new NotSupported (this.id + ' watchOrderBook() is not supported yet');
     }
 
-    async fetchTime (params = {}) {
-        return undefined;
+    async fetchTime (params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchTime() is not supported yet');
     }
 
-    async fetchTradingLimits (symbols: string[] = undefined, params = {}) {
-        return undefined;
+    async fetchTradingLimits (symbols: string[] = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchTradingLimits() is not supported yet');
     }
 
     parseTicker (ticker: object, market = undefined): Ticker {
-        return undefined;
+        throw new NotSupported (this.id + ' parseTicker() is not supported yet');
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseDepositAddress() is not supported yet');
     }
 
     parseTrade (trade: object, market = undefined): Trade {
-        return undefined;
+        throw new NotSupported (this.id + ' parseTrade() is not supported yet');
     }
 
     parseTransaction (transaction, currency = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseTransaction() is not supported yet');
     }
 
     parseTransfer (transfer, currency = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseTransfer() is not supported yet');
     }
 
     parseAccount (account) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseAccount() is not supported yet');
     }
 
     parseLedgerEntry (item, currency = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseLedgerEntry() is not supported yet');
     }
 
     parseOrder (order, market = undefined): Order {
-        return undefined;
+        throw new NotSupported (this.id + ' parseOrder() is not supported yet');
     }
 
-    async fetchBorrowRates (params = {}) {
-        return undefined;
+    async fetchBorrowRates (params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchBorrowRates() is not supported yet');
     }
 
     parseMarketLeverageTiers (info, market = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseMarketLeverageTiers() is not supported yet');
     }
 
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
-        return undefined;
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported yet');
     }
 
     parsePosition (position, market = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parsePosition() is not supported yet');
     }
 
     parseFundingRateHistory (info, market = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseFundingRateHistory() is not supported yet');
     }
 
     parseBorrowInterest (info, market = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseBorrowInterest() is not supported yet');
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
-        return undefined;
+    async fetchFundingRates (symbols: string[] = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
-        return undefined;
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' transfer() is not supported yet');
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
-        return undefined;
+    async withdraw (code: string, amount, address, tag = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' withdraw() is not supported yet');
     }
 
     async createDepositAddress (code, params = {}): Promise<DepositAddressResponse> {
-        return undefined;
+        throw new NotSupported (this.id + ' createDepositAddress() is not supported yet');
+    }
+
+    async setLeverage (leverage, symbol: string = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' setLeverage() is not supported yet');
     }
 
     parseToInt (number: string | number) {
