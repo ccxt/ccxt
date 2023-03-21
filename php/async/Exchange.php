@@ -2362,6 +2362,9 @@ class Exchange extends \ccxt\Exchange {
             return null;
         }
         $precisionNumber = intval($precision);
+        if ($precisionNumber === 0) {
+            return '1';
+        }
         $parsedPrecision = '0.';
         for ($i = 0; $i < $precisionNumber - 1; $i++) {
             $parsedPrecision = $parsedPrecision . '0';

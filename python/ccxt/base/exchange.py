@@ -3464,6 +3464,8 @@ class Exchange(object):
         if precision is None:
             return None
         precisionNumber = int(precision)
+        if precisionNumber == 0:
+            return '1'
         parsedPrecision = '0.'
         for i in range(0, precisionNumber - 1):
             parsedPrecision = parsedPrecision + '0'
