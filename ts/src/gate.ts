@@ -446,6 +446,7 @@ export default class gate extends Exchange {
                     'IOC': 'ioc',
                     'PO': 'poc',
                     'POC': 'poc',
+                    'FOK': 'fok',
                 },
                 'accountsByType': {
                     'funding': 'spot',
@@ -3172,17 +3173,18 @@ export default class gate extends Exchange {
         if (isLimitOrder && price === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for ' + type + ' orders');
         }
+        if (isMarketOrder) {
+            if ((timeInForce === 'poc') || (timeInForce === 'gtc') || (timeInForce === 'ioc')) {
+                throw new ExchangeError (this.id + ' createOrder () timeInForce for market order can only be "FOK"');
+            }
+            if (contract) {
+                price = 0;
+            }
+        }
         if (contract) {
             const amountToPrecision = this.amountToPrecision (symbol, amount);
             const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
             amount = parseInt (signedAmount);
-            if (isMarketOrder) {
-                if ((timeInForce === 'poc') || (timeInForce === 'gtc')) {
-                    throw new ExchangeError (this.id + ' createOrder () timeInForce for market orders must be "IOC"');
-                }
-                timeInForce = 'ioc';
-                price = 0;
-            }
         }
         let request = undefined;
         if (!isStopOrder && (trigger === undefined)) {
@@ -3246,8 +3248,6 @@ export default class gate extends Exchange {
                 }
                 if (isLimitOrder) {
                     request['price'] = this.priceToPrecision (symbol, price);
-                } else {
-                    timeInForce = 'ioc';
                 }
                 if (timeInForce !== undefined) {
                     request['time_in_force'] = timeInForce;
@@ -3319,6 +3319,9 @@ export default class gate extends Exchange {
                 const options = this.safeValue (this.options, 'createOrder', {});
                 let marginMode = undefined;
                 [ marginMode, params ] = this.getMarginMode (true, params);
+                if (timeInForce === undefined) {
+                    request['put']['time_in_force'] = 'gtc';
+                }
                 request = {
                     'put': {
                         'type': type,
@@ -3326,7 +3329,7 @@ export default class gate extends Exchange {
                         'price': this.priceToPrecision (symbol, price),
                         'amount': this.amountToPrecision (symbol, amount),
                         'account': marginMode,
-                        'time_in_force': 'gtc', // gtc, ioc for taker only
+                        'time_in_force': timeInForce, // gtc, ioc (ioc is for taker only, so shouldnt't be in conditional order)
                     },
                     'market': market['id'],
                 };
@@ -3349,9 +3352,6 @@ export default class gate extends Exchange {
                         'rule': rule, // >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
                         'expiration': expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
                     };
-                }
-                if (timeInForce !== undefined) {
-                    request['put']['time_in_force'] = timeInForce;
                 }
             }
             methodTail = 'PriceOrders';
