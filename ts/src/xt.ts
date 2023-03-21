@@ -27,6 +27,7 @@ export default class xt extends Exchange {
                 'swap': true,
                 'future': true,
                 'option': false,
+                'cancelOrder': true,
                 'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': true,
@@ -1909,6 +1910,7 @@ export default class xt extends Exchange {
          * @description fetches information on an order made by the user
          * @see https://doc.xt.com/#orderorderGet
          * @see https://doc.xt.com/#futures_ordergetById
+         * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -2117,18 +2119,6 @@ export default class xt extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
-            'NEW': 'open',
-            'PARTIALLY_FILLED': 'open',
-            'FILLED': 'closed',
-            'CANCELED': 'canceled',
-            'REJECTED': 'rejected',
-            'EXPIRED': 'expired',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
     async fetchOrdersByStatus (status, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
@@ -2301,7 +2291,7 @@ export default class xt extends Exchange {
          * @description fetch all unfilled currently open orders
          * @see https://doc.xt.com/#orderopenOrderGet
          * @see https://doc.xt.com/#futures_ordergetOrders
-         * @param {string} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol of the market the orders were made in
          * @param {int|undefined} since timestamp in ms of the earliest order
          * @param {int|undefined} limit the maximum number of open order structures to retrieve
          * @param {object} params extra parameters specific to the xt api endpoint
@@ -2317,7 +2307,7 @@ export default class xt extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @see https://doc.xt.com/#orderhistoryOrderGet
          * @see https://doc.xt.com/#futures_ordergetOrders
-         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market the orders were made in
          * @param {int|undefined} since timestamp in ms of the earliest order
          * @param {int|undefined} limit the maximum number of order structures to retrieve
          * @param {object} params extra parameters specific to the xt api endpoint
@@ -2333,13 +2323,67 @@ export default class xt extends Exchange {
          * @description fetches information on multiple canceled orders made by the user
          * @see https://doc.xt.com/#orderhistoryOrderGet
          * @see https://doc.xt.com/#futures_ordergetOrders
-         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market the orders were made in
          * @param {int|undefined} since timestamp in ms of the earliest order
          * @param {int|undefined} limit the maximum number of order structures to retrieve
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('canceled', symbol, since, limit, params);
+    }
+
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#cancelOrder
+         * @description cancels an open order
+         * @see https://doc.xt.com/#orderorderDel
+         * @see https://doc.xt.com/#futures_ordercancel
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'orderId': id,
+        };
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
+        let method = 'privateSpotDeleteOrderOrderId';
+        if (subType === 'linear') {
+            method = 'privateLinearPostFutureTradeV1OrderCancel';
+        } else if (subType === 'inverse') {
+            method = 'privateInversePostFutureTradeV1OrderCancel';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {
+        //             "cancelId": "208322474307982720"
+        //         }
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": "208319789679471616"
+        //     }
+        //
+        const order = (subType !== undefined) ? response : this.safeValue (response, 'result', {});
+        return this.parseOrder (order, market);
     }
 
     parseOrder (order, market = undefined) {
@@ -2350,7 +2394,13 @@ export default class xt extends Exchange {
         //         "orderId": "204371980095156544"
         //     }
         //
-        // swap and future: createOrder
+        // spot: cancelOrder
+        //
+        //     {
+        //         "cancelId": "208322474307982720"
+        //     }
+        //
+        // swap and future: createOrder, cancelOrder
         //
         //     {
         //         "returnCode": 0,
@@ -2439,7 +2489,7 @@ export default class xt extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        const marketType = ('result' in order) || ('closePosition' in order) ? 'contract' : 'spot';
+        const marketType = (('result' in order) || ('closePosition' in order)) ? 'contract' : 'spot';
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const timestamp = this.safeInteger2 (order, 'time', 'createdTime');
@@ -2452,7 +2502,7 @@ export default class xt extends Exchange {
         const triggerPrice = (triggerStopPrice !== 0) ? triggerStopPrice : triggerProfitPrice;
         return this.safeOrder ({
             'info': order,
-            'id': this.safeString2 (order, 'orderId', 'result'),
+            'id': this.safeStringN (order, [ 'orderId', 'result', 'cancelId' ]),
             'clientOrderId': this.safeString (order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2476,6 +2526,18 @@ export default class xt extends Exchange {
             },
             'trades': undefined,
         }, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+            'REJECTED': 'rejected',
+            'EXPIRED': 'expired',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -2552,11 +2614,12 @@ export default class xt extends Exchange {
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create')) {
                 body['clientMedia'] = 'CCXT';
             }
-            body = ((method === 'GET') || (path === 'order/{orderId}')) ? undefined : this.json (body);
+            const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}'));
+            body = isUndefinedBody ? undefined : this.json (body);
             let payloadString = undefined;
             if (endpoint === 'spot') {
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-timestamp=' + timestamp;
-                if ((method === 'GET') || (path === 'order/{orderId}')) {
+                if (isUndefinedBody) {
                     if (urlencoded) {
                         url += '?' + urlencoded;
                         payloadString += '#' + method + '#' + payload + '#' + urlencoded;
