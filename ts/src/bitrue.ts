@@ -1992,7 +1992,7 @@ export default class bitrue extends Exchange {
             }
         }
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
@@ -2023,7 +2023,7 @@ export default class bitrue extends Exchange {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
             if ((error === '200') || Precise.stringEquals (error, '0')) {
-                return;
+                return undefined;
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
@@ -2038,6 +2038,7 @@ export default class bitrue extends Exchange {
         if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {

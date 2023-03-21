@@ -1605,7 +1605,7 @@ export default class gemini extends Exchange {
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             }
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {
@@ -1624,6 +1624,7 @@ export default class gemini extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 
     async createDepositAddress (code, params = {}) {

@@ -4660,7 +4660,7 @@ export default class coinex extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
@@ -4684,5 +4684,6 @@ export default class coinex extends Exchange {
             const ErrorClass = this.safeValue (responseCodes, code, ExchangeError);
             throw new ErrorClass (response['message']);
         }
+        return undefined;
     }
 }

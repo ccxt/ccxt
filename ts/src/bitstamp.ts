@@ -2059,7 +2059,7 @@ export default class bitstamp extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"error": "No permission found"} // fetchDepositAddress returns this on apiKeys that don't have the permission required
@@ -2105,5 +2105,6 @@ export default class bitstamp extends Exchange {
             }
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

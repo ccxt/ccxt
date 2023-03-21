@@ -1552,7 +1552,7 @@ export default class timex extends Exchange {
 
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (statusCode >= 400) {
             //
@@ -1571,5 +1571,6 @@ export default class timex extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

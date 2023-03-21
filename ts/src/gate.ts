@@ -5184,7 +5184,7 @@ export default class gate extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //    {"label": "ORDER_NOT_FOUND", "message": "Order not found"}
@@ -5199,5 +5199,6 @@ export default class gate extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], label, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

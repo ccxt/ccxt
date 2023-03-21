@@ -2071,7 +2071,7 @@ export default class poloniex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         // {"error":"Permission denied."}
         if ('error' in response) {
@@ -2081,5 +2081,6 @@ export default class poloniex extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

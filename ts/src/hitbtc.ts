@@ -1515,7 +1515,7 @@ export default class hitbtc extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (code >= 400) {
             const feedback = this.id + ' ' + body;
@@ -1541,5 +1541,6 @@ export default class hitbtc extends Exchange {
             }
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

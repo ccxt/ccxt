@@ -913,7 +913,7 @@ export default class kuna extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (code === 400) {
             const error = this.safeValue (response, 'error');
@@ -922,5 +922,6 @@ export default class kuna extends Exchange {
             this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
             // fallback to default error handler
         }
+        return undefined;
     }
 }

@@ -1063,7 +1063,7 @@ export default class bithumb extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('status' in response) {
             //
@@ -1084,5 +1084,6 @@ export default class bithumb extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+        return undefined;
     }
 }

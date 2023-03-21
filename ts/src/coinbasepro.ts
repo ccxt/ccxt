@@ -1811,6 +1811,7 @@ export default class coinbasepro extends Exchange {
             }
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 
     async request (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}, context = {}) {

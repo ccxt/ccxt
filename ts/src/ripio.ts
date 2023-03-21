@@ -1132,7 +1132,7 @@ export default class ripio extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //      {"detail":"Authentication credentials were not provided."}
@@ -1160,5 +1160,6 @@ export default class ripio extends Exchange {
             }
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

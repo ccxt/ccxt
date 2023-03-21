@@ -2627,7 +2627,7 @@ export default class btcex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to the default error handler
+            return undefined; // fallback to the default error handler
         }
         const error = this.safeValue (response, 'error');
         if (error) {
@@ -2638,5 +2638,6 @@ export default class btcex extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

@@ -3161,7 +3161,7 @@ export default class mexc extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //     {"code":10232,"msg":"The currency not exist"}
         //     {"code":10216,"msg":"No available deposit address"}
@@ -3174,7 +3174,7 @@ export default class mexc extends Exchange {
         //
         const success = this.safeValue (response, 'success', false);
         if (success === true) {
-            return;
+            return undefined;
         }
         const responseCode = this.safeString (response, 'code');
         if ((responseCode !== '200') && (responseCode !== '0')) {
@@ -3183,6 +3183,7 @@ export default class mexc extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 
     async fetchFundingHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {

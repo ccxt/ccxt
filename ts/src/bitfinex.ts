@@ -1660,7 +1660,7 @@ export default class bitfinex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         let throwError = false;
         if (code >= 400) {
@@ -1683,5 +1683,6 @@ export default class bitfinex extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

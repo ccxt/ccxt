@@ -2373,7 +2373,7 @@ export default class tokocrypto extends Exchange {
             }
         }
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
@@ -2427,6 +2427,7 @@ export default class tokocrypto extends Exchange {
         if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {

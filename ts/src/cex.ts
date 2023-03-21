@@ -1594,7 +1594,7 @@ export default class cex extends Exchange {
             return response; // public endpoints may return []-arrays
         }
         if (body === 'true') {
-            return;
+            return undefined;
         }
         if (response === undefined) {
             throw new NullResponse (this.id + ' returned ' + this.json (response));
@@ -1602,7 +1602,7 @@ export default class cex extends Exchange {
         if ('e' in response) {
             if ('ok' in response) {
                 if (response['ok'] === 'ok') {
-                    return;
+                    return undefined;
                 }
             }
         }
@@ -1613,5 +1613,6 @@ export default class cex extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

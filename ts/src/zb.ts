@@ -4349,7 +4349,7 @@ export default class zb extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if (body[0] === '{') {
             const feedback = this.id + ' ' + body;
@@ -4374,5 +4374,6 @@ export default class zb extends Exchange {
                 }
             }
         }
+        return undefined;
     }
 }

@@ -1934,7 +1934,7 @@ export default class currencycom extends Exchange {
             }
         }
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {"code":-1128,"msg":"Combination of optional parameters invalid."}
@@ -1947,5 +1947,6 @@ export default class currencycom extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

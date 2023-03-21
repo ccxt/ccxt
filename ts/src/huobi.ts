@@ -5771,7 +5771,7 @@ export default class huobi extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('status' in response) {
             //
@@ -5794,6 +5794,7 @@ export default class huobi extends Exchange {
             const code = this.safeString (response, 'code');
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
         }
+        return undefined;
     }
 
     async fetchFundingHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {

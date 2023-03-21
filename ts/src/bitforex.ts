@@ -716,7 +716,7 @@ export default class bitforex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (typeof body !== 'string') {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ((body[0] === '{') || (body[0] === '[')) {
             const feedback = this.id + ' ' + body;
@@ -729,5 +729,6 @@ export default class bitforex extends Exchange {
                 }
             }
         }
+        return undefined;
     }
 }

@@ -2779,6 +2779,7 @@ export default class bitmex extends Exchange {
             }
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 
     nonce () {

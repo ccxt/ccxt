@@ -3028,7 +3028,7 @@ export default class ascendex extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {'code': 6010, 'message': 'Not enough balance.'}
@@ -3046,5 +3046,6 @@ export default class ascendex extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

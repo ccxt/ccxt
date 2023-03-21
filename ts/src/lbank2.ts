@@ -2355,7 +2355,7 @@ export default class lbank2 extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const success = this.safeString (response, 'result');
         if (success === 'false') {
@@ -2467,5 +2467,6 @@ export default class lbank2 extends Exchange {
             }, errorCode, ExchangeError);
             throw new ErrorClass (message);
         }
+        return undefined;
     }
 }

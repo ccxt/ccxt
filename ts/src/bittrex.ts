@@ -2141,7 +2141,7 @@ export default class bittrex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     { success: false, message: "message" }
@@ -2159,7 +2159,7 @@ export default class bittrex extends Exchange {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], code, feedback);
                 }
                 // throw new ExchangeError (this.id + ' malformed response ' + this.json (response));
-                return;
+                return undefined;
             }
             if (typeof success === 'string') {
                 // bleutrade uses string instead of boolean
@@ -2218,5 +2218,6 @@ export default class bittrex extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+        return undefined;
     }
 }

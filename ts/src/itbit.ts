@@ -830,11 +830,12 @@ export default class itbit extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const code = this.safeString (response, 'code');
         if (code !== undefined) {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
+        return undefined;
     }
 }

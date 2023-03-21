@@ -1660,7 +1660,7 @@ export default class probit extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('errorCode' in response) {
             const errorCode = this.safeString (response, 'errorCode');
@@ -1672,5 +1672,6 @@ export default class probit extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+        return undefined;
     }
 }

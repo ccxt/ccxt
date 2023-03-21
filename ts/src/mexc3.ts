@@ -4957,7 +4957,7 @@ export default class mexc3 extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         // spot
         //     {"code":-1128,"msg":"Combination of optional parameters invalid.","_extend":null}
@@ -4971,7 +4971,7 @@ export default class mexc3 extends Exchange {
         //
         const success = this.safeValue (response, 'success', false); // v1
         if (success === true) {
-            return;
+            return undefined;
         }
         const responseCode = this.safeString (response, 'code', undefined);
         if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
@@ -4980,5 +4980,6 @@ export default class mexc3 extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

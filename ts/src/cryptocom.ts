@@ -2532,5 +2532,6 @@ export default class cryptocom extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 }

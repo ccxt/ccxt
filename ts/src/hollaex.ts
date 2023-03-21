@@ -1759,7 +1759,7 @@ export default class hollaex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if ((code >= 400) && (code <= 503)) {
             //
@@ -1777,5 +1777,6 @@ export default class hollaex extends Exchange {
             const status = code.toString ();
             this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
         }
+        return undefined;
     }
 }

@@ -2821,6 +2821,7 @@ export default class hitbtc3 extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {

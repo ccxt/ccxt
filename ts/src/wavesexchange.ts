@@ -2217,6 +2217,7 @@ export default class wavesexchange extends Exchange {
         if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

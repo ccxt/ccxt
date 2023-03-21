@@ -3583,7 +3583,7 @@ export default class kucoin extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
-            return;
+            return undefined;
         }
         //
         // bad
@@ -3597,5 +3597,6 @@ export default class kucoin extends Exchange {
         this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+        return undefined;
     }
 }

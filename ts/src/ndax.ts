@@ -2415,7 +2415,7 @@ export default class ndax extends Exchange {
             throw new AuthenticationError (this.id + ' ' + body);
         }
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101}
@@ -2428,5 +2428,6 @@ export default class ndax extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

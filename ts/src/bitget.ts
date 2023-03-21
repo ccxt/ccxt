@@ -4249,7 +4249,7 @@ export default class bitget extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         // spot
@@ -4290,6 +4290,7 @@ export default class bitget extends Exchange {
         if (nonZeroErrorCode || nonEmptyMessage) {
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {

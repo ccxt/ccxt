@@ -3901,11 +3901,11 @@ export default class digifinex extends Exchange {
 
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fall back to default error handler
+            return undefined; // fall back to default error handler
         }
         const code = this.safeString (response, 'code');
         if ((code === '0') || (code === '200')) {
-            return; // no error
+            return undefined; // no error
         }
         const feedback = this.id + ' ' + responseBody;
         if (code === undefined) {

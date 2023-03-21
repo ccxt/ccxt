@@ -1942,7 +1942,7 @@ export default class bkex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         // success
@@ -1976,7 +1976,7 @@ export default class bkex extends Exchange {
         //
         const message = this.safeValue (response, 'msg');
         if (message === 'success') {
-            return;
+            return undefined;
         }
         const responseCode = this.safeString (response, 'code');
         if (responseCode !== '0') {
@@ -1985,5 +1985,6 @@ export default class bkex extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

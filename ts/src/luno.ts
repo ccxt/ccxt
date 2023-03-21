@@ -1029,11 +1029,12 @@ export default class luno extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const error = this.safeValue (response, 'error');
         if (error !== undefined) {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
+        return undefined;
     }
 }
