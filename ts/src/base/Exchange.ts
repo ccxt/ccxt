@@ -145,7 +145,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import {Market, Trade, Fee, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse } from './types'
+import {Market, Trade, Fee, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax } from './types'
 export {Market, Trade, Fee, Ticker} from './types'
 
 
@@ -155,7 +155,9 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './ws/
 
 // ----------------------------------------------------------------------------
 export default class Exchange {
-    options: {};
+    options: {
+        [key: string]: any;
+    }
     fetchOptions: any;
     userAgents: any;
     headers: any;
@@ -193,11 +195,11 @@ export default class Exchange {
     userAgent     = undefined
     twofa         = undefined // two-factor authentication (2FA)
 
-    apiKey        = undefined
-    secret        = undefined
-    uid           = undefined
+    apiKey: string;
+    secret: string;
+    uid: string;
     login         = undefined
-    password      = undefined
+    password
     privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
     walletAddress = undefined // a wallet address "0x"-prefixed hexstring
     token         = undefined // reserved for HTTP auth in some cases
@@ -211,11 +213,23 @@ export default class Exchange {
     ohlcvs: any
     myTrades: any
     positions    = {}
-    urls = {}
+    urls: {
+        logo?: string;
+        api?: string | Dictionary<string>;
+        test?: string | Dictionary<string>;
+        www?: string;
+        doc?: string[];
+        api_management?: string;
+        fees?: string;
+        referral?: string;
+    };
 
     requiresWeb3 = false
     requiresEddsa = false
-    precision = {}
+    precision: {
+        amount: number | undefined,
+        price: number | undefined
+    };
 
     enableLastJsonResponse = true
     enableLastHttpResponse = true
@@ -224,14 +238,24 @@ export default class Exchange {
     last_json_response    = undefined
     last_response_headers = undefined
 
-    id = undefined
+    id: string = undefined
 
-    markets: Dictionary<Market> = undefined
-    has = {}
+    markets: Dictionary<any> = undefined
+    has: Dictionary<boolean | 'emulated'>
 
     status = undefined
 
-    requiredCredentials = undefined
+    requiredCredentials: {
+        apiKey: boolean;
+        secret: boolean;
+        uid: boolean;
+        login: boolean;
+        password: boolean;
+        twofa: boolean;
+        privateKey: boolean;
+        walletAddress: boolean;
+        token: boolean;
+    };
     rateLimit = undefined
     tokenBucket = undefined
     throttle = undefined
@@ -239,12 +263,17 @@ export default class Exchange {
 
     httpExceptions = undefined
 
-    limits = undefined
+    limits: {
+        amount?: MinMax,
+        cost?: MinMax,
+        leverage?: MinMax,
+        price?: MinMax,
+    };
     fees = undefined
-    markets_by_id = undefined
+    markets_by_id: Dictionary<any> = undefined
     symbols = undefined
-    ids = undefined
-    currencies = undefined
+    ids: string[] = undefined
+    currencies: Dictionary<Currency> = undefined
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
@@ -265,7 +294,7 @@ export default class Exchange {
     paddingMode = undefined
 
     exceptions = {}
-    timeframes = []
+    timeframes: Dictionary<number | string> = {}
 
     version = undefined
 
@@ -649,7 +678,6 @@ export default class Exchange {
         // web3 and cryptography flags
         this.requiresWeb3 = false
         this.requiresEddsa = false
-        this.precision = {}
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0
         this.enableLastJsonResponse = true
@@ -783,7 +811,7 @@ export default class Exchange {
             }
         } else if ('apiBackup' in this.urls) {
             if (typeof this.urls['api'] === 'string') {
-                this.urls['api'] = this.urls['apiBackup']
+                this.urls['api'] = this.urls['apiBackup'] as any
             } else {
                 this.urls['api'] = clone (this.urls['apiBackup'])
             }
@@ -1563,9 +1591,9 @@ export default class Exchange {
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
             if (value['id'] in this.markets_by_id) {
-                this.markets_by_id[value['id']].push (value);
+                (this.markets_by_id[value['id']] as any).push (value);
             } else {
-                this.markets_by_id[value['id']] = [ value ];
+                this.markets_by_id[value['id']] = [ value ] as any;
             }
             const market = this.deepExtend (this.safeMarket (), {
                 'precision': this.precision,

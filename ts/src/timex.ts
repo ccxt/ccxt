@@ -407,7 +407,7 @@ export default class timex extends Exchange {
     }
 
     getCurrencyByAddress (address) {
-        const currencies = this.currencies;
+        const currencies = this.currencies as any;
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const info = this.safeValue (currency, 'info', {});
