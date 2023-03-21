@@ -739,7 +739,7 @@ export default class hitbtc3 extends Exchange {
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const response = await (this as any).fetchTickers ([ symbol ], params);
+        const response = await this.fetchTickers ([ symbol ], params);
         return this.safeValue (response, symbol);
     }
 

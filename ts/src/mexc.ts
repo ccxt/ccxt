@@ -1520,7 +1520,7 @@ export default class mexc extends Exchange {
          */
         const rawNetwork = this.safeStringUpper (params, 'network');
         params = this.omit (params, 'network');
-        const response = await (this as any).fetchDepositAddressesByNetwork (code, params);
+        const response = await this.fetchDepositAddressesByNetwork (code, params);
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         let result = undefined;
