@@ -2047,7 +2047,7 @@ export default class btcex extends Exchange {
         const data = this.safeValue(response, 'result', []);
         return this.parseMarketLeverageTiers(data, market);
     }
-    parseMarketLeverageTiers(info, market) {
+    parseMarketLeverageTiers(info, market = undefined) {
         //
         //     [
         //         {

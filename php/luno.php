@@ -574,7 +574,7 @@ class luno extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade($trade, $market) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //

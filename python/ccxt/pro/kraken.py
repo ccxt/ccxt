@@ -86,25 +86,25 @@ class kraken(ccxt.async_support.kraken):
         market = self.safe_value(self.options['marketsByWsName'], wsName)
         symbol = market['symbol']
         ticker = message[1]
-        vwap = self.safe_float(ticker['p'], 0)
+        vwap = self.safe_string(ticker['p'], 0)
         quoteVolume = None
-        baseVolume = self.safe_float(ticker['v'], 0)
+        baseVolume = self.safe_string(ticker['v'], 0)
         if baseVolume is not None and vwap is not None:
-            quoteVolume = baseVolume * vwap
-        last = self.safe_float(ticker['c'], 0)
+            quoteVolume = Precise.string_mul(baseVolume, vwap)
+        last = self.safe_string(ticker['c'], 0)
         timestamp = self.milliseconds()
-        result = {
+        result = self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker['h'], 0),
-            'low': self.safe_float(ticker['l'], 0),
-            'bid': self.safe_float(ticker['b'], 0),
-            'bidVolume': self.safe_float(ticker['b'], 2),
-            'ask': self.safe_float(ticker['a'], 0),
-            'askVolume': self.safe_float(ticker['a'], 2),
+            'high': self.safe_string(ticker['h'], 0),
+            'low': self.safe_string(ticker['l'], 0),
+            'bid': self.safe_string(ticker['b'], 0),
+            'bidVolume': self.safe_string(ticker['b'], 2),
+            'ask': self.safe_string(ticker['a'], 0),
+            'askVolume': self.safe_string(ticker['a'], 2),
             'vwap': vwap,
-            'open': self.safe_float(ticker['o'], 0),
+            'open': self.safe_string(ticker['o'], 0),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -114,7 +114,7 @@ class kraken(ccxt.async_support.kraken):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        })
         # todo add support for multiple tickers(may be tricky)
         # kraken confirms multi-pair subscriptions separately one by one
         # trigger correct watchTickers calls upon receiving any of symbols

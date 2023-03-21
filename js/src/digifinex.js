@@ -2817,7 +2817,7 @@ export default class digifinex extends Exchange {
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
-    parseBorrowInterest(info, market) {
+    parseBorrowInterest(info, market = undefined) {
         //
         //     {
         //         "amount": 0.0006103,
@@ -3649,7 +3649,7 @@ export default class digifinex extends Exchange {
         const data = this.safeValue(response, 'data', {});
         return this.parseMarketLeverageTiers(data, market);
     }
-    parseMarketLeverageTiers(info, market) {
+    parseMarketLeverageTiers(info, market = undefined) {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",

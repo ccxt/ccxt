@@ -370,7 +370,7 @@ export default class wavesexchange extends Exchange {
     }
 
     async customCalculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const response = await (this as any).getFeesForAsset (symbol, side, amount, price);
+        const response = await this.getFeesForAsset (symbol, side, amount, price);
         // {
         //     "base":{
         //        "feeAssetId":"WAVES",
@@ -1285,7 +1285,7 @@ export default class wavesexchange extends Exchange {
         const timestamp = this.milliseconds ();
         const defaultExpiryDelta = this.safeInteger (this.options, 'createOrderDefaultExpiry', 2419200000);
         const expiration = this.sum (timestamp, defaultExpiryDelta);
-        const matcherFees = await (this as any).getFeesForAsset (symbol, side, amount, price);
+        const matcherFees = await this.getFeesForAsset (symbol, side, amount, price);
         // {
         //     "base":{
         //        "feeAssetId":"WAVES", // varies depending on the trading pair

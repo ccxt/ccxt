@@ -533,7 +533,7 @@ class lykke(Exchange):
         timestamp = self.safe_integer(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'p', 'v')
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         #
         #  public fetchTrades
         #

@@ -214,7 +214,7 @@ var zb$1 = require('./src/pro/zb.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.20';
+const version = '3.0.26';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,

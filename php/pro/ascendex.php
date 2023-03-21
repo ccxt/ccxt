@@ -942,19 +942,17 @@ class ascendex extends \ccxt\async\ascendex {
             //
             //     array( m => 'ping', hp => 3 )
             //
-            Async\await($client->send (array( 'op' => 'pong', 'hp' => $this->safe_integer($message, 'hp') )));
-        }) ();
-    }
-
-    public function handle_ping($client, $message) {
-        return Async\async(function () use ($client, $message) {
             try {
-                Async\await($this->spawn(array($this, 'pong'), $client, $message));
+                Async\await($client->send (array( 'op' => 'pong', 'hp' => $this->safe_integer($message, 'hp') )));
             } catch (Exception $e) {
                 $error = new NetworkError ($this->id . ' handlePing failed with $error ' . $this->json($e));
                 $client->reset ($error);
             }
         }) ();
+    }
+
+    public function handle_ping($client, $message) {
+        $this->spawn(array($this, 'pong'), $client, $message);
     }
 
     public function authenticate($url, $params = array ()) {

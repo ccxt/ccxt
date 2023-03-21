@@ -31,6 +31,7 @@ class gate extends Exchange {
                         'spot' => 'https://api.gateio.ws/api/v4',
                         'options' => 'https://api.gateio.ws/api/v4',
                         'sub_accounts' => 'https://api.gateio.ws/api/v4',
+                        'earn' => 'https://api.gateio.ws/api/v4',
                     ),
                     'private' => array(
                         'withdrawals' => 'https://api.gateio.ws/api/v4',
@@ -41,6 +42,8 @@ class gate extends Exchange {
                         'spot' => 'https://api.gateio.ws/api/v4',
                         'options' => 'https://api.gateio.ws/api/v4',
                         'subAccounts' => 'https://api.gateio.ws/api/v4',
+                        'rebate' => 'https://api.gateio.ws/api/v4',
+                        'earn' => 'https://api.gateio.ws/api/v4',
                     ),
                 ),
                 'test' => array(
@@ -196,6 +199,12 @@ class gate extends Exchange {
                             'trades' => 1.5,
                         ),
                     ),
+                    'earn' => array(
+                        'get' => array(
+                            'uni/currencies' => 1.5,
+                            'uni/currencies/{currency}' => 1.5,
+                        ),
+                    ),
                 ),
                 'private' => array(
                     'withdrawals' => array(
@@ -322,6 +331,7 @@ class gate extends Exchange {
                             '{settle}/price_orders' => 1.5,
                             '{settle}/price_orders/{order_id}' => 1.5,
                             '{settle}/dual_comp/positions/{contract}' => 1.5,
+                            '{settle}/auto_deleverages' => 1.5,
                         ),
                         'post' => array(
                             '{settle}/positions/{contract}/margin' => 1.5,
@@ -388,6 +398,26 @@ class gate extends Exchange {
                         'delete' => array(
                             'orders' => 1.5,
                             'orders/{order_id}' => 1.5,
+                        ),
+                    ),
+                    'rebate' => array(
+                        'get' => array(
+                            'agency/transaction_history' => 1.5,
+                            'agency/commission_history' => 1.5,
+                        ),
+                    ),
+                    'earn' => array(
+                        'get' => array(
+                            'uni/lends' => 1.5,
+                            'uni/lend_records' => 1.5,
+                            'uni/interests/{currency}' => 1.5,
+                            'uni/interest_records' => 1.5,
+                        ),
+                        'post' => array(
+                            'uni/lends' => 1.5,
+                        ),
+                        'patch' => array(
+                            'uni/lends' => 1.5,
                         ),
                     ),
                 ),

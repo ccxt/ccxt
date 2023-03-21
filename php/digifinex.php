@@ -2770,7 +2770,7 @@ class digifinex extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest($info, $market) {
+    public function parse_borrow_interest($info, $market = null) {
         //
         //     {
         //         "amount" => 0.0006103,
@@ -3595,7 +3595,7 @@ class digifinex extends Exchange {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, $market) {
+    public function parse_market_leverage_tiers($info, $market = null) {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",

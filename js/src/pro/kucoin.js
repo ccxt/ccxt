@@ -829,8 +829,8 @@ export default class kucoin extends kucoinRest {
         };
     }
     handlePong(client, message) {
-        // https://docs.kucoin.com/#ping
         client.lastPong = this.milliseconds();
+        // https://docs.kucoin.com/#ping
     }
     handleErrorMessage(client, message) {
         return message;

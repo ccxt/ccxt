@@ -618,6 +618,7 @@ export default class bitget extends Exchange {
                     '40016': PermissionDenied, // The user must bind the phone or Google
                     '40017': ExchangeError, // Parameter verification failed
                     '40018': PermissionDenied, // Invalid IP
+                    '40019': InvalidOrder, // {"code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null}
                     '40102': BadRequest, // Contract configuration does not exist, please check the parameters
                     '40103': BadRequest, // Request method cannot be empty
                     '40104': ExchangeError, // Lever adjustment failure
@@ -690,6 +691,7 @@ export default class bitget extends Exchange {
                     '40712': InsufficientFunds, // Insufficient margin
                     '40713': ExchangeError, // Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError, // No direct margin call is allowed
+                    '41114': OnMaintenance, // {"code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null}
                     '43011': InvalidOrder, // The parameter does not meet the specification executePrice <= 0
                     '43025': InvalidOrder, // Plan order does not exist
                     '45110': InvalidOrder, // {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
@@ -3369,7 +3371,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        return await this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchPosition (symbol, params = {}) {

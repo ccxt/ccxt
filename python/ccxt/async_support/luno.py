@@ -550,7 +550,7 @@ class luno(Exchange):
         # }
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         #
         # fetchTrades(public)
         #

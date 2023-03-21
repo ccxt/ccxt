@@ -1756,7 +1756,7 @@ class bkex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market):
+    def parse_market_leverage_tiers(self, info, market=None):
         #
         #     [
         #         {

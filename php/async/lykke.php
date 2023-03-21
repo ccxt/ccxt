@@ -549,7 +549,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market) {
+    public function parse_trade($trade, $market = null) {
         //
         //  public fetchTrades
         //

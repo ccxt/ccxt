@@ -684,7 +684,7 @@ export default class bitmex extends Exchange {
                 'orderID': id,
             },
         };
-        const response = await (this as any).fetchOrders (symbol, undefined, undefined, this.deepExtend (filter, params));
+        const response = await this.fetchOrders (symbol, undefined, undefined, this.deepExtend (filter, params));
         const numResults = response.length;
         if (numResults === 1) {
             return response[0];

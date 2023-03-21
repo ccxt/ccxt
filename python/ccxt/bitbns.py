@@ -1080,7 +1080,8 @@ class bitbns(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='www', method='GET', params={}, headers=None, body=None):
-        if not (api in self.urls['api']):
+        urls = self.urls
+        if not (api in urls['api']):
             raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
         if api != 'www':
             self.check_required_credentials()

@@ -786,7 +786,7 @@ class btcturk extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market) {
+    public function parse_order($order, $market = null) {
         //
         // fetchOrders / fetchOpenOrders
         //     {

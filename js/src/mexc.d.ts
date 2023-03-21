@@ -215,7 +215,7 @@ export default class mexc extends Exchange {
     }>;
     fetchFundingRateHistory(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
-    parseMarketLeverageTiers(info: any, market: any): any[];
+    parseMarketLeverageTiers(info: any, market?: any): any[];
     setPositionMode(hedged: any, symbol?: string, params?: {}): Promise<any>;
     fetchPositionMode(symbol?: string, params?: {}): Promise<{
         info: any;

@@ -134,7 +134,7 @@ export default class gate extends Exchange {
         taker: number;
     };
     fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): {
         info: any;
         withdraw: {

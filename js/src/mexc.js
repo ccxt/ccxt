@@ -299,6 +299,7 @@ export default class mexc extends Exchange {
                 'FLUX': 'FLUX1',
                 'FREE': 'FreeRossDAO',
                 'GAS': 'GASDAO',
+                'GASNEO': 'GAS',
                 'GMT': 'GMT Token',
                 'HERO': 'Step Hero',
                 'MIMO': 'Mimosa',
@@ -3444,7 +3445,7 @@ export default class mexc extends Exchange {
         const data = this.safeValue(response, 'data');
         return this.parseLeverageTiers(data, symbols, 'symbol');
     }
-    parseMarketLeverageTiers(info, market) {
+    parseMarketLeverageTiers(info, market = undefined) {
         /**
          * @ignore
          * @method

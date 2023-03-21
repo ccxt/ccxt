@@ -1887,7 +1887,7 @@ class bkex extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, $market) {
+    public function parse_market_leverage_tiers($info, $market = null) {
         //
         //     array(
         //         array(

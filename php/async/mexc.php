@@ -305,6 +305,7 @@ class mexc extends Exchange {
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
                 'GAS' => 'GASDAO',
+                'GASNEO' => 'GAS',
                 'GMT' => 'GMT Token',
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
@@ -3486,7 +3487,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, $market) {
+    public function parse_market_leverage_tiers($info, $market = null) {
         /**
          * @ignore
          * @param {array} $info Exchange response for 1 $market

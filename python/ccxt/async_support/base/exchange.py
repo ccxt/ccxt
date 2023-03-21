@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.20'
+__version__ = '3.0.26'
 
 # -----------------------------------------------------------------------------
 
@@ -479,82 +479,85 @@ class Exchange(BaseExchange):
         return {}
 
     async def fetch_accounts(self, params={}):
-        return None
+        raise NotSupported(self.id + ' fetchAccounts() is not supported yet')
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        return None
+        raise NotSupported(self.id + ' fetchTrades() is not supported yet')
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
-        return None
+        raise NotSupported(self.id + ' watchTrades() is not supported yet')
 
     async def fetch_deposit_addresses(self, codes=None, params={}):
-        return None
+        raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
-        return None
+        raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
     async def watch_order_book(self, symbol, limit=None, params={}):
-        return None
+        raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
 
     async def fetch_time(self, params={}):
-        return None
+        raise NotSupported(self.id + ' fetchTime() is not supported yet')
 
     async def fetch_trading_limits(self, symbols=None, params={}):
-        return None
+        raise NotSupported(self.id + ' fetchTradingLimits() is not supported yet')
 
     def parse_ticker(self, ticker, market=None):
-        return None
+        raise NotSupported(self.id + ' parseTicker() is not supported yet')
 
     def parse_deposit_address(self, depositAddress, currency=None):
-        return None
+        raise NotSupported(self.id + ' parseDepositAddress() is not supported yet')
 
     def parse_trade(self, trade, market=None):
-        return None
+        raise NotSupported(self.id + ' parseTrade() is not supported yet')
 
     def parse_transaction(self, transaction, currency=None):
-        return None
+        raise NotSupported(self.id + ' parseTransaction() is not supported yet')
 
     def parse_transfer(self, transfer, currency=None):
-        return None
+        raise NotSupported(self.id + ' parseTransfer() is not supported yet')
 
     def parse_account(self, account):
-        return None
+        raise NotSupported(self.id + ' parseAccount() is not supported yet')
 
     def parse_ledger_entry(self, item, currency=None):
-        return None
+        raise NotSupported(self.id + ' parseLedgerEntry() is not supported yet')
 
     def parse_order(self, order, market=None):
-        return None
+        raise NotSupported(self.id + ' parseOrder() is not supported yet')
 
     async def fetch_borrow_rates(self, params={}):
-        return None
+        raise NotSupported(self.id + ' fetchBorrowRates() is not supported yet')
 
-    def parse_market_leverage_tiers(self, info, market):
-        return None
+    def parse_market_leverage_tiers(self, info, market=None):
+        raise NotSupported(self.id + ' parseMarketLeverageTiers() is not supported yet')
 
     async def fetch_leverage_tiers(self, symbols=None, params={}):
-        return None
+        raise NotSupported(self.id + ' fetchLeverageTiers() is not supported yet')
 
     def parse_position(self, position, market=None):
-        return None
+        raise NotSupported(self.id + ' parsePosition() is not supported yet')
 
     def parse_funding_rate_history(self, info, market=None):
-        return None
+        raise NotSupported(self.id + ' parseFundingRateHistory() is not supported yet')
 
     def parse_borrow_interest(self, info, market=None):
-        return None
+        raise NotSupported(self.id + ' parseBorrowInterest() is not supported yet')
 
     async def fetch_funding_rates(self, symbols=None, params={}):
-        return None
+        raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
-        return None
+        raise NotSupported(self.id + ' transfer() is not supported yet')
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
-        return None
+        raise NotSupported(self.id + ' withdraw() is not supported yet')
 
     async def create_deposit_address(self, code, params={}):
-        return None
+        raise NotSupported(self.id + ' createDepositAddress() is not supported yet')
+
+    async def set_leverage(self, leverage, symbol=None, params={}):
+        raise NotSupported(self.id + ' setLeverage() is not supported yet')
 
     def parse_to_int(self, number):
         # Solve Common intmisuse ex: int((since / str(1000)))
@@ -620,7 +623,7 @@ class Exchange(BaseExchange):
         for i in range(0, len(marketValues)):
             value = marketValues[i]
             if value['id'] in self.markets_by_id:
-                self.markets_by_id[value['id']].append(value)
+                (self.markets_by_id[value['id']]).append(value)
             else:
                 self.markets_by_id[value['id']] = [value]
             market = self.deep_extend(self.safe_market(), {
@@ -1964,6 +1967,9 @@ class Exchange(BaseExchange):
     async def cancel_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
+    async def cancel_all_orders(self, symbol=None, params={}):
+        raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
+
     async def cancel_unified_order(self, order, params={}):
         return self.cancelOrder(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
@@ -2125,6 +2131,8 @@ class Exchange(BaseExchange):
         if precision is None:
             return None
         precisionNumber = int(precision)
+        if precisionNumber == 0:
+            return '1'
         parsedPrecision = '0.'
         for i in range(0, precisionNumber - 1):
             parsedPrecision = parsedPrecision + '0'

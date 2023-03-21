@@ -733,7 +733,7 @@ class btcturk(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market):
+    def parse_order(self, order, market=None):
         #
         # fetchOrders / fetchOpenOrders
         #     {

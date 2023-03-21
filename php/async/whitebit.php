@@ -1715,7 +1715,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency) {
+    public function parse_transfer($transfer, $currency = null) {
         //
         //    array()
         //

@@ -16,7 +16,7 @@ const uuidv1 = () => {
     return arranged + clockId + macAddress;
 };
 const setTimeout_original = setTimeout;
-const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overrideable for mocking purposes */, targetTime = now () + ms) => {
+const setTimeout_safe = (done, ms, setTimeout: any = setTimeout_original /* overrideable for mocking purposes */, targetTime = now () + ms) => {
     // avoid MAX_INT issue https://github.com/ccxt/ccxt/issues/10761
     if (ms >= 2147483647) {
         throw new Error ('setTimeout() function was called with unrealistic value of ' + ms.toString ());

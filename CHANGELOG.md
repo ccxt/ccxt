@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.26 (2023-03-21)
+
+
+### Bug Fixes
+
+* **kucoin:** handlePong ([756cb79](https://github.com/ccxt/ccxt/commit/756cb79fa2cdc7a34934c8f5cffaac1e6d422958))
+
+### 3.0.25 (2023-03-20)
+
+### 3.0.24 (2023-03-20)
+
+### 3.0.23 (2023-03-19)
+
+### 3.0.22 (2023-03-18)
+
+### 3.0.21 (2023-03-18)
+
 ### 3.0.20 (2023-03-18)
 
 ### 3.0.19 (2023-03-17)

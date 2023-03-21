@@ -781,8 +781,8 @@ class kucoin(ccxt.async_support.kucoin):
         }
 
     def handle_pong(self, client, message):
-        # https = self.milliseconds()
-        pass
+        client.lastPong = self.milliseconds()
+        # https://docs.kucoin.com/#ping
 
     def handle_error_message(self, client, message):
         return message
