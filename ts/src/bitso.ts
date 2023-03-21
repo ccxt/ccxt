@@ -686,7 +686,7 @@ export default class bitso extends Exchange {
         return this.parseOHLCVs (payload, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m') {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "bucket_start_time":1648219140000,

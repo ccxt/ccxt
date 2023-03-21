@@ -422,13 +422,13 @@ export default class ascendex extends Exchange {
             const fee = this.safeNumber2 (currency, 'withdrawFee', 'withdrawalFee');
             const status = this.safeString2 (currency, 'status', 'statusCode');
             const active = (status === 'Normal');
-            const margin = ('borrowAssetCode' in currency);
+            const marginInside = ('borrowAssetCode' in currency);
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': undefined,
-                'margin': margin,
+                'margin': marginInside,
                 'name': this.safeString (currency, 'assetName'),
                 'active': active,
                 'deposit': undefined,

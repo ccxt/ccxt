@@ -970,7 +970,7 @@ export default class bitbank extends Exchange {
             const message = this.safeString (errorMessages, code, 'Error');
             const ErrorClass = this.safeValue (errorClasses, code);
             if (ErrorClass !== undefined) {
-                throw new ErrorClass (message);
+                throw new errorClasses[code] (message);
             } else {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }

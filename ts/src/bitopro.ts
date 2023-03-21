@@ -1022,7 +1022,7 @@ export default class bitopro extends Exchange {
         if (postOnly) {
             request['timeInForce'] = 'POST_ONLY';
         }
-        const response = await (this as any).privatePostOrdersPair (this.extend (request, params), params);
+        const response = await (this as any).privatePostOrdersPair (this.extend (request, params));
         //
         //     {
         //         orderId: '2220595581',

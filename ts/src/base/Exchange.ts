@@ -1453,7 +1453,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseTicker() is not supported yet');
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency = undefined): {} {
         throw new NotSupported (this.id + ' parseDepositAddress() is not supported yet');
     }
 
@@ -1461,19 +1461,19 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseTrade() is not supported yet');
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): {} {
         throw new NotSupported (this.id + ' parseTransaction() is not supported yet');
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency = undefined): {} {
         throw new NotSupported (this.id + ' parseTransfer() is not supported yet');
     }
 
-    parseAccount (account) {
+    parseAccount (account): {} {
         throw new NotSupported (this.id + ' parseAccount() is not supported yet');
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency = undefined): {} {
         throw new NotSupported (this.id + ' parseLedgerEntry() is not supported yet');
     }
 
@@ -1485,7 +1485,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchBorrowRates() is not supported yet');
     }
 
-    parseMarketLeverageTiers (info, market = undefined) {
+    parseMarketLeverageTiers (info, market = undefined): {} {
         throw new NotSupported (this.id + ' parseMarketLeverageTiers() is not supported yet');
     }
 
@@ -1493,15 +1493,15 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported yet');
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market = undefined): {} {
         throw new NotSupported (this.id + ' parsePosition() is not supported yet');
     }
 
-    parseFundingRateHistory (info, market = undefined) {
+    parseFundingRateHistory (info, market = undefined): {} {
         throw new NotSupported (this.id + ' parseFundingRateHistory() is not supported yet');
     }
 
-    parseBorrowInterest (info, market = undefined) {
+    parseBorrowInterest (info, market = undefined): {} {
         throw new NotSupported (this.id + ' parseBorrowInterest() is not supported yet');
     }
 
@@ -2676,7 +2676,7 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail) as Trade[];
     }
 
-    parseTransactions (transactions, currency: string = undefined, since: number = undefined, limit: any = undefined, params = {}) {
+    parseTransactions (transactions, currency: string = undefined, since: number = undefined, limit: any = undefined, params = {}): {} {
         transactions = this.toArray (transactions);
         let result = [];
         for (let i = 0; i < transactions.length; i++) {
