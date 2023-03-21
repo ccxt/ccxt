@@ -35,6 +35,7 @@ export default class xt extends Exchange {
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -1469,7 +1470,7 @@ export default class xt extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // fetchTicker, fetchTickers: spot
+        // spot: fetchTicker, fetchTickers
         //
         //     {
         //         "s": "btc_usdt",
@@ -1484,7 +1485,7 @@ export default class xt extends Exchange {
         //         "v": "178675209.47416856"
         //     }
         //
-        // fetchTicker, fetchTickers: swap and future
+        // swap and future: fetchTicker, fetchTickers
         //
         //     {
         //         "t": 1678172848572,
@@ -1994,27 +1995,145 @@ export default class xt extends Exchange {
         return this.parseOrder (order, market);
     }
 
+    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://doc.xt.com/#orderhistoryOrderGet
+         * @see https://doc.xt.com/#futures_ordergetHistory
+         * @param {string|undefined} symbol unified market symbol of the market the orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order
+         * @param {int|undefined} limit the maximum number of order structures to retrieve
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
+        let method = 'privateSpotGetHistoryOrder';
+        if (subType === 'linear') {
+            method = 'privateLinearGetFutureTradeV1OrderListHistory';
+        } else if (subType === 'inverse') {
+            method = 'privateInverseGetFutureTradeV1OrderListHistory';
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //  spot
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {
+        //             "hasPrev": false,
+        //             "hasNext": true,
+        //             "items": [
+        //                 {
+        //                     "symbol": "btc_usdt",
+        //                     "orderId": "207505997850909952",
+        //                     "clientOrderId": null,
+        //                     "baseCurrency": "btc",
+        //                     "quoteCurrency": "usdt",
+        //                     "side": "BUY",
+        //                     "type": "LIMIT",
+        //                     "timeInForce": "GTC",
+        //                     "price": "20000.00",
+        //                     "origQty": "0.001000",
+        //                     "origQuoteQty": "20.00",
+        //                     "executedQty": "0.000000",
+        //                     "leavingQty": "0.000000",
+        //                     "tradeBase": "0.000000",
+        //                     "tradeQuote": "0.00",
+        //                     "avgPrice": null,
+        //                     "fee": null,
+        //                     "feeCurrency": null,
+        //                     "closed": true,
+        //                     "state": "CANCELED",
+        //                     "time": 1679175285162,
+        //                     "updatedTime": 1679175488492
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "hasPrev": false,
+        //             "hasNext": true,
+        //             "items": [
+        //                 {
+        //                     "orderId": "207519546930995456",
+        //                     "clientOrderId": null,
+        //                     "symbol": "btc_usdt",
+        //                     "orderType": "LIMIT",
+        //                     "orderSide": "BUY",
+        //                     "positionSide": "LONG",
+        //                     "timeInForce": "GTC",
+        //                     "closePosition": false,
+        //                     "price": "20000",
+        //                     "origQty": "100",
+        //                     "avgPrice": "0",
+        //                     "executedQty": "0",
+        //                     "marginFrozen": "4.12",
+        //                     "remark": null,
+        //                     "triggerProfitPrice": null,
+        //                     "triggerStopPrice": null,
+        //                     "sourceId": null,
+        //                     "sourceType": "DEFAULT",
+        //                     "forceClose": false,
+        //                     "closeProfit": null,
+        //                     "state": "CANCELED",
+        //                     "createdTime": 1679178515689,
+        //                     "updatedTime": 1679180096172
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const orders = this.safeValue (data, 'items', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
-            'REJECTED': 'canceled',
-            'EXPIRED': 'canceled',
+            'REJECTED': 'rejected',
+            'EXPIRED': 'expired',
         };
         return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder: spot
+        // spot: createOrder
         //
         //     {
         //         "orderId": "204371980095156544"
         //     }
         //
-        // createOrder: swap and future
+        // swap and future: createOrder
         //
         //     {
         //         "returnCode": 0,
@@ -2023,7 +2142,7 @@ export default class xt extends Exchange {
         //         "result": "206410760006650176"
         //     }
         //
-        // fetchOrder: spot
+        // spot: fetchOrder, fetchOrders
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -2050,7 +2169,7 @@ export default class xt extends Exchange {
         //         "updatedTime": 1679175285255
         //     }
         //
-        // fetchOrder: swap and future
+        // swap and future: fetchOrder
         //
         //     {
         //         "avgPrice": 0,
@@ -2074,15 +2193,43 @@ export default class xt extends Exchange {
         //         "triggerStopPrice": 0
         //     }
         //
+        // swap and future: fetchOrders
+        //
+        //     {
+        //         "orderId": "207519546930995456",
+        //         "clientOrderId": null,
+        //         "symbol": "btc_usdt",
+        //         "orderType": "LIMIT",
+        //         "orderSide": "BUY",
+        //         "positionSide": "LONG",
+        //         "timeInForce": "GTC",
+        //         "closePosition": false,
+        //         "price": "20000",
+        //         "origQty": "100",
+        //         "avgPrice": "0",
+        //         "executedQty": "0",
+        //         "marginFrozen": "4.12",
+        //         "remark": null,
+        //         "triggerProfitPrice": null,
+        //         "triggerStopPrice": null,
+        //         "sourceId": null,
+        //         "sourceType": "DEFAULT",
+        //         "forceClose": false,
+        //         "closeProfit": null,
+        //         "state": "CANCELED",
+        //         "createdTime": 1679178515689,
+        //         "updatedTime": 1679180096172
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         const marketType = ('result' in order) || ('closePosition' in order) ? 'contract' : 'spot';
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const timestamp = this.safeInteger2 (order, 'time', 'createdTime');
         const quantity = this.safeNumber (order, 'origQty');
-        const amount = (marketType === 'spot') ? quantity : Precise.stringDiv (this.numberToString (quantity), this.numberToString (market['contractSize']));
+        const amount = (marketType === 'spot') ? quantity : Precise.stringMul (this.numberToString (quantity), this.numberToString (market['contractSize']));
         const filledQuantity = this.safeNumber (order, 'executedQty');
-        const filled = (marketType === 'spot') ? filledQuantity : Precise.stringDiv (this.numberToString (filledQuantity), this.numberToString (market['contractSize']));
+        const filled = (marketType === 'spot') ? filledQuantity : Precise.stringMul (this.numberToString (filledQuantity), this.numberToString (market['contractSize']));
         const triggerStopPrice = this.safeNumber (order, 'triggerStopPrice');
         const triggerProfitPrice = this.safeNumber (order, 'triggerProfitPrice');
         const triggerPrice = (triggerStopPrice !== 0) ? triggerStopPrice : triggerProfitPrice;
