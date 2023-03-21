@@ -2907,7 +2907,7 @@ export default class zb extends Exchange {
         }
         const rawSide = this.safeInteger2(order, 'type', 'side');
         let side = undefined;
-        if (side !== undefined) {
+        if (rawSide !== undefined) {
             if (market['spot']) {
                 side = (rawSide === 1) ? 'buy' : 'sell';
             }

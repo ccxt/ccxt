@@ -3383,7 +3383,7 @@ class bitget extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data');
-            return Async\await($this->parse_trades($data, $market, $since, $limit));
+            return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
 

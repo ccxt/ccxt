@@ -3351,7 +3351,7 @@ class bitget extends Exchange["default"] {
         //     }
         //
         const data = this.safeValue(response, 'data');
-        return await this.parseTrades(data, market, since, limit);
+        return this.parseTrades(data, market, since, limit);
     }
     async fetchPosition(symbol, params = {}) {
         /**

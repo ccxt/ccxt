@@ -3080,7 +3080,7 @@ class kucoin extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_borrow_rate_history($data, $code);
+        return $this->parse_borrow_rate_history($data, $code, $since, $limit);
     }
 
     public function parse_borrow_rate_history($response, $code, $since, $limit) {

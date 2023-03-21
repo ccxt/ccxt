@@ -704,7 +704,7 @@ class bitopro extends Exchange["default"] {
         }
         return result;
     }
-    parseOHLCV(ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV(ohlcv, market = undefined) {
         return [
             this.safeInteger(ohlcv, 'timestamp'),
             this.safeNumber(ohlcv, 'open'),
@@ -1193,7 +1193,7 @@ class bitopro extends Exchange["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOrdersAllPair(this.extend(request, params), params);
+        const response = await this.privateGetOrdersAllPair(this.extend(request, params));
         let orders = this.safeValue(response, 'data');
         if (orders === undefined) {
             orders = [];

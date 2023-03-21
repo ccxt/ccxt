@@ -2902,8 +2902,24 @@ class zb extends Exchange["default"] {
         if (orderId === undefined) {
             orderId = this.safeValue(order, 'id');
         }
-        this.safeInteger2(order, 'type', 'side');
+        const rawSide = this.safeInteger2(order, 'type', 'side');
         let side = undefined;
+        if (rawSide !== undefined) {
+            if (market['spot']) {
+                side = (rawSide === 1) ? 'buy' : 'sell';
+            }
+            else if (market['swap']) {
+                if (rawSide === 0) {
+                    side = undefined;
+                }
+                else if ((rawSide === 1) || (rawSide === 4) || (rawSide === 5)) {
+                    side = 'buy';
+                }
+                else if ((rawSide === 2) || (rawSide === 3) || (rawSide === 6)) {
+                    side = 'sell';
+                }
+            }
+        }
         let timestamp = this.safeInteger(order, 'trade_date');
         if (timestamp === undefined) {
             timestamp = this.safeInteger(order, 'createTime');
@@ -2929,7 +2945,7 @@ class zb extends Exchange["default"] {
                 feeCurrency = 'ZB';
             }
             else {
-                feeCurrency = market['base'];
+                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             }
             fee = {
                 'cost': feeCost,

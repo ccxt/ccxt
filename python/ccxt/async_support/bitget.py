@@ -3197,7 +3197,7 @@ class bitget(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        return await self.parse_trades(data, market, since, limit)
+        return self.parse_trades(data, market, since, limit)
 
     async def fetch_position(self, symbol, params={}):
         """
