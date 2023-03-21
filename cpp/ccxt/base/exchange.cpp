@@ -2,6 +2,8 @@
 #include <fmt/xchar.h>
 #include <fmt/format.h>
 #include <algorithm>
+#include <bits/stdc++.h>
+#include <ccxt/base/functions/string.h>
 
 Exchange::Exchange()
 {
@@ -70,26 +72,98 @@ bool Exchange::unique(std::wstring str)
 std::wstring Exchange::checkAddress(std::wstring address)
 {
     if (address.size() == 0) {
-        throw InvalidAddress(fmt::format(L"{} address is undefined", id));
+        throw InvalidAddress(fmt::format(L"{} address is undefined", _id));
     }
     // check the address is not the same letter like 'aaaaa' nor too short nor has a space
     if ((unique(address) == false) ||
-        address.size() < minFundingAddressLength ||
+        address.size() < _minFundingAddressLength ||
         address.find_first_not_of(L" ") == std::wstring::npos)
     {
-        throw InvalidAddress(fmt::format(L"{} address is invalid or has less than {} characters: {}", id, minFundingAddressLength, address));
+        throw InvalidAddress(fmt::format(L"{} address is invalid or has less than {} characters: {}", _id, _minFundingAddressLength, address));
     }
     return address;
 }
 
 void Exchange::initRestRateLimiter()
-{
-    tokenBucket.refillRate = (rateLimit > 0) ? 1 / rateLimit : std::numeric_limits<int>::max();
+{    
+    _tokenBucket.refillRate = (_rateLimit > 0) ? 1 / _rateLimit : std::numeric_limits<int>::max();
     // thottle = Throttle(tokenBucket);
     throw BaseError(L"not implemented");
 }
 
-void Exchange::handle_http_status_code()
+void Exchange::setSandboxMode(bool enabled)
+{
+    if (!enabled) {
+        if (_urls.test.size() > 1) {
+            if (_urls.api.size() > 1) {
+                _urls.apiBackup = _urls.api;
+                _urls.api = _urls.test;
+            }
+        } else {            
+            throw NotSupported(fmt::format(L"{} does not have a sandbox URL", _id));
+        }
+    } else if (_urls.apiBackup.size() > 1) {
+        if (_urls.api.size() > 1) {
+            _urls.api = _urls.apiBackup;
+        }
+    }
+}
+
+void Exchange::defineRestApiEndpoint()
+{        
+}
+
+void Exchange::defineRestApi(std::map<std::wstring, std::wstring>& api, const std::wstring& methodName, const std::vector<std::wstring>& paths)
+{    
+    for (const auto &i: api) {
+        const auto key = i.first;
+        const auto value = i.second;
+        auto uppercaseMethod = key;
+        std::transform(uppercaseMethod.begin(), uppercaseMethod.end(), uppercaseMethod.begin(), ::toupper);
+        auto lowercaseMethod = key;
+        std::transform(lowercaseMethod.begin(), lowercaseMethod.end(), lowercaseMethod.begin(), ::tolower);
+        const auto camelcaseMethod = capitalize(lowercaseMethod);
+    }
+
+    // const keys = Object.keys (api)
+    // for (let i = 0; i < keys.length; i++) {
+    //     const key = keys[i]
+    //     const value = api[key]
+    //     const uppercaseMethod = key.toUpperCase ()
+    //     const lowercaseMethod = key.toLowerCase ()
+    //     const camelcaseMethod = this.capitalize (lowercaseMethod)
+    //     if (Array.isArray (value)) {
+    //         for (let k = 0; k < value.length; k++) {
+    //             const path = value[k].trim ()
+    //             this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths)
+    //         }
+}
+
+void Exchange::defineRestApi(std::wstring& api, const std::wstring& methodName, const std::vector<std::wstring>& paths)
+{
+    // the options HTTP method conflicts with the 'options' API url path
+    //     // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
+    //     } else if (key.match (/^(?:get|post|put|delete|head|patch)$/i)) {
+    //         const endpoints = Object.keys (value);
+    //         for (let j = 0; j < endpoints.length; j++) {
+    //             const endpoint = endpoints[j]
+    //             const path = endpoint.trim ()
+    //             const config = value[endpoint]
+    //             if (typeof config === 'object') {
+    //                 this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config)
+    //             } else if (typeof config === 'number') {
+    //                 this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: config })
+    //             } else {
+    //                 throw new NotSupported (this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
+    //             }
+    //         }
+    //     } else {
+    //         this.defineRestApi (value, methodName, paths.concat ([ key ]))
+    //     }
+
+}
+
+void Exchange::handleHttpStatusCode()
 {
     throw BaseError(L"not implemented");
     // std::map<std::wstring, std::exception> httpExceptions

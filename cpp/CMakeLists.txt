@@ -9,8 +9,10 @@ file(GLOB CCXT_TOP_HEADERS "${CCXT_HEADERS_DIR}/*.h")
 set(CCXT_ALL_HEADERS ${CCXT_TOP_HEADERS})
 
 set(CCXT_SRCS 
-    ccxt/base/exchange.cpp 
-    ccxt/base/functions/throttle.cpp)
+    ccxt/base/exchange.cpp
+    ccxt/base/functions/type.cpp
+    ccxt/base/functions/throttle.cpp
+    ccxt/base/functions/string.cpp)
 
 if(BUILD_SHARED_LIBS)
     add_library(ccxt SHARED ${CCXT_SRCS} ${CCXT_ALL_HEADERS})

@@ -16,6 +16,7 @@ struct URLs
     std::wstring api_management;
     std::wstring fees;
     std::wstring referral;
+    std::map<std::wstring, std::wstring> apiBackup;
 };
 
 struct BalanceCache
@@ -209,25 +210,29 @@ class Exchange
 
         std::wstring checkAddress(std::wstring address);
         void initRestRateLimiter();
+        void setSandboxMode(bool enabled);
 
-    private:        
-        void handle_http_status_code();
+    private:
+        void defineRestApiEndpoint();
+        void defineRestApi(std::map<std::wstring, std::wstring>& api, const std::wstring& methodName, const std::vector<std::wstring>& paths);
+        void defineRestApi(std::wstring& api, const std::wstring& methodName, const std::vector<std::wstring>& paths);
+        void handleHttpStatusCode();
         
-        std::wstring id;
-        std::wstring name;
-        std::wstring version;
-        bool certified = false;  // if certified by the CCXT dev team
-        bool pro = false; // if it is integrated with CCXT Pro for WebSocket support
-        bool alias = false; // whether this exchange is an alias to another exchange
+        std::wstring _id;
+        std::wstring _name;
+        std::wstring _version;
+        bool _certified = false;  // if certified by the CCXT dev team
+        bool _pro = false; // if it is integrated with CCXT Pro for WebSocket support
+        bool _alias = false; // whether this exchange is an alias to another exchange
         // rate limiter settings
-        bool enableRateLimit = true;
-        int rateLimit = 2000;   // milliseconds = seconds * 1000
-        TokenBucket tokenBucket;
+        bool _enableRateLimit = true;
+        int _rateLimit = 2000;   // milliseconds = seconds * 1000
+        TokenBucket _tokenBucket;
 
-        bool validateServerSsl = true;
-        bool validateClientSsl = false;
+        bool _validateServerSsl = true;
+        bool _validateClientSsl = false;
 
-        // std::map<std::wstring, std::wstring> userAgents {
+        // std::map<std::wstring, std::wstring> _userAgents {
         //     {"chrome", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"},
         //     {"chrome39", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"},
         //     {"chrome100", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36"}
@@ -259,84 +264,84 @@ class Exchange
 
         //ids = None
 
-        URLs urls;
+        URLs _urls;
 
-        // api = None
-        std::wstring proxy;          // prepended to URL, like https://proxy.com/https://exchange.com/api...
-        std::wstring origin = L"*";  // CORS origin
+        std::map<std::wstring, std::wstring> _api;
+        std::wstring _proxy;          // prepended to URL, like https://proxy.com/https://exchange.com/api...
+        std::wstring _origin = L"*";  // CORS origin
         // underlying properties
-        size_t minFundingAddressLength = 1; // used in checkAddress
+        size_t _minFundingAddressLength = 1; // used in checkAddress
 
-        std::vector<std::wstring> proxies;
+        std::vector<std::wstring> _proxies;
         // default property values
-        int timeout = 10000;    // milliseconds = seconds * 1000
-        bool verbose = false;
-        bool debug = false;
-        bool twofa = false;     // 2-factor authentication (one-time password key)        
+        int _timeout = 10000;    // milliseconds = seconds * 1000
+        bool _verbose = false;
+        bool _debug = false;
+        bool _twofa = false;     // 2-factor authentication (one-time password key)        
         // default credentials
-        bool apiKey = true;
-        bool secret = true;
-        bool uid = false;
-        bool login = false;
-        bool password = false;        
-        bool privateKey;        // a "0x"-prefixed hexstring private key for a wallet
-        bool walletAddress;     // the wallet address "0x"-prefixed hexstring
-        bool token;             // reserved for HTTP auth in some cases
+        bool _apiKey = true;
+        bool _secret = true;
+        bool _uid = false;
+        bool _login = false;
+        bool _password = false;        
+        bool _privateKey;        // a "0x"-prefixed hexstring private key for a wallet
+        bool _walletAddress;     // the wallet address "0x"-prefixed hexstring
+        bool _token;             // reserved for HTTP auth in some cases
         // placeholders for cached data
-        std::map<std::wstring, BalanceCache> balance;
-        std::map<std::wstring, OrderbooksCache> orderbooks;
-        std::map<std::wstring, TickersCache> tickers;
-        std::map<std::wstring, OrdersCache> orders;
-        std::map<std::wstring, TradesCache> trades;
-        std::map<std::wstring, TransactionsCache> transactions;
-        std::map<std::wstring, OHLCVsCache> ohlcvs;
-        std::map<std::wstring, MyTradesCache> myTrades;
-        std::map<std::wstring, PositionsCache> positions;
+        std::map<std::wstring, BalanceCache> _balance;
+        std::map<std::wstring, OrderbooksCache> _orderbooks;
+        std::map<std::wstring, TickersCache> _tickers;
+        std::map<std::wstring, OrdersCache> _orders;
+        std::map<std::wstring, TradesCache> _trades;
+        std::map<std::wstring, TransactionsCache> _transactions;
+        std::map<std::wstring, OHLCVsCache> _ohlcvs;
+        std::map<std::wstring, MyTradesCache> _myTrades;
+        std::map<std::wstring, PositionsCache> _positions;
         // web3 and cryptography flags
-        bool requiresWeb3 = false;
-        bool requiresEddsa = false;
+        bool _requiresWeb3 = false;
+        bool _requiresEddsa = false;
         // precision = {}
         // response handling flags and properties
-        std::time_t lastRestRequestTimestamp;
-        bool enableLastJsonResponse = true;
-        bool enableLastHttpResponse = true;
-        bool enableLastResponseHeaders = true;
-        std::wstring last_http_response;
-        std::wstring last_json_response;
-        std::wstring last_response_headers;
+        std::time_t _lastRestRequestTimestamp;
+        bool _enableLastJsonResponse = true;
+        bool _enableLastHttpResponse = true;
+        bool _enableLastResponseHeaders = true;
+        std::wstring _last_http_response;
+        std::wstring _last_json_response;
+        std::wstring _last_response_headers;
 
-        std::map<int, std::wstring> marketIds;
-        std::map<int, std::wstring> currenciesIds;
-        std::map<std::wstring, int> precision;
+        std::map<int, std::wstring> _marketIds;
+        std::map<int, std::wstring> _currenciesIds;
+        std::map<std::wstring, int> _precision;
         // exceptions = None        
         
-        std::map<std::wstring,std::wstring> headers;
+        std::map<std::wstring,std::wstring> _headers;
 
-        Limits limits;
+        Limits _limits;
 
         // set by loadMarkets
-        std::map<int, Currency> baseCurrencies;
-        std::map<int, Currency> quoteCurrencies;
-        std::map<int, Currency> currencies;
-        Options options;
-        Accounts accounts;
+        std::map<int, Currency> _baseCurrencies;
+        std::map<int, Currency> _quoteCurrencies;
+        std::map<int, Currency> _currencies;
+        Options _options;
+        Accounts _accounts;
 
-        Status status;
-        RequiredCredentials requiredCredentials;
+        Status _status;
+        RequiredCredentials _requiredCredentials;
         
-        Has has; // API method metainfo
+        Has _has; // API method metainfo
 
-        DigitsCountingMode precisionMode = DECIMAL_PLACES;
-        ZeroPaddingMode paddingMode = NO_PADDING;
+        DigitsCountingMode _precisionMode = DECIMAL_PLACES;
+        ZeroPaddingMode _paddingMode = NO_PADDING;
 
-        bool substituteCommonCurrencyCodes = true;
-        bool quoteJsonNumbers = true;
-        double number; // or str (a pointer to a class)
-        bool handleContentTypeApplicationZip = false;
+        bool _substituteCommonCurrencyCodes = true;
+        bool _quoteJsonNumbers = true;
+        double _number; // or str (a pointer to a class)
+        bool _handleContentTypeApplicationZip = false;
         // whether fees should be summed by currency code
-        bool reduceFees = true;
+        bool _reduceFees = true;
         
-        std::map<std::string, std::string> commonCurrencies = // gets extended/overwritten in subclasses
+        std::map<std::string, std::string> _commonCurrencies = // gets extended/overwritten in subclasses
         {
             {"XBT", "BTC"},
             {"BCC", "BCH"},
