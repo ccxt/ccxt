@@ -7160,7 +7160,8 @@ class binance extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if (!(is_array($this->urls['api']) && array_key_exists($api, $this->urls['api']))) {
+        $urls = $this->urls;
+        if (!(is_array($urls['api']) && array_key_exists($api, $urls['api']))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
         }
         $url = $this->urls['api'][$api];

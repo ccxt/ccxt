@@ -510,10 +510,10 @@ class tidex extends Exchange["default"] {
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        let ids = this.ids;
+        let ids = undefined;
         if (symbols === undefined) {
-            const numIds = ids.length;
-            ids = ids.join('-');
+            const numIds = this.ids.length;
+            ids = this.ids.join('-');
             // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
             if (ids.length > this.options['fetchTickersMaxLength']) {
                 const maxLength = this.safeInteger(this.options, 'fetchTickersMaxLength', 2048);
@@ -521,8 +521,8 @@ class tidex extends Exchange["default"] {
             }
         }
         else {
-            ids = this.marketIds(symbols);
-            ids = ids.join('-');
+            const newIds = this.marketIds(symbols);
+            ids = newIds.join('-');
         }
         const request = {
             'pair': ids,

@@ -586,6 +586,7 @@ class Exchange {
         'parseBorrowInterest' => 'parse_borrow_interest',
         'fetchFundingRates' => 'fetch_funding_rates',
         'createDepositAddress' => 'create_deposit_address',
+        'setLeverage' => 'set_leverage',
         'parseToInt' => 'parse_to_int',
         'getDefaultOptions' => 'get_default_options',
         'safeLedgerEntry' => 'safe_ledger_entry',
@@ -2576,107 +2577,111 @@ class Exchange {
     }
 
     public function fetch_accounts($params = array ()) {
-        return null;
+        throw new NotSupported($this->id . ' fetchAccounts() is not supported yet');
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        return null;
+        throw new NotSupported($this->id . ' fetchTrades() is not supported yet');
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        return null;
+        throw new NotSupported($this->id . ' watchTrades() is not supported yet');
     }
 
     public function fetch_deposit_addresses($codes = null, $params = array ()) {
-        return null;
+        throw new NotSupported($this->id . ' fetchDepositAddresses() is not supported yet');
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        return null;
+        throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        return null;
+        throw new NotSupported($this->id . ' watchOrderBook() is not supported yet');
     }
 
     public function fetch_time($params = array ()) {
-        return null;
+        throw new NotSupported($this->id . ' fetchTime() is not supported yet');
     }
 
     public function fetch_trading_limits($symbols = null, $params = array ()) {
-        return null;
+        throw new NotSupported($this->id . ' fetchTradingLimits() is not supported yet');
     }
 
     public function parse_ticker($ticker, $market = null) {
-        return null;
+        throw new NotSupported($this->id . ' parseTicker() is not supported yet');
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
-        return null;
+        throw new NotSupported($this->id . ' parseDepositAddress() is not supported yet');
     }
 
     public function parse_trade($trade, $market = null) {
-        return null;
+        throw new NotSupported($this->id . ' parseTrade() is not supported yet');
     }
 
     public function parse_transaction($transaction, $currency = null) {
-        return null;
+        throw new NotSupported($this->id . ' parseTransaction() is not supported yet');
     }
 
     public function parse_transfer($transfer, $currency = null) {
-        return null;
+        throw new NotSupported($this->id . ' parseTransfer() is not supported yet');
     }
 
     public function parse_account($account) {
-        return null;
+        throw new NotSupported($this->id . ' parseAccount() is not supported yet');
     }
 
     public function parse_ledger_entry($item, $currency = null) {
-        return null;
+        throw new NotSupported($this->id . ' parseLedgerEntry() is not supported yet');
     }
 
     public function parse_order($order, $market = null) {
-        return null;
+        throw new NotSupported($this->id . ' parseOrder() is not supported yet');
     }
 
     public function fetch_borrow_rates($params = array ()) {
-        return null;
+        throw new NotSupported($this->id . ' fetchBorrowRates() is not supported yet');
     }
 
     public function parse_market_leverage_tiers($info, $market = null) {
-        return null;
+        throw new NotSupported($this->id . ' parseMarketLeverageTiers() is not supported yet');
     }
 
     public function fetch_leverage_tiers($symbols = null, $params = array ()) {
-        return null;
+        throw new NotSupported($this->id . ' fetchLeverageTiers() is not supported yet');
     }
 
     public function parse_position($position, $market = null) {
-        return null;
+        throw new NotSupported($this->id . ' parsePosition() is not supported yet');
     }
 
     public function parse_funding_rate_history($info, $market = null) {
-        return null;
+        throw new NotSupported($this->id . ' parseFundingRateHistory() is not supported yet');
     }
 
     public function parse_borrow_interest($info, $market = null) {
-        return null;
+        throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
     }
 
     public function fetch_funding_rates($symbols = null, $params = array ()) {
-        return null;
+        throw new NotSupported($this->id . ' fetchFundingRates() is not supported yet');
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
-        return null;
+        throw new NotSupported($this->id . ' transfer() is not supported yet');
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        return null;
+        throw new NotSupported($this->id . ' withdraw() is not supported yet');
     }
 
     public function create_deposit_address($code, $params = array ()) {
-        return null;
+        throw new NotSupported($this->id . ' createDepositAddress() is not supported yet');
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' setLeverage() is not supported yet');
     }
 
     public function parse_to_int($number) {
@@ -2753,7 +2758,7 @@ class Exchange {
         for ($i = 0; $i < count($marketValues); $i++) {
             $value = $marketValues[$i];
             if (is_array($this->markets_by_id) && array_key_exists($value['id'], $this->markets_by_id)) {
-                $this->markets_by_id[$value['id']][] = $value;
+                ($this->markets_by_id[$value['id']])[] = $value;
             } else {
                 $this->markets_by_id[$value['id']] = array( $value );
             }

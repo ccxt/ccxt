@@ -4,10 +4,12 @@ import { // eslint-disable-line object-curly-newline
 ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, RateLimitExceeded } from "./errors.js";
 import WsClient from './ws/WsClient.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import { Market, Trade, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse } from './types';
+import { Market, Trade, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax } from './types';
 export { Market, Trade, Fee, Ticker } from './types';
 export default class Exchange {
-    options: {};
+    options: {
+        [key: string]: any;
+    };
     fetchOptions: any;
     userAgents: any;
     headers: any;
@@ -33,9 +35,9 @@ export default class Exchange {
     debug: boolean;
     userAgent: any;
     twofa: any;
-    apiKey: any;
-    secret: any;
-    uid: any;
+    apiKey: string;
+    secret: string;
+    uid: string;
     login: any;
     password: any;
     privateKey: any;
@@ -50,32 +52,59 @@ export default class Exchange {
     ohlcvs: any;
     myTrades: any;
     positions: {};
-    urls: {};
+    urls: {
+        logo?: string;
+        api?: string | Dictionary<string>;
+        test?: string | Dictionary<string>;
+        www?: string;
+        doc?: string[];
+        api_management?: string;
+        fees?: string;
+        referral?: string;
+    };
     requiresWeb3: boolean;
     requiresEddsa: boolean;
-    precision: {};
+    precision: {
+        amount: number | undefined;
+        price: number | undefined;
+    };
     enableLastJsonResponse: boolean;
     enableLastHttpResponse: boolean;
     enableLastResponseHeaders: boolean;
     last_http_response: any;
     last_json_response: any;
     last_response_headers: any;
-    id: any;
-    markets: Dictionary<Market>;
-    has: {};
+    id: string;
+    markets: Dictionary<any>;
+    has: Dictionary<boolean | 'emulated'>;
     status: any;
-    requiredCredentials: any;
+    requiredCredentials: {
+        apiKey: boolean;
+        secret: boolean;
+        uid: boolean;
+        login: boolean;
+        password: boolean;
+        twofa: boolean;
+        privateKey: boolean;
+        walletAddress: boolean;
+        token: boolean;
+    };
     rateLimit: any;
     tokenBucket: any;
     throttle: any;
     enableRateLimit: any;
     httpExceptions: any;
-    limits: any;
+    limits: {
+        amount?: MinMax;
+        cost?: MinMax;
+        leverage?: MinMax;
+        price?: MinMax;
+    };
     fees: any;
-    markets_by_id: any;
+    markets_by_id: Dictionary<any>;
     symbols: any;
-    ids: any;
-    currencies: any;
+    ids: string[];
+    currencies: Dictionary<Currency>;
     baseCurrencies: any;
     quoteCurrencies: any;
     currencies_by_id: any;
@@ -89,7 +118,7 @@ export default class Exchange {
     precisionMode: any;
     paddingMode: any;
     exceptions: {};
-    timeframes: any[];
+    timeframes: Dictionary<number | string>;
     version: any;
     marketsByAltname: any;
     name: any;
@@ -422,7 +451,7 @@ export default class Exchange {
     handleRestResponse(response: any, url: any, method?: string, requestHeaders?: any, requestBody?: any): any;
     onRestResponse(statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, requestHeaders: any, requestBody: any): any;
     onJsonResponse(responseBody: any): any;
-    loadMarketsHelper(reload?: boolean, params?: {}): Promise<Dictionary<Market>>;
+    loadMarketsHelper(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     loadMarkets(reload?: boolean, params?: {}): Promise<Dictionary<Market>>;
     fetchCurrencies(params?: {}): Promise<unknown>;
     fetchMarkets(params?: {}): Promise<Market[]>;
@@ -473,23 +502,24 @@ export default class Exchange {
     fetchTime(params?: {}): Promise<any>;
     fetchTradingLimits(symbols?: string[], params?: {}): Promise<any>;
     parseTicker(ticker: object, market?: any): Ticker;
-    parseDepositAddress(depositAddress: any, currency?: any): any;
+    parseDepositAddress(depositAddress: any, currency?: any): void;
     parseTrade(trade: object, market?: any): Trade;
-    parseTransaction(transaction: any, currency?: any): any;
-    parseTransfer(transfer: any, currency?: any): any;
-    parseAccount(account: any): any;
-    parseLedgerEntry(item: any, currency?: any): any;
+    parseTransaction(transaction: any, currency?: any): void;
+    parseTransfer(transfer: any, currency?: any): void;
+    parseAccount(account: any): void;
+    parseLedgerEntry(item: any, currency?: any): void;
     parseOrder(order: any, market?: any): Order;
     fetchBorrowRates(params?: {}): Promise<any>;
-    parseMarketLeverageTiers(info: any, market?: any): any;
+    parseMarketLeverageTiers(info: any, market?: any): void;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
-    parseFundingRateHistory(info: any, market?: any): any;
-    parseBorrowInterest(info: any, market?: any): any;
+    parsePosition(position: any, market?: any): void;
+    parseFundingRateHistory(info: any, market?: any): void;
+    parseBorrowInterest(info: any, market?: any): void;
     fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
     createDepositAddress(code: any, params?: {}): Promise<DepositAddressResponse>;
+    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parseToInt(number: string | number): number;
     getDefaultOptions(): {
         defaultNetworkCodeReplacements: {
@@ -521,7 +551,7 @@ export default class Exchange {
         fee: any;
         info: object;
     };
-    setMarkets(markets: any, currencies?: any): Dictionary<Market>;
+    setMarkets(markets: any, currencies?: any): Dictionary<any>;
     safeBalance(balance: object): Balances;
     safeOrder(order: object, market?: object): any;
     parseOrders(orders: object, market?: object, since?: number, limit?: any, params?: {}): Order[];
@@ -558,7 +588,7 @@ export default class Exchange {
     parseOrderBook(orderbook: object, symbol: string, timestamp?: number, bidsKey?: string, asksKey?: string, priceKey?: number | string, amountKey?: number | string): OrderBook;
     parseOHLCVs(ohlcvs: object[], market?: string, timeframe?: string, since?: number, limit?: any): OHLCV[];
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
-    loadTradingLimits(symbols?: string[], reload?: boolean, params?: {}): Promise<Dictionary<Market>>;
+    loadTradingLimits(symbols?: string[], reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     parsePositions(positions: any, symbols?: string[], params?: {}): any;
     parseAccounts(accounts: any, params?: {}): any[];
     parseTrades(trades: any, market?: object, since?: number, limit?: any, params?: {}): Trade[];

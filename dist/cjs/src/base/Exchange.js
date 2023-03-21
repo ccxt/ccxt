@@ -36,11 +36,7 @@ class Exchange {
         this.debug = false;
         this.userAgent = undefined;
         this.twofa = undefined; // two-factor authentication (2FA)
-        this.apiKey = undefined;
-        this.secret = undefined;
-        this.uid = undefined;
         this.login = undefined;
-        this.password = undefined;
         this.privateKey = undefined; // a "0x"-prefixed hexstring private key for a wallet
         this.walletAddress = undefined; // a wallet address "0x"-prefixed hexstring
         this.token = undefined; // reserved for HTTP auth in some cases
@@ -50,10 +46,8 @@ class Exchange {
         this.orders = undefined;
         this.transactions = {};
         this.positions = {};
-        this.urls = {};
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
-        this.precision = {};
         this.enableLastJsonResponse = true;
         this.enableLastHttpResponse = true;
         this.enableLastResponseHeaders = true;
@@ -62,15 +56,12 @@ class Exchange {
         this.last_response_headers = undefined;
         this.id = undefined;
         this.markets = undefined;
-        this.has = {};
         this.status = undefined;
-        this.requiredCredentials = undefined;
         this.rateLimit = undefined;
         this.tokenBucket = undefined;
         this.throttle = undefined;
         this.enableRateLimit = undefined;
         this.httpExceptions = undefined;
-        this.limits = undefined;
         this.fees = undefined;
         this.markets_by_id = undefined;
         this.symbols = undefined;
@@ -89,7 +80,7 @@ class Exchange {
         this.precisionMode = undefined;
         this.paddingMode = undefined;
         this.exceptions = {};
-        this.timeframes = [];
+        this.timeframes = {};
         this.version = undefined;
         this.marketsByAltname = undefined;
         this.name = undefined;
@@ -272,7 +263,6 @@ class Exchange {
         // web3 and cryptography flags
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
-        this.precision = {};
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0;
         this.enableLastJsonResponse = true;
@@ -1151,82 +1141,85 @@ class Exchange {
         return {};
     }
     async fetchAccounts(params = {}) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' fetchAccounts() is not supported yet');
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' fetchTrades() is not supported yet');
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' watchTrades() is not supported yet');
     }
     async fetchDepositAddresses(codes = undefined, params = {}) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' fetchOrderBook() is not supported yet');
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' watchOrderBook() is not supported yet');
     }
     async fetchTime(params = {}) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' fetchTime() is not supported yet');
     }
     async fetchTradingLimits(symbols = undefined, params = {}) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' fetchTradingLimits() is not supported yet');
     }
     parseTicker(ticker, market = undefined) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' parseTicker() is not supported yet');
     }
     parseDepositAddress(depositAddress, currency = undefined) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' parseDepositAddress() is not supported yet');
     }
     parseTrade(trade, market = undefined) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' parseTrade() is not supported yet');
     }
     parseTransaction(transaction, currency = undefined) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' parseTransaction() is not supported yet');
     }
     parseTransfer(transfer, currency = undefined) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' parseTransfer() is not supported yet');
     }
     parseAccount(account) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' parseAccount() is not supported yet');
     }
     parseLedgerEntry(item, currency = undefined) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' parseLedgerEntry() is not supported yet');
     }
     parseOrder(order, market = undefined) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' parseOrder() is not supported yet');
     }
     async fetchBorrowRates(params = {}) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' fetchBorrowRates() is not supported yet');
     }
     parseMarketLeverageTiers(info, market = undefined) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' parseMarketLeverageTiers() is not supported yet');
     }
     async fetchLeverageTiers(symbols = undefined, params = {}) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' fetchLeverageTiers() is not supported yet');
     }
     parsePosition(position, market = undefined) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' parsePosition() is not supported yet');
     }
     parseFundingRateHistory(info, market = undefined) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' parseFundingRateHistory() is not supported yet');
     }
     parseBorrowInterest(info, market = undefined) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' parseBorrowInterest() is not supported yet');
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' fetchFundingRates() is not supported yet');
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' transfer() is not supported yet');
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' withdraw() is not supported yet');
     }
     async createDepositAddress(code, params = {}) {
-        return undefined;
+        throw new errors.NotSupported(this.id + ' createDepositAddress() is not supported yet');
+    }
+    async setLeverage(leverage, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' setLeverage() is not supported yet');
     }
     parseToInt(number) {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())

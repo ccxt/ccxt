@@ -7338,7 +7338,8 @@ class binance extends Exchange["default"] {
         return this.safeString(ledgerType, type, type);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!(api in this.urls['api'])) {
+        const urls = this.urls;
+        if (!(api in urls['api'])) {
             throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
         let url = this.urls['api'][api];

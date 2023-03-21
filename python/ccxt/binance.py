@@ -6775,7 +6775,8 @@ class binance(Exchange):
         return self.safe_string(ledgerType, type, type)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        if not (api in self.urls['api']):
+        urls = self.urls
+        if not (api in urls['api']):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
         url = self.urls['api'][api]
         url += '/' + path

@@ -545,9 +545,9 @@ export default class yobit extends Exchange {
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        let ids = this.ids;
+        let ids = undefined;
         if (symbols === undefined) {
-            const numIds = ids.length;
+            const numIds = this.ids.length;
             ids = ids.join('-');
             const maxLength = this.safeInteger(this.options, 'fetchTickersMaxLength', 2048);
             // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
@@ -556,8 +556,8 @@ export default class yobit extends Exchange {
             }
         }
         else {
-            ids = this.marketIds(symbols);
-            ids = ids.join('-');
+            const newIds = this.marketIds(symbols);
+            ids = newIds.join('-');
         }
         const request = {
             'pair': ids,

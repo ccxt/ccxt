@@ -91,7 +91,7 @@ export default class exmo extends Exchange {
         network: any;
         info: any;
     }>;
-    getMarketFromTrades(trades: any): import("./base/types.js").Market;
+    getMarketFromTrades(trades: any): any;
     withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
