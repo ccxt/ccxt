@@ -1526,7 +1526,7 @@ export default class hitbtc extends Exchange {
             // fallback to default error handler on rate limit errors
             // {"code":429,"message":"Too many requests","description":"Too many requests"}
             if (code === 429) {
-                return;
+                return undefined;
             }
             // {"error":{"code":20002,"message":"Order not found","description":""}}
             if (body[0] === '{') {

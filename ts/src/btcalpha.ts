@@ -929,7 +929,7 @@ export default class btcalpha extends Exchange {
             throw new DDoSProtection (feedback);
         }
         if (code < 400) {
-            return;
+            return undefined;
         }
         throw new ExchangeError (feedback);
     }

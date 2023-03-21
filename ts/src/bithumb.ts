@@ -1073,10 +1073,10 @@ export default class bithumb extends Exchange {
             const message = this.safeString (response, 'message');
             if (status !== undefined) {
                 if (status === '0000') {
-                    return; // no error
+                    return undefined; // no error
                 } else if (message === '거래 진행중인 내역이 존재하지 않습니다') {
                     // https://github.com/ccxt/ccxt/issues/9017
-                    return; // no error
+                    return undefined; // no error
                 }
                 const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException (this.exceptions, status, feedback);
