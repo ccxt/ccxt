@@ -3506,8 +3506,8 @@ export default class bybit extends Exchange {
                 request['triggerDirection'] = ascending ? 2 : 1;
                 request['triggerPrice'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
             } else {
+                request['triggerDirection'] = ascending ? 2 : 1;
                 request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
-                request['triggerDirection'] = 1;
             }
             request['reduceOnly'] = true;
         } else if (isStopLoss || isTakeProfit) {
@@ -3795,18 +3795,18 @@ export default class bybit extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
-        if (triggerPrice) {
-            const isBuy = side === 'buy';
-            const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
+        const isBuy = side === 'buy';
+        const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
+        if (triggerPrice !== undefined) {
             request['triggerDirection'] = ascending ? 2 : 1;
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
             if (isStopLossTriggerOrder) {
+                request['triggerDirection'] = ascending ? 2 : 1;
                 request['triggerPrice'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
-                request['triggerDirection'] = 2;
             } else {
+                request['triggerDirection'] = ascending ? 2 : 1;
                 request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
-                request['triggerDirection'] = 1;
             }
             request['reduceOnly'] = true;
         } else if (isStopLoss || isTakeProfit) {
