@@ -1975,7 +1975,7 @@ export default class bitmart extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        let request = {};
+        const request = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
             if (!market['spot']) {
