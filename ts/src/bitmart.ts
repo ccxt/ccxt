@@ -1974,16 +1974,16 @@ export default class bitmart extends Exchange {
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets();
+        await this.loadMarkets ();
         let request = {};
         if (symbol !== undefined) {
-            const market = this.market(symbol);
+            const market = this.market (symbol);
             if (!market['spot']) {
-                throw new errors.NotSupported(this.id + ' cancelAllOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+                throw new NotSupported (this.id + ' cancelAllOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted');
             }
             request['symbol'] = market['id'];
         }
-        const side = this.safeString(params, 'side');
+        const side = this.safeString (params, 'side');
         if (side !== undefined) {
             request['side'] = side;
             params = this.omit (params, 'side');
