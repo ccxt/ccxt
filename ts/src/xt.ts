@@ -29,6 +29,7 @@ export default class xt extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': true,
@@ -2431,6 +2432,44 @@ export default class xt extends Exchange {
         //         "msgInfo": "success",
         //         "error": null,
         //         "result": true
+        //     }
+        //
+        return response;
+    }
+
+    async cancelOrders (ids, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#cancelOrders
+         * @description cancel multiple orders
+         * @see https://doc.xt.com/#orderbatchOrderDel
+         * @param {[string]} ids order ids
+         * @param {string|undefined} symbol unified market symbol of the market to cancel orders in
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'orderIds': ids,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelOrders', market, params);
+        if (subType !== undefined) {
+            throw new NotSupported (this.id + ' cancelOrders() does not support swap and future orders, only spot orders are accepted');
+        }
+        const response = await (this as any).privateSpotDeleteBatchOrder (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": null
         //     }
         //
         return response;
