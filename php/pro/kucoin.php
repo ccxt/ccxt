@@ -860,7 +860,8 @@ class kucoin extends \ccxt\async\kucoin {
     }
 
     public function handle_pong($client, $message) {
-        // https = $this->milliseconds();
+        $client->lastPong = $this->milliseconds();
+        // https://docs.kucoin.com/#ping
     }
 
     public function handle_error_message($client, $message) {
