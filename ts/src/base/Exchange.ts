@@ -2818,7 +2818,7 @@ export default class Exchange {
     }
 
     safeCurrency (currencyId: string, currency: string = undefined) {
-        if (currencyId !== undefined && currencyId === undefined) {
+        if (currencyId === undefined && currencyId === undefined) {
             return {
                 'id': undefined,
                 'code': undefined,
