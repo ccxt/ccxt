@@ -27,6 +27,7 @@ export default class xt extends Exchange {
                 'swap': true,
                 'future': true,
                 'option': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'createPostOnlyOrder': false,
@@ -2386,6 +2387,55 @@ export default class xt extends Exchange {
         return this.parseOrder (order, market);
     }
 
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @see https://doc.xt.com/#orderopenOrderDel
+         * @see https://doc.xt.com/#futures_ordercancelBatch
+         * @param {string|undefined} symbol unified market symbol of the market to cancel orders in
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
+        let method = 'privateSpotDeleteOpenOrder';
+        if (subType === 'linear') {
+            method = 'privateLinearPostFutureTradeV1OrderCancelAll';
+        } else if (subType === 'inverse') {
+            method = 'privateInversePostFutureTradeV1OrderCancelAll';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": null
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": true
+        //     }
+        //
+        return response;
+    }
+
     parseOrder (order, market = undefined) {
         //
         // spot: createOrder
@@ -2489,7 +2539,7 @@ export default class xt extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        const marketType = (('result' in order) || ('closePosition' in order)) ? 'contract' : 'spot';
+        const marketType = ('result' in order) || ('closePosition' in order) ? 'contract' : 'spot';
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const timestamp = this.safeInteger2 (order, 'time', 'createdTime');
