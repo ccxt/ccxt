@@ -1,10 +1,11 @@
 #include <ccxt/base/functions/type.h>
 #include <limits>
+#include <cmath>
 
-float asFloat(const std::wstring& x)
+double asDouble(const std::wstring& x)
 {
-    if (x.size() == 0) return std::numeric_limits<float>::quiet_NaN();
-    return std::stof(x);
+    if (x.size() == 0) return std::numeric_limits<double>::quiet_NaN();
+    return std::stod(x);
 }
 
 int asInteger(const std::wstring& x)
@@ -14,11 +15,8 @@ int asInteger(const std::wstring& x)
 }
 
 
-float safeFloat(const std::wstring& k, float defaultValue)
+double safeDouble(const std::wstring& k, double defaultValue)
 {
-    return 0;
+    double n = asDouble(k);
+    return (!std::isnan(n)) ? n : defaultValue;
 }
-// const safeFloat = (o: object, k: string | number, $default?: number): number => {
-//     const n = asFloat (prop (o, k));
-//     return isNumber (n) ? n : $default;
-// };
