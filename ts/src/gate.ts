@@ -2713,7 +2713,7 @@ export default class gate extends Exchange {
         //          }
         //      ]
         //
-        const response = await (this as any).fetchMyTrades (symbol, since, limit, { 'order_id': id });
+        const response = await this.fetchMyTrades (symbol, since, limit, { 'order_id': id });
         return response;
     }
 

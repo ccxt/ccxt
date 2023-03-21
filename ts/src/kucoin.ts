@@ -3144,7 +3144,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return (this as any).parseBorrowRateHistory (data, code);
+        return this.parseBorrowRateHistory (data, code, since, limit);
     }
 
     parseBorrowRateHistory (response, code, since, limit) {

@@ -1126,7 +1126,7 @@ export default class yobit extends Exchange {
         const request = {
             'need_new': 1,
         };
-        const response = await (this as any).fetchDepositAddress (code, this.extend (request, params));
+        const response = await this.fetchDepositAddress (code, this.extend (request, params));
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
