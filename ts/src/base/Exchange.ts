@@ -234,7 +234,7 @@ export default class Exchange {
     requiredCredentials = undefined
     rateLimit = undefined
     tokenBucket = undefined
-    throttle = undefined
+    throttleProp = undefined
     enableRateLimit = undefined
 
     httpExceptions = undefined
@@ -707,6 +707,10 @@ export default class Exchange {
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
     }
 
+    throttle(cost){
+        this.throttleProp(cost);
+    }
+
     encodeURIComponent (...args) {
         // @ts-expect-error
         return encodeURIComponent (...args)
@@ -764,7 +768,7 @@ export default class Exchange {
             maxCapacity: 1000,
             refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
         }, this.tokenBucket);
-        this.throttle = throttle (this.tokenBucket);
+        this.throttleProp = throttle (this.tokenBucket);
 
     }
 
@@ -1867,12 +1871,12 @@ export default class Exchange {
             entry['amount'] = this.safeNumber (entry, 'amount');
             entry['price'] = this.safeNumber (entry, 'price');
             entry['cost'] = this.safeNumber (entry, 'cost');
-            const fee = this.safeValue (entry, 'fee', {});
-            fee['cost'] = this.safeNumber (fee, 'cost');
-            if ('rate' in fee) {
-                fee['rate'] = this.safeNumber (fee, 'rate');
+            const feeNew = this.safeValue (entry, 'fee', {});
+            feeNew['cost'] = this.safeNumber (feeNew, 'cost');
+            if ('rate' in feeNew) {
+                feeNew['rate'] = this.safeNumber (feeNew, 'rate');
             }
-            entry['fee'] = fee;
+            entry['fee'] = feeNew;
         }
         let timeInForce = this.safeString (order, 'timeInForce');
         let postOnly = this.safeValue (order, 'postOnly');
@@ -2814,6 +2818,12 @@ export default class Exchange {
     }
 
     safeCurrency (currencyId: string, currency: string = undefined) {
+        if (currencyId !== undefined && currencyId === undefined) {
+            return {
+                'id': undefined,
+                'code': undefined,
+            };
+        }
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
