@@ -3160,7 +3160,7 @@ export default class gate extends Exchange {
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const exchangeSpecificTimeInForce = this.safeStringLower2 (params, 'timeInForce', 'tif');
         let postOnly = undefined;
-        [ postOnly, params ] = this.handleForTimeInForceFlags (type === 'market', 'postOnly', exchangeSpecificTimeInForce === 'poc', params);
+        [ postOnly, params ] = this.handlePostOnly (type === 'market', exchangeSpecificTimeInForce === 'poc', params);
         let timeInForce = this.handleTimeInForce (params);
         if (postOnly) {
             timeInForce = 'poc';
