@@ -3157,15 +3157,16 @@ export default class gate extends Exchange {
         }
         let methodTail = 'Orders';
         const reduceOnly = this.safeValue (params, 'reduceOnly');
-        const exchangeSpecificTimeInForce = this.safeStringLower2 (params, 'time_in_force', 'tif');
-        const postOnly = this.isPostOnly (type === 'market', exchangeSpecificTimeInForce === 'poc', params);
+        const exchangeSpecificTimeInForce = this.safeStringLower2 (params, 'timeInForce', 'tif');
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handleForTimeInForceFlags (type === 'market', 'postOnly', exchangeSpecificTimeInForce === 'poc', params);
         let timeInForce = this.handleTimeInForce (params);
-        // we only omit the unified params here
-        // this is because the other params will get extended into the request
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ]);
         if (postOnly) {
             timeInForce = 'poc';
         }
+        // we only omit the unified params here
+        // this is because the other params will get extended into the request
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ]);
         const isLimitOrder = (type === 'limit');
         const isMarketOrder = (type === 'market');
         if (isLimitOrder && price === undefined) {
