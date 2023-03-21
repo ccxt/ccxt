@@ -3628,7 +3628,10 @@ export default class Exchange {
                 } else if (isMarketOrder) {
                     throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
                 } else {
-                    params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
+                    if (po) {
+                        params = this.omit (params, 'timeInForce');
+                    }
+                    params = this.omit (params, 'postOnly');
                     return [ true, params ];
                 }
             }
