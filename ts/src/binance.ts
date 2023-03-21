@@ -5067,9 +5067,7 @@ export default class binance extends Exchange {
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
             const txType = this.safeString (transaction, 'transactionType');
-            if (txType !== undefined) {
-                type = (txType === '0') ? 'deposit' : 'withdrawal';
-            }
+            type = (txType === '0') ? 'deposit' : 'withdrawal';
             const legalMoneyCurrenciesById = this.safeValue (this.options, 'legalMoneyCurrenciesById');
             code = this.safeString (legalMoneyCurrenciesById, code, code);
         }
