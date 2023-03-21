@@ -3451,6 +3451,9 @@ export default class Exchange {
             return undefined;
         }
         const precisionNumber = parseInt (precision);
+        if (precisionNumber === 0) {
+            return '1';
+        }
         let parsedPrecision = '0.';
         for (let i = 0; i < precisionNumber - 1; i++) {
             parsedPrecision = parsedPrecision + '0';
