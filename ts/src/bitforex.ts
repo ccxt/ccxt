@@ -723,8 +723,8 @@ export default class bitforex extends Exchange {
             const success = this.safeValue (response, 'success');
             if (success !== undefined) {
                 if (!success) {
-                    const code = this.safeString (response, 'code');
-                    this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                    const codeInner = this.safeString (response, 'code');
+                    this.throwExactlyMatchedException (this.exceptions, codeInner, feedback);
                     throw new ExchangeError (feedback);
                 }
             }
