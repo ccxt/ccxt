@@ -2531,20 +2531,20 @@ export default class ascendex extends Exchange {
         //
         const marketId = this.safeString(position, 'symbol');
         market = this.safeMarket(marketId, market);
-        let notional = this.safeNumber(position, 'buyOpenOrderNotional');
-        if (notional === 0) {
-            notional = this.safeNumber(position, 'sellOpenOrderNotional');
+        let notional = this.safeString(position, 'buyOpenOrderNotional');
+        if (Precise.stringEq(notional, '0')) {
+            notional = this.safeString(position, 'sellOpenOrderNotional');
         }
         const marginMode = this.safeString(position, 'marginType');
         let collateral = undefined;
         if (marginMode === 'isolated') {
-            collateral = this.safeNumber(position, 'isolatedMargin');
+            collateral = this.safeString(position, 'isolatedMargin');
         }
         return {
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
-            'notional': notional,
+            'notional': this.parseNumber(notional),
             'marginMode': marginMode,
             'liquidationPrice': undefined,
             'entryPrice': this.safeNumber(position, 'avgOpenPrice'),
