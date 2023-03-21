@@ -31,11 +31,15 @@ export default class xt extends Exchange {
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': true,
                 'fetchBalance': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchOrdersByStatus': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -2125,6 +2129,219 @@ export default class xt extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    async fetchOrdersByStatus (status, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrdersByStatus', market, params);
+        let method = 'privateSpotGetHistoryOrder';
+        if (subType !== undefined) {
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if (limit !== undefined) {
+                request['size'] = limit;
+            }
+            if (subType === 'linear') {
+                method = 'privateLinearGetFutureTradeV1OrderList';
+            } else if (subType === 'inverse') {
+                method = 'privateInverseGetFutureTradeV1OrderList';
+            }
+        } else {
+            if (status !== 'open') {
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
+                if (limit !== undefined) {
+                    request['limit'] = limit;
+                }
+            }
+        }
+        if (status === 'open') {
+            if (subType !== undefined) {
+                request['state'] = 'NEW';
+            } else {
+                method = 'privateSpotGetOpenOrder';
+            }
+        } else if (status === 'closed') {
+            request['state'] = 'FILLED';
+        } else if (status === 'canceled') {
+            request['state'] = 'CANCELED';
+        } else {
+            request['state'] = status;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {
+        //             "hasPrev": false,
+        //             "hasNext": true,
+        //             "items": [
+        //                 {
+        //                     "symbol": "btc_usdt",
+        //                     "orderId": "207505997850909952",
+        //                     "clientOrderId": null,
+        //                     "baseCurrency": "btc",
+        //                     "quoteCurrency": "usdt",
+        //                     "side": "BUY",
+        //                     "type": "LIMIT",
+        //                     "timeInForce": "GTC",
+        //                     "price": "20000.00",
+        //                     "origQty": "0.001000",
+        //                     "origQuoteQty": "20.00",
+        //                     "executedQty": "0.000000",
+        //                     "leavingQty": "0.000000",
+        //                     "tradeBase": "0.000000",
+        //                     "tradeQuote": "0.00",
+        //                     "avgPrice": null,
+        //                     "fee": null,
+        //                     "feeCurrency": null,
+        //                     "closed": true,
+        //                     "state": "CANCELED",
+        //                     "time": 1679175285162,
+        //                     "updatedTime": 1679175488492
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        // spot: fetchOpenOrders
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": [
+        //             {
+        //                 "symbol": "eth_usdt",
+        //                 "orderId": "208249323222264320",
+        //                 "clientOrderId": null,
+        //                 "baseCurrency": "eth",
+        //                 "quoteCurrency": "usdt",
+        //                 "side": "BUY",
+        //                 "type": "LIMIT",
+        //                 "timeInForce": "GTC",
+        //                 "price": "1300.00",
+        //                 "origQty": "0.0032",
+        //                 "origQuoteQty": "4.16",
+        //                 "executedQty": "0.0000",
+        //                 "leavingQty": "0.0032",
+        //                 "tradeBase": "0.0000",
+        //                 "tradeQuote": "0.00",
+        //                 "avgPrice": null,
+        //                 "fee": null,
+        //                 "feeCurrency": null,
+        //                 "closed": false,
+        //                 "state": "NEW",
+        //                 "time": 1679352507741,
+        //                 "updatedTime": 1679352507869
+        //             },
+        //         ]
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "page": 1,
+        //             "ps": 10,
+        //             "total": 25,
+        //             "items": [
+        //                 {
+        //                     "orderId": "207519546930995456",
+        //                     "clientOrderId": null,
+        //                     "symbol": "btc_usdt",
+        //                     "orderType": "LIMIT",
+        //                     "orderSide": "BUY",
+        //                     "positionSide": "LONG",
+        //                     "timeInForce": "GTC",
+        //                     "closePosition": false,
+        //                     "price": "20000",
+        //                     "origQty": "100",
+        //                     "avgPrice": "0",
+        //                     "executedQty": "0",
+        //                     "marginFrozen": "4.12",
+        //                     "remark": null,
+        //                     "triggerProfitPrice": null,
+        //                     "triggerStopPrice": null,
+        //                     "sourceId": null,
+        //                     "sourceType": "DEFAULT",
+        //                     "forceClose": false,
+        //                     "closeProfit": null,
+        //                     "state": "CANCELED",
+        //                     "createdTime": 1679178515689,
+        //                     "updatedTime": 1679180096172
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const orders = (method === 'privateSpotGetOpenOrder') ? this.safeValue (response, 'result', []) : this.safeValue (data, 'items', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @see https://doc.xt.com/#orderopenOrderGet
+         * @see https://doc.xt.com/#futures_ordergetOrders
+         * @param {string} symbol unified market symbol
+         * @param {int|undefined} since timestamp in ms of the earliest order
+         * @param {int|undefined} limit the maximum number of open order structures to retrieve
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @see https://doc.xt.com/#orderhistoryOrderGet
+         * @see https://doc.xt.com/#futures_ordergetOrders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order
+         * @param {int|undefined} limit the maximum number of order structures to retrieve
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
+    }
+
+    async fetchCanceledOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @see https://doc.xt.com/#orderhistoryOrderGet
+         * @see https://doc.xt.com/#futures_ordergetOrders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order
+         * @param {int|undefined} limit the maximum number of order structures to retrieve
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        return await this.fetchOrdersByStatus ('canceled', symbol, since, limit, params);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // spot: createOrder
@@ -2142,7 +2359,7 @@ export default class xt extends Exchange {
         //         "result": "206410760006650176"
         //     }
         //
-        // spot: fetchOrder, fetchOrders
+        // spot: fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrdersByStatus
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -2193,7 +2410,7 @@ export default class xt extends Exchange {
         //         "triggerStopPrice": 0
         //     }
         //
-        // swap and future: fetchOrders
+        // swap and future: fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrdersByStatus
         //
         //     {
         //         "orderId": "207519546930995456",
@@ -2323,6 +2540,9 @@ export default class xt extends Exchange {
         let url = this.urls['api'][endpoint] + payload;
         const query = this.omit (params, this.extractParams (path));
         const urlencoded = this.urlencode (this.keysort (query));
+        headers = {
+            'Content-Type': 'application/json',
+        };
         if (signed) {
             this.checkRequiredCredentials ();
             const defaultRecvWindow = this.safeString (this.options, 'recvWindow');
@@ -2332,31 +2552,34 @@ export default class xt extends Exchange {
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create')) {
                 body['clientMedia'] = 'CCXT';
             }
-            body = (method === 'GET') ? undefined : this.json (body);
+            body = ((method === 'GET') || (path === 'order/{orderId}')) ? undefined : this.json (body);
             let payloadString = undefined;
             if (endpoint === 'spot') {
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-timestamp=' + timestamp;
-                if (method === 'GET') {
-                    payloadString = payloadString + '#' + method + '#' + payload;
+                if ((method === 'GET') || (path === 'order/{orderId}')) {
+                    if (urlencoded) {
+                        url += '?' + urlencoded;
+                        payloadString += '#' + method + '#' + payload + '#' + urlencoded;
+                    } else {
+                        payloadString += '#' + method + '#' + payload;
+                    }
                 } else {
-                    payloadString = payloadString + '#' + method + '#' + payload + '#' + body;
+                    payloadString += '#' + method + '#' + payload + '#' + body;
                 }
-                headers = {
-                    'xt-validate-algorithms': 'HmacSHA256',
-                    'xt-validate-recvwindow': recvWindow,
-                    'Content-Type': 'application/json',
-                };
+                headers['xt-validate-algorithms'] = 'HmacSHA256';
+                headers['xt-validate-recvwindow'] = recvWindow;
             } else {
                 payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-timestamp=' + timestamp;
                 if (method === 'GET') {
-                    payloadString = payloadString + '#' + payload;
+                    if (urlencoded) {
+                        url += '?' + urlencoded;
+                        payloadString += '#' + payload + '#' + urlencoded;
+                    } else {
+                        payloadString += '#' + payload;
+                    }
                 } else {
-                    payloadString = payloadString + '#' + payload + '#' + body;
+                    payloadString += '#' + payload + '#' + body;
                 }
-                headers = {
-                    'Content-Type': 'application/json',
-                    // 'Content-Type': 'application/x-www-form-urlencoded',
-                };
             }
             const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), 'sha256');
             headers['xt-validate-appkey'] = this.apiKey;
@@ -2366,9 +2589,6 @@ export default class xt extends Exchange {
             if (urlencoded) {
                 url += '?' + urlencoded;
             }
-            headers = {
-                'Content-Type': 'application/json',
-            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
