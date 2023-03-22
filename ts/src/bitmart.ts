@@ -1969,26 +1969,28 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#cancelAllOrders
          * @description cancel all open orders in a market
+         * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        if (type !== 'spot') {
+            throw new NotSupported (this.id + ' cancelAllOrders() does not support ' + type + ' orders, only spot orders are accepted');
         }
         const side = this.safeString (params, 'side');
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + " cancelAllOrders() requires a `side` parameter ('buy' or 'sell')");
+        if (side !== undefined) {
+            request['side'] = side;
+            params = this.omit (params, 'side');
         }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (!market['spot']) {
-            throw new NotSupported (this.id + ' cancelAllOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted');
-        }
-        const request = {
-            'symbol': market['id'],
-            'side': side, // 'buy' or 'sell'
-        };
         const response = await (this as any).privatePostSpotV1CancelOrders (this.extend (request, params));
         //
         //     {
