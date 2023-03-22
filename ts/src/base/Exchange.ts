@@ -3606,7 +3606,7 @@ export default class Exchange {
         }
     }
 
-    handlePostOnly (isMarketOrder: boolean, exchangeSpecificBoolean: boolean, params: any = {}) {
+    handlePostOnly (isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params: any = {}) {
         /**
          * @ignore
          * @method
@@ -3620,7 +3620,7 @@ export default class Exchange {
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const po = timeInForce === 'PO';
-        postOnly = postOnly || po || exchangeSpecificBoolean;
+        postOnly = postOnly || po || exchangeSpecificPostOnlyOption;
         if (postOnly) {
             if (ioc || fok) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
