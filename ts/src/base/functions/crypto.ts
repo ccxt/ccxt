@@ -1,51 +1,37 @@
 /*  ------------------------------------------------------------------------ */
 
-import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
-import { sha1 } from '../../static_dependencies/noble-hashes/sha1.js'
-import { keccak_256 as keccak } from '../../static_dependencies/noble-hashes/sha3.js';
-import { sha256 } from '../../static_dependencies/noble-hashes/sha256.js';
-import { sha512, sha384 } from '../../static_dependencies/noble-hashes/sha512.js';
 import { hmac as _hmac } from '../../static_dependencies/noble-hashes/hmac.js';
 import { base16, base32, base64 } from "../../static_dependencies/scure-base/index.js";
 import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
 import { x25519 } from "../../static_dependencies/noble-curves/ed25519.js";
-import { Digest, Hash, Curve } from "../types.js";
 import { stringToBase64, urlencodeBase64 } from './encode.js';
+import { Digest } from '../types.js';
+import { CHash } from '../../static_dependencies/noble-hashes/utils.js';
 
 /*  ------------------------------------------------------------------------ */
 
-const hashes = { sha1, sha256, sha384, sha512, keccak }
 const encoders = {
-    [Digest.Binary]: x => x,
-    [Digest.Hex]: base16.encode,
-    [Digest.Base64]: base64.encode,
+    binary: x => x,
+    hex: base16.encode,
+    base64: base64.encode,
 }
 
-const hash = (request, hash = Hash.Md5, digest = Digest.Hex) => {
-    const binary = hashes[hash] (request)
+const hash = (request, hash : CHash, digest : Digest = 'hex') => {
+    const binary = hash (request)
     return encoders[digest] (binary)
 };
 
 /*  .............................................   */
 
-const hmac = (request, secret, hash = Hash.Sha256, digest = Digest.Hex) => {
-    const binary = _hmac (hashes[hash], secret, request)
+const hmac = (request, secret, hash : CHash, digest : Digest = 'hex') => {
+    const binary = _hmac (hash, secret, request)
     return encoders[digest] (binary)
 };
 
 /*  .............................................   */
 
-const RSA = new JSEncrypt ()
-function rsa (request, secret, hash = Hash.Sha256) {
-    const digest = hashes[hash]
-    const digester = (input) => base16.encode (digest (input))
-    RSA.setPrivateKey (secret)
-    return RSA.sign (request, digester, hash)
-}
+/*
 
-/**
- * @return {string}
- */
 function jwt (request, secret, alg = 'HS256') {
     const algos = {
         'RS256': Hash.Sha256,
@@ -99,9 +85,10 @@ function old (request, secret, _) {
 
 // old ('aa', 'aa'.repeat (16), '')
 
-
+*/
 /*  ------------------------------------------------------------------------ */
 
+/*
 const totp = (secret) => {
 
     const dec2hex = (s) => ((s < 15.5 ? '0' : '') + Math.round (s).toString (16));
@@ -121,6 +108,7 @@ const totp = (secret) => {
 
     return getOTP (secret);
 };
+ */
 
 /*  ------------------------------------------------------------------------ */
 
@@ -150,11 +138,6 @@ function crc32 (str, signed = false) {
 export {
     hash,
     hmac,
-    jwt,
-    totp,
-    rsa,
-    ecdsa,
-    eddsa,
     crc32,
 };
 

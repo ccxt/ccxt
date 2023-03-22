@@ -7,8 +7,10 @@ export default {
   entry : "./ts/ccxt.ts",
   output: {
     path: split.join ('/'),
-    filename: "webpack.out.js",
-    chunkFormat: 'module',
+    filename: "web.js",
+    library: {
+      type: 'commonjs-static',
+    },
   },
   module: {
     rules: [{
@@ -25,9 +27,11 @@ export default {
      ".js": [ ".js", ".ts" ],
     },
   },
-  externals: [ 'ws', 'zlib' ],
+  externals: {
+    'ws': 'WebSocket',
+  },
   mode: 'production',
-  target: 'es2019',
+  target: 'web',
   optimization: {
     minimize: false,
     usedExports: true,
