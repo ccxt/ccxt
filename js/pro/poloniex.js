@@ -847,7 +847,7 @@ module.exports = class poloniex extends poloniexRest {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const messageHash = 'balances:all';
+        const messageHash = 'balances';
         this.balance = this.parseWsBalance (data);
         client.resolve (this.balance, messageHash);
     }
