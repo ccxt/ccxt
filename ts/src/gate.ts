@@ -3174,8 +3174,14 @@ export default class gate extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for ' + type + ' orders');
         }
         if (isMarketOrder) {
-            if ((timeInForce === 'poc') || (timeInForce === 'gtc') || (timeInForce === 'ioc')) {
-                throw new ExchangeError (this.id + ' createOrder () timeInForce for market order can only be "FOK"');
+            if ((timeInForce === 'poc') || (timeInForce === 'gtc')) {
+                throw new ExchangeError (this.id + ' createOrder () timeInForce for market order can only be "FOK" or "IOC"');
+            } else {
+                if (timeInForce === undefined) {
+                    const defaultTif = this.safeString (this.options, 'defaultTimeInForce', 'IOC');
+                    const exchangeSpecificTif = this.safeString (this.options['timeInForce'], defaultTif, 'ioc');
+                    timeInForce = exchangeSpecificTif;
+                }
             }
             if (contract) {
                 price = 0;
@@ -3319,6 +3325,9 @@ export default class gate extends Exchange {
                 const options = this.safeValue (this.options, 'createOrder', {});
                 let marginMode = undefined;
                 [ marginMode, params ] = this.getMarginMode (true, params);
+                if (timeInForce === undefined) {
+                    timeInForce = 'gtc';
+                }
                 request = {
                     'put': {
                         'type': type,
@@ -3330,9 +3339,6 @@ export default class gate extends Exchange {
                     },
                     'market': market['id'],
                 };
-                if (timeInForce === undefined) {
-                    request['put']['time_in_force'] = 'gtc';
-                }
                 if (trigger === undefined) {
                     const defaultExpiration = this.safeInteger (options, 'expiration');
                     const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
