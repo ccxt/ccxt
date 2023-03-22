@@ -4,6 +4,7 @@
 import bitmexRest from '../bitmex.js';
 import { AuthenticationError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -567,7 +568,7 @@ export default class bitmex extends bitmexRest {
                 this.checkRequiredCredentials ();
                 const timestamp = this.milliseconds ();
                 const message = 'GET' + '/realtime' + timestamp.toString ();
-                const signature = this.hmac (this.encode (message), this.encode (this.secret));
+                const signature = this.hmac (this.encode (message), this.encode (this.secret), sha256);
                 const request = {
                     'op': action,
                     'args': [

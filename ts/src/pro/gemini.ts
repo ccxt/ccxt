@@ -3,6 +3,7 @@
 import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError } from '../base/errors.js';
+import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
@@ -640,7 +641,7 @@ export default class gemini extends geminiRest {
             'nonce': this.nonce (),
         };
         const b64 = this.stringToBase64 (this.encode (this.json (payload)));
-        const signature = this.hmac (b64, this.encode (this.secret), 'sha384', 'hex');
+        const signature = this.hmac (b64, this.encode (this.secret), sha384, 'hex');
         const defaultOptions = {
             'ws': {
                 'options': {

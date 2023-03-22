@@ -5,6 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 // ---------------------------------------------------------------------------
 
@@ -4910,7 +4911,7 @@ export default class mexc3 extends Exchange {
             }
             if (access === 'private') {
                 this.checkRequiredCredentials ();
-                const signature = this.hmac (this.encode (paramsEncoded), this.encode (this.secret), 'sha256');
+                const signature = this.hmac (this.encode (paramsEncoded), this.encode (this.secret), sha256);
                 url += '&' + 'signature=' + signature;
                 headers = {
                     'X-MEXC-APIKEY': this.apiKey,
@@ -4948,7 +4949,7 @@ export default class mexc3 extends Exchange {
                     }
                 }
                 auth = this.apiKey + timestamp + auth;
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 headers['Signature'] = signature;
             }
         }

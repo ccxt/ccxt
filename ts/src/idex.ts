@@ -5,6 +5,8 @@ import { Exchange } from './base/Exchange.js';
 import { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1122,7 +1124,7 @@ export default class idex extends Exchange {
             this.base16ToBinary (noPrefix),
         ];
         const binary = this.binaryConcatArray (byteArray);
-        const hash = this.hash (binary, 'keccak', 'hex');
+        const hash = this.hash (binary, keccak, 'hex');
         const signature = this.signMessageString (hash, this.privateKey);
         // {
         //   address: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
@@ -1268,7 +1270,7 @@ export default class idex extends Exchange {
         ];
         const allBytes = this.arrayConcat (byteArray, after);
         const binary = this.binaryConcatArray (allBytes);
-        const hash = this.hash (binary, 'keccak', 'hex');
+        const hash = this.hash (binary, keccak, 'hex');
         const signature = this.signMessageString (hash, this.privateKey);
         const request = {
             'parameters': {
@@ -1360,7 +1362,7 @@ export default class idex extends Exchange {
             this.numberToBE (1, 1), // bool set to true
         ];
         const binary = this.binaryConcatArray (byteArray);
-        const hash = this.hash (binary, 'keccak', 'hex');
+        const hash = this.hash (binary, keccak, 'hex');
         const signature = this.signMessageString (hash, this.privateKey);
         const request = {
             'parameters': {
@@ -1419,7 +1421,7 @@ export default class idex extends Exchange {
             request['parameters']['market'] = market['id'];
         }
         const binary = this.binaryConcatArray (byteArray);
-        const hash = this.hash (binary, 'keccak', 'hex');
+        const hash = this.hash (binary, keccak, 'hex');
         const signature = this.signMessageString (hash, this.privateKey);
         request['signature'] = signature;
         // [ { orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e' } ]
@@ -1451,7 +1453,7 @@ export default class idex extends Exchange {
             this.stringToBinary (this.encode (id)),
         ];
         const binary = this.binaryConcatArray (byteArray);
-        const hash = this.hash (binary, 'keccak', 'hex');
+        const hash = this.hash (binary, keccak, 'hex');
         const signature = this.signMessageString (hash, this.privateKey);
         const request = {
             'parameters': {
@@ -1732,7 +1734,7 @@ export default class idex extends Exchange {
             } else {
                 payload = body;
             }
-            headers['IDEX-HMAC-Signature'] = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
+            headers['IDEX-HMAC-Signature'] = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

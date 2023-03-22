@@ -5,6 +5,8 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeError, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -814,10 +816,10 @@ export default class itbit extends Exchange {
             const authBody = (method === 'POST') ? body : '';
             const auth = [ method, url, authBody, nonce, timestamp ];
             const message = nonce + this.json (auth).replace ('\\/', '/');
-            const hash = this.hash (this.encode (message), 'sha256', 'binary');
+            const hash = this.hash (this.encode (message), sha256, 'binary');
             const binaryUrl = this.stringToBinary (this.encode (url));
             const binhash = this.binaryConcat (binaryUrl, hash);
-            const signature = this.hmac (binhash, this.encode (this.secret), 'sha512', 'base64');
+            const signature = this.hmac (binhash, this.encode (this.secret), sha512, 'base64');
             headers = {
                 'Authorization': this.apiKey + ':' + signature,
                 'Content-Type': 'application/json',

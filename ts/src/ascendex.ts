@@ -5,6 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3007,7 +3008,7 @@ export default class ascendex extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             const payload = timestamp + '+' + request;
-            const hmac = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+            const hmac = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             headers = {
                 'x-auth-key': this.apiKey,
                 'x-auth-timestamp': timestamp,

@@ -4,6 +4,7 @@
 import mexcRest from '../mexc.js';
 import { AuthenticationError, BadSymbol, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1094,7 +1095,7 @@ export default class mexc extends mexcRest {
         const url = this.urls['api']['ws']['swap'];
         const timestamp = this.milliseconds ().toString ();
         const payload = this.apiKey + timestamp;
-        const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
+        const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
         const request = {
             'method': channel,
             'param': {

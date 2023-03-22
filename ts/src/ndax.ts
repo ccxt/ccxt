@@ -5,6 +5,8 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import totp from './base/functions/totp.js';
 // ---------------------------------------------------------------------------
 
 export default class ndax extends Exchange {
@@ -294,7 +296,7 @@ export default class ndax extends Exchange {
             }
             this.options['pending2faToken'] = pending2faToken;
             request = {
-                'Code': this.oath (),
+                'Code': totp (this.twofa),
             } as any;
             const response = await (this as any).publicGetAuthenticate2FA (this.extend (request, params));
             //
@@ -2345,7 +2347,7 @@ export default class ndax extends Exchange {
         };
         const withdrawRequest = {
             'TfaType': 'Google',
-            'TFaCode': this.oath (),
+            'TFaCode': totp (this.twofa),
             'Payload': this.json (withdrawPayload),
         };
         const response = await (this as any).privatePostCreateWithdrawTicket (this.deepExtend (withdrawRequest, params));
@@ -2386,7 +2388,7 @@ export default class ndax extends Exchange {
             if (sessionToken === undefined) {
                 const nonce = this.nonce ().toString ();
                 const auth = nonce + this.uid + this.apiKey;
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 headers = {
                     'Nonce': nonce,
                     'APIKey': this.apiKey,

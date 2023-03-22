@@ -4,6 +4,7 @@
 import hollaexRest from '../hollaex.js';
 import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -446,7 +447,7 @@ export default class hollaex extends hollaexRest {
         }
         const url = this.urls['api']['ws'];
         const auth = 'CONNECT' + '/stream' + expires;
-        const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+        const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         const authParams = {
             'api-key': this.apiKey,
             'api-signature': signature,

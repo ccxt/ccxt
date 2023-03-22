@@ -2,6 +2,7 @@ import { Exchange } from './base/Exchange.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 export default class hitbtc3 extends Exchange {
     describe () {
@@ -2854,7 +2855,7 @@ export default class hitbtc3 extends Exchange {
             }
             payload.push (timestamp);
             const payloadString = payload.join ('');
-            const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), 'sha256', 'hex');
+            const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), sha256, 'hex');
             const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
             const encoded = this.decode (this.stringToBase64 (secondPayload));
             headers['Authorization'] = 'HS256 ' + encoded;

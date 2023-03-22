@@ -5,6 +5,7 @@ import { Exchange } from './base/Exchange.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2817,7 +2818,7 @@ export default class bitmex extends Exchange {
                     auth += body;
                 }
             }
-            headers['api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
+            headers['api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
