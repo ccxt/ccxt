@@ -14,7 +14,7 @@ export default class coinbase extends coinbaseRest {
             'has': {
                 'ws': true,
                 'watchOHLCV': false,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
