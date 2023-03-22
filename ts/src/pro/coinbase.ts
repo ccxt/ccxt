@@ -643,7 +643,7 @@ export default class coinbase extends coinbaseRest {
             'ticker_batch': this.handleTickers,
             'market_trades': this.handleTrade,
             'user': this.handleOrder,
-            'level2': this.handleOrderBook,
+            'l2_data': this.handleOrderBook,
         };
         const method = this.safeValue (methods, channel);
         return method.call (this, client, message);
