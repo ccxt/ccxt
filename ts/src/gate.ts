@@ -3179,8 +3179,7 @@ export default class gate extends Exchange {
             } else {
                 if (timeInForce === undefined) {
                     const defaultTif = this.safeString (this.options, 'defaultTimeInForce', 'IOC');
-                    const exchangeSpecificTif = this.safeString (this.options['timeInForce'], defaultTif, 'ioc');
-                    timeInForce = exchangeSpecificTif;
+                    timeInForce = defaultTif;
                 }
             }
             if (contract) {
