@@ -85,7 +85,7 @@ module.exports = class poloniex extends poloniexRest {
          * @returns {object} response from exchange
          */
         this.checkRequiredCredentials ();
-        const timestamp = this.milliseconds ();
+        const timestamp = this.numberToString (this.milliseconds ());
         const url = this.urls['api']['ws']['private'];
         const messageHash = 'authenticated';
         const client = this.client (url);
