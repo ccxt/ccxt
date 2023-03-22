@@ -1866,23 +1866,25 @@ class bitmart(Exchange):
     def cancel_all_orders(self, symbol=None, params={}):
         """
         cancel all open orders in a market
+        see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the bitmart api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
-        side = self.safe_string(params, 'side')
-        if side is None:
-            raise ArgumentsRequired(self.id + " cancelAllOrders() requires a `side` parameter('buy' or 'sell')")
         self.load_markets()
-        market = self.market(symbol)
-        if not market['spot']:
-            raise NotSupported(self.id + ' cancelAllOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        request = {
-            'symbol': market['id'],
-            'side': side,  # 'buy' or 'sell'
-        }
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        type = None
+        type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        if type != 'spot':
+            raise NotSupported(self.id + ' cancelAllOrders() does not support ' + type + ' orders, only spot orders are accepted')
+        side = self.safe_string(params, 'side')
+        if side is not None:
+            request['side'] = side
+            params = self.omit(params, 'side')
         response = self.privatePostSpotV1CancelOrders(self.extend(request, params))
         #
         #     {

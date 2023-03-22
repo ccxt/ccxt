@@ -1978,26 +1978,28 @@ class bitmart extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
+             * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} $params extra parameters specific to the bitmart api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+            if ($type !== 'spot') {
+                throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $type . ' orders, only spot orders are accepted');
             }
             $side = $this->safe_string($params, 'side');
-            if ($side === null) {
-                throw new ArgumentsRequired($this->id . " cancelAllOrders() requires a `$side` parameter ('buy' or 'sell')");
+            if ($side !== null) {
+                $request['side'] = $side;
+                $params = $this->omit($params, 'side');
             }
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            if (!$market['spot']) {
-                throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
-            }
-            $request = array(
-                'symbol' => $market['id'],
-                'side' => $side, // 'buy' or 'sell'
-            );
             $response = Async\await($this->privatePostSpotV1CancelOrders (array_merge($request, $params)));
             //
             //     {
