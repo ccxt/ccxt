@@ -3503,8 +3503,8 @@ export default class bybit extends Exchange {
         else if (timeInForce === 'ioc') {
             request['timeInForce'] = 'IOC';
         }
-        const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice', triggerPrice);
+        let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
         const stopLoss = this.safeNumber(params, 'stopLoss');
         const takeProfit = this.safeNumber(params, 'takeProfit');
@@ -3512,21 +3512,16 @@ export default class bybit extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
+        const isBuy = side === 'buy';
+        const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
         if (triggerPrice !== undefined) {
-            const isBuy = side === 'buy';
-            const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
             request['triggerDirection'] = ascending ? 2 : 1;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-            if (isStopLossTriggerOrder) {
-                request['triggerPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-                request['triggerDirection'] = 2;
-            }
-            else {
-                request['triggerPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-                request['triggerDirection'] = 1;
-            }
+            request['triggerDirection'] = ascending ? 2 : 1;
+            triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['reduceOnly'] = true;
         }
         else if (isStopLoss || isTakeProfit) {
@@ -3814,8 +3809,8 @@ export default class bybit extends Exchange {
         else if (timeInForce === 'ioc') {
             request['timeInForce'] = 'ImmediateOrCancel';
         }
-        const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice', triggerPrice);
+        let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
         const stopLoss = this.safeNumber(params, 'stopLoss');
         const takeProfit = this.safeNumber(params, 'takeProfit');
@@ -3823,21 +3818,16 @@ export default class bybit extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
-        if (triggerPrice) {
-            const isBuy = side === 'buy';
-            const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
+        const isBuy = side === 'buy';
+        const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
+        if (triggerPrice !== undefined) {
             request['triggerDirection'] = ascending ? 2 : 1;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-            if (isStopLossTriggerOrder) {
-                request['triggerPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-                request['triggerDirection'] = 2;
-            }
-            else {
-                request['triggerPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-                request['triggerDirection'] = 1;
-            }
+            request['triggerDirection'] = ascending ? 2 : 1;
+            triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['reduceOnly'] = true;
         }
         else if (isStopLoss || isTakeProfit) {

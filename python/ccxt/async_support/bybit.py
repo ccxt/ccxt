@@ -3351,7 +3351,7 @@ class bybit(Exchange):
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'IOC'
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice', triggerPrice)
+        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
         stopLoss = self.safe_number(params, 'stopLoss')
         takeProfit = self.safe_number(params, 'takeProfit')
@@ -3359,18 +3359,15 @@ class bybit(Exchange):
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLoss = stopLoss is not None
         isTakeProfit = takeProfit is not None
+        isBuy = side == 'buy'
+        ascending = not isBuy if stopLossTriggerPrice else isBuy
         if triggerPrice is not None:
-            isBuy = side == 'buy'
-            ascending = not isBuy if stopLossTriggerPrice else isBuy
             request['triggerDirection'] = 2 if ascending else 1
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
-            if isStopLossTriggerOrder:
-                request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-                request['triggerDirection'] = 2
-            else:
-                request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-                request['triggerDirection'] = 1
+            request['triggerDirection'] = 2 if ascending else 1
+            triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['reduceOnly'] = True
         elif isStopLoss or isTakeProfit:
             if isStopLoss:
@@ -3618,7 +3615,7 @@ class bybit(Exchange):
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'ImmediateOrCancel'
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice', triggerPrice)
+        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
         stopLoss = self.safe_number(params, 'stopLoss')
         takeProfit = self.safe_number(params, 'takeProfit')
@@ -3626,18 +3623,15 @@ class bybit(Exchange):
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLoss = stopLoss is not None
         isTakeProfit = takeProfit is not None
-        if triggerPrice:
-            isBuy = side == 'buy'
-            ascending = not isBuy if stopLossTriggerPrice else isBuy
+        isBuy = side == 'buy'
+        ascending = not isBuy if stopLossTriggerPrice else isBuy
+        if triggerPrice is not None:
             request['triggerDirection'] = 2 if ascending else 1
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
-            if isStopLossTriggerOrder:
-                request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-                request['triggerDirection'] = 2
-            else:
-                request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-                request['triggerDirection'] = 1
+            request['triggerDirection'] = 2 if ascending else 1
+            triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['reduceOnly'] = True
         elif isStopLoss or isTakeProfit:
             if isStopLoss:
