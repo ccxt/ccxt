@@ -1,7 +1,6 @@
 'use strict';
 
 import { Hash, Input, toBytes, concatBytes, wrapConstructor } from './utils.js';
-import { Keccak } from '../../../../js/src/static_dependencies/noble-hashes/sha3.js';
 
 /*
  * Fastest md5 implementation around (JKM md5).
