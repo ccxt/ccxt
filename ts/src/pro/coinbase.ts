@@ -351,24 +351,28 @@ export default class coinbase extends coinbaseRest {
         //        ]
         //    }
         //
-        const marketId = this.safeString (message, 'product_id');
-        if (marketId !== undefined) {
-            const trade = this.parseWsTrade (message);
-            const symbol = trade['symbol'];
-            // the exchange sends type = 'match'
-            // but requires 'matches' upon subscribing
-            // therefore we resolve 'matches' here instead of 'match'
-            const type = 'matches';
-            const messageHash = type + ':' + marketId;
-            let tradesArray = this.safeValue (this.trades, symbol);
-            if (tradesArray === undefined) {
-                const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                tradesArray = new ArrayCache (tradesLimit);
-                this.trades[symbol] = tradesArray;
-            }
-            tradesArray.append (trade);
-            client.resolve (tradesArray, messageHash);
+        const events = this.safeValue (message, 'events');
+        const event = this.safeValue (events, 0);
+        const trades = this.safeValue (event, 'trades');
+        const trade = this.safeValue (trades, 0);
+        const messageHash = 'market_trades:' + trade['id'];
+        const symbol = trade['symbol'];
+        let tradesArray = this.safeValue (this.trades, symbol);
+        if (tradesArray === undefined) {
+            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            tradesArray = new ArrayCache (tradesLimit);
+            this.trades[symbol] = tradesArray;
         }
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
+            const trades = this.safeValue (event, 'trades');
+            for (let i = 0; i < trades.length; i++) {
+                const item = trades[i];
+                const trade = this.parseTrade (item);
+                tradesArray.append (trade);
+            }
+        }
+        client.resolve (tradesArray, messageHash);
         return message;
     }
 
