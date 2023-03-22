@@ -356,7 +356,7 @@ export default class mexc extends Exchange {
             'spot': 'spotPublicGetCommonTimestamp',
             'swap': 'contractPublicGetPing',
         });
-        const response = await this[method] (this.extend (query));
+        const response = await this[method] (query);
         //
         // spot
         //
@@ -547,6 +547,7 @@ export default class mexc extends Exchange {
         } else if (swap) {
             return await this.fetchContractMarkets (query);
         }
+        return undefined;
     }
 
     async fetchContractMarkets (params = {}) {
@@ -792,7 +793,7 @@ export default class mexc extends Exchange {
             'spot': 'spotPublicGetMarketTicker',
             'swap': 'contractPublicGetTicker',
         });
-        const response = await this[method] (this.extend (query));
+        const response = await this[method] (query);
         //
         //     {
         //         "success":true,
@@ -900,6 +901,7 @@ export default class mexc extends Exchange {
             const data = this.safeValue (response, 'data', {});
             return this.parseTicker (data, market);
         }
+        return undefined;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1331,6 +1333,7 @@ export default class mexc extends Exchange {
             const result = this.convertTradingViewToOHLCV (data, 'time', 'open', 'high', 'low', 'close', 'vol');
             return this.parseOHLCVs (result, market, timeframe, since, limit);
         }
+        return undefined;
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -1911,6 +1914,7 @@ export default class mexc extends Exchange {
         } else if (marketType === 'swap') {
             return await this.createSwapOrder (symbol, type, side, amount, price, query);
         }
+        return undefined;
     }
 
     async createSpotOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -2282,8 +2286,8 @@ export default class mexc extends Exchange {
         if (id === undefined) {
             const keys = Object.keys (order);
             id = this.safeString (keys, 0);
-            const state = this.safeString (order, id);
-            if (state === 'success') {
+            const stateInner = this.safeString (order, id);
+            if (stateInner === 'success') {
                 status = 'canceled';
             }
         }
@@ -3392,11 +3396,11 @@ export default class mexc extends Exchange {
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (entry, 'symbol');
-            const symbol = this.safeSymbol (marketId);
+            const symbolInner = this.safeSymbol (marketId);
             const timestamp = this.safeInteger (entry, 'settleTime');
             rates.push ({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeNumber (entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),

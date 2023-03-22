@@ -481,10 +481,10 @@ export default class exmo extends Exchange {
             const providers = this.safeValue (cryptoList, currencyId, []);
             for (let j = 0; j < providers.length; j++) {
                 const provider = providers[j];
-                const type = this.safeString (provider, 'type');
+                const typeInner = this.safeString (provider, 'type');
                 const commissionDesc = this.safeString (provider, 'commission_desc');
                 const fee = this.parseFixedFloatValue (commissionDesc);
-                result[code][type] = fee;
+                result[code][typeInner] = fee;
             }
             result[code]['info'] = providers;
         }
@@ -652,20 +652,20 @@ export default class exmo extends Exchange {
             } else {
                 for (let j = 0; j < providers.length; j++) {
                     const provider = providers[j];
-                    const type = this.safeString (provider, 'type');
+                    const typeInner = this.safeString (provider, 'type');
                     const minValue = this.safeNumber (provider, 'min');
                     let maxValue = this.safeNumber (provider, 'max');
                     if (maxValue === 0.0) {
                         maxValue = undefined;
                     }
                     const activeProvider = this.safeValue (provider, 'enabled');
-                    if (type === 'deposit') {
+                    if (typeInner === 'deposit') {
                         if (activeProvider && !depositEnabled) {
                             depositEnabled = true;
                         } else if (!activeProvider) {
                             depositEnabled = false;
                         }
-                    } else if (type === 'withdraw') {
+                    } else if (typeInner === 'withdraw') {
                         if (activeProvider && !withdrawEnabled) {
                             withdrawEnabled = true;
                         } else if (!activeProvider) {
@@ -674,10 +674,10 @@ export default class exmo extends Exchange {
                     }
                     if (activeProvider) {
                         active = true;
-                        if ((limits[type]['min'] === undefined) || (minValue < limits[type]['min'])) {
-                            limits[type]['min'] = minValue;
-                            limits[type]['max'] = maxValue;
-                            if (type === 'withdraw') {
+                        if ((limits[typeInner]['min'] === undefined) || (minValue < limits[typeInner]['min'])) {
+                            limits[typeInner]['min'] = minValue;
+                            limits[typeInner]['max'] = maxValue;
+                            if (typeInner === 'withdraw') {
                                 const commissionDesc = this.safeString (provider, 'commission_desc');
                                 fee = this.parseFixedFloatValue (commissionDesc);
                             }

@@ -741,6 +741,7 @@ export default class wavesexchange extends Exchange {
             this.options['accessToken'] = this.safeString (response, 'access_token');
             return this.options['accessToken'];
         }
+        return undefined;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1110,15 +1111,15 @@ export default class wavesexchange extends Exchange {
                 const request = {
                     'publicKey': this.apiKey,
                 };
-                const response = await (this as any).nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
-                const addressInner = this.safeString (response, 'address');
+                const responseInner = await (this as any).nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
+                const addressInner = this.safeString (responseInner, 'address');
                 return {
                     'address': addressInner,
                     'code': code, // kept here for backward-compatibility, but will be removed soon
                     'currency': code,
                     'network': network,
                     'tag': undefined,
-                    'info': response,
+                    'info': responseInner,
                 };
             } else {
                 const request = {
@@ -1312,7 +1313,7 @@ export default class wavesexchange extends Exchange {
             const feeCurrency = this.currency (feeAsset);
             matcherFeeAssetId = this.safeString (feeCurrency, 'id');
         }
-        const balances = await (this as any).fetchBalance ();
+        const balances = await this.fetchBalance ();
         if (matcherFeeAssetId !== undefined) {
             if (baseFeeAssetId !== matcherFeeAssetId && discountFeeAssetId !== matcherFeeAssetId) {
                 throw new InvalidOrder (this.id + ' asset fee must be ' + baseFeeAsset + ' or ' + discountFeeAsset);
@@ -1855,10 +1856,10 @@ export default class wavesexchange extends Exchange {
         }
         const nonStandardAssets = assetIds.length;
         if (nonStandardAssets) {
-            const request = {
+            const requestInner = {
                 'ids': assetIds,
             };
-            const response = await (this as any).publicGetAssets (request);
+            const response = await (this as any).publicGetAssets (requestInner);
             const data = this.safeValue (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
@@ -2207,8 +2208,8 @@ export default class wavesexchange extends Exchange {
         const success = this.safeValue (response, 'success', true);
         const Exception = this.safeValue (this.exceptions, errorCode);
         if (Exception !== undefined) {
-            const message = this.safeString (response, 'message');
-            throw new Exception (this.id + ' ' + message);
+            const messageInner = this.safeString (response, 'message');
+            throw new Exception (this.id + ' ' + messageInner);
         }
         const message = this.safeString (response, 'message');
         if (message === 'Validation Error') {
@@ -2275,8 +2276,8 @@ export default class wavesexchange extends Exchange {
                 'currency': code,
             };
             const withdrawAddress = await (this as any).privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
-            const currency = this.safeValue (withdrawAddress, 'currency');
-            const allowedAmount = this.safeValue (currency, 'allowed_amount');
+            const currencyInner = this.safeValue (withdrawAddress, 'currency');
+            const allowedAmount = this.safeValue (currencyInner, 'allowed_amount');
             const minimum = this.safeNumber (allowedAmount, 'min');
             if (amount <= minimum) {
                 throw new BadRequest (this.id + ' ' + code + ' withdraw failed, amount ' + amount.toString () + ' must be greater than the minimum allowed amount of ' + minimum.toString ());

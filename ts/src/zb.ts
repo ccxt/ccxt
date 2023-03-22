@@ -3171,11 +3171,11 @@ export default class zb extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 'symbol');
-            const symbol = this.safeSymbol (marketId);
+            const symbolInner = this.safeSymbol (marketId);
             const timestamp = this.safeInteger (entry, 'fundingTime');
             rates.push ({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeNumber (entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -3908,8 +3908,8 @@ export default class zb extends Exchange {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' transfer() requires a symbol argument for isolated margin');
                 }
-                const market = this.market (symbol);
-                request['marketName'] = this.safeSymbol (market['id'], market, '_');
+                const marketInner = this.market (symbol);
+                request['marketName'] = this.safeSymbol (marketInner['id'], marketInner, '_');
             } else if ((marginMode === 'cross') || (toAccount === 'cross') || (fromAccount === 'cross')) {
                 if (fromAccount === 'spot' || toAccount === 'cross') {
                     method = 'spotV1PrivateGetTransferInCross';
@@ -4252,8 +4252,8 @@ export default class zb extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
             }
-            const market = this.market (symbol);
-            request['marketName'] = this.safeSymbol (market['id'], market, '_');
+            const marketInner = this.market (symbol);
+            request['marketName'] = this.safeSymbol (marketInner['id'], marketInner, '_');
             method = 'spotV1PrivateGetBorrow';
         } else if (marginMode === 'cross') {
             method = 'spotV1PrivateGetDoCrossLoan';

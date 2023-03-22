@@ -1020,8 +1020,8 @@ export default class yobit extends Exchange {
         const request = {};
         const market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            request['pair'] = market['id'];
+            const marketInner = this.market (symbol);
+            request['pair'] = marketInner['id'];
         }
         const response = await (this as any).privatePostActiveOrders (this.extend (request, params));
         //

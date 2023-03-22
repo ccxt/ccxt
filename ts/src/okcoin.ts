@@ -1757,8 +1757,8 @@ export default class okcoin extends Exchange {
             if (this.safeString (balance, 'margin_mode') === 'fixed') {
                 const contracts = this.safeValue (balance, 'contracts', []);
                 let free = totalAvailBalance;
-                for (let i = 0; i < contracts.length; i++) {
-                    const contract = contracts[i];
+                for (let j = 0; j < contracts.length; j++) {
+                    const contract = contracts[j];
                     const fixedBalance = this.safeString (contract, 'fixed_balance');
                     const realizedPnl = this.safeString (contract, 'realized_pnl');
                     const marginFrozen = this.safeString (contract, 'margin_frozen');

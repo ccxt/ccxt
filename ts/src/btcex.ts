@@ -2632,9 +2632,9 @@ export default class btcex extends Exchange {
         const error = this.safeValue (response, 'error');
         if (error) {
             const feedback = this.id + ' ' + body;
-            const code = this.safeString (error, 'code');
+            const codeInner = this.safeString (error, 'code');
             const message = this.safeString (error, 'message');
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeInner, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }

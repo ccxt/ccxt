@@ -841,14 +841,15 @@ export default class lbank2 extends Exchange {
             for (let i = 0; i < data.length; i++) {
                 const item = data[i];
                 const currencyId = this.safeString (item, 'coin');
-                const code = this.safeCurrencyCode (currencyId);
+                const codeInner = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
                 account['free'] = this.safeString (item, 'usableAmt');
                 account['used'] = this.safeString (item, 'freezeAmt');
-                result[code] = account;
+                result[codeInner] = account;
             }
             return this.safeBalance (result);
         }
+        return undefined;
     }
 
     async fetchBalance (params = {}) {
@@ -2049,17 +2050,17 @@ export default class lbank2 extends Exchange {
             const canWithdraw = this.safeValue (item, 'canWithDraw');
             if (canWithdraw === 'true') {
                 const currencyId = this.safeString (item, 'assetCode');
-                const code = this.safeCurrencyCode (currencyId);
+                const codeInner = this.safeCurrencyCode (currencyId);
                 const chain = this.safeString (item, 'chain');
                 let network = this.safeString (this.options['inverse-networks'], chain, chain);
                 if (network === undefined) {
-                    network = code;
+                    network = codeInner;
                 }
                 const fee = this.safeString (item, 'fee');
-                if (withdrawFees[code] === undefined) {
-                    withdrawFees[code] = {};
+                if (withdrawFees[codeInner] === undefined) {
+                    withdrawFees[codeInner] = {};
                 }
-                withdrawFees[code][network] = this.parseNumber (fee);
+                withdrawFees[codeInner][network] = this.parseNumber (fee);
             }
         }
         return {

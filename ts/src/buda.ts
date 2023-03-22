@@ -931,9 +931,9 @@ export default class buda extends Exchange {
         for (let i = 1; i < receiveAddresses.length; i++) {
             const receiveAddress = receiveAddresses[i];
             if (receiveAddress['ready']) {
-                const address = receiveAddress['address'];
-                this.checkAddress (address);
-                addressPool.push (address);
+                const addressInner = receiveAddress['address'];
+                this.checkAddress (addressInner);
+                addressPool.push (addressInner);
             }
         }
         const addressPoolLength = addressPool.length;

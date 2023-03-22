@@ -296,7 +296,7 @@ export default class ndax extends Exchange {
             request = {
                 'Code': this.oath (),
             } as any;
-            const response = await (this as any).publicGetAuthenticate2FA (this.extend (request, params));
+            const responseInner = await (this as any).publicGetAuthenticate2FA (this.extend (request, params));
             //
             //     {
             //         "Authenticated": true,
@@ -304,9 +304,9 @@ export default class ndax extends Exchange {
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
-            sessionToken = this.safeString (response, 'SessionToken');
+            sessionToken = this.safeString (responseInner, 'SessionToken');
             this.options['sessionToken'] = sessionToken;
-            return response;
+            return responseInner;
         }
         return response;
     }

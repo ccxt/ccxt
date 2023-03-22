@@ -893,13 +893,13 @@ export default class kuna extends Exchange {
             } else {
                 this.checkRequiredCredentials ();
                 const nonce = this.nonce ().toString ();
-                const query = this.encodeParams (this.extend ({
+                const queryInner = this.encodeParams (this.extend ({
                     'access_key': this.apiKey,
                     'tonce': nonce,
                 }, params));
-                const auth = method + '|' + request + '|' + query;
+                const auth = method + '|' + request + '|' + queryInner;
                 const signed = this.hmac (this.encode (auth), this.encode (this.secret));
-                const suffix = query + '&signature=' + signed;
+                const suffix = queryInner + '&signature=' + signed;
                 if (method === 'GET') {
                     url += '?' + suffix;
                 } else {

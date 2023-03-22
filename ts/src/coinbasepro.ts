@@ -1563,8 +1563,8 @@ export default class coinbasepro extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const account_id = this.safeString (response[i], 'account_id');
                 const account = this.safeValue (this.accountsById, account_id);
-                const code = this.safeString (account, 'code');
-                response[i]['currency'] = code;
+                const codeInner = this.safeString (account, 'code');
+                response[i]['currency'] = codeInner;
             }
         } else {
             response = await (this as any).privateGetAccountsIdTransfers (this.extend (request, params));

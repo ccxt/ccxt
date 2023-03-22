@@ -3603,10 +3603,10 @@ export default class coinex extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             if (marketId.indexOf ('_') === -1) { // skip _signprice and _indexprice
-                const market = this.safeMarket (marketId, undefined, undefined, 'swap');
+                const marketInner = this.safeMarket (marketId, undefined, undefined, 'swap');
                 const ticker = tickers[marketId];
                 ticker['timestamp'] = timestamp;
-                result.push (this.parseFundingRate (ticker, market));
+                result.push (this.parseFundingRate (ticker, marketInner));
             }
         }
         return this.filterByArray (result, 'symbol', symbols);
@@ -3725,11 +3725,11 @@ export default class coinex extends Exchange {
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (entry, 'market');
-            const symbol = this.safeSymbol (marketId);
+            const symbolInner = this.safeSymbol (marketId);
             const timestamp = this.safeTimestamp (entry, 'time');
             rates.push ({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeString (entry, 'funding_rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),

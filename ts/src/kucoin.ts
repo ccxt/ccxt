@@ -2716,8 +2716,8 @@ export default class kucoin extends Exchange {
             for (let i = 0; i < accounts.length; i++) {
                 const balance = accounts[i];
                 const currencyId = this.safeString (balance, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                result[code] = this.parseBalanceHelper (balance);
+                const codeInner = this.safeCurrencyCode (currencyId);
+                result[codeInner] = this.parseBalanceHelper (balance);
             }
         } else {
             for (let i = 0; i < data.length; i++) {
@@ -2725,12 +2725,12 @@ export default class kucoin extends Exchange {
                 const balanceType = this.safeString (balance, 'type');
                 if (balanceType === type) {
                     const currencyId = this.safeString (balance, 'currency');
-                    const code = this.safeCurrencyCode (currencyId);
+                    const codeInner2 = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
                     account['total'] = this.safeString (balance, 'balance');
                     account['free'] = this.safeString (balance, 'available');
                     account['used'] = this.safeString (balance, 'holds');
-                    result[code] = account;
+                    result[codeInner2] = account;
                 }
             }
         }

@@ -1766,6 +1766,7 @@ export default class mexc3 extends Exchange {
         } else if (market['swap']) {
             return await this.createSwapOrder (market, type, side, amount, price, marginMode, query);
         }
+        return undefined;
     }
 
     async createSpotOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {

@@ -2295,8 +2295,8 @@ export default class okx extends Exchange {
          */
         const stop = this.safeValue (params, 'stop');
         if (stop) {
-            const order = await this.cancelOrders ([ id ], symbol, params);
-            return this.safeValue (order, 0);
+            const orderInner = await this.cancelOrders ([ id ], symbol, params);
+            return this.safeValue (orderInner, 0);
         }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -4934,12 +4934,12 @@ export default class okx extends Exchange {
             const entry = data[i];
             const timestamp = this.safeInteger (entry, 'ts');
             const instId = this.safeString (entry, 'instId');
-            const market = this.safeMarket (instId);
+            const marketInner = this.safeMarket (instId);
             const currencyId = this.safeString (entry, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
             result.push ({
                 'info': entry,
-                'symbol': market['symbol'],
+                'symbol': marketInner['symbol'],
                 'code': code,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
