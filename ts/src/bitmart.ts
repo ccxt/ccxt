@@ -1976,12 +1976,15 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            if (!market['spot']) {
-                throw new NotSupported (this.id + ' cancelAllOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted');
-            }
+            market = this.market (symbol);
             request['symbol'] = market['id'];
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        if (type !== 'spot') {
+            throw new NotSupported (this.id + ' cancelAllOrders() does not support ' + type + ' orders, only spot orders are accepted');
         }
         const side = this.safeString (params, 'side');
         if (side !== undefined) {
