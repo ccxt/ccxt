@@ -2,6 +2,7 @@
 /*  ------------------------------------------------------------------------ */
 
 import { base16, base58, base64, utf8 } from "../../static_dependencies/scure-base/index.js";
+import { numberToBytesBE, numberToBytesLE, concatBytes } from '../../static_dependencies/noble-curves/abstract/utils.js';
 
 import qs from '../../static_dependencies/qs/index.cjs'
 
@@ -22,18 +23,8 @@ const json =  (data, params = undefined) => JSON.stringify (data)
     , binaryToBase16 = base16.encode
     , base58ToBinary = base58.decode
     , binaryToBase58 = base58.encode
-    , binaryConcat = (...args) => {
-        const sizes = args.map (a => a.byteLength)
-        const newSize = sizes.reduce ((a, b) => a + b, 0)
-        const result = new Uint8Array (newSize)
-        let offset = 0
-        for (let i = 0; i < sizes.length; i++) {
-            result.set (args[i], offset)
-            offset += sizes[i]
-        }
-        return result
-    }
-    , binaryConcatArray = (arr) => binaryConcat (...arr)
+    , binaryConcat = concatBytes
+    , binaryConcatArray = (arr) => concatBytes (...arr)
 
     , urlencode = object => qs.stringify (object)
     , urlencodeNested =  object => qs.stringify (object) // implemented only in python
@@ -48,13 +39,9 @@ const json =  (data, params = undefined) => JSON.stringify (data)
                                                    .replace (/\+/g, '-')
                                                    .replace (/\//g, '_')
 
-    , numberToLE = (n: Number, padding) => {
+    , numberToLE = (n: number, padding: number) => numberToBytesLE (BigInt (n), padding)
 
-
-    }
-
-    , numberToBE = (n: Number, padding = undefined) => {
-    }
+    , numberToBE = (n: number, padding: number) => numberToBytesBE (BigInt (n), padding)
 
 
 export {

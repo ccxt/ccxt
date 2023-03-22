@@ -4,9 +4,9 @@ import { hmac as _hmac } from '../../static_dependencies/noble-hashes/hmac.js';
 import { base16, base32, base64 } from "../../static_dependencies/scure-base/index.js";
 import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
 import { x25519 } from "../../static_dependencies/noble-curves/ed25519.js";
-import { stringToBase64, urlencodeBase64 } from './encode.js';
 import { Digest } from '../types.js';
 import { CHash } from '../../static_dependencies/noble-hashes/utils.js';
+import { CurveFn } from '../../static_dependencies/noble-curves/abstract/weierstrass.js';
 
 /*  ------------------------------------------------------------------------ */
 
@@ -30,36 +30,9 @@ const hmac = (request, secret, hash : CHash, digest : Digest = 'hex') => {
 
 /*  .............................................   */
 
-/*
-
-function jwt (request, secret, alg = 'HS256') {
-    const algos = {
-        'RS256': Hash.Sha256,
-        'RS512': Hash.Sha512,
-        'HS256': Hash.Sha256,
-        'HS384': Hash.Sha384,
-        'HS512': Hash.Sha512,
-    };
-    const encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })));
-    const encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)));
-    const token = [ encodedHeader, encodedData ].join ('.');
-    const algoType = alg.slice (0, 2);
-    const algorithm = algos[alg];
-    let signature = undefined;
-    if (algoType === 'HS') {
-        signature = urlencodeBase64 (hmac (token, secret, algorithm, Digest.Base64));
-    } else if (algoType === 'RS') {
-        signature = urlencodeBase64 (rsa (token, secret, algorithm));
-    }
-    return [ token, signature ].join ('.');
-}
-
-const curves = { secp256k1 }
-
-function ecdsa (request: string, secret: string, algorithm: Curve.Secp256k1, prehash: Hash = null) {
-    const curve = curves[algorithm]
+function ecdsa (request: string, secret: string, curve: CurveFn, prehash: CHash = null) {
     if (prehash) {
-        request = hash (request, prehash, Digest.Hex)
+        request = hash (request, prehash, 'hex')
     }
     const signature = curve.sign (request, secret)
     return {
@@ -69,6 +42,7 @@ function ecdsa (request: string, secret: string, algorithm: Curve.Secp256k1, pre
     }
 }
 
+/*
 function eddsa (request, secret, _) {
     // used for waves.exchange (that's why the output is base58)
     const publicKey = x25519.getPublicKey (secret)
@@ -83,32 +57,8 @@ function old (request, secret, _) {
     //return binaryToBase58 (byteArrayToWordArray (signature.toBytes ()));
 }
 
-// old ('aa', 'aa'.repeat (16), '')
-
 */
-/*  ------------------------------------------------------------------------ */
-
-/*
-const totp = (secret) => {
-
-    const dec2hex = (s) => ((s < 15.5 ? '0' : '') + Math.round (s).toString (16));
-    const hex2dec = (s) => parseInt (s, 16);
-    const leftpad = (s, p) => (p + s).slice (-p.length); // both s and p are short strings
-
-    const getOTP = (secret) => {
-        secret = secret.replace (' ', ''); // support 2fa-secrets with spaces like "4TDV WOGO" → "4TDVWOGO"
-        const epoch = Math.round (new Date ().getTime () / 1000.0);
-        const time = leftpad (dec2hex (Math.floor (epoch / 30)), '0000000000000000');
-        const hmacRes = hmac (base16.decode (time), base32.decode (secret), Hash.Sha1, Digest.Hex);
-        const offset = hex2dec (hmacRes.substring (hmacRes.length - 1));
-        // eslint-disable-next-line
-        let otp = (hex2dec (hmacRes.substr (offset * 2, 8)) & hex2dec ('7fffffff')) + '';
-        return otp.substring (otp.length - 6, otp.length);
-    };
-
-    return getOTP (secret);
-};
- */
+// old ('aa', 'aa'.repeat (16), '')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -139,6 +89,7 @@ export {
     hash,
     hmac,
     crc32,
+    ecdsa,
 };
 
 /*  ------------------------------------------------------------------------ */

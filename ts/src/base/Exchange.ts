@@ -49,7 +49,6 @@ const {
     , binaryConcat
     , hash
     , ecdsa
-    , totp
     , arrayConcat
     , encode
     , urlencode
@@ -74,14 +73,12 @@ const {
     , safeStringLower2
     , yymmdd
     , base58ToBinary
-    , eddsa
     , safeTimestamp2
     , rawencode
     , keysort
     , inArray
     , isEmpty
     , ordered
-    , jwt
     , filterBy
     , uuid16
     , safeFloat
@@ -90,7 +87,6 @@ const {
     , urlencodeWithArrayRepeat
     , microseconds
     , binaryToBase64
-    , rsa
     , strip
     , toArray
     , safeFloatN
@@ -114,6 +110,10 @@ const {
     , TICK_SIZE
 } = functions
 
+// TODO: remove these imports
+import { rsa } from './functions/rsa.js'
+import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js'
+import { keccak_256 as keccak } from '../static_dependencies/noble-hashes/sha3.js';
 import {inflate, inflate64, gunzip} from './ws/functions.js'
 
 // import exceptions from "./errors.js"
@@ -150,6 +150,7 @@ export {Market, Trade, Fee, Ticker} from './types'
 // ----------------------------------------------------------------------------
 // move this elsewhere
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './ws/Cache.js'
+import totp from './functions/totp.js';
 
 // ----------------------------------------------------------------------------
 export default class Exchange {
@@ -356,8 +357,6 @@ export default class Exchange {
     merge = merge
     binaryConcat = binaryConcat
     hash = hash
-    ecdsa = ecdsa
-    totp = totp
     arrayConcat = arrayConcat
     encode = encode
     urlencode = urlencode
@@ -382,7 +381,6 @@ export default class Exchange {
     safeIntegerProduct = safeIntegerProduct
     base58ToBinary = base58ToBinary
     base64ToBinary = base64ToBinary
-    eddsa = eddsa
     safeTimestamp2 = safeTimestamp2
     rawencode = rawencode
     keysort = keysort
@@ -391,7 +389,6 @@ export default class Exchange {
     safeStringUpper2 = safeStringUpper2
     isEmpty = isEmpty
     ordered = ordered
-    jwt = jwt
     filterBy = filterBy
     uuid16 = uuid16
     urlencodeWithArrayRepeat = urlencodeWithArrayRepeat
@@ -1093,11 +1090,11 @@ export default class Exchange {
         // takes a hex encoded message
         const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message))
         const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength)
-        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), Hash.Keccak, Digest.Hex)
+        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex')
     }
 
     signHash (hash: string, privateKey: string) {
-        const signature = this.ecdsa (hash.slice (-64), privateKey.slice (-64), Curve.Secp256k1, undefined)
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined)
         return {
             'r': '0x' + signature['r'],
             's': '0x' + signature['s'],
@@ -2961,7 +2958,7 @@ export default class Exchange {
 
     oath () {
         if (this.twofa !== undefined) {
-            return this.totp (this.twofa);
+            return totp (this.twofa);
         } else {
             throw new ExchangeError (this.id + ' exchange.twofa has not been set for 2FA Two-Factor Authentication');
         }

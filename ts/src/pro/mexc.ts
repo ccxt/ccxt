@@ -5,6 +5,7 @@ import mexcRest from '../mexc.js';
 import { AuthenticationError, BadSymbol, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { md5 } from '../static_dependencies/noble-hashes/md5.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1083,7 +1084,7 @@ export default class mexc extends mexcRest {
         const sortedParams = this.keysort (request);
         sortedParams['api_secret'] = this.secret;
         const encodedParams = this.urlencode (sortedParams);
-        const hash = this.hash (this.encode (encodedParams), 'md5');
+        const hash = this.hash (this.encode (encodedParams), md5);
         request['sign'] = hash;
         const extendedRequest = this.extend (request, params);
         return await this.watch (url, messageHash, extendedRequest, channel);

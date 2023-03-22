@@ -13,6 +13,7 @@ import {
 } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { md5 } from '../static_dependencies/noble-hashes/md5.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -994,7 +995,7 @@ export default class coinex extends coinexRest {
                 'future': 'authenticated:spot',
             };
             const signData = 'access_id=' + this.apiKey + '&tonce=' + this.numberToString (time) + '&secret_key=' + this.secret;
-            const hash = this.hash (this.encode (signData), 'md5');
+            const hash = this.hash (this.encode (signData), md5);
             const request = {
                 'method': 'server.sign',
                 'params': [
