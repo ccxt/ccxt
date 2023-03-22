@@ -376,14 +376,6 @@ export default class coinbase extends coinbaseRest {
         return message;
     }
 
-    parseWsOrderStatus (status) {
-        const statuses = {
-            'filled': 'closed',
-            'canceled': 'canceled',
-        };
-        return this.safeString (statuses, status, 'open');
-    }
-
     handleOrder (client, message) {
         //
         //    {
@@ -499,58 +491,53 @@ export default class coinbase extends coinbaseRest {
         }
     }
 
-    parseWsOrder (order) {
+    parseWsOrder (order, market = undefined) {
+        //
+        //    {
+        //        "order_id": "XXX",
+        //        "client_order_id": "YYY",
+        //        "cumulative_quantity": "0",
+        //        "leaves_quantity": "0.000994",
+        //        "avg_price": "0",
+        //        "total_fees": "0",
+        //        "status": "OPEN",
+        //        "product_id": "BTC-USD",
+        //        "creation_time": "2022-12-07T19:42:18.719312Z",
+        //        "order_side": "BUY",
+        //        "order_type": "Limit"
+        //    }
+        //
         const id = this.safeString (order, 'order_id');
-        const clientOrderId = this.safeString (order, 'client_oid');
+        const clientOrderId = this.safeString (order, 'client_order_id');
         const marketId = this.safeString (order, 'product_id');
-        const symbol = this.safeSymbol (marketId);
-        const side = this.safeString (order, 'side');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber2 (order, 'size', 'funds');
-        const time = this.safeString (order, 'time');
-        const timestamp = this.parse8601 (time);
-        const reason = this.safeString (order, 'reason');
-        const status = this.parseWsOrderStatus (reason);
-        const orderType = this.safeString (order, 'order_type');
-        let remaining = this.safeNumber (order, 'remaining_size');
-        const type = this.safeString (order, 'type');
-        let filled = undefined;
-        if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = amount - remaining;
-        } else if (type === 'received') {
-            filled = 0;
-            if (amount !== undefined) {
-                remaining = amount - filled;
-            }
-        }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
-        return {
+        const datetime = this.safeString (order, 'time');
+        return this.safeOrder ({
             'info': order,
-            'symbol': symbol,
+            'symbol': this.safeSymbol (marketId),
             'id': id,
             'clientOrderId': clientOrderId,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
             'lastTradeTimestamp': undefined,
-            'type': orderType,
+            'type': this.safeString (order, 'order_type'),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': side,
-            'price': price,
+            'side': this.safeString (order, 'side'),
+            'price': undefined,
             'stopPrice': undefined,
             'triggerPrice': undefined,
-            'amount': amount,
-            'cost': cost,
-            'average': undefined,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': undefined,
+            'amount': undefined,
+            'cost': undefined,
+            'average': this.safeString (order, 'avg_price'),
+            'filled': this.safeString (order, 'cumulative_quantity'),
+            'remaining': this.safeString (order, 'leaves_quantity'),
+            'status': this.safeStringLower (order, 'status'),
+            'fee': {
+                'amount': this.safeString (order, 'total_fees'),
+                'currency': undefined, // TODO
+            },
             'trades': undefined,
-        };
+        });
     }
 
     handleDelta (bookside, delta) {
