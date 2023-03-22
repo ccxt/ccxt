@@ -73,7 +73,7 @@ class gate extends Exchange["default"] {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
-                'createMarketOrder': false,
+                'createMarketOrder': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
                 'createStopLimitOrder': true,
