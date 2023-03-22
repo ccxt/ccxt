@@ -768,7 +768,7 @@ export default class bigone extends Exchange {
         const type = this.safeString (params, 'type', '');
         params = this.omit (params, 'type');
         const method = 'privateGet' + this.capitalize (type) + 'Accounts';
-        const response = await (this as any)[method] (params);
+        const response = await this[method] (params);
         //
         //     {
         //         "code":0,

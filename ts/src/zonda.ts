@@ -1256,7 +1256,7 @@ export default class zonda extends Exchange {
             request['stopRate'] = this.priceToPrecision (symbol, stopLossPrice);
         }
         params = this.omit (params, [ 'stopPrice', 'stopLossPrice' ]);
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         // unfilled (open order)
         //
@@ -1609,7 +1609,7 @@ export default class zonda extends Exchange {
             }
             request['address'] = address;
         }
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "status": "Ok",

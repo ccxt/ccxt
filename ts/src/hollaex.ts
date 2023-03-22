@@ -502,7 +502,7 @@ export default class hollaex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).publicGetTickers (this.extend (params));
+        const response = await (this as any).publicGetTickers (params);
         //
         //     {
         //         "bch-usdt": {
@@ -795,7 +795,7 @@ export default class hollaex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (response, market = undefined, timeframe = '1h', since = undefined, limit = undefined) {
+    parseOHLCV (response, market = undefined) {
         //
         //     {
         //         "time":"2020-03-02T20:00:00.000Z",

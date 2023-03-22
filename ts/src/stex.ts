@@ -1362,7 +1362,7 @@ export default class stex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1480,7 +1480,7 @@ export default class stex extends Exchange {
             request['currencyPairId'] = market['id'];
             method = 'tradingDeleteOrdersCurrencyPairId';
         }
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -2136,7 +2136,7 @@ export default class stex extends Exchange {
         } else {
             throw new ExchangeError (this.id + ' transfer() only allows transfers of referal to spot and between a walletId and funding');
         }
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //  profilePostReferralBonusTransferCurrencyId
         //     {

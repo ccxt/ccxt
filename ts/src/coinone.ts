@@ -515,7 +515,7 @@ export default class coinone extends Exchange {
             'qty': amount,
         };
         const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "result": "success",

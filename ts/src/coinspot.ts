@@ -170,7 +170,7 @@ export default class coinspot extends Exchange {
          */
         await this.loadMarkets ();
         const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
-        const response = await (this as any)[method] (params);
+        const response = await this[method] (params);
         //
         // read-write api keys
         //

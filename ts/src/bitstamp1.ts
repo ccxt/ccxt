@@ -316,7 +316,7 @@ export default class bitstamp1 extends Exchange {
             'amount': amount,
             'price': price,
         };
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'id');
         return this.safeOrder ({
             'info': response,
