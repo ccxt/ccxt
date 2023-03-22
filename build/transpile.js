@@ -248,7 +248,7 @@ class Transpiler {
             [ /\.omitZero\s/g, '.omit_zero'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1)([,)])/g, ' \'$1\'$2'], // from js imports to this
-            [ /(?<!assert)([\s(])(rsa|ecdsa|eddsa|jwt)/g, '$1this.$2'  ],
+            [ /(?<!assert|equals)(\s\()(rsa|ecdsa|eddsa|jwt)/g, '$1this.$2' ],
 
         ].concat(this.getTypescriptRemovalRegexes())
     }
@@ -1804,12 +1804,20 @@ class Transpiler {
             "    return Exchange::hash(...$args);",
             "}",
             "",
+            "function hmac(...$args) {",
+            "    return Exchange::hmac(...$args);",
+            "}",
+            "",
             "function encode(...$args) {",
             "    return Exchange::encode(...$args);",
             "}",
             "",
             "function ecdsa(...$args) {",
             "    return Exchange::ecdsa(...$args);",
+            "}",
+            "",
+            "function eddsa(...$args) {",
+            "    return Exchange::eddsa(...$args);",
             "}",
             "",
             "function jwt(...$args) {",

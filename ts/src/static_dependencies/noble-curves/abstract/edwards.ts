@@ -421,6 +421,7 @@ export function twistedEdwards(curveDef: CurveType): CurveFn {
 
   /** Signs message with privateKey. RFC8032 5.1.6 */
   function sign(msg: Hex, privKey: Hex, context?: Hex): Uint8Array {
+    /*
     msg = ensureBytes('message', msg);
     if (preHash) msg = preHash(msg); // for ed25519ph etc.
     const { prefix, scalar, pointBytes } = getExtendedPublicKey(privKey);
@@ -430,6 +431,22 @@ export function twistedEdwards(curveDef: CurveType): CurveFn {
     const s = modN(r + k * scalar); // S = (r + k * s) mod L
     assertGE0(s); // 0 <= s < l
     const res = ut.concatBytes(R, ut.numberToBytesLE(s, Fp.BYTES));
+    return ensureBytes('result', res, nByteLength * 2); // 64-byte signature
+     */
+    msg = ensureBytes('message', msg);
+    const privKeyBytes = ensureBytes ('privKey', privKey);
+    const privKeyNumber = ut.bytesToNumberLE (privKeyBytes);
+    const publicKey = G.multiply (modN (privKeyNumber)).toRawBytes ()
+    const signBit = publicKey[31] & 0x80;
+    const r = hashDomainToScalar(context, privKeyBytes, msg); // r = dom2(F, C) || prefix || PH(M)
+    const R = G.multiply(r).toRawBytes(); // R = rG
+    const k = hashDomainToScalar(context, R, publicKey, msg); // R || A || PH(M)
+    const s = k * privKeyNumber; // S = (r + k * s) mod L
+    const S = modN (r + s);
+    assertGE0(S); // 0 <= s < l
+    const Sencoded = ut.numberToBytesLE(S, Fp.BYTES);
+    Sencoded[31] |= signBit;
+    const res = ut.concatBytes(R, Sencoded);
     return ensureBytes('result', res, nByteLength * 2); // 64-byte signature
   }
 

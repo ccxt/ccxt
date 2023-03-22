@@ -1,12 +1,13 @@
 import { sha256 } from '../../../static_dependencies/noble-hashes/sha256.js';
 import { sha1 } from '../../../static_dependencies/noble-hashes/sha1.js';
 import { md5 } from '../../../static_dependencies/noble-hashes/md5.js';
-import { ecdsa, crc32 } from '../../../base/functions/crypto.js';
+import { ecdsa, crc32, eddsa } from '../../../base/functions/crypto.js';
 import { encode } from '../../../base/functions/encode.js'
 import { hash, hmac } from '../../../base/functions/crypto.js'
 import { Exchange } from '../../../base/Exchange.js'
 import assert from 'assert'
 import { secp256k1 } from '../../../static_dependencies/noble-curves/secp256k1.js';
+import { ed25519 } from '../../../static_dependencies/noble-curves/ed25519.js';
 import { rsa, jwt } from '../../../base/functions/rsa.js';
 
 function equals (a, b) {
@@ -112,3 +113,5 @@ assert (jwt ({'lil': 'xan'}, encode ('betrayed'), sha256, false) === 'eyJhbGciOi
 assert (crc32 ('hello', true) === 907060870);
 assert (crc32 ('tasty chicken breast :)', true) === 825820175);
 assert (crc32 ('21101:0.00123125:21102:-0.001:21100:0.710705:21103:-0.001:21096:0.71076:21104:-0.001:21094:1.0746:21105:-0.001:21093:0.710854:21106:-0.419:21092:0.01368102:21107:-0.001:21090:0.710975:21109:-0.001:21089:0.63586344:21110:-1.186213:21087:0.299:21111:-0.48751202:21086:0.9493:21112:-0.03702409:21082:0.03537667:21113:-0.712385:21081:0.00101366:21114:-0.2903:21079:0.710713:21115:-0.001:21078:0.997048:21116:-0.60089827:21077:0.23770225:21117:-0.83201:21076:0.03619135:21118:-0.09996142:21075:0.1272433:21119:-1.09681107:21074:0.7447885:21120:-0.04771792:21073:0.0011:21121:-0.91495684:21072:0.73311632:21122:-0.07940416:21071:0.09817:21123:-0.39376843:21070:0.19101052:21124:-1.51692599:21069:0.2757:21125:-0.11107322:21068:0.12480303:21126:-0.12704666:21067:0.4201:21128:-0.12804666', true) === -51055998);
+
+assert (eddsa ('1b1b', privateKey, ed25519) === '3DBaaz8z4Pq9n6ncNCjB4pFLWaWTXbjaCUqKQmBgS3w7AP6opeDqANBhPssbV3jyfJB4LfK8kGR6pu6GU8fbjMuy');

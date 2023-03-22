@@ -1,12 +1,11 @@
 /*  ------------------------------------------------------------------------ */
 
 import { hmac as _hmac } from '../../static_dependencies/noble-hashes/hmac.js';
-import { base16, base32, base64 } from "../../static_dependencies/scure-base/index.js";
-import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
-import { x25519 } from "../../static_dependencies/noble-curves/ed25519.js";
+import { base16,  base64, base58 } from '../../static_dependencies/scure-base/index.js';
 import { Digest } from '../types.js';
 import { CHash } from '../../static_dependencies/noble-hashes/utils.js';
 import { CurveFn } from '../../static_dependencies/noble-curves/abstract/weierstrass.js';
+import { CurveFn as CurveFnEDDSA } from '../../static_dependencies/noble-curves/abstract/edwards.js';
 
 /*  ------------------------------------------------------------------------ */
 
@@ -42,22 +41,18 @@ function ecdsa (request: string, secret: string, curve: CurveFn, prehash: CHash 
     }
 }
 
-/*
-function eddsa (request, secret, _) {
+function eddsa (request, secret, curve: CurveFnEDDSA) {
     // used for waves.exchange (that's why the output is base58)
-    const publicKey = x25519.getPublicKey (secret)
-    console.log (publicKey)
-    // const s = hashToCurve (request)
-    // const signature = curve.signModified (request, secret);
-    // return binaryToBase58 (byteArrayToWordArray (signature.toBytes ()));
+    // @ts-ignore
+    const signature = curve.sign (request, secret)
+    return base58.encode (signature)
 }
-function old (request, secret, _) {
+function old (request, secret, CurveFnEDDSA) {
     // const curve = new EDDSA ('ed25519');
     // const signature = curve.signModified (request, secret);
     //return binaryToBase58 (byteArrayToWordArray (signature.toBytes ()));
 }
 
-*/
 // old ('aa', 'aa'.repeat (16), '')
 
 /*  ------------------------------------------------------------------------ */
@@ -90,6 +85,7 @@ export {
     hmac,
     crc32,
     ecdsa,
+    eddsa,
 };
 
 /*  ------------------------------------------------------------------------ */
