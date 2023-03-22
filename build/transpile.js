@@ -1781,7 +1781,7 @@ class Transpiler {
         const pythonHeader = [
             "",
             "import ccxt  # noqa: F402",
-            "import hashlib # noqa: F402",
+            "import hashlib  # noqa: F402",
             "",
             "Exchange = ccxt.Exchange",
             "hash = Exchange.hash",
