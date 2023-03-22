@@ -216,10 +216,6 @@ export default class coinbase extends coinbaseRest {
         //         "price_percent_chg_24_h": "0.50177456859626"
         //     }
         //
-        const type = this.safeString (ticker, 'type');
-        if (type === undefined) {
-            return super.parseTicker (ticker, market);
-        }
         const marketId = this.safeString (ticker, 'product_id');
         const timestamp = undefined;
         const last = this.safeNumber (ticker, 'price');
