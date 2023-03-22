@@ -3067,14 +3067,12 @@ class bybit(Exchange):
         status = self.parse_order_status(rawStatus)
         side = self.safe_string_lower(order, 'side')
         fee = None
-        isContract = self.safe_value(market, 'contract')
-        if isContract:
-            feeCostString = self.safe_string(order, 'cumExecFee')
-            if feeCostString is not None:
-                fee = {
-                    'cost': feeCostString,
-                    'currency': market['settle'],
-                }
+        feeCostString = self.safe_string(order, 'cumExecFee')
+        if feeCostString is not None:
+            fee = {
+                'cost': feeCostString,
+                'currency': market['settle'],
+            }
         clientOrderId = self.safe_string(order, 'orderLinkId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None

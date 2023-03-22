@@ -3182,15 +3182,12 @@ class bybit extends Exchange["default"] {
         const status = this.parseOrderStatus(rawStatus);
         const side = this.safeStringLower(order, 'side');
         let fee = undefined;
-        const isContract = this.safeValue(market, 'contract');
-        if (isContract) {
-            const feeCostString = this.safeString(order, 'cumExecFee');
-            if (feeCostString !== undefined) {
-                fee = {
-                    'cost': feeCostString,
-                    'currency': market['settle'],
-                };
-            }
+        const feeCostString = this.safeString(order, 'cumExecFee');
+        if (feeCostString !== undefined) {
+            fee = {
+                'cost': feeCostString,
+                'currency': market['settle'],
+            };
         }
         let clientOrderId = this.safeString(order, 'orderLinkId');
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {

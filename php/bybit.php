@@ -3155,15 +3155,12 @@ class bybit extends Exchange {
         $status = $this->parse_order_status($rawStatus);
         $side = $this->safe_string_lower($order, 'side');
         $fee = null;
-        $isContract = $this->safe_value($market, 'contract');
-        if ($isContract) {
-            $feeCostString = $this->safe_string($order, 'cumExecFee');
-            if ($feeCostString !== null) {
-                $fee = array(
-                    'cost' => $feeCostString,
-                    'currency' => $market['settle'],
-                );
-            }
+        $feeCostString = $this->safe_string($order, 'cumExecFee');
+        if ($feeCostString !== null) {
+            $fee = array(
+                'cost' => $feeCostString,
+                'currency' => $market['settle'],
+            );
         }
         $clientOrderId = $this->safe_string($order, 'orderLinkId');
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
