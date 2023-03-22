@@ -3178,7 +3178,7 @@ export default class gate extends Exchange {
                 throw new ExchangeError (this.id + ' createOrder () timeInForce for market order can only be "FOK" or "IOC"');
             } else {
                 if (timeInForce === undefined) {
-                    const defaultTif = this.safeString (this.options, 'defaultTimeInForce', 'IOC');
+                    const defaultTif = this.safeString (this.options, 'defaultTimeInForce', 'ioc');
                     timeInForce = defaultTif;
                 }
             }
