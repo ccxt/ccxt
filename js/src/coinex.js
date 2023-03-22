@@ -3792,7 +3792,7 @@ export default class coinex extends Exchange {
         const currencyId = this.safeString(transaction, 'coin_type');
         const code = this.safeCurrencyCode(currencyId, currency);
         const timestamp = this.safeTimestamp(transaction, 'create_time');
-        const type = ('coin_withdraw_id' in transaction) ? 'withdraw' : 'deposit';
+        const type = ('coin_withdraw_id' in transaction) ? 'withdrawal' : 'deposit';
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         const networkId = this.safeString(transaction, 'smart_contract_name');
         const amount = this.safeNumber(transaction, 'actual_amount');
