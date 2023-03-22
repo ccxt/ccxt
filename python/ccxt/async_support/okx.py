@@ -733,6 +733,7 @@ class okx(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'sandboxMode': False,
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'BTC': 'Bitcoin',
@@ -1196,7 +1197,8 @@ class okx(Exchange):
         # while fetchCurrencies is a public API method by design
         # therefore we check the keys here
         # and fallback to generating the currencies from the markets
-        if not self.check_required_credentials(False):
+        isSandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        if not self.check_required_credentials(False) or isSandboxMode:
             return None
         #
         # has['fetchCurrencies'] is currently set to True, but an unauthorized request returns
@@ -5456,6 +5458,7 @@ class okx(Exchange):
 
     def set_sandbox_mode(self, enable):
         super(okx, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable
         if enable:
             self.headers['x-simulated-trading'] = '1'
         elif 'x-simulated-trading' in self.headers:
