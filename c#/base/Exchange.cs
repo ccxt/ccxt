@@ -36,7 +36,7 @@ public partial class Exchange
 
     public bool reloadingMarkets { get; set; } = false;
 
-    public Task<dict> marketsLoading { get; set; } = null;
+    public Task<object> marketsLoading { get; set; } = null;
 
     public dict quoteCurrencies { get; set; } = new dict();
 
@@ -58,17 +58,17 @@ public partial class Exchange
 
     public dict commonCurrencies { get; set; } = new dict();
 
-    public dict limits { get; set; } = new dict();
+    public object limits { get; set; } = new dict();
 
     public string precisionMode { get; set; } = "SIGNIFICANT_DIGITS";
 
-    public dict currencies_by_id { get; set; } = new dict();
+    public object currencies_by_id { get; set; } = new dict();
 
-    public dict accounts { get; set; } = new dict();
+    public object accounts { get; set; } = new dict();
 
-    public dict accountsById { get; set; } = new dict();
+    public object accountsById { get; set; } = new dict();
 
-    public dict status { get; set; } = new dict();
+    public object status { get; set; } = new dict();
 
     public int paddingMode { get; set; } = 0;
 
@@ -321,7 +321,6 @@ public partial class Exchange
 
         }
         throw new Exception("Endpoint not found!");
-        return null;
     }
 
     public async virtual Task<object> callAsync(object implicitEndpoint2, object parameters = null)
@@ -341,7 +340,6 @@ public partial class Exchange
 
         }
         throw new Exception("Endpoint not found!");
-        return null;
     }
 
 
@@ -383,7 +381,7 @@ public partial class Exchange
         return Convert.ToInt64(res);
     }
 
-    public async virtual Task<dict> loadMarketsHelper(bool reload = false, dict parameters = null)
+    public async virtual Task<object> loadMarketsHelper(bool reload = false, dict parameters = null)
     {
         if (!reload && this.markets != null)
         {
@@ -396,7 +394,8 @@ public partial class Exchange
         }
 
         object currencies = null;
-        if (this.has["fetchCurrencies"] != null)
+        var has = this.has as dict;
+        if (has["fetchCurrencies"] != null)
         {
             currencies = await this.fetchCurrencies();
         }
@@ -404,19 +403,23 @@ public partial class Exchange
         return this.setMarkets(markets, currencies);
     }
 
-    public virtual Task<dict> loadMarkets(bool reload = false, dict parameters = null)
+    public virtual Task<object> loadMarkets(object reload2 = null, object parameters2 = null)
     {
         // parameters ??= new dict();
         // await fetch("", "", new dict(), new dict());
         // return new dict();
+        reload2 ??= false;
+        var reload = (bool)reload2;
+        parameters2 ??= new dict();
+        var parameters = (dict)parameters2;
         if ((reload && !this.reloadingMarkets) || this.marketsLoading == null)
         {
             this.reloadingMarkets = true;
-            this.marketsLoading = this.loadMarketsHelper(reload, parameters).ContinueWith((t) =>
+            this.marketsLoading = (this.loadMarketsHelper(reload, parameters).ContinueWith((t) =>
             {
                 this.reloadingMarkets = false;
                 return t.Result;
-            });
+            }));
         }
 
         return marketsLoading;
@@ -428,12 +431,12 @@ public partial class Exchange
         // this.options["timeDifference"] = this.milliseconds() - this.parse8601(response["iso8601"] as String);
     }
 
-    public virtual async Task<List<object>> fetchMarkets(dict parameters = null)
+    public virtual async Task<object> fetchMarkets(object parameters = null)
     {
         return this.toArray(this.markets);
     }
 
-    public virtual async Task<dict> fetchCurrencies(dict parameters = null)
+    public virtual async Task<object> fetchCurrencies(object parameters = null)
     {
         return this.currencies;
     }
@@ -458,118 +461,6 @@ public partial class Exchange
 
         // var x = this.teste(1, 2, 3, 3);
         return ""; // stub
-    }
-
-    public virtual dict parseOrder(object order, object market = null)
-    {
-        return null; // stub
-    }
-
-    // public virtual object parseTrades 
-
-    public virtual object parseMarketLeverageTiers(object info, object market)
-    {
-        return null;
-    }
-
-    public virtual dict parseTransfer(object transfer, object currency = null)
-    {
-        return null;
-    }
-
-    public virtual dict parseLedgerEntry(object ledger, object currency = null)
-    {
-        return null;
-    }
-
-    public virtual dict parseTransaction(object transaction, object currency = null)
-    {
-        return null;
-    }
-
-    public virtual dict parseTrade(object trade, object market = null)
-    {
-        return null;
-    }
-
-    public virtual dict parseFundingRateHistory(object fundingRateHistory, object market = null)
-    {
-        return null;
-    }
-
-    public virtual dict parsePosition(object position, object market = null)
-    {
-        return null;
-    }
-
-    public virtual dict parseAccount(object account)
-    {
-        return null;
-    }
-
-    public virtual dict parseDepositAddress(object depositAddress, object currency = null)
-    {
-        return null;
-    }
-
-    public virtual dict parseBorrowInterest(object borrowInterest, object market = null)
-    {
-        return null;
-    }
-
-    public virtual dict parseTicker(object ticker, object market = null)
-    {
-        return null;
-    }
-
-    public async virtual Task<object> fetchFundingRates(object symbols, dict paramaters = null)
-    {
-        return null;
-    }
-
-    public async virtual Task<List<object>> fetchTrades(string symbol, object since, object limit, dict parameters = null)
-    {
-        return null;
-    }
-
-    public async virtual Task<object> fetchOrderBook(string symbol, object limit, dict parameters = null)
-    {
-        return null;
-    }
-
-    public async virtual Task<dict> fetchTradingLimits(object symbols)
-    {
-        return null;
-    }
-
-    public async virtual Task<dict> fetchAccounts(object symbols)
-    {
-        return null;
-    }
-
-    public async virtual Task<dict> fetchPositions(object symbols)
-    {
-        return null;
-    }
-
-    public async virtual Task<dict> fetchLeverageTiers(object symbols = null, dict parameters = null)
-    {
-        return null;
-    }
-
-    public async virtual Task<object> fetchTime(dict parameters = null)
-    {
-        return null;
-    }
-
-    public async virtual Task<dict> fetchDepositAddresses(object coes, object parameters = null)
-    {
-        return null;
-    }
-
-    public async virtual Task<dict> fetchBorrowRates(object parameters = null)
-    {
-        return null;
     }
 
     public async Task throttle(object cost)
@@ -611,6 +502,23 @@ public partial class Exchange
 
         return (string)output;
 
+    }
+
+    public virtual void setSandboxMode(object enable)
+    {
+        // this.enableRateLimit = enable;
+        // this.enableRateLimit = true;
+        // stub implement later
+    }
+
+    public void throwDynamicException(object broad, object str, object message)
+    {
+        //stub to implement later
+    }
+
+    public void checkRequiredDependencies()
+    {
+        // stub to implement later
     }
 
 

@@ -9,6 +9,57 @@ public partial class Exchange
 {
 
     // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient
+    public object postFixIncrement(ref object a)
+    {
+        if (a.GetType() == typeof(Int64))
+        {
+            a = (Int64)a + 1;
+        }
+        else if (a.GetType() == typeof(int))
+        {
+            a = (int)a + 1;
+        }
+        else if (a.GetType() == typeof(double))
+        {
+            a = (double)a + 1;
+        }
+        else if (a.GetType() == typeof(string))
+        {
+            a = (string)a + 1;
+        }
+        else
+        {
+            return null;
+        }
+        return a;
+    }
+
+    public object plusEqual(object a, object value)
+    {
+        if (value == null)
+            return null;
+        if (a.GetType() == typeof(Int64))
+        {
+            a = (Int64)a + (Int64)value;
+        }
+        else if (a.GetType() == typeof(int))
+        {
+            a = (int)a + (int)value;
+        }
+        else if (a.GetType() == typeof(double))
+        {
+            a = (double)a + (double)value;
+        }
+        else if (a.GetType() == typeof(string))
+        {
+            a = (string)a + (string)value;
+        }
+        else
+        {
+            return null;
+        }
+        return a;
+    }
 
     public dict parseJson(object json)
     {
@@ -113,6 +164,14 @@ public partial class Exchange
 
     public bool isGreaterThan(object a, object b)
     {
+        if (a != null && b == null)
+        {
+            return true;
+        }
+        else if (a == null || b == null)
+        {
+            return false;
+        }
         if (a.GetType() == typeof(Int64))
         {
             return (Int64)a > (Int64)b;
@@ -434,4 +493,29 @@ public partial class Exchange
             return null;
         }
     }
+
+    public async Task<List<object>> promiseAll(object promisesObj)
+    {
+        var promises = (List<object>)promisesObj;
+        var tasks = new List<Task<object>>();
+        foreach (var promise in promises)
+        {
+            tasks.Add((Task<object>)promise);
+        }
+        var results = await Task.WhenAll(tasks);
+        return results.ToList();
+    }
+
+    public string toStringOrNull(object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        else
+        {
+            return (string)value;
+        }
+    }
+
 }

@@ -9,7 +9,13 @@ public partial class Exchange
 
     public class Precise
     {
-        public Precise(string arg)
+        public object decimals = null;
+        public Precise(object arg)
+        {
+
+        }
+
+        public void reduce()
         {
 
         }
@@ -37,6 +43,21 @@ public partial class Exchange
         static public bool stringEq(object a, object b)
         {
             return (float.Parse((string)a) == float.Parse((string)b));// tmp;
+        }
+
+        static public string stringMax(object a, object b)
+        {
+            if (a == null || b == null)
+                return null;
+            if (a == null)
+                return (string)b;
+            if (b == null)
+
+                if (stringGt(a, b))
+                {
+                    return (string)a;
+                }
+            return (string)b;
         }
 
         static public string stringEquals(object a, object b)

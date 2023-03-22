@@ -8,17 +8,17 @@ using list = List<object>;
 
 public partial class Exchange
 {
-    public dict has { get; set; } = new dict();
-    public dict options { get; set; } = new dict();
-    public dict markets { get; set; } = null;
-    public dict currencies { get; set; } = new dict();
-    public dict fees { get; set; } = new dict();
-    public dict requiredCredentials { get; set; } = new dict();
-    public list timeframes { get; set; } = new list();
-    public dict rateLimit { get; set; } = new dict();
-    public dict exceptions { get; set; } = new dict();
-    public dict urls { get; set; } = new dict();
-    public dict precision { get; set; } = new dict();
+    public object has { get; set; } = new dict();
+    public object options { get; set; } = new dict();
+    public object markets { get; set; } = null;
+    public object currencies { get; set; } = new dict();
+    public object fees { get; set; } = new dict();
+    public object requiredCredentials { get; set; } = new dict();
+    public object timeframes { get; set; } = new list();
+    public object rateLimit { get; set; } = new dict();
+    public object exceptions { get; set; } = new dict();
+    public object urls { get; set; } = new dict();
+    public object precision { get; set; } = new dict();
 
     public string secret { get; set; }
     public string apiKey { get; set; }
@@ -35,6 +35,14 @@ public partial class Exchange
     public string proxy { get; set; }
     public string agent { get; set; }
     public Int64 timeout { get; set; }
+
+    public object last_response_headers { get; set; }
+    public object last_json_response { get; set; }
+    public object last_http_response { get; set; }
+
+    public object name { get; set; }
+
+    public object headers { get; set; } = new dict();
 
 
     // public class exchangeError : Exception { }
@@ -58,7 +66,7 @@ public partial class Exchange
     // public Type BadRequest = typeof(authenticationError);
     // public Type InvalidOrder = typeof(authenticationError);
 
-    public virtual Dictionary<string, object> describe()
+    public virtual object describe()
     {
         return new Dictionary<string, object>() {
             { "id", null },
@@ -259,7 +267,7 @@ public partial class Exchange
     {
         var properties = this.describe();
 
-        this.version = this.safeString(properties, "version", "");
+        this.version = (string)this.safeString(properties, "version", "");
 
         // credentials initis
         this.requiredCredentials = this.safeValue(properties, "requiredCredentials") as dict;
@@ -275,10 +283,10 @@ public partial class Exchange
 
         this.userAgents = this.safeValue(properties, "userAgents") as dict;
         this.timeout = (Int64)this.safeInteger(properties, "timeout", 10000);
-        this.id = this.safeString(properties, "id");
+        this.id = (string)this.safeString(properties, "id");
 
         this.api = this.safeValue(properties, "api") as dict;
-        this.hostname = this.safeString(properties, "hostname");
+        this.hostname = (string)this.safeString(properties, "hostname");
         this.urls = this.safeValue(properties, "urls") as dict;
         this.options = this.safeValue(properties, "options") as dict;
         this.verbose = (bool)this.safeValue(properties, "verbose", false);

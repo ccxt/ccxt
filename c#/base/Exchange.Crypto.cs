@@ -30,9 +30,12 @@ public partial class Exchange
         return digest == "hex" ? binaryToHex(signature) : binaryToBase64(signature);
     }
 
-    public static string hash(string request, string algorithm, string digest = "hex")
+    public string hash(object request2, object algorithm2 = null, object digest2 = null)
     {
-
+        var request = request2 as String;
+        var algorithm = algorithm2 as String;
+        digest2 ??= "hex";
+        var digest = digest2 as String;
         var signature = new Byte[] { };
         switch (algorithm)
         {
@@ -130,8 +133,9 @@ public partial class Exchange
         return result.ToLower();// check this
     }
 
-    public static string binaryToBase16(byte[] buff)
+    public string binaryToBase16(object buff2)
     {
+        var buff = (byte[])buff2;
         return binaryToHex(buff);
     }
 
@@ -152,11 +156,74 @@ public partial class Exchange
         return System.Convert.ToBase64String(plainTextBytes);
     }
 
+    public string base64ToBinary(object pt)
+    {
+        // check this
+        var plainText = (string)pt;
+        var base64EncodedBytes = System.Convert.FromBase64String(plainText);
+        return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+    }
+
+    public string base58ToBinary(object str)
+    {
+        return (string)str; // stub
+    }
+
+    public object binaryConcat(object a, object b)
+    {
+        return (string)a + (string)b; // stub
+    }
+
+    public object binaryConcatArray(object a)
+    {
+        return (string)a; // stub
+    }
+
+    public object numberToBE(object n, object padding = null)
+    {
+        // implement number to big endian
+        return (string)n; // stub
+    }
+
+    // public object binaryToBase16(object buff)
+    // {
+    //     return (string)buff; // stub
+    // }
+
     public string rsa(object request, object secret, object alg = null)
     {
         alg ??= "RS256";
         return String.Empty;
         // stub
 
+    }
+
+    public string ecdsa(object request, object secret, object alg = null)
+    {
+        alg ??= "ES256";
+        return String.Empty;
+        // stub
+    }
+
+    public object base16ToBinary(object str)
+    {
+        return (string)str; // stub
+    }
+
+    public object remove0xPrefix(object str)
+    {
+        return (string)str; // stub
+    }
+
+    public object signMessageString(object str, object privateKey = null)
+    {
+        return (string)str; // stub
+    }
+
+    public ObjectDisposedException eddsa(object request, object secret, object alg = null)
+    {
+        alg ??= "EdDSA";
+        return null;
+        // stub
     }
 }

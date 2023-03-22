@@ -23,13 +23,19 @@ public partial class Exchange
 
     // }
 
+    public long microseconds()
+    {
+        return DateTime.Now.Ticks / TimeSpan.TicksPerMicrosecond;
+    }
+
     private bool isHttpMethod(string method)
     {
         return method == "get" || method == "post" || method == "delete" || method == "put" || method == "patch";
     }
 
-    public string capitalize(string str)
+    public string capitalize(object str2)
     {
+        var str = (string)str2;
         return char.ToLower(str[0]) + str.Substring(1);
     }
 
@@ -47,7 +53,31 @@ public partial class Exchange
             queryString.Add(key, parameters[key].ToString());
         }
         return queryString.ToString();
+    }
 
+    public string urlencodeNested(object paramaters)
+    {
+        // stub check this out
+        var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+        var keys = new List<string>(((dict)paramaters).Keys);
+        foreach (string key in keys)
+        {
+            var value = ((dict)paramaters)[key];
+            if (value != null && value.GetType() == typeof(dict))
+            {
+                var keys2 = new List<string>(((dict)value).Keys);
+                foreach (string key2 in keys2)
+                {
+                    var value2 = ((dict)value)[key2];
+                    queryString.Add(key + "[" + key2 + "]", value2.ToString());
+                }
+            }
+            else
+            {
+                queryString.Add(key, value.ToString());
+            }
+        }
+        return queryString.ToString();
     }
 
     public string encodeURIComponent(string str)
@@ -69,8 +99,9 @@ public partial class Exchange
         return result.ToString();
     }
 
-    public dict keysort(dict parameters)
+    public dict keysort(object parameters2)
     {
+        var parameters = (dict)parameters2;
         var keys = new List<string>(parameters.Keys);
         keys.Sort();
         var outDict = new dict();
@@ -345,6 +376,22 @@ public partial class Exchange
         return date.ToString("yy" + infix + "MM" + infix + "dd");
     }
 
+    public object ymd(object ts, object infix = null)
+    {
+        if (infix == null)
+        {
+            infix = "-";
+        }
+        // check this
+        if (ts == null)
+        {
+            return null;
+        }
+        var startdatetime = (Int64)ts;
+        var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
+        return date.ToString("yyyy" + infix + "MM" + infix + "dd");
+    }
+
     public List<object> toArray(object a)
     {
         if (a.GetType() == typeof(List<object>))
@@ -424,8 +471,9 @@ public partial class Exchange
         return outList; // stub to override
     }
 
-    public List<object> filterByValueSinceLimit(object aa, object key, object value, object since, object limit, object timestamp = null, bool tail = false)
+    public List<object> filterByValueSinceLimit(object aa, object key, object value, object since, object limit, object timestamp = null, object tail = null)
     {
+        tail ??= false;
         var a = (List<object>)aa;
         var outList = new List<object>();
         foreach (object elem in a)
@@ -439,10 +487,12 @@ public partial class Exchange
         return outList;
     }
 
-    public List<object> filterBySinceLimit(object a, object since, object limit, object key = null, bool tail = false)
+    public List<object> filterBySinceLimit(object a, object since, object limit, object key = null, object tail2 = null)
     {
         var list = (List<object>)a;
         key ??= "timestamp";
+        tail2 ??= false;
+        var tail = (bool)tail2;
         var outList = new List<object>();
         if (tail)
         {
@@ -470,7 +520,13 @@ public partial class Exchange
     {
         return Guid.NewGuid().ToString().Substring(0, 16);
     }
-    public string implodeParams(object path2, object parameter2)
+
+    public string uuidv1()
+    {
+        return Guid.NewGuid().ToString(); //stub
+    }
+
+    public object implodeParams(object path2, object parameter2)
     {
         // var path = (string)path2;
         // var parameter = (dict)parameter2;
@@ -549,7 +605,7 @@ public partial class Exchange
         return outList; // stub to implement
     }
 
-    public object buildOHLCVC(object trades, string timeframe, object since, object limit)
+    public object buildOHLCVC(object trades, object timeframe, object since, object limit)
     {
         return null; // stub to implement
     }
@@ -603,6 +659,11 @@ public partial class Exchange
     {
         var obj2 = (dict)obj;
         return JsonSerializer.Serialize<Dictionary<string, object>>(obj2);
+    }
+
+    public object ordered(object ob)
+    {
+        return ob;
     }
 
 }

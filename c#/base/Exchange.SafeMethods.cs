@@ -10,7 +10,7 @@ public partial class Exchange
     // falsy and truthy methods wrappers
 
     // tmp safe number
-    public float safeNumberN(object obj, List<object> keys, float defaultValue = -1) => safeFloatN(obj, keys, defaultValue);
+    public object safeNumberN(object obj, List<object> keys, object defaultValue = null) => safeFloatN(obj, keys, defaultValue);
     // public float safeNumber(object obj, object key, float defaultValue = -1) => safeFloatN(obj, new List<object> { key }, defaultValue);
     // public float safeNumber2(object obj, object key1, object key2, float defaultValue = -1) => safeFloatN(obj, new List<object> { key1, key2 }, defaultValue);
 
@@ -38,55 +38,63 @@ public partial class Exchange
 
     public object safeInteger(object obj, object key, object defaultValue = null) => safeIntegerN(obj, new List<object> { key }, defaultValue);
 
-    public object safeInteger2(object obj, object key1, object key2, object defaultValue = null) => safeInteger2(obj, new List<object> { key1, key2 }, defaultValue);
+    public object safeInteger2(object obj, object key1, object key2, object defaultValue = null) => safeIntegerN(obj, new List<object> { key1, key2 }, defaultValue);
 
-    public object safeFloat(object obj, object key, object defaultValue = null) => safeFloatN(obj, new List<object> { key }, (float)defaultValue);
+    public object safeFloat(object obj, object key, object defaultValue = null) => safeFloatN(obj, new List<object> { key }, defaultValue);
 
-    public object safeFloat2(object obj, object key1, object key2, object defaultValue = null) => safeFloatN(obj, new List<object> { key1, key2 }, (float)defaultValue);
+    public object safeFloat2(object obj, object key1, object key2, object defaultValue = null) => safeFloatN(obj, new List<object> { key1, key2 }, defaultValue);
 
-    public string safeString(object obj, object key, object defaultValue = null) => safeStringN(obj, new List<object> { key }, (string)defaultValue);
+    public object safeString(object obj, object key, object defaultValue = null) => safeStringN(obj, new List<object> { key }, defaultValue);
 
-    public string safeString2(object obj, object key1, object key2, object defaultValue = null) => safeStringN(obj, new List<object> { key1, key2 }, (string)defaultValue);
+    public object safeString2(object obj, object key1, object key2, object defaultValue = null) => safeStringN(obj, new List<object> { key1, key2 }, defaultValue);
 
     public object safeValue2(object obj, object key1, object key2, object defaultValue = null) => safeValueN(obj, new List<object> { key1, key2 }, defaultValue);
 
     public object safeValue(object obj, object key1, object defaultValue = null) => safeValueN(obj, new List<object> { key1 }, defaultValue);
 
 
-    public string safeStringUpper(object obj, object key, string defaultValue = null)
+    public object safeStringUpper(object obj, object key, object defaultValue = null)
     {
-        var result = safeString(obj, key, defaultValue);
+        var result = toStringOrNull(safeString(obj, key, defaultValue));
         return result == null ? defaultValue : result.ToUpper();
     }
 
-    public string safeStringUpper2(object obj, object key1, object key2, string defaultValue = null)
+    public object safeStringUpper2(object obj, object key1, object key2, object defaultValue = null)
     {
         var result = safeString2(obj, new List<object> { key1, key2 }, defaultValue);
-        return result == null ? defaultValue : result.ToUpper();
+        return result == null ? defaultValue : ((string)result).ToUpper();
     }
 
-    public string safeStringUpperN(object obj, List<object> keys, string defaultValue = null)
+    public object safeStringUpperN(object obj, List<object> keys, object defaultValue = null)
     {
         var result = safeStringN(obj, keys, defaultValue);
-        return result == null ? defaultValue : result.ToUpper();
+        return result == null ? defaultValue : ((string)result).ToUpper();
     }
 
-    public string safeStringLower(object obj, object key, string defaultValue = null)
+    public object safeStringLower(object obj, object key, object defaultValue = null)
     {
         var result = safeString(obj, key, defaultValue);
-        return result == null ? defaultValue : result.ToLower();
+        return result == null ? defaultValue : ((string)result).ToLower();
     }
 
-    public string safeStringLower2(object obj, object key1, object key2, string defaultValue = null)
+    public object safeStringLower2(object obj, object key1, object key2, string defaultValue = null)
     {
         var result = safeString2(obj, new List<object> { key1, key2 }, defaultValue);
-        return result == null ? defaultValue : result.ToLower();
+        return result == null ? defaultValue : ((string)result).ToLower();
     }
 
-    public string safeStringLowerN(object obj, List<object> keys, string defaultValue = null)
+    public object safeStringLowerN(object obj, List<object> keys, string defaultValue = null)
     {
         var result = safeStringN(obj, keys, defaultValue);
-        return result == null ? defaultValue : result.ToLower();
+        return result == null ? defaultValue : ((string)result).ToLower();
+    }
+
+    public object safeIntegerProduct(object obj, object key, object defaultValue = null, object multiplier = null)
+    {
+        defaultValue ??= 0;
+        multiplier ??= 1;
+        var result = safeValueN(obj, new List<object> { key }, defaultValue);
+        return result == null ? defaultValue : (Convert.ToInt64(result) * Convert.ToInt64(multiplier));
     }
 
     public object safeIntegerN(object obj, List<object> keys, object defaultValue = null)
@@ -96,15 +104,16 @@ public partial class Exchange
         return result == null ? defaultValue : (Convert.ToInt64(result));
     }
 
-    public string safeStringN(object obj, object keys, string defaultValue = null)
+    public object safeStringN(object obj, object keys, object defaultValue = null)
     {
         var result = safeValueN(obj, keys, defaultValue);
-        return result == null ? defaultValue : result.ToString();
+        return result == null ? defaultValue : (result).ToString();
     }
 
 
-    public float safeFloatN(object obj, List<object> keys, float defaultValue = -1)
+    public object safeFloatN(object obj, List<object> keys, object defaultValue = null)
     {
+        defaultValue ??= -1;
         var result = safeValueN(obj, keys, defaultValue);
         return result == null ? defaultValue : Convert.ToSingle(result);
     }
@@ -125,22 +134,23 @@ public partial class Exchange
         if (obj.GetType() == typeof(dict))
         {
             var dict = (dict)obj;
-            foreach (var key in keys)
+            foreach (var key2 in keys)
             {
-                if (dict.ContainsKey((string)key))
+                var key = key2.ToString();
+                if (dict.ContainsKey(key))
                 {
 
-                    var returnValue = dict[(string)key];
-                    if (returnValue == null)
-                        return defaultValue;
-                    if ((returnValue.GetType() == typeof(dict)))
-                        return (dict)returnValue;
-                    if ((returnValue.GetType() == typeof(List<object>)))
-                        return (List<object>)returnValue;
-                    if ((returnValue.GetType() == typeof(string)))
-                        return (string)returnValue;
-                    if ((returnValue.GetType() == typeof(Int64)))
-                        return Convert.ToInt64(returnValue);
+                    var returnValue = dict[key];
+                    // if (returnValue == null)
+                    //     return defaultValue;
+                    // if ((returnValue.GetType() == typeof(dict)))
+                    //     return (dict)returnValue;
+                    // if ((returnValue.GetType() == typeof(List<object>)))
+                    //     return (List<object>)returnValue;
+                    // if ((returnValue.GetType() == typeof(string)))
+                    //     return returnValue;
+                    // if ((returnValue.GetType() == typeof(Int64)))
+                    //     return Convert.ToInt64(returnValue);
 
                     return returnValue;
                 }
@@ -150,19 +160,20 @@ public partial class Exchange
         if (obj.GetType() == typeof(List<object>))
         {
             var list = (List<object>)obj;
-            foreach (var key in list)
+            foreach (var key in keys)
             {
-                if (list.ElementAt((int)key) != null)
+                if (list.ElementAtOrDefault((int)key) != null)
                 {
                     var returnValue = list[(int)key];
-                    if ((returnValue.GetType() == typeof(dict)))
-                        return (dict)returnValue;
-                    if ((returnValue.GetType() == typeof(List<object>)))
-                        return (List<object>)returnValue;
-                    if ((returnValue.GetType() == typeof(string)))
-                        return (string)returnValue;
-                    if ((returnValue.GetType() == typeof(Int64)))
-                        return (string)returnValue;
+                    return returnValue;
+                    // if ((returnValue.GetType() == typeof(dict)))
+                    //     return (dict)returnValue;
+                    // if ((returnValue.GetType() == typeof(List<object>)))
+                    //     return (List<object>)returnValue;
+                    // if ((returnValue.GetType() == typeof(string)))
+                    //     return returnValue;
+                    // if ((returnValue.GetType() == typeof(Int64)))
+                    //     return returnValue;
                 }
             }
         }
@@ -173,13 +184,13 @@ public partial class Exchange
             var list = (List<string>)obj;
             foreach (var key in keys)
             {
-                if (list.ElementAt((int)key) != null)
+                if (list.ElementAtOrDefault((int)key) != null)
                 {
                     var returnValue = list[(int)key];
                     if ((returnValue.GetType() == typeof(string)))
-                        return (string)returnValue;
+                        return returnValue;
                     if ((returnValue.GetType() == typeof(Int64)))
-                        return (string)returnValue;
+                        return returnValue;
                 }
             }
         }
@@ -189,7 +200,7 @@ public partial class Exchange
             var list = (List<int>)obj;
             foreach (var key in keys)
             {
-                if (list.ElementAt((int)key) != null)
+                if (list.ElementAtOrDefault((int)key) != null)
                 {
                     var returnValue = list[(int)key];
                     if ((returnValue.GetType() == typeof(int)))

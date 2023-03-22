@@ -51,9 +51,19 @@ public partial class Exchange
         return 0;
     }
 
+    public virtual object sum(params object[] args)
+    {
+        object res = 0;
+        foreach (var arg in args)
+        {
+            res = sum(res, arg);
+        }
+        return res;
+    }
+
     public virtual object sum(object a, object b)
     {
-        return 0; // to do
+        return (float)a + (float)b;
     }
 
     public virtual object parseNumber(object value, object number = null)
@@ -88,18 +98,6 @@ public partial class Exchange
     public virtual string numberToString(object number)
 
     {
-        var num = 5;
-        var ceil = Math.Ceiling((double)num);
-        var a = Math.Min(0, 5);
-        var b = Math.Max(0, 5);
-        var c = float.Parse("1.3");
-        var d = Int32.Parse("1.3");
-        var e = Int32.MaxValue;
-        var f = Math.Abs(-2);
-        var g = Math.Pow(1, 2);
-        var h = Math.Round((double)5);
-        var i = Math.Floor(5.5);
-
         return number.ToString();
     }
 
