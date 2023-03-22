@@ -110,7 +110,7 @@ const {
     , TICK_SIZE
 } = functions
 
-// TODO: remove these imports
+// TODO: remove these imports to make browser package smaller
 import { rsa } from './functions/rsa.js'
 import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js'
 import { keccak_256 as keccak } from '../static_dependencies/noble-hashes/sha3.js';
