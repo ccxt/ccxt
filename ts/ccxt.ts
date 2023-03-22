@@ -150,6 +150,7 @@ import tidex from  './src/tidex.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
 import upbit from  './src/upbit.js'
+import wavesexchange from  './src/wavesexchange.js'
 import wazirx from  './src/wazirx.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
@@ -320,6 +321,7 @@ const exchanges = {
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
     'upbit':                  upbit,
+    'wavesexchange':          wavesexchange,
     'wazirx':                 wazirx,
     'whitebit':               whitebit,
     'woo':                    woo,
@@ -561,13 +563,14 @@ export {
     timex,
     tokocrypto,
     upbit,
+    wavesexchange,
     wazirx,
     whitebit,
     woo,
     yobit,
     zaif,
     zb,
-    zonda,
+    zonda,    
 }
 
 export default ccxt;
