@@ -707,6 +707,7 @@ export default class Exchange {
     parseFundingRates(response: any, market?: any): {};
     isTriggerOrder(params: any): any[];
     isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: any, params?: {}): boolean;
+    handlePostOnly(isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params?: any): any[];
     fetchLastPrices(params?: {}): Promise<void>;
     fetchTradingFees(params?: {}): Promise<any>;
     fetchTradingFee(symbol: any, params?: {}): Promise<any>;

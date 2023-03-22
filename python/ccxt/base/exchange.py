@@ -3676,6 +3676,32 @@ class Exchange(object):
         else:
             return False
 
+    def handle_post_only(self, isMarketOrder, exchangeSpecificPostOnlyOption, params={}):
+        """
+         * @ignore
+        :param str type: Order type
+        :param boolean exchangeSpecificBoolean: exchange specific postOnly
+        :param dict params: exchange specific params
+        :returns [boolean, params]:
+        """
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        postOnly = self.safe_value(params, 'postOnly', False)
+        ioc = timeInForce == 'IOC'
+        fok = timeInForce == 'FOK'
+        po = timeInForce == 'PO'
+        postOnly = postOnly or po or exchangeSpecificPostOnlyOption
+        if postOnly:
+            if ioc or fok:
+                raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
+            elif isMarketOrder:
+                raise InvalidOrder(self.id + ' market orders cannot be postOnly')
+            else:
+                if po:
+                    params = self.omit(params, 'timeInForce')
+                params = self.omit(params, 'postOnly')
+                return [True, params]
+        return [False, params]
+
     def fetch_last_prices(self, params={}):
         raise NotSupported(self.id + ' fetchLastPrices() is not supported yet')
 

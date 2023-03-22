@@ -733,6 +733,7 @@ class Exchange {
         'parseFundingRates' => 'parse_funding_rates',
         'isTriggerOrder' => 'is_trigger_order',
         'isPostOnly' => 'is_post_only',
+        'handlePostOnly' => 'handle_post_only',
         'fetchLastPrices' => 'fetch_last_prices',
         'fetchTradingFees' => 'fetch_trading_fees',
         'fetchTradingFee' => 'fetch_trading_fee',
@@ -4863,6 +4864,36 @@ class Exchange {
         } else {
             return false;
         }
+    }
+
+    public function handle_post_only($isMarketOrder, $exchangeSpecificPostOnlyOption, $params = array ()) {
+        /**
+         * @ignore
+         * @param {string} type Order type
+         * @param {boolean} exchangeSpecificBoolean exchange specific $postOnly
+         * @param {array} $params exchange specific $params
+         * @return array([boolean, $params])
+         */
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $ioc = $timeInForce === 'IOC';
+        $fok = $timeInForce === 'FOK';
+        $po = $timeInForce === 'PO';
+        $postOnly = $postOnly || $po || $exchangeSpecificPostOnlyOption;
+        if ($postOnly) {
+            if ($ioc || $fok) {
+                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $timeInForce equal to ' . $timeInForce);
+            } elseif ($isMarketOrder) {
+                throw new InvalidOrder($this->id . ' market orders cannot be postOnly');
+            } else {
+                if ($po) {
+                    $params = $this->omit ($params, 'timeInForce');
+                }
+                $params = $this->omit ($params, 'postOnly');
+                return array( true, $params );
+            }
+        }
+        return array( false, $params );
     }
 
     public function fetch_last_prices($params = array ()) {

@@ -3323,6 +3323,38 @@ export default class Exchange {
             return false;
         }
     }
+    handlePostOnly(isMarketOrder, exchangeSpecificPostOnlyOption, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} type Order type
+         * @param {boolean} exchangeSpecificBoolean exchange specific postOnly
+         * @param {object} params exchange specific params
+         * @returns {[boolean, params]}
+         */
+        const timeInForce = this.safeStringUpper(params, 'timeInForce');
+        let postOnly = this.safeValue(params, 'postOnly', false);
+        const ioc = timeInForce === 'IOC';
+        const fok = timeInForce === 'FOK';
+        const po = timeInForce === 'PO';
+        postOnly = postOnly || po || exchangeSpecificPostOnlyOption;
+        if (postOnly) {
+            if (ioc || fok) {
+                throw new InvalidOrder(this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
+            }
+            else if (isMarketOrder) {
+                throw new InvalidOrder(this.id + ' market orders cannot be postOnly');
+            }
+            else {
+                if (po) {
+                    params = this.omit(params, 'timeInForce');
+                }
+                params = this.omit(params, 'postOnly');
+                return [true, params];
+            }
+        }
+        return [false, params];
+    }
     async fetchLastPrices(params = {}) {
         throw new NotSupported(this.id + ' fetchLastPrices() is not supported yet');
     }
