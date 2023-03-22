@@ -4776,6 +4776,9 @@ class binance extends Exchange {
             //     }
             //   )
         }
+        for ($i = 0; $i < count($response); $i++) {
+            $response[$i]['type'] = 'deposit';
+        }
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
@@ -4889,6 +4892,9 @@ class binance extends Exchange {
             //         "transferType" => 0
             //       }
             //     )
+        }
+        for ($i = 0; $i < count($response); $i++) {
+            $response[$i]['type'] = 'withdrawal';
         }
         return $this->parse_transactions($response, $currency, $since, $limit);
     }

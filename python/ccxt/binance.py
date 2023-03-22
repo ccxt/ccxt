@@ -4560,6 +4560,8 @@ class binance(Exchange):
             #         "confirmTimes": "1/15"
             #     }
             #   ]
+        for i in range(0, len(response)):
+            response[i]['type'] = 'deposit'
         return self.parse_transactions(response, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
@@ -4667,6 +4669,8 @@ class binance(Exchange):
             #         "transferType": 0
             #       }
             #     ]
+        for i in range(0, len(response)):
+            response[i]['type'] = 'withdrawal'
         return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):

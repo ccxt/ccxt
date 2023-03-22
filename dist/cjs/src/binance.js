@@ -4898,6 +4898,9 @@ class binance extends Exchange["default"] {
             //     }
             //   ]
         }
+        for (let i = 0; i < response.length; i++) {
+            response[i]['type'] = 'deposit';
+        }
         return this.parseTransactions(response, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5013,6 +5016,9 @@ class binance extends Exchange["default"] {
             //         "transferType": 0
             //       }
             //     ]
+        }
+        for (let i = 0; i < response.length; i++) {
+            response[i]['type'] = 'withdrawal';
         }
         return this.parseTransactions(response, currency, since, limit);
     }
