@@ -155,7 +155,14 @@ module.exports = class poloniex extends poloniexRest {
             ],
         };
         const marketIds = [ ];
+        let messageHash = name;
         if (symbols !== undefined) {
+            if (symbols.length === 1) {
+                const symbol = symbols[0];
+                const marketId = this.marketId (symbol);
+                marketIds.push (marketId);
+                messageHash = messageHash + ':' + marketId;
+            }
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 marketIds.push (this.marketId (symbol));
@@ -166,7 +173,6 @@ module.exports = class poloniex extends poloniexRest {
         if (name !== 'balances') {
             subscribe['symbols'] = marketIds;
         }
-        const messageHash = name + ':' + marketIds.join (',');
         const request = this.extend (subscribe, params);
         return await this.watch (url, messageHash, request, name);
     }
@@ -210,7 +216,7 @@ module.exports = class poloniex extends poloniexRest {
         return await this.subscribe (name, false, [ symbol ], params);
     }
 
-    async watchTickers (symbols, params = {}) {
+    async watchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#watchTicker
@@ -723,12 +729,9 @@ module.exports = class poloniex extends poloniexRest {
                     this.tickers[symbol] = ticker;
                     const messageHash = 'ticker:' + marketId;
                     client.resolve (ticker, messageHash);
-                    client.resolve (ticker, 'ticker:all');
-                    if (i < data.length - 1) {
-                        client.futures['ticker:all'] = client.future ('ticker:all');
-                    }
                 }
             }
+            client.resolve (this.tickers, 'ticker');
             return message;
         }
     }
