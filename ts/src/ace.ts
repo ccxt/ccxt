@@ -4,7 +4,6 @@ import { Exchange } from './base/Exchange.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1036,7 +1035,7 @@ export default class ace extends Exchange {
                 const key = sortedDataKeys[i];
                 auth += this.safeString (data, key);
             }
-            const signature = this.hash (this.encode (auth), Hash.Sha256, Digest.Hex);
+            const signature = this.hash (this.encode (auth), 'sha256', 'hex');
             data['signKey'] = signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

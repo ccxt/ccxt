@@ -132,7 +132,7 @@ export default class kucoinfutures extends kucoin {
     fetchDepositWithdrawFee(code: any, params?: {}): Promise<void>;
     fetchLedger(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchMarketLeverageTiers(symbol: any, params?: {}): Promise<any[]>;
-    parseMarketLeverageTiers(info: any, market: any): any[];
+    parseMarketLeverageTiers(info: any, market?: any): any[];
     fetchFundingRateHistory(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseFundingRateHistory(info: any, market?: any): {
         info: any;

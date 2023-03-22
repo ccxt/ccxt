@@ -49,6 +49,7 @@ class gate(Exchange):
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
                         'sub_accounts': 'https://api.gateio.ws/api/v4',
+                        'earn': 'https://api.gateio.ws/api/v4',
                     },
                     'private': {
                         'withdrawals': 'https://api.gateio.ws/api/v4',
@@ -59,6 +60,8 @@ class gate(Exchange):
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
                         'subAccounts': 'https://api.gateio.ws/api/v4',
+                        'rebate': 'https://api.gateio.ws/api/v4',
+                        'earn': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -214,6 +217,12 @@ class gate(Exchange):
                             'trades': 1.5,
                         },
                     },
+                    'earn': {
+                        'get': {
+                            'uni/currencies': 1.5,
+                            'uni/currencies/{currency}': 1.5,
+                        },
+                    },
                 },
                 'private': {
                     'withdrawals': {
@@ -340,6 +349,7 @@ class gate(Exchange):
                             '{settle}/price_orders': 1.5,
                             '{settle}/price_orders/{order_id}': 1.5,
                             '{settle}/dual_comp/positions/{contract}': 1.5,
+                            '{settle}/auto_deleverages': 1.5,
                         },
                         'post': {
                             '{settle}/positions/{contract}/margin': 1.5,
@@ -406,6 +416,26 @@ class gate(Exchange):
                         'delete': {
                             'orders': 1.5,
                             'orders/{order_id}': 1.5,
+                        },
+                    },
+                    'rebate': {
+                        'get': {
+                            'agency/transaction_history': 1.5,
+                            'agency/commission_history': 1.5,
+                        },
+                    },
+                    'earn': {
+                        'get': {
+                            'uni/lends': 1.5,
+                            'uni/lend_records': 1.5,
+                            'uni/interests/{currency}': 1.5,
+                            'uni/interest_records': 1.5,
+                        },
+                        'post': {
+                            'uni/lends': 1.5,
+                        },
+                        'patch': {
+                            'uni/lends': 1.5,
                         },
                     },
                 },

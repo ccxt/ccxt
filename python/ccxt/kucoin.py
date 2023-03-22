@@ -2942,7 +2942,7 @@ class kucoin(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        return self.parse_borrow_rate_history(data, code)
+        return self.parse_borrow_rate_history(data, code, since, limit)
 
     def parse_borrow_rate_history(self, response, code, since, limit):
         result = []

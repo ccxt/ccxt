@@ -43,6 +43,8 @@ export default class bitrue extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -240,6 +242,10 @@ export default class bitrue extends Exchange {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                     'TRON': 'TRX',
+                },
+                'networksById': {
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
                 },
             },
             'commonCurrencies': {
@@ -1877,6 +1883,64 @@ export default class bitrue extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         return this.parseTransaction (data, currency);
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //   {
+        //       coin: 'adx',
+        //       coinFulName: 'Ambire AdEx',
+        //       chains: [ 'BSC' ],
+        //       chainDetail: [ [Object] ]
+        //   }
+        //
+        const chainDetails = this.safeValue (fee, 'chainDetail', []);
+        const chainDetailLength = chainDetails.length;
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        if (chainDetailLength !== 0) {
+            for (let i = 0; i < chainDetailLength; i++) {
+                const chainDetail = chainDetails[i];
+                const networkId = this.safeString (chainDetail, 'chain');
+                const currencyCode = this.safeString (currency, 'code');
+                const networkCode = this.networkIdToCode (networkId, currencyCode);
+                result['networks'][networkCode] = {
+                    'deposit': { 'fee': undefined, 'percentage': undefined },
+                    'withdraw': { 'fee': this.safeNumber (chainDetail, 'withdrawFee'), 'percentage': false },
+                };
+                if (chainDetailLength === 1) {
+                    result['withdraw']['fee'] = this.safeNumber (chainDetail, 'withdrawFee');
+                    result['withdraw']['percentage'] = false;
+                }
+            }
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitrue#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await (this as any).v1PublicGetExchangeInfo (params);
+        const coins = this.safeValue (response, 'coins');
+        return this.parseDepositWithdrawFees (coins, codes, 'coin');
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {

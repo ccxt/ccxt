@@ -5,7 +5,6 @@ import { Exchange } from './base/Exchange.js';
 import { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1131,7 +1130,7 @@ export default class buda extends Exchange {
             }
             components.push (nonce);
             const message = components.join (' ');
-            const signature = this.hmac (this.encode (message), this.encode (this.secret), Hash.Sha384, Digest.Hex);
+            const signature = this.hmac (this.encode (message), this.encode (this.secret), 'sha384');
             headers = {
                 'X-SBTC-APIKEY': this.apiKey,
                 'X-SBTC-SIGNATURE': signature,

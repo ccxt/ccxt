@@ -5,7 +5,6 @@ import { Exchange } from './base/Exchange.js';
 import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1753,7 +1752,7 @@ export default class poloniex extends Exchange {
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).fetchTransactionsHelper (code, since, limit, params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, params);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1777,7 +1776,7 @@ export default class poloniex extends Exchange {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        const response = await (this as any).fetchTransactionsHelper (code, since, limit, params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, params);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1925,7 +1924,7 @@ export default class poloniex extends Exchange {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        const response = await (this as any).fetchTransactionsHelper (code, since, limit, params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, params);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2059,7 +2058,7 @@ export default class poloniex extends Exchange {
                     url += '?' + this.urlencode (query);
                 }
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha256, Digest.Base64);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,

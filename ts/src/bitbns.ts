@@ -5,7 +5,6 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1148,7 +1147,8 @@ export default class bitbns extends Exchange {
     }
 
     sign (path, api = 'www', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
-        if (!(api in this.urls['api'])) {
+        const urls = this.urls as any;
+        if (!(api in urls['api'])) {
             throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
         if (api !== 'www') {
@@ -1176,7 +1176,7 @@ export default class bitbns extends Exchange {
                 'body': body,
             };
             const payload = this.stringToBase64 (this.json (auth));
-            const signature = this.hmac (payload, this.encode (this.secret), Hash.Sha512, Digest.Hex);
+            const signature = this.hmac (payload, this.encode (this.secret), 'sha512');
             headers['X-BITBNS-PAYLOAD'] = this.decode (payload);
             headers['X-BITBNS-SIGNATURE'] = signature;
             headers['Content-Type'] = 'application/x-www-form-urlencoded';

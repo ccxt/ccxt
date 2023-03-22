@@ -2,7 +2,6 @@ import { Exchange } from './base/Exchange.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
-import { Hash, Digest } from './base/types.js';
 
 export default class hitbtc3 extends Exchange {
     describe () {
@@ -740,7 +739,7 @@ export default class hitbtc3 extends Exchange {
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const response = await (this as any).fetchTickers ([ symbol ], params);
+        const response = await this.fetchTickers ([ symbol ], params);
         return this.safeValue (response, symbol);
     }
 
@@ -2855,7 +2854,7 @@ export default class hitbtc3 extends Exchange {
             }
             payload.push (timestamp);
             const payloadString = payload.join ('');
-            const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), Hash.Sha256, Digest.Hex);
+            const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), 'sha256', 'hex');
             const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
             const encoded = this.decode (this.stringToBase64 (secondPayload));
             headers['Authorization'] = 'HS256 ' + encoded;

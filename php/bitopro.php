@@ -493,7 +493,7 @@ class bitopro extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_trade($trade, $market) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades
         //         {
@@ -699,7 +699,7 @@ class bitopro extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return array(
             $this->safe_integer($ohlcv, 'timestamp'),
             $this->safe_number($ohlcv, 'open'),
@@ -1179,7 +1179,7 @@ class bitopro extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOrdersAllPair (array_merge($request, $params), $params);
+        $response = $this->privateGetOrdersAllPair (array_merge($request, $params));
         $orders = $this->safe_value($response, 'data');
         if ($orders === null) {
             $orders = array();

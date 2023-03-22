@@ -4,7 +4,6 @@
 import { Exchange } from './base/Exchange.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hash } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -445,7 +444,7 @@ export default class coinspot extends Exchange {
             headers = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,
-                'sign': this.hmac (this.encode (body), this.encode (this.secret), Hash.Sha512),
+                'sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

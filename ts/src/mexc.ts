@@ -5,7 +5,6 @@ import { Exchange } from './base/Exchange.js';
 import { AccountNotEnabled, InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hash } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -298,6 +297,7 @@ export default class mexc extends Exchange {
                 'FLUX': 'FLUX1', // switched places
                 'FREE': 'FreeRossDAO', // conflict with FREE Coin
                 'GAS': 'GASDAO',
+                'GASNEO': 'GAS',
                 'GMT': 'GMT Token',
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
@@ -1520,7 +1520,7 @@ export default class mexc extends Exchange {
          */
         const rawNetwork = this.safeStringUpper (params, 'network');
         params = this.omit (params, 'network');
-        const response = await (this as any).fetchDepositAddressesByNetwork (code, params);
+        const response = await this.fetchDepositAddressesByNetwork (code, params);
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         let result = undefined;
@@ -3153,7 +3153,7 @@ export default class mexc extends Exchange {
                 }
             }
             auth = this.apiKey + timestamp + auth;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha256);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             headers['Signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -3465,7 +3465,7 @@ export default class mexc extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseMarketLeverageTiers (info, market) {
+    parseMarketLeverageTiers (info, market = undefined) {
         /**
          * @ignore
          * @method

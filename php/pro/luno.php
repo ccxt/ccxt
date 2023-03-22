@@ -108,7 +108,7 @@ class luno extends \ccxt\async\luno {
         $client->resolve ($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_trade($trade, $market) {
+    public function parse_trade($trade, $market = null) {
         //
         // watchTrades (public)
         //

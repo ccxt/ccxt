@@ -5,7 +5,6 @@ import { Exchange } from './base/Exchange.js';
 import { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hash } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1965,7 +1964,7 @@ export default class woo extends Exchange {
                 auth += '|' + ts;
                 headers['content-type'] = 'application/x-www-form-urlencoded';
             }
-            headers['x-api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha256);
+            headers['x-api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

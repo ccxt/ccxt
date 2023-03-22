@@ -917,16 +917,16 @@ export default class ascendex extends ascendexRest {
         //
         //     { m: 'ping', hp: 3 }
         //
-        await client.send({ 'op': 'pong', 'hp': this.safeInteger(message, 'hp') });
-    }
-    async handlePing(client, message) {
         try {
-            await this.spawn(this.pong, client, message);
+            await client.send({ 'op': 'pong', 'hp': this.safeInteger(message, 'hp') });
         }
         catch (e) {
             const error = new NetworkError(this.id + ' handlePing failed with error ' + this.json(e));
             client.reset(error);
         }
+    }
+    handlePing(client, message) {
+        this.spawn(this.pong, client, message);
     }
     authenticate(url, params = {}) {
         this.checkRequiredCredentials();

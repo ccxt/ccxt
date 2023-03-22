@@ -4,7 +4,6 @@
 import coinbaseproRest from '../coinbasepro.js';
 import { BadSymbol } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Hash, Digest } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -41,7 +40,7 @@ export default class coinbasepro extends coinbaseproRest {
         const path = '/users/self/verify';
         const nonce = this.nonce ();
         const payload = nonce.toString () + 'GET' + path;
-        const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), Hash.Sha256, Digest.Base64);
+        const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), 'sha256', 'base64');
         return {
             'timestamp': nonce,
             'key': this.apiKey,

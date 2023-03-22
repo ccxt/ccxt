@@ -2063,7 +2063,7 @@ export default class btcex extends Exchange {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    parseMarketLeverageTiers (info, market) {
+    parseMarketLeverageTiers (info, market = undefined) {
         //
         //     [
         //         {

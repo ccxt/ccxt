@@ -4,7 +4,6 @@
 import exmoRest from '../exmo.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Hash, Digest } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -659,7 +658,7 @@ export default class exmo extends exmoRest {
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
             const signData = this.apiKey + time.toString ();
-            const sign = this.hmac (this.encode (signData), this.encode (this.secret), Hash.Sha512, Digest.Base64);
+            const sign = this.hmac (this.encode (signData), this.encode (this.secret), 'sha512', 'base64');
             const request = {
                 'method': 'login',
                 'id': requestId,

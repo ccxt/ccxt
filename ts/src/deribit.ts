@@ -5,7 +5,6 @@ import { Exchange } from './base/Exchange.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Hash } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class deribit extends Exchange {
@@ -2645,7 +2644,7 @@ export default class deribit extends Exchange {
             }
             const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
             const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha256);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             headers = {
                 'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             };

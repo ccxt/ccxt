@@ -1,9 +1,9 @@
+
 // ---------------------------------------------------------------------------
 import { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { Exchange } from './base/Exchange.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
-import { Hash, Digest } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 export default class bitfinex2 extends Exchange {
@@ -2459,7 +2459,7 @@ export default class bitfinex2 extends Exchange {
             const nonce = this.nonce ().toString ();
             body = this.json (query);
             const auth = '/api/' + request + nonce + body;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha384, Digest.Hex);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha384');
             headers = {
                 'bfx-nonce': nonce,
                 'bfx-apikey': this.apiKey,

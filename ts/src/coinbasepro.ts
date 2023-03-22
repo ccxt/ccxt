@@ -5,7 +5,6 @@ import { Exchange } from './base/Exchange.js';
 import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hash, Digest } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1789,7 +1788,7 @@ export default class coinbasepro extends Exchange {
             } catch (e) {
                 throw new AuthenticationError (this.id + ' sign() invalid base64 secret');
             }
-            const signature = this.hmac (this.encode (what), secret, Hash.Sha256, Digest.Base64);
+            const signature = this.hmac (this.encode (what), secret, 'sha256', 'base64');
             headers = {
                 'CB-ACCESS-KEY': this.apiKey,
                 'CB-ACCESS-SIGN': signature,
@@ -1815,7 +1814,7 @@ export default class coinbasepro extends Exchange {
     }
 
     async request (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}, context = {}) {
-        const response = await (this as any).fetch2 (path, api, method, params, headers, body, config, context);
+        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
         if (typeof response !== 'string') {
             if ('message' in response) {
                 throw new ExchangeError (this.id + ' ' + this.json (response));

@@ -432,6 +432,8 @@ export default class mexc3 extends Exchange {
                 'FLUX1': 'FLUX',
                 'FLUX': 'FLUX1',
                 'FREE': 'FreeRossDAO',
+                'GAS': 'GASDAO',
+                'GASNEO': 'GAS',
                 'GMT': 'GMT Token',
                 'STEPN': 'GMT',
                 'HERO': 'Step Hero',
@@ -3763,7 +3765,7 @@ export default class mexc3 extends Exchange {
         const data = this.safeValue(response, 'data');
         return this.parseLeverageTiers(data, symbols, 'symbol');
     }
-    parseMarketLeverageTiers(info, market) {
+    parseMarketLeverageTiers(info, market = undefined) {
         /**
             @param info: Exchange response for 1 market
             {

@@ -3,9 +3,15 @@
 
 import { Precise } from '../base/Precise.js';
 import coinexRest from '../coinex.js';
-import { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError } from '../base/errors.js';
+import {
+    AuthenticationError,
+    BadRequest,
+    ExchangeNotAvailable,
+    NotSupported,
+    RequestTimeout,
+    ExchangeError,
+} from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Digest, Hash } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -641,8 +647,8 @@ export default class coinex extends coinexRest {
             }
             string += ask[0] + ':' + ask[1];
         }
-        const signedString = this.crc32 (string);
-        const checksum = this.safeInteger (orderBook, 'checksum');
+        const signedString = this.hash (string, 'cr32', 'hex');
+        const checksum = this.safeString (orderBook, 'checksum');
         if (checksum !== signedString) {
             throw new ExchangeError (this.id + ' watchOrderBook () checksum failed');
         }
@@ -1014,7 +1020,7 @@ export default class coinex extends coinexRest {
                 'future': 'authenticated:spot',
             };
             const signData = 'access_id=' + this.apiKey + '&tonce=' + this.numberToString (time) + '&secret_key=' + this.secret;
-            const hash = this.hash (this.encode (signData), Hash.Md5);
+            const hash = this.hash (this.encode (signData), 'md5');
             const request = {
                 'method': 'server.sign',
                 'params': [
@@ -1039,7 +1045,7 @@ export default class coinex extends coinexRest {
                 'future': 'authenticated:swap',
             };
             const signData = 'access_id=' + this.apiKey + '&timestamp=' + this.numberToString (time) + '&secret_key=' + this.secret;
-            const hash = this.hash (this.encode (signData), Hash.Sha256, Digest.Hex);
+            const hash = this.hash (this.encode (signData), 'sha256', 'hex');
             const request = {
                 'method': 'server.sign',
                 'params': [

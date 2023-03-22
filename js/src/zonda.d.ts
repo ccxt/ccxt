@@ -51,7 +51,7 @@ export default class zonda extends Exchange {
         network: any;
         info: any;
     }>;
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
     transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: any;

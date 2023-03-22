@@ -5,7 +5,6 @@ import { Exchange } from './base/Exchange.js';
 import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -783,7 +782,7 @@ export default class btcturk extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market) {
+    parseOrder (order, market = undefined) {
         //
         // fetchOrders / fetchOpenOrders
         //     {
@@ -916,7 +915,7 @@ export default class btcturk extends Exchange {
             headers = {
                 'X-PCK': this.apiKey,
                 'X-Stamp': nonce,
-                'X-Signature': this.hmac (this.encode (auth), secret, Hash.Sha256, Digest.Base64),
+                'X-Signature': this.hmac (this.encode (auth), secret, 'sha256', 'base64'),
                 'Content-Type': 'application/json',
             };
         }

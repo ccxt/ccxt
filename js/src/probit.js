@@ -1495,7 +1495,7 @@ export default class probit extends Exchange {
         const data = this.safeValue(response, 'data');
         return this.parseDepositWithdrawFees(data, codes, 'id');
     }
-    parseDepositWithdrawFee(fee, currency) {
+    parseDepositWithdrawFee(fee, currency = undefined) {
         //
         // {
         //     id: 'USDT',

@@ -5,7 +5,6 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hash } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1773,7 +1772,7 @@ export default class upbit extends Exchange {
             };
             if (Object.keys (query).length) {
                 const auth = this.urlencode (query);
-                const hash = this.hash (this.encode (auth), Hash.Sha512);
+                const hash = this.hash (this.encode (auth), 'sha512');
                 request['query_hash'] = hash;
                 request['query_hash_alg'] = 'SHA512';
             }

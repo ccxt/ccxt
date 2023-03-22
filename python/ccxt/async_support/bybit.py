@@ -5556,7 +5556,7 @@ class bybit(Exchange):
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         if enableUnifiedAccount and not isInverse:
             orderId = self.safe_string(params, 'orderId')
-            if orderId is None:
+            if orderId is None and type != 'spot':
                 self.check_required_symbol('fetchMyTrades', symbol)
             return await self.fetch_my_unified_trades(symbol, since, limit, query)
         elif type == 'spot':
@@ -6407,6 +6407,7 @@ class bybit(Exchange):
             first = self.safe_value(symbols, 0)
             market = self.market(first)
             settle = market['settle']
+            request['symbol'] = market['id']
         if enableUnified[1]:
             request['settleCoin'] = settle
         # market None
@@ -7214,7 +7215,7 @@ class bybit(Exchange):
         interest = self.parse_borrow_interests(rows, None)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info, market):
+    def parse_borrow_interest(self, info, market=None):
         #
         #     {
         #         "tokenId": "BTC",
@@ -7550,7 +7551,7 @@ class bybit(Exchange):
         request['symbol'] = market['id']
         return await self.fetch_derivatives_market_leverage_tiers(symbol, params)
 
-    def parse_market_leverage_tiers(self, info, market):
+    def parse_market_leverage_tiers(self, info, market=None):
         #
         #     {
         #         "id": 1,

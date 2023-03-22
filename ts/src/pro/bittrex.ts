@@ -4,7 +4,6 @@
 import bittrexRest from '../bittrex.js';
 import { InvalidNonce, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Hash } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -73,7 +72,7 @@ export default class bittrex extends bittrexRest {
         const timestamp = this.milliseconds ();
         const uuid = this.uuid ();
         const auth = timestamp.toString () + uuid;
-        const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha512);
+        const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
         const args = [ this.apiKey, timestamp, uuid, signature ];
         const method = 'Authenticate';
         return this.makeRequest (requestId, method, args);

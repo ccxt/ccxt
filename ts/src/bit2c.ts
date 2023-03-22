@@ -5,7 +5,6 @@ import { Exchange } from './base/Exchange.js';
 import { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -873,7 +872,7 @@ export default class bit2c extends Exchange {
             } else {
                 body = auth;
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha256, Digest.Base64);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512', 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,

@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '3.0.19';
+$version = '3.0.26';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.19';
+    const VERSION = '3.0.26';
 
     public $browser;
     public $marketsLoading = null;
@@ -266,6 +266,118 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        return array();
+    }
+
+    public function fetch_accounts($params = array ()) {
+        throw new NotSupported($this->id . ' fetchAccounts() is not supported yet');
+    }
+
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTrades() is not supported yet');
+    }
+
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTrades() is not supported yet');
+    }
+
+    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchDepositAddresses() is not supported yet');
+    }
+
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
+    }
+
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOrderBook() is not supported yet');
+    }
+
+    public function fetch_time($params = array ()) {
+        throw new NotSupported($this->id . ' fetchTime() is not supported yet');
+    }
+
+    public function fetch_trading_limits($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTradingLimits() is not supported yet');
+    }
+
+    public function parse_ticker($ticker, $market = null) {
+        throw new NotSupported($this->id . ' parseTicker() is not supported yet');
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        throw new NotSupported($this->id . ' parseDepositAddress() is not supported yet');
+    }
+
+    public function parse_trade($trade, $market = null) {
+        throw new NotSupported($this->id . ' parseTrade() is not supported yet');
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        throw new NotSupported($this->id . ' parseTransaction() is not supported yet');
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        throw new NotSupported($this->id . ' parseTransfer() is not supported yet');
+    }
+
+    public function parse_account($account) {
+        throw new NotSupported($this->id . ' parseAccount() is not supported yet');
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        throw new NotSupported($this->id . ' parseLedgerEntry() is not supported yet');
+    }
+
+    public function parse_order($order, $market = null) {
+        throw new NotSupported($this->id . ' parseOrder() is not supported yet');
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        throw new NotSupported($this->id . ' fetchBorrowRates() is not supported yet');
+    }
+
+    public function parse_market_leverage_tiers($info, $market = null) {
+        throw new NotSupported($this->id . ' parseMarketLeverageTiers() is not supported yet');
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchLeverageTiers() is not supported yet');
+    }
+
+    public function parse_position($position, $market = null) {
+        throw new NotSupported($this->id . ' parsePosition() is not supported yet');
+    }
+
+    public function parse_funding_rate_history($info, $market = null) {
+        throw new NotSupported($this->id . ' parseFundingRateHistory() is not supported yet');
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchFundingRates() is not supported yet');
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        throw new NotSupported($this->id . ' transfer() is not supported yet');
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        throw new NotSupported($this->id . ' withdraw() is not supported yet');
+    }
+
+    public function create_deposit_address($code, $params = array ()) {
+        throw new NotSupported($this->id . ' createDepositAddress() is not supported yet');
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' setLeverage() is not supported yet');
+    }
+
     public function parse_to_int($number) {
         // Solve Common intvalmisuse ex => intval((since / (string) 1000))
         // using a $number which is not valid in ts
@@ -340,7 +452,7 @@ class Exchange extends \ccxt\Exchange {
         for ($i = 0; $i < count($marketValues); $i++) {
             $value = $marketValues[$i];
             if (is_array($this->markets_by_id) && array_key_exists($value['id'], $this->markets_by_id)) {
-                $this->markets_by_id[$value['id']][] = $value;
+                ($this->markets_by_id[$value['id']])[] = $value;
             } else {
                 $this->markets_by_id[$value['id']] = array( $value );
             }
@@ -1808,8 +1920,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTransactionFees() is not supported yet');
-        // eslint-disable-next-line
-        return null;
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchDepositWithdrawFees() is not supported yet');
     }
 
     public function fetch_deposit_withdraw_fee($code, $params = array ()) {
@@ -1983,8 +2097,16 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function watch_ticker($symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTicker() is not supported yet');
+    }
+
     public function fetch_tickers($symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
+    public function watch_tickers($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTickers() is not supported yet');
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -2010,6 +2132,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
     }
 
     public function cancel_unified_order($order, $params = array ()) {
@@ -2236,6 +2362,9 @@ class Exchange extends \ccxt\Exchange {
             return null;
         }
         $precisionNumber = intval($precision);
+        if ($precisionNumber === 0) {
+            return '1';
+        }
         $parsedPrecision = '0.';
         for ($i = 0; $i < $precisionNumber - 1; $i++) {
             $parsedPrecision = $parsedPrecision . '0';
@@ -2731,6 +2860,10 @@ class Exchange extends \ccxt\Exchange {
             }
         }
         return $depositWithdrawFees;
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        throw new NotSupported($this->id . ' parseDepositWithdrawFee() is not supported yet');
     }
 
     public function deposit_withdraw_fee($info) {

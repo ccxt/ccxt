@@ -133,8 +133,8 @@ export default class gate extends Exchange {
         maker: number;
         taker: number;
     };
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): {
         info: any;
         withdraw: {
@@ -170,7 +170,7 @@ export default class gate extends Exchange {
     fetchFundingRateHistory(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchOrderTrades(id: any, symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchOrderTrades(id: any, symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;

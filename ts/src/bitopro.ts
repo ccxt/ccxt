@@ -5,7 +5,6 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, InsufficientFunds, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -504,7 +503,7 @@ export default class bitopro extends Exchange {
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         //
         // fetchTrades
         //         {
@@ -714,7 +713,7 @@ export default class bitopro extends Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeInteger (ohlcv, 'timestamp'),
             this.safeNumber (ohlcv, 'open'),
@@ -1210,7 +1209,7 @@ export default class bitopro extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetOrdersAllPair (this.extend (request, params), params);
+        const response = await (this as any).privateGetOrdersAllPair (this.extend (request, params));
         let orders = this.safeValue (response, 'data');
         if (orders === undefined) {
             orders = [];
@@ -1615,7 +1614,7 @@ export default class bitopro extends Exchange {
             if (method === 'POST' || method === 'PUT') {
                 body = this.json (params);
                 const payload = this.stringToBase64 (body);
-                const signature = this.hmac (payload, this.encode (this.secret), Hash.Sha384, Digest.Hex);
+                const signature = this.hmac (payload, this.encode (this.secret), 'sha384');
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
@@ -1629,7 +1628,7 @@ export default class bitopro extends Exchange {
                 };
                 const data = this.json (rawData);
                 const payload = this.stringToBase64 (data);
-                const signature = this.hmac (payload, this.encode (this.secret), Hash.Sha384, Digest.Hex);
+                const signature = this.hmac (payload, this.encode (this.secret), 'sha384');
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;

@@ -5,7 +5,6 @@ import { Exchange } from './base/Exchange.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -5918,7 +5917,7 @@ export default class bybit extends Exchange {
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         if (enableUnifiedAccount && !isInverse) {
             const orderId = this.safeString (params, 'orderId');
-            if (orderId === undefined) {
+            if (orderId === undefined && type !== 'spot') {
                 this.checkRequiredSymbol ('fetchMyTrades', symbol);
             }
             return await this.fetchMyUnifiedTrades (symbol, since, limit, query);
@@ -6821,6 +6820,7 @@ export default class bybit extends Exchange {
             const first = this.safeValue (symbols, 0);
             const market = this.market (first);
             settle = market['settle'];
+            request['symbol'] = market['id'];
         }
         if (enableUnified[1]) {
             request['settleCoin'] = settle;
@@ -7705,7 +7705,7 @@ export default class bybit extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market) {
+    parseBorrowInterest (info, market = undefined) {
         //
         //     {
         //         "tokenId": "BTC",
@@ -8069,7 +8069,7 @@ export default class bybit extends Exchange {
         return await this.fetchDerivativesMarketLeverageTiers (symbol, params);
     }
 
-    parseMarketLeverageTiers (info, market) {
+    parseMarketLeverageTiers (info, market = undefined) {
         //
         //     {
         //         "id": 1,
@@ -8226,7 +8226,7 @@ export default class bybit extends Exchange {
                     body = '{}';
                 }
                 const payload = timestamp + this.apiKey + body;
-                const signature = this.hmac (this.encode (payload), this.encode (this.secret), Hash.Sha256, Digest.Hex);
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
                 headers = {
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': this.apiKey,

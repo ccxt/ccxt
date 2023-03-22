@@ -5,7 +5,6 @@ import { Exchange } from './base/Exchange.js';
 import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Hash } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -431,6 +430,8 @@ export default class mexc3 extends Exchange {
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
                 'FREE': 'FreeRossDAO', // conflict with FREE Coin
+                'GAS': 'GASDAO',
+                'GASNEO': 'GAS',
                 'GMT': 'GMT Token', // Conflict with GMT (STEPN)
                 'STEPN': 'GMT', // Conflict with GMT Token
                 'HERO': 'Step Hero', // conflict with Metahero
@@ -2949,7 +2950,7 @@ export default class mexc3 extends Exchange {
         // TODO: is the below endpoints suitable for fetchAccounts?
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchAccounts', undefined, params);
         await this.loadMarkets ();
-        const response = await (this as any).fetchAccountHelper (marketType, query);
+        const response = await this.fetchAccountHelper (marketType, query);
         const data = this.safeValue (response, 'balances', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -2975,7 +2976,7 @@ export default class mexc3 extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).fetchAccountHelper ('spot', params);
+        const response = await this.fetchAccountHelper ('spot', params);
         let makerFee = this.safeString (response, 'makerCommission');
         let takerFee = this.safeString (response, 'takerCommission');
         makerFee = Precise.stringDiv (makerFee, '1000');
@@ -3772,7 +3773,7 @@ export default class mexc3 extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseMarketLeverageTiers (info, market) {
+    parseMarketLeverageTiers (info, market = undefined) {
         /**
             @param info: Exchange response for 1 market
             {
@@ -4909,7 +4910,7 @@ export default class mexc3 extends Exchange {
             }
             if (access === 'private') {
                 this.checkRequiredCredentials ();
-                const signature = this.hmac (this.encode (paramsEncoded), this.encode (this.secret), Hash.Sha256);
+                const signature = this.hmac (this.encode (paramsEncoded), this.encode (this.secret), 'sha256');
                 url += '&' + 'signature=' + signature;
                 headers = {
                     'X-MEXC-APIKEY': this.apiKey,
@@ -4947,7 +4948,7 @@ export default class mexc3 extends Exchange {
                     }
                 }
                 auth = this.apiKey + timestamp + auth;
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha256);
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
                 headers['Signature'] = signature;
             }
         }

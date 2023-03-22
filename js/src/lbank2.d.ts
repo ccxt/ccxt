@@ -76,7 +76,7 @@ export default class lbank2 extends Exchange {
     };
     fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<any>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<any>;
     fetchPrivateTransactionFees(params?: {}): Promise<{
         withdraw: {};
         deposit: {};
@@ -87,22 +87,11 @@ export default class lbank2 extends Exchange {
         deposit: {};
         info: any;
     }>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
-    fetchPrivateDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
-    fetchPublicDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
+    fetchPrivateDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
+    fetchPublicDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parsePublicDepositWithdrawFees(response: any, codes?: any): {};
-    parseDepositWithdrawFee(fee: any, currency?: any): {
-        info: any;
-        withdraw: {
-            fee: any;
-            percentage: any;
-        };
-        deposit: {
-            fee: any;
-            percentage: any;
-        };
-        networks: {};
-    };
+    parseDepositWithdrawFee(fee: any, currency?: any): any;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

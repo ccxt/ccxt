@@ -2,7 +2,6 @@ import { Exchange } from './base/Exchange.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InvalidAddress, InvalidOrder, InsufficientFunds, NotSupported, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Hash } from './base/types.js';
 
 export default class coinsph extends Exchange {
     describe () {
@@ -1766,7 +1765,7 @@ export default class coinsph extends Exchange {
                 }
             }
             query = this.urlEncodeQuery (query);
-            const signature = this.hmac (this.encode (query), this.encode (this.secret), Hash.Sha256);
+            const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
             url = url + '?' + query + '&signature=' + signature;
             headers = {
                 'X-COINS-APIKEY': this.apiKey,

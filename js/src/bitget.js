@@ -620,6 +620,7 @@ export default class bitget extends Exchange {
                     '40016': PermissionDenied,
                     '40017': ExchangeError,
                     '40018': PermissionDenied,
+                    '40019': InvalidOrder,
                     '40102': BadRequest,
                     '40103': BadRequest,
                     '40104': ExchangeError,
@@ -692,6 +693,7 @@ export default class bitget extends Exchange {
                     '40712': InsufficientFunds,
                     '40713': ExchangeError,
                     '40714': ExchangeError,
+                    '41114': OnMaintenance,
                     '43011': InvalidOrder,
                     '43025': InvalidOrder,
                     '45110': InvalidOrder,
@@ -3352,7 +3354,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data');
-        return await this.parseTrades(data, market, since, limit);
+        return this.parseTrades(data, market, since, limit);
     }
     async fetchPosition(symbol, params = {}) {
         /**

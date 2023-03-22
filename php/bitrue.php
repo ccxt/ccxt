@@ -43,6 +43,8 @@ class bitrue extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -240,6 +242,10 @@ class bitrue extends Exchange {
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRX',
                     'TRON' => 'TRX',
+                ),
+                'networksById' => array(
+                    'TRX' => 'TRC20',
+                    'ETH' => 'ERC20',
                 ),
             ),
             'commonCurrencies' => array(
@@ -1837,6 +1843,62 @@ class bitrue extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         return $this->parse_transaction($data, $currency);
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //   {
+        //       coin => 'adx',
+        //       coinFulName => 'Ambire AdEx',
+        //       chains => array( 'BSC' ),
+        //       $chainDetail => [ [Object] ]
+        //   }
+        //
+        $chainDetails = $this->safe_value($fee, 'chainDetail', array());
+        $chainDetailLength = count($chainDetails);
+        $result = array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+        if ($chainDetailLength !== 0) {
+            for ($i = 0; $i < $chainDetailLength; $i++) {
+                $chainDetail = $chainDetails[$i];
+                $networkId = $this->safe_string($chainDetail, 'chain');
+                $currencyCode = $this->safe_string($currency, 'code');
+                $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+                $result['networks'][$networkCode] = array(
+                    'deposit' => array( 'fee' => null, 'percentage' => null ),
+                    'withdraw' => array( 'fee' => $this->safe_number($chainDetail, 'withdrawFee'), 'percentage' => false ),
+                );
+                if ($chainDetailLength === 1) {
+                    $result['withdraw']['fee'] = $this->safe_number($chainDetail, 'withdrawFee');
+                    $result['withdraw']['percentage'] = false;
+                }
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+         * @param {[string]|null} $codes list of unified currency $codes
+         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
+        $this->load_markets();
+        $response = $this->v1PublicGetExchangeInfo ($params);
+        $coins = $this->safe_value($response, 'coins');
+        return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -3,13 +3,13 @@ export default class whitebit extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<{
         withdraw: {};
         deposit: {};
         info: any;
     }>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    parseDepositWithdrawFees(response: any, codes?: string[], currencyIdKey?: any): {};
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
@@ -56,7 +56,7 @@ export default class whitebit extends Exchange {
         toAccount: any;
         status: any;
     }>;
-    parseTransfer(transfer: any, currency: any): {
+    parseTransfer(transfer: any, currency?: any): {
         info: any;
         id: any;
         timestamp: any;

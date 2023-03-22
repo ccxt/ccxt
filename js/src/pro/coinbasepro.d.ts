@@ -3,7 +3,7 @@ export default class coinbasepro extends coinbaseproRest {
     describe(): any;
     authenticate(): {
         timestamp: number;
-        key: any;
+        key: string;
         signature: any;
         passphrase: any;
     };

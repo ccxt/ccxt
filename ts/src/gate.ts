@@ -4,7 +4,6 @@ import { Exchange } from './base/Exchange.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
-import { Hash } from './base/types.js';
 
 export default class gate extends Exchange {
     describe () {
@@ -29,6 +28,7 @@ export default class gate extends Exchange {
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
                         'sub_accounts': 'https://api.gateio.ws/api/v4',
+                        'earn': 'https://api.gateio.ws/api/v4',
                     },
                     'private': {
                         'withdrawals': 'https://api.gateio.ws/api/v4',
@@ -39,6 +39,8 @@ export default class gate extends Exchange {
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
                         'subAccounts': 'https://api.gateio.ws/api/v4',
+                        'rebate': 'https://api.gateio.ws/api/v4',
+                        'earn': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -194,6 +196,12 @@ export default class gate extends Exchange {
                             'trades': 1.5,
                         },
                     },
+                    'earn': {
+                        'get': {
+                            'uni/currencies': 1.5,
+                            'uni/currencies/{currency}': 1.5,
+                        },
+                    },
                 },
                 'private': {
                     'withdrawals': {
@@ -320,6 +328,7 @@ export default class gate extends Exchange {
                             '{settle}/price_orders': 1.5,
                             '{settle}/price_orders/{order_id}': 1.5,
                             '{settle}/dual_comp/positions/{contract}': 1.5,
+                            '{settle}/auto_deleverages': 1.5,
                         },
                         'post': {
                             '{settle}/positions/{contract}/margin': 1.5,
@@ -386,6 +395,26 @@ export default class gate extends Exchange {
                         'delete': {
                             'orders': 1.5,
                             'orders/{order_id}': 1.5,
+                        },
+                    },
+                    'rebate': {
+                        'get': {
+                            'agency/transaction_history': 1.5,
+                            'agency/commission_history': 1.5,
+                        },
+                    },
+                    'earn': {
+                        'get': {
+                            'uni/lends': 1.5,
+                            'uni/lend_records': 1.5,
+                            'uni/interests/{currency}': 1.5,
+                            'uni/interest_records': 1.5,
+                        },
+                        'post': {
+                            'uni/lends': 1.5,
+                        },
+                        'patch': {
+                            'uni/lends': 1.5,
                         },
                     },
                 },
@@ -2684,7 +2713,7 @@ export default class gate extends Exchange {
         //          }
         //      ]
         //
-        const response = await (this as any).fetchMyTrades (symbol, since, limit, { 'order_id': id });
+        const response = await this.fetchMyTrades (symbol, since, limit, { 'order_id': id });
         return response;
     }
 
@@ -4971,14 +5000,14 @@ export default class gate extends Exchange {
                 body = this.json (query);
             }
             const bodyPayload = (body === undefined) ? '' : body;
-            const bodySignature = this.hash (this.encode (bodyPayload), Hash.Sha512);
+            const bodySignature = this.hash (this.encode (bodyPayload), 'sha512');
             const timestamp = this.seconds ();
             const timestampString = timestamp.toString ();
             const signaturePath = '/api/' + this.version + entirePath;
             const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestampString ];
             // eslint-disable-next-line quotes
             const payload = payloadArray.join ("\n");
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), Hash.Sha512);
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
             headers = {
                 'KEY': this.apiKey,
                 'Timestamp': timestampString,

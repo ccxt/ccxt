@@ -307,7 +307,7 @@ export default class okx extends Exchange {
     };
     parseBorrowRateHistories(response: any, codes: any, since: any, limit: any): {};
     parseBorrowRateHistory(response: any, code: any, since: any, limit: any): any;
-    fetchBorrowRateHistories(codes?: any, since?: any, limit?: any, params?: {}): Promise<{}>;
+    fetchBorrowRateHistories(codes?: string[], since?: any, limit?: any, params?: {}): Promise<{}>;
     fetchBorrowRateHistory(code: any, since?: any, limit?: any, params?: {}): Promise<any>;
     modifyMarginHelper(symbol: any, amount: any, type: any, params?: {}): Promise<{
         info: any;
@@ -388,7 +388,7 @@ export default class okx extends Exchange {
         info: any;
     };
     setSandboxMode(enable: any): void;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    parseDepositWithdrawFees(response: any, codes?: string[], currencyIdKey?: any): {};
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
 }

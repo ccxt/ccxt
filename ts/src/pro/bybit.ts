@@ -4,7 +4,6 @@
 import bybitRest from '../bybit.js';
 import { AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Hash, Digest } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1365,7 +1364,7 @@ export default class bybit extends bybitRest {
             const expires = expiresInt.toString ();
             const path = 'GET/realtime';
             const auth = path + expires;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha256, Digest.Hex);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'hex');
             const request = {
                 'op': 'auth',
                 'args': [

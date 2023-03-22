@@ -41,8 +41,8 @@ export default class exmo extends Exchange {
     fetchPrivateTradingFees(params?: {}): Promise<{}>;
     fetchPublicTradingFees(params?: {}): Promise<{}>;
     parseFixedFloatValue(input: any): number;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -91,7 +91,7 @@ export default class exmo extends Exchange {
         network: any;
         info: any;
     }>;
-    getMarketFromTrades(trades: any): import("./base/types.js").Market;
+    getMarketFromTrades(trades: any): any;
     withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;

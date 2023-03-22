@@ -5,7 +5,6 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
-import { Hash, Digest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1049,7 +1048,7 @@ export default class bithumb extends Exchange {
             }, query));
             const nonce = this.nonce ().toString ();
             const auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), Hash.Sha512, Digest.Hex);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
             const signature64 = this.decode (this.stringToBase64 (signature));
             headers = {
                 'Accept': 'application/json',

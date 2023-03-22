@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.19';
+$version = '3.0.26';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.19';
+    const VERSION = '3.0.26';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -549,6 +549,19 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'findTimeframe' => 'find_timeframe',
+        'formatScientificNotationFTX' => 'format_scientific_notation_ftx',
+        'orderBook' => 'order_book',
+        'indexedOrderBook' => 'indexed_order_book',
+        'countedOrderBook' => 'counted_order_book',
+        'handleMessage' => 'handle_message',
+        'onConnected' => 'on_connected',
+        'onError' => 'on_error',
+        'onClose' => 'on_close',
+        'handleDelta' => 'handle_delta',
+        'loadOrderBook' => 'load_order_book',
+        'handleDeltas' => 'handle_deltas',
+        'getCacheIndex' => 'get_cache_index',
         'fetchAccounts' => 'fetch_accounts',
         'fetchTrades' => 'fetch_trades',
         'watchTrades' => 'watch_trades',
@@ -573,19 +586,7 @@ class Exchange {
         'parseBorrowInterest' => 'parse_borrow_interest',
         'fetchFundingRates' => 'fetch_funding_rates',
         'createDepositAddress' => 'create_deposit_address',
-        'findTimeframe' => 'find_timeframe',
-        'formatScientificNotationFTX' => 'format_scientific_notation_ftx',
-        'orderBook' => 'order_book',
-        'indexedOrderBook' => 'indexed_order_book',
-        'countedOrderBook' => 'counted_order_book',
-        'handleMessage' => 'handle_message',
-        'onConnected' => 'on_connected',
-        'onError' => 'on_error',
-        'onClose' => 'on_close',
-        'handleDelta' => 'handle_delta',
-        'loadOrderBook' => 'load_order_book',
-        'handleDeltas' => 'handle_deltas',
-        'getCacheIndex' => 'get_cache_index',
+        'setLeverage' => 'set_leverage',
         'parseToInt' => 'parse_to_int',
         'getDefaultOptions' => 'get_default_options',
         'safeLedgerEntry' => 'safe_ledger_entry',
@@ -659,6 +660,7 @@ class Exchange {
         'fetchFundingFees' => 'fetch_funding_fees',
         'fetchTransactionFee' => 'fetch_transaction_fee',
         'fetchTransactionFees' => 'fetch_transaction_fees',
+        'fetchDepositWithdrawFees' => 'fetch_deposit_withdraw_fees',
         'fetchDepositWithdrawFee' => 'fetch_deposit_withdraw_fee',
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
@@ -673,12 +675,15 @@ class Exchange {
         'handleErrors' => 'handle_errors',
         'calculateRateLimiterCost' => 'calculate_rate_limiter_cost',
         'fetchTicker' => 'fetch_ticker',
+        'watchTicker' => 'watch_ticker',
         'fetchTickers' => 'fetch_tickers',
+        'watchTickers' => 'watch_tickers',
         'fetchOrder' => 'fetch_order',
         'fetchOrderStatus' => 'fetch_order_status',
         'fetchUnifiedOrder' => 'fetch_unified_order',
         'createOrder' => 'create_order',
         'cancelOrder' => 'cancel_order',
+        'cancelAllOrders' => 'cancel_all_orders',
         'cancelUnifiedOrder' => 'cancel_unified_order',
         'fetchOrders' => 'fetch_orders',
         'watchOrders' => 'watch_orders',
@@ -743,6 +748,7 @@ class Exchange {
         'checkRequiredMarginArgument' => 'check_required_margin_argument',
         'checkRequiredSymbol' => 'check_required_symbol',
         'parseDepositWithdrawFees' => 'parse_deposit_withdraw_fees',
+        'parseDepositWithdrawFee' => 'parse_deposit_withdraw_fee',
         'depositWithdrawFee' => 'deposit_withdraw_fee',
         'assignDefaultDepositWithdrawFees' => 'assign_default_deposit_withdraw_fees',
         'parseIncome' => 'parse_income',
@@ -1693,10 +1699,6 @@ class Exchange {
         }
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
-        throw new NotSupported($this->id . ' sign() is not supported yet');
-    }
-
     public function parse_json($json_string, $as_associative_array = true) {
         return json_decode($this->on_json_response($json_string), $as_associative_array);
     }
@@ -2570,6 +2572,118 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        return array();
+    }
+
+    public function fetch_accounts($params = array ()) {
+        throw new NotSupported($this->id . ' fetchAccounts() is not supported yet');
+    }
+
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTrades() is not supported yet');
+    }
+
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTrades() is not supported yet');
+    }
+
+    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchDepositAddresses() is not supported yet');
+    }
+
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
+    }
+
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOrderBook() is not supported yet');
+    }
+
+    public function fetch_time($params = array ()) {
+        throw new NotSupported($this->id . ' fetchTime() is not supported yet');
+    }
+
+    public function fetch_trading_limits($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTradingLimits() is not supported yet');
+    }
+
+    public function parse_ticker($ticker, $market = null) {
+        throw new NotSupported($this->id . ' parseTicker() is not supported yet');
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        throw new NotSupported($this->id . ' parseDepositAddress() is not supported yet');
+    }
+
+    public function parse_trade($trade, $market = null) {
+        throw new NotSupported($this->id . ' parseTrade() is not supported yet');
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        throw new NotSupported($this->id . ' parseTransaction() is not supported yet');
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        throw new NotSupported($this->id . ' parseTransfer() is not supported yet');
+    }
+
+    public function parse_account($account) {
+        throw new NotSupported($this->id . ' parseAccount() is not supported yet');
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        throw new NotSupported($this->id . ' parseLedgerEntry() is not supported yet');
+    }
+
+    public function parse_order($order, $market = null) {
+        throw new NotSupported($this->id . ' parseOrder() is not supported yet');
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        throw new NotSupported($this->id . ' fetchBorrowRates() is not supported yet');
+    }
+
+    public function parse_market_leverage_tiers($info, $market = null) {
+        throw new NotSupported($this->id . ' parseMarketLeverageTiers() is not supported yet');
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchLeverageTiers() is not supported yet');
+    }
+
+    public function parse_position($position, $market = null) {
+        throw new NotSupported($this->id . ' parsePosition() is not supported yet');
+    }
+
+    public function parse_funding_rate_history($info, $market = null) {
+        throw new NotSupported($this->id . ' parseFundingRateHistory() is not supported yet');
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchFundingRates() is not supported yet');
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        throw new NotSupported($this->id . ' transfer() is not supported yet');
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        throw new NotSupported($this->id . ' withdraw() is not supported yet');
+    }
+
+    public function create_deposit_address($code, $params = array ()) {
+        throw new NotSupported($this->id . ' createDepositAddress() is not supported yet');
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' setLeverage() is not supported yet');
+    }
+
     public function parse_to_int($number) {
         // Solve Common intvalmisuse ex => intval((since / (string) 1000))
         // using a $number which is not valid in ts
@@ -2644,7 +2758,7 @@ class Exchange {
         for ($i = 0; $i < count($marketValues); $i++) {
             $value = $marketValues[$i];
             if (is_array($this->markets_by_id) && array_key_exists($value['id'], $this->markets_by_id)) {
-                $this->markets_by_id[$value['id']][] = $value;
+                ($this->markets_by_id[$value['id']])[] = $value;
             } else {
                 $this->markets_by_id[$value['id']] = array( $value );
             }
@@ -4074,8 +4188,10 @@ class Exchange {
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTransactionFees() is not supported yet');
-        // eslint-disable-next-line
-        return null;
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchDepositWithdrawFees() is not supported yet');
     }
 
     public function fetch_deposit_withdraw_fee($code, $params = array ()) {
@@ -4243,8 +4359,16 @@ class Exchange {
         }
     }
 
+    public function watch_ticker($symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTicker() is not supported yet');
+    }
+
     public function fetch_tickers($symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
+    public function watch_tickers($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTickers() is not supported yet');
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -4266,6 +4390,10 @@ class Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
     }
 
     public function cancel_unified_order($order, $params = array ()) {
@@ -4478,6 +4606,9 @@ class Exchange {
             return null;
         }
         $precisionNumber = intval($precision);
+        if ($precisionNumber === 0) {
+            return '1';
+        }
         $parsedPrecision = '0.';
         for ($i = 0; $i < $precisionNumber - 1; $i++) {
             $parsedPrecision = $parsedPrecision . '0';
@@ -4949,6 +5080,10 @@ class Exchange {
             }
         }
         return $depositWithdrawFees;
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        throw new NotSupported($this->id . ' parseDepositWithdrawFee() is not supported yet');
     }
 
     public function deposit_withdraw_fee($info) {

@@ -1,3 +1,4 @@
+
 import { Exchange } from './base/Exchange.js';
 import { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
@@ -406,7 +407,7 @@ export default class timex extends Exchange {
     }
 
     getCurrencyByAddress (address) {
-        const currencies = this.currencies;
+        const currencies = this.currencies as any;
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const info = this.safeValue (currency, 'info', {});
