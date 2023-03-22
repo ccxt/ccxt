@@ -3096,7 +3096,7 @@ export default class bybit extends Exchange {
             'New': 'open',
             'Rejected': 'rejected',
             'PartiallyFilled': 'open',
-            'PartiallyFilledCancelled': 'canceled',
+            'PartiallyFilledCanceled': 'canceled',
             'Filled': 'closed',
             'PendingCancel': 'open',
             'Cancelled': 'canceled',
