@@ -3193,7 +3193,8 @@ export default class gate extends Exchange {
             amount = parseInt (signedAmount);
         }
         let request = undefined;
-        if (!isStopOrder && (trigger === undefined)) {
+        const nonTriggerOrder = !isStopOrder && (trigger === undefined);
+        if (nonTriggerOrder) {
             if (contract) {
                 // contract order
                 request = {
