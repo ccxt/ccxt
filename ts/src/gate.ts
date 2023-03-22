@@ -3319,9 +3319,6 @@ export default class gate extends Exchange {
                 const options = this.safeValue (this.options, 'createOrder', {});
                 let marginMode = undefined;
                 [ marginMode, params ] = this.getMarginMode (true, params);
-                if (timeInForce === undefined) {
-                    request['put']['time_in_force'] = 'gtc';
-                }
                 request = {
                     'put': {
                         'type': type,
@@ -3333,6 +3330,9 @@ export default class gate extends Exchange {
                     },
                     'market': market['id'],
                 };
+                if (timeInForce === undefined) {
+                    request['put']['time_in_force'] = 'gtc';
+                }
                 if (trigger === undefined) {
                     const defaultExpiration = this.safeInteger (options, 'expiration');
                     const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
