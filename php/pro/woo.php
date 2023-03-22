@@ -13,8 +13,6 @@ use React\Async;
 
 class woo extends \ccxt\async\woo {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -282,7 +280,7 @@ class woo extends \ccxt\async\woo {
                 throw new ExchangeError($this->id . ' watchOHLCV $timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
             }
             $market = $this->market($symbol);
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $name = 'kline';
             $topic = $market['id'] . '@' . $name . '_' . $interval;
             $request = array(

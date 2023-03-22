@@ -4,13 +4,11 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.7.18'
+__version__ = '3.0.27'
 
 # ----------------------------------------------------------------------------
 
-# Pro Exchange
-
-from ccxt.pro.base.exchange import Exchange  # noqa: F401
+from ccxt.base.exchange import Exchange  # noqa: F401
 
 # CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 
@@ -51,6 +49,7 @@ from ccxt.pro.huobi import huobi                                          # noqa
 from ccxt.pro.huobijp import huobijp                                      # noqa: F401
 from ccxt.pro.huobipro import huobipro                                    # noqa: F401
 from ccxt.pro.idex import idex                                            # noqa: F401
+from ccxt.pro.independentreserve import independentreserve                # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
 from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
@@ -106,6 +105,7 @@ exchanges = [
     'huobijp',
     'huobipro',
     'idex',
+    'independentreserve',
     'kraken',
     'kucoin',
     'kucoinfutures',
