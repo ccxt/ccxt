@@ -1292,7 +1292,7 @@ export default class hitbtc3 extends Exchange {
         return this.parseTradingFee (response, market);
     }
 
-    async fetchTradingFees (symbols: string[] = undefined, params = {}) {
+    async fetchTradingFees (params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchTradingFees

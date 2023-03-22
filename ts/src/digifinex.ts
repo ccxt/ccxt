@@ -3070,11 +3070,11 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (data, 'instrument_id');
-            const symbol = this.safeSymbol (marketId);
+            const symbolInner = this.safeSymbol (marketId);
             const timestamp = this.safeInteger (entry, 'time');
             rates.push ({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeString (entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),

@@ -827,11 +827,11 @@ export default class lbank2 extends Exchange {
             for (let i = 0; i < balances.length; i++) {
                 const item = balances[i];
                 const currencyId = this.safeString (item, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
+                const codeInner = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
                 account['free'] = this.safeString (item, 'free');
                 account['used'] = this.safeString (item, 'locked');
-                result[code] = account;
+                result[codeInner] = account;
             }
             return this.safeBalance (result);
         }

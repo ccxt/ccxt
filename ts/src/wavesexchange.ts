@@ -351,7 +351,7 @@ export default class wavesexchange extends Exchange {
 
     setSandboxMode (enabled) {
         this.options['messagePrefix'] = enabled ? 'T' : 'W';
-        return super.setSandboxMode (enabled);
+        super.setSandboxMode (enabled);
     }
 
     async getFeesForAsset (symbol, side, amount, price, params = {}) {
@@ -1111,9 +1111,9 @@ export default class wavesexchange extends Exchange {
                     'publicKey': this.apiKey,
                 };
                 const response = await (this as any).nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
-                const address = this.safeString (response, 'address');
+                const addressInner = this.safeString (response, 'address');
                 return {
-                    'address': address,
+                    'address': addressInner,
                     'code': code, // kept here for backward-compatibility, but will be removed soon
                     'currency': code,
                     'network': network,

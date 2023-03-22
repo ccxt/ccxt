@@ -1227,9 +1227,9 @@ export default class exmo extends Exchange {
         }
         const response = await (this as any).privatePostUserTrades (this.extend (request, params));
         let result = [];
-        const marketIds = Object.keys (response);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
+        const marketIdsInner = Object.keys (response);
+        for (let i = 0; i < marketIdsInner.length; i++) {
+            const marketId = marketIdsInner[i];
             const resultMarket = this.safeMarket (marketId, undefined, '_');
             const items = response[marketId];
             const trades = this.parseTrades (items, resultMarket, since, limit);

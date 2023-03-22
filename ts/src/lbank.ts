@@ -819,10 +819,10 @@ export default class lbank extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const query = this.keysort (this.extend ({
+            const queryInner = this.keysort (this.extend ({
                 'api_key': this.apiKey,
             }, params));
-            const queryString = this.rawencode (query);
+            const queryString = this.rawencode (queryInner);
             const message = this.hash (this.encode (queryString)).toUpperCase ();
             const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
             let pem = undefined;
@@ -835,8 +835,8 @@ export default class lbank extends Exchange {
             } else {
                 pem = this.convertSecretToPem (this.secret);
             }
-            query['sign'] = this.rsa (message, pem, 'RS256');
-            body = this.urlencode (query);
+            queryInner['sign'] = this.rsa (message, pem, 'RS256');
+            body = this.urlencode (queryInner);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

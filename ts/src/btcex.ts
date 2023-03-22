@@ -932,8 +932,8 @@ export default class btcex extends Exchange {
             if ((assetType === 'WALLET') || (assetType === 'SPOT')) {
                 const details = this.safeValue (currency, 'details');
                 if (details !== undefined) {
-                    for (let i = 0; i < details.length; i++) {
-                        const detail = details[i];
+                    for (let j = 0; j < details.length; j++) {
+                        const detail = details[j];
                         const coinType = this.safeString (detail, 'coin_type');
                         const code = this.safeCurrencyCode (coinType);
                         const account = this.safeValue (result, code, this.account ());

@@ -815,12 +815,12 @@ export default class coinex extends Exchange {
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeMarket (marketId, undefined, undefined, marketType);
-            const symbol = market['symbol'];
+            const marketInner = this.safeMarket (marketId, undefined, undefined, marketType);
+            const symbol = marketInner['symbol'];
             const ticker = this.parseTicker ({
                 'date': timestamp,
                 'ticker': tickers[marketId],
-            }, market);
+            }, marketInner);
             ticker['symbol'] = symbol;
             result[symbol] = ticker;
         }

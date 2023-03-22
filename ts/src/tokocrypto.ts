@@ -2379,11 +2379,11 @@ export default class tokocrypto extends Exchange {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeValue (response, 'success', true);
         if (!success) {
-            const message = this.safeString (response, 'msg');
+            const messageInner = this.safeString (response, 'msg');
             let parsedMessage = undefined;
-            if (message !== undefined) {
+            if (messageInner !== undefined) {
                 try {
-                    parsedMessage = JSON.parse (message);
+                    parsedMessage = JSON.parse (messageInner);
                 } catch (e) {
                     // do nothing
                     parsedMessage = undefined;
