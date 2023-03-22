@@ -920,7 +920,11 @@ module.exports = class poloniex extends poloniexRest {
         if (type === 'auth') {
             this.handleAuthenticate (client, message);
         } else {
-            return method.call (this, client, message);
+            const data = this.safeValue (message, 'data', []);
+            const dataLength = data.length;
+            if (dataLength > 0) {
+                return method.call (this, client, message);
+            }
         }
     }
 
