@@ -1301,12 +1301,13 @@ class Exchange(object):
         return base64.b64decode(s).decode('utf-8')
 
     @staticmethod
-    def jwt(request, secret, alg='HS256'):
+    def jwt(request, secret, algorithm='sha256', is_rsa=False):
         algos = {
-            'HS256': hashlib.sha256,
-            'HS384': hashlib.sha384,
-            'HS512': hashlib.sha512,
+            'sha256': hashlib.sha256,
+            'sha384': hashlib.sha384,
+            'sha512': hashlib.sha512,
         }
+        alg = ('RS' if is_rsa else 'HS') + algorithm[3:]
         header = Exchange.encode(Exchange.json({
             'alg': alg,
             'typ': 'JWT',
@@ -1314,19 +1315,18 @@ class Exchange(object):
         encoded_header = Exchange.base64urlencode(header)
         encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
         token = encoded_header + '.' + encoded_data
-        if alg[:2] == 'RS':
-            signature = Exchange.base64_to_binary(Exchange.rsa(token, Exchange.decode(secret), alg))
+        if is_rsa:
+            signature = Exchange.base64_to_binary(Exchange.rsa(token, Exchange.decode(secret), algorithm))
         else:
-            algorithm = algos[alg]
-            signature = Exchange.hmac(Exchange.encode(token), secret, algorithm, 'binary')
+            signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
         return token + '.' + Exchange.base64urlencode(signature)
 
     @staticmethod
-    def rsa(request, secret, alg='RS256'):
+    def rsa(request, secret, alg='sha256'):
         algorithms = {
-            "RS256": hashes.SHA256(),
-            "RS384": hashes.SHA384(),
-            "RS512": hashes.SHA512(),
+            "sha256": hashes.SHA256(),
+            "sha384": hashes.SHA384(),
+            "sha512": hashes.SHA512(),
         }
         algorithm = algorithms[alg]
         priv_key = load_pem_private_key(Exchange.encode(secret), None, backends.default_backend())
@@ -3088,7 +3088,7 @@ class Exchange(object):
 
     def oath(self):
         if self.twofa is not None:
-            return self.totp(self.twofa)
+            return totp(self.twofa)
         else:
             raise ExchangeError(self.id + ' exchange.twofa has not been set for 2FA Two-Factor Authentication')
 

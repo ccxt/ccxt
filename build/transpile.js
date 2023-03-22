@@ -247,8 +247,8 @@ class Transpiler {
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
-            [ /\s(md5|secp256k1)([,)])/g, ' \'$1\'$2'], // from js imports to this
-            [ /(?<!assert|equals)(\s\()(rsa|ecdsa|eddsa|jwt)/g, '$1this.$2' ],
+            [ /\s(md5|secp256k1|ed25519)([,)])/g, ' \'$1\'$2'], // from js imports to this
+            [ /(?<!assert|equals)(\s\(?)(rsa|ecdsa|eddsa|jwt)/g, '$1this.$2' ],
 
         ].concat(this.getTypescriptRemovalRegexes())
     }
@@ -1787,6 +1787,7 @@ class Transpiler {
             "hash = Exchange.hash",
             "hmac = Exchange.hmac",
             "ecdsa = Exchange.ecdsa",
+            "eddsa = Exchange.eddsa",
             "jwt = Exchange.jwt",
             "crc32 = Exchange.crc32",
             "rsa = Exchange.rsa",

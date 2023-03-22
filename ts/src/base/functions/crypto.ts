@@ -43,7 +43,6 @@ function ecdsa (request: string, secret: string, curve: CurveFn, prehash: CHash 
 
 function eddsa (request, secret, curve: CurveFnEDDSA) {
     // used for waves.exchange (that's why the output is base58)
-    // @ts-ignore
     const signature = curve.sign (request, secret)
     return base58.encode (signature)
 }
