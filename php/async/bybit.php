@@ -1971,13 +1971,14 @@ class bybit extends Exchange {
         //         "2.4343353100000003"
         //     )
         //
+        $volumeIndex = ($market['inverse']) ? 6 : 5;
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
             $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 3),
             $this->safe_number($ohlcv, 4),
-            $this->safe_number($ohlcv, 5),
+            $this->safe_number($ohlcv, $volumeIndex),
         );
     }
 
@@ -3103,7 +3104,7 @@ class bybit extends Exchange {
             'New' => 'open',
             'Rejected' => 'rejected', // order is triggered but failed upon being placed
             'PartiallyFilled' => 'open',
-            'PartiallyFilledCancelled' => 'canceled',
+            'PartiallyFilledCanceled' => 'canceled',
             'Filled' => 'closed',
             'PendingCancel' => 'open',
             'Cancelled' => 'canceled',
@@ -3195,15 +3196,12 @@ class bybit extends Exchange {
         $status = $this->parse_order_status($rawStatus);
         $side = $this->safe_string_lower($order, 'side');
         $fee = null;
-        $isContract = $this->safe_value($market, 'contract');
-        if ($isContract) {
-            $feeCostString = $this->safe_string($order, 'cumExecFee');
-            if ($feeCostString !== null) {
-                $fee = array(
-                    'cost' => $feeCostString,
-                    'currency' => $market['settle'],
-                );
-            }
+        $feeCostString = $this->safe_string($order, 'cumExecFee');
+        if ($feeCostString !== null) {
+            $fee = array(
+                'cost' => $feeCostString,
+                'currency' => $market['settle'],
+            );
         }
         $clientOrderId = $this->safe_string($order, 'orderLinkId');
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
@@ -3508,7 +3506,7 @@ class bybit extends Exchange {
                 $request['timeInForce'] = 'IOC';
             }
             $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice', $triggerPrice);
+            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
             $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
             $stopLoss = $this->safe_number($params, 'stopLoss');
             $takeProfit = $this->safe_number($params, 'takeProfit');
@@ -3516,19 +3514,15 @@ class bybit extends Exchange {
             $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
             $isStopLoss = $stopLoss !== null;
             $isTakeProfit = $takeProfit !== null;
+            $isBuy = $side === 'buy';
+            $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
             if ($triggerPrice !== null) {
-                $isBuy = $side === 'buy';
-                $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
                 $request['triggerDirection'] = $ascending ? 2 : 1;
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
-                if ($isStopLossTriggerOrder) {
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-                    $request['triggerDirection'] = 2;
-                } else {
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
-                    $request['triggerDirection'] = 1;
-                }
+                $request['triggerDirection'] = $ascending ? 2 : 1;
+                $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 $request['reduceOnly'] = true;
             } elseif ($isStopLoss || $isTakeProfit) {
                 if ($isStopLoss) {
@@ -3813,7 +3807,7 @@ class bybit extends Exchange {
                 $request['timeInForce'] = 'ImmediateOrCancel';
             }
             $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice', $triggerPrice);
+            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
             $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
             $stopLoss = $this->safe_number($params, 'stopLoss');
             $takeProfit = $this->safe_number($params, 'takeProfit');
@@ -3821,19 +3815,15 @@ class bybit extends Exchange {
             $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
             $isStopLoss = $stopLoss !== null;
             $isTakeProfit = $takeProfit !== null;
-            if ($triggerPrice) {
-                $isBuy = $side === 'buy';
-                $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
+            $isBuy = $side === 'buy';
+            $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
+            if ($triggerPrice !== null) {
                 $request['triggerDirection'] = $ascending ? 2 : 1;
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
-                if ($isStopLossTriggerOrder) {
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-                    $request['triggerDirection'] = 2;
-                } else {
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
-                    $request['triggerDirection'] = 1;
-                }
+                $request['triggerDirection'] = $ascending ? 2 : 1;
+                $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 $request['reduceOnly'] = true;
             } elseif ($isStopLoss || $isTakeProfit) {
                 if ($isStopLoss) {

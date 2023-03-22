@@ -711,6 +711,7 @@ export default class okx extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'sandboxMode': false,
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'BTC': 'Bitcoin',
@@ -1208,7 +1209,8 @@ export default class okx extends Exchange {
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
-        if (!this.checkRequiredCredentials (false)) {
+        const isSandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        if (!this.checkRequiredCredentials (false) || isSandboxMode) {
             return undefined;
         }
         //
@@ -5830,6 +5832,7 @@ export default class okx extends Exchange {
 
     setSandboxMode (enable) {
         super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
         if (enable) {
             this.headers['x-simulated-trading'] = '1';
         } else if ('x-simulated-trading' in this.headers) {

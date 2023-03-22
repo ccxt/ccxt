@@ -710,6 +710,7 @@ class okx extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'sandboxMode' => false,
                 'defaultNetwork' => 'ERC20',
                 'networks' => array(
                     'BTC' => 'Bitcoin',
@@ -1197,7 +1198,8 @@ class okx extends Exchange {
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
-        if (!$this->check_required_credentials(false)) {
+        $isSandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+        if (!$this->check_required_credentials(false) || $isSandboxMode) {
             return null;
         }
         //
@@ -5724,6 +5726,7 @@ class okx extends Exchange {
 
     public function set_sandbox_mode($enable) {
         parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
         if ($enable) {
             $this->headers['x-simulated-trading'] = '1';
         } elseif (is_array($this->headers) && array_key_exists('x-simulated-trading', $this->headers)) {
