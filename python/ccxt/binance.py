@@ -2903,7 +2903,7 @@ class binance(Exchange):
         #         "0.02500000",  # close
         #         "22.19000000",  # volume
         #         1591478579999,  # close time
-        #         "0.55490906",  # quote asset volume
+        #         "0.55490906",  # quote asset volume, base asset volume for dapi
         #         40,            # number of trades
         #         "10.92900000",  # taker buy base asset volume
         #         "0.27336462",  # taker buy quote asset volume
@@ -2945,13 +2945,14 @@ class binance(Exchange):
         #         "closeTime": 1677097200000
         #     }
         #
+        volumeIndex = 7 if (market['inverse']) else 5
         return [
             self.safe_integer_2(ohlcv, 0, 'closeTime'),
             self.safe_number_2(ohlcv, 1, 'open'),
             self.safe_number_2(ohlcv, 2, 'high'),
             self.safe_number_2(ohlcv, 3, 'low'),
             self.safe_number_2(ohlcv, 4, 'close'),
-            self.safe_number_2(ohlcv, 5, 'volume'),
+            self.safe_number_2(ohlcv, volumeIndex, 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

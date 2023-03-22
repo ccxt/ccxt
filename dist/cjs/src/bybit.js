@@ -1947,13 +1947,14 @@ class bybit extends Exchange["default"] {
         //         "2.4343353100000003"
         //     ]
         //
+        const volumeIndex = (market['inverse']) ? 6 : 5;
         return [
             this.safeInteger(ohlcv, 0),
             this.safeNumber(ohlcv, 1),
             this.safeNumber(ohlcv, 2),
             this.safeNumber(ohlcv, 3),
             this.safeNumber(ohlcv, 4),
-            this.safeNumber(ohlcv, 5),
+            this.safeNumber(ohlcv, volumeIndex),
         ];
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

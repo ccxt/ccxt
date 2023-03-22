@@ -1971,13 +1971,14 @@ class bybit extends Exchange {
         //         "2.4343353100000003"
         //     )
         //
+        $volumeIndex = ($market['inverse']) ? 6 : 5;
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
             $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 3),
             $this->safe_number($ohlcv, 4),
-            $this->safe_number($ohlcv, 5),
+            $this->safe_number($ohlcv, $volumeIndex),
         );
     }
 
