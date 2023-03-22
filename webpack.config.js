@@ -4,13 +4,16 @@ const split = path.split ('/')
 split[split.length - 1] = 'dist'
 
 export default {
-  entry : "./ts/ccxt.ts",
+  entry : './ts/ccxt.ts',
   output: {
     path: split.join ('/'),
-    filename: "web.js",
+    filename: 'ccxt.browser.js',
     library: {
-      type: 'commonjs-static',
+      type: 'commonjs-static', // do not change
     },
+  },
+  cache: {
+    type: 'filesystem',
   },
   module: {
     rules: [{
@@ -21,14 +24,15 @@ export default {
     }],
   },
   resolve: {
-    extensions: [ ".ts" ],
+    extensions: [ '.ts' ],
     // Add support for TypeScripts fully qualified ESM imports.
     extensionAlias: {
-     ".js": [ ".js", ".ts" ],
+     '.js': [ '.js', '.ts' ],
     },
   },
   externals: {
     'ws': 'WebSocket',
+    'zlib': 'zlib',
   },
   mode: 'production',
   target: 'web',

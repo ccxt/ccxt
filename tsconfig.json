@@ -107,6 +107,6 @@
   "exclude": [
     "node_modules",
     "./ts/src/static_dependencies/**/*.cjs",
-    "ts/src/static_dependencies/elliptic/*",
+    "/ts/src/test/base/functions/test.binanceMarkets.ts"
   ]
 }

@@ -9,11 +9,12 @@ function rsa (request, secret, hash : CHash) {
     const RSA = new JSEncrypt ()
     const digester = (input) => base16.encode (hash (input))
     RSA.setPrivateKey (secret)
-    return RSA.sign (request, digester, hash.name)
+    const name = (hash.create ()).constructor.name.toLowerCase ()
+    return RSA.sign (request, digester, name)
 }
 
 function jwt (request, secret, hash : CHash, isRSA = false) {
-    const alg = (isRSA ? 'RS' : 'HS') + hash.blockLen
+    const alg = (isRSA ? 'RS' : 'HS') + (hash.outputLen * 8)
     const encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })));
     const encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)));
     const token = [ encodedHeader, encodedData ].join ('.');

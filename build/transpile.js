@@ -246,6 +246,9 @@ class Transpiler {
             [ /\.isPostOnly\s/g, '.is_post_only'],
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
+            [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
+            [ /\s(md5|secp256k1)([,)])/g, ' \'$1\'$2'], // from js imports to this
+            [ /(?<!assert)([\s(])(rsa|ecdsa|eddsa|jwt)/g, '$1this.$2'  ],
 
         ].concat(this.getTypescriptRemovalRegexes())
     }
@@ -627,12 +630,6 @@ class Transpiler {
             [ /\((\w+)\sas\s\w+\)/g, '$1'], // remove (this as any) or (x as number) paren included
             [ /\sas \w+(\[])?/g, ''], // remove any "as any" or "as number" or "as trade[]"
             [ /([let|const][^:]+):([^=]+)(\s+=.*$)/g, '$1$3'], // remove variable type
-            [ /\sHash.Sha(1|3(?!8)|256|384|512)/g, ' \'sha$1\''], // remove an enum type
-            [ /\sHash.Md5/g, ' \'md5\'' ],
-            [ /\sHash.Keccak/g, ' \'keccak\'' ],
-            [ /\sDigest.Hex/g, ' \'hex\'' ],
-            [ /\sDigest.Base64/g, ' \'base64\'' ],
-            [ /\sDigest.Binary/g, ' \'binary\'' ],
         ]
     }
 
@@ -1784,9 +1781,11 @@ class Transpiler {
         const pythonHeader = [
             "",
             "import ccxt  # noqa: F402",
+            "import hashlib # noqa: F402",
             "",
             "Exchange = ccxt.Exchange",
             "hash = Exchange.hash",
+            "hmac = Exchange.hmac",
             "ecdsa = Exchange.ecdsa",
             "jwt = Exchange.jwt",
             "crc32 = Exchange.crc32",
