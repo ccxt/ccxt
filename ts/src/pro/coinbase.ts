@@ -21,7 +21,7 @@ export default class coinbase extends coinbaseRest {
                 'watchBalance': false,
                 'watchStatus': true,
                 'watchOrders': true,
-                'watchMyTrades': true,
+                'watchMyTrades': false,
             },
             'urls': {
                 'api': {
@@ -374,98 +374,6 @@ export default class coinbase extends coinbaseRest {
         }
         client.resolve (tradesArray, messageHash);
         return message;
-    }
-
-    handleMyTrade (client, message) {
-        const marketId = this.safeString (message, 'product_id');
-        if (marketId !== undefined) {
-            const trade = this.parseWsTrade (message);
-            const type = 'myTrades';
-            const messageHash = type + ':' + marketId;
-            let tradesArray = this.myTrades;
-            if (tradesArray === undefined) {
-                const limit = this.safeInteger (this.options, 'myTradesLimit', 1000);
-                tradesArray = new ArrayCacheBySymbolById (limit);
-                this.myTrades = tradesArray;
-            }
-            tradesArray.append (trade);
-            client.resolve (tradesArray, messageHash);
-        }
-        return message;
-    }
-
-    parseWsTrade (trade) {
-        //
-        // private trades
-        // {
-        //     "type": "match",
-        //     "trade_id": 10,
-        //     "sequence": 50,
-        //     "maker_order_id": "ac928c66-ca53-498f-9c13-a110027a60e8",
-        //     "taker_order_id": "132fb6ae-456b-4654-b4e0-d681ac05cea1",
-        //     "time": "2014-11-07T08:19:27.028459Z",
-        //     "product_id": "BTC-USD",
-        //     "size": "5.23512",
-        //     "price": "400.23",
-        //     "side": "sell",
-        //     "taker_user_id: "5844eceecf7e803e259d0365",
-        //     "user_id": "5844eceecf7e803e259d0365",
-        //     "taker_profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
-        //     "profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
-        //     "taker_fee_rate": "0.005"
-        // }
-        //
-        // {
-        //     "type": "match",
-        //     "trade_id": 10,
-        //     "sequence": 50,
-        //     "maker_order_id": "ac928c66-ca53-498f-9c13-a110027a60e8",
-        //     "taker_order_id": "132fb6ae-456b-4654-b4e0-d681ac05cea1",
-        //     "time": "2014-11-07T08:19:27.028459Z",
-        //     "product_id": "BTC-USD",
-        //     "size": "5.23512",
-        //     "price": "400.23",
-        //     "side": "sell",
-        //     "maker_user_id: "5844eceecf7e803e259d0365",
-        //     "maker_id": "5844eceecf7e803e259d0365",
-        //     "maker_profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
-        //     "profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
-        //     "maker_fee_rate": "0.001"
-        // }
-        //
-        // public trades
-        // {
-        //     "type": "received",
-        //     "time": "2014-11-07T08:19:27.028459Z",
-        //     "product_id": "BTC-USD",
-        //     "sequence": 10,
-        //     "order_id": "d50ec984-77a8-460a-b958-66f114b0de9b",
-        //     "size": "1.34",
-        //     "price": "502.1",
-        //     "side": "buy",
-        //     "order_type": "limit"
-        // }
-        const parsed = super.parseTrade (trade);
-        let feeRate = undefined;
-        if ('maker_fee_rate' in trade) {
-            parsed['takerOrMaker'] = 'maker';
-            feeRate = this.safeNumber (trade, 'maker_fee_rate');
-        } else {
-            parsed['takerOrMaker'] = 'taker';
-            feeRate = this.safeNumber (trade, 'taker_fee_rate');
-        }
-        const market = this.market (parsed['symbol']);
-        const feeCurrency = market['quote'];
-        let feeCost = undefined;
-        if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
-            feeCost = parsed['cost'] * feeRate;
-        }
-        parsed['fee'] = {
-            'rate': feeRate,
-            'cost': feeCost,
-            'currency': feeCurrency,
-        };
-        return parsed;
     }
 
     parseWsOrderStatus (status) {
