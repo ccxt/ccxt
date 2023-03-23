@@ -344,13 +344,13 @@ class NewTranspiler {
         }
 
         // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
-        // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
 
         if (child) {
             return
         }
 
-        // this.transpileBaseMethods (exchangeBase)
+        this.transpileBaseMethods (exchangeBase)
 
         //*/
 
@@ -394,6 +394,7 @@ class NewTranspiler {
         // exchanges = ["binance.ts", "bybit.ts", "whitebit.ts"]
         // exchanges = exchanges.slice(0, 25)
         // exchanges = ['bitopro.ts', 'bitget.ts', 'bithumb.ts']
+        // exchanges = ['coinex.ts']
         const classNames = exchanges.map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
 
         const classes = {}

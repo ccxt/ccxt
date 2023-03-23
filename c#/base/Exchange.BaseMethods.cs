@@ -15,151 +15,151 @@ public partial class Exchange
     public async virtual Task<object> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchAccounts() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchAccounts() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchTrades() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchTrades() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " watchTrades() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " watchTrades() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchDepositAddresses() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchDepositAddresses() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchOrderBook() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchOrderBook() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " watchOrderBook() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " watchOrderBook() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchTime() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchTime() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchTradingLimits(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchTradingLimits() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchTradingLimits() is not supported yet")) ;
     }
 
     public virtual object parseTicker(object ticker, object market = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseTicker() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseTicker() is not supported yet")) ;
     }
 
     public virtual object parseDepositAddress(object depositAddress, object currency = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseDepositAddress() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseDepositAddress() is not supported yet")) ;
     }
 
     public virtual object parseTrade(object trade, object market = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseTrade() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseTrade() is not supported yet")) ;
     }
 
     public virtual object parseTransaction(object transaction, object currency = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseTransaction() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseTransaction() is not supported yet")) ;
     }
 
     public virtual object parseTransfer(object transfer, object currency = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseTransfer() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseTransfer() is not supported yet")) ;
     }
 
     public virtual object parseAccount(object account)
     {
-        throw new NotSupported(((string)add(this.id, " parseAccount() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseAccount() is not supported yet")) ;
     }
 
     public virtual object parseLedgerEntry(object item, object currency = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseLedgerEntry() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseLedgerEntry() is not supported yet")) ;
     }
 
     public virtual object parseOrder(object order, object market = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseOrder() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseOrder() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchBorrowRates(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchBorrowRates() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchBorrowRates() is not supported yet")) ;
     }
 
     public virtual object parseMarketLeverageTiers(object info, object market = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseMarketLeverageTiers() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseMarketLeverageTiers() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchLeverageTiers() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchLeverageTiers() is not supported yet")) ;
     }
 
     public virtual object parsePosition(object position, object market = null)
     {
-        throw new NotSupported(((string)add(this.id, " parsePosition() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parsePosition() is not supported yet")) ;
     }
 
     public virtual object parseFundingRateHistory(object info, object market = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseFundingRateHistory() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseFundingRateHistory() is not supported yet")) ;
     }
 
     public virtual object parseBorrowInterest(object info, object market = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseBorrowInterest() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseBorrowInterest() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchFundingRates() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchFundingRates() is not supported yet")) ;
     }
 
     public async virtual Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " transfer() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " transfer() is not supported yet")) ;
     }
 
     public async virtual Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " withdraw() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " withdraw() is not supported yet")) ;
     }
 
     public async virtual Task<object> createDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " createDepositAddress() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " createDepositAddress() is not supported yet")) ;
     }
 
     public async virtual Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " setLeverage() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " setLeverage() is not supported yet")) ;
     }
 
     public virtual object parseToInt(object number)
@@ -282,7 +282,7 @@ public partial class Exchange
             for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
             {
                 object market = getValue(values, i);
-                object defaultCurrencyPrecision = ((bool)                 isTrue((isEqual(this.precisionMode, DECIMAL_PLACES)))) ? 8 : this.parseNumber("1e-8");
+                object defaultCurrencyPrecision = ((bool) isTrue((isEqual(this.precisionMode, DECIMAL_PLACES)))) ? 8 : this.parseNumber("1e-8");
                 object marketPrecision = this.safeValue(market, "precision", new Dictionary<string, object>() {});
                 if (isTrue(((Dictionary<string,object>)market).ContainsKey(toStringOrNull("base"))))
                 {
@@ -325,10 +325,10 @@ public partial class Exchange
                     object currentCurrency = getValue(groupedCurrenciesCode, j);
                     if (isTrue(isEqual(this.precisionMode, TICK_SIZE)))
                     {
-                        highestPrecisionCurrency = ((bool)                         isTrue((isLessThan(getValue(currentCurrency, "precision"), getValue(highestPrecisionCurrency, "precision"))))) ? currentCurrency : highestPrecisionCurrency;
+                        highestPrecisionCurrency = ((bool) isTrue((isLessThan(getValue(currentCurrency, "precision"), getValue(highestPrecisionCurrency, "precision"))))) ? currentCurrency : highestPrecisionCurrency;
                     } else
                     {
-                        highestPrecisionCurrency = ((bool)                         isTrue((isGreaterThan(getValue(currentCurrency, "precision"), getValue(highestPrecisionCurrency, "precision"))))) ? currentCurrency : highestPrecisionCurrency;
+                        highestPrecisionCurrency = ((bool) isTrue((isGreaterThan(getValue(currentCurrency, "precision"), getValue(highestPrecisionCurrency, "precision"))))) ? currentCurrency : highestPrecisionCurrency;
                     }
                 }
                 ((List<object>)resultingCurrencies).Add(highestPrecisionCurrency);
@@ -511,7 +511,7 @@ public partial class Exchange
         }
         if (isTrue(shouldParseFees))
         {
-            object reducedFees = ((bool)             isTrue(this.reduceFees)) ? this.reduceFeesByCurrency(fees) : fees;
+            object reducedFees = ((bool) isTrue(this.reduceFees)) ? this.reduceFeesByCurrency(fees) : fees;
             object reducedLength = getArrayLength(reducedFees);
             for (object i = 0; isLessThan(i, reducedLength); postFixIncrement(ref i))
             {
@@ -729,7 +729,7 @@ public partial class Exchange
             }
         }
         results = this.sortBy(results, "timestamp");
-        object symbol = ((bool)         isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
+        object symbol = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
         object tail = isEqual(since, null);
         return this.filterBySymbolSinceLimit(results, symbol, since, limit, tail);
     }
@@ -740,7 +740,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue(isEqual(type, "market")) && isTrue(isEqual(takerOrMaker, "maker"))))
         {
-            throw new ArgumentsRequired(((string)add(this.id, " calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee.")));
+            throw new ArgumentsRequired ((string)add(this.id, " calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee.")) ;
         }
         object market = getValue(this.markets, symbol);
         object feeSide = this.safeString(market, "feeSide", "quote");
@@ -830,7 +830,7 @@ public partial class Exchange
         object fee = this.safeValue(trade, "fee");
         if (isTrue(shouldParseFees))
         {
-            object reducedFees = ((bool)             isTrue(this.reduceFees)) ? this.reduceFeesByCurrency(fees) : fees;
+            object reducedFees = ((bool) isTrue(this.reduceFees)) ? this.reduceFeesByCurrency(fees) : fees;
             object reducedLength = getArrayLength(reducedFees);
             for (object i = 0; isLessThan(i, reducedLength); postFixIncrement(ref i))
             {
@@ -938,7 +938,7 @@ public partial class Exchange
                 {
                     ((Dictionary<string, object>)reduced)[(string)feeCurrencyCode] = new Dictionary<string, object>() {};
                 }
-                object rateKey = ((bool)                 isTrue((isEqual(rate, null)))) ? "" : rate;
+                object rateKey = ((bool) isTrue((isEqual(rate, null)))) ? "" : rate;
                 if (isTrue(((Dictionary<string,object>)getValue(reduced, feeCurrencyCode)).ContainsKey(toStringOrNull(rateKey))))
                 {
                     ((Dictionary<string, object>)getValue(getValue(reduced, feeCurrencyCode), rateKey))["cost"] = Precise.stringAdd(getValue(getValue(getValue(reduced, feeCurrencyCode), rateKey), "cost"), cost);
@@ -1038,7 +1038,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "fetchTrades")))
         {
-            throw new NotSupported(((string)add(this.id, " fetchOHLCV() is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " fetchOHLCV() is not supported yet")) ;
         }
         await this.loadMarkets();
         object trades = await this.fetchTrades(symbol, since, limit, parameters);
@@ -1055,7 +1055,7 @@ public partial class Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " watchOHLCV() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " watchOHLCV() is not supported yet")) ;
     }
 
     public virtual object convertTradingViewToOHLCV(object ohlcvs, object timestamp = null, object open = null, object high = null, object low = null, object close = null, object volume = null, object ms = null)
@@ -1099,7 +1099,7 @@ public partial class Exchange
         ((Dictionary<string, object>)result)[(string)volume] = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
         {
-            object ts = ((bool)             isTrue(ms)) ? getValue(getValue(ohlcvs, i), 0) : this.parseToInt(divide(getValue(getValue(ohlcvs, i), 0), 1000));
+            object ts = ((bool) isTrue(ms)) ? getValue(getValue(ohlcvs, i), 0) : this.parseToInt(divide(getValue(getValue(ohlcvs, i), 0), 1000));
             ((List<object>)getValue(result, timestamp)).Add(ts);
             ((List<object>)getValue(result, open)).Add(getValue(getValue(ohlcvs, i), 1));
             ((List<object>)getValue(result, high)).Add(getValue(getValue(ohlcvs, i), 2));
@@ -1241,7 +1241,7 @@ public partial class Exchange
             return getValue(aliases, network);
         } else
         {
-            throw new NotSupported(((string)add(add(add(this.id, " network "), network), " is not yet supported")));
+            throw new NotSupported ((string)add(add(add(this.id, " network "), network), " is not yet supported")) ;
         }
     }
 
@@ -1397,30 +1397,30 @@ public partial class Exchange
         {
             if (isTrue(isEqual(responseNetworksLength, 0)))
             {
-                throw new NotSupported(((string)add(add(add(add(this.id, " - "), networkCode), " network did not return any result for "), currencyCode)));
+                throw new NotSupported ((string)add(add(add(add(this.id, " - "), networkCode), " network did not return any result for "), currencyCode)) ;
             } else
             {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-                object networkId = ((bool)                 isTrue(isIndexedByUnifiedNetworkCode)) ? networkCode : this.networkCodeToId(networkCode, currencyCode);
+                object networkId = ((bool) isTrue(isIndexedByUnifiedNetworkCode)) ? networkCode : this.networkCodeToId(networkCode, currencyCode);
                 if (isTrue(((Dictionary<string,object>)indexedNetworkEntries).ContainsKey(toStringOrNull(networkId))))
                 {
                     chosenNetworkId = networkId;
                 } else
                 {
-                    throw new NotSupported(((string)add(add(add(add(add(add(this.id, " - "), networkId), " network was not found for "), currencyCode), ", use one of "), String.Join(", ", availableNetworkIds))));
+                    throw new NotSupported ((string)add(add(add(add(add(add(this.id, " - "), networkId), " network was not found for "), currencyCode), ", use one of "), String.Join(", ", availableNetworkIds))) ;
                 }
             }
         } else
         {
             if (isTrue(isEqual(responseNetworksLength, 0)))
             {
-                throw new NotSupported(((string)add(add(this.id, " - no networks were returned for "), currencyCode)));
+                throw new NotSupported ((string)add(add(this.id, " - no networks were returned for "), currencyCode)) ;
             } else
             {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 object defaultNetworkCode = this.defaultNetworkCode(currencyCode);
-                object defaultNetworkId = ((bool)                 isTrue(isIndexedByUnifiedNetworkCode)) ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, currencyCode);
-                chosenNetworkId = ((bool)                 isTrue((((Dictionary<string,object>)indexedNetworkEntries).ContainsKey(toStringOrNull(defaultNetworkId))))) ? defaultNetworkId : getValue(availableNetworkIds, 0);
+                object defaultNetworkId = ((bool) isTrue(isIndexedByUnifiedNetworkCode)) ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, currencyCode);
+                chosenNetworkId = ((bool) isTrue((((Dictionary<string,object>)indexedNetworkEntries).ContainsKey(toStringOrNull(defaultNetworkId))))) ? defaultNetworkId : getValue(availableNetworkIds, 0);
             }
         }
         return chosenNetworkId;
@@ -1541,7 +1541,7 @@ public partial class Exchange
             ((List<object>)result).Add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
-        object symbol = ((bool)         isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
+        object symbol = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
         object tail = (isEqual(since, null));
         return this.filterBySymbolSinceLimit(result, symbol, since, limit, tail);
     }
@@ -1557,7 +1557,7 @@ public partial class Exchange
             ((List<object>)result).Add(transaction);
         }
         result = this.sortBy(result, "timestamp");
-        object code = ((bool)         isTrue((!isEqual(currency, null)))) ? getValue(currency, "code") : null;
+        object code = ((bool) isTrue((!isEqual(currency, null)))) ? getValue(currency, "code") : null;
         object tail = (isEqual(since, null));
         return this.filterByCurrencySinceLimit(result, code, since, limit, tail);
     }
@@ -1573,7 +1573,7 @@ public partial class Exchange
             ((List<object>)result).Add(transfer);
         }
         result = this.sortBy(result, "timestamp");
-        object code = ((bool)         isTrue((!isEqual(currency, null)))) ? getValue(currency, "code") : null;
+        object code = ((bool) isTrue((!isEqual(currency, null)))) ? getValue(currency, "code") : null;
         object tail = (isEqual(since, null));
         return this.filterByCurrencySinceLimit(result, code, since, limit, tail);
     }
@@ -1598,7 +1598,7 @@ public partial class Exchange
             }
         }
         result = this.sortBy(result, "timestamp");
-        object code = ((bool)         isTrue((!isEqual(currency, null)))) ? getValue(currency, "code") : null;
+        object code = ((bool) isTrue((!isEqual(currency, null)))) ? getValue(currency, "code") : null;
         object tail = (isEqual(since, null));
         return this.filterByCurrencySinceLimit(result, code, since, limit, tail);
     }
@@ -1641,7 +1641,7 @@ public partial class Exchange
         // return all of them if no values were passed
         if (isTrue(isTrue(isEqual(values, null)) || !isTrue(values)))
         {
-            return ((bool)             isTrue(indexed)) ? this.indexBy(objects, key) : objects;
+            return ((bool) isTrue(indexed)) ? this.indexBy(objects, key) : objects;
         }
         object results = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(objects)); postFixIncrement(ref i))
@@ -1651,7 +1651,7 @@ public partial class Exchange
                 ((List<object>)results).Add(getValue(objects, i));
             }
         }
-        return ((bool)         isTrue(indexed)) ? this.indexBy(results, key) : results;
+        return ((bool) isTrue(indexed)) ? this.indexBy(results, key) : results;
     }
 
     public async virtual Task<object> fetch2(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null, object context = null)
@@ -1708,7 +1708,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "fetchTrades")))
         {
-            throw new NotSupported(((string)add(this.id, " fetchOHLCV() is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " fetchOHLCV() is not supported yet")) ;
         }
         await this.loadMarkets();
         object trades = await this.fetchTrades(symbol, since, limit, parameters);
@@ -1750,31 +1750,31 @@ public partial class Exchange
     public async virtual Task fetchPermissions(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchPermissions() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchPermissions() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchPosition(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchPosition() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchPosition() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchPositions() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchPositions() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchPositionsRisk(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchPositionsRisk() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchPositionsRisk() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchBidsAsks() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchBidsAsks() is not supported yet")) ;
     }
 
     public virtual object parseBidAsk(object bidask, object priceKey = null, object amountKey = null)
@@ -1873,7 +1873,7 @@ public partial class Exchange
                 {
                     if (isTrue(isEqual(marketType, null)))
                     {
-                        throw new ArgumentsRequired(((string)add(add(add(this.id, " safeMarket() requires a fourth argument for "), marketId), " to disambiguate between different markets with the same market id")));
+                        throw new ArgumentsRequired ((string)add(add(add(this.id, " safeMarket() requires a fourth argument for "), marketId), " to disambiguate between different markets with the same market id")) ;
                     }
                     for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
                     {
@@ -1920,7 +1920,7 @@ public partial class Exchange
             {
                 if (isTrue(error))
                 {
-                    throw new AuthenticationError(((string)add(add(add(this.id, " requires \""), key), "\" credential")));
+                    throw new AuthenticationError ((string)add(add(add(this.id, " requires \""), key), "\" credential")) ;
                 } else
                 {
                     return false;
@@ -1937,20 +1937,20 @@ public partial class Exchange
             return this.totp(this.twofa);
         } else
         {
-            throw new ExchangeError(((string)add(this.id, " exchange.twofa has not been set for 2FA Two-Factor Authentication")));
+            throw new ExchangeError ((string)add(this.id, " exchange.twofa has not been set for 2FA Two-Factor Authentication")) ;
         }
     }
 
     public async virtual Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchBalance() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchBalance() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " watchBalance() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " watchBalance() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchPartialBalance(object part, object parameters = null)
@@ -2001,7 +2001,7 @@ public partial class Exchange
         object warnOnFetchFundingFee = this.safeValue(this.options, "warnOnFetchFundingFee", true);
         if (isTrue(warnOnFetchFundingFee))
         {
-            throw new NotSupported(((string)add(this.id, " fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options[\"warnOnFetchFundingFee\"] = false to suppress this warning")));
+            throw new NotSupported ((string)add(this.id, " fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options[\"warnOnFetchFundingFee\"] = false to suppress this warning")) ;
         }
         return await this.fetchTransactionFee(code, parameters);
     }
@@ -2012,7 +2012,7 @@ public partial class Exchange
         object warnOnFetchFundingFees = this.safeValue(this.options, "warnOnFetchFundingFees", true);
         if (isTrue(warnOnFetchFundingFees))
         {
-            throw new NotSupported(((string)add(this.id, " fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options[\"warnOnFetchFundingFees\"] = false to suppress this warning")));
+            throw new NotSupported ((string)add(this.id, " fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options[\"warnOnFetchFundingFees\"] = false to suppress this warning")) ;
         }
         return await this.fetchTransactionFees(codes, parameters);
     }
@@ -2022,7 +2022,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "fetchTransactionFees")))
         {
-            throw new NotSupported(((string)add(this.id, " fetchTransactionFee() is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " fetchTransactionFee() is not supported yet")) ;
         }
         return await this.fetchTransactionFees(new List<object>() {code}, parameters);
     }
@@ -2030,13 +2030,13 @@ public partial class Exchange
     public async virtual Task<object> fetchTransactionFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchTransactionFees() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchTransactionFees() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchDepositWithdrawFees() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchDepositWithdrawFees() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchDepositWithdrawFee(object code, object parameters = null)
@@ -2044,7 +2044,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "fetchDepositWithdrawFees")))
         {
-            throw new NotSupported(((string)add(this.id, " fetchDepositWithdrawFee() is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " fetchDepositWithdrawFee() is not supported yet")) ;
         }
         object fees = await this.fetchDepositWithdrawFees(new List<object>() {code}, parameters);
         return this.safeValue(fees, code);
@@ -2058,7 +2058,7 @@ public partial class Exchange
             return getValue(mapping, key);
         } else
         {
-            throw new NotSupported(((string)add(add(add(this.id, " "), key), " does not have a value in mapping")));
+            throw new NotSupported ((string)add(add(add(this.id, " "), key), " does not have a value in mapping")) ;
         }
     }
 
@@ -2068,13 +2068,13 @@ public partial class Exchange
         await this.loadMarkets();
         if (!isTrue(getValue(this.has, "fetchBorrowRates")))
         {
-            throw new NotSupported(((string)add(this.id, " fetchBorrowRate() is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " fetchBorrowRate() is not supported yet")) ;
         }
         object borrowRates = await this.fetchBorrowRates(parameters);
         object rate = this.safeValue(borrowRates, code);
         if (isTrue(isEqual(rate, null)))
         {
-            throw new ExchangeError(((string)add(add(this.id, " fetchBorrowRate() could not find the borrow rate for currency code "), code)));
+            throw new ExchangeError ((string)add(add(this.id, " fetchBorrowRate() could not find the borrow rate for currency code "), code)) ;
         }
         return rate;
     }
@@ -2103,7 +2103,7 @@ public partial class Exchange
                 value = this.safeValue2(this.options, optionName, defaultOptionName);
             }
             // if it's still undefined, use the default value
-            value = ((bool)             isTrue((!isEqual(value, null)))) ? value : defaultValue;
+            value = ((bool) isTrue((!isEqual(value, null)))) ? value : defaultValue;
         }
         return new List<object>() {value, parameters};
     }
@@ -2133,7 +2133,7 @@ public partial class Exchange
                 methodType = this.safeString2(methodOptions, "defaultType", "type", methodType);
             }
         }
-        object marketType = ((bool)         isTrue((isEqual(market, null)))) ? methodType : getValue(market, "type");
+        object marketType = ((bool) isTrue((isEqual(market, null)))) ? methodType : getValue(market, "type");
         object type = this.safeString2(parameters, "defaultType", "type", marketType);
         parameters = this.omit(parameters, new List<object>() {"defaultType", "type"});
         return new List<object>() {type, parameters};
@@ -2189,7 +2189,7 @@ public partial class Exchange
     {
         if (isTrue(((Dictionary<string,object>)exact).ContainsKey(toStringOrNull(str))))
         {
-            this.throwDynamicException(exact, str, message);
+            throwDynamicException(getValue(exact, str), message);
         }
     }
 
@@ -2198,7 +2198,7 @@ public partial class Exchange
         object broadKey = this.findBroadlyMatchedKey(broad, str);
         if (isTrue(!isEqual(broadKey, null)))
         {
-            this.throwDynamicException(broad, broadKey, message);
+            throwDynamicException(getValue(broad, broadKey), message);
         }
     }
 
@@ -2246,39 +2246,39 @@ public partial class Exchange
             object ticker = this.safeValue(tickers, symbol);
             if (isTrue(isEqual(ticker, null)))
             {
-                throw new NullResponse(((string)add(add(this.id, " fetchTickers() could not find a ticker for "), symbol)));
+                throw new NullResponse ((string)add(add(this.id, " fetchTickers() could not find a ticker for "), symbol)) ;
             } else
             {
                 return ticker;
             }
         } else
         {
-            throw new NotSupported(((string)add(this.id, " fetchTicker() is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " fetchTicker() is not supported yet")) ;
         }
     }
 
     public async virtual Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " watchTicker() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " watchTicker() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchTickers() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " watchTickers() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " watchTickers() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchOrder() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchOrder() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchOrderStatus(object id, object symbol = null, object parameters = null)
@@ -2297,19 +2297,19 @@ public partial class Exchange
     public async virtual Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " createOrder() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " createOrder() is not supported yet")) ;
     }
 
     public async virtual Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " cancelOrder() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " cancelOrder() is not supported yet")) ;
     }
 
     public async virtual Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " cancelAllOrders() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " cancelAllOrders() is not supported yet")) ;
     }
 
     public async virtual Task<object> cancelUnifiedOrder(object order, object parameters = null)
@@ -2321,60 +2321,60 @@ public partial class Exchange
     public async virtual Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchOrders() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchOrders() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " watchOrders() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " watchOrders() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchOpenOrders() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchOpenOrders() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchClosedOrders() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchClosedOrders() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchMyTrades() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchMyTrades() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " watchMyTrades() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " watchMyTrades() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchTransactions(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchTransactions() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchTransactions() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchDeposits(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchDeposits() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchDeposits() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchWithdrawals(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchWithdrawals() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchWithdrawals() is not supported yet")) ;
     }
 
     public virtual object parseLastPrice(object price, object market = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseLastPrice() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseLastPrice() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchDepositAddress(object code, object parameters = null)
@@ -2386,14 +2386,14 @@ public partial class Exchange
             object depositAddress = this.safeValue(depositAddresses, code);
             if (isTrue(isEqual(depositAddress, null)))
             {
-                throw new InvalidAddress(((string)add(add(add(this.id, " fetchDepositAddress() could not find a deposit address for "), code), ", make sure you have created a corresponding deposit address in your wallet on the exchange website")));
+                throw new InvalidAddress ((string)add(add(add(this.id, " fetchDepositAddress() could not find a deposit address for "), code), ", make sure you have created a corresponding deposit address in your wallet on the exchange website")) ;
             } else
             {
                 return depositAddress;
             }
         } else
         {
-            throw new NotSupported(((string)add(this.id, " fetchDepositAddress() is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " fetchDepositAddress() is not supported yet")) ;
         }
     }
 
@@ -2419,7 +2419,7 @@ public partial class Exchange
     {
         if (isTrue(isEqual(this.currencies, null)))
         {
-            throw new ExchangeError(((string)add(this.id, " currencies not loaded")));
+            throw new ExchangeError ((string)add(this.id, " currencies not loaded")) ;
         }
         if (isTrue(((code).GetType() == typeof(string))))
         {
@@ -2431,14 +2431,14 @@ public partial class Exchange
                 return getValue(this.currencies_by_id, code);
             }
         }
-        throw new ExchangeError(((string)add(add(this.id, " does not have currency code "), code)));
+        throw new ExchangeError ((string)add(add(this.id, " does not have currency code "), code)) ;
     }
 
     public virtual object market(object symbol)
     {
         if (isTrue(isEqual(this.markets, null)))
         {
-            throw new ExchangeError(((string)add(this.id, " markets not loaded")));
+            throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
         }
         if (isTrue(((symbol).GetType() == typeof(string))))
         {
@@ -2460,7 +2460,7 @@ public partial class Exchange
                 return getValue(markets, 0);
             }
         }
-        throw new BadSymbol(((string)add(add(this.id, " does not have market symbol "), symbol)));
+        throw new BadSymbol ((string)add(add(this.id, " does not have market symbol "), symbol)) ;
     }
 
     public virtual object handleWithdrawTagAndParams(object tag, object parameters)
@@ -2529,7 +2529,7 @@ public partial class Exchange
         object result = this.decimalToPrecision(price, ROUND, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
         if (isTrue(isEqual(result, "0")))
         {
-            throw new ArgumentsRequired(((string)add(add(add(add(this.id, " price of "), getValue(market, "symbol")), " must be greater than minimum price precision of "), this.numberToString(getValue(getValue(market, "precision"), "price")))));
+            throw new ArgumentsRequired ((string)add(add(add(add(this.id, " price of "), getValue(market, "symbol")), " must be greater than minimum price precision of "), this.numberToString(getValue(getValue(market, "precision"), "price")))) ;
         }
         return result;
     }
@@ -2540,7 +2540,7 @@ public partial class Exchange
         object result = this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
         if (isTrue(isEqual(result, "0")))
         {
-            throw new ArgumentsRequired(((string)add(add(add(add(this.id, " amount of "), getValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(getValue(getValue(market, "precision"), "amount")))));
+            throw new ArgumentsRequired ((string)add(add(add(add(this.id, " amount of "), getValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(getValue(getValue(market, "precision"), "amount")))) ;
         }
         return result;
     }
@@ -2631,13 +2631,13 @@ public partial class Exchange
             object market = this.market(symbol);
             if (!isTrue(getValue(market, "contract")))
             {
-                throw new BadSymbol(((string)add(this.id, " fetchMarketLeverageTiers() supports contract markets only")));
+                throw new BadSymbol ((string)add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
             }
             object tiers = await this.fetchLeverageTiers(new List<object>() {symbol});
             return this.safeValue(tiers, symbol);
         } else
         {
-            throw new NotSupported(((string)add(this.id, " fetchMarketLeverageTiers() is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " fetchMarketLeverageTiers() is not supported yet")) ;
         }
     }
 
@@ -2646,7 +2646,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createPostOnlyOrder")))
         {
-            throw new NotSupported(((string)add(this.id, "createPostOnlyOrder() is not supported yet")));
+            throw new NotSupported ((string)add(this.id, "createPostOnlyOrder() is not supported yet")) ;
         }
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "postOnly", true },
@@ -2659,7 +2659,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createReduceOnlyOrder")))
         {
-            throw new NotSupported(((string)add(this.id, "createReduceOnlyOrder() is not supported yet")));
+            throw new NotSupported ((string)add(this.id, "createReduceOnlyOrder() is not supported yet")) ;
         }
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "reduceOnly", true },
@@ -2672,11 +2672,11 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createStopOrder")))
         {
-            throw new NotSupported(((string)add(this.id, " createStopOrder() is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " createStopOrder() is not supported yet")) ;
         }
         if (isTrue(isEqual(stopPrice, null)))
         {
-            throw new ArgumentsRequired(((string)add(this.id, " create_stop_order() requires a stopPrice argument")));
+            throw new ArgumentsRequired ((string)add(this.id, " create_stop_order() requires a stopPrice argument")) ;
         }
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "stopPrice", stopPrice },
@@ -2689,7 +2689,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createStopLimitOrder")))
         {
-            throw new NotSupported(((string)add(this.id, " createStopLimitOrder() is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " createStopLimitOrder() is not supported yet")) ;
         }
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "stopPrice", stopPrice },
@@ -2702,7 +2702,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createStopMarketOrder")))
         {
-            throw new NotSupported(((string)add(this.id, " createStopMarketOrder() is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " createStopMarketOrder() is not supported yet")) ;
         }
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "stopPrice", stopPrice },
@@ -2861,7 +2861,7 @@ public partial class Exchange
             ((List<object>)rates).Add(this.parseFundingRateHistory(entry, market));
         }
         object sorted = this.sortBy(rates, "timestamp");
-        object symbol = ((bool)         isTrue((isEqual(market, null)))) ? null : getValue(market, "symbol");
+        object symbol = ((bool) isTrue((isEqual(market, null)))) ? null : getValue(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
@@ -2873,7 +2873,7 @@ public partial class Exchange
 
     public virtual object parseFundingRate(object contract, object market = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseFundingRate() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseFundingRate() is not supported yet")) ;
     }
 
     public virtual object parseFundingRates(object response, object market = null)
@@ -2919,10 +2919,10 @@ public partial class Exchange
         {
             if (isTrue(isTrue(ioc) || isTrue(fok)))
             {
-                throw new InvalidOrder(((string)add(add(this.id, " postOnly orders cannot have timeInForce equal to "), timeInForce)));
+                throw new InvalidOrder ((string)add(add(this.id, " postOnly orders cannot have timeInForce equal to "), timeInForce)) ;
             } else if (isTrue(isMarketOrder))
             {
-                throw new InvalidOrder(((string)add(this.id, " market orders cannot be postOnly")));
+                throw new InvalidOrder ((string)add(this.id, " market orders cannot be postOnly")) ;
             } else
             {
                 return true;
@@ -2936,13 +2936,13 @@ public partial class Exchange
     public async virtual Task<object> fetchLastPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchLastPrices() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchLastPrices() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported(((string)add(this.id, " fetchTradingFees() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " fetchTradingFees() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchTradingFee(object symbol, object parameters = null)
@@ -2950,14 +2950,14 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "fetchTradingFees")))
         {
-            throw new NotSupported(((string)add(this.id, " fetchTradingFee() is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " fetchTradingFee() is not supported yet")) ;
         }
         return await this.fetchTradingFees(parameters);
     }
 
     public virtual object parseOpenInterest(object interest, object market = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseOpenInterest () is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseOpenInterest () is not supported yet")) ;
     }
 
     public virtual object parseOpenInterests(object response, object market = null, object since = null, object limit = null)
@@ -2983,20 +2983,20 @@ public partial class Exchange
             object market = this.market(symbol);
             if (!isTrue(getValue(market, "contract")))
             {
-                throw new BadSymbol(((string)add(this.id, " fetchFundingRate() supports contract markets only")));
+                throw new BadSymbol ((string)add(this.id, " fetchFundingRate() supports contract markets only")) ;
             }
             object rates = await this.fetchFundingRates(new List<object>() {symbol}, parameters);
             object rate = this.safeValue(rates, symbol);
             if (isTrue(isEqual(rate, null)))
             {
-                throw new NullResponse(((string)add(add(this.id, " fetchFundingRate () returned no data for "), symbol)));
+                throw new NullResponse ((string)add(add(this.id, " fetchFundingRate () returned no data for "), symbol)) ;
             } else
             {
                 return rate;
             }
         } else
         {
-            throw new NotSupported(((string)add(this.id, " fetchFundingRate () is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " fetchFundingRate () is not supported yet")) ;
         }
     }
 
@@ -3023,7 +3023,7 @@ public partial class Exchange
             return await this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, parameters));
         } else
         {
-            throw new NotSupported(((string)add(this.id, " fetchMarkOHLCV () is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " fetchMarkOHLCV () is not supported yet")) ;
         }
     }
 
@@ -3050,7 +3050,7 @@ public partial class Exchange
             return await this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, parameters));
         } else
         {
-            throw new NotSupported(((string)add(this.id, " fetchIndexOHLCV () is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " fetchIndexOHLCV () is not supported yet")) ;
         }
     }
 
@@ -3077,7 +3077,7 @@ public partial class Exchange
             return await this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, parameters));
         } else
         {
-            throw new NotSupported(((string)add(this.id, " fetchPremiumIndexOHLCV () is not supported yet")));
+            throw new NotSupported ((string)add(this.id, " fetchPremiumIndexOHLCV () is not supported yet")) ;
         }
     }
 
@@ -3096,7 +3096,7 @@ public partial class Exchange
             object exchangeValue = this.safeString(getValue(this.options, "timeInForce"), timeInForce);
             if (isTrue(isEqual(exchangeValue, null)))
             {
-                throw new ExchangeError(((string)add(add(add(this.id, " does not support timeInForce \""), timeInForce), "\"")));
+                throw new ExchangeError ((string)add(add(add(this.id, " does not support timeInForce \""), timeInForce), "\"")) ;
             }
             return exchangeValue;
         }
@@ -3148,7 +3148,7 @@ public partial class Exchange
             {
                 message = add(message, add(add(add(", one of ", "("), messageOptions), ")"));
             }
-            throw new ArgumentsRequired(((string)message));
+            throw new ArgumentsRequired ((string)message) ;
         }
     }
 
@@ -3163,10 +3163,10 @@ public partial class Exchange
          */
         if (isTrue(isTrue((isEqual(marginMode, "isolated"))) && isTrue((isEqual(symbol, null)))))
         {
-            throw new ArgumentsRequired(((string)add(add(add(this.id, " "), methodName), "() requires a symbol argument for isolated margin")));
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a symbol argument for isolated margin")) ;
         } else if (isTrue(isTrue((isEqual(marginMode, "cross"))) && isTrue((!isEqual(symbol, null)))))
         {
-            throw new ArgumentsRequired(((string)add(add(add(this.id, " "), methodName), "() cannot have a symbol argument for cross margin")));
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() cannot have a symbol argument for cross margin")) ;
         }
     }
 
@@ -3202,8 +3202,8 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, getArrayLength(responseKeys)); postFixIncrement(ref i))
         {
             object entry = getValue(responseKeys, i);
-            object dictionary = ((bool)             isTrue(isArray)) ? entry : getValue(response, entry);
-            object currencyId = ((bool)             isTrue(isArray)) ? this.safeString(dictionary, currencyIdKey) : entry;
+            object dictionary = ((bool) isTrue(isArray)) ? entry : getValue(response, entry);
+            object currencyId = ((bool) isTrue(isArray)) ? this.safeString(dictionary, currencyIdKey) : entry;
             object currency = this.safeValue(this.currencies_by_id, currencyId);
             object code = this.safeString(currency, "code", currencyId);
             if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
@@ -3216,7 +3216,7 @@ public partial class Exchange
 
     public virtual object parseDepositWithdrawFee(object fee, object currency = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseDepositWithdrawFee() is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseDepositWithdrawFee() is not supported yet")) ;
     }
 
     public virtual object depositWithdrawFee(object info)
@@ -3268,7 +3268,7 @@ public partial class Exchange
 
     public virtual object parseIncome(object info, object market = null)
     {
-        throw new NotSupported(((string)add(this.id, " parseIncome () is not supported yet")));
+        throw new NotSupported ((string)add(this.id, " parseIncome () is not supported yet")) ;
     }
 
     public virtual object parseIncomes(object incomes, object market = null, object since = null, object limit = null)

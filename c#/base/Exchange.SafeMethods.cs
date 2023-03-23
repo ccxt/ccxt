@@ -16,7 +16,7 @@ public partial class Exchange
 
     ////////////////////////////////////////////////////////
 
-    public object safeTimestamp(object obj, object key, int defaultValue = -1)
+    public object safeTimestamp(object obj, object key, object defaultValue = null)
     {
         var value = safeValue(obj, key, defaultValue);
         if (value is string)
@@ -77,7 +77,7 @@ public partial class Exchange
         return result == null ? defaultValue : ((string)result).ToLower();
     }
 
-    public object safeStringLower2(object obj, object key1, object key2, string defaultValue = null)
+    public object safeStringLower2(object obj, object key1, object key2, object defaultValue = null)
     {
         var result = safeString2(obj, new List<object> { key1, key2 }, defaultValue);
         return result == null ? defaultValue : ((string)result).ToLower();
@@ -94,6 +94,12 @@ public partial class Exchange
         defaultValue ??= 0;
         multiplier ??= 1;
         var result = safeValueN(obj, new List<object> { key }, defaultValue);
+        return result == null ? defaultValue : (Convert.ToInt64(result) * Convert.ToInt64(multiplier));
+    }
+
+    public object safeIntegerProduct2(object obj, object key1, object key2, object defaultValue = null, object multiplier = null)
+    {
+        var result = safeValueN(obj, new List<object> { key1, key2 }, defaultValue);
         return result == null ? defaultValue : (Convert.ToInt64(result) * Convert.ToInt64(multiplier));
     }
 
@@ -200,7 +206,7 @@ public partial class Exchange
             var list = (List<int>)obj;
             foreach (var key in keys)
             {
-                if (list.ElementAtOrDefault((int)key) != null)
+                if (list.ElementAtOrDefault((int)key) != null) // this is wrong apparently
                 {
                     var returnValue = list[(int)key];
                     if ((returnValue.GetType() == typeof(int)))

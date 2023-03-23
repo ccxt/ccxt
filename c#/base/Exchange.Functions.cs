@@ -224,8 +224,10 @@ public partial class Exchange
         return list.Contains(elem);
     }
 
-    public List<object> sortBy(object aa, object value1, bool desc = false)
+    public List<object> sortBy(object aa, object value1, object desc2 = null)
     {
+        desc2 ??= false;
+        var desc = (bool)desc2;
         var list = (List<object>)aa;
         var value = (string)value1;
 
@@ -539,7 +541,7 @@ public partial class Exchange
         // return path + "?" + string.Join("&", outList);
 
         var path = (string)path2;
-        if (parameter2.GetType() == typeof(dict))
+        if (parameter2.GetType() != typeof(List<object>))
         {
             var parameter = (dict)parameter2;
             var keys = new List<string>(((dict)parameter).Keys);
@@ -547,7 +549,7 @@ public partial class Exchange
             foreach (string key in keys)
             {
                 var value = parameter[key];
-                if (value.GetType() == typeof(dict))
+                if (value.GetType() != typeof(List<object>))
                 {
                     path = path.Replace("{" + key + "}", (string)parameter[key]);
                 }
@@ -663,7 +665,26 @@ public partial class Exchange
 
     public object ordered(object ob)
     {
-        return ob;
+        return ob; //stub
+    }
+
+    public object strip(object str)
+    {
+        return str; //stub
+    }
+
+    public object parseDate(object date)
+    {
+        var stringDate = (string)date;
+        // if (stringDate.IndexOf("GMT") >= 0)
+        // {
+        //     return DateTime.ParseExact(stringDate, "ddd MMM dd yyyy HH:mm:ss 'GMT'K");
+        // }
+        // else
+        // {
+        //     return DateTime.ParseExact(stringDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        // }
+        return parse8601(date); // stub implement later
     }
 
 }

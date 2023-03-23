@@ -79,7 +79,7 @@ public partial class Exchange
         this.initializeProperties();
         var empty = new List<string>();
         transformApiNew(this.api);
-        Console.WriteLine(this.transformedApi);
+        // Console.WriteLine(this.transformedApi);
     }
 
     // private void transformApi(dict api, List<string> paths = null)

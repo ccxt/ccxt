@@ -34,6 +34,56 @@ public partial class Exchange
         return a;
     }
 
+    public object prefixUnaryNeg(ref object a)
+    {
+        if (a.GetType() == typeof(Int64))
+        {
+            a = -(Int64)a;
+        }
+        else if (a.GetType() == typeof(int))
+        {
+            a = -(int)a;
+        }
+        else if (a.GetType() == typeof(double))
+        {
+            a = -(double)a;
+        }
+        else if (a.GetType() == typeof(string))
+        {
+            return null;
+        }
+        else
+        {
+            return null;
+        }
+        return a;
+    }
+
+    public object prefixUnaryPlus(ref object a)
+    {
+        if (a.GetType() == typeof(Int64))
+        {
+            a = +(Int64)a;
+        }
+        else if (a.GetType() == typeof(int))
+        {
+            a = +(int)a;
+        }
+        else if (a.GetType() == typeof(double))
+        {
+            a = +(double)a;
+        }
+        else if (a.GetType() == typeof(string))
+        {
+            return null;
+        }
+        else
+        {
+            return null;
+        }
+        return a;
+    }
+
     public object plusEqual(object a, object value)
     {
         if (value == null)
@@ -496,7 +546,7 @@ public partial class Exchange
 
     public async Task<List<object>> promiseAll(object promisesObj)
     {
-        var promises = (List<object>)promisesObj;
+        var promises = (List<Task<object>>)promisesObj;
         var tasks = new List<Task<object>>();
         foreach (var promise in promises)
         {
@@ -516,6 +566,16 @@ public partial class Exchange
         {
             return (string)value;
         }
+    }
+
+    public void throwDynamicException(object exception, object message)
+    {
+        throw new Exception((string)message); // implement it properly later
+    }
+
+    public object toFixed(object number, object decimals)
+    {
+        return Math.Round((double)number, (int)decimals);
     }
 
 }
