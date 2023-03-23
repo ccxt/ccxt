@@ -8246,7 +8246,7 @@ export default class bybit extends Exchange {
                 if (isV3UnifiedMargin || isV3Contract) {
                     headers['X-BAPI-SIGN-TYPE'] = '2';
                 }
-                const query = params;
+                const query = this.extend ({}, params);
                 const queryEncoded = this.rawencode (query);
                 const auth_base = timestamp.toString () + this.apiKey + this.options['recvWindow'].toString ();
                 let authFull = undefined;
