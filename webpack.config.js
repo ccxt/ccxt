@@ -1,7 +1,8 @@
 import path from 'path';
+import url from 'url';
 
-const cwd = path.normalize ((new URL (import.meta.url)).pathname);
-const outputDirectory = path.join (path.dirname (cwd), 'dist')
+const cwd = url.fileURLToPath (import.meta.url);
+const outputDirectory = path.normalize (path.join (path.dirname (cwd), 'dist'))
 
 export default {
   entry : './ts/ccxt.ts',
