@@ -3798,6 +3798,8 @@ export default class Exchange {
             } else {
                 if (isExchangeSpecificBoolPo) {
                     requestAddition[exchangeSpecificPoKey] = true;
+                } else if (exTifValue_PO !== undefined) {
+                    requestAddition[exchangeSpecificTifKey] = exTifValue_PO;
                 }
             }
         }
