@@ -3754,7 +3754,7 @@ export default class Exchange {
         // accountMarketType might 'spot', 'swap', 'unified', 'whatever_custom' ...
         const tifOptions = this.safeValue (tifOptionsAllMarkets, accountMarketType, {});
         // get exchangeSpecific TIF key
-        const exchangeSpecificTifKey = this.safeString (tifOptions, 'key');
+        const exchangeSpecificTifKey = this.safeString (tifOptions, 'exchangeSpecificKey');
         // get exchangeSpecific TIF values map
         const exchangeSpecificTifMap = this.safeValue (tifOptions, 'strings', {});
         // unified or exchangeSpecific TIF value (if set in PARAMS)

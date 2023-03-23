@@ -1096,7 +1096,7 @@ export default class bybit extends Exchange {
                 },
                 'timeInForceMap': {
                     'unified': {
-                        'key': 'time_in_force',
+                        'exchangeSpecificKey': 'timeInForce',
                         'strings': {
                             'GTC': 'GTC',
                             'IOC': 'IOC',
