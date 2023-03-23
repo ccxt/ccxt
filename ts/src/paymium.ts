@@ -1,14 +1,15 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/paymium.js';
 import { ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class paymium extends Exchange {
+// @ts-ignore
+export default class paymium extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'paymium',

@@ -5,7 +5,8 @@ import okex from './okex.js';
 
 // ---------------------------------------------------------------------------
 
-export default class okex5 extends okex {
+// @ts-ignore
+export default class okex5 extends _okex {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okex5',

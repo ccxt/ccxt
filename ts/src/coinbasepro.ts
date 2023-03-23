@@ -1,14 +1,15 @@
 
 // ----------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/coinbasepro.js';
 import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 // ----------------------------------------------------------------------------
 
-export default class coinbasepro extends Exchange {
+// @ts-ignore
+export default class coinbasepro extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbasepro',

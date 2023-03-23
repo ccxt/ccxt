@@ -1,14 +1,15 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/bit2c.js';
 import { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class bit2c extends Exchange {
+// @ts-ignore
+export default class bit2c extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bit2c',

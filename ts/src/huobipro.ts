@@ -5,7 +5,8 @@ import huobi from './huobi.js';
 
 // ---------------------------------------------------------------------------
 
-export default class huobipro extends huobi {
+// @ts-ignore
+export default class huobipro extends _huobi {
     describe () {
         // this is an alias for backward-compatibility
         // to be removed soon

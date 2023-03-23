@@ -5,7 +5,8 @@ import gate from './gate.js';
 
 // ---------------------------------------------------------------------------
 
-export default class gateio extends gate {
+// @ts-ignore
+export default class gateio extends _gate {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gateio',

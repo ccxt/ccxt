@@ -1,13 +1,14 @@
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/ace.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class ace extends Exchange {
+// @ts-ignore
+export default class ace extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'ace',

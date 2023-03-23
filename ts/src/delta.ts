@@ -1,14 +1,15 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/delta.js';
 import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class delta extends Exchange {
+// @ts-ignore
+export default class delta extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'delta',

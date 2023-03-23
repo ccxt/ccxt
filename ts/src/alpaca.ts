@@ -1,6 +1,6 @@
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/alpaca.js';
 import {
     ExchangeError,
     BadRequest,
@@ -14,7 +14,8 @@ import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------xs
 
-export default class alpaca extends Exchange {
+// @ts-ignore
+export default class alpaca extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'alpaca',

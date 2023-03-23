@@ -1,14 +1,15 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/huobijp.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 
 // ---------------------------------------------------------------------------
 
-export default class huobijp extends Exchange {
+// @ts-ignore
+export default class huobijp extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'huobijp',

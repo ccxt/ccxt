@@ -1,14 +1,15 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/bitfinex.js';
 import { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class bitfinex extends Exchange {
+// @ts-ignore
+export default class bitfinex extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex',

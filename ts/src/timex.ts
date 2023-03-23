@@ -1,10 +1,11 @@
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/timex.js';
 import { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
-export default class timex extends Exchange {
+// @ts-ignore
+export default class timex extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'timex',

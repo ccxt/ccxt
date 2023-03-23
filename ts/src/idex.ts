@@ -1,14 +1,15 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/idex.js';
 import { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 
 // ---------------------------------------------------------------------------
 
-export default class idex extends Exchange {
+// @ts-ignore
+export default class idex extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'idex',

@@ -1,14 +1,15 @@
 
 // ----------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/phemex.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 // ----------------------------------------------------------------------------
 
-export default class phemex extends Exchange {
+// @ts-ignore
+export default class phemex extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'phemex',

@@ -1,10 +1,11 @@
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/tidex.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
-export default class tidex extends Exchange {
+// @ts-ignore
+export default class tidex extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'tidex',

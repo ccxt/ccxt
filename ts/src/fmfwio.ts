@@ -5,7 +5,8 @@ import hitbtc from './hitbtc.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class fmfwio extends hitbtc {
+// @ts-ignore
+export default class fmfwio extends _hitbtc {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'fmfwio',

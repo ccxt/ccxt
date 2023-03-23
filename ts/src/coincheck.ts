@@ -1,13 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/coincheck.js';
 import { BadSymbol, ExchangeError, AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class coincheck extends Exchange {
+// @ts-ignore
+export default class coincheck extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coincheck',

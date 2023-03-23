@@ -1,13 +1,14 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 // ---------------------------------------------------------------------------
 
-export default class kuna extends Exchange {
+// @ts-ignore
+export default class kuna extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kuna',

@@ -1,11 +1,12 @@
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/btcex.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class btcex extends Exchange {
+// @ts-ignore
+export default class btcex extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcex',

@@ -1,13 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/bitflyer.js';
 import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class bitflyer extends Exchange {
+// @ts-ignore
+export default class bitflyer extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitflyer',

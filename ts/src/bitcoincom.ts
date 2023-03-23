@@ -1,11 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import fmfwio from './fmfwio.js';
+import _fmfwio from './abstract/fmfwio.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class bitcoincom extends fmfwio {
+// @ts-ignore
+export default class bitcoincom extends _fmfwio {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitcoincom',

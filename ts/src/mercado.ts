@@ -1,13 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import _Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class mercado extends Exchange {
+// @ts-ignore
+export default class mercado extends _Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'mercado',
