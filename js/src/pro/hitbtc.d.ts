@@ -9,9 +9,9 @@ export default class hitbtc extends hitbtcRest {
     handleDeltas(bookside: any, deltas: any): void;
     watchTicker(symbol: any, params?: {}): Promise<any>;
     handleTicker(client: any, message: any): void;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): any;
-    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOHLCV(client: any, message: any): any;
     handleNotification(client: any, message: any): any;
     handleMessage(client: any, message: any): void;

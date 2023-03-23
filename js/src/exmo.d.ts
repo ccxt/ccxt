@@ -41,23 +41,23 @@ export default class exmo extends Exchange {
     fetchPrivateTradingFees(params?: {}): Promise<{}>;
     fetchPublicTradingFees(params?: {}): Promise<{}>;
     parseFixedFloatValue(input: any): number;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    parseBalance(response: any): object;
-    fetchBalance(params?: {}): Promise<object>;
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/ws/OrderBook.js").OrderBook>;
-    fetchOrderBooks(symbols?: any, limit?: any, params?: {}): Promise<{}>;
+    parseBalance(response: any): import("./base/types.js").Balances;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBooks(symbols?: string[], limit?: any, params?: {}): Promise<{}>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<{
         id: string;
         info: any;
@@ -78,12 +78,12 @@ export default class exmo extends Exchange {
         clientOrderId: any;
         average: any;
     }>;
-    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    fetchOrderTrades(id: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrderTrades(id: any, symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseOrder(order: any, market?: any): any;
-    fetchCanceledOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchCanceledOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchDepositAddress(code: any, params?: {}): Promise<{
         currency: any;
         address: any;
@@ -143,8 +143,8 @@ export default class exmo extends Exchange {
             rate: any;
         };
     };
-    fetchTransactions(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchTransactions(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchWithdrawal(id: any, code?: any, params?: {}): Promise<{
         info: any;
         id: string;
@@ -195,8 +195,8 @@ export default class exmo extends Exchange {
             rate: any;
         };
     }>;
-    fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

@@ -72,7 +72,7 @@ export default class ascendex extends ascendexRest {
         return await this.watch (url, messageHash, message, channel);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#watchOHLCV
@@ -139,7 +139,7 @@ export default class ascendex extends ascendexRest {
         return message;
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#watchTrades
@@ -210,7 +210,7 @@ export default class ascendex extends ascendexRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the ascendex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -477,7 +477,7 @@ export default class ascendex extends ascendexRest {
         client.resolve (this.safeBalance (result), messageHash);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#watchOrders
@@ -487,7 +487,7 @@ export default class ascendex extends ascendexRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the ascendex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -930,16 +930,16 @@ export default class ascendex extends ascendexRest {
         //
         //     { m: 'ping', hp: 3 }
         //
-        await client.send ({ 'op': 'pong', 'hp': this.safeInteger (message, 'hp') });
-    }
-
-    async handlePing (client, message) {
         try {
-            await this.spawn (this.pong, client, message);
+            await client.send ({ 'op': 'pong', 'hp': this.safeInteger (message, 'hp') });
         } catch (e) {
             const error = new NetworkError (this.id + ' handlePing failed with error ' + this.json (e));
             client.reset (error);
         }
+    }
+
+    handlePing (client, message) {
+        this.spawn (this.pong, client, message);
     }
 
     authenticate (url, params = {}) {

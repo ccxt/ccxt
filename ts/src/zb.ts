@@ -1180,7 +1180,7 @@ export default class zb extends Exchange {
         };
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await (this as any).spotV1PrivateGetGetPayinAddress (params);
         //
@@ -1221,7 +1221,7 @@ export default class zb extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1254,7 +1254,7 @@ export default class zb extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1324,14 +1324,14 @@ export default class zb extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -1366,7 +1366,7 @@ export default class zb extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1517,7 +1517,7 @@ export default class zb extends Exchange {
         }
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchOHLCV
@@ -1710,7 +1710,7 @@ export default class zb extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchTrades
@@ -1807,7 +1807,7 @@ export default class zb extends Exchange {
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the zb api endpoint
          * @param {string} params.marginMode 'cross' or 'isolated'
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1961,7 +1961,7 @@ export default class zb extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name zb#cancelOrder
@@ -1969,7 +1969,7 @@ export default class zb extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -2011,14 +2011,14 @@ export default class zb extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name zb#cancelAllOrders
          * @description cancel all open orders in a market
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
@@ -2042,14 +2042,14 @@ export default class zb extends Exchange {
         return await this[method] (this.extend (request, query));
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -2180,7 +2180,7 @@ export default class zb extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchOrders
@@ -2189,7 +2189,7 @@ export default class zb extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -2341,7 +2341,7 @@ export default class zb extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
+    async fetchCanceledOrders (symbol: string = undefined, since = undefined, limit = 10, params = {}) {
         /**
          * @method
          * @name zb#fetchCanceledOrders
@@ -2350,7 +2350,7 @@ export default class zb extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
          * @param {int|undefined} limit max number of orders to return, default is undefined
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument');
@@ -2501,7 +2501,7 @@ export default class zb extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = 10, params = {}) {
         /**
          * @method
          * @name zb#fetchClosedOrders
@@ -2510,7 +2510,7 @@ export default class zb extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
@@ -2619,7 +2619,7 @@ export default class zb extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchOpenOrders
@@ -2628,7 +2628,7 @@ export default class zb extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -2895,7 +2895,7 @@ export default class zb extends Exchange {
         }
         const rawSide = this.safeInteger2 (order, 'type', 'side');
         let side = undefined;
-        if (side !== undefined) {
+        if (rawSide !== undefined) {
             if (market['spot']) {
                 side = (rawSide === 1) ? 'buy' : 'sell';
             } else if (market['swap']) {
@@ -3085,7 +3085,7 @@ export default class zb extends Exchange {
         };
     }
 
-    async setLeverage (leverage, symbol = undefined, params = {}) {
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name zb#setLeverage
@@ -3117,7 +3117,7 @@ export default class zb extends Exchange {
         return await (this as any).contractV2PrivatePostSettingSetLeverage (this.extend (request, params));
     }
 
-    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchFundingRateHistory
@@ -3192,7 +3192,7 @@ export default class zb extends Exchange {
          * @description fetch the current funding rate
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3262,14 +3262,14 @@ export default class zb extends Exchange {
         };
     }
 
-    async fetchFundingRates (symbols = undefined, params = {}) {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchFundingRates
          * @description fetch the funding rate for multiple markets
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
+         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -3304,7 +3304,7 @@ export default class zb extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const password = this.safeString (params, 'safePwd', this.password);
@@ -3347,7 +3347,7 @@ export default class zb extends Exchange {
         });
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchWithdrawals
@@ -3356,7 +3356,7 @@ export default class zb extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -3405,7 +3405,7 @@ export default class zb extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchDeposits
@@ -3414,7 +3414,7 @@ export default class zb extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -3472,7 +3472,7 @@ export default class zb extends Exchange {
          * @description fetch data on a single open contract trade position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -3540,14 +3540,14 @@ export default class zb extends Exchange {
         return this.parsePosition (firstPosition, market);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchPositions
          * @description fetch all open positions
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -3797,7 +3797,7 @@ export default class zb extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchLedger
@@ -3806,7 +3806,7 @@ export default class zb extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code argument');
@@ -3869,7 +3869,7 @@ export default class zb extends Exchange {
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the zb api endpoint
          * @param {string} params.marginMode 'cross' or 'isolated'
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
@@ -4042,7 +4042,7 @@ export default class zb extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
         if (params['positionsId'] === undefined) {
             throw new ArgumentsRequired (this.id + ' addMargin() requires a positionsId argument in the params');
@@ -4058,7 +4058,7 @@ export default class zb extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
          */
         if (params['positionsId'] === undefined) {
             throw new ArgumentsRequired (this.id + ' reduceMargin() requires a positionsId argument in the params');
@@ -4073,7 +4073,7 @@ export default class zb extends Exchange {
          * @description fetch the rate of interest to borrow a currency for margin trading
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -4117,7 +4117,7 @@ export default class zb extends Exchange {
          * @name zb#fetchBorrowRates
          * @description fetch the borrow interest rates of all currencies
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         if (params['coin'] === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchBorrowRates() requires a coin argument in the params');
@@ -4162,7 +4162,7 @@ export default class zb extends Exchange {
         return rates;
     }
 
-    async setPositionMode (hedged, symbol = undefined, params = {}) {
+    async setPositionMode (hedged, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name zb#setLeverage
@@ -4212,7 +4212,7 @@ export default class zb extends Exchange {
         return response;
     }
 
-    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name zb#borrowMargin
@@ -4223,7 +4223,7 @@ export default class zb extends Exchange {
          * @param {object} params extra parameters specific to the zb api endpoint
          * @param {string} params.safePwd transaction password, extra parameter required for cross margin
          * @param {string} params.marginMode 'cross' or 'isolated'
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -4294,7 +4294,7 @@ export default class zb extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const [ section, version, access ] = api;
         let url = this.implodeHostname (this.urls['api'][section][version][access]);
         if (access === 'public') {

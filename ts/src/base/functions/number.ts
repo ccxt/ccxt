@@ -106,6 +106,9 @@ const decimalToPrecision = (
     paddingMode = NO_PADDING
 ) => {
     if (countingMode === TICK_SIZE) {
+        if (typeof numPrecisionDigits === 'string') {
+            numPrecisionDigits = parseFloat(numPrecisionDigits)
+        }
         if (numPrecisionDigits <= 0) {
             throw new Error ('TICK_SIZE cant be used with negative or zero numPrecisionDigits');
         }

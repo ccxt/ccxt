@@ -399,7 +399,7 @@ class krakenfutures(Exchange):
         :param str symbol: Unified market symbol
         :param int|None limit: Not used by krakenfutures
         :param dict params: exchange specific params
-        :returns: An `order book structure <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>`
+        :returns: An `order book structure <https://docs.ccxt.com/#/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -618,7 +618,7 @@ class krakenfutures(Exchange):
         :param int|None limit: Total number of trades, cannot exceed 100
         :param dict params: Exchange specific params
         :param int|None params['until']: Timestamp in ms of latest trade
-        :returns: An array of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns: An array of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -777,12 +777,15 @@ class krakenfutures(Exchange):
         :param bool|None params['postOnly']: Set if you wish to make a postOnly order, Default False
         :param str|None params['triggerSignal']: If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
         :param str|None params['cliOrdId']: UUID The order identity that is specified from the user, It must be globally unique
+        :param str|None params['clientOrderId']: UUID The order identity that is specified from the user, It must be globally unique
         """
         await self.load_markets()
         type = self.safe_string(params, 'orderType', type)
         timeInForce = self.safe_string(params, 'timeInForce')
         stopPrice = self.safe_string(params, 'stopPrice')
         postOnly = self.safe_string(params, 'postOnly')
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'cliOrdId')
+        params = self.omit(params, ['clientOrderId', 'cliOrdId'])
         if (type == 'stp' or type == 'take_profit') and stopPrice is None:
             raise ArgumentsRequired(self.id + ' createOrder requires params.stopPrice when type is ' + type)
         if stopPrice is not None:
@@ -803,6 +806,8 @@ class krakenfutures(Exchange):
         }
         if price is not None:
             request['limitPrice'] = price
+        if clientOrderId is not None:
+            request['cliOrdId'] = clientOrderId
         response = await self.privatePostSendorder(self.extend(request, params))
         #
         #    {
@@ -849,7 +854,7 @@ class krakenfutures(Exchange):
         :param float|None amount: Order size
         :param float|None price: Price to fill order at
         :param dict params: Exchange specific params
-        :returns: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -870,7 +875,7 @@ class krakenfutures(Exchange):
         :param str id: Order id
         :param str|None symbol: Not used by Krakenfutures
         :param dict params: Exchange specific params
-        :returns: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         response = await self.privatePostCancelorder(self.extend({'order_id': id}, params))
@@ -901,7 +906,7 @@ class krakenfutures(Exchange):
         :param int since: Timestamp(ms) of earliest order.(Not used by kraken api but filtered internally by CCXT)
         :param int limit: How many orders to return.(Not used by kraken api but filtered internally by CCXT)
         :param dict params: Exchange specific parameters
-        :returns: An array of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns: An array of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1294,7 +1299,7 @@ class krakenfutures(Exchange):
         :param dict params: Exchange specific parameters
         :param str params['type']: The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'cash' *
         :param str params['symbol']: A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
-        :returns: A `balance structure <https://docs.ccxt.com/en/latest/manual.html#balance-structure>`
+        :returns: A `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         type = self.safe_string_2(params, 'type', 'account')
@@ -1792,7 +1797,7 @@ class krakenfutures(Exchange):
         :param str code: Unified currency code
         :param float amount: Size of the transfer
         :param dict params: Exchange specific parameters
-        :returns: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :returns: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         return await self.transfer(code, amount, 'future', 'spot', params)
 
@@ -1804,7 +1809,7 @@ class krakenfutures(Exchange):
         :param str fromAccount: 'main'/'funding'/'future', 'flex', or a unified market symbol
         :param str toAccount: 'main'/'funding', 'flex', 'spot' or a unified market symbol
         :param dict params: Exchange specific parameters
-        :returns: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :returns: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)

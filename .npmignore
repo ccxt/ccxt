@@ -5,7 +5,6 @@ node_modules/
 python/
 php/
 tmp/
-doc/
 vendor/
 wiki/
 .tox/
@@ -38,3 +37,6 @@ exchanges.cfg
 /ts/
 /js/src/test/
 /js/src/pro/test/
+
+# Ignore cjs bundle
+dist/ccxt.bundle.cjs

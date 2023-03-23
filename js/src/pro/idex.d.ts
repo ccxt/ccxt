@@ -5,7 +5,7 @@ export default class idex extends idexRest {
     subscribePrivate(subscribeObject: any, messageHash: any): Promise<any>;
     watchTicker(symbol: any, params?: {}): Promise<any>;
     handleTicker(client: any, message: any): void;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTrade(client: any, message: any): void;
     parseWsTrade(trade: any): {
         info: any;
@@ -25,7 +25,7 @@ export default class idex extends idexRest {
             cost: number;
         };
     };
-    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOHLCV(client: any, message: any): void;
     handleSubscribeMessage(client: any, message: any): void;
     fetchOrderBookSnapshot(client: any, symbol: any, params?: {}): Promise<void>;
@@ -35,9 +35,9 @@ export default class idex extends idexRest {
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     authenticate(params?: {}): Promise<any>;
-    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrder(client: any, message: any): void;
-    watchTransactions(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchTransactions(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTransaction(client: any, message: any): void;
     handleMessage(client: any, message: any): void;
 }

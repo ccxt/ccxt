@@ -2,7 +2,7 @@
 
 The easiest way to install the ccxt library is to use builtin package managers:
 
-- [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
+- [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v15+)
 - [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
@@ -22,7 +22,7 @@ An alternative way of installing this library is to build a custom bundle from s
 
 ### JavaScript (NPM)
 
-JavaScript version of ccxt works both in Node and web browsers. Requires ES6 and `async/await` syntax support (Node 10.4.0+). When compiling with Webpack and Babel, make sure it is [not excluded](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275) in your `babel-loader` config.
+JavaScript version of ccxt works both in Node and web browsers. Requires ES6 and `async/await` syntax support (Node 15+). When compiling with Webpack and Babel, make sure it is [not excluded](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275) in your `babel-loader` config.
 
 [ccxt crypto trading library in npm](http://npmjs.com/package/ccxt)
 
@@ -40,13 +40,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@3.0.4/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@3.0.4/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@3.0.30/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@3.0.30/dist/ccxt.browser.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@3.0.4/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@3.0.30/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -362,31 +362,6 @@ To run your own CORS proxy locally you can either set up one of the existing one
 // It will listen for your requests on the port you pass in command line or port 8080 by default
 let port = (process.argv.length > 2) ? parseInt (process.argv[2]) : 8080; // default
 require ('cors-anywhere').createServer ().listen (port, 'localhost')
-```
-
-### Python CORS Proxy
-
-```python
-#!/usr/bin/env python
-# Python CORS Proxy
-# Save this in a file like cors.py and run with `python cors.py [port]` or `cors [port]`
-try:
-    # Python 3
-    from http.server import HTTPServer, SimpleHTTPRequestHandler, test as test_orig
-    import sys
-    def test (*args):
-        test_orig (*args, port = int (sys.argv[1]) if len (sys.argv) > 1 else 8080)
-except ImportError: # Python 2
-    from BaseHTTPServer import HTTPServer, test
-    from SimpleHTTPServer import SimpleHTTPRequestHandler
-
-class CORSRequestHandler (SimpleHTTPRequestHandler):
-    def end_headers (self):
-        self.send_header ('Access-Control-Allow-Origin', '*')
-        SimpleHTTPRequestHandler.end_headers (self)
-
-if __name__ == '__main__':
-    test (CORSRequestHandler, HTTPServer)
 ```
 
 ### Testing CORS
