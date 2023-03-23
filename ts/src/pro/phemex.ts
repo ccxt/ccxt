@@ -744,13 +744,8 @@ export default class phemex extends phemexRest {
         // @param {int|undefined} since the earliest time in ms to fetch orders for
         // @param {int|undefined} limit the maximum number of  orde structures to retrieve
         // @param {object} params extra parameters specific to the phemex api endpoint
-        // <<<<<<< HEAD:js/pro/phemex.js
         // @param {string} params.settle set to USDT to use hedged perpetual api
         // @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
-        // =======
-        // @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
-        // >>>>>>> a8f46899426bceb5f07fd3d13577488ed43998c8:ts/src/pro/phemex.ts
-        //
         await this.loadMarkets ();
         let market = undefined;
         let type = undefined;
@@ -765,7 +760,8 @@ export default class phemex extends phemexRest {
         }
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         if (symbol === undefined) {
-            messageHash = (params['settle'] === 'USDT') ? (messageHash + 'perpetual') : (messageHash + type);
+            const settle = this.safeString (params, 'settle');
+            messageHash = (settle === 'USDT') ? (messageHash + 'perpetual') : (messageHash + type);
         }
         const trades = await this.subscribePrivate (type, messageHash, params);
         if (this.newUpdates) {
@@ -1146,7 +1142,8 @@ export default class phemex extends phemexRest {
             const symbol = parsed['symbol'];
             const market = this.market (symbol);
             if (type === undefined) {
-                type = market['settle'] === 'USDT' ? 'perpetual' : market['type'];
+                const isUsdt = market['settle'] === 'USDT';
+                type = isUsdt ? 'perpetual' : market['type'];
             }
             marketIds[symbol] = true;
         }
@@ -1537,8 +1534,8 @@ export default class phemex extends phemexRest {
                 'id': time,
                 'method': this.handleAuthenticate,
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, subscription);
+            this.watch (url, messageHash, request, messageHash, subscription);
         }
-        return await future;
+        return future;
     }
 }
