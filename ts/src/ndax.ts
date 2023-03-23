@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 // ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class ndax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

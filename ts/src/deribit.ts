@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class deribit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

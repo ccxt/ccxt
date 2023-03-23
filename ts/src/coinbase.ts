@@ -8,7 +8,7 @@ import { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js'
 
 // ----------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class coinbase extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 
-// @ts-ignore
+// @ts-expect-error
 export default class gate extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -2539,7 +2539,7 @@ export default class gate extends Exchange {
         //     }
         //
         const rates = [];
-        // @ts-ignore
+        // @ts-expect-error
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const timestamp = this.safeTimestamp (entry, 't');

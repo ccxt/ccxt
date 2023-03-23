@@ -5,7 +5,7 @@ import fmfwio from './abstract/fmfwio.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class bitcoincom extends fmfwio {
     describe () {
         return this.deepExtend (super.describe (), {

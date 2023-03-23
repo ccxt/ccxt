@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 
 // ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class mexc3 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

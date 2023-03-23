@@ -6,7 +6,7 @@ import { ArgumentsRequired } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class bitrue extends bitrueRest {
     describe () {
         return this.deepExtend (super.describe (), {

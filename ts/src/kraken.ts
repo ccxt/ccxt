@@ -8,7 +8,7 @@ import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class kraken extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

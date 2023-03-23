@@ -7,7 +7,7 @@ import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class currencycom extends currencycomRest {
     describe () {
         return this.deepExtend (super.describe (), {

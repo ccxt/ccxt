@@ -4,7 +4,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
-// @ts-ignore
+// @ts-expect-error
 export default class tidex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

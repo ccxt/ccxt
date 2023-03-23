@@ -8,7 +8,7 @@ import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/func
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class bitfinex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

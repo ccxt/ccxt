@@ -15,7 +15,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class coinex extends coinexRest {
     describe () {
         return this.deepExtend (super.describe (), {

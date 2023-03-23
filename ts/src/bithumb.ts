@@ -8,7 +8,7 @@ import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/n
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class bithumb extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

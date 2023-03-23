@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class btcex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

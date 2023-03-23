@@ -8,7 +8,7 @@ import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class bitfinex extends bitfinexRest {
     describe () {
         return this.deepExtend (super.describe (), {

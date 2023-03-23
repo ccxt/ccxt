@@ -8,7 +8,7 @@ import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class binance extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

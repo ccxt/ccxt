@@ -13,7 +13,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class gate extends gateRest {
     describe () {
         return this.deepExtend (super.describe (), {

@@ -8,7 +8,7 @@ import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class bitmart extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

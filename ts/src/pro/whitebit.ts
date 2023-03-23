@@ -8,7 +8,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../ba
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class whitebit extends whitebitRest {
     describe () {
         return this.deepExtend (super.describe (), {

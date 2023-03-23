@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class wavesexchange extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

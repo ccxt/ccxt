@@ -5,7 +5,7 @@ import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.j
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class btcex extends btcexRest {
     describe () {
         return this.deepExtend (super.describe (), {

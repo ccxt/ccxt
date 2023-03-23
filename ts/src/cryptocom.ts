@@ -6,7 +6,7 @@ import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
-// @ts-ignore
+// @ts-expect-error
 export default class cryptocom extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

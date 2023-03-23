@@ -8,7 +8,7 @@ import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class kraken extends krakenRest {
     describe () {
         return this.deepExtend (super.describe (), {

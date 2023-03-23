@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSym
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 
-// @ts-ignore
+// @ts-expect-error
 export default class coinsph extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

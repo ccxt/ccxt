@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class paymium extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

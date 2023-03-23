@@ -7,7 +7,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class bitstamp extends bitstampRest {
     describe () {
         return this.deepExtend (super.describe (), {

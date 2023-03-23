@@ -7,7 +7,7 @@ import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../ba
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class cex extends cexRest {
     describe () {
         return this.deepExtend (super.describe (), {

@@ -7,7 +7,7 @@ import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSu
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
+// @ts-expect-error
 export default class poloniexfutures extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
