@@ -3765,14 +3765,15 @@ export default class Exchange {
         const exTifValue_PO = this.safeString (exchangeSpecificTifMap, unifiedTifKey_PO);
         // const exTifValue_GTC = this.safeString (exchangeSpecificTifMap, unifiedTifKey_GTC);
         //
-        // #################### TIF CHECK #################### //
+        // ############### STRING TIF CHECK ############### //
         //
         // check if unified 'timeInForce' (if set in PARAMS) matches to either unified or exchange-specific value
-        const is_TIF_IOC = this.inArray (providedTifValue, [ unifiedTifKey_IOC, exTifValue_IOC ]);
-        const is_TIF_FOK = this.inArray (providedTifValue, [ unifiedTifKey_FOK, exTifValue_FOK ]);
-        const is_TIF_PO = this.inArray (providedTifValue, [ unifiedTifKey_PO, exTifValue_PO ]);
-        // const is_TIF_GTC = this.inArray (providedTifValue, [ unifiedTifKey_GTC, exTifValue_GTC ]);
-        // #################### BOOLEAN CHECK #################### //
+        const is_TIF_IOC = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ unifiedTifKey_IOC, exTifValue_IOC ]);
+        const is_TIF_FOK = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ unifiedTifKey_FOK, exTifValue_FOK ]);
+        const is_TIF_PO = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ unifiedTifKey_PO, exTifValue_PO ]);
+        // const is_TIF_GTC = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ unifiedTifKey_GTC, exTifValue_GTC ]);
+        //
+        // ############### BOOLEAN CHECK ############### //
         //
         // check if unified POST-ONLY flag (if set in PARAMS) is set to true
         const isUnifiedBoolPo = this.safeValueN (params, [ 'postOnly', 'post_only' ], false);
@@ -3781,10 +3782,11 @@ export default class Exchange {
         const exchangeSpecificPoKey = this.safeString (exchangeSpecificBooleanKeys, unifiedTifKey_PO);
         // check if exchange-specific POST-ONLY flag (if set in PARAMS) is set to true
         const isExchangeSpecificBoolPo = this.safeValue (params, exchangeSpecificPoKey);
+        // if both unified and exchange-specific POST-ONLY were not set, then set the below value to `undefined`. otherwise true or false (same as passed POST-ONLY value)
+        const providedPoValue = (isUnifiedBoolPo === undefined && isExchangeSpecificBoolPo === undefined) ? undefined : (isUnifiedBoolPo || isExchangeSpecificBoolPo);
+        const is_BOOL_PO = providedPoValue === true;
         //
-        const is_BOOL_PO = isUnifiedBoolPo || isExchangeSpecificBoolPo;
-        //
-        // #################### set final value ########################## //
+        // ############### set final value ############### //
         //
         const requestAddition = {};
         const isAnyPo = is_TIF_PO || is_BOOL_PO;
