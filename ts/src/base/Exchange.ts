@@ -3776,18 +3776,27 @@ export default class Exchange {
         // ############### BOOLEAN CHECK ############### //
         //
         // check if unified POST-ONLY flag (if set in PARAMS) is set to true
-        const isUnifiedBoolPo = this.safeValueN (params, [ 'postOnly', 'post_only' ], false);
+        const unifiedBoolPo = this.safeValueN (params, [ 'postOnly', 'post_only' ]);
         // exchangeSpecific value for post-only flag (if such exists)
         const exchangeSpecificBooleanKeys = this.safeValue (tifOptions, 'booleans', {});
         const exchangeSpecificPoKey = this.safeString (exchangeSpecificBooleanKeys, unifiedTifKey_PO);
         // check if exchange-specific POST-ONLY flag (if set in PARAMS) is set to true
-        const isExchangeSpecificBoolPo = this.safeValue (params, exchangeSpecificPoKey);
+        const exchangeSpecificBoolPo = this.safeValue (params, exchangeSpecificPoKey);
         // if both unified and exchange-specific POST-ONLY were not set, then set the below value to `undefined`. otherwise true or false (same as passed POST-ONLY value)
-        const providedPoValue = (isUnifiedBoolPo === undefined && isExchangeSpecificBoolPo === undefined) ? undefined : (isUnifiedBoolPo || isExchangeSpecificBoolPo);
+        let providedPoValue = undefined;
+        if (exchangeSpecificBoolPo !== undefined) {
+            providedPoValue = exchangeSpecificBoolPo;
+        } else if (unifiedBoolPo !== undefined) {
+            providedPoValue = unifiedBoolPo;
+        }
         const is_BOOL_PO = providedPoValue === true;
         //
         // ############### set final value ############### //
         //
+        // throw exception if i.e. TIF=PO && POSTONLY:FALSE
+        if (providedPoValue === false && is_TIF_PO) {
+            throw new InvalidOrder (this.id + ' if postOnly is set to false, timeInForce can not be postOnly value');
+        }
         const requestAddition = {};
         const isAnyPo = is_TIF_PO || is_BOOL_PO;
         if (isAnyPo) {
@@ -3796,7 +3805,7 @@ export default class Exchange {
             } else if (isMarketOrder) {
                 throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
             } else {
-                if (isExchangeSpecificBoolPo) {
+                if (exchangeSpecificBoolPo) {
                     requestAddition[exchangeSpecificPoKey] = true;
                 } else if (exTifValue_PO !== undefined) {
                     requestAddition[exchangeSpecificTifKey] = exTifValue_PO;
