@@ -100,6 +100,23 @@ export default class bybit extends Exchange {
                 '1w': 'W',
                 '1M': 'M',
             },
+            'timeInForceMap': {
+                'unified': {
+                    'key': 'time_in_force',
+                    'strings': {
+                        'GTC': 'GTC',
+                        'IOC': 'IOC',
+                        'FOK': 'FOK',
+                        'PO': 'PostOnly',
+                    },
+                    'booleans': {
+                        'GTC': undefined,
+                        'IOC': undefined,
+                        'FOK': undefined,
+                        'PO': undefined,
+                    },
+                },
+            },
             'urls': {
                 'test': {
                     'spot': 'https://api-testnet.{hostname}',
@@ -3416,7 +3433,7 @@ export default class bybit extends Exchange {
         if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
         }
-        const request = {
+        let request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
             'orderType': this.capitalize (lowerCaseType), // limit or market
@@ -3473,18 +3490,8 @@ export default class bybit extends Exchange {
         if (isLimit) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const exchangeSpecificParam = this.safeString (params, 'time_in_force');
-        const timeInForce = this.safeStringLower (params, 'timeInForce');
-        const postOnly = this.isPostOnly (isMarket, exchangeSpecificParam === 'PostOnly', params);
-        if (postOnly) {
-            request['timeInForce'] = 'PostOnly';
-        } else if (timeInForce === 'gtc') {
-            request['timeInForce'] = 'GTC';
-        } else if (timeInForce === 'fok') {
-            request['timeInForce'] = 'FOK';
-        } else if (timeInForce === 'ioc') {
-            request['timeInForce'] = 'IOC';
-        }
+        const requestTifAddition = this.handlePoTif ('unified', isMarket, params);
+        request = this.extend (request, requestTifAddition);
         let triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');

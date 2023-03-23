@@ -3742,6 +3742,68 @@ export default class Exchange {
         return [ false, params ];
     }
 
+    async handlePoTif (accountMarketType: string, isMarketOrder: boolean, params: any = {}) {
+        // our unified strings
+        const unifiedTifKey = 'timeInForce';
+        const unifiedTifKey_IOC = 'IOC';
+        const unifiedTifKey_FOK = 'FOK';
+        const unifiedTifKey_PO = 'PO';
+        const unifiedTifKey_GTC = 'GTC';
+        // get exchange TIF mappings
+        const tifOptionsAllMarkets = this.safeValue (this.options, 'timeInForceMap', {});
+        // accountMarketType might 'spot', 'swap', 'unified', 'whatever_custom' ...
+        const tifOptions = this.safeValue (tifOptionsAllMarkets, accountMarketType, {});
+        // get exchangeSpecific TIF key
+        const exchangeSpecificTifKey = this.safeString (tifOptions, 'key');
+        // get exchangeSpecific TIF values map
+        const exchangeSpecificTifMap = this.safeValue (tifOptions, 'strings', {});
+        // unified or exchangeSpecific TIF value (if set in PARAMS)
+        const providedTifValue = this.safeString (params, exchangeSpecificTifKey, unifiedTifKey);
+        // exchangeSpecific values for different TIME IN FORCE values
+        const exTifValue_IOC = this.safeString (exchangeSpecificTifMap, unifiedTifKey_IOC);
+        const exTifValue_FOK = this.safeString (exchangeSpecificTifMap, unifiedTifKey_FOK);
+        const exTifValue_PO = this.safeString (exchangeSpecificTifMap, unifiedTifKey_PO);
+        const exTifValue_GTC = this.safeString (exchangeSpecificTifMap, unifiedTifKey_GTC);
+        //
+        // #################### TIF CHECK #################### //
+        //
+        // check if unified 'timeInForce' (if set in PARAMS) matches to either unified or exchange-specific value
+        const is_TIF_IOC = this.inArray (providedTifValue, [ unifiedTifKey_IOC, exTifValue_IOC ]);
+        const is_TIF_FOK = this.inArray (providedTifValue, [ unifiedTifKey_FOK, exTifValue_FOK ]);
+        const is_TIF_PO = this.inArray (providedTifValue, [ unifiedTifKey_PO, exTifValue_PO ]);
+        const is_TIF_GTC = this.inArray (providedTifValue, [ unifiedTifKey_GTC, exTifValue_GTC ]);
+        // #################### BOOLEAN CHECK #################### //
+        //
+        // check if unified POST-ONLY flag (if set in PARAMS) is set to true
+        const isUnifiedBoolPo = this.safeValueN (params, [ 'postOnly', 'post_only' ], false);
+        // exchangeSpecific value for post-only flag (if such exists)
+        const exchangeSpecificBooleanKeys = this.safeValue (tifOptions, 'booleans', {});
+        const exchangeSpecificPoKey = this.safeString (exchangeSpecificBooleanKeys, unifiedTifKey_PO);
+        // check if exchange-specific POST-ONLY flag (if set in PARAMS) is set to true
+        const isExchangeSpecificBoolPo = this.safeValue (params, exchangeSpecificPoKey);
+        //
+        const is_BOOL_PO = isUnifiedBoolPo || isExchangeSpecificBoolPo;
+        //
+        // #################### set final value ########################## //
+        //
+        const requestAddition = {};
+        const isAnyPo = is_TIF_PO || is_BOOL_PO;
+        if (isAnyPo) {
+            if (is_TIF_IOC || is_TIF_FOK) {
+                throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + providedTifValue);
+            } else if (isMarketOrder) {
+                throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
+            } else {
+                if (isExchangeSpecificBoolPo) {
+                    requestAddition[exchangeSpecificPoKey] = true;
+                } else if (exTifValue_PO) {
+                    requestAddition[exchangeSpecificTifKey] = exTifValue_PO;
+                }
+            }
+        }
+        return requestAddition;
+    }
+
     async fetchLastPrices (params = {}) {
         throw new NotSupported (this.id + ' fetchLastPrices() is not supported yet');
     }
