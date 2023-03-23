@@ -332,8 +332,6 @@ export default class okcoin extends _Exchange {
                         'cancel_algos',
                         'close_position',
                         'cancel_all',
-                        'order_algo',
-                        'cancel_algos',
                     ],
                 },
                 'option': {

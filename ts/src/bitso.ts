@@ -152,8 +152,6 @@ export default class bitso extends _Exchange {
                         'debit_card_withdrawal',
                         'ether_withdrawal',
                         'ripple_withdrawal',
-                        'bcash_withdrawal',
-                        'litecoin_withdrawal',
                         'orders',
                         'phone_number',
                         'phone_verification',

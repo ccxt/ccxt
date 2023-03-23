@@ -367,7 +367,6 @@ export default class huobi extends _Exchange {
                             'market/depth': 1,
                             'market/trade': 1,
                             'market/history/trade': 1,
-                            'market/detail/': 1,
                             'market/etp': 1, // Get real-time equity of leveraged ETP
                             // ETP
                             'v2/etp/reference': 1,
