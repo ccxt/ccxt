@@ -5,7 +5,7 @@ import { urlencodeBase64, stringToBase64 } from './encode.js';
 import { hmac } from './crypto.js';
 
 
-function rsa (request : string, secret : string, hash : CHash) {
+function rsa (request: string, secret: string, hash: CHash) {
     const RSA = new JSEncrypt ()
     const digester = (input) => base16.encode (hash (input))
     RSA.setPrivateKey (secret)
@@ -13,7 +13,7 @@ function rsa (request : string, secret : string, hash : CHash) {
     return RSA.sign (request, digester, name)
 }
 
-function jwt (request : object, secret: Uint8Array, hash : CHash, isRSA = false) {
+function jwt (request: object, secret: Uint8Array, hash: CHash, isRSA = false) {
     const alg = (isRSA ? 'RS' : 'HS') + (hash.outputLen * 8)
     const encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })));
     const encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)));

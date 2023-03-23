@@ -36,7 +36,7 @@ const json =  (data, params = undefined) => JSON.stringify (data)
 
     // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 
-    , urlencodeBase64 = (base64string) => base64string.replace (/[=]+$/, '')
+    , urlencodeBase64 = base64string => base64string.replace (/[=]+$/, '')
                                                    .replace (/\+/g, '-')
                                                    .replace (/\//g, '_')
 
