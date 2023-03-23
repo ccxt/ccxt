@@ -813,7 +813,7 @@ export default class itbit extends Exchange {
             const timestamp = nonce;
             const authBody = (method === 'POST') ? body : '';
             const auth = [ method, url, authBody, nonce, timestamp ];
-            const message = nonce + this.json (auth).replace ('\\/', '/');
+            const message = nonce + this.json (auth); // todo: this does not work in c# check this later.replace ('\\/', '/');
             const hash = this.hash (this.encode (message), 'sha256', 'binary');
             const binaryUrl = this.stringToBinary (this.encode (url));
             const binhash = this.binaryConcat (binaryUrl, hash);

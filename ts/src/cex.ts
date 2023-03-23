@@ -564,6 +564,7 @@ export default class cex extends Exchange {
                 return [];
             }
         }
+        return undefined;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -886,7 +887,7 @@ export default class cex extends Exchange {
                 feeRate = this.safeNumber (order, 'tradingFeeTaker', feeRate);
             }
             if (feeRate) {
-                feeRate /= 100.0; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
+                feeRate = feeRate / 100.0; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
             }
             if ((baseFee in order) || (baseTakerFee in order)) {
                 const baseFeeCost = this.safeNumber2 (order, baseFee, baseTakerFee);
