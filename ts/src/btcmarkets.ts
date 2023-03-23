@@ -1198,7 +1198,7 @@ export default class btcmarkets extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            const secret = this.base64ToBinary (this.encode (this.secret));
+            const secret = this.base64ToBinary (this.secret);
             let auth = method + request + nonce;
             if ((method === 'GET') || (method === 'DELETE')) {
                 if (Object.keys (query).length) {
