@@ -1,11 +1,11 @@
 import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
 import { CHash } from '../../static_dependencies/noble-hashes/utils.js';
-import { base16 } from '../../static_dependencies/scure-base/index.js';
+import { base16, utf8 } from '../../static_dependencies/scure-base/index.js';
 import { urlencodeBase64, stringToBase64 } from './encode.js';
 import { hmac } from './crypto.js';
 
 
-function rsa (request, secret, hash : CHash) {
+function rsa (request : string, secret : string, hash : CHash) {
     const RSA = new JSEncrypt ()
     const digester = (input) => base16.encode (hash (input))
     RSA.setPrivateKey (secret)
@@ -13,7 +13,7 @@ function rsa (request, secret, hash : CHash) {
     return RSA.sign (request, digester, name)
 }
 
-function jwt (request, secret, hash : CHash, isRSA = false) {
+function jwt (request : object, secret: Uint8Array, hash : CHash, isRSA = false) {
     const alg = (isRSA ? 'RS' : 'HS') + (hash.outputLen * 8)
     const encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })));
     const encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)));
@@ -23,7 +23,7 @@ function jwt (request, secret, hash : CHash, isRSA = false) {
     if (algoType === 'HS') {
         signature = urlencodeBase64 (hmac (token, secret, hash, 'base64'));
     } else if (algoType === 'RS') {
-        signature = urlencodeBase64 (rsa (token, secret, hash));
+        signature = urlencodeBase64 (rsa (token, utf8.encode (secret), hash));
     }
     return [ token, signature ].join ('.');
 }

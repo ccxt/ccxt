@@ -2,10 +2,10 @@
 
 import { hmac as _hmac } from '../../static_dependencies/noble-hashes/hmac.js';
 import { base16,  base64, base58 } from '../../static_dependencies/scure-base/index.js';
-import { Digest } from '../types.js';
-import { CHash } from '../../static_dependencies/noble-hashes/utils.js';
+import { CHash, Input } from '../../static_dependencies/noble-hashes/utils.js';
 import { CurveFn } from '../../static_dependencies/noble-curves/abstract/weierstrass.js';
 import { CurveFn as CurveFnEDDSA } from '../../static_dependencies/noble-curves/abstract/edwards.js';
+import { Hex } from '../../static_dependencies/noble-curves/abstract/utils.js';
 
 /*  ------------------------------------------------------------------------ */
 
@@ -15,21 +15,25 @@ const encoders = {
     base64: base64.encode,
 }
 
-const hash = (request, hash : CHash, digest : Digest = 'hex') => {
+type Digest = 'binary' | 'hex' | 'base64'
+
+/*  .............................................   */
+
+const hash = (request: Input, hash: CHash, digest: Digest = 'hex') => {
     const binary = hash (request)
     return encoders[digest] (binary)
 };
 
 /*  .............................................   */
 
-const hmac = (request, secret, hash : CHash, digest : Digest = 'hex') => {
+const hmac = (request: Input, secret: Input, hash: CHash, digest: Digest = 'hex') => {
     const binary = _hmac (hash, secret, request)
     return encoders[digest] (binary)
 };
 
 /*  .............................................   */
 
-function ecdsa (request: string, secret: string, curve: CurveFn, prehash: CHash = null) {
+function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null) {
     if (prehash) {
         request = hash (request, prehash, 'hex')
     }
@@ -41,18 +45,11 @@ function ecdsa (request: string, secret: string, curve: CurveFn, prehash: CHash 
     }
 }
 
-function eddsa (request, secret, curve: CurveFnEDDSA) {
+function eddsa (request: Hex, secret: Hex, curve: CurveFnEDDSA) {
     // used for waves.exchange (that's why the output is base58)
     const signature = curve.sign (request, secret)
     return base58.encode (signature)
 }
-function old (request, secret, CurveFnEDDSA) {
-    // const curve = new EDDSA ('ed25519');
-    // const signature = curve.signModified (request, secret);
-    //return binaryToBase58 (byteArrayToWordArray (signature.toBytes ()));
-}
-
-// old ('aa', 'aa'.repeat (16), '')
 
 /*  ------------------------------------------------------------------------ */
 

@@ -187,5 +187,3 @@ export interface DepositAddressResponse {
 
 /** [ timestamp, open, high, low, close, volume ] */
 export type OHLCV = [number, number, number, number, number, number];
-
-export type Digest = 'binary' | 'hex' | 'base64'
