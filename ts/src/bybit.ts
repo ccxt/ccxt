@@ -100,23 +100,6 @@ export default class bybit extends Exchange {
                 '1w': 'W',
                 '1M': 'M',
             },
-            'timeInForceMap': {
-                'unified': {
-                    'key': 'time_in_force',
-                    'strings': {
-                        'GTC': 'GTC',
-                        'IOC': 'IOC',
-                        'FOK': 'FOK',
-                        'PO': 'PostOnly',
-                    },
-                    'booleans': {
-                        'GTC': undefined,
-                        'IOC': undefined,
-                        'FOK': undefined,
-                        'PO': undefined,
-                    },
-                },
-            },
             'urls': {
                 'test': {
                     'spot': 'https://api-testnet.{hostname}',
@@ -1110,6 +1093,23 @@ export default class bybit extends Exchange {
                     '1h': '1h',
                     '4h': '4h',
                     '1d': '1d',
+                },
+                'timeInForceMap': {
+                    'unified': {
+                        'key': 'time_in_force',
+                        'strings': {
+                            'GTC': 'GTC',
+                            'IOC': 'IOC',
+                            'FOK': 'FOK',
+                            'PO': 'PostOnly',
+                        },
+                        'booleans': {
+                            'GTC': undefined,
+                            'IOC': undefined,
+                            'FOK': undefined,
+                            'PO': undefined,
+                        },
+                    },
                 },
             },
             'fees': {
@@ -3490,8 +3490,9 @@ export default class bybit extends Exchange {
         if (isLimit) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const requestTifAddition = this.handlePoTif ('unified', isMarket, params);
-        request = this.extend (request, requestTifAddition);
+        let requestAddition = undefined;
+        [ requestAddition, params ] = this.handlePoTif ('unified', isMarket, params);
+        request = this.extend (request, requestAddition);
         let triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');
