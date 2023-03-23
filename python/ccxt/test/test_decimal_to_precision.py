@@ -24,6 +24,9 @@ from ccxt.base.exchange import Exchange                          # noqa F401
 from ccxt.base.precise import Precise                            # noqa F401
 
 
+# @ts-nocheck
+# eslint-disable-next-line
+
 # ----------------------------------------------------------------------------
 # number_to_string
 
@@ -233,7 +236,7 @@ assert decimal_to_precision('1.45', ROUND, 0, DECIMAL_PLACES) == '1'  # not 2
 
 # ----------------------------------------------------------------------------
 # negative precision only implemented so far in python
-# pretty useless for decimal applications as anything |x| < 5 == 0
+# pretty useless for decimal applications |x| < 5 == 0
 # NO_PADDING and PAD_WITH_ZERO are ignored
 
 assert decimal_to_precision('5', ROUND, -1, DECIMAL_PLACES) == '10'
@@ -249,6 +252,13 @@ assert decimal_to_precision('69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) == '60'
 assert decimal_to_precision('-69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) == '-60'
 assert decimal_to_precision('69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS) == '0'
 assert decimal_to_precision('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_DIGITS) == '1600000000000000000000'
+
+# ----------------------------------------------------------------------------
+# decimal_to_precision: stringified precision
+assert decimal_to_precision('-0.000123456789', ROUND, '0.00000012', TICK_SIZE) == '-0.00012348'
+assert decimal_to_precision('-0.000123456789', TRUNCATE, '0.00000012', TICK_SIZE) == '-0.00012336'
+assert decimal_to_precision('-165', TRUNCATE, '110', TICK_SIZE) == '-110'
+assert decimal_to_precision('-165', ROUND, '110', TICK_SIZE) == '-220'
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionErrorHandling(todo)

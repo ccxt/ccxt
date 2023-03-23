@@ -128,7 +128,7 @@ The CCXT Pro audience consists mostly of professional algorithmic traders and de
 
 The general async-style flow for a CCXT application is as follows:
 
-```JavaScript
+```javascript
 
 // a RESTful orderbook polling request-response loop
 
@@ -168,7 +168,7 @@ The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migratio
 
 The general async-style flow for a CCXT Pro application (as opposed to a CCXT application above) is shown below:
 
-```JavaScript
+```javascript
 
 // a stream-based (WebSocket) orderbook feed loop
 
@@ -265,7 +265,7 @@ The unified methods returning arrays like `watchOHLCV`, `watchTrades`, `watchMyT
 
 The cache is a fixed-size deque aka array/list with two ends. The CCXT Pro library has a reasonable limit on the number of objects stored in memory. By default the caching array structures will store up to 1000 entries of each type (1000 most recent trades, 1000 most recent candles, 1000 most recent orders). The allowed maximum number can be configured by the user upon instantiation or later:
 
-```Python
+```python
 ccxtpro.binance({
     'options': {
         'tradesLimit': 1000,
@@ -315,7 +315,7 @@ The user can configure the cache limits using the `exchange.options` as was show
 
 **Note, that the `since` and `limit` [date-based pagination](Manual#date-based-pagination) params have a different meaning and are always applied within the cached window!** If the user specifies a `since` argument to the `watchTrades()` call, CCXT Pro will return all cached trades having `timestamp >= since`. If the user does not specify a `since` argument, CCXT pro will return cached trades from the beginning of the sliding window. If the user specifies a `limit` argument, the library will return up to `limit` candles starting from `since` or from the beginning of the cache. For that reason the user cannot paginate beyond the cached frame due to the WebSocket real-time specifics.
 
-```Python
+```python
 exchange.options['tradesLimit'] = 5  # set the size of the cache to 5
 
 # this call will return up to 5 cached trades
@@ -335,7 +335,7 @@ await exchange.watchTrades (symbol, since, limit)
 
 If you want to always get just the most recent trade, **you should instantiate the exchange with the newUpdates flag set to true**.
 
-```Python
+```python
 exchange = ccxtpro.binance({'newUpdates': True})
 while True:
     trades = await exchange.watchTrades (symbol)
@@ -346,9 +346,9 @@ The newUpdates mode continues to utilize the sliding cache in the background, bu
 
 The result from the newUpdates mode will be one or more updates that have occurred since the last time `exchange.watchMethod` resolved. CCXT Pro can return one or more orders that were updated since the previous call. The result of calling `exchange.watchOrders` will look like shown below:
 
-```JavaScript
+```javascript
 [
-    order, // see https://docs.ccxt.com/en/latest/manual.html#order-structure
+    order, // see https://docs.ccxt.com/#/?id=order-structure
     order,
     order,
     ...
@@ -357,21 +357,21 @@ The result from the newUpdates mode will be one or more updates that have occurr
 
 *Deprecation Warning*: in the future `newUpdates: true` will be the default mode and you will have to set newUpdates to false to get the sliding cache.
 
-```JavaScript
+```javascript
 // JavaScript
-const ccxtpro = require ('ccxt.pro')
+const ccxtpro = require ('ccxt').pro
 console.log ('CCXT version', ccxtpro.version)
 console.log ('Supported exchanges:', ccxtpro.exchanges)
 ```
 
-```Python
+```python
 # Python
 import ccxt.pro as ccxtpro
 print('CCXT version', ccxtpro.__version__)
 print('Supported exchanges:', ccxtpro.exchanges)
 ```
 
-```PHP
+```php
 // PHP
 use \ccxt\pro; // optional, since you can use fully qualified names
 echo 'CCXT version ', \ccxt\pro\Exchange::VERSION, "\n";
@@ -386,15 +386,15 @@ CCXT Pro is designed for async/await style syntax and relies heavily on async pr
 
 Creating a CCXT Pro exchange instance is pretty much identical to creating a CCXT exchange instance.
 
-```JavaScript
+```javascript
 // JavaScript
-const ccxt = require ('ccxt.pro')
+const ccxt = require ('ccxt').pro
 const exchange = new ccxtpro.binance ({ newUpdates: false })
 ```
 
 The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.python.org/3/library/asyncio.html) and [Event Loop](https://docs.python.org/3/library/asyncio-eventloop.html) in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to `ccxt.async support`):
 
-```Python
+```python
 # Python
 import ccxt.pro as ccxtpro
 from asyncio import run
@@ -412,21 +412,20 @@ run(main())
 
 In PHP the async primitives are borrowed from [ReactPHP](https://reactphp.org). The PHP implementation of CCXT Pro relies on [Promise](https://github.com/reactphp/promise) and [EventLoop](https://github.com/reactphp/event-loop) in particular. In PHP the user is required to supply a ReactPHP's event loop instance in the constructor arguments as shown below:
 
-```PHP
+```php
 // PHP
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 require_once 'vendor/autoload.php';
 
-$loop = \React\EventLoop\Factory::create(); // the event loop goes here ↓
-$exchange = new \ccxt\pro\kucoin(array('loop' => $loop, 'newUpdates': false ));
+$exchange = new \ccxt\pro\kucoin(array( 'newUpdates' => false ));
 ```
 
 ## Exchange Properties
 
 Every CCXT Pro instance contains all properties of the underlying CCXT instance. Apart from the standard CCXT properties, the CCXT Pro instance includes the following:
 
-```JavaScript
+```javascript
 {
     'has': { // an associative array of extended exchange capabilities
         'ws': true, // only available in CCXT Pro
@@ -478,7 +477,7 @@ Modern async syntax allows you to combine and split the execution into parallel 
 
 CCXT Pro supports two modes of tick function loops – the real-time mode and the throttling mode. Both of them are shown below in pseudocode:
 
-```JavaScript
+```javascript
 // real-time mode
 const limit = 5 // optional
 while (true) {
@@ -494,7 +493,7 @@ while (true) {
 }
 ```
 
-```JavaScript
+```javascript
 // throttling mode
 const limit = 5 // optional
 // await is optional, alternatively you can launch it in bg without await
@@ -522,11 +521,11 @@ The obvious downside of the throttling mode is being less reactive or responsive
 
 ##### watchOrderBook
 
-The `watchOrderBook`'s interface is identical to [fetchOrderBook](https://docs.ccxt.com/en/latest/manual.html#order-book). It accepts three arguments:
+The `watchOrderBook`'s interface is identical to [fetchOrderBook](https://docs.ccxt.com/#/?id=order-book). It accepts three arguments:
 
 - `symbol` – string, a unified CCXT symbol, required
 - `limit` – integer, the max number of bids/asks returned, optional
-- `params` – assoc dictionary, optional overrides as described in [Overriding Unified API Params](https://docs.ccxt.com/en/latest/manual.html#overriding-unified-api-params)
+- `params` – assoc dictionary, optional overrides as described in [Overriding Unified API Params](https://docs.ccxt.com/#/?id=overriding-unified-api-params)
 
 In general, the exchanges can be divided in two categories:
 
@@ -539,7 +538,7 @@ If the underlying exchange does not accept a limiting argument, the limiting is 
 
 The `limit` argument does not guarantee that the number of bids or asks will always be equal to `limit`. It designates the upper boundary or the maximum, so at some moment in time there may be less than `limit` bids or asks, but never more than `limit` bids or asks. This is the case when the exchange does not have enough orders on the orderbook, or when one of the top orders in the orderbook gets matched and removed from the orderbook, leaving less than `limit` entries on either bids side or asks side. The free space in the orderbook usually gets quickly filled with new data.
 
-```JavaScript
+```javascript
 // JavaScript
 if (exchange.has['watchOrderBook']) {
     while (true) {
@@ -555,7 +554,7 @@ if (exchange.has['watchOrderBook']) {
 }
 ```
 
-```Python
+```python
 # Python
 if exchange.has['watchOrderBook']:
     while True:
@@ -568,7 +567,7 @@ if exchange.has['watchOrderBook']:
             # raise e
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['watchOrderBook']) {
     $exchange::execute_and_run(function() use ($exchange, $symbol, $limit, $params) {
@@ -586,7 +585,7 @@ if ($exchange->has['watchOrderBook']) {
 
 ##### watchTicker
 Some exchanges allow different topics to listen to tickers (ie: bookTicker). You can set this in `exchange.options['watchTicker']['name']`
-```JavaScript
+```javascript
 // JavaScript
 if (exchange.has['watchTicker']) {
     while (true) {
@@ -602,7 +601,7 @@ if (exchange.has['watchTicker']) {
 }
 ```
 
-```Python
+```python
 # Python
 if exchange.has['watchTicker']:
     while True:
@@ -615,7 +614,7 @@ if exchange.has['watchTicker']:
             # raise e
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['watchTicker']) {
     $exchange::execute_and_run(function() use ($exchange, $symbol, $params) {
@@ -633,7 +632,7 @@ if ($exchange->has['watchTicker']) {
 
 ##### watchTickers
 
-```JavaScript
+```javascript
 // JavaScript
 if (exchange.has['watchTickers']) {
     while (true) {
@@ -649,7 +648,7 @@ if (exchange.has['watchTickers']) {
 }
 ```
 
-```Python
+```python
 # Python
 if exchange.has['watchTickers']:
     while True:
@@ -662,7 +661,7 @@ if exchange.has['watchTickers']:
             # raise e
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['watchTickers']) {
     $exchange::execute_and_run(function() use ($exchange, $symbols, $params) {
@@ -700,7 +699,7 @@ There is no strict guarantee on how much time it will take from the exchange to 
 
 Most people use WS to avoid any sorts of delays and have real-time data. So, in most cases it is much better to not wait for the exchange. Recalculating the 2nd order data from 1st order data on your own may be much faster and that can lower the unnecessary delays. Therefore it does not make much sense to use WS for watching just the OHLCV candles from the exchange. Developers would rather `watch_trades()` instead and recalculate the OHLCV candles using CCXT's built-in methods like `build_ohlcvc()`.
 
-```Python
+```python
 # Python
 exchange = ccxtpro.binance()
 if not exchange.has['watchOHLCV']:
@@ -719,7 +718,7 @@ That explains why some exchanges reasonably think that OHLCVs are not necessary 
 
 If your application is not very time-critical, you can still subscribe to OHLCV streams, for charting purposes. If the underlying `exchange.has['watchOHLCV']`, you can `watchOHLCV()/watch_ohlcv()` as shown below:
 
-```JavaScript
+```javascript
 // JavaScript
 if (exchange.has['watchOHLCV']) {
     while (true) {
@@ -735,7 +734,7 @@ if (exchange.has['watchOHLCV']) {
 }
 ```
 
-```Python
+```python
 # Python
 if exchange.has['watchOHLCV']:
     while True:
@@ -748,7 +747,7 @@ if exchange.has['watchOHLCV']:
             # raise e
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['watchOHLCV']) {
     $exchange::execute_and_run(function() use ($exchange, $symbol, $timeframe, $since, $limit, $params) {
@@ -766,7 +765,7 @@ if ($exchange->has['watchOHLCV']) {
 
 ##### watchTrades
 
-```JavaScript
+```javascript
 // JavaScript
 if (exchange.has['watchTrades']) {
     while (true) {
@@ -782,7 +781,7 @@ if (exchange.has['watchTrades']) {
 }
 ```
 
-```Python
+```python
 # Python
 if exchange.has['watchTrades']:
     while True:
@@ -795,7 +794,7 @@ if exchange.has['watchTrades']:
             # raise e
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['watchTrades']) {
     $exchange::execute_and_run(function() use ($exchange, $symbol, $since, $limit, $params) {
@@ -819,13 +818,13 @@ if ($exchange->has['watchTrades']) {
 
 #### Authentication
 
-In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See [API Keys Setup](https://docs.ccxt.com/en/latest/manual.html#api-keys-setup) for more details.
+In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See [API Keys Setup](https://docs.ccxt.com/#/?id=api-keys-setup) for more details.
 
 #### Trading
 
 ##### watchBalance
 
-```JavaScript
+```javascript
 // JavaScript
 if (exchange.has['watchBalance']) {
     while (true) {
@@ -841,7 +840,7 @@ if (exchange.has['watchBalance']) {
 }
 ```
 
-```Python
+```python
 # Python
 if exchange.has['watchBalance']:
     while True:
@@ -854,7 +853,7 @@ if exchange.has['watchBalance']:
             # raise e
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['watchBalance']) {
     $exchange::execute_and_run(function() use ($exchange, $params) {
@@ -872,34 +871,34 @@ if ($exchange->has['watchBalance']) {
 
 ##### watchOrders
 
-```JavaScript
+```javascript
 // JavaScript
 watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
 
-```Python
+```python
 # Python
 watch_orders(symbol=None, since=None, limit=None, params={})
 ```
 
-```PHP
+```php
 // PHP
 watch_orders($symbol = null, $since = null, $lmit = null, $params = array());
 ```
 
 ##### watchMyTrades
 
-```JavaScript
+```javascript
 // JavaScript
 watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
 
-```Python
+```python
 # Python
 watch_my_trades(symbol=None, since=None, limit=None, params={})
 ```
 
-```PHP
+```php
 // PHP
 watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 ```
@@ -914,4 +913,4 @@ watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 
 ### Error Handling
 
-In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://docs.ccxt.com/en/latest/manual.html#error-handling) for more details.
+In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://docs.ccxt.com/#/?id=error-handling) for more details.
