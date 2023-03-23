@@ -1,14 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/bitforex.js';
+import Exchange from './abstract/bitforex.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class bitforex extends _Exchange {
+export default class bitforex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitforex',

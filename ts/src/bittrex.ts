@@ -1,14 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/bittrex.js';
+import Exchange from './abstract/bittrex.js';
 import { ArgumentsRequired, BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class bittrex extends _Exchange {
+export default class bittrex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bittrex',

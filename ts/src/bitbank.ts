@@ -1,14 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/bitbank.js';
+import Exchange from './abstract/bitbank.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class bitbank extends _Exchange {
+export default class bitbank extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitbank',

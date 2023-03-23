@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/okx.js';
+import Exchange from './abstract/okx.js';
 import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -9,7 +9,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class okx extends _Exchange {
+export default class okx extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okx',

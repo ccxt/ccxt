@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/btcbox.js';
+import Exchange from './abstract/btcbox.js';
 import { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, PermissionDenied, InvalidNonce, OrderNotFound, DDoSProtection } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -9,7 +9,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class btcbox extends _Exchange {
+export default class btcbox extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcbox',

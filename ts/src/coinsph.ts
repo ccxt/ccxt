@@ -1,10 +1,10 @@
-import _Exchange from './abstract/coinsph.js';
+import Exchange from './abstract/coinsph.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InvalidAddress, InvalidOrder, InsufficientFunds, NotSupported, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 
 // @ts-ignore
-export default class coinsph extends _Exchange {
+export default class coinsph extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinsph',

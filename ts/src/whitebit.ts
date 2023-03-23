@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/whitebit.js';
+import Exchange from './abstract/whitebit.js';
 import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -9,7 +9,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class whitebit extends _Exchange {
+export default class whitebit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'whitebit',

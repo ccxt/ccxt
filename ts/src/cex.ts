@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/cex.js';
+import Exchange from './abstract/cex.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -9,7 +9,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class cex extends _Exchange {
+export default class cex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'cex',

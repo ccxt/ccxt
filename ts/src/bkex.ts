@@ -1,14 +1,14 @@
 
 // ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/bkex.js';
+import Exchange from './abstract/bkex.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 // ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class bkex extends _Exchange {
+export default class bkex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bkex',

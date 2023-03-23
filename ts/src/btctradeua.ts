@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/btctradeua.js';
+import Exchange from './abstract/btctradeua.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -9,7 +9,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class btctradeua extends _Exchange {
+export default class btctradeua extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btctradeua',

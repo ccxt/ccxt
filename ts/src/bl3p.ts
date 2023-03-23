@@ -1,14 +1,14 @@
 
 // ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/bl3p.js';
+import Exchange from './abstract/bl3p.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 // ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class bl3p extends _Exchange {
+export default class bl3p extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bl3p',

@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/itbit.js';
+import Exchange from './abstract/itbit.js';
 import { ExchangeError, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -9,7 +9,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class itbit extends _Exchange {
+export default class itbit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'itbit',

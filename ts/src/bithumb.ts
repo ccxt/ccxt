@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/bithumb.js';
+import Exchange from './abstract/bithumb.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
@@ -9,7 +9,7 @@ import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/n
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class bithumb extends _Exchange {
+export default class bithumb extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bithumb',

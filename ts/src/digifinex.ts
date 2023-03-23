@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/digifinex.js';
+import Exchange from './abstract/digifinex.js';
 import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
@@ -9,7 +9,7 @@ import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class digifinex extends _Exchange {
+export default class digifinex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'digifinex',

@@ -1,7 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/yobit.js';
+import Exchange from './abstract/yobit.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -9,7 +9,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 // ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class yobit extends _Exchange {
+export default class yobit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'yobit',

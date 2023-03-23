@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/bitso.js';
+import Exchange from './abstract/bitso.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -9,7 +9,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class bitso extends _Exchange {
+export default class bitso extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitso',
@@ -151,7 +151,6 @@ export default class bitso extends _Exchange {
                         'bitcoin_withdrawal',
                         'debit_card_withdrawal',
                         'ether_withdrawal',
-                        'ripple_withdrawal',
                         'orders',
                         'phone_number',
                         'phone_verification',

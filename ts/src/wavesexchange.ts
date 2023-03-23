@@ -1,14 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/wavesexchange.js';
+import Exchange from './abstract/wavesexchange.js';
 import { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended, ExchangeError, DuplicateOrderId, OrderNotFound, BadSymbol, ExchangeNotAvailable, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class wavesexchange extends _Exchange {
+export default class wavesexchange extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'wavesexchange',

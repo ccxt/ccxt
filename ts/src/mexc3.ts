@@ -1,7 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/mexc3.js';
+import Exchange from './abstract/mexc3.js';
 import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
@@ -9,7 +9,7 @@ import { Precise } from './base/Precise.js';
 // ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class mexc3 extends _Exchange {
+export default class mexc3 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'mexc3',

@@ -1,7 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/mexc.js';
+import Exchange from './abstract/mexc.js';
 import { AccountNotEnabled, InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -9,7 +9,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 // ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class mexc extends _Exchange {
+export default class mexc extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'mexc',

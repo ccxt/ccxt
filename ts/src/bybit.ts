@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/bybit.js';
+import Exchange from './abstract/bybit.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
@@ -9,7 +9,7 @@ import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class bybit extends _Exchange {
+export default class bybit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bybit',

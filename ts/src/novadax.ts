@@ -1,14 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/novadax.js';
+import Exchange from './abstract/novadax.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired, AccountNotEnabled } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class novadax extends _Exchange {
+export default class novadax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'novadax',

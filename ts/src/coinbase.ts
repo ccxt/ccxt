@@ -1,7 +1,7 @@
 
 // ----------------------------------------------------------------------------
 
-import _Exchange from './abstract/coinbase.js';
+import Exchange from './abstract/coinbase.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
@@ -9,7 +9,7 @@ import { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js'
 // ----------------------------------------------------------------------------
 
 // @ts-ignore
-export default class coinbase extends _Exchange {
+export default class coinbase extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbase',

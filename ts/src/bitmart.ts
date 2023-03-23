@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/bitmart.js';
+import Exchange from './abstract/bitmart.js';
 import { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
@@ -9,7 +9,7 @@ import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class bitmart extends _Exchange {
+export default class bitmart extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitmart',

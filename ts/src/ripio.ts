@@ -1,14 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/ripio.js';
+import Exchange from './abstract/ripio.js';
 import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, InvalidOrder, ArgumentsRequired, OrderNotFound, InsufficientFunds, DDoSProtection } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class ripio extends _Exchange {
+export default class ripio extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'ripio',

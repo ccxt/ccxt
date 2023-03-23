@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/cryptocom.js';
+import Exchange from './abstract/cryptocom.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 // @ts-ignore
-export default class cryptocom extends _Exchange {
+export default class cryptocom extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'cryptocom',

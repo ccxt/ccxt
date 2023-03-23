@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/zonda.js';
+import Exchange from './abstract/zonda.js';
 import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
@@ -9,7 +9,7 @@ import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class zonda extends _Exchange {
+export default class zonda extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'zonda',

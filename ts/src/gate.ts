@@ -1,12 +1,12 @@
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/gate.js';
+import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 
 // @ts-ignore
-export default class gate extends _Exchange {
+export default class gate extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gate',
