@@ -3742,7 +3742,7 @@ export default class Exchange {
         return [ false, params ];
     }
 
-    async handlePoTif (accountMarketType: string, isMarketOrder: boolean, params: any = {}) {
+    handlePoTif (accountMarketType: string, isMarketOrder: boolean, params: any = {}) {
         // our unified strings
         const unifiedTifKey = 'timeInForce';
         const unifiedTifKey_IOC = 'IOC';
