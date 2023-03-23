@@ -32,13 +32,17 @@ function generateImplicitMethodNames(id, api, paths: string[] = []){
         let value = api[key];
         let endpoints = [] as any
         if (isHttpMethod(key)){
-            if (value && typeof value === 'object') {
+            if (value && !Array.isArray(value)) {
                 endpoints = Object.keys(value)
             } else {
                 if  (Array.isArray(value)) {
                     endpoints = [];
                     for (const item of value){
-                        endpoints.push(item[0])
+                        if (Array.isArray(item)) {
+                            endpoints.push(item[0])
+                        } else {
+                            endpoints.push(item)
+                        }
                     }
                 }
             }
