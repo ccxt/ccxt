@@ -70,7 +70,7 @@ function createImplicitMethods(){
         const methodNames = storedResult[exchange];
 
         const methods =  methodNames.map(method=> {
-            return `${IDEN}${method} (params?: {});`
+            return `${IDEN}${method} (params?: {}): Promise<{} | string>;`
         }).join('\n');
         storedMethods[exchange] = methods
     }
