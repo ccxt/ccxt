@@ -6,7 +6,7 @@ import ndax from './ndax.js';
 //  ---------------------------------------------------------------------------
 
 // @ts-ignore
-export default class flowbtc extends _ndax {
+export default class flowbtc extends ndax {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'flowbtc',

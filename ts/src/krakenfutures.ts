@@ -1,14 +1,13 @@
 //  ---------------------------------------------------------------------------
 
-import _Exchange from './abstract/krakenfutures.js';
+import { Exchange } from './base/Exchange.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-ignore
-export default class krakenfutures extends _Exchange {
+export default class krakenfutures extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'krakenfutures',
