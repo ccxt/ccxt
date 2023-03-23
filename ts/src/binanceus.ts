@@ -38,7 +38,6 @@ export default class binanceus extends binance {
             'options': {
                 'fetchMarkets': [ 'spot' ],
                 'defaultType': 'spot',
-                'quoteOrderQty': false,
             },
             'has': {
                 'CORS': undefined,
