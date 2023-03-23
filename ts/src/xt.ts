@@ -38,6 +38,7 @@ export default class xt extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -1617,9 +1618,113 @@ export default class xt extends Exchange {
         return this.parseTrades (trades, market);
     }
 
-    parseTrade (trade, market = undefined) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://doc.xt.com/#tradetradeGet
+         * @see https://doc.xt.com/#futures_ordergetTrades
+         * @param {string|undefined} symbol unified market symbol to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
+        let method = 'privateSpotGetTrade';
+        if (subType !== undefined) {
+            if (limit !== undefined) {
+                request['size'] = limit;
+            }
+            if (subType === 'linear') {
+                method = 'privateLinearGetFutureTradeV1OrderTradeList';
+            } else if (subType === 'inverse') {
+                method = 'privateInverseGetFutureTradeV1OrderTradeList';
+            }
+        } else {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {
+        //             "hasPrev": false,
+        //             "hasNext": false,
+        //             "items": [
+        //                 {
+        //                     "symbol": "btc_usdt",
+        //                     "tradeId": "206906233569974658",
+        //                     "orderId": "206906233178463488",
+        //                     "orderSide": "SELL",
+        //                     "orderType": "MARKET",
+        //                     "bizType": "SPOT",
+        //                     "time": 1679032290215,
+        //                     "price": "25703.46",
+        //                     "quantity": "0.000099",
+        //                     "quoteQty": "2.54464254",
+        //                     "baseCurrency": "btc",
+        //                     "quoteCurrency": "usdt",
+        //                     "fee": "0.00508929",
+        //                     "feeCurrency": "usdt",
+        //                     "takerMaker": "TAKER"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "page": 1,
+        //             "ps": 10,
+        //             "total": 2,
+        //             "items": [
+        //                 {
+        //                     "orderId": "207260566170987200",
+        //                     "execId": "207260566790603265",
+        //                     "symbol": "btc_usdt",
+        //                     "quantity": "13",
+        //                     "price": "27368",
+        //                     "fee": "0.02134704",
+        //                     "feeCoin": "usdt",
+        //                     "timestamp": 1679116769838,
+        //                     "takerMaker": "TAKER"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const trades = this.safeValue (data, 'items', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // spot: fetchTrades
         //
         //     {
         //         "i": 203530723141917063,
@@ -1630,7 +1735,7 @@ export default class xt extends Exchange {
         //         "b": true
         //     }
         //
-        // swap and future
+        // swap and future: fetchTrades
         //
         //     {
         //         "t": 1678227683897,
@@ -1640,39 +1745,75 @@ export default class xt extends Exchange {
         //         "m": "BID"
         //     }
         //
-        const marketId = this.safeString (trade, 's');
+        // spot: fetchMyTrades
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "tradeId": "206906233569974658",
+        //         "orderId": "206906233178463488",
+        //         "orderSide": "SELL",
+        //         "orderType": "MARKET",
+        //         "bizType": "SPOT",
+        //         "time": 1679032290215,
+        //         "price": "25703.46",
+        //         "quantity": "0.000099",
+        //         "quoteQty": "2.54464254",
+        //         "baseCurrency": "btc",
+        //         "quoteCurrency": "usdt",
+        //         "fee": "0.00508929",
+        //         "feeCurrency": "usdt",
+        //         "takerMaker": "TAKER"
+        //     }
+        //
+        // swap and future: fetchMyTrades
+        //
+        //     {
+        //         "orderId": "207260566170987200",
+        //         "execId": "207260566790603265",
+        //         "symbol": "btc_usdt",
+        //         "quantity": "13",
+        //         "price": "27368",
+        //         "fee": "0.02134704",
+        //         "feeCoin": "usdt",
+        //         "timestamp": 1679116769838,
+        //         "takerMaker": "TAKER"
+        //     }
+        //
+        const marketId = this.safeString2 (trade, 's', 'symbol');
         let marketType = (market !== undefined) ? market['type'] : undefined;
         if (marketType === undefined) {
-            marketType = ('b' in trade) ? 'spot' : 'contract';
+            marketType = ('b' in trade) || ('bizType' in trade) ? 'spot' : 'contract';
         }
         market = this.safeMarket (marketId, market, '_', marketType);
         const bidOrAsk = this.safeString (trade, 'm');
-        let side = undefined;
+        let side = this.safeStringLower (trade, 'orderSide');
         if (bidOrAsk !== undefined) {
             side = (bidOrAsk === 'BID') ? 'buy' : 'sell';
         }
         const buyerMaker = this.safeValue (trade, 'b');
-        let takerOrMaker = undefined;
+        let takerOrMaker = this.safeStringLower (trade, 'takerMaker');
         if (buyerMaker !== undefined) {
             takerOrMaker = buyerMaker ? 'maker' : 'taker';
         }
-        const timestamp = this.safeInteger (trade, 't');
+        const timestamp = this.safeIntegerN (trade, [ 't', 'time', 'timestamp' ]);
+        const quantity = this.safeString2 (trade, 'q', 'quantity');
+        const amount = (marketType === 'spot') ? quantity : Precise.stringMul (quantity, this.numberToString (market['contractSize']));
         return {
             'info': trade,
-            'id': this.safeString (trade, 'i'),
+            'id': this.safeStringN (trade, [ 'i', 'tradeId', 'execId' ]),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': undefined,
-            'type': undefined,
+            'order': this.safeString (trade, 'orderId'),
+            'type': this.safeStringLower (trade, 'orderType'),
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': this.safeNumber (trade, 'p'),
-            'amount': this.safeNumber (trade, 'q'),
+            'price': this.safeNumber2 (trade, 'p', 'price'),
+            'amount': this.parseNumber (amount),
             'cost': undefined,
             'fee': {
-                'cost': undefined,
-                'currency': undefined,
+                'currency': this.safeCurrencyCode (this.safeString2 (trade, 'feeCurrency', 'feeCoin')),
+                'cost': this.safeNumber (trade, 'fee'),
                 'rate': undefined,
             },
         };
@@ -2610,7 +2751,7 @@ export default class xt extends Exchange {
             'average': this.safeNumber (order, 'avgPrice'),
             'status': this.parseOrderStatus (this.safeString (order, 'state')),
             'fee': {
-                'currency': this.safeString (order, 'feeCurrency'),
+                'currency': this.safeCurrencyCode (this.safeString (order, 'feeCurrency')),
                 'cost': this.safeNumber (order, 'fee'),
             },
             'trades': undefined,
