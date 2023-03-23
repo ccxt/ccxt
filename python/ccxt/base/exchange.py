@@ -3088,7 +3088,7 @@ class Exchange(object):
 
     def oath(self):
         if self.twofa is not None:
-            return totp(self.twofa)
+            return self.totp(self.twofa)
         else:
             raise ExchangeError(self.id + ' exchange.twofa has not been set for 2FA Two-Factor Authentication')
 
