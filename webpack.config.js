@@ -1,19 +1,15 @@
+import path from 'path';
 
-const path = (new URL (import.meta.url)).pathname;
-const split = path.split ('/')
-split[split.length - 1] = 'dist'
+const cwd = (new URL (import.meta.url)).pathname;
+const outputDirectory = path.join (path.dirname (cwd), 'dist')
 
 export default {
-  experiments: {
-    outputModule: true,
-    topLevelAwait: true,
-  },
   entry : './ts/ccxt.ts',
   output: {
-    path: split.join ('/'),
+    path: outputDirectory,
     filename: 'ccxt.browser.js',
     library: {
-      type: 'window', // do not change
+      type: 'window', // we are targeting the browser
       name: 'ccxt',
     },
     chunkFormat: 'array-push',
@@ -32,7 +28,7 @@ export default {
   },
   resolve: {
     extensions: [ '.ts' ],
-    // Add support for TypeScripts fully qualified ESM imports.
+    // this line is needed because we use import xxx.js in ccxt
     extensionAlias: {
      '.js': [ '.js', '.ts' ],
     },
@@ -41,7 +37,7 @@ export default {
   target: 'web',
   optimization: {
     minimize: false,
-    usedExports: true,
+    usedExports: true, // these two lines line turns on tree shaking
     concatenateModules: false,
   },
 }

@@ -1,5 +1,5 @@
 import { RequestTimeout, NetworkError ,NotSupported, BaseError } from '../../base/errors.js';
-import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/index.js';
+import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
 import Future from './Future.js';
 
 import {
