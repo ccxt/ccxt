@@ -14,7 +14,7 @@ function isHttpMethod(method){
 }
 //-------------------------------------------------------------------------
 
-const capitalize = (s: string): string => {
+const capitalize = (s) => {
     return s.length ? (s.charAt (0).toUpperCase () + s.slice (1)) : s;
 };
 
@@ -26,11 +26,11 @@ function lowercaseFirstLetter(string) {
 
 //-------------------------------------------------------------------------
 
-function generateImplicitMethodNames(id, api, paths: string[] = []){
+function generateImplicitMethodNames(id, api, paths = []){
     const keys = Object.keys(api);
     for (const key of keys){
         let value = api[key];
-        let endpoints = [] as any
+        let endpoints = []
         if (isHttpMethod(key)){
             if (value && !Array.isArray(value)) {
                 endpoints = Object.keys(value)
@@ -97,9 +97,9 @@ async function main() {
         const parent = Object.getPrototypeOf (Object.getPrototypeOf(instance)).constructor.name
         const importType = 'import { implicitReturnType } from \'../base/types.js\''
         const importParent = (parent === 'Exchange') ?
-            `import { Exchange } from '../base/Exchange.js'` :
-            `import ${parent} from '../${parent}.js'`
-        const header = `abstract class _${parent } extends ${parent} {` // hotswap later
+            `import { Exchange as _Exchange } from '../base/Exchange.js'` :
+            `import _${parent} from '../${parent}.js'`
+        const header = `export default abstract class ${parent} extends _${parent} {` // hotswap later
         storedResult[exchange] = []
         storedMethods[exchange] = [ importType, importParent, '', header ];
         generateImplicitMethodNames(exchange, instance.api)
