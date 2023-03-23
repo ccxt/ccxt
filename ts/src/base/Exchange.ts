@@ -3748,7 +3748,7 @@ export default class Exchange {
         const unifiedTifKey_IOC = 'IOC';
         const unifiedTifKey_FOK = 'FOK';
         const unifiedTifKey_PO = 'PO';
-        const unifiedTifKey_GTC = 'GTC';
+        // const unifiedTifKey_GTC = 'GTC';
         // get exchange TIF mappings
         const tifOptionsAllMarkets = this.safeValue (this.options, 'timeInForceMap', {});
         // accountMarketType might 'spot', 'swap', 'unified', 'whatever_custom' ...
@@ -3758,12 +3758,12 @@ export default class Exchange {
         // get exchangeSpecific TIF values map
         const exchangeSpecificTifMap = this.safeValue (tifOptions, 'strings', {});
         // unified or exchangeSpecific TIF value (if set in PARAMS)
-        const providedTifValue = this.safeString (params, exchangeSpecificTifKey, unifiedTifKey);
+        const providedTifValue = this.safeString2 (params, exchangeSpecificTifKey, unifiedTifKey);
         // exchangeSpecific values for different TIME IN FORCE values
         const exTifValue_IOC = this.safeString (exchangeSpecificTifMap, unifiedTifKey_IOC);
         const exTifValue_FOK = this.safeString (exchangeSpecificTifMap, unifiedTifKey_FOK);
         const exTifValue_PO = this.safeString (exchangeSpecificTifMap, unifiedTifKey_PO);
-        const exTifValue_GTC = this.safeString (exchangeSpecificTifMap, unifiedTifKey_GTC);
+        // const exTifValue_GTC = this.safeString (exchangeSpecificTifMap, unifiedTifKey_GTC);
         //
         // #################### TIF CHECK #################### //
         //
@@ -3771,7 +3771,7 @@ export default class Exchange {
         const is_TIF_IOC = this.inArray (providedTifValue, [ unifiedTifKey_IOC, exTifValue_IOC ]);
         const is_TIF_FOK = this.inArray (providedTifValue, [ unifiedTifKey_FOK, exTifValue_FOK ]);
         const is_TIF_PO = this.inArray (providedTifValue, [ unifiedTifKey_PO, exTifValue_PO ]);
-        const is_TIF_GTC = this.inArray (providedTifValue, [ unifiedTifKey_GTC, exTifValue_GTC ]);
+        // const is_TIF_GTC = this.inArray (providedTifValue, [ unifiedTifKey_GTC, exTifValue_GTC ]);
         // #################### BOOLEAN CHECK #################### //
         //
         // check if unified POST-ONLY flag (if set in PARAMS) is set to true
@@ -3796,10 +3796,11 @@ export default class Exchange {
             } else {
                 if (isExchangeSpecificBoolPo) {
                     requestAddition[exchangeSpecificPoKey] = true;
-                } else if (exTifValue_PO) {
-                    requestAddition[exchangeSpecificTifKey] = exTifValue_PO;
                 }
             }
+        }
+        if (providedTifValue !== undefined) {
+            requestAddition[exchangeSpecificTifKey] = this.safeValue (exchangeSpecificTifMap, providedTifValue);
         }
         return requestAddition;
     }
