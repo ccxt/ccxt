@@ -3802,7 +3802,8 @@ export default class Exchange {
         if (providedTifValue !== undefined) {
             requestAddition[exchangeSpecificTifKey] = this.safeValue (exchangeSpecificTifMap, providedTifValue);
         }
-        return requestAddition;
+        const paramsOmited = this.omit (params, [ 'postOnly', 'post_only', exchangeSpecificPoKey, exchangeSpecificTifKey, unifiedTifKey ]);
+        return [ requestAddition, paramsOmited ];
     }
 
     async fetchLastPrices (params = {}) {
