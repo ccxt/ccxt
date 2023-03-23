@@ -6,6 +6,7 @@ import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-ignore
 export default class hitbtc extends hitbtcRest {
     describe () {
         return this.deepExtend (super.describe (), {

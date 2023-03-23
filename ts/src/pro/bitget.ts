@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../ba
 
 //  ---------------------------------------------------------------------------
 
+// @ts-ignore
 export default class bitget extends bitgetRest {
     describe () {
         return this.deepExtend (super.describe (), {

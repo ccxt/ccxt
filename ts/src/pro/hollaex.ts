@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-ignore
 export default class hollaex extends hollaexRest {
     describe () {
         return this.deepExtend (super.describe (), {

@@ -6,6 +6,7 @@ import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-ignore
 export default class independentreserve extends independentreserveRest {
     describe () {
         return this.deepExtend (super.describe (), {

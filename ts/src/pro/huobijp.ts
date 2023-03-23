@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 // ----------------------------------------------------------------------------
 
+// @ts-ignore
 export default class huobijp extends huobijpRest {
     describe () {
         return this.deepExtend (super.describe (), {

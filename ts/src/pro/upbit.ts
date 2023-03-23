@@ -6,6 +6,7 @@ import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-ignore
 export default class upbit extends upbitRest {
     describe () {
         return this.deepExtend (super.describe (), {

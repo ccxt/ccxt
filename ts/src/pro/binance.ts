@@ -8,6 +8,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 
 // -----------------------------------------------------------------------------
 
+// @ts-ignore
 export default class binance extends binanceRest {
     describe () {
         return this.deepExtend (super.describe (), {

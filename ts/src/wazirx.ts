@@ -1,11 +1,10 @@
 
-import _Exchange from './abstract/wazirx.js';
+import { Exchange } from './base/Exchange.js';
 import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
-// @ts-ignore
-export default class wazirx extends _Exchange {
+export default class wazirx extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'wazirx',

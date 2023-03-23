@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 
 //  ---------------------------------------------------------------------------
 
+// @ts-ignore
 export default class okcoin extends okcoinRest {
     describe () {
         return this.deepExtend (super.describe (), {

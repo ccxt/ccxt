@@ -6,6 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../ba
 
 //  ---------------------------------------------------------------------------
 
+// @ts-ignore
 export default class deribit extends deribitRest {
     describe () {
         return this.deepExtend (super.describe (), {

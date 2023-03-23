@@ -7,6 +7,7 @@ import { Precise } from '../base/Precise.js';
 
 // ----------------------------------------------------------------------------
 
+// @ts-ignore
 export default class woo extends wooRest {
     describe () {
         return this.deepExtend (super.describe (), {
