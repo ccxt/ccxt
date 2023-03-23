@@ -1,6 +1,6 @@
 import path from 'path';
 
-const cwd = (new URL (import.meta.url)).pathname;
+const cwd = path.normalize ((new URL (import.meta.url)).pathname);
 const outputDirectory = path.join (path.dirname (cwd), 'dist')
 
 export default {
