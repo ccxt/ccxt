@@ -3,7 +3,7 @@ import { promisify } from 'util';
 import fs from 'fs';
 import log from 'ololog'
 
-const PATH = './js/src/';
+const PATH = './ts/src/abstract/';
 const IDEN = '    ';
 
 const promiseReadFile = promisify (fs.readFile);
@@ -70,9 +70,10 @@ function createImplicitMethods(){
         const methodNames = storedResult[exchange];
 
         const methods =  methodNames.map(method=> {
-            return `${IDEN}${method} (params?: {}): Promise<{} | string>;`
-        }).join('\n');
-        storedMethods[exchange] = methods
+            return `${IDEN}abstract ${method} (params?: {}): Promise<implicitReturnType>;`
+        });
+        methods.push ('}')
+        storedMethods[exchange] = storedMethods[exchange].concat (methods)
     }
 }
 
@@ -80,17 +81,8 @@ function createImplicitMethods(){
 
 async function editTypesFiles(){
     const exchanges = Object.keys(storedResult);
-    const files = exchanges.map(ex => PATH + ex + '.d.ts');
-    const fileArray = await Promise.all (files.map (file => promiseReadFile (file, 'utf8')));
-
-    const transformedFiles = fileArray.map((file, idx) => {
-        const exchange = exchanges[idx]
-        file = file.slice(0, file.lastIndexOf('}')) // remove last }
-        file = file + storedMethods[exchange] + '\n}' // restore }
-        return file;
-    });
-
-    await Promise.all(transformedFiles.map((f,idx) => promisedWriteFile(PATH + exchanges[idx] + '.d.ts', f)))
+    const files = exchanges.map(ex => PATH + ex + '.ts');
+    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedMethods[exchanges[idx]].join ('\n'))))
 }
 
 //-------------------------------------------------------------------------
@@ -100,8 +92,16 @@ async function main() {
     const exchanges = ccxt.exchanges;
     for (const index in exchanges) {
         const exchange = exchanges[index];
-        storedResult[exchange] = [];
-        const instance = new ccxt[exchange]();
+        const exchangeClass = ccxt[exchange]
+        const instance = new exchangeClass();
+        const parent = Object.getPrototypeOf (Object.getPrototypeOf(instance)).constructor.name
+        const importType = 'import { implicitReturnType } from \'../base/types.js\''
+        const importParent = (parent === 'Exchange') ?
+            `import { Exchange } from '../base/Exchange.js'` :
+            `import ${parent} from '../${parent}.js'`
+        const header = `abstract class _${parent } extends ${parent} {` // hotswap later
+        storedResult[exchange] = []
+        storedMethods[exchange] = [ importType, importParent, '', header ];
         generateImplicitMethodNames(exchange, instance.api)
     }
     createImplicitMethods()
