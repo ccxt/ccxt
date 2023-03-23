@@ -537,7 +537,6 @@ export default class binance extends Exchange {
         datetime: string;
         info: any;
     };
-
     sapiGetSystemStatus (params?: {});
     sapiGetAccountSnapshot (params?: {});
     sapiGetMarginAsset (params?: {});

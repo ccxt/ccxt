@@ -86,7 +86,7 @@ async function editTypesFiles(){
     const transformedFiles = fileArray.map((file, idx) => {
         const exchange = exchanges[idx]
         file = file.slice(0, file.lastIndexOf('}')) // remove last }
-        file = file + '\n' + storedMethods[exchange] + '\n}' // restore }
+        file = file + storedMethods[exchange] + '\n}' // restore }
         return file;
     });
 
