@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "3.0.27",
+  "version": "3.0.29",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "unpkg": "dist/ccxt.browser.js",
   "type": "module",
@@ -54,7 +54,7 @@
     "cli.py": "python3 ./examples/py/cli.py",
     "cli.php": "php ./examples/php/cli.php",
     "cli.ts": "node --loader ts-node/esm examples/ts/cli.ts",
-    "export-exchanges": "tsc && node build/export-exchanges",
+    "export-exchanges": "node build/export-exchanges",
     "capabilities": "node ./examples/js/exchange-capabilities.js",
     "git-ignore-generated-files": "node build/git-ignore-generated-files.cjs",
     "git-unignore-generated-files": "node build/git-ignore-generated-files.cjs --unignore",
