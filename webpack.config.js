@@ -4,13 +4,20 @@ const split = path.split ('/')
 split[split.length - 1] = 'dist'
 
 export default {
+  experiments: {
+    outputModule: true,
+    topLevelAwait: true,
+  },
   entry : './ts/ccxt.ts',
   output: {
     path: split.join ('/'),
     filename: 'ccxt.browser.js',
     library: {
-      type: 'commonjs-static', // do not change
+      type: 'window', // do not change
+      name: 'ccxt',
     },
+    chunkFormat: 'array-push',
+    chunkLoading: 'jsonp',
   },
   cache: {
     type: 'filesystem',
@@ -30,15 +37,11 @@ export default {
      '.js': [ '.js', '.ts' ],
     },
   },
-  externals: {
-    'ws': 'WebSocket',
-    'zlib': 'zlib',
-  },
   mode: 'production',
   target: 'web',
   optimization: {
     minimize: false,
     usedExports: true,
-    concatenateModules: false
+    concatenateModules: false,
   },
 }
