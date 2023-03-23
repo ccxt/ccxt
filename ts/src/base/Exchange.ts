@@ -1101,8 +1101,7 @@ export default class Exchange {
         // still takes the input as a hex string
         // same as above but returns a string instead of an object
         const signature = this.signMessage (message, privateKey)
-        // @ts-ignore
-        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']))
+        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v'], 1))
     }
 
     parseNumber (value: string | number, d: number = undefined): number {
