@@ -113,6 +113,7 @@ const {
 // TODO: remove these imports to make browser package smaller
 import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js'
 import { keccak_256 as keccak } from '../static_dependencies/noble-hashes/sha3.js';
+import { inflate, inflate64, gunzip } from './ws/functions.js'
 
 // import exceptions from "./errors.js"
 
@@ -408,6 +409,10 @@ export default class Exchange {
     isArray = isArray
     base64ToString = base64ToString
     crc32 = crc32
+
+    inflate = inflate
+    inflate64 = inflate64
+    gunzip = gunzip
 
     describe () {
         return {
