@@ -34,7 +34,6 @@ const {
     , binaryToBase16
     , numberToBE
     , base16ToBinary
-    , stringToBinary
     , iso8601
     , omit
     , isJsonEncodedObject
@@ -113,7 +112,6 @@ const {
 // TODO: remove these imports to make browser package smaller
 import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js'
 import { keccak_256 as keccak } from '../static_dependencies/noble-hashes/sha3.js';
-import { inflate, inflate64, gunzip } from './ws/functions.js'
 
 // import exceptions from "./errors.js"
 
@@ -342,7 +340,6 @@ export default class Exchange {
     binaryToBase16 = binaryToBase16
     numberToBE = numberToBE
     base16ToBinary = base16ToBinary
-    stringToBinary = stringToBinary
     iso8601 = iso8601
     omit = omit
     isJsonEncodedObject = isJsonEncodedObject
@@ -409,10 +406,6 @@ export default class Exchange {
     isArray = isArray
     base64ToString = base64ToString
     crc32 = crc32
-
-    inflate = inflate
-    inflate64 = inflate64
-    gunzip = gunzip
 
     describe () {
         return {
@@ -1087,7 +1080,7 @@ export default class Exchange {
     hashMessage (message: string) {
         // takes a hex encoded message
         const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message))
-        const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength)
+        const prefix = this.encode ('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength)
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex')
     }
 

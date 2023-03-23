@@ -1021,7 +1021,7 @@ export default class luno extends Exchange {
             this.checkRequiredCredentials ();
             const auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
             headers = {
-                'Authorization': 'Basic ' + this.decode (auth),
+                'Authorization': 'Basic ' + auth,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

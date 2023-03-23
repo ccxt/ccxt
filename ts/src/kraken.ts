@@ -2455,7 +2455,7 @@ export default class kraken extends Exchange {
             }
             const auth = this.encode (nonce + body);
             const hash = this.hash (auth, sha256, 'binary');
-            const binary = this.stringToBinary (this.encode (url));
+            const binary = this.encode (url);
             const binhash = this.binaryConcat (binary, hash);
             const secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (binhash, secret, sha512, 'base64');

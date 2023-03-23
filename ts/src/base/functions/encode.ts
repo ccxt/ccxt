@@ -14,6 +14,7 @@ const json =  (data, params = undefined) => JSON.stringify (data)
         (object.length >= 2) &&
         ((object[0] === '{') || (object[0] === '['))
     )
+    , binaryToString = utf8.encode
     , stringToBinary = utf8.decode
     , stringToBase64 = string => base64.encode (utf8.decode (string))
     , base64ToString = string => utf8.encode (base64.decode (string))
@@ -30,8 +31,8 @@ const json =  (data, params = undefined) => JSON.stringify (data)
     , urlencodeNested =  object => qs.stringify (object) // implemented only in python
     , urlencodeWithArrayRepeat = object => qs.stringify (object, { arrayFormat: 'repeat' })
     , rawencode = object => qs.stringify (object, { encode: false })
-    , encode = x => x
-    , decode = x => x
+    , encode = utf8.decode // lol
+    , decode = utf8.encode
 
     // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 
@@ -47,6 +48,7 @@ const json =  (data, params = undefined) => JSON.stringify (data)
 export {
     json
     , isJsonEncodedObject
+    , binaryToString
     , stringToBinary
     , stringToBase64
     , base64ToBinary

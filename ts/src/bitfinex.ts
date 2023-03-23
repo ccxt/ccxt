@@ -1651,7 +1651,7 @@ export default class bitfinex extends Exchange {
             const signature = this.hmac (payload, secret, sha384);
             headers = {
                 'X-BFX-APIKEY': this.apiKey,
-                'X-BFX-PAYLOAD': this.decode (payload),
+                'X-BFX-PAYLOAD': payload,
                 'X-BFX-SIGNATURE': signature,
                 'Content-Type': 'application/json',
             };

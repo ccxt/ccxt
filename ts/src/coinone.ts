@@ -880,7 +880,7 @@ export default class coinone extends Exchange {
                 'nonce': nonce,
             }, params));
             const payload = this.stringToBase64 (json);
-            body = this.decode (payload);
+            body = payload;
             const secret = this.secret.toUpperCase ();
             const signature = this.hmac (payload, this.encode (secret), sha512);
             headers = {

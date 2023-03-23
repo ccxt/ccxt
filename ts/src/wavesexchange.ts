@@ -723,7 +723,7 @@ export default class wavesexchange extends Exchange {
             // W for production, T for testnet
             const defaultMessagePrefix = this.safeString (this.options, 'messagePrefix', 'W');
             const message = defaultMessagePrefix + ':' + clientId + ':' + seconds;
-            const messageHex = this.binaryToBase16 (this.stringToBinary (this.encode (message)));
+            const messageHex = this.binaryToBase16 (this.encode (message));
             const payload = prefix + messageHex;
             const hexKey = this.binaryToBase16 (this.base58ToBinary (this.secret));
             const signature = eddsa (payload, hexKey, ed25519);

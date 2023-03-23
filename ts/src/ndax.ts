@@ -2366,7 +2366,7 @@ export default class ndax extends Exchange {
                 const auth = this.login + ':' + this.password;
                 const auth64 = this.stringToBase64 (auth);
                 headers = {
-                    'Authorization': 'Basic ' + this.decode (auth64),
+                    'Authorization': 'Basic ' + auth64,
                     // 'Content-Type': 'application/json',
                 };
             } else if (path === 'Authenticate2FA') {

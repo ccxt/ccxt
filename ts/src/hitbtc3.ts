@@ -2857,7 +2857,7 @@ export default class hitbtc3 extends Exchange {
             const payloadString = payload.join ('');
             const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), sha256, 'hex');
             const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
-            const encoded = this.decode (this.stringToBase64 (secondPayload));
+            const encoded = this.stringToBase64 (secondPayload);
             headers['Authorization'] = 'HS256 ' + encoded;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

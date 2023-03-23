@@ -640,7 +640,7 @@ export default class gemini extends geminiRest {
             'request': request,
             'nonce': this.nonce (),
         };
-        const b64 = this.stringToBase64 (this.encode (this.json (payload)));
+        const b64 = this.stringToBase64 (this.json (payload));
         const signature = this.hmac (b64, this.encode (this.secret), sha384, 'hex');
         const defaultOptions = {
             'ws': {
@@ -653,7 +653,7 @@ export default class gemini extends geminiRest {
         const originalHeaders = this.options['ws']['options']['headers'];
         const headers = {
             'X-GEMINI-APIKEY': this.apiKey,
-            'X-GEMINI-PAYLOAD': this.decode (b64),
+            'X-GEMINI-PAYLOAD': b64,
             'X-GEMINI-SIGNATURE': signature,
         };
         this.options['ws']['options']['headers'] = headers;

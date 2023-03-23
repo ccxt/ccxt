@@ -2087,7 +2087,7 @@ export default class whitebit extends Exchange {
         if (accessibility === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            const secret = this.stringToBinary (this.encode (this.secret));
+            const secret = this.encode (this.secret);
             const request = '/' + 'api' + '/' + version + pathWithParams;
             body = this.json (this.extend ({ 'request': request, 'nonce': nonce }, params));
             const payload = this.stringToBase64 (body);
@@ -2095,7 +2095,7 @@ export default class whitebit extends Exchange {
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
-                'X-TXC-PAYLOAD': this.decode (payload),
+                'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': signature,
             };
         }

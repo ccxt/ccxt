@@ -5,6 +5,7 @@ import bittrexRest from '../bittrex.js';
 import { InvalidNonce, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
+import { inflateSync as inflate } from '../static_dependencies/fflake/index.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -900,7 +901,7 @@ export default class bittrex extends bittrexRest {
                 } else {
                     const A = this.safeValue (M[i], 'A', []);
                     for (let k = 0; k < A.length; k++) {
-                        const inflated = this.inflate64 (A[k]);
+                        const inflated = this.decode (inflate (this.base64ToBinary (A[k])));
                         const update = JSON.parse (inflated);
                         method.call (this, client, update);
                     }

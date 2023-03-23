@@ -1127,7 +1127,7 @@ export default class buda extends Exchange {
             const components = [ method, '/api/' + this.version + '/' + request ];
             if (body) {
                 const base64Body = this.stringToBase64 (body);
-                components.push (this.decode (base64Body));
+                components.push (base64Body);
             }
             components.push (nonce);
             const message = components.join (' ');

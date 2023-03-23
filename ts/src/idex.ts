@@ -1245,23 +1245,23 @@ export default class idex extends Exchange {
             this.numberToBE (orderVersion, 1),
             this.base16ToBinary (nonce),
             this.base16ToBinary (walletBytes),
-            this.stringToBinary (this.encode (market['id'])),  // TODO: refactor to remove either encode or stringToBinary
+            this.encode (market['id']),
             this.numberToBE (typeEnum, 1),
             this.numberToBE (sideEnum, 1),
-            this.stringToBinary (this.encode (amountString)),
+            this.encode (amountString),
             this.numberToBE (amountEnum, 1),
         ];
         if (limitOrder) {
-            const encodedPrice = this.stringToBinary (this.encode (priceString));
+            const encodedPrice = this.encode (priceString);
             byteArray.push (encodedPrice);
         }
         if (type in stopLossTypeEnums) {
-            const encodedPrice = this.stringToBinary (this.encode (stopPriceString || priceString));
+            const encodedPrice = this.encode (stopPriceString || priceString);
             byteArray.push (encodedPrice);
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            byteArray.push (this.stringToBinary (this.encode (clientOrderId)));
+            byteArray.push (this.encode (clientOrderId));
         }
         const after = [
             this.numberToBE (timeInForceEnum, 1),
@@ -1357,8 +1357,8 @@ export default class idex extends Exchange {
         const byteArray = [
             this.base16ToBinary (nonce),
             this.base16ToBinary (walletBytes),
-            this.stringToBinary (this.encode (currency['id'])),
-            this.stringToBinary (this.encode (amountString)),
+            this.encode (currency['id']),
+            this.encode (amountString),
             this.numberToBE (1, 1), // bool set to true
         ];
         const binary = this.binaryConcatArray (byteArray);
@@ -1417,7 +1417,7 @@ export default class idex extends Exchange {
             this.base16ToBinary (walletBytes),
         ];
         if (market !== undefined) {
-            byteArray.push (this.stringToBinary (this.encode (market['id'])));
+            byteArray.push (this.encode (market['id']));
             request['parameters']['market'] = market['id'];
         }
         const binary = this.binaryConcatArray (byteArray);
@@ -1450,7 +1450,7 @@ export default class idex extends Exchange {
         const byteArray = [
             this.base16ToBinary (nonce),
             this.base16ToBinary (walletBytes),
-            this.stringToBinary (this.encode (id)),
+            this.encode (id),
         ];
         const binary = this.binaryConcatArray (byteArray);
         const hash = this.hash (binary, keccak, 'hex');

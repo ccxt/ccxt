@@ -1292,13 +1292,11 @@ class Exchange(object):
 
     @staticmethod
     def string_to_base64(s):
-        # will return string in the future
-        binary = Exchange.encode(s) if isinstance(s, str) else s
-        return Exchange.encode(Exchange.binary_to_base64(binary))
+        return Exchange.binary_to_base64(Exchange.encode(s))
 
     @staticmethod
     def base64_to_string(s):
-        return base64.b64decode(s).decode('utf-8')
+        return Exchange.decode(base64.b64decode(s))
 
     @staticmethod
     def jwt(request, secret, algorithm='sha256', is_rsa=False):
