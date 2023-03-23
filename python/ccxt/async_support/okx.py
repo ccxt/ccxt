@@ -1269,7 +1269,7 @@ class okx(Exchange):
                 canWithdraw = self.safe_value(chain, 'canWd')
                 canInternal = self.safe_value(chain, 'canInternal')
                 active = True if (canDeposit and canWithdraw and canInternal) else False
-                currencyActive = active if (currencyActive is None) else currencyActive
+                currencyActive = active if (active) else currencyActive
                 networkId = self.safe_string(chain, 'chain')
                 if canDeposit and not depositEnabled:
                     depositEnabled = True
