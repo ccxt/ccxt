@@ -7714,7 +7714,7 @@ class bybit(Exchange):
                 }
                 if isV3UnifiedMargin or isV3Contract:
                     headers['X-BAPI-SIGN-TYPE'] = '2'
-                query = params
+                query = self.extend({}, params)
                 queryEncoded = self.rawencode(query)
                 auth_base = str(timestamp) + self.apiKey + str(self.options['recvWindow'])
                 authFull = None

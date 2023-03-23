@@ -8164,7 +8164,7 @@ class bybit extends Exchange {
                 if ($isV3UnifiedMargin || $isV3Contract) {
                     $headers['X-BAPI-SIGN-TYPE'] = '2';
                 }
-                $query = $params;
+                $query = array_merge(array(), $params);
                 $queryEncoded = $this->rawencode($query);
                 $auth_base = (string) $timestamp . $this->apiKey . (string) $this->options['recvWindow'];
                 $authFull = null;

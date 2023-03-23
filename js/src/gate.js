@@ -1044,7 +1044,7 @@ export default class gate extends Exchange {
         const underlyings = await this.fetchOptionUnderlyings();
         for (let i = 0; i < underlyings.length; i++) {
             const underlying = underlyings[i];
-            const query = params;
+            const query = this.extend({}, params);
             query['underlying'] = underlying;
             const response = await this.publicOptionsGetContracts(query);
             //

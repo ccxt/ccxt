@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.30 (2023-03-23)
+
+
+### Bug Fixes
+
+* **bybit,gate:** polluting markets loading ([2ba367e](https://github.com/ccxt/ccxt/commit/2ba367e1869b7c820a4f14c1ea6174b46a913626))
+
 ### 3.0.29 (2023-03-23)
 
 ### 3.0.27 (2023-03-22)
