@@ -20,7 +20,7 @@ export default class huobijp extends Exchange {
             'userAgent': this.userAgents['chrome39'],
             'certified': false,
             'version': 'v1',
-            'hostname': 'api-cloud.huobi.co.jp',
+            'hostname': 'api-cloud.bittrade.co.jp',
             'pro': true,
             'has': {
                 'CORS': undefined,
