@@ -435,7 +435,7 @@ export default class coinbase extends coinbaseRest {
                 const previousSequence = this.safeInteger (previousInfo, 'sequence');
                 if ((previousSequence === undefined) || (sequence > previousSequence)) {
                     if (type === 'match') {
-                        const trade = this.parseWsTrade (message);
+                        const trade = this.parseTrade (message);
                         if (previousOrder['trades'] === undefined) {
                             previousOrder['trades'] = [];
                         }
@@ -540,15 +540,13 @@ export default class coinbase extends coinbaseRest {
         });
     }
 
-    handleDelta (bookside, delta) {
-        const price = this.safeNumber (delta, 0);
-        const amount = this.safeNumber (delta, 1);
-        bookside.store (price, amount);
-    }
-
-    handleDeltas (bookside, deltas) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
+    handleOrderBookHelper (orderbook, updates) {
+        for (let i = 0; i < updates.length; i++) {
+            const trade = updates[i];
+            const side = this.safeString (trade, 'side') + 's';
+            const price = this.safeNumber (trade, 'price_level');
+            const amount = this.safeNumber (trade, 'new_quantity');
+            orderbook[side].store (price, amount);
         }
     }
 
@@ -581,43 +579,33 @@ export default class coinbase extends coinbaseRest {
         //        ]
         //    }
         //
-        const type = this.safeString (message, 'type');
-        const marketId = this.safeString (message, 'product_id');
-        const market = this.safeMarket (marketId, undefined, '-');
-        const symbol = market['symbol'];
-        const name = 'level2';
-        const messageHash = name + ':' + marketId;
-        const subscription = this.safeValue (client.subscriptions, messageHash, {});
-        const limit = this.safeInteger (subscription, 'limit');
-        if (type === 'snapshot') {
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
-            const orderbook = this.orderbooks[symbol];
-            this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
-            this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));
-            orderbook['timestamp'] = undefined;
-            orderbook['datetime'] = undefined;
-            client.resolve (orderbook, messageHash);
-        } else if (type === 'l2update') {
-            const orderbook = this.orderbooks[symbol];
-            const timestamp = this.parse8601 (this.safeString (message, 'time'));
-            const changes = this.safeValue (message, 'changes', []);
-            const sides = {
-                'sell': 'asks',
-                'buy': 'bids',
-            };
-            for (let i = 0; i < changes.length; i++) {
-                const change = changes[i];
-                const key = this.safeString (change, 0);
-                const side = this.safeString (sides, key);
-                const price = this.safeNumber (change, 1);
-                const amount = this.safeNumber (change, 2);
-                const bookside = orderbook[side];
-                bookside.store (price, amount);
+        const events = this.safeValue (message, 'events');
+        const datetime = this.safeString (message, 'timestamp');
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
+            const updates = this.safeValue (event, 'updates', []);
+            const marketId = this.safeString (event, 'product_id');
+            const messageHash = 'level2:' + marketId;
+            const subscription = this.safeValue (client.subscriptions, messageHash, {});
+            const limit = this.safeInteger (subscription, 'limit');
+            const symbol = this.safeSymbol (marketId);
+            const type = this.safeString (event, 'type');
+            if (type === 'snapshot') {
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+                const orderbook = this.orderbooks[symbol];
+                this.handleOrderBookHelper (orderbook, updates);
+                orderbook['timestamp'] = undefined;
+                orderbook['datetime'] = undefined;
+                client.resolve (orderbook, messageHash);
+            } else if (type === 'level2') {
+                const orderbook = this.orderbooks[symbol];
+                this.handleOrderBookHelper (orderbook, updates);
+                orderbook['datetime'] = datetime;
+                orderbook['timestamp'] = this.parse8601 (datetime);
+                client.resolve (orderbook, messageHash);
             }
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
-            client.resolve (orderbook, messageHash);
         }
+        return message;
     }
 
     handleSubscriptionStatus (client, message) {
