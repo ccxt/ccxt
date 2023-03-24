@@ -810,6 +810,24 @@ export default class okx extends Exchange {
                     'FUTURES': 'FUTURES',
                     'OPTION': 'OPTION',
                 },
+                'timeInForceMap': {
+                    'default': {
+                        'exchangeSpecificKey': 'ordType',
+                        'strings': {
+                            'GTC': undefined,
+                            'IOC': 'ioc',
+                            'FOK': 'fok',
+                            'PO': 'post_only',
+                            'optimal_limit_ioc': 'optimal_limit_ioc',
+                        },
+                        'booleans': {
+                            'GTC': undefined,
+                            'IOC': undefined,
+                            'FOK': undefined,
+                            'PO': undefined,
+                        },
+                    },
+                },
                 'brokerId': 'e847386590ce4dBC',
             },
             'commonCurrencies': {
@@ -2139,7 +2157,6 @@ export default class okx extends Exchange {
         const spot = market['spot'];
         const contract = market['contract'];
         const triggerPrice = this.safeValueN (params, [ 'triggerPrice', 'stopPrice', 'triggerPx' ]);
-        const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         const tpOrdPx = this.safeValue (params, 'tpOrdPx', price);
         const tpTriggerPxType = this.safeString (params, 'tpTriggerPxType', 'last');
@@ -2168,10 +2185,13 @@ export default class okx extends Exchange {
             request['tdMode'] = marginMode;
         }
         const isMarketOrder = type === 'market';
-        const postOnly = this.isPostOnly (isMarketOrder, type === 'post_only', params);
-        params = this.omit (params, [ 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin' ]);
-        const ioc = (timeInForce === 'IOC') || (type === 'ioc');
-        const fok = (timeInForce === 'FOK') || (type === 'fok');
+        params = this.omit (params, [ 'currency', 'ccy', 'marginMode', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin' ]);
+        const handledTif = this.handlePoTif ('default', type, params);
+        params = handledTif['params'];
+        if (handledTif['requestKey'] !== undefined) {
+            request[handledTif['requestKey']] = handledTif['requestValue'];
+        }
+        const ioc = handledTif['timeInForce'] === 'IOC';
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
         const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
@@ -2217,16 +2237,10 @@ export default class okx extends Exchange {
                 request['px'] = this.priceToPrecision (symbol, price);
             }
         }
-        if (postOnly) {
-            method = defaultMethod;
-            request['ordType'] = 'post_only';
-        } else if (ioc && !marketIOC) {
-            method = defaultMethod;
+        if (ioc && !marketIOC) {
             request['ordType'] = 'ioc';
-        } else if (fok) {
-            method = defaultMethod;
-            request['ordType'] = 'fok';
-        } else if (trigger) {
+        }
+        if (trigger) {
             method = 'privatePostTradeOrderAlgo';
             request['ordType'] = 'trigger';
             request['triggerPx'] = this.priceToPrecision (symbol, triggerPrice);
