@@ -34,7 +34,7 @@ class huobijp(Exchange):
             'userAgent': self.userAgents['chrome39'],
             'certified': False,
             'version': 'v1',
-            'hostname': 'api-cloud.bittrade.co.jp',
+            'hostname': 'api-cloud.huobi.co.jp',
             'pro': True,
             'has': {
                 'CORS': None,
