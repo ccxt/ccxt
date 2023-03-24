@@ -2580,7 +2580,7 @@ export default class Exchange {
         } as any;
     }
 
-    parseOHLCVs (ohlcvs: object[], market: string = undefined, timeframe: string = '1m', since: number = undefined, limit: any = undefined): OHLCV[] {
+    parseOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: number = undefined, limit: any = undefined): OHLCV[] {
         const results = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push (this.parseOHLCV (ohlcvs[i], market));
