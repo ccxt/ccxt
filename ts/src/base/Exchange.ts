@@ -3755,8 +3755,18 @@ export default class Exchange {
         const tifOptions = this.safeValue (tifOptionsAllMarkets, accountMarketType, {});
         // get exchangeSpecific TIF key
         const exchangeSpecificTifKey = this.safeString (tifOptions, 'exchangeSpecificKey');
-        // get exchangeSpecific TIF values map
-        const exchangeSpecificTifMap = this.safeValue (tifOptions, 'strings', {});
+        // get unified-to-exchangeSpecific TIF values map
+        const exchangeSpecificTifMap = this.safeValue (tifOptions, 'strings');
+        // get exchangeSpecific-to-unified TIF values map
+        let exchangeSpecificToUnifiedTifMap = this.safeValue (tifOptions, 'stringsReversed');
+        if (exchangeSpecificToUnifiedTifMap === undefined) {
+            // only create if TIF tree exists
+            if (exchangeSpecificTifMap !== undefined) {
+                // automatically inverse (only once per instance lifetime)
+                exchangeSpecificToUnifiedTifMap = this.invertStringDictionary (exchangeSpecificTifMap);
+                this.options['timeInForceMap'][accountMarketType]['stringsReversed'] = exchangeSpecificToUnifiedTifMap;
+            }
+        }
         // unified or exchangeSpecific TIF value (if set in PARAMS)
         const providedTifValue = this.safeString2 (params, exchangeSpecificTifKey, unifiedTifKey);
         // exchangeSpecific values for different TIME IN FORCE values
@@ -3812,11 +3822,50 @@ export default class Exchange {
                 }
             }
         }
+        let providedTifUnifiedValue = undefined;
         if (providedTifValue !== undefined) {
-            requestAddition[exchangeSpecificTifKey] = this.safeValue (exchangeSpecificTifMap, providedTifValue);
+            const tifValueToSend = this.safeString (exchangeSpecificTifMap, providedTifValue, providedTifValue);
+            requestAddition[exchangeSpecificTifKey] = tifValueToSend;
+            providedTifUnifiedValue = this.safeString (exchangeSpecificToUnifiedTifMap, providedTifValue);
         }
         const paramsOmited = this.omit (params, [ 'postOnly', 'post_only', exchangeSpecificPoKey, exchangeSpecificTifKey, unifiedTifKey ]);
-        return [ requestAddition, paramsOmited ];
+        // returns: object, object, boolean, string
+        return {
+            'requestAddition': requestAddition,
+            'params': paramsOmited,
+            'isPostOnly': isAnyPo,
+            'timeInForce': providedTifUnifiedValue,
+        };
+    }
+
+    invertStringDictionary (dict: any) {
+        const reversed = {};
+        const keys = Object.keys (dict);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = dict[key];
+            // if key has a value of array i.e. 'a': [ 'b', 'c'] instead of a string i.e. 'a': 'b'
+            let checkKeys = [];
+            if (Array.isArray (value)) {
+                checkKeys = value;
+            } else if (typeof value === 'string') {
+                checkKeys.push (value);
+            }
+            for (let j = 0; j < checkKeys.length; j++) {
+                const currentKey = checkKeys[j];
+                // if it was already in keys
+                if (!(currentKey in reversed)) {
+                    reversed[currentKey] = key;
+                } else {
+                    if (Array.isArray (reversed[currentKey])) {
+                        reversed[currentKey].push (key);
+                    } else {
+                        reversed[currentKey] = [ reversed[currentKey], key ];
+                    }
+                }
+            }
+        }
+        return reversed;
     }
 
     async fetchLastPrices (params = {}) {

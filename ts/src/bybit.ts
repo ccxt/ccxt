@@ -3490,9 +3490,9 @@ export default class bybit extends Exchange {
         if (isLimit) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        let requestAddition = undefined;
-        [ requestAddition, params ] = this.handlePoTif ('unified', isMarket, params);
-        request = this.extend (request, requestAddition);
+        const handledTif = this.handlePoTif ('unified', isMarket, params);
+        params = handledTif['params'];
+        request = this.extend (request, handledTif['requestExtend']);
         let triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');
@@ -3559,7 +3559,7 @@ export default class bybit extends Exchange {
             'symbol': market['id'],
             'side': this.capitalize (side),
             'orderType': upperCaseType, // limit, market or limit_maker
-            'timeInForce': 'GTC', // FOK, IOC
+            // 'timeInForce': 'GTC', // FOK, IOC
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
         };
         if ((type === 'market') && (side === 'buy')) {
