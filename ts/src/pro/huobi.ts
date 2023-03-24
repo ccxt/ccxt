@@ -9,6 +9,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class huobi extends huobiRest {
     describe () {
         return this.deepExtend (super.describe (), {

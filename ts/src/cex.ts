@@ -1,13 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/cex.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class cex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -1142,6 +1143,7 @@ export default class cex extends Exchange {
         const market = this.market (symbol);
         const request = { 'pair': market['id'] };
         const response = await this[method] (this.extend (request, params));
+        // @ts-expect-error
         return this.parseOrders (response, market, since, limit);
     }
 

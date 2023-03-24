@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class okx extends okxRest {
     describe () {
         return this.deepExtend (super.describe (), {

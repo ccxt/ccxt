@@ -1,8 +1,9 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/hitbtc3.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 
+// @ts-expect-error
 export default class hitbtc3 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

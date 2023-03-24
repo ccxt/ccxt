@@ -1,12 +1,13 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 // ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class kuna extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

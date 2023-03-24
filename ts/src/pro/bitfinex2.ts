@@ -8,6 +8,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../ba
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class bitfinex2 extends bitfinex2Rest {
     describe () {
         return this.deepExtend (super.describe (), {

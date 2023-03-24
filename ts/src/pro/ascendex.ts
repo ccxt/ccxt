@@ -6,6 +6,7 @@ import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class ascendex extends ascendexRest {
     describe () {
         return this.deepExtend (super.describe (), {

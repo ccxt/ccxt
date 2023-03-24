@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../ba
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class mexc extends mexcRest {
     describe () {
         return this.deepExtend (super.describe (), {
