@@ -10,7 +10,7 @@
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
   "extends": ["eslint:recommended", "airbnb-base", "plugin:import/typescript"],
-  "ignorePatterns": ["base/functions/*", "static_dependencies/*", "pro/bridge/*"],
+  "ignorePatterns": ["base/functions/*", "static_dependencies/*", "pro/bridge/*", "abstract/*"],
   "rules": {
     "import/no-unresolved":"off", // tmp until typescript decides to properly resolve names
     "import/named": "off",
