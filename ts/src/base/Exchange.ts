@@ -162,6 +162,8 @@ export default class Exchange {
     httpsAgent = undefined
     agent = undefined
 
+    throttleProp = undefined
+
     api = undefined
 
     // prepended to URL, like https://proxy.com/https://exchange.com/api...

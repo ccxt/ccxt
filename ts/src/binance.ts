@@ -1808,13 +1808,13 @@ export default class binance extends Exchange {
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
-                promises.push (this.publicGetExchangeInfo (params));
+                promisesRaw.push (this.publicGetExchangeInfo (params));
             } else if (marketType === 'linear') {
-                promises.push (this.fapiPublicGetExchangeInfo (params));
+                promisesRaw.push (this.fapiPublicGetExchangeInfo (params));
             } else if (marketType === 'inverse') {
-                promises.push (this.dapiPublicGetExchangeInfo (params));
+                promisesRaw.push (this.dapiPublicGetExchangeInfo (params));
             } else if (marketType === 'option') {
-                promises.push (this.eapiPublicGetExchangeInfo (params));
+                promisesRaw.push (this.eapiPublicGetExchangeInfo (params));
             } else {
                 throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
