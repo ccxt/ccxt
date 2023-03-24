@@ -1,13 +1,15 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/xt.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class xt extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -626,7 +628,7 @@ export default class xt extends Exchange {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the xt server
          */
-        const response = await (this as any).publicSpotGetTime (params);
+        const response = await this.publicSpotGetTime (params);
         //
         //     {
         //         "rc": 0,
@@ -650,7 +652,7 @@ export default class xt extends Exchange {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicSpotGetWalletSupportCurrency (params);
+        const response = await this.publicSpotGetWalletSupportCurrency (params);
         //
         //     {
         //         "rc": 0,
@@ -752,18 +754,18 @@ export default class xt extends Exchange {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let promises = [
-            (this as any).fetchSpotMarkets (params),
-            (this as any).fetchSwapAndFutureMarkets (params),
+        const promisesUnresolved = [
+            this.fetchSpotMarkets (params),
+            this.fetchSwapAndFutureMarkets (params),
         ];
-        promises = await Promise.all (promises);
+        const promises = await Promise.all (promisesUnresolved);
         const spotMarkets = promises[0];
         const swapAndFutureMarkets = promises[1];
         return this.arrayConcat (spotMarkets, swapAndFutureMarkets);
     }
 
     async fetchSpotMarkets (params = {}) {
-        const response = await (this as any).publicSpotGetSymbol (params);
+        const response = await this.publicSpotGetSymbol (params);
         //
         //     {
         //         "rc": 0,
@@ -822,7 +824,7 @@ export default class xt extends Exchange {
     }
 
     async fetchSwapAndFutureMarkets (params = {}) {
-        const markets = await Promise.all ([ (this as any).publicLinearGetFutureMarketV1PublicSymbolList (params), (this as any).publicInverseGetFutureMarketV1PublicSymbolList (params) ]);
+        const markets = await Promise.all ([ this.publicLinearGetFutureMarketV1PublicSymbolList (params), this.publicInverseGetFutureMarketV1PublicSymbolList (params) ]);
         //
         //     {
         //         "returnCode": 0,
@@ -1124,19 +1126,20 @@ export default class xt extends Exchange {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        let method = 'publicSpotGetKline';
-        if (market['linear']) {
-            method = 'publicLinearGetFutureMarketV1PublicQKline';
-        } else if (market['inverse']) {
-            method = 'publicInverseGetFutureMarketV1PublicQKline';
-        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.publicLinearGetFutureMarketV1PublicQKline (this.extend (request, params));
+        } else if (market['inverse']) {
+            response = await this.publicInverseGetFutureMarketV1PublicQKline (this.extend (request, params));
+        } else {
+            response = await this.publicSpotGetKline (this.extend (request, params));
+        }
         //
         // spot
         //
@@ -1237,12 +1240,12 @@ export default class xt extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = undefined;
+        let response = undefined;
         if (market['spot']) {
-            method = 'publicSpotGetDepth';
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
+            response = await this.publicSpotGetDepth (this.extend (request, params));
         } else {
             if (limit !== undefined) {
                 request['level'] = Math.min (limit, 50);
@@ -1250,12 +1253,11 @@ export default class xt extends Exchange {
                 request['level'] = 50;
             }
             if (market['linear']) {
-                method = 'publicLinearGetFutureMarketV1PublicQDepth';
+                response = await this.publicLinearGetFutureMarketV1PublicQDepth (this.extend (request, params));
             } else if (market['inverse']) {
-                method = 'publicInverseGetFutureMarketV1PublicQDepth';
+                response = await this.publicInverseGetFutureMarketV1PublicQDepth (this.extend (request, params));
             }
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -1326,13 +1328,14 @@ export default class xt extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = 'publicSpotGetTicker24h';
+        let response = undefined;
         if (market['linear']) {
-            method = 'publicLinearGetFutureMarketV1PublicQAggTicker';
+            response = await this.publicLinearGetFutureMarketV1PublicQAggTicker (this.extend (request, params));
         } else if (market['inverse']) {
-            method = 'publicInverseGetFutureMarketV1PublicQAggTicker';
+            response = await this.publicInverseGetFutureMarketV1PublicQAggTicker (this.extend (request, params));
+        } else {
+            response = await this.publicSpotGetTicker24h (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -1406,21 +1409,20 @@ export default class xt extends Exchange {
         const request = {};
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
-        let method = undefined;
+        let response = undefined;
         if (market['spot']) {
-            method = 'publicSpotGetTicker24h';
             request['symbols'] = symbols;
+            response = await this.publicSpotGetTicker24h (this.extend (request, params));
         } else {
             if (symbols !== undefined) {
                 throw new NotSupported (this.id + ' the symbols argument is not supported for swap and future markets');
             }
             if (subType === 'linear') {
-                method = 'publicLinearGetFutureMarketV1PublicQAggTickers';
+                response = await this.publicLinearGetFutureMarketV1PublicQAggTickers (this.extend (request, params));
             } else if (subType === 'inverse') {
-                method = 'publicInverseGetFutureMarketV1PublicQAggTickers';
+                response = await this.publicInverseGetFutureMarketV1PublicQAggTickers (this.extend (request, params));
             }
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -1500,7 +1502,7 @@ export default class xt extends Exchange {
         if (subType !== undefined) {
             throw new NotSupported (this.id + ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported');
         }
-        const response = await (this as any).publicSpotGetTickerBook (this.extend (request, params));
+        const response = await this.publicSpotGetTickerBook (this.extend (request, params));
         //
         //     {
         //         "rc": 0,
@@ -1618,23 +1620,22 @@ export default class xt extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = undefined;
+        let response = undefined;
         if (market['spot']) {
-            method = 'publicSpotGetTradeRecent';
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
+            response = await this.publicSpotGetTradeRecent (this.extend (request, params));
         } else {
             if (limit !== undefined) {
                 request['num'] = limit;
             }
             if (market['linear']) {
-                method = 'publicLinearGetFutureMarketV1PublicQDeal';
+                response = await this.publicLinearGetFutureMarketV1PublicQDeal (this.extend (request, params));
             } else if (market['inverse']) {
-                method = 'publicInverseGetFutureMarketV1PublicQDeal';
+                response = await this.publicInverseGetFutureMarketV1PublicQDeal (this.extend (request, params));
             }
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -1695,27 +1696,27 @@ export default class xt extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
-        let method = 'privateSpotGetTrade';
+        let response = undefined;
         if (subType !== undefined) {
             if (limit !== undefined) {
                 request['size'] = limit;
             }
             if (subType === 'linear') {
-                method = 'privateLinearGetFutureTradeV1OrderTradeList';
+                response = await this.privateLinearGetFutureTradeV1OrderTradeList (this.extend (request, params));
             } else if (subType === 'inverse') {
-                method = 'privateInverseGetFutureTradeV1OrderTradeList';
+                response = await this.privateInverseGetFutureTradeV1OrderTradeList (this.extend (request, params));
             }
         } else {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
+            response = await this.privateSpotGetTrade (this.extend (request, params));
         }
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -1889,13 +1890,14 @@ export default class xt extends Exchange {
         await this.loadMarkets ();
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
-        let method = 'privateSpotGetBalances';
+        let response = undefined;
         if (subType === 'linear') {
-            method = 'privateLinearGetFutureUserV1BalanceList';
+            response = await this.privateLinearGetFutureUserV1BalanceList (params);
         } else if (subType === 'inverse') {
-            method = 'privateInverseGetFutureUserV1BalanceList';
+            response = await this.privateInverseGetFutureUserV1BalanceList (params);
+        } else {
+            response = await this.privateSpotGetBalances (params);
         }
-        const response = await this[method] (params);
         //
         // spot
         //
@@ -2022,9 +2024,8 @@ export default class xt extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         let timeInForce = this.safeStringUpper (params, 'timeInForce', 'GTC');
-        let method = undefined;
+        let response = undefined;
         if (market['spot']) {
-            method = 'privateSpotPostOrder';
             request['side'] = side.toUpperCase ();
             request['type'] = type.toUpperCase ();
             request['bizType'] = (marketType === 'margin') ? 'LEVER' : 'SPOT';
@@ -2052,12 +2053,8 @@ export default class xt extends Exchange {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             }
             request['timeInForce'] = timeInForce;
+            response = await this.privateSpotPostOrder (this.extend (request, params));
         } else {
-            if (market['linear']) {
-                method = 'privateLinearPostFutureTradeV1OrderCreate';
-            } else if (market['inverse']) {
-                method = 'privateInversePostFutureTradeV1OrderCreate';
-            }
             request['orderSide'] = side.toUpperCase ();
             request['orderType'] = type.toUpperCase ();
             const convertContractsToAmount = Precise.stringDiv (this.numberToString (amount), this.numberToString (market['contractSize']));
@@ -2076,8 +2073,12 @@ export default class xt extends Exchange {
                 const requestType = (reduceOnly) ? 'LONG' : 'SHORT';
                 request['positionSide'] = requestType;
             }
+            if (market['linear']) {
+                response = await this.privateLinearPostFutureTradeV1OrderCreate (this.extend (request, params));
+            } else if (market['inverse']) {
+                response = await this.privateInversePostFutureTradeV1OrderCreate (this.extend (request, params));
+            }
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -2125,13 +2126,14 @@ export default class xt extends Exchange {
         const request = {
             'orderId': id,
         };
-        let method = 'privateSpotGetOrderOrderId';
+        let response = undefined;
         if (subType === 'linear') {
-            method = 'privateLinearGetFutureTradeV1OrderDetail';
+            response = await this.privateLinearGetFutureTradeV1OrderDetail (this.extend (request, params));
         } else if (subType === 'inverse') {
-            method = 'privateInverseGetFutureTradeV1OrderDetail';
+            response = await this.privateInverseGetFutureTradeV1OrderDetail (this.extend (request, params));
+        } else {
+            response = await this.privateSpotGetOrderOrderId (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -2221,21 +2223,22 @@ export default class xt extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
-        let method = 'privateSpotGetHistoryOrder';
-        if (subType === 'linear') {
-            method = 'privateLinearGetFutureTradeV1OrderListHistory';
-        } else if (subType === 'inverse') {
-            method = 'privateInverseGetFutureTradeV1OrderListHistory';
-        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
+        let response = undefined;
+        if (subType === 'linear') {
+            response = await this.privateLinearGetFutureTradeV1OrderListHistory (this.extend (request, params));
+        } else if (subType === 'inverse') {
+            response = await this.privateInverseGetFutureTradeV1OrderListHistory (this.extend (request, params));
+        } else {
+            response = await this.privateSpotGetHistoryOrder (this.extend (request, params));
+        }
         //
         //  spot
         //
@@ -2329,7 +2332,18 @@ export default class xt extends Exchange {
         }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrdersByStatus', market, params);
-        let method = 'privateSpotGetHistoryOrder';
+        let response = undefined;
+        if (status === 'open') {
+            if (subType !== undefined) {
+                request['state'] = 'NEW';
+            }
+        } else if (status === 'closed') {
+            request['state'] = 'FILLED';
+        } else if (status === 'canceled') {
+            request['state'] = 'CANCELED';
+        } else {
+            request['state'] = status;
+        }
         if (subType !== undefined) {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -2338,9 +2352,9 @@ export default class xt extends Exchange {
                 request['size'] = limit;
             }
             if (subType === 'linear') {
-                method = 'privateLinearGetFutureTradeV1OrderList';
+                response = await this.privateLinearGetFutureTradeV1OrderList (this.extend (request, params));
             } else if (subType === 'inverse') {
-                method = 'privateInverseGetFutureTradeV1OrderList';
+                response = await this.privateInverseGetFutureTradeV1OrderList (this.extend (request, params));
             }
         } else {
             if (status !== 'open') {
@@ -2350,22 +2364,11 @@ export default class xt extends Exchange {
                 if (limit !== undefined) {
                     request['limit'] = limit;
                 }
-            }
-        }
-        if (status === 'open') {
-            if (subType !== undefined) {
-                request['state'] = 'NEW';
+                response = await this.privateSpotGetHistoryOrder (this.extend (request, params));
             } else {
-                method = 'privateSpotGetOpenOrder';
+                response = await this.privateSpotGetOpenOrder (this.extend (request, params));
             }
-        } else if (status === 'closed') {
-            request['state'] = 'FILLED';
-        } else if (status === 'canceled') {
-            request['state'] = 'CANCELED';
-        } else {
-            request['state'] = status;
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -2479,8 +2482,9 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
+        const isSpotOpenOrders = ((status === 'open') && (subType === undefined));
         const data = this.safeValue (response, 'result', {});
-        const orders = (method === 'privateSpotGetOpenOrder') ? this.safeValue (response, 'result', []) : this.safeValue (data, 'items', []);
+        const orders = isSpotOpenOrders ? this.safeValue (response, 'result', []) : this.safeValue (data, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2554,13 +2558,14 @@ export default class xt extends Exchange {
         };
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
-        let method = 'privateSpotDeleteOrderOrderId';
+        let response = undefined;
         if (subType === 'linear') {
-            method = 'privateLinearPostFutureTradeV1OrderCancel';
+            response = await this.privateLinearPostFutureTradeV1OrderCancel (this.extend (request, params));
         } else if (subType === 'inverse') {
-            method = 'privateInversePostFutureTradeV1OrderCancel';
+            response = await this.privateInversePostFutureTradeV1OrderCancel (this.extend (request, params));
+        } else {
+            response = await this.privateSpotDeleteOrderOrderId (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -2606,13 +2611,14 @@ export default class xt extends Exchange {
         }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
-        let method = 'privateSpotDeleteOpenOrder';
+        let response = undefined;
         if (subType === 'linear') {
-            method = 'privateLinearPostFutureTradeV1OrderCancelAll';
+            response = await this.privateLinearPostFutureTradeV1OrderCancelAll (this.extend (request, params));
         } else if (subType === 'inverse') {
-            method = 'privateInversePostFutureTradeV1OrderCancelAll';
+            response = await this.privateInversePostFutureTradeV1OrderCancelAll (this.extend (request, params));
+        } else {
+            response = await this.privateSpotDeleteOpenOrder (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -2659,7 +2665,7 @@ export default class xt extends Exchange {
         if (subType !== undefined) {
             throw new NotSupported (this.id + ' cancelOrders() does not support swap and future orders, only spot orders are accepted');
         }
-        const response = await (this as any).privateSpotDeleteBatchOrder (this.extend (request, params));
+        const response = await this.privateSpotDeleteBatchOrder (this.extend (request, params));
         //
         // spot
         //
@@ -2931,7 +2937,7 @@ export default class xt extends Exchange {
                     payloadString += '#' + payload + '#' + body;
                 }
             }
-            const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), 'sha256');
+            const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), sha256);
             headers['xt-validate-appkey'] = this.apiKey;
             headers['xt-validate-timestamp'] = timestamp;
             headers['xt-validate-signature'] = signature;
