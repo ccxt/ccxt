@@ -1,6 +1,7 @@
 """A faster version of aiohttp's websocket client that uses select and other optimizations"""
 
 import asyncio
+import socket
 import collections
 from ccxt import NetworkError
 from ccxt.async_support.base.ws.aiohttp_client import AiohttpClient
@@ -67,6 +68,13 @@ class FastClient(AiohttpClient):
             self.on_close(1006)
             return
         self.transport = connection.transport
+        # increase the RCVBUF so that the tcp window size can be larger
+        sock = self.transport.get_extra_info("socket")
+        current_size = sock.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF)
+        # 2 mebibytes is a performance value
+        new_size = max(current_size, 2097152)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, new_size)
+
         ws_reader = connection.protocol._payload_parser
         ws_reader.parse_frame = wrapper(ws_reader.parse_frame)
         ws_reader.queue.feed_data = feed_data

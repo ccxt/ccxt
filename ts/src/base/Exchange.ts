@@ -188,17 +188,17 @@ export default class Exchange {
     timeout       = 10000 // milliseconds
     verbose       = false
     debug         = false
-    userAgent     = undefined
+    userAgent: { 'User-Agent': string } | false = undefined;
     twofa         = undefined // two-factor authentication (2FA)
 
     apiKey: string;
     secret: string;
     uid: string;
-    login         = undefined
-    password
-    privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
-    walletAddress = undefined // a wallet address "0x"-prefixed hexstring
-    token         = undefined // reserved for HTTP auth in some cases
+    login:string;
+    password: string;
+    privateKey: string;// a "0x"-prefixed hexstring private key for a wallet
+    walletAddress: string; // a wallet address "0x"-prefixed hexstring
+    token: string; // reserved for HTTP auth in some cases
 
     balance      = {}
     orderbooks   = {}
@@ -252,10 +252,10 @@ export default class Exchange {
         walletAddress: boolean;
         token: boolean;
     };
-    rateLimit = undefined
+    rateLimit: number = undefined; // milliseconds
     tokenBucket = undefined
     throttle = undefined
-    enableRateLimit = undefined
+    enableRateLimit: boolean = undefined;
 
     httpExceptions = undefined
 
@@ -265,11 +265,11 @@ export default class Exchange {
         leverage?: MinMax,
         price?: MinMax,
     };
-    fees = undefined
-    markets_by_id: Dictionary<any> = undefined
-    symbols = undefined
-    ids: string[] = undefined
-    currencies: Dictionary<Currency> = undefined
+    fees: object;
+    markets_by_id: Dictionary<any> = undefined;
+    symbols: string[] = undefined;
+    ids: string[] = undefined;
+    currencies: Dictionary<Currency> = undefined;
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
@@ -284,21 +284,21 @@ export default class Exchange {
 
     commonCurrencies = undefined
 
-    hostname = undefined
+    hostname: string = undefined;
 
-    precisionMode = undefined
+    precisionMode: number = undefined;
     paddingMode = undefined
 
     exceptions = {}
     timeframes: Dictionary<number | string> = {}
 
-    version = undefined
+    version: string = undefined;
 
     marketsByAltname = undefined
 
-    name = undefined
+    name:string = undefined
 
-    lastRestRequestTimestamp = undefined
+    lastRestRequestTimestamp:number;
 
     targetAccount = undefined
 
@@ -611,9 +611,6 @@ export default class Exchange {
         //
         this.options = this.getDefaultOptions(); // exchange-specific options, if any
         // fetch implementation options (JS only)
-        this.fetchOptions = {
-            // keepalive: true, // does not work in Chrome, https://github.com/ccxt/ccxt/issues/6368
-        }
         // http properties
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -886,6 +883,10 @@ export default class Exchange {
         if (this.fetchImplementation === undefined) {
             if (isNode) {
                 const module = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js')
+                if (this.agent === undefined) {
+                    const { Agent } = await import (/* webpackIgnore: true */'node:https')
+                    this.agent = new Agent ({ keepAlive: true })
+                }
                 this.AbortError = module.AbortError
                 this.fetchImplementation = module.default
                 this.FetchError = module.FetchError
@@ -901,10 +902,6 @@ export default class Exchange {
         const params = { method, headers, body, timeout: this.timeout };
         if (this.agent) {
             params['agent'] = this.agent;
-        } else if (this.httpAgent && url.indexOf ('http://') === 0) {
-            params['agent'] = this.httpAgent;
-        } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
-            params['agent'] = this.httpsAgent;
         }
         const controller = new AbortController ()
         params['signal'] = controller.signal
@@ -912,7 +909,7 @@ export default class Exchange {
             controller.abort ()
         }, this.timeout)
         try {
-            const response = await fetchImplementation (url, this.extend (params, this.fetchOptions))
+            const response = await fetchImplementation (url, params)
             clearTimeout (timeout)
             return this.handleRestResponse (response, url, method, headers, body);
         } catch (e) {
@@ -1204,7 +1201,7 @@ export default class Exchange {
                 'throttle': throttle (this.tokenBucket),
                 // add support for proxies
                 'options': {
-                    'agent': this.agent || this.httpsAgent || this.httpAgent,
+                    'agent': this.agent,
                 }
             }, wsOptions);
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
