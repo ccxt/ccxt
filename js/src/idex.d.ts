@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/idex.js';
 export default class idex extends Exchange {
     describe(): any;
     priceToPrecision(symbol: any, price: any): any;

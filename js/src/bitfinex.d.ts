@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitfinex.js';
 export default class bitfinex extends Exchange {
     describe(): any;
     fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;

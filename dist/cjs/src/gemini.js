@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var gemini$1 = require('./abstract/gemini.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class gemini extends Exchange["default"] {
+// @ts-expect-error
+class gemini extends gemini$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gemini',

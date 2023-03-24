@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitfinex2.js';
 export default class bitfinex2 extends Exchange {
     describe(): any;
     isFiat(code: any): boolean;

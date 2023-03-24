@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var upbit$1 = require('./abstract/upbit.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class upbit extends Exchange["default"] {
+// @ts-expect-error
+class upbit extends upbit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'upbit',

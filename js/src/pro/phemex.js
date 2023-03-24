@@ -9,6 +9,7 @@ import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class phemex extends phemexRest {
     describe() {
         return this.deepExtend(super.describe(), {

@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var coinfalcon$1 = require('./abstract/coinfalcon.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class coinfalcon extends Exchange["default"] {
+// @ts-expect-error
+class coinfalcon extends coinfalcon$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinfalcon',

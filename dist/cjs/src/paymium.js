@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var paymium$1 = require('./abstract/paymium.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class paymium extends Exchange["default"] {
+// @ts-expect-error
+class paymium extends paymium$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'paymium',

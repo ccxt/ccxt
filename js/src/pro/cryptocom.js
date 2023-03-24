@@ -9,6 +9,7 @@ import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class cryptocom extends cryptocomRest {
     describe() {
         return this.deepExtend(super.describe(), {

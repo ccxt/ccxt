@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var wavesexchange$1 = require('./abstract/wavesexchange.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class wavesexchange extends Exchange["default"] {
+// @ts-expect-error
+class wavesexchange extends wavesexchange$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'wavesexchange',

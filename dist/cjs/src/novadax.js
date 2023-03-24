@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var novadax$1 = require('./abstract/novadax.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class novadax extends Exchange["default"] {
+// @ts-expect-error
+class novadax extends novadax$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'novadax',

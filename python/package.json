@@ -25,7 +25,7 @@
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
     "tsBuild": "tsc",
-    "emitTypes": "node build/emitTypes.js",
+    "emitTypes": "node build/emitTypes.js && node build/generateImplicitAPI.js",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
     "force-build": "npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
     "force-build-slow": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",

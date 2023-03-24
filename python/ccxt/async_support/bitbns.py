@@ -118,7 +118,6 @@ class bitbns(Exchange):
                         'placeBuyOrder/{symbol}',
                         'buyStopLoss/{symbol}',
                         'sellStopLoss/{symbol}',
-                        'placeSellOrder/{symbol}',
                         'cancelOrder/{symbol}',
                         'cancelStopLossOrder/{symbol}',
                         'listExecutedOrders/{symbol}',

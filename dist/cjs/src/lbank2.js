@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var lbank2$1 = require('./abstract/lbank2.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class lbank2 extends Exchange["default"] {
+// @ts-expect-error
+class lbank2 extends lbank2$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'lbank2',

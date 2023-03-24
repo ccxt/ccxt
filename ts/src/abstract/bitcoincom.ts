@@ -1,7 +1,7 @@
 import { implicitReturnType } from '../base/types.js'
-import _hitbtc from '../hitbtc.js'
+import _fmfwio from '../fmfwio.js'
 
-export default abstract class hitbtc extends _hitbtc {
+export default abstract class fmfwio extends _fmfwio {
     abstract publicGetCurrency (params?: {}): Promise<implicitReturnType>;
     abstract publicGetCurrencyCurrency (params?: {}): Promise<implicitReturnType>;
     abstract publicGetSymbol (params?: {}): Promise<implicitReturnType>;

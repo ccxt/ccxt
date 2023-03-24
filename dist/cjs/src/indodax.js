@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var indodax$1 = require('./abstract/indodax.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class indodax extends Exchange["default"] {
+// @ts-expect-error
+class indodax extends indodax$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'indodax',

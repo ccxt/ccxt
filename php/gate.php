@@ -2501,6 +2501,7 @@ class gate extends Exchange {
         //     }
         //
         $rates = array();
+        // @ts-expect-error
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
             $timestamp = $this->safe_timestamp($entry, 't');

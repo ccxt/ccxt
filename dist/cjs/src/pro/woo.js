@@ -7,6 +7,7 @@ var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
+// @ts-expect-error
 class woo extends woo$1 {
     describe() {
         return this.deepExtend(super.describe(), {

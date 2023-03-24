@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitopro.js';
 export default class bitopro extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;

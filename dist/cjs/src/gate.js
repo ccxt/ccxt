@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var gate$1 = require('./abstract/gate.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 
 //  ---------------------------------------------------------------------------
-class gate extends Exchange["default"] {
+// @ts-expect-error
+class gate extends gate$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gate',
@@ -2514,6 +2515,7 @@ class gate extends Exchange["default"] {
         //     }
         //
         const rates = [];
+        // @ts-expect-error
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const timestamp = this.safeTimestamp(entry, 't');

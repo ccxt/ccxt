@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitmart.js';
 export default class bitmart extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;

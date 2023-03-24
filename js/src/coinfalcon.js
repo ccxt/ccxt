@@ -5,11 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coinfalcon.js';
 import { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class coinfalcon extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

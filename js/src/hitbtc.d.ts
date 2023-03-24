@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/hitbtc.js';
 export default class hitbtc extends Exchange {
     describe(): any;
     feeToPrecision(symbol: any, fee: any): any;

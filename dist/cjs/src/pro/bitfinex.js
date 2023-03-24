@@ -7,6 +7,7 @@ var Precise = require('../base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 class bitfinex extends bitfinex$1 {
     describe() {
         return this.deepExtend(super.describe(), {

@@ -9,6 +9,7 @@ import currencycomRest from '../currencycom.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class currencycom extends currencycomRest {
     describe() {
         return this.deepExtend(super.describe(), {

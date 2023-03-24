@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bigone$1 = require('./abstract/bigone.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bigone extends Exchange["default"] {
+// @ts-expect-error
+class bigone extends bigone$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bigone',

@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var cex$1 = require('./abstract/cex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class cex extends Exchange["default"] {
+// @ts-expect-error
+class cex extends cex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'cex',
@@ -1129,6 +1130,7 @@ class cex extends Exchange["default"] {
         const market = this.market(symbol);
         const request = { 'pair': market['id'] };
         const response = await this[method](this.extend(request, params));
+        // @ts-expect-error
         return this.parseOrders(response, market, since, limit);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {

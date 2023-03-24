@@ -9,6 +9,7 @@ import exmoRest from '../exmo.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class exmo extends exmoRest {
     describe() {
         return this.deepExtend(super.describe(), {

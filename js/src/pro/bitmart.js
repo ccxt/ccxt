@@ -9,6 +9,7 @@ import bitmartRest from '../bitmart.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class bitmart extends bitmartRest {
     describe() {
         return this.deepExtend(super.describe(), {

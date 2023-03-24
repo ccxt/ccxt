@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bybit$1 = require('./abstract/bybit.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bybit extends Exchange["default"] {
+// @ts-expect-error
+class bybit extends bybit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bybit',

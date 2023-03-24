@@ -9,6 +9,7 @@ import hollaexRest from '../hollaex.js';
 import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class hollaex extends hollaexRest {
     describe() {
         return this.deepExtend(super.describe(), {

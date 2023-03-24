@@ -1149,6 +1149,7 @@ class cex extends Exchange {
             $market = $this->market($symbol);
             $request = array( 'pair' => $market['id'] );
             $response = Async\await($this->$method (array_merge($request, $params)));
+            // @ts-expect-error
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }

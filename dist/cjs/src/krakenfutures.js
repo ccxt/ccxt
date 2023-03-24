@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var krakenfutures$1 = require('./abstract/krakenfutures.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class krakenfutures extends Exchange["default"] {
+// @ts-expect-error
+class krakenfutures extends krakenfutures$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'krakenfutures',

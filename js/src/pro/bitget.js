@@ -10,6 +10,7 @@ import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, Inval
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class bitget extends bitgetRest {
     describe() {
         return this.deepExtend(super.describe(), {

@@ -10,6 +10,7 @@ import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class cex extends cexRest {
     describe() {
         return this.deepExtend(super.describe(), {

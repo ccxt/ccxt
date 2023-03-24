@@ -7,6 +7,7 @@ var Cache = require('../base/ws/Cache.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 class bitfinex2 extends bitfinex2$1 {
     describe() {
         return this.deepExtend(super.describe(), {

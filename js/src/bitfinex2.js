@@ -7,9 +7,10 @@
 // ---------------------------------------------------------------------------
 import { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 // ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class bitfinex2 extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

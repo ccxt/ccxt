@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coincheck.js';
 export default class coincheck extends Exchange {
     describe(): any;
     parseBalance(response: any): import("./base/types.js").Balances;
