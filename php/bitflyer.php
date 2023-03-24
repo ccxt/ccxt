@@ -724,7 +724,7 @@ class bitflyer extends Exchange {
         $request = array(
             'product_code' => $this->market_ids($symbols),
         );
-        $response = $this->privateGetpositions (array_merge($request, $params));
+        $response = $this->privateGetGetpositions (array_merge($request, $params));
         //
         //     array(
         //         {
@@ -972,7 +972,7 @@ class bitflyer extends Exchange {
             $headers = array(
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-TIMESTAMP' => $nonce,
-                'ACCESS-SIGN' => $this->hmac($this->encode($auth), $this->encode($this->secret)),
+                'ACCESS-SIGN' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
                 'Content-Type' => 'application/json',
             );
         }

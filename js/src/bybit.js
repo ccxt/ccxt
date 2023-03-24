@@ -5,11 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bybit.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class bybit extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1551,6 +1553,7 @@ export default class bybit extends Exchange {
             const inverse = (category === 'inverse');
             const contractType = this.safeString(market, 'contractType');
             const inverseFutures = (contractType === 'InverseFutures');
+            const linearFutures = (contractType === 'LinearFutures');
             const linearPerpetual = (contractType === 'LinearPerpetual');
             const inversePerpetual = (contractType === 'InversePerpetual');
             const id = this.safeString(market, 'symbol');
@@ -1574,7 +1577,7 @@ export default class bybit extends Exchange {
             const status = this.safeString(market, 'status');
             const active = (status === 'Trading');
             const swap = linearPerpetual || inversePerpetual;
-            const future = inverseFutures;
+            const future = inverseFutures || linearFutures;
             const option = (category === 'option');
             let type = undefined;
             if (swap) {
@@ -1877,11 +1880,12 @@ export default class bybit extends Exchange {
         // 'expDate': '', Expiry date. e.g., 25DEC22. For option only
         };
         let type = undefined;
+        const isTypeInParams = ('type' in params);
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         if (type === 'spot') {
             request['category'] = 'spot';
         }
-        else if (type === 'swap') {
+        else if (type === 'swap' || type === 'future') {
             let subType = undefined;
             [subType, params] = this.handleSubTypeAndParams('fetchTickers', market, params, 'linear');
             request['category'] = subType;
@@ -1931,10 +1935,21 @@ export default class bybit extends Exchange {
         const result = this.safeValue(response, 'result', {});
         const tickerList = this.safeValue(result, 'list', []);
         const tickers = {};
+        if (market === undefined && isTypeInParams) {
+            // create a "fake" market for the type
+            market = {
+                'type': (type === 'swap' || type === 'future') ? 'swap' : type,
+            };
+        }
         for (let i = 0; i < tickerList.length; i++) {
             const ticker = this.parseTicker(tickerList[i], market);
             const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+            // this is needed because bybit returns
+            // futures with type = swap
+            const marketInner = this.market(symbol);
+            if (marketInner['type'] === type) {
+                tickers[symbol] = ticker;
+            }
         }
         return this.filterByArray(tickers, 'symbol', symbols);
     }
@@ -1950,13 +1965,14 @@ export default class bybit extends Exchange {
         //         "2.4343353100000003"
         //     ]
         //
+        const volumeIndex = (market['inverse']) ? 6 : 5;
         return [
             this.safeInteger(ohlcv, 0),
             this.safeNumber(ohlcv, 1),
             this.safeNumber(ohlcv, 2),
             this.safeNumber(ohlcv, 3),
             this.safeNumber(ohlcv, 4),
-            this.safeNumber(ohlcv, 5),
+            this.safeNumber(ohlcv, volumeIndex),
         ];
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -3095,7 +3111,7 @@ export default class bybit extends Exchange {
             'New': 'open',
             'Rejected': 'rejected',
             'PartiallyFilled': 'open',
-            'PartiallyFilledCancelled': 'canceled',
+            'PartiallyFilledCanceled': 'canceled',
             'Filled': 'closed',
             'PendingCancel': 'open',
             'Cancelled': 'canceled',
@@ -3184,15 +3200,12 @@ export default class bybit extends Exchange {
         const status = this.parseOrderStatus(rawStatus);
         const side = this.safeStringLower(order, 'side');
         let fee = undefined;
-        const isContract = this.safeValue(market, 'contract');
-        if (isContract) {
-            const feeCostString = this.safeString(order, 'cumExecFee');
-            if (feeCostString !== undefined) {
-                fee = {
-                    'cost': feeCostString,
-                    'currency': market['settle'],
-                };
-            }
+        const feeCostString = this.safeString(order, 'cumExecFee');
+        if (feeCostString !== undefined) {
+            fee = {
+                'cost': feeCostString,
+                'currency': market['settle'],
+            };
         }
         let clientOrderId = this.safeString(order, 'orderLinkId');
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
@@ -3505,8 +3518,8 @@ export default class bybit extends Exchange {
         else if (timeInForce === 'ioc') {
             request['timeInForce'] = 'IOC';
         }
-        const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice', triggerPrice);
+        let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
         const stopLoss = this.safeNumber(params, 'stopLoss');
         const takeProfit = this.safeNumber(params, 'takeProfit');
@@ -3514,21 +3527,16 @@ export default class bybit extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
+        const isBuy = side === 'buy';
+        const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
         if (triggerPrice !== undefined) {
-            const isBuy = side === 'buy';
-            const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
             request['triggerDirection'] = ascending ? 2 : 1;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-            if (isStopLossTriggerOrder) {
-                request['triggerPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-                request['triggerDirection'] = 2;
-            }
-            else {
-                request['triggerPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-                request['triggerDirection'] = 1;
-            }
+            request['triggerDirection'] = ascending ? 2 : 1;
+            triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['reduceOnly'] = true;
         }
         else if (isStopLoss || isTakeProfit) {
@@ -3816,8 +3824,8 @@ export default class bybit extends Exchange {
         else if (timeInForce === 'ioc') {
             request['timeInForce'] = 'ImmediateOrCancel';
         }
-        const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice', triggerPrice);
+        let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
         const stopLoss = this.safeNumber(params, 'stopLoss');
         const takeProfit = this.safeNumber(params, 'takeProfit');
@@ -3825,21 +3833,16 @@ export default class bybit extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
-        if (triggerPrice) {
-            const isBuy = side === 'buy';
-            const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
+        const isBuy = side === 'buy';
+        const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
+        if (triggerPrice !== undefined) {
             request['triggerDirection'] = ascending ? 2 : 1;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-            if (isStopLossTriggerOrder) {
-                request['triggerPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-                request['triggerDirection'] = 2;
-            }
-            else {
-                request['triggerPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-                request['triggerDirection'] = 1;
-            }
+            request['triggerDirection'] = ascending ? 2 : 1;
+            triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['reduceOnly'] = true;
         }
         else if (isStopLoss || isTakeProfit) {
@@ -8278,7 +8281,7 @@ export default class bybit extends Exchange {
                     body = '{}';
                 }
                 const payload = timestamp + this.apiKey + body;
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'hex');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'hex');
                 headers = {
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': this.apiKey,
@@ -8296,7 +8299,7 @@ export default class bybit extends Exchange {
                 if (isV3UnifiedMargin || isV3Contract) {
                     headers['X-BAPI-SIGN-TYPE'] = '2';
                 }
-                const query = params;
+                const query = this.extend({}, params);
                 const queryEncoded = this.rawencode(query);
                 const auth_base = timestamp.toString() + this.apiKey + this.options['recvWindow'].toString();
                 let authFull = undefined;
@@ -8308,7 +8311,7 @@ export default class bybit extends Exchange {
                     authFull = auth_base + queryEncoded;
                     url += '?' + this.rawencode(query);
                 }
-                headers['X-BAPI-SIGN'] = this.hmac(this.encode(authFull), this.encode(this.secret));
+                headers['X-BAPI-SIGN'] = this.hmac(this.encode(authFull), this.encode(this.secret), sha256);
             }
             else {
                 const query = this.extend(params, {
@@ -8318,7 +8321,7 @@ export default class bybit extends Exchange {
                 });
                 const sortedQuery = this.keysort(query);
                 const auth = this.rawencode(sortedQuery);
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 if (method === 'POST') {
                     const isSpot = url.indexOf('spot') >= 0;
                     const extendedQuery = this.extend(query, {

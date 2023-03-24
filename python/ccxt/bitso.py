@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -158,9 +159,6 @@ class bitso(Exchange):
                         'bitcoin_withdrawal',
                         'debit_card_withdrawal',
                         'ether_withdrawal',
-                        'ripple_withdrawal',
-                        'bcash_withdrawal',
-                        'litecoin_withdrawal',
                         'orders',
                         'phone_number',
                         'phone_verification',
@@ -1599,7 +1597,7 @@ class bitso(Exchange):
                 if query:
                     body = self.json(query)
                     request += body
-            signature = self.hmac(self.encode(request), self.encode(self.secret))
+            signature = self.hmac(self.encode(request), self.encode(self.secret), hashlib.sha256)
             auth = self.apiKey + ':' + nonce + ':' + signature
             headers = {
                 'Authorization': 'Bitso ' + auth,

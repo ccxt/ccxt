@@ -1894,7 +1894,7 @@ class delta extends Exchange {
                 $auth .= $body;
                 $headers['Content-Type'] = 'application/json';
             }
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $headers['signature'] = $signature;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

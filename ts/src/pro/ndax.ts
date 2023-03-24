@@ -6,6 +6,7 @@ import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class ndax extends ndaxRest {
     describe () {
         return this.deepExtend (super.describe (), {

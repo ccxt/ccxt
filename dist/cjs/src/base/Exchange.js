@@ -2,16 +2,18 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var functions$1 = require('./functions.js');
-var functions = require('./ws/functions.js');
+var functions = require('./functions.js');
+var secp256k1 = require('../static_dependencies/noble-curves/secp256k1.js');
+var sha3 = require('../static_dependencies/noble-hashes/sha3.js');
 var errors = require('./errors.js');
 var Precise = require('./Precise.js');
 var WsClient = require('./ws/WsClient.js');
 var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
+var totp = require('./functions/totp.js');
 
 // ----------------------------------------------------------------------------
-const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, throttle, capitalize, now, buildOHLCVC, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, stringToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, totp, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, eddsa, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, jwt, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, rsa, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE } = functions$1;
+const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, throttle, capitalize, now, buildOHLCVC, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE } = functions;
 // ----------------------------------------------------------------------------
 class Exchange {
     constructor(userConfig = {}) {
@@ -36,10 +38,6 @@ class Exchange {
         this.debug = false;
         this.userAgent = undefined;
         this.twofa = undefined; // two-factor authentication (2FA)
-        this.login = undefined;
-        this.privateKey = undefined; // a "0x"-prefixed hexstring private key for a wallet
-        this.walletAddress = undefined; // a wallet address "0x"-prefixed hexstring
-        this.token = undefined; // reserved for HTTP auth in some cases
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
@@ -57,12 +55,11 @@ class Exchange {
         this.id = undefined;
         this.markets = undefined;
         this.status = undefined;
-        this.rateLimit = undefined;
+        this.rateLimit = undefined; // milliseconds
         this.tokenBucket = undefined;
         this.throttle = undefined;
         this.enableRateLimit = undefined;
         this.httpExceptions = undefined;
-        this.fees = undefined;
         this.markets_by_id = undefined;
         this.symbols = undefined;
         this.ids = undefined;
@@ -84,7 +81,6 @@ class Exchange {
         this.version = undefined;
         this.marketsByAltname = undefined;
         this.name = undefined;
-        this.lastRestRequestTimestamp = undefined;
         this.targetAccount = undefined;
         this.stablePairs = {};
         // WS/PRO options
@@ -122,7 +118,6 @@ class Exchange {
         this.binaryToBase16 = binaryToBase16;
         this.numberToBE = numberToBE;
         this.base16ToBinary = base16ToBinary;
-        this.stringToBinary = stringToBinary;
         this.iso8601 = iso8601;
         this.omit = omit;
         this.isJsonEncodedObject = isJsonEncodedObject;
@@ -136,8 +131,6 @@ class Exchange {
         this.merge = merge;
         this.binaryConcat = binaryConcat;
         this.hash = hash;
-        this.ecdsa = ecdsa;
-        this.totp = totp;
         this.arrayConcat = arrayConcat;
         this.encode = encode;
         this.urlencode = urlencode;
@@ -162,7 +155,6 @@ class Exchange {
         this.safeIntegerProduct = safeIntegerProduct;
         this.base58ToBinary = base58ToBinary;
         this.base64ToBinary = base64ToBinary;
-        this.eddsa = eddsa;
         this.safeTimestamp2 = safeTimestamp2;
         this.rawencode = rawencode;
         this.keysort = keysort;
@@ -171,13 +163,11 @@ class Exchange {
         this.safeStringUpper2 = safeStringUpper2;
         this.isEmpty = isEmpty;
         this.ordered = ordered;
-        this.jwt = jwt;
         this.filterBy = filterBy;
         this.uuid16 = uuid16;
         this.urlencodeWithArrayRepeat = urlencodeWithArrayRepeat;
         this.microseconds = microseconds;
         this.binaryToBase64 = binaryToBase64;
-        this.rsa = rsa;
         this.strip = strip;
         this.toArray = toArray;
         this.safeFloatN = safeFloatN;
@@ -194,10 +184,7 @@ class Exchange {
         this.isArray = isArray;
         this.base64ToString = base64ToString;
         this.crc32 = crc32;
-        this.inflate = functions.inflate;
-        this.inflate64 = functions.inflate64;
-        this.gunzip = functions.gunzip;
-        Object.assign(this, functions$1);
+        Object.assign(this, functions);
         //
         //     if (isNode) {
         //         this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
@@ -663,7 +650,7 @@ class Exchange {
         }
         if (this.fetchImplementation === undefined) {
             if (isNode) {
-                const module = await Promise.resolve().then(function () { return require('../static_dependencies/node-fetch/index.js'); });
+                const module = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/node-fetch/index.js'); });
                 this.AbortError = module.AbortError;
                 this.fetchImplementation = module.default;
                 this.FetchError = module.FetchError;
@@ -850,11 +837,11 @@ class Exchange {
     hashMessage(message) {
         // takes a hex encoded message
         const binaryMessage = this.base16ToBinary(this.remove0xPrefix(message));
-        const prefix = this.stringToBinary('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes);
-        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), 'keccak', 'hex');
+        const prefix = this.encode('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength);
+        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), sha3.keccak_256, 'hex');
     }
     signHash(hash, privateKey) {
-        const signature = this.ecdsa(hash.slice(-64), privateKey.slice(-64), 'secp256k1', undefined);
+        const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1.secp256k1, undefined);
         return {
             'r': '0x' + signature['r'],
             's': '0x' + signature['s'],
@@ -868,7 +855,7 @@ class Exchange {
         // still takes the input as a hex string
         // same as above but returns a string instead of an object
         const signature = this.signMessage(message, privateKey);
-        return signature['r'] + this.remove0xPrefix(signature['s']) + this.binaryToBase16(this.numberToBE(signature['v']));
+        return signature['r'] + this.remove0xPrefix(signature['s']) + this.binaryToBase16(this.numberToBE(signature['v'], 1));
     }
     parseNumber(value, d = undefined) {
         if (value === undefined) {
@@ -2581,12 +2568,13 @@ class Exchange {
                     return markets[0];
                 }
                 else {
-                    if (marketType === undefined) {
+                    if (marketType === undefined && market === undefined) {
                         throw new errors.ArgumentsRequired(this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
                     }
+                    const inferedMarketType = (market !== undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const market = markets[i];
-                        if (market[marketType]) {
+                        if (market[inferedMarketType]) {
                             return market;
                         }
                     }
@@ -2630,7 +2618,7 @@ class Exchange {
     }
     oath() {
         if (this.twofa !== undefined) {
-            return this.totp(this.twofa);
+            return totp.totp(this.twofa);
         }
         else {
             throw new errors.ExchangeError(this.id + ' exchange.twofa has not been set for 2FA Two-Factor Authentication');
@@ -3309,6 +3297,38 @@ class Exchange {
         else {
             return false;
         }
+    }
+    handlePostOnly(isMarketOrder, exchangeSpecificPostOnlyOption, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} type Order type
+         * @param {boolean} exchangeSpecificBoolean exchange specific postOnly
+         * @param {object} params exchange specific params
+         * @returns {[boolean, params]}
+         */
+        const timeInForce = this.safeStringUpper(params, 'timeInForce');
+        let postOnly = this.safeValue(params, 'postOnly', false);
+        const ioc = timeInForce === 'IOC';
+        const fok = timeInForce === 'FOK';
+        const po = timeInForce === 'PO';
+        postOnly = postOnly || po || exchangeSpecificPostOnlyOption;
+        if (postOnly) {
+            if (ioc || fok) {
+                throw new errors.InvalidOrder(this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
+            }
+            else if (isMarketOrder) {
+                throw new errors.InvalidOrder(this.id + ' market orders cannot be postOnly');
+            }
+            else {
+                if (po) {
+                    params = this.omit(params, 'timeInForce');
+                }
+                params = this.omit(params, 'postOnly');
+                return [true, params];
+            }
+        }
+        return [false, params];
     }
     async fetchLastPrices(params = {}) {
         throw new errors.NotSupported(this.id + ' fetchLastPrices() is not supported yet');

@@ -4,6 +4,7 @@ var hitbtc = require('./hitbtc.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
+// @ts-expect-error
 class bequant extends hitbtc {
     describe() {
         return this.deepExtend(super.describe(), {

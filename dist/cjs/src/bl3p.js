@@ -1,12 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bl3p$1 = require('./abstract/bl3p.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class bl3p extends Exchange["default"] {
+// @ts-expect-error
+class bl3p extends bl3p$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bl3p',
@@ -391,7 +393,7 @@ class bl3p extends Exchange["default"] {
             const secret = this.base64ToBinary(this.secret);
             // eslint-disable-next-line quotes
             const auth = request + "\0" + body;
-            const signature = this.hmac(this.encode(auth), secret, 'sha512', 'base64');
+            const signature = this.hmac(this.encode(auth), secret, sha512.sha512, 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': this.apiKey,

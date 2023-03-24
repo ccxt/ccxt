@@ -263,7 +263,6 @@ class okcoin extends Exchange {
                         'fills',
                         'trade_fee',
                         'accounts/{instrument_id}/holds',
-                        'order_algo/{instrument_id}',
                         // public
                         'instruments',
                         'instruments/{instrument_id}/book',
@@ -339,8 +338,6 @@ class okcoin extends Exchange {
                         'cancel_algos',
                         'close_position',
                         'cancel_all',
-                        'order_algo',
-                        'cancel_algos',
                     ),
                 ),
                 'option' => array(

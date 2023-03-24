@@ -8,6 +8,7 @@
 import upbitRest from '../upbit.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class upbit extends upbitRest {
     describe() {
         return this.deepExtend(super.describe(), {

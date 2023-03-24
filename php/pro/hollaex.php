@@ -452,7 +452,7 @@ class hollaex extends \ccxt\async\hollaex {
             }
             $url = $this->urls['api']['ws'];
             $auth = 'CONNECT' . '/stream' . $expires;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $authParams = array(
                 'api-key' => $this->apiKey,
                 'api-signature' => $signature,

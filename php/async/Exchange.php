@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '3.0.26';
+$version = '3.0.31';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.26';
+    const VERSION = '3.0.31';
 
     public $browser;
     public $marketsLoading = null;
@@ -1787,12 +1787,13 @@ class Exchange extends \ccxt\Exchange {
                 if ($numMarkets === 1) {
                     return $markets[0];
                 } else {
-                    if ($marketType === null) {
+                    if ($marketType === null && $market === null) {
                         throw new ArgumentsRequired($this->id . ' safeMarket() requires a fourth argument for ' . $marketId . ' to disambiguate between different $markets with the same $market id');
                     }
+                    $inferedMarketType = ($market !== null) ? $market['type'] : $marketType;
                     for ($i = 0; $i < count($markets); $i++) {
                         $market = $markets[$i];
-                        if ($market[$marketType]) {
+                        if ($market[$inferedMarketType]) {
                             return $market;
                         }
                     }
@@ -1835,7 +1836,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function oath() {
         if ($this->twofa !== null) {
-            return $this->totp ($this->twofa);
+            return $this->totp($this->twofa);
         } else {
             throw new ExchangeError($this->id . ' exchange.twofa has not been set for 2FA Two-Factor Authentication');
         }
@@ -2633,6 +2634,36 @@ class Exchange extends \ccxt\Exchange {
         } else {
             return false;
         }
+    }
+
+    public function handle_post_only($isMarketOrder, $exchangeSpecificPostOnlyOption, $params = array ()) {
+        /**
+         * @ignore
+         * @param {string} type Order type
+         * @param {boolean} exchangeSpecificBoolean exchange specific $postOnly
+         * @param {array} $params exchange specific $params
+         * @return array([boolean, $params])
+         */
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $ioc = $timeInForce === 'IOC';
+        $fok = $timeInForce === 'FOK';
+        $po = $timeInForce === 'PO';
+        $postOnly = $postOnly || $po || $exchangeSpecificPostOnlyOption;
+        if ($postOnly) {
+            if ($ioc || $fok) {
+                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $timeInForce equal to ' . $timeInForce);
+            } elseif ($isMarketOrder) {
+                throw new InvalidOrder($this->id . ' market orders cannot be postOnly');
+            } else {
+                if ($po) {
+                    $params = $this->omit ($params, 'timeInForce');
+                }
+                $params = $this->omit ($params, 'postOnly');
+                return array( true, $params );
+            }
+        }
+        return array( false, $params );
     }
 
     public function fetch_last_prices($params = array ()) {

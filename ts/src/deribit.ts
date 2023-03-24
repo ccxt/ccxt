@@ -1,12 +1,15 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/deribit.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import totp from './base/functions/totp.js';
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class deribit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -394,7 +397,7 @@ export default class deribit extends Exchange {
          * @param {object} params extra parameters specific to the deribit api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetGetTime (params);
+        const response = await this.publicGetGetTime (params);
         //
         //     {
         //         jsonrpc: '2.0',
@@ -423,7 +426,7 @@ export default class deribit extends Exchange {
          * @param {object} params extra parameters specific to the deribit api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
-        const response = await (this as any).publicGetStatus (params);
+        const response = await this.publicGetStatus (params);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -457,7 +460,7 @@ export default class deribit extends Exchange {
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetGetSubaccounts (params);
+        const response = await this.privateGetGetSubaccounts (params);
         //
         //     {
         //         jsonrpc: '2.0',
@@ -527,7 +530,7 @@ export default class deribit extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const currenciesResponse = await (this as any).publicGetGetCurrencies (params);
+        const currenciesResponse = await this.publicGetGetCurrencies (params);
         //
         //     {
         //         jsonrpc: '2.0',
@@ -559,7 +562,7 @@ export default class deribit extends Exchange {
             const request = {
                 'currency': currencyId,
             };
-            const instrumentsResponse = await (this as any).publicGetGetInstruments (this.extend (request, params));
+            const instrumentsResponse = await this.publicGetGetInstruments (this.extend (request, params));
             //
             //     {
             //         "jsonrpc":"2.0",
@@ -756,7 +759,7 @@ export default class deribit extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privateGetGetAccountSummary (this.extend (request, params));
+        const response = await this.privateGetGetAccountSummary (this.extend (request, params));
         //
         //     {
         //         jsonrpc: '2.0',
@@ -817,7 +820,7 @@ export default class deribit extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privateGetCreateDepositAddress (this.extend (request, params));
+        const response = await this.privateGetCreateDepositAddress (this.extend (request, params));
         //
         //     {
         //         'jsonrpc': '2.0',
@@ -855,7 +858,7 @@ export default class deribit extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privateGetGetCurrentDepositAddress (this.extend (request, params));
+        const response = await this.privateGetGetCurrentDepositAddress (this.extend (request, params));
         //
         //     {
         //         jsonrpc: '2.0',
@@ -975,7 +978,7 @@ export default class deribit extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         //
         //     {
         //         jsonrpc: '2.0',
@@ -1024,7 +1027,7 @@ export default class deribit extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).publicGetGetBookSummaryByCurrency (this.extend (request, params));
+        const response = await this.publicGetGetBookSummaryByCurrency (this.extend (request, params));
         //
         //     {
         //         jsonrpc: '2.0',
@@ -1099,7 +1102,7 @@ export default class deribit extends Exchange {
                 request['end_timestamp'] = this.sum (since, limit * duration * 1000);
             }
         }
-        const response = await (this as any).publicGetGetTradingviewChartData (this.extend (request, params));
+        const response = await this.publicGetGetTradingviewChartData (this.extend (request, params));
         //
         //     {
         //         jsonrpc: '2.0',
@@ -1285,7 +1288,7 @@ export default class deribit extends Exchange {
             'currency': currency['id'],
             'extended': true,
         };
-        const response = await (this as any).privateGetGetAccountSummary (this.extend (request, params));
+        const response = await this.privateGetGetAccountSummary (this.extend (request, params));
         //
         //     {
         //         jsonrpc: '2.0',
@@ -1405,7 +1408,7 @@ export default class deribit extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const response = await (this as any).publicGetGetOrderBook (this.extend (request, params));
+        const response = await this.publicGetGetOrderBook (this.extend (request, params));
         //
         //     {
         //         jsonrpc: '2.0',
@@ -1595,7 +1598,7 @@ export default class deribit extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateGetGetOrderState (this.extend (request, params));
+        const response = await this.privateGetGetOrderState (this.extend (request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1816,7 +1819,7 @@ export default class deribit extends Exchange {
             // 'stop_price': false, // stop price, required for stop_limit orders
             // 'advanced': 'usd', // 'implv', advanced option order type, options only
         };
-        const response = await (this as any).privateGetEdit (this.extend (request, params));
+        const response = await this.privateGetEdit (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         const order = this.safeValue (result, 'order');
         const trades = this.safeValue (result, 'trades', []);
@@ -1838,7 +1841,7 @@ export default class deribit extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateGetCancel (this.extend (request, params));
+        const response = await this.privateGetCancel (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         return this.parseOrder (result);
     }
@@ -1942,7 +1945,7 @@ export default class deribit extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateGetGetUserTradesByOrder (this.extend (request, params));
+        const response = await this.privateGetGetUserTradesByOrder (this.extend (request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2081,7 +2084,7 @@ export default class deribit extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const response = await (this as any).privateGetGetDeposits (this.extend (request, params));
+        const response = await this.privateGetGetDeposits (this.extend (request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2129,7 +2132,7 @@ export default class deribit extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const response = await (this as any).privateGetGetWithdrawals (this.extend (request, params));
+        const response = await this.privateGetGetWithdrawals (this.extend (request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2311,7 +2314,7 @@ export default class deribit extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await (this as any).privateGetGetPosition (this.extend (request, params));
+        const response = await this.privateGetGetPosition (this.extend (request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2373,7 +2376,7 @@ export default class deribit extends Exchange {
             'currency': currency['id'],
             // "kind" : "future", "option"
         };
-        const response = await (this as any).privateGetGetPositions (this.extend (request, params));
+        const response = await this.privateGetGetPositions (this.extend (request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2413,7 +2416,7 @@ export default class deribit extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).publicGetGetHistoricalVolatility (this.extend (request, params));
+        const response = await this.publicGetGetHistoricalVolatility (this.extend (request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2465,7 +2468,7 @@ export default class deribit extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const response = await (this as any).privateGetGetTransfers (this.extend (request, params));
+        const response = await this.privateGetGetTransfers (this.extend (request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2617,9 +2620,9 @@ export default class deribit extends Exchange {
             // 'tfa': '123456', // if enabled
         };
         if (this.twofa !== undefined) {
-            request['tfa'] = this.oath ();
+            request['tfa'] = totp (this.twofa);
         }
-        const response = await (this as any).privateGetWithdraw (this.extend (request, params));
+        const response = await this.privateGetWithdraw (this.extend (request, params));
         return this.parseTransaction (response, currency);
     }
 
@@ -2644,7 +2647,7 @@ export default class deribit extends Exchange {
             }
             const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
             const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             headers = {
                 'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             };

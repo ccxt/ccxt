@@ -1532,7 +1532,7 @@ class bitfinex(Exchange):
             signature = self.hmac(payload, secret, hashlib.sha384)
             headers = {
                 'X-BFX-APIKEY': self.apiKey,
-                'X-BFX-PAYLOAD': self.decode(payload),
+                'X-BFX-PAYLOAD': payload,
                 'X-BFX-SIGNATURE': signature,
                 'Content-Type': 'application/json',
             }

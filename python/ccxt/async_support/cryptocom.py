@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import asyncio
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
@@ -367,6 +368,7 @@ class cryptocom(Exchange):
         :returns [dict]: an array of objects representing market data
         """
         promises = [self.fetch_spot_markets(params), self.fetch_derivatives_markets(params)]
+        # @ts-ignore
         promises = await asyncio.gather(*promises)
         spotMarkets = promises[0]
         derivativeMarkets = promises[1]
@@ -2334,7 +2336,7 @@ class cryptocom(Exchange):
             for i in range(0, len(paramsKeys)):
                 strSortKey = strSortKey + str(paramsKeys[i]) + str(requestParams[paramsKeys[i]])
             payload = path + nonce + self.apiKey + strSortKey + nonce
-            signature = self.hmac(self.encode(payload), self.encode(self.secret))
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
             paramsKeysLength = len(paramsKeys)
             body = self.json({
                 'id': nonce,

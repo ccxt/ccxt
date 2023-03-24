@@ -1546,6 +1546,7 @@ class bybit(Exchange):
             inverse = (category == 'inverse')
             contractType = self.safe_string(market, 'contractType')
             inverseFutures = (contractType == 'InverseFutures')
+            linearFutures = (contractType == 'LinearFutures')
             linearPerpetual = (contractType == 'LinearPerpetual')
             inversePerpetual = (contractType == 'InversePerpetual')
             id = self.safe_string(market, 'symbol')
@@ -1567,7 +1568,7 @@ class bybit(Exchange):
             status = self.safe_string(market, 'status')
             active = (status == 'Trading')
             swap = linearPerpetual or inversePerpetual
-            future = inverseFutures
+            future = inverseFutures or linearFutures
             option = (category == 'option')
             type = None
             if swap:
@@ -1851,10 +1852,11 @@ class bybit(Exchange):
             # 'expDate': '', Expiry date. e.g., 25DEC22. For option only
         }
         type = None
+        isTypeInParams = ('type' in params)
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         if type == 'spot':
             request['category'] = 'spot'
-        elif type == 'swap':
+        elif type == 'swap' or type == 'future':
             subType = None
             subType, params = self.handle_sub_type_and_params('fetchTickers', market, params, 'linear')
             request['category'] = subType
@@ -1902,10 +1904,19 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         tickerList = self.safe_value(result, 'list', [])
         tickers = {}
+        if market is None and isTypeInParams:
+            # create a "fake" market for the type
+            market = {
+                'type': 'swap' if (type == 'swap' or type == 'future') else type,
+            }
         for i in range(0, len(tickerList)):
             ticker = self.parse_ticker(tickerList[i], market)
             symbol = ticker['symbol']
-            tickers[symbol] = ticker
+            # self is needed because bybit returns
+            # futures with type = swap
+            marketInner = self.market(symbol)
+            if marketInner['type'] == type:
+                tickers[symbol] = ticker
         return self.filter_by_array(tickers, 'symbol', symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
@@ -1920,13 +1931,14 @@ class bybit(Exchange):
         #         "2.4343353100000003"
         #     ]
         #
+        volumeIndex = 6 if (market['inverse']) else 5
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
             self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),
             self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, 5),
+            self.safe_number(ohlcv, volumeIndex),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -2980,7 +2992,7 @@ class bybit(Exchange):
             'New': 'open',
             'Rejected': 'rejected',  # order is triggered but failed upon being placed
             'PartiallyFilled': 'open',
-            'PartiallyFilledCancelled': 'canceled',
+            'PartiallyFilledCanceled': 'canceled',
             'Filled': 'closed',
             'PendingCancel': 'open',
             'Cancelled': 'canceled',
@@ -3065,14 +3077,12 @@ class bybit(Exchange):
         status = self.parse_order_status(rawStatus)
         side = self.safe_string_lower(order, 'side')
         fee = None
-        isContract = self.safe_value(market, 'contract')
-        if isContract:
-            feeCostString = self.safe_string(order, 'cumExecFee')
-            if feeCostString is not None:
-                fee = {
-                    'cost': feeCostString,
-                    'currency': market['settle'],
-                }
+        feeCostString = self.safe_string(order, 'cumExecFee')
+        if feeCostString is not None:
+            fee = {
+                'cost': feeCostString,
+                'currency': market['settle'],
+            }
         clientOrderId = self.safe_string(order, 'orderLinkId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
@@ -3351,7 +3361,7 @@ class bybit(Exchange):
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'IOC'
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice', triggerPrice)
+        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
         stopLoss = self.safe_number(params, 'stopLoss')
         takeProfit = self.safe_number(params, 'takeProfit')
@@ -3359,18 +3369,15 @@ class bybit(Exchange):
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLoss = stopLoss is not None
         isTakeProfit = takeProfit is not None
+        isBuy = side == 'buy'
+        ascending = not isBuy if stopLossTriggerPrice else isBuy
         if triggerPrice is not None:
-            isBuy = side == 'buy'
-            ascending = not isBuy if stopLossTriggerPrice else isBuy
             request['triggerDirection'] = 2 if ascending else 1
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
-            if isStopLossTriggerOrder:
-                request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-                request['triggerDirection'] = 2
-            else:
-                request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-                request['triggerDirection'] = 1
+            request['triggerDirection'] = 2 if ascending else 1
+            triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['reduceOnly'] = True
         elif isStopLoss or isTakeProfit:
             if isStopLoss:
@@ -3618,7 +3625,7 @@ class bybit(Exchange):
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'ImmediateOrCancel'
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice', triggerPrice)
+        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
         stopLoss = self.safe_number(params, 'stopLoss')
         takeProfit = self.safe_number(params, 'takeProfit')
@@ -3626,18 +3633,15 @@ class bybit(Exchange):
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLoss = stopLoss is not None
         isTakeProfit = takeProfit is not None
-        if triggerPrice:
-            isBuy = side == 'buy'
-            ascending = not isBuy if stopLossTriggerPrice else isBuy
+        isBuy = side == 'buy'
+        ascending = not isBuy if stopLossTriggerPrice else isBuy
+        if triggerPrice is not None:
             request['triggerDirection'] = 2 if ascending else 1
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
-            if isStopLossTriggerOrder:
-                request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-                request['triggerDirection'] = 2
-            else:
-                request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-                request['triggerDirection'] = 1
+            request['triggerDirection'] = 2 if ascending else 1
+            triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['reduceOnly'] = True
         elif isStopLoss or isTakeProfit:
             if isStopLoss:
@@ -7709,7 +7713,7 @@ class bybit(Exchange):
                 }
                 if isV3UnifiedMargin or isV3Contract:
                     headers['X-BAPI-SIGN-TYPE'] = '2'
-                query = params
+                query = self.extend({}, params)
                 queryEncoded = self.rawencode(query)
                 auth_base = str(timestamp) + self.apiKey + str(self.options['recvWindow'])
                 authFull = None
@@ -7719,7 +7723,7 @@ class bybit(Exchange):
                 else:
                     authFull = auth_base + queryEncoded
                     url += '?' + self.rawencode(query)
-                headers['X-BAPI-SIGN'] = self.hmac(self.encode(authFull), self.encode(self.secret))
+                headers['X-BAPI-SIGN'] = self.hmac(self.encode(authFull), self.encode(self.secret), hashlib.sha256)
             else:
                 query = self.extend(params, {
                     'api_key': self.apiKey,
@@ -7728,7 +7732,7 @@ class bybit(Exchange):
                 })
                 sortedQuery = self.keysort(query)
                 auth = self.rawencode(sortedQuery)
-                signature = self.hmac(self.encode(auth), self.encode(self.secret))
+                signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 if method == 'POST':
                     isSpot = url.find('spot') >= 0
                     extendedQuery = self.extend(query, {

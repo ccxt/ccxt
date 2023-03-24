@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.26'
+__version__ = '3.0.31'
 
 # -----------------------------------------------------------------------------
 
@@ -1720,11 +1720,12 @@ class Exchange(BaseExchange):
                 if numMarkets == 1:
                     return markets[0]
                 else:
-                    if marketType is None:
+                    if marketType is None and market is None:
                         raise ArgumentsRequired(self.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id')
+                    inferedMarketType = market['type'] if (market is not None) else marketType
                     for i in range(0, len(markets)):
                         market = markets[i]
-                        if market[marketType]:
+                        if market[inferedMarketType]:
                             return market
             elif delimiter is not None:
                 parts = marketId.split(delimiter)
@@ -2342,6 +2343,32 @@ class Exchange(BaseExchange):
                 return True
         else:
             return False
+
+    def handle_post_only(self, isMarketOrder, exchangeSpecificPostOnlyOption, params={}):
+        """
+         * @ignore
+        :param str type: Order type
+        :param boolean exchangeSpecificBoolean: exchange specific postOnly
+        :param dict params: exchange specific params
+        :returns [boolean, params]:
+        """
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        postOnly = self.safe_value(params, 'postOnly', False)
+        ioc = timeInForce == 'IOC'
+        fok = timeInForce == 'FOK'
+        po = timeInForce == 'PO'
+        postOnly = postOnly or po or exchangeSpecificPostOnlyOption
+        if postOnly:
+            if ioc or fok:
+                raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
+            elif isMarketOrder:
+                raise InvalidOrder(self.id + ' market orders cannot be postOnly')
+            else:
+                if po:
+                    params = self.omit(params, 'timeInForce')
+                params = self.omit(params, 'postOnly')
+                return [True, params]
+        return [False, params]
 
     async def fetch_last_prices(self, params={}):
         raise NotSupported(self.id + ' fetchLastPrices() is not supported yet')

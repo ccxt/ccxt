@@ -1,13 +1,16 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var binance$1 = require('./abstract/binance.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var rsa = require('./base/functions/rsa.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class binance extends Exchange["default"] {
+// @ts-expect-error
+class binance extends binance$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'binance',
@@ -3004,7 +3007,7 @@ class binance extends Exchange["default"] {
         //         "0.02500000",  // close
         //         "22.19000000", // volume
         //         1591478579999, // close time
-        //         "0.55490906",  // quote asset volume
+        //         "0.55490906",  // quote asset volume, base asset volume for dapi
         //         40,            // number of trades
         //         "10.92900000", // taker buy base asset volume
         //         "0.27336462",  // taker buy quote asset volume
@@ -3046,13 +3049,14 @@ class binance extends Exchange["default"] {
         //         "closeTime": 1677097200000
         //     }
         //
+        const volumeIndex = (market['inverse']) ? 7 : 5;
         return [
             this.safeInteger2(ohlcv, 0, 'closeTime'),
             this.safeNumber2(ohlcv, 1, 'open'),
             this.safeNumber2(ohlcv, 2, 'high'),
             this.safeNumber2(ohlcv, 3, 'low'),
             this.safeNumber2(ohlcv, 4, 'close'),
-            this.safeNumber2(ohlcv, 5, 'volume'),
+            this.safeNumber2(ohlcv, volumeIndex, 'volume'),
         ];
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -4897,6 +4901,9 @@ class binance extends Exchange["default"] {
             //     }
             //   ]
         }
+        for (let i = 0; i < response.length; i++) {
+            response[i]['type'] = 'deposit';
+        }
         return this.parseTransactions(response, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5012,6 +5019,9 @@ class binance extends Exchange["default"] {
             //         "transferType": 0
             //       }
             //     ]
+        }
+        for (let i = 0; i < response.length; i++) {
+            response[i]['type'] = 'withdrawal';
         }
         return this.parseTransactions(response, currency, since, limit);
     }
@@ -7398,10 +7408,10 @@ class binance extends Exchange["default"] {
             }
             let signature = undefined;
             if (this.secret.indexOf('PRIVATE KEY') > -1) {
-                signature = this.encodeURIComponent(this.rsa(query, this.secret));
+                signature = this.encodeURIComponent(rsa.rsa(query, this.secret, sha256.sha256));
             }
             else {
-                signature = this.hmac(this.encode(query), this.encode(this.secret));
+                signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
             }
             query += '&' + 'signature=' + signature;
             headers = {

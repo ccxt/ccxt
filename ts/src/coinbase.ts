@@ -1,13 +1,15 @@
 
 // ----------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coinbase.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 // ----------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class coinbase extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -293,7 +295,7 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).v2PublicGetTime (params);
+        const response = await this.v2PublicGetTime (params);
         //
         //     {
         //         "data": {
@@ -326,7 +328,7 @@ export default class coinbase extends Exchange {
         const request = {
             'limit': 100,
         };
-        const response = await (this as any).v2PrivateGetAccounts (this.extend (request, params));
+        const response = await this.v2PrivateGetAccounts (this.extend (request, params));
         //
         //     {
         //         "pagination": {
@@ -380,7 +382,7 @@ export default class coinbase extends Exchange {
         const request = {
             'limit': 100,
         };
-        const response = await (this as any).v3PrivateGetBrokerageAccounts (this.extend (request, params));
+        const response = await this.v3PrivateGetBrokerageAccounts (this.extend (request, params));
         //
         //     {
         //         "accounts": [
@@ -513,7 +515,7 @@ export default class coinbase extends Exchange {
         const request = {
             'account_id': accountId,
         };
-        const response = await (this as any).v2PrivatePostAccountsAccountIdAddresses (this.extend (request, params));
+        const response = await this.v2PrivatePostAccountsAccountIdAddresses (this.extend (request, params));
         //
         //     {
         //         "data": {
@@ -576,7 +578,7 @@ export default class coinbase extends Exchange {
         const request = this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
-        const sells = await (this as any).v2PrivateGetAccountsAccountIdSells (this.extend (request, query));
+        const sells = await this.v2PrivateGetAccountsAccountIdSells (this.extend (request, query));
         return this.parseTrades (sells['data'], undefined, since, limit);
     }
 
@@ -595,7 +597,7 @@ export default class coinbase extends Exchange {
         const request = this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
-        const buys = await (this as any).v2PrivateGetAccountsAccountIdBuys (this.extend (request, query));
+        const buys = await this.v2PrivateGetAccountsAccountIdBuys (this.extend (request, query));
         return this.parseTrades (buys['data'], undefined, since, limit);
     }
 
@@ -962,7 +964,7 @@ export default class coinbase extends Exchange {
     }
 
     async fetchMarketsV3 (params = {}) {
-        const response = await (this as any).v3PrivateGetBrokerageProducts (params);
+        const response = await this.v3PrivateGetBrokerageProducts (params);
         //
         //     [
         //         {
@@ -997,7 +999,7 @@ export default class coinbase extends Exchange {
         //         ...
         //     ]
         //
-        const fees = await (this as any).v3PrivateGetBrokerageTransactionSummary (params);
+        const fees = await this.v3PrivateGetBrokerageTransactionSummary (params);
         //
         //     {
         //         "total_volume": 0,
@@ -1090,8 +1092,8 @@ export default class coinbase extends Exchange {
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
         if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const currencies = await (this as any).v2PublicGetCurrencies (params);
-            const exchangeRates = await (this as any).v2PublicGetExchangeRates (params);
+            const currencies = await this.v2PublicGetCurrencies (params);
+            const exchangeRates = await this.v2PublicGetExchangeRates (params);
             this.options['fetchCurrencies'] = this.extend (options, {
                 'currencies': currencies,
                 'exchangeRates': exchangeRates,
@@ -1109,7 +1111,7 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).fetchCurrenciesFromCache (params);
+        const response = await this.fetchCurrenciesFromCache (params);
         const currencies = this.safeValue (response, 'currencies', {});
         //
         //     {
@@ -1199,7 +1201,7 @@ export default class coinbase extends Exchange {
         const request = {
             // 'currency': 'USD',
         };
-        const response = await (this as any).v2PublicGetExchangeRates (this.extend (request, params));
+        const response = await this.v2PublicGetExchangeRates (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -1231,7 +1233,7 @@ export default class coinbase extends Exchange {
     async fetchTickersV3 (symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).v3PrivateGetBrokerageProducts (params);
+        const response = await this.v3PrivateGetBrokerageProducts (params);
         //
         //     {
         //         'products': [
@@ -1303,15 +1305,15 @@ export default class coinbase extends Exchange {
         const request = this.extend ({
             'symbol': market['id'],
         }, params);
-        const spot = await (this as any).v2PublicGetPricesSymbolSpot (request);
+        const spot = await this.v2PublicGetPricesSymbolSpot (request);
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
-        const ask = await (this as any).v2PublicGetPricesSymbolBuy (request);
+        const ask = await this.v2PublicGetPricesSymbolBuy (request);
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
-        const bid = await (this as any).v2PublicGetPricesSymbolSell (request);
+        const bid = await this.v2PublicGetPricesSymbolSell (request);
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
@@ -1333,7 +1335,7 @@ export default class coinbase extends Exchange {
             'product_id': market['id'],
             'limit': 1,
         };
-        const response = await (this as any).v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
+        const response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
         //
         //     {
         //         "trades": [
@@ -1484,7 +1486,7 @@ export default class coinbase extends Exchange {
         const request = {
             'limit': 100,
         };
-        const response = await (this as any).v2PrivateGetAccounts (this.extend (request, params));
+        const response = await this.v2PrivateGetAccounts (this.extend (request, params));
         //
         //     {
         //         "pagination":{
@@ -1549,7 +1551,7 @@ export default class coinbase extends Exchange {
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
-        const response = await (this as any).v2PrivateGetAccountsAccountIdTransactions (this.extend (request, query));
+        const response = await this.v2PrivateGetAccountsAccountIdTransactions (this.extend (request, query));
         return this.parseLedger (response['data'], currency, since, limit);
     }
 
@@ -2074,7 +2076,7 @@ export default class coinbase extends Exchange {
             }
         }
         params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time' ]);
-        const response = await (this as any).v3PrivatePostBrokerageOrders (this.extend (request, params));
+        const response = await this.v3PrivatePostBrokerageOrders (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2286,7 +2288,7 @@ export default class coinbase extends Exchange {
         const request = {
             'order_ids': ids,
         };
-        const response = await (this as any).v3PrivatePostBrokerageOrdersBatchCancel (this.extend (request, params));
+        const response = await this.v3PrivatePostBrokerageOrdersBatchCancel (this.extend (request, params));
         //
         //     {
         //         "results": [
@@ -2327,7 +2329,7 @@ export default class coinbase extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).v3PrivateGetBrokerageOrdersHistoricalOrderId (this.extend (request, params));
+        const response = await this.v3PrivateGetBrokerageOrdersHistoricalOrderId (this.extend (request, params));
         //
         //     {
         //         "order": {
@@ -2398,7 +2400,7 @@ export default class coinbase extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.parse8601 (since);
         }
-        const response = await (this as any).v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
+        const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
         //
         //     {
         //         "orders": [
@@ -2464,7 +2466,7 @@ export default class coinbase extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.parse8601 (since);
         }
-        const response = await (this as any).v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
+        const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
         //
         //     {
         //         "orders": [
@@ -2584,7 +2586,7 @@ export default class coinbase extends Exchange {
         } else {
             request['start'] = Precise.stringSub (end, '18000'); // default to 5h in seconds, max 300 candles
         }
-        const response = await (this as any).v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
+        const response = await this.v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
         //
         //     {
         //         "candles": [
@@ -2646,7 +2648,7 @@ export default class coinbase extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
+        const response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
         //
         //     {
         //         "trades": [
@@ -2694,7 +2696,7 @@ export default class coinbase extends Exchange {
         if (since !== undefined) {
             request['start_sequence_timestamp'] = this.iso8601 (since);
         }
-        const response = await (this as any).v3PrivateGetBrokerageOrdersHistoricalFills (this.extend (request, params));
+        const response = await this.v3PrivateGetBrokerageOrdersHistoricalFills (this.extend (request, params));
         //
         //     {
         //         "fills": [
@@ -2763,7 +2765,7 @@ export default class coinbase extends Exchange {
                 } else {
                     auth = nonce + method + fullPath + payload;
                 }
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 headers = {
                     'CB-ACCESS-KEY': this.apiKey,
                     'CB-ACCESS-SIGN': signature,

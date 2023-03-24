@@ -5,10 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/wavesexchange.js';
 import { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended, ExchangeError, DuplicateOrderId, OrderNotFound, BadSymbol, ExchangeNotAvailable, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
+import { eddsa } from './base/functions/crypto.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class wavesexchange extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -722,10 +725,10 @@ export default class wavesexchange extends Exchange {
             // W for production, T for testnet
             const defaultMessagePrefix = this.safeString(this.options, 'messagePrefix', 'W');
             const message = defaultMessagePrefix + ':' + clientId + ':' + seconds;
-            const messageHex = this.binaryToBase16(this.stringToBinary(this.encode(message)));
+            const messageHex = this.binaryToBase16(this.encode(message));
             const payload = prefix + messageHex;
             const hexKey = this.binaryToBase16(this.base58ToBinary(this.secret));
-            const signature = this.eddsa(payload, hexKey, 'ed25519');
+            const signature = eddsa(payload, hexKey, ed25519);
             const request = {
                 'grant_type': 'password',
                 'scope': 'general',
@@ -1349,7 +1352,7 @@ export default class wavesexchange extends Exchange {
             this.getAssetBytes(matcherFeeAssetId),
         ];
         const binary = this.binaryConcatArray(byteArray);
-        const signature = this.eddsa(this.binaryToBase16(binary), this.binaryToBase16(this.base58ToBinary(this.secret)), 'ed25519');
+        const signature = eddsa(this.binaryToBase16(binary), this.binaryToBase16(this.base58ToBinary(this.secret)), ed25519);
         const assetPair = {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
@@ -1478,7 +1481,7 @@ export default class wavesexchange extends Exchange {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = this.eddsa(this.binaryToBase16(binary), hexSecret, 'ed25519');
+        const signature = eddsa(this.binaryToBase16(binary), hexSecret, ed25519);
         const request = {
             'Timestamp': timestamp.toString(),
             'Signature': signature,
@@ -1513,7 +1516,7 @@ export default class wavesexchange extends Exchange {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = this.eddsa(this.binaryToBase16(binary), hexSecret, 'ed25519');
+        const signature = eddsa(this.binaryToBase16(binary), hexSecret, ed25519);
         const request = {
             'Accept': 'application/json',
             'Timestamp': timestamp.toString(),
@@ -1861,7 +1864,7 @@ export default class wavesexchange extends Exchange {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = this.eddsa(this.binaryToBase16(binary), hexSecret, 'ed25519');
+        const signature = eddsa(this.binaryToBase16(binary), hexSecret, ed25519);
         const matcherRequest = {
             'publicKey': this.apiKey,
             'signature': signature,
@@ -2307,7 +2310,7 @@ export default class wavesexchange extends Exchange {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = this.eddsa(this.binaryToBase16(binary), hexSecret, 'ed25519');
+        const signature = eddsa(this.binaryToBase16(binary), hexSecret, ed25519);
         const request = {
             'senderPublicKey': this.apiKey,
             'amount': amountInteger,

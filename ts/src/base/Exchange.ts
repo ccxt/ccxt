@@ -34,7 +34,6 @@ const {
     , binaryToBase16
     , numberToBE
     , base16ToBinary
-    , stringToBinary
     , iso8601
     , omit
     , isJsonEncodedObject
@@ -49,7 +48,6 @@ const {
     , binaryConcat
     , hash
     , ecdsa
-    , totp
     , arrayConcat
     , encode
     , urlencode
@@ -74,14 +72,12 @@ const {
     , safeStringLower2
     , yymmdd
     , base58ToBinary
-    , eddsa
     , safeTimestamp2
     , rawencode
     , keysort
     , inArray
     , isEmpty
     , ordered
-    , jwt
     , filterBy
     , uuid16
     , safeFloat
@@ -90,7 +86,6 @@ const {
     , urlencodeWithArrayRepeat
     , microseconds
     , binaryToBase64
-    , rsa
     , strip
     , toArray
     , safeFloatN
@@ -114,7 +109,9 @@ const {
     , TICK_SIZE
 } = functions
 
-import {inflate, inflate64, gunzip} from './ws/functions.js'
+// TODO: remove these imports to make browser package smaller
+import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js'
+import { keccak_256 as keccak } from '../static_dependencies/noble-hashes/sha3.js';
 
 // import exceptions from "./errors.js"
 
@@ -133,7 +130,6 @@ import {inflate, inflate64, gunzip} from './ws/functions.js'
     , ArgumentsRequired
     , RateLimitExceeded } from "./errors.js"
 
-import BN from '../static_dependencies/BN/bn.cjs'
 import { Precise } from './Precise.js'
 
 //-----------------------------------------------------------------------------
@@ -148,10 +144,10 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 import {Market, Trade, Fee, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax } from './types'
 export {Market, Trade, Fee, Ticker} from './types'
 
-
 // ----------------------------------------------------------------------------
 // move this elsewhere
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './ws/Cache.js'
+import totp from './functions/totp.js';
 
 // ----------------------------------------------------------------------------
 export default class Exchange {
@@ -192,17 +188,17 @@ export default class Exchange {
     timeout       = 10000 // milliseconds
     verbose       = false
     debug         = false
-    userAgent     = undefined
+    userAgent: { 'User-Agent': string } | false = undefined;
     twofa         = undefined // two-factor authentication (2FA)
 
     apiKey: string;
     secret: string;
     uid: string;
-    login         = undefined
-    password
-    privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
-    walletAddress = undefined // a wallet address "0x"-prefixed hexstring
-    token         = undefined // reserved for HTTP auth in some cases
+    login:string;
+    password: string;
+    privateKey: string;// a "0x"-prefixed hexstring private key for a wallet
+    walletAddress: string; // a wallet address "0x"-prefixed hexstring
+    token: string; // reserved for HTTP auth in some cases
 
     balance      = {}
     orderbooks   = {}
@@ -256,10 +252,9 @@ export default class Exchange {
         walletAddress: boolean;
         token: boolean;
     };
-    rateLimit = undefined
+    rateLimit: number = undefined; // milliseconds
     tokenBucket = undefined
-    throttleProp = undefined
-    enableRateLimit = undefined
+    enableRateLimit: boolean = undefined;
 
     httpExceptions = undefined
 
@@ -269,11 +264,11 @@ export default class Exchange {
         leverage?: MinMax,
         price?: MinMax,
     };
-    fees = undefined
-    markets_by_id: Dictionary<any> = undefined
-    symbols = undefined
-    ids: string[] = undefined
-    currencies: Dictionary<Currency> = undefined
+    fees: object;
+    markets_by_id: Dictionary<any> = undefined;
+    symbols: string[] = undefined;
+    ids: string[] = undefined;
+    currencies: Dictionary<Currency> = undefined;
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
@@ -288,21 +283,21 @@ export default class Exchange {
 
     commonCurrencies = undefined
 
-    hostname = undefined
+    hostname: string = undefined;
 
-    precisionMode = undefined
+    precisionMode: number = undefined;
     paddingMode = undefined
 
     exceptions = {}
     timeframes: Dictionary<number | string> = {}
 
-    version = undefined
+    version: string = undefined;
 
     marketsByAltname = undefined
 
-    name = undefined
+    name:string = undefined
 
-    lastRestRequestTimestamp = undefined
+    lastRestRequestTimestamp:number;
 
     targetAccount = undefined
 
@@ -344,7 +339,6 @@ export default class Exchange {
     binaryToBase16 = binaryToBase16
     numberToBE = numberToBE
     base16ToBinary = base16ToBinary
-    stringToBinary = stringToBinary
     iso8601 = iso8601
     omit = omit
     isJsonEncodedObject = isJsonEncodedObject
@@ -358,8 +352,6 @@ export default class Exchange {
     merge = merge
     binaryConcat = binaryConcat
     hash = hash
-    ecdsa = ecdsa
-    totp = totp
     arrayConcat = arrayConcat
     encode = encode
     urlencode = urlencode
@@ -384,7 +376,6 @@ export default class Exchange {
     safeIntegerProduct = safeIntegerProduct
     base58ToBinary = base58ToBinary
     base64ToBinary = base64ToBinary
-    eddsa = eddsa
     safeTimestamp2 = safeTimestamp2
     rawencode = rawencode
     keysort = keysort
@@ -393,13 +384,11 @@ export default class Exchange {
     safeStringUpper2 = safeStringUpper2
     isEmpty = isEmpty
     ordered = ordered
-    jwt = jwt
     filterBy = filterBy
     uuid16 = uuid16
     urlencodeWithArrayRepeat = urlencodeWithArrayRepeat
     microseconds = microseconds
     binaryToBase64 = binaryToBase64
-    rsa = rsa
     strip = strip
     toArray = toArray
     safeFloatN = safeFloatN
@@ -416,10 +405,6 @@ export default class Exchange {
     isArray = isArray
     base64ToString = base64ToString
     crc32 = crc32
-
-    inflate = inflate
-    inflate64 = inflate64
-    gunzip = gunzip
 
     describe () {
         return {
@@ -903,7 +888,7 @@ export default class Exchange {
         }
         if (this.fetchImplementation === undefined) {
             if (isNode) {
-                const module = await import ('../static_dependencies/node-fetch/index.js')
+                const module = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js')
                 this.AbortError = module.AbortError
                 this.fetchImplementation = module.default
                 this.FetchError = module.FetchError
@@ -1098,12 +1083,12 @@ export default class Exchange {
     hashMessage (message: string) {
         // takes a hex encoded message
         const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message))
-        const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes)
-        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), 'keccak', 'hex')
+        const prefix = this.encode ('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength)
+        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex')
     }
 
     signHash (hash: string, privateKey: string) {
-        const signature = this.ecdsa (hash.slice (-64), privateKey.slice (-64), 'secp256k1', undefined)
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined)
         return {
             'r': '0x' + signature['r'],
             's': '0x' + signature['s'],
@@ -1119,7 +1104,7 @@ export default class Exchange {
         // still takes the input as a hex string
         // same as above but returns a string instead of an object
         const signature = this.signMessage (message, privateKey)
-        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']))
+        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v'], 1))
     }
 
     parseNumber (value: string | number, d: number = undefined): number {
@@ -2924,13 +2909,14 @@ export default class Exchange {
                 if (numMarkets === 1) {
                     return markets[0];
                 } else {
-                    if (marketType === undefined) {
+                    if (marketType === undefined && market === undefined) {
                         throw new ArgumentsRequired (this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
                     }
+                    const inferedMarketType = (market !== undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
-                        const marketNew = markets[i];
-                        if (marketNew[marketType]) {
-                            return marketNew;
+                        const market = markets[i];
+                        if (market[inferedMarketType]) {
+                            return market;
                         }
                     }
                 }
@@ -2972,7 +2958,7 @@ export default class Exchange {
 
     oath () {
         if (this.twofa !== undefined) {
-            return this.totp (this.twofa);
+            return totp (this.twofa);
         } else {
             throw new ExchangeError (this.id + ' exchange.twofa has not been set for 2FA Two-Factor Authentication');
         }
@@ -3723,6 +3709,37 @@ export default class Exchange {
 
     async fetchLastPrices (symbols: string[] = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchLastPrices() is not supported yet');
+    }
+
+    handlePostOnly (isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params: any = {}) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} type Order type
+         * @param {boolean} exchangeSpecificBoolean exchange specific postOnly
+         * @param {object} params exchange specific params
+         * @returns {[boolean, params]}
+         */
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let postOnly = this.safeValue (params, 'postOnly', false);
+        const ioc = timeInForce === 'IOC';
+        const fok = timeInForce === 'FOK';
+        const po = timeInForce === 'PO';
+        postOnly = postOnly || po || exchangeSpecificPostOnlyOption;
+        if (postOnly) {
+            if (ioc || fok) {
+                throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
+            } else if (isMarketOrder) {
+                throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
+            } else {
+                if (po) {
+                    params = this.omit (params, 'timeInForce');
+                }
+                params = this.omit (params, 'postOnly');
+                return [ true, params ];
+            }
+        }
+        return [ false, params ];
     }
 
     async fetchTradingFees (params = {}): Promise<any> {

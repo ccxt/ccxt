@@ -5,9 +5,11 @@ import bitfinex2Rest from '../bitfinex2.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class bitfinex2 extends bitfinex2Rest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -845,7 +847,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         if (future === undefined) {
             const nonce = this.milliseconds ();
             const payload = 'AUTH' + nonce.toString ();
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha384', 'hex');
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384, 'hex');
             const event = 'auth';
             const request = {
                 'apiKey': this.apiKey,

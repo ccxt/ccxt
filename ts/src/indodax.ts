@@ -1,12 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class indodax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -174,7 +176,7 @@ export default class indodax extends Exchange {
          * @param {object} params extra parameters specific to the indodax api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetServerTime (params);
+        const response = await this.publicGetServerTime (params);
         //
         //     {
         //         "timezone": "UTC",
@@ -192,7 +194,7 @@ export default class indodax extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetPairs (params);
+        const response = await this.publicGetPairs (params);
         //
         //     [
         //         {
@@ -314,7 +316,7 @@ export default class indodax extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGetInfo (params);
+        const response = await this.privatePostGetInfo (params);
         //
         //     {
         //         "success":1,
@@ -363,7 +365,7 @@ export default class indodax extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const orderbook = await (this as any).publicGetPairDepth (this.extend (request, params));
+        const orderbook = await this.publicGetPairDepth (this.extend (request, params));
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'buy', 'sell');
     }
 
@@ -423,7 +425,7 @@ export default class indodax extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).publicGetPairTicker (this.extend (request, params));
+        const response = await this.publicGetPairTicker (this.extend (request, params));
         //
         //     {
         //         "ticker": {
@@ -469,7 +471,7 @@ export default class indodax extends Exchange {
         //     }
         // }
         //
-        const response = await (this as any).publicGetTickerAll (params);
+        const response = await this.publicGetTickerAll (params);
         const tickers = this.safeValue (response, 'tickers');
         return this.parseTickers (tickers, symbols);
     }
@@ -509,7 +511,7 @@ export default class indodax extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).publicGetPairTrades (this.extend (request, params));
+        const response = await this.publicGetPairTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -619,7 +621,7 @@ export default class indodax extends Exchange {
             'pair': market['id'],
             'order_id': id,
         };
-        const response = await (this as any).privatePostGetOrder (this.extend (request, params));
+        const response = await this.privatePostGetOrder (this.extend (request, params));
         const orders = response['return'];
         const order = this.parseOrder (this.extend ({ 'id': id }, orders['order']), market);
         return this.extend ({ 'info': response }, order);
@@ -643,7 +645,7 @@ export default class indodax extends Exchange {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        const response = await (this as any).privatePostOpenOrders (this.extend (request, params));
+        const response = await this.privatePostOpenOrders (this.extend (request, params));
         const rawOrders = response['return']['orders'];
         // { success: 1, return: { orders: null }} if no orders
         if (!rawOrders) {
@@ -688,7 +690,7 @@ export default class indodax extends Exchange {
             symbol = market['symbol'];
             request['pair'] = market['id'];
         }
-        const response = await (this as any).privatePostOrderHistory (this.extend (request, params));
+        const response = await this.privatePostOrderHistory (this.extend (request, params));
         let orders = this.parseOrders (response['return']['orders'], market);
         orders = this.filterBy (orders, 'status', 'closed');
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as any;
@@ -724,7 +726,7 @@ export default class indodax extends Exchange {
             request[market['baseId']] = amount;
         }
         request[currency] = amount;
-        const result = await (this as any).privatePostTrade (this.extend (request, params));
+        const result = await this.privatePostTrade (this.extend (request, params));
         const data = this.safeValue (result, 'return', {});
         const id = this.safeString (data, 'order_id');
         return this.safeOrder ({
@@ -757,7 +759,7 @@ export default class indodax extends Exchange {
             'pair': market['id'],
             'type': side,
         };
-        return await (this as any).privatePostCancelOrder (this.extend (request, params));
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     async fetchTransactionFee (code, params = {}) {
@@ -774,7 +776,7 @@ export default class indodax extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privatePostWithdrawFee (this.extend (request, params));
+        const response = await this.privatePostWithdrawFee (this.extend (request, params));
         //
         //     {
         //         "success": 1,
@@ -812,7 +814,7 @@ export default class indodax extends Exchange {
             request['start'] = startTime;
             request['end'] = this.iso8601 (this.milliseconds ()).slice (0, 10);
         }
-        const response = await (this as any).privatePostTransHistory (this.extend (request, params));
+        const response = await this.privatePostTransHistory (this.extend (request, params));
         //
         //     {
         //         "success": 1,
@@ -927,7 +929,7 @@ export default class indodax extends Exchange {
         if (tag) {
             request['withdraw_memo'] = tag;
         }
-        const response = await (this as any).privatePostWithdrawCoin (this.extend (request, params));
+        const response = await this.privatePostWithdrawCoin (this.extend (request, params));
         //
         //     {
         //         "success": 1,
@@ -1044,7 +1046,7 @@ export default class indodax extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                'Sign': this.hmac (this.encode (body), this.encode (this.secret), sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

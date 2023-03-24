@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coinex.js';
 export default class coinex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;

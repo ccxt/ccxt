@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.26';
+$version = '3.0.31';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.26';
+    const VERSION = '3.0.31';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -465,7 +465,6 @@ class Exchange {
         'binaryToBase16' => 'binary_to_base16',
         'numberToBE' => 'number_to_be',
         'base16ToBinary' => 'base16_to_binary',
-        'stringToBinary' => 'string_to_binary',
         'isJsonEncodedObject' => 'is_json_encoded_object',
         'safeInteger' => 'safe_integer',
         'omitZero' => 'omit_zero',
@@ -511,7 +510,7 @@ class Exchange {
         'asFloat' => 'as_float',
         'asInteger' => 'as_integer',
         'binaryToBase58' => 'binary_to_base58',
-        'byteArrayToWordArray' => 'byte_array_to_word_array',
+        'binaryToString' => 'binary_to_string',
         'hasProps' => 'has_props',
         'isDictionary' => 'is_dictionary',
         'isInteger' => 'is_integer',
@@ -521,6 +520,7 @@ class Exchange {
         'isStringCoercible' => 'is_string_coercible',
         'roundTimeframe' => 'round_timeframe',
         'setTimeout_safe' => 'set_timeout_safe',
+        'stringToBinary' => 'string_to_binary',
         'urlencodeBase64' => 'urlencode_base64',
         'encodeURIComponent' => 'encode_uri_component',
         'checkRequiredVersion' => 'check_required_version',
@@ -733,6 +733,7 @@ class Exchange {
         'parseFundingRates' => 'parse_funding_rates',
         'isTriggerOrder' => 'is_trigger_order',
         'isPostOnly' => 'is_post_only',
+        'handlePostOnly' => 'handle_post_only',
         'fetchLastPrices' => 'fetch_last_prices',
         'fetchTradingFees' => 'fetch_trading_fees',
         'fetchTradingFee' => 'fetch_trading_fee',
@@ -1620,34 +1621,24 @@ class Exchange {
         return $hmac;
     }
 
-    public static function jwt($request, $secret, $alg = 'HS256') {
-        $algorithms = array(
-            'HS256' => 'sha256',
-            'HS384' => 'sha384',
-            'HS512' => 'sha512',
-        );
+    public static function jwt($request, $secret, $algorithm = 'sha256', $is_rsa = false) {
+        $alg = ($is_rsa ? 'RS' : 'HS') . mb_substr($algorithm, 3, 3);
         $encodedHeader = static::urlencodeBase64(json_encode(array('alg' => $alg, 'typ' => 'JWT')));
         $encodedData = static::urlencodeBase64(json_encode($request, JSON_UNESCAPED_SLASHES));
         $token = $encodedHeader . '.' . $encodedData;
-        $algoType = substr($alg, 0, 2);
-
-        if ($algoType === 'HS') {
-            $algName = $algorithms[$alg];
-            if (!array_key_exists($alg, $algorithms)) {
-                throw new ExchangeError($alg . ' is not a supported jwt algorithm.');
-            }
-            $signature =  static::hmac($token, $secret, $algName, 'binary');
-        } elseif ($algoType === 'RS') {
-            $signature = \base64_decode(static::rsa($token, $secret, $alg));
+        if ($is_rsa) {
+            $signature = \base64_decode(static::rsa($token, $secret, $algorithm));
+        } else {
+            $signature =  static::hmac($token, $secret, $algorithm, 'binary');
         }
         return $token . '.' . static::urlencodeBase64($signature);
     }
 
-    public static function rsa($request, $secret, $alg = 'RS256') {
+    public static function rsa($request, $secret, $alg = 'sha256') {
         $algorithms = array(
-            'RS256' => \OPENSSL_ALGO_SHA256,
-            'RS384' => \OPENSSL_ALGO_SHA384,
-            'RS512' => \OPENSSL_ALGO_SHA512,
+            'sha256' => \OPENSSL_ALGO_SHA256,
+            'sha384' => \OPENSSL_ALGO_SHA384,
+            'sha512' => \OPENSSL_ALGO_SHA512,
         );
         if (!array_key_exists($alg, $algorithms)) {
             throw new ExchangeError($alg . ' is not a supported rsa signing algorithm.');
@@ -4071,12 +4062,13 @@ class Exchange {
                 if ($numMarkets === 1) {
                     return $markets[0];
                 } else {
-                    if ($marketType === null) {
+                    if ($marketType === null && $market === null) {
                         throw new ArgumentsRequired($this->id . ' safeMarket() requires a fourth argument for ' . $marketId . ' to disambiguate between different $markets with the same $market id');
                     }
+                    $inferedMarketType = ($market !== null) ? $market['type'] : $marketType;
                     for ($i = 0; $i < count($markets); $i++) {
                         $market = $markets[$i];
-                        if ($market[$marketType]) {
+                        if ($market[$inferedMarketType]) {
                             return $market;
                         }
                     }
@@ -4119,7 +4111,7 @@ class Exchange {
 
     public function oath() {
         if ($this->twofa !== null) {
-            return $this->totp ($this->twofa);
+            return $this->totp($this->twofa);
         } else {
             throw new ExchangeError($this->id . ' exchange.twofa has not been set for 2FA Two-Factor Authentication');
         }
@@ -4863,6 +4855,36 @@ class Exchange {
         } else {
             return false;
         }
+    }
+
+    public function handle_post_only($isMarketOrder, $exchangeSpecificPostOnlyOption, $params = array ()) {
+        /**
+         * @ignore
+         * @param {string} type Order type
+         * @param {boolean} exchangeSpecificBoolean exchange specific $postOnly
+         * @param {array} $params exchange specific $params
+         * @return array([boolean, $params])
+         */
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $ioc = $timeInForce === 'IOC';
+        $fok = $timeInForce === 'FOK';
+        $po = $timeInForce === 'PO';
+        $postOnly = $postOnly || $po || $exchangeSpecificPostOnlyOption;
+        if ($postOnly) {
+            if ($ioc || $fok) {
+                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $timeInForce equal to ' . $timeInForce);
+            } elseif ($isMarketOrder) {
+                throw new InvalidOrder($this->id . ' market orders cannot be postOnly');
+            } else {
+                if ($po) {
+                    $params = $this->omit ($params, 'timeInForce');
+                }
+                $params = $this->omit ($params, 'postOnly');
+                return array( true, $params );
+            }
+        }
+        return array( false, $params );
     }
 
     public function fetch_last_prices($params = array ()) {

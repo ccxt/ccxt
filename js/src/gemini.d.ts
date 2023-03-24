@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/gemini.js';
 export default class gemini extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any>;

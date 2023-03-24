@@ -1,12 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitflyer.js';
 import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class bitflyer extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -148,7 +150,7 @@ export default class bitflyer extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const jp_markets = await (this as any).publicGetGetmarkets (params);
+        const jp_markets = await this.publicGetGetmarkets (params);
         //
         //     [
         //         // spot
@@ -164,14 +166,14 @@ export default class bitflyer extends Exchange {
         //         },
         //     ];
         //
-        const us_markets = await (this as any).publicGetGetmarketsUsa (params);
+        const us_markets = await this.publicGetGetmarketsUsa (params);
         //
         //     [
         //         { "product_code": "BTC_USD", "market_type": "Spot" },
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        const eu_markets = await (this as any).publicGetGetmarketsEu (params);
+        const eu_markets = await this.publicGetGetmarketsEu (params);
         //
         //     [
         //         { "product_code": "BTC_EUR", "market_type": "Spot" },
@@ -315,7 +317,7 @@ export default class bitflyer extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetGetbalance (params);
+        const response = await this.privateGetGetbalance (params);
         //
         //     [
         //         {
@@ -353,7 +355,7 @@ export default class bitflyer extends Exchange {
         const request = {
             'product_code': market['id'],
         };
-        const orderbook = await (this as any).publicGetGetboard (this.extend (request, params));
+        const orderbook = await this.publicGetGetboard (this.extend (request, params));
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'size');
     }
 
@@ -399,7 +401,7 @@ export default class bitflyer extends Exchange {
         const request = {
             'product_code': market['id'],
         };
-        const response = await (this as any).publicGetGetticker (this.extend (request, params));
+        const response = await this.publicGetGetticker (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
@@ -485,7 +487,7 @@ export default class bitflyer extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const response = await (this as any).publicGetGetexecutions (this.extend (request, params));
+        const response = await this.publicGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -503,7 +505,7 @@ export default class bitflyer extends Exchange {
         const request = {
             'product_code': market['id'],
         };
-        const response = await (this as any).privateGetGettradingcommission (this.extend (request, params));
+        const response = await this.privateGetGettradingcommission (this.extend (request, params));
         //
         //   {
         //       commission_rate: '0.0020'
@@ -539,7 +541,7 @@ export default class bitflyer extends Exchange {
             'price': price,
             'size': amount,
         };
-        const result = await (this as any).privatePostSendchildorder (this.extend (request, params));
+        const result = await this.privatePostSendchildorder (this.extend (request, params));
         // { "status": - 200, "error_message": "Insufficient funds", "data": null }
         const id = this.safeString (result, 'child_order_acceptance_id');
         return this.safeOrder ({
@@ -566,7 +568,7 @@ export default class bitflyer extends Exchange {
             'product_code': this.marketId (symbol),
             'child_order_acceptance_id': id,
         };
-        return await (this as any).privatePostCancelchildorder (this.extend (request, params));
+        return await this.privatePostCancelchildorder (this.extend (request, params));
     }
 
     parseOrderStatus (status) {
@@ -647,7 +649,7 @@ export default class bitflyer extends Exchange {
             'product_code': market['id'],
             'count': limit,
         };
-        const response = await (this as any).privateGetGetchildorders (this.extend (request, params));
+        const response = await this.privateGetGetchildorders (this.extend (request, params));
         let orders = this.parseOrders (response, market, since, limit);
         if (symbol !== undefined) {
             orders = this.filterBy (orders, 'symbol', symbol);
@@ -701,7 +703,7 @@ export default class bitflyer extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a `symbol` argument');
         }
-        const orders = await (this as any).fetchOrders (symbol);
+        const orders = await this.fetchOrders (symbol);
         const ordersById = this.indexBy (orders, 'id');
         if (id in ordersById) {
             return ordersById[id];
@@ -731,7 +733,7 @@ export default class bitflyer extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const response = await (this as any).privateGetGetexecutions (this.extend (request, params));
+        const response = await this.privateGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -751,7 +753,7 @@ export default class bitflyer extends Exchange {
         const request = {
             'product_code': this.marketIds (symbols),
         };
-        const response = await (this as any).privateGetpositions (this.extend (request, params));
+        const response = await this.privateGetGetpositions (this.extend (request, params));
         //
         //     [
         //         {
@@ -796,7 +798,7 @@ export default class bitflyer extends Exchange {
             'amount': amount,
             // 'bank_account_id': 1234,
         };
-        const response = await (this as any).privatePostWithdraw (this.extend (request, params));
+        const response = await this.privatePostWithdraw (this.extend (request, params));
         //
         //     {
         //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
@@ -825,7 +827,7 @@ export default class bitflyer extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 100
         }
-        const response = await (this as any).privateGetGetcoinins (this.extend (request, params));
+        const response = await this.privateGetGetcoinins (this.extend (request, params));
         //
         //     [
         //         {
@@ -863,7 +865,7 @@ export default class bitflyer extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 100
         }
-        const response = await (this as any).privateGetGetcoinouts (this.extend (request, params));
+        const response = await this.privateGetGetcoinouts (this.extend (request, params));
         //
         //     [
         //         {
@@ -1005,7 +1007,7 @@ export default class bitflyer extends Exchange {
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
-                'ACCESS-SIGN': this.hmac (this.encode (auth), this.encode (this.secret)),
+                'ACCESS-SIGN': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
                 'Content-Type': 'application/json',
             };
         }

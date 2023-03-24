@@ -5,11 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coinbase.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
+// @ts-expect-error
 export default class coinbase extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -2732,7 +2734,7 @@ export default class coinbase extends Exchange {
                 else {
                     auth = nonce + method + fullPath + payload;
                 }
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = {
                     'CB-ACCESS-KEY': this.apiKey,
                     'CB-ACCESS-SIGN': signature,

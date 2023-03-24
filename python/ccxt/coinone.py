@@ -821,7 +821,7 @@ class coinone(Exchange):
                 'nonce': nonce,
             }, params))
             payload = self.string_to_base64(json)
-            body = self.decode(payload)
+            body = payload
             secret = self.secret.upper()
             signature = self.hmac(payload, self.encode(secret), hashlib.sha512)
             headers = {

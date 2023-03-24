@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coinsph.js';
 export default class coinsph extends Exchange {
     describe(): any;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}, context?: {}): any;

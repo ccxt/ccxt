@@ -1,12 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var cryptocom$1 = require('./abstract/cryptocom.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
-class cryptocom extends Exchange["default"] {
+// @ts-expect-error
+class cryptocom extends cryptocom$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'cryptocom',
@@ -352,6 +354,7 @@ class cryptocom extends Exchange["default"] {
          * @returns {[object]} an array of objects representing market data
          */
         let promises = [this.fetchSpotMarkets(params), this.fetchDerivativesMarkets(params)];
+        // @ts-ignore
         promises = await Promise.all(promises);
         const spotMarkets = promises[0];
         const derivativeMarkets = promises[1];
@@ -2461,7 +2464,7 @@ class cryptocom extends Exchange["default"] {
                 strSortKey = strSortKey + paramsKeys[i].toString() + requestParams[paramsKeys[i]].toString();
             }
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret));
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
             const paramsKeysLength = paramsKeys.length;
             body = this.json({
                 'id': nonce,

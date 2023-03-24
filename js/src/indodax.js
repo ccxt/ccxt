@@ -5,10 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class indodax extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1025,7 +1027,7 @@ export default class indodax extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac(this.encode(body), this.encode(this.secret), 'sha512'),
+                'Sign': this.hmac(this.encode(body), this.encode(this.secret), sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

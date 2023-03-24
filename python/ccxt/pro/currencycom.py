@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
+import hashlib
 from ccxt.base.precise import Precise
 
 
@@ -312,7 +313,7 @@ class currencycom(ccxt.async_support.currencycom):
             'correlationId': requestId,
             'payload': payload,
         }, params)
-        request['payload']['signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
+        request['payload']['signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         subscription = self.extend(request, {
             'messageHash': messageHash,
         })

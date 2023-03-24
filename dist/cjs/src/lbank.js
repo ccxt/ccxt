@@ -1,13 +1,16 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var lbank$1 = require('./abstract/lbank.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var rsa = require('./base/functions/rsa.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class lbank extends Exchange["default"] {
+// @ts-expect-error
+class lbank extends lbank$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'lbank',
@@ -804,7 +807,7 @@ class lbank extends Exchange["default"] {
                 'api_key': this.apiKey,
             }, params));
             const queryString = this.rawencode(query);
-            const message = this.hash(this.encode(queryString)).toUpperCase();
+            const message = this.hash(this.encode(queryString), sha256.sha256).toUpperCase();
             const cacheSecretAsPem = this.safeValue(this.options, 'cacheSecretAsPem', true);
             let pem = undefined;
             if (cacheSecretAsPem) {
@@ -817,7 +820,7 @@ class lbank extends Exchange["default"] {
             else {
                 pem = this.convertSecretToPem(this.secret);
             }
-            query['sign'] = this.rsa(message, pem, 'RS256');
+            query['sign'] = rsa.rsa(message, pem, sha256.sha256);
             body = this.urlencode(query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         }

@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/exmo.js';
 export default class exmo extends Exchange {
     describe(): any;
     modifyMarginHelper(symbol: any, amount: any, type: any, params?: {}): Promise<{

@@ -1,13 +1,15 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var ascendex$1 = require('./abstract/ascendex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class ascendex extends Exchange["default"] {
+// @ts-expect-error
+class ascendex extends ascendex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ascendex',
@@ -2972,7 +2974,7 @@ class ascendex extends Exchange["default"] {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             const payload = timestamp + '+' + request;
-            const hmac = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'base64');
+            const hmac = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
             headers = {
                 'x-auth-key': this.apiKey,
                 'x-auth-timestamp': timestamp,

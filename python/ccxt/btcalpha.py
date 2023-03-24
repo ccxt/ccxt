@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -831,7 +832,7 @@ class btcalpha(Exchange):
             elif len(query):
                 url += '?' + query
             headers['X-KEY'] = self.apiKey
-            headers['X-SIGN'] = self.hmac(self.encode(payload), self.encode(self.secret))
+            headers['X-SIGN'] = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
             headers['X-NONCE'] = str(self.nonce())
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

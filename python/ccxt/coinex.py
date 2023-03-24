@@ -3584,7 +3584,7 @@ class coinex(Exchange):
         currencyId = self.safe_string(transaction, 'coin_type')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = self.safe_timestamp(transaction, 'create_time')
-        type = 'withdraw' if ('coin_withdraw_id' in transaction) else 'deposit'
+        type = 'withdrawal' if ('coin_withdraw_id' in transaction) else 'deposit'
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         networkId = self.safe_string(transaction, 'smart_contract_name')
         amount = self.safe_number(transaction, 'actual_amount')
@@ -4353,7 +4353,7 @@ class coinex(Exchange):
             }, query)
             query = self.keysort(query)
             urlencoded = self.rawencode(query)
-            signature = self.hash(self.encode(urlencoded + '&secret_key=' + self.secret))
+            signature = self.hash(self.encode(urlencoded + '&secret_key=' + self.secret), 'sha256')
             headers = {
                 'Authorization': signature.upper(),
                 'Content-Type': 'application/json',

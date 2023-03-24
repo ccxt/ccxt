@@ -3,9 +3,11 @@
 var bitmex$1 = require('../bitmex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 class bitmex extends bitmex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -558,7 +560,7 @@ class bitmex extends bitmex$1 {
                 this.checkRequiredCredentials();
                 const timestamp = this.milliseconds();
                 const message = 'GET' + '/realtime' + timestamp.toString();
-                const signature = this.hmac(this.encode(message), this.encode(this.secret));
+                const signature = this.hmac(this.encode(message), this.encode(this.secret), sha256.sha256);
                 const request = {
                     'op': action,
                     'args': [

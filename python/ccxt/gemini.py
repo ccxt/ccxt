@@ -1491,7 +1491,7 @@ class gemini(Exchange):
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': self.apiKey,
-                'X-GEMINI-PAYLOAD': self.decode(payload),
+                'X-GEMINI-PAYLOAD': payload,
                 'X-GEMINI-SIGNATURE': signature,
             }
         else:

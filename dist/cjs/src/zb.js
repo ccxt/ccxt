@@ -1,13 +1,17 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var zb$1 = require('./abstract/zb.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var sha1 = require('./static_dependencies/noble-hashes/sha1.js');
+var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class zb extends Exchange["default"] {
+// @ts-expect-error
+class zb extends zb$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'zb',
@@ -2902,8 +2906,24 @@ class zb extends Exchange["default"] {
         if (orderId === undefined) {
             orderId = this.safeValue(order, 'id');
         }
-        this.safeInteger2(order, 'type', 'side');
+        const rawSide = this.safeInteger2(order, 'type', 'side');
         let side = undefined;
+        if (rawSide !== undefined) {
+            if (market['spot']) {
+                side = (rawSide === 1) ? 'buy' : 'sell';
+            }
+            else if (market['swap']) {
+                if (rawSide === 0) {
+                    side = undefined;
+                }
+                else if ((rawSide === 1) || (rawSide === 4) || (rawSide === 5)) {
+                    side = 'buy';
+                }
+                else if ((rawSide === 2) || (rawSide === 3) || (rawSide === 6)) {
+                    side = 'sell';
+                }
+            }
+        }
         let timestamp = this.safeInteger(order, 'trade_date');
         if (timestamp === undefined) {
             timestamp = this.safeInteger(order, 'createTime');
@@ -2929,7 +2949,7 @@ class zb extends Exchange["default"] {
                 feeCurrency = 'ZB';
             }
             else {
-                feeCurrency = market['base'];
+                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             }
             fee = {
                 'cost': feeCost,
@@ -4309,8 +4329,8 @@ class zb extends Exchange["default"] {
                     signedString += query;
                 }
             }
-            const secret = this.hash(this.encode(this.secret), 'sha1');
-            const signature = this.hmac(this.encode(signedString), this.encode(secret), 'sha256', 'base64');
+            const secret = this.hash(this.encode(this.secret), sha1.sha1);
+            const signature = this.hmac(this.encode(signedString), this.encode(secret), sha256.sha256, 'base64');
             headers['ZB-SIGN'] = signature;
         }
         else {
@@ -4321,8 +4341,8 @@ class zb extends Exchange["default"] {
             const nonce = this.nonce();
             query = this.keysort(query);
             const auth = this.rawencode(query);
-            const secret = this.hash(this.encode(this.secret), 'sha1');
-            const signature = this.hmac(this.encode(auth), this.encode(secret), 'md5');
+            const secret = this.hash(this.encode(this.secret), sha1.sha1);
+            const signature = this.hmac(this.encode(auth), this.encode(secret), md5.md5);
             const suffix = 'sign=' + signature + '&reqTime=' + nonce.toString();
             url += '/' + path + '?' + auth + '&' + suffix;
         }

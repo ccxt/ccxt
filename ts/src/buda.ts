@@ -1,13 +1,15 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/buda.js';
 import { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class buda extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -187,7 +189,7 @@ export default class buda extends Exchange {
 
     async fetchCurrencyInfo (currency, currencies = undefined) {
         if (!currencies) {
-            const response = await (this as any).publicGetCurrencies ();
+            const response = await this.publicGetCurrencies ();
             //
             //     {
             //         "currencies":[
@@ -228,7 +230,7 @@ export default class buda extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const marketsResponse = await (this as any).publicGetMarkets (params);
+        const marketsResponse = await this.publicGetMarkets (params);
         //
         //     {
         //         "markets": [
@@ -254,7 +256,7 @@ export default class buda extends Exchange {
         //     }
         //
         const markets = this.safeValue (marketsResponse, 'markets', []);
-        const currenciesResponse = await (this as any).publicGetCurrencies ();
+        const currenciesResponse = await this.publicGetCurrencies ();
         const currencies = this.safeValue (currenciesResponse, 'currencies');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -330,7 +332,7 @@ export default class buda extends Exchange {
          * @param {object} params extra parameters specific to the buda api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetCurrencies ();
+        const response = await this.publicGetCurrencies ();
         //
         //     {
         //         "currencies":[
@@ -417,8 +419,8 @@ export default class buda extends Exchange {
             const code = codes[i];
             const currency = this.currency (code);
             const request = { 'currency': currency['id'] };
-            const withdrawResponse = await (this as any).publicGetCurrenciesCurrencyFeesWithdrawal (request);
-            const depositResponse = await (this as any).publicGetCurrenciesCurrencyFeesDeposit (request);
+            const withdrawResponse = await this.publicGetCurrenciesCurrencyFeesWithdrawal (request);
+            const depositResponse = await this.publicGetCurrenciesCurrencyFeesDeposit (request);
             withdrawFees[code] = this.parseTransactionFee (withdrawResponse['fee']);
             depositFees[code] = this.parseTransactionFee (depositResponse['fee']);
             info[code] = {
@@ -462,7 +464,7 @@ export default class buda extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).publicGetMarketsMarketTicker (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketTicker (this.extend (request, params));
         //
         //     {
         //         "ticker":{
@@ -551,7 +553,7 @@ export default class buda extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // 50 max
         }
-        const response = await (this as any).publicGetMarketsMarketTrades (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
         //
         //     { trades: {      market_id:   "ETH-BTC",
         //                      timestamp:    null,
@@ -620,7 +622,7 @@ export default class buda extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).publicGetMarketsMarketOrderBook (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketOrderBook (this.extend (request, params));
         const orderbook = this.safeValue (response, 'order_book');
         return this.parseOrderBook (orderbook, market['symbol']);
     }
@@ -648,7 +650,7 @@ export default class buda extends Exchange {
             'from': since / 1000,
             'to': this.seconds (),
         };
-        const response = await (this as any).publicGetTvHistory (this.extend (request, params));
+        const response = await this.publicGetTvHistory (this.extend (request, params));
         return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
     }
 
@@ -676,7 +678,7 @@ export default class buda extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetBalances (params);
+        const response = await this.privateGetBalances (params);
         return this.parseBalance (response);
     }
 
@@ -693,7 +695,7 @@ export default class buda extends Exchange {
         const request = {
             'id': parseInt (id),
         };
-        const response = await (this as any).privateGetOrdersId (this.extend (request, params));
+        const response = await this.privateGetOrdersId (this.extend (request, params));
         const order = this.safeValue (response, 'order');
         return this.parseOrder (order);
     }
@@ -718,7 +720,7 @@ export default class buda extends Exchange {
             'market': market['id'],
             'per': limit,
         };
-        const response = await (this as any).privateGetMarketsMarketOrders (this.extend (request, params));
+        const response = await this.privateGetMarketsMarketOrders (this.extend (request, params));
         const orders = this.safeValue (response, 'orders');
         return this.parseOrders (orders, market, since, limit);
     }
@@ -782,7 +784,7 @@ export default class buda extends Exchange {
         if (type === 'limit') {
             request['limit'] = this.priceToPrecision (symbol, price);
         }
-        const response = await (this as any).privatePostMarketsMarketOrders (this.extend (request, params));
+        const response = await this.privatePostMarketsMarketOrders (this.extend (request, params));
         const order = this.safeValue (response, 'order');
         return this.parseOrder (order);
     }
@@ -802,7 +804,7 @@ export default class buda extends Exchange {
             'id': parseInt (id),
             'state': 'canceling',
         };
-        const response = await (this as any).privatePutOrdersId (this.extend (request, params));
+        const response = await this.privatePutOrdersId (this.extend (request, params));
         const order = this.safeValue (response, 'order');
         return this.parseOrder (order);
     }
@@ -925,7 +927,7 @@ export default class buda extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privateGetCurrenciesCurrencyReceiveAddresses (this.extend (request, params));
+        const response = await this.privateGetCurrenciesCurrencyReceiveAddresses (this.extend (request, params));
         const receiveAddresses = this.safeValue (response, 'receive_addresses');
         const addressPool = [];
         for (let i = 1; i < receiveAddresses.length; i++) {
@@ -967,7 +969,7 @@ export default class buda extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privatePostCurrenciesCurrencyReceiveAddresses (this.extend (request, params));
+        const response = await this.privatePostCurrenciesCurrencyReceiveAddresses (this.extend (request, params));
         const address = this.safeString (response['receive_address'], 'address');  // the creation is async and returns a null address, returns only the id
         return {
             'currency': code,
@@ -1047,7 +1049,7 @@ export default class buda extends Exchange {
             'currency': currency['id'],
             'per': limit,
         };
-        const response = await (this as any).privateGetCurrenciesCurrencyDeposits (this.extend (request, params));
+        const response = await this.privateGetCurrenciesCurrencyDeposits (this.extend (request, params));
         const deposits = this.safeValue (response, 'deposits');
         return this.parseTransactions (deposits, currency, since, limit);
     }
@@ -1072,7 +1074,7 @@ export default class buda extends Exchange {
             'currency': currency['id'],
             'per': limit,
         };
-        const response = await (this as any).privateGetCurrenciesCurrencyWithdrawals (this.extend (request, params));
+        const response = await this.privateGetCurrenciesCurrencyWithdrawals (this.extend (request, params));
         const withdrawals = this.safeValue (response, 'withdrawals');
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
@@ -1100,7 +1102,7 @@ export default class buda extends Exchange {
                 'target_address': address,
             },
         };
-        const response = await (this as any).privatePostCurrenciesCurrencyWithdrawals (this.extend (request, params));
+        const response = await this.privatePostCurrenciesCurrencyWithdrawals (this.extend (request, params));
         const withdrawal = this.safeValue (response, 'withdrawal');
         return this.parseTransaction (withdrawal);
     }
@@ -1126,11 +1128,11 @@ export default class buda extends Exchange {
             const components = [ method, '/api/' + this.version + '/' + request ];
             if (body) {
                 const base64Body = this.stringToBase64 (body);
-                components.push (this.decode (base64Body));
+                components.push (base64Body);
             }
             components.push (nonce);
             const message = components.join (' ');
-            const signature = this.hmac (this.encode (message), this.encode (this.secret), 'sha384');
+            const signature = this.hmac (this.encode (message), this.encode (this.secret), sha384);
             headers = {
                 'X-SBTC-APIKEY': this.apiKey,
                 'X-SBTC-SIGNATURE': signature,

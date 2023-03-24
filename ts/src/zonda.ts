@@ -1,13 +1,15 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/zonda.js';
 import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class zonda extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -291,7 +293,7 @@ export default class zonda extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).v1_01PublicGetTradingTicker (params);
+        const response = await this.v1_01PublicGetTradingTicker (params);
         const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
         //
         //     {
@@ -398,7 +400,7 @@ export default class zonda extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await (this as any).v1_01PrivateGetTradingOffer (this.extend (request, params));
+        const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
         const items = this.safeValue (response, 'items', []);
         return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
     }
@@ -473,7 +475,7 @@ export default class zonda extends Exchange {
             request['markets'] = markets;
         }
         const query = { 'query': this.json (this.extend (request, params)) };
-        const response = await (this as any).v1_01PrivateGetTradingHistoryTransactions (query);
+        const response = await this.v1_01PrivateGetTradingHistoryTransactions (query);
         //
         //     {
         //         status: 'Ok',
@@ -529,7 +531,7 @@ export default class zonda extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v1_01PrivateGetBalancesBITBAYBalance (params);
+        const response = await this.v1_01PrivateGetBalancesBITBAYBalance (params);
         return this.parseBalance (response);
     }
 
@@ -548,7 +550,7 @@ export default class zonda extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).v1_01PublicGetTradingOrderbookSymbol (this.extend (request, params));
+        const response = await this.v1_01PublicGetTradingOrderbookSymbol (this.extend (request, params));
         //
         //     {
         //         "status":"Ok",
@@ -634,7 +636,7 @@ export default class zonda extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).v1_01PublicGetTradingStatsSymbol (this.extend (request, params));
+        const response = await this.v1_01PublicGetTradingStatsSymbol (this.extend (request, params));
         //
         //     {
         //       status: 'Ok',
@@ -661,7 +663,7 @@ export default class zonda extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v1_01PublicGetTradingStats (params);
+        const response = await this.v1_01PublicGetTradingStats (params);
         //
         //     {
         //         status: 'Ok',
@@ -706,7 +708,7 @@ export default class zonda extends Exchange {
             request['limit'] = limit;
         }
         request = this.extend (request, params);
-        const response = await (this as any).v1_01PrivateGetBalancesBITBAYHistory ({ 'query': this.json (request) });
+        const response = await this.v1_01PrivateGetBalancesBITBAYHistory ({ 'query': this.json (request) });
         const items = response['items'];
         return this.parseLedger (items, undefined, since, limit);
     }
@@ -1090,7 +1092,7 @@ export default class zonda extends Exchange {
             request['from'] = parseInt (since);
             request['to'] = this.sum (request['from'], timerange);
         }
-        const response = await (this as any).v1_01PublicGetTradingCandleHistorySymbolResolution (this.extend (request, params));
+        const response = await this.v1_01PublicGetTradingCandleHistorySymbolResolution (this.extend (request, params));
         //
         //     {
         //         "status":"Ok",
@@ -1206,7 +1208,7 @@ export default class zonda extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default - 10, max - 300
         }
-        const response = await (this as any).v1_01PublicGetTradingTransactionsSymbol (this.extend (request, params));
+        const response = await this.v1_01PublicGetTradingTransactionsSymbol (this.extend (request, params));
         const items = this.safeValue (response, 'items');
         return this.parseTrades (items, market, since, limit);
     }
@@ -1366,7 +1368,7 @@ export default class zonda extends Exchange {
         };
         // { status: 'Fail', errors: [ 'NOT_RECOGNIZED_OFFER_TYPE' ] }  -- if required params are missing
         // { status: 'Ok', errors: [] }
-        return await (this as any).v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
+        return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
     }
 
     isFiat (currency) {
@@ -1415,7 +1417,7 @@ export default class zonda extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (this.extend (request, params));
+        const response = await this.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (this.extend (request, params));
         //
         //     {
         //         "status": "Ok",
@@ -1444,7 +1446,7 @@ export default class zonda extends Exchange {
          * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (params);
+        const response = await this.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (params);
         //
         //     {
         //         "status": "Ok",
@@ -1482,7 +1484,7 @@ export default class zonda extends Exchange {
             'currency': code,
             'funds': this.currencyToPrecision (code, amount),
         };
-        const response = await (this as any).v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (this.extend (request, params));
+        const response = await this.v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (this.extend (request, params));
         //
         //     {
         //         "status": "Ok",
@@ -1687,7 +1689,7 @@ export default class zonda extends Exchange {
                 'Request-Timestamp': nonce,
                 'Operation-Id': this.uuid (),
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac (this.encode (payload), this.encode (this.secret), 'sha512'),
+                'API-Hash': this.hmac (this.encode (payload), this.encode (this.secret), sha512),
                 'Content-Type': 'application/json',
             };
         } else {
@@ -1699,7 +1701,7 @@ export default class zonda extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                'API-Hash': this.hmac (this.encode (body), this.encode (this.secret), sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

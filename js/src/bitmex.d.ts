@@ -1,11 +1,11 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitmex.js';
 export default class bitmex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: any, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     fetchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any[]>;

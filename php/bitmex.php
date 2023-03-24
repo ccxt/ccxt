@@ -2767,7 +2767,7 @@ class bitmex extends Exchange {
                     $auth .= $body;
                 }
             }
-            $headers['api-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $headers['api-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

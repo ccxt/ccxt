@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -1866,23 +1867,25 @@ class bitmart(Exchange):
     async def cancel_all_orders(self, symbol=None, params={}):
         """
         cancel all open orders in a market
+        see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the bitmart api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
-        side = self.safe_string(params, 'side')
-        if side is None:
-            raise ArgumentsRequired(self.id + " cancelAllOrders() requires a `side` parameter('buy' or 'sell')")
         await self.load_markets()
-        market = self.market(symbol)
-        if not market['spot']:
-            raise NotSupported(self.id + ' cancelAllOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        request = {
-            'symbol': market['id'],
-            'side': side,  # 'buy' or 'sell'
-        }
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        type = None
+        type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        if type != 'spot':
+            raise NotSupported(self.id + ' cancelAllOrders() does not support ' + type + ' orders, only spot orders are accepted')
+        side = self.safe_string(params, 'side')
+        if side is not None:
+            request['side'] = side
+            params = self.omit(params, 'side')
         response = await self.privatePostSpotV1CancelOrders(self.extend(request, params))
         #
         #     {
@@ -2247,7 +2250,7 @@ class bitmart(Exchange):
         request = {
             'id': id,
         }
-        response = await self.privateAccountGetDepositWithdrawDetail(self.extend(request, params))
+        response = await self.privateGetAccountV1DepositWithdrawDetail(self.extend(request, params))
         #
         #     {
         #         "message":"OK",
@@ -2840,7 +2843,7 @@ class bitmart(Exchange):
                 body = self.json(query)
                 queryString = body
             auth = timestamp + '#' + self.uid + '#' + queryString
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers['X-BM-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

@@ -2,9 +2,7 @@
 
 var Client = require('./Client.js');
 var platform = require('../functions/platform.js');
-require('../../static_dependencies/crypto-js/crypto-js.cjs.js');
-require('../../static_dependencies/qs/index.cjs.js');
-require('../../static_dependencies/BN/bn.cjs.js');
+require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
 var WebSocket = require('ws');

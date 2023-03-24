@@ -687,7 +687,7 @@ class bitopro(Exchange):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_integer(ohlcv, 'timestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -969,7 +969,7 @@ class bitopro(Exchange):
         postOnly = self.is_post_only(orderType == 'MARKET', None, params)
         if postOnly:
             request['timeInForce'] = 'POST_ONLY'
-        response = self.privatePostOrdersPair(self.extend(request, params), params)
+        response = self.privatePostOrdersPair(self.extend(request, params))
         #
         #     {
         #         orderId: '2220595581',
@@ -1134,7 +1134,7 @@ class bitopro(Exchange):
             request['startTimestamp'] = since
         if limit is not None:
             request['limit'] = limit
-        response = self.privateGetOrdersAllPair(self.extend(request, params), params)
+        response = self.privateGetOrdersAllPair(self.extend(request, params))
         orders = self.safe_value(response, 'data')
         if orders is None:
             orders = []

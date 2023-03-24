@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/oceanex.js';
 export default class oceanex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

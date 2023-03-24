@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.26'
+__version__ = '3.0.31'
 
 # -----------------------------------------------------------------------------
 
@@ -1292,21 +1292,20 @@ class Exchange(object):
 
     @staticmethod
     def string_to_base64(s):
-        # will return string in the future
-        binary = Exchange.encode(s) if isinstance(s, str) else s
-        return Exchange.encode(Exchange.binary_to_base64(binary))
+        return Exchange.binary_to_base64(Exchange.encode(s))
 
     @staticmethod
     def base64_to_string(s):
-        return base64.b64decode(s).decode('utf-8')
+        return Exchange.decode(base64.b64decode(s))
 
     @staticmethod
-    def jwt(request, secret, alg='HS256'):
+    def jwt(request, secret, algorithm='sha256', is_rsa=False):
         algos = {
-            'HS256': hashlib.sha256,
-            'HS384': hashlib.sha384,
-            'HS512': hashlib.sha512,
+            'sha256': hashlib.sha256,
+            'sha384': hashlib.sha384,
+            'sha512': hashlib.sha512,
         }
+        alg = ('RS' if is_rsa else 'HS') + algorithm[3:]
         header = Exchange.encode(Exchange.json({
             'alg': alg,
             'typ': 'JWT',
@@ -1314,19 +1313,18 @@ class Exchange(object):
         encoded_header = Exchange.base64urlencode(header)
         encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
         token = encoded_header + '.' + encoded_data
-        if alg[:2] == 'RS':
-            signature = Exchange.base64_to_binary(Exchange.rsa(token, Exchange.decode(secret), alg))
+        if is_rsa:
+            signature = Exchange.base64_to_binary(Exchange.rsa(token, Exchange.decode(secret), algorithm))
         else:
-            algorithm = algos[alg]
-            signature = Exchange.hmac(Exchange.encode(token), secret, algorithm, 'binary')
+            signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
         return token + '.' + Exchange.base64urlencode(signature)
 
     @staticmethod
-    def rsa(request, secret, alg='RS256'):
+    def rsa(request, secret, alg='sha256'):
         algorithms = {
-            "RS256": hashes.SHA256(),
-            "RS384": hashes.SHA384(),
-            "RS512": hashes.SHA512(),
+            "sha256": hashes.SHA256(),
+            "sha384": hashes.SHA384(),
+            "sha512": hashes.SHA512(),
         }
         algorithm = algorithms[alg]
         priv_key = load_pem_private_key(Exchange.encode(secret), None, backends.default_backend())
@@ -3053,11 +3051,12 @@ class Exchange(object):
                 if numMarkets == 1:
                     return markets[0]
                 else:
-                    if marketType is None:
+                    if marketType is None and market is None:
                         raise ArgumentsRequired(self.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id')
+                    inferedMarketType = market['type'] if (market is not None) else marketType
                     for i in range(0, len(markets)):
                         market = markets[i]
-                        if market[marketType]:
+                        if market[inferedMarketType]:
                             return market
             elif delimiter is not None:
                 parts = marketId.split(delimiter)
@@ -3675,6 +3674,32 @@ class Exchange(object):
                 return True
         else:
             return False
+
+    def handle_post_only(self, isMarketOrder, exchangeSpecificPostOnlyOption, params={}):
+        """
+         * @ignore
+        :param str type: Order type
+        :param boolean exchangeSpecificBoolean: exchange specific postOnly
+        :param dict params: exchange specific params
+        :returns [boolean, params]:
+        """
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        postOnly = self.safe_value(params, 'postOnly', False)
+        ioc = timeInForce == 'IOC'
+        fok = timeInForce == 'FOK'
+        po = timeInForce == 'PO'
+        postOnly = postOnly or po or exchangeSpecificPostOnlyOption
+        if postOnly:
+            if ioc or fok:
+                raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
+            elif isMarketOrder:
+                raise InvalidOrder(self.id + ' market orders cannot be postOnly')
+            else:
+                if po:
+                    params = self.omit(params, 'timeInForce')
+                params = self.omit(params, 'postOnly')
+                return [True, params]
+        return [False, params]
 
     def fetch_last_prices(self, params={}):
         raise NotSupported(self.id + ' fetchLastPrices() is not supported yet')

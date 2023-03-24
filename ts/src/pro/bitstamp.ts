@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class bitstamp extends bitstampRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -525,7 +526,7 @@ export default class bitstamp extends bitstampRest {
         const time = this.milliseconds ();
         const expiresIn = this.safeInteger (this.options, 'expiresIn');
         if ((expiresIn === undefined) || (time > expiresIn)) {
-            const response = await (this as any).privatePostWebsocketsToken (params);
+            const response = await this.privatePostWebsocketsToken (params);
             //
             // {
             //     "valid_sec":60,

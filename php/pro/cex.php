@@ -1228,7 +1228,7 @@ class cex extends \ccxt\async\cex {
                 $this->check_required_credentials();
                 $nonce = (string) $this->seconds();
                 $auth = $nonce . $this->apiKey;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 $request = array(
                     'e' => 'auth',
                     'auth' => array(

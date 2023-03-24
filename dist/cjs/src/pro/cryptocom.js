@@ -3,9 +3,11 @@
 var cryptocom$1 = require('../cryptocom.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 class cryptocom extends cryptocom$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -559,7 +561,7 @@ class cryptocom extends cryptocom$1 {
             const method = 'public/auth';
             const nonce = this.nonce().toString();
             const auth = method + nonce + this.apiKey + nonce;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
             const request = {
                 'id': nonce,
                 'nonce': nonce,

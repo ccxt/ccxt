@@ -4,9 +4,11 @@ var woo$1 = require('../woo.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var Precise = require('../base/Precise.js');
+var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
+// @ts-expect-error
 class woo extends woo$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -415,7 +417,7 @@ class woo extends woo$1 {
         if (future === undefined) {
             const ts = this.nonce().toString();
             const auth = '|' + ts;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
             const request = {
                 'event': event,
                 'params': {

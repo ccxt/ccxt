@@ -1515,7 +1515,7 @@ class hitbtc extends Exchange {
             $payload = $this->encode($this->apiKey . ':' . $this->secret);
             $auth = base64_encode($payload);
             $headers = array(
-                'Authorization' => 'Basic ' . $this->decode($auth),
+                'Authorization' => 'Basic ' . $auth,
                 'Content-Type' => 'application/json',
             );
         }

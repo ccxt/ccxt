@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import AuthenticationError
@@ -764,7 +765,7 @@ class coincheck(Exchange):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-NONCE': nonce,
-                'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret)),
+                'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

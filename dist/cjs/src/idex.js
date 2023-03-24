@@ -1,13 +1,16 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var idex$1 = require('./abstract/idex.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class idex extends Exchange["default"] {
+// @ts-expect-error
+class idex extends idex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'idex',
@@ -1104,7 +1107,7 @@ class idex extends Exchange["default"] {
             this.base16ToBinary(noPrefix),
         ];
         const binary = this.binaryConcatArray(byteArray);
-        const hash = this.hash(binary, 'keccak', 'hex');
+        const hash = this.hash(binary, sha3.keccak_256, 'hex');
         const signature = this.signMessageString(hash, this.privateKey);
         // {
         //   address: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
@@ -1229,23 +1232,23 @@ class idex extends Exchange["default"] {
             this.numberToBE(orderVersion, 1),
             this.base16ToBinary(nonce),
             this.base16ToBinary(walletBytes),
-            this.stringToBinary(this.encode(market['id'])),
+            this.encode(market['id']),
             this.numberToBE(typeEnum, 1),
             this.numberToBE(sideEnum, 1),
-            this.stringToBinary(this.encode(amountString)),
+            this.encode(amountString),
             this.numberToBE(amountEnum, 1),
         ];
         if (limitOrder) {
-            const encodedPrice = this.stringToBinary(this.encode(priceString));
+            const encodedPrice = this.encode(priceString);
             byteArray.push(encodedPrice);
         }
         if (type in stopLossTypeEnums) {
-            const encodedPrice = this.stringToBinary(this.encode(stopPriceString || priceString));
+            const encodedPrice = this.encode(stopPriceString || priceString);
             byteArray.push(encodedPrice);
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            byteArray.push(this.stringToBinary(this.encode(clientOrderId)));
+            byteArray.push(this.encode(clientOrderId));
         }
         const after = [
             this.numberToBE(timeInForceEnum, 1),
@@ -1254,7 +1257,7 @@ class idex extends Exchange["default"] {
         ];
         const allBytes = this.arrayConcat(byteArray, after);
         const binary = this.binaryConcatArray(allBytes);
-        const hash = this.hash(binary, 'keccak', 'hex');
+        const hash = this.hash(binary, sha3.keccak_256, 'hex');
         const signature = this.signMessageString(hash, this.privateKey);
         const request = {
             'parameters': {
@@ -1341,12 +1344,12 @@ class idex extends Exchange["default"] {
         const byteArray = [
             this.base16ToBinary(nonce),
             this.base16ToBinary(walletBytes),
-            this.stringToBinary(this.encode(currency['id'])),
-            this.stringToBinary(this.encode(amountString)),
+            this.encode(currency['id']),
+            this.encode(amountString),
             this.numberToBE(1, 1), // bool set to true
         ];
         const binary = this.binaryConcatArray(byteArray);
-        const hash = this.hash(binary, 'keccak', 'hex');
+        const hash = this.hash(binary, sha3.keccak_256, 'hex');
         const signature = this.signMessageString(hash, this.privateKey);
         const request = {
             'parameters': {
@@ -1400,11 +1403,11 @@ class idex extends Exchange["default"] {
             this.base16ToBinary(walletBytes),
         ];
         if (market !== undefined) {
-            byteArray.push(this.stringToBinary(this.encode(market['id'])));
+            byteArray.push(this.encode(market['id']));
             request['parameters']['market'] = market['id'];
         }
         const binary = this.binaryConcatArray(byteArray);
-        const hash = this.hash(binary, 'keccak', 'hex');
+        const hash = this.hash(binary, sha3.keccak_256, 'hex');
         const signature = this.signMessageString(hash, this.privateKey);
         request['signature'] = signature;
         // [ { orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e' } ]
@@ -1432,10 +1435,10 @@ class idex extends Exchange["default"] {
         const byteArray = [
             this.base16ToBinary(nonce),
             this.base16ToBinary(walletBytes),
-            this.stringToBinary(this.encode(id)),
+            this.encode(id),
         ];
         const binary = this.binaryConcatArray(byteArray);
-        const hash = this.hash(binary, 'keccak', 'hex');
+        const hash = this.hash(binary, sha3.keccak_256, 'hex');
         const signature = this.signMessageString(hash, this.privateKey);
         const request = {
             'parameters': {
@@ -1708,7 +1711,7 @@ class idex extends Exchange["default"] {
             else {
                 payload = body;
             }
-            headers['IDEX-HMAC-Signature'] = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'hex');
+            headers['IDEX-HMAC-Signature'] = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'hex');
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
