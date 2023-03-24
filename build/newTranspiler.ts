@@ -273,23 +273,23 @@ class NewTranspiler {
 
         // TypeScript ---------------------------------------------------------
 
-        function declareTsErrorClass (name, parent) {
-            return 'export class ' + name + ' extends ' + parent + ' {}'
-        }
+        // function declareTsErrorClass (name, parent) {
+        //     return 'export class ' + name + ' extends ' + parent + ' {}'
+        // }
 
-        const tsBaseError = [
-            'export class BaseError extends Error {',
-            '    constructor(message: string);',
-            '}',
-        ].join ('\n    ')
+        // const tsBaseError = [
+        //     'export class BaseError extends Error {',
+        //     '    constructor(message: string);',
+        //     '}',
+        // ].join ('\n    ')
 
-        const tsErrors = intellisense (root, 'BaseError', declareTsErrorClass, undefined)
+        // const tsErrors = intellisense (root, 'BaseError', declareTsErrorClass, undefined)
 
-        const tsBodyIntellisense = csharpBaseError + '\n\n    ' + tsErrors.join ('\n    ') + '\n\n'
+        // const tsBodyIntellisense = csharpBaseError + '\n\n    ' + tsErrors.join ('\n    ') + '\n\n'
 
-        log.bright.cyan (message, (tsFilename as any).yellow)
-        const regex = /export class BaseError[^}]+\}[\n][\n](?:\s+export class [a-zA-Z]+ extends [a-zA-Z]+ \{\}[\n])+[\n]/m
-        replaceInFile (tsFilename, regex, tsBodyIntellisense)
+        // log.bright.cyan (message, (tsFilename as any).yellow)
+        // const regex = /export class BaseError[^}]+\}[\n][\n](?:\s+export class [a-zA-Z]+ extends [a-zA-Z]+ \{\}[\n])+[\n]/m
+        // replaceInFile (tsFilename, regex, tsBodyIntellisense)
     }
 
     transpileBaseMethods(baseExchangeFile) {
@@ -390,11 +390,6 @@ class NewTranspiler {
         } else {
             exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
         }
-        // // exchanges = ["binance.ts", "wazirx.ts", "whitebit.ts", "alpaca.ts"]
-        // exchanges = ["binance.ts", "bybit.ts", "whitebit.ts"]
-        // exchanges = exchanges.slice(0, 25)
-        // exchanges = ['bitopro.ts', 'bitget.ts', 'bithumb.ts']
-        // exchanges = ['coinex.ts']
         const classNames = exchanges.map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
 
         const classes = {}
@@ -499,7 +494,9 @@ class NewTranspiler {
         this.transpiler.set
         const csharpVersion = this.transpiler.transpileCSharpByPath(path);
         const csharpImports = this.getCsharpImports(csharpVersion).join("\n") + "\n\n";
-        return csharpImports + csharpVersion.content;
+        let content = csharpVersion.content;
+        content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "partial class $1 : $2");
+        return csharpImports + content;
     }
 
     createPythonImports(file) {

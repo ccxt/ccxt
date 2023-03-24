@@ -2916,9 +2916,9 @@ export default class Exchange {
                     }
                     const inferedMarketType = (market !== undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
-                        const market = markets[i];
-                        if (market[inferedMarketType]) {
-                            return market;
+                        const marketInner = markets[i];
+                        if (marketInner[inferedMarketType]) {
+                            return marketInner;
                         }
                     }
                 }
