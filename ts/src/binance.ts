@@ -1635,7 +1635,7 @@ export default class binance extends Exchange {
         if (apiBackup !== undefined) {
             return undefined;
         }
-        const response = await (this as any).sapiGetCapitalConfigGetall (params);
+        const response = await this.sapiGetCapitalConfigGetall (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
             //
@@ -1810,13 +1810,13 @@ export default class binance extends Exchange {
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
-                promises.push ((this as any).publicGetExchangeInfo (params));
+                promises.push (this.publicGetExchangeInfo (params));
             } else if (marketType === 'linear') {
-                promises.push ((this as any).fapiPublicGetExchangeInfo (params));
+                promises.push (this.fapiPublicGetExchangeInfo (params));
             } else if (marketType === 'inverse') {
-                promises.push ((this as any).dapiPublicGetExchangeInfo (params));
+                promises.push (this.dapiPublicGetExchangeInfo (params));
             } else if (marketType === 'option') {
-                promises.push ((this as any).eapiPublicGetExchangeInfo (params));
+                promises.push (this.eapiPublicGetExchangeInfo (params));
             } else {
                 throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
@@ -2779,7 +2779,7 @@ export default class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
-        const response = await (this as any).sapiGetSystemStatus (params);
+        const response = await this.sapiGetSystemStatus (params);
         //
         //     {
         //         "status": 0,              // 0: normal，1：system maintenance
@@ -3580,7 +3580,7 @@ export default class binance extends Exchange {
             params = this.omit (params, [ 'timeInForce' ]);
         }
         const requestParams = this.omit (params, [ 'quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
-        const response = await (this as any).privatePostOrderCancelReplace (this.extend (request, requestParams));
+        const response = await this.privatePostOrderCancelReplace (this.extend (request, requestParams));
         //
         //     {
         //         "cancelResult": "SUCCESS",
@@ -4615,7 +4615,7 @@ export default class binance extends Exchange {
             request['startTime'] = since;
             request['endTime'] = this.sum (since, 7776000000);
         }
-        const response = await (this as any).sapiGetAssetDribblet (this.extend (request, params));
+        const response = await this.sapiGetAssetDribblet (this.extend (request, params));
         //     {
         //       "total": "4",
         //       "userAssetDribblets": [
@@ -4763,7 +4763,7 @@ export default class binance extends Exchange {
             if (until !== undefined) {
                 request['endTime'] = until;
             }
-            const raw = await (this as any).sapiGetFiatOrders (this.extend (request, params));
+            const raw = await this.sapiGetFiatOrders (this.extend (request, params));
             response = this.safeValue (raw, 'data');
             //     {
             //       "code": "000000",
@@ -4801,7 +4801,7 @@ export default class binance extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            response = await (this as any).sapiGetCapitalDepositHisrec (this.extend (request, params));
+            response = await this.sapiGetCapitalDepositHisrec (this.extend (request, params));
             //     [
             //       {
             //         "amount": "0.01844487",
@@ -4862,7 +4862,7 @@ export default class binance extends Exchange {
             if (since !== undefined) {
                 request['beginTime'] = since;
             }
-            const raw = await (this as any).sapiGetFiatOrders (this.extend (request, params));
+            const raw = await this.sapiGetFiatOrders (this.extend (request, params));
             response = this.safeValue (raw, 'data');
             //     {
             //       "code": "000000",
@@ -4907,7 +4907,7 @@ export default class binance extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            response = await (this as any).sapiGetCapitalWithdrawHistory (this.extend (request, params));
+            response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, params));
             //     [
             //       {
             //         "id": "69e53ad305124b96b43668ceab158a18",
@@ -5342,7 +5342,7 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await (this as any).sapiGetAssetTransfer (this.extend (request, params));
+        const response = await this.sapiGetAssetTransfer (this.extend (request, params));
         //
         //     {
         //         total: 3,
@@ -5386,7 +5386,7 @@ export default class binance extends Exchange {
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        const response = await (this as any).sapiGetCapitalDepositAddress (this.extend (request, params));
+        const response = await this.sapiGetCapitalDepositAddress (this.extend (request, params));
         //
         //     {
         //         currency: 'XRP',
@@ -5447,7 +5447,7 @@ export default class binance extends Exchange {
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).sapiGetCapitalConfigGetall (params);
+        const response = await this.sapiGetCapitalConfigGetall (params);
         //
         //  [
         //     {
@@ -5561,7 +5561,7 @@ export default class binance extends Exchange {
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).sapiGetCapitalConfigGetall (params);
+        const response = await this.sapiGetCapitalConfigGetall (params);
         //
         //    [
         //        {
@@ -5710,7 +5710,7 @@ export default class binance extends Exchange {
             request['network'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await (this as any).sapiPostCapitalWithdrawApply (this.extend (request, params));
+        const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction (response, currency);
     }
@@ -5747,7 +5747,7 @@ export default class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).sapiGetAssetTradeFee (this.extend (request, params));
+        const response = await this.sapiGetAssetTradeFee (this.extend (request, params));
         //
         //     [
         //       {
@@ -5956,7 +5956,7 @@ export default class binance extends Exchange {
             'amount': amount,
             'type': type,
         };
-        const response = await (this as any).sapiPostFuturesTransfer (this.extend (request, params));
+        const response = await this.sapiPostFuturesTransfer (this.extend (request, params));
         //
         //   {
         //       "tranId": 100000001
@@ -7057,7 +7057,7 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).eapiPublicGetExerciseHistory (this.extend (request, params));
+        const response = await this.eapiPublicGetExerciseHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -7546,7 +7546,7 @@ export default class binance extends Exchange {
             'asset': currency['id'],
             // 'vipLevel': this.safeInteger (params, 'vipLevel'),
         };
-        const response = await (this as any).sapiGetMarginInterestRateHistory (this.extend (request, params));
+        const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -7590,7 +7590,7 @@ export default class binance extends Exchange {
             const now = this.milliseconds ();
             request['endTime'] = Math.min (endTime, now); // cannot have an endTime later than current time
         }
-        const response = await (this as any).sapiGetMarginInterestRateHistory (this.extend (request, params));
+        const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -7653,7 +7653,7 @@ export default class binance extends Exchange {
             'token': currency['id'],
             'amount': amount,
         };
-        const response = await (this as any).sapiPostGiftcardCreateCode (this.extend (request, params));
+        const response = await this.sapiPostGiftcardCreateCode (this.extend (request, params));
         //
         //     {
         //         code: '000000',
@@ -7686,7 +7686,7 @@ export default class binance extends Exchange {
         const request = {
             'code': giftcardCode,
         };
-        const response = await (this as any).sapiPostGiftcardRedeemCode (this.extend (request, params));
+        const response = await this.sapiPostGiftcardRedeemCode (this.extend (request, params));
         //
         //     {
         //         code: '000000',
@@ -7713,7 +7713,7 @@ export default class binance extends Exchange {
         const request = {
             'referenceNo': id,
         };
-        const response = await (this as any).sapiGetGiftcardVerify (this.extend (request, params));
+        const response = await this.sapiGetGiftcardVerify (this.extend (request, params));
         //
         //     {
         //         code: '000000',
@@ -7754,7 +7754,7 @@ export default class binance extends Exchange {
             market = this.market (symbol);
             request['isolatedSymbol'] = market['id'];
         }
-        const response = await (this as any).sapiGetMarginInterestHistory (this.extend (request, params));
+        const response = await this.sapiGetMarginInterestHistory (this.extend (request, params));
         //
         //     {
         //         "rows":[
@@ -7819,7 +7819,7 @@ export default class binance extends Exchange {
             request['symbol'] = market['id'];
             request['isIsolated'] = 'TRUE';
         }
-        const response = await (this as any).sapiPostMarginRepay (this.extend (request, query));
+        const response = await this.sapiPostMarginRepay (this.extend (request, query));
         //
         //     {
         //         "tranId": 108988250265,
@@ -7854,7 +7854,7 @@ export default class binance extends Exchange {
             request['symbol'] = market['id'];
             request['isIsolated'] = 'TRUE';
         }
-        const response = await (this as any).sapiPostMarginLoan (this.extend (request, query));
+        const response = await this.sapiPostMarginLoan (this.extend (request, query));
         //
         //     {
         //         "tranId": 108988250265,

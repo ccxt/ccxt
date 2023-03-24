@@ -19,6 +19,7 @@ export default abstract class Exchange extends _Exchange {
     abstract privateGetMyTrades(params?: {}): Promise<implicitReturnType>;
     abstract privatePostOrder(params?: {}): Promise<implicitReturnType>;
     abstract privatePostOrderTest(params?: {}): Promise<implicitReturnType>;
+    abstract privatePostCreateAuthToken(params?: {}): Promise<implicitReturnType>;
     abstract privateDeleteOrder(params?: {}): Promise<implicitReturnType>;
     abstract privateDeleteOpenOrders(params?: {}): Promise<implicitReturnType>;
 }

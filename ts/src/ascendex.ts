@@ -352,7 +352,7 @@ export default class ascendex extends Exchange {
          * @param {object} params extra parameters specific to the ascendex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const assets = await (this as any).v1PublicGetAssets (params);
+        const assets = await this.v1PublicGetAssets (params);
         //
         //     {
         //         "code":0,
@@ -369,7 +369,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const margin = await (this as any).v1PublicGetMarginAssets (params);
+        const margin = await this.v1PublicGetMarginAssets (params);
         //
         //     {
         //         "code":0,
@@ -389,7 +389,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const cash = await (this as any).v1PublicGetCashAssets (params);
+        const cash = await this.v1PublicGetCashAssets (params);
         //
         //     {
         //         "code":0,
@@ -460,7 +460,7 @@ export default class ascendex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const products = await (this as any).v1PublicGetProducts (params);
+        const products = await this.v1PublicGetProducts (params);
         //
         //     {
         //         "code": 0,
@@ -481,7 +481,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const cash = await (this as any).v1PublicGetCashProducts (params);
+        const cash = await this.v1PublicGetCashProducts (params);
         //
         //     {
         //         "code": 0,
@@ -511,7 +511,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const perpetuals = await (this as any).v2PublicGetFuturesContract (params);
+        const perpetuals = await this.v2PublicGetFuturesContract (params);
         //
         //    {
         //        "code": 0,
@@ -659,7 +659,7 @@ export default class ascendex extends Exchange {
         const request = {
             'requestTime': this.milliseconds (),
         };
-        const response = await (this as any).v1PublicGetExchangeInfo (this.extend (request, params));
+        const response = await this.v1PublicGetExchangeInfo (this.extend (request, params));
         //
         //    {
         //        "code": 0,
@@ -685,7 +685,7 @@ export default class ascendex extends Exchange {
         let accountGroup = this.safeString (this.options, 'account-group');
         let response = undefined;
         if (accountGroup === undefined) {
-            response = await (this as any).v1PrivateGetInfo (params);
+            response = await this.v1PrivateGetInfo (params);
             //
             //     {
             //         "code":0,
@@ -877,7 +877,7 @@ export default class ascendex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).v1PublicGetDepth (this.extend (request, params));
+        const response = await this.v1PublicGetDepth (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -970,7 +970,7 @@ export default class ascendex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).v1PublicGetTicker (this.extend (request, params));
+        const response = await this.v1PublicGetTicker (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -1015,9 +1015,9 @@ export default class ascendex extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let response = undefined;
         if (type === 'spot') {
-            response = await (this as any).v1PublicGetTicker (this.extend (request, params));
+            response = await this.v1PublicGetTicker (this.extend (request, params));
         } else {
-            response = await (this as any).v2PublicGetFuturesTicker (this.extend (request, params));
+            response = await this.v2PublicGetFuturesTicker (this.extend (request, params));
         }
         //
         //     {
@@ -1105,7 +1105,7 @@ export default class ascendex extends Exchange {
         } else if (limit !== undefined) {
             request['n'] = limit; // max 500
         }
-        const response = await (this as any).v1PublicGetBarhist (this.extend (request, params));
+        const response = await this.v1PublicGetBarhist (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -1185,7 +1185,7 @@ export default class ascendex extends Exchange {
         if (limit !== undefined) {
             request['n'] = limit; // max 100
         }
-        const response = await (this as any).v1PublicGetTrades (this.extend (request, params));
+        const response = await this.v1PublicGetTrades (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -1395,7 +1395,7 @@ export default class ascendex extends Exchange {
         const request = {
             'account-group': accountGroup,
         };
-        const response = await (this as any).v1PrivateAccountGroupGetSpotFee (this.extend (request, params));
+        const response = await this.v1PrivateAccountGroupGetSpotFee (this.extend (request, params));
         //
         //      {
         //         code: '0',
@@ -2248,7 +2248,7 @@ export default class ascendex extends Exchange {
         const request = {
             'asset': currency['id'],
         };
-        const response = await (this as any).v1PrivateGetWalletDepositAddress (this.extend (request, params));
+        const response = await this.v1PrivateGetWalletDepositAddress (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -2369,7 +2369,7 @@ export default class ascendex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await (this as any).v1PrivateGetWalletTransactions (this.extend (request, params));
+        const response = await this.v1PrivateGetWalletTransactions (this.extend (request, params));
         //
         //     {
         //         code: 0,
@@ -2478,7 +2478,7 @@ export default class ascendex extends Exchange {
         const request = {
             'account-group': accountGroup,
         };
-        const response = await (this as any).v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));
+        const response = await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -2638,7 +2638,7 @@ export default class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).v2PublicGetFuturesPricingData (params);
+        const response = await this.v2PublicGetFuturesPricingData (params);
         //
         //     {
         //          "code": 0,
@@ -2681,7 +2681,7 @@ export default class ascendex extends Exchange {
             'symbol': market['id'],
             'amount': amount, // positive value for adding margin, negative for reducing
         };
-        const response = await (this as any).v2PrivateAccountGroupPostFuturesIsolatedPositionMargin (this.extend (request, params));
+        const response = await this.v2PrivateAccountGroupPostFuturesIsolatedPositionMargin (this.extend (request, params));
         //
         // Can only change margin for perpetual futures isolated margin positions
         //
@@ -2766,7 +2766,7 @@ export default class ascendex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await (this as any).v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
+        return await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
     }
 
     async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
@@ -2799,7 +2799,7 @@ export default class ascendex extends Exchange {
         if (market['type'] !== 'future') {
             throw new BadSymbol (this.id + ' setMarginMode() supports futures contracts only');
         }
-        return await (this as any).v2PrivateAccountGroupPostFuturesMarginType (this.extend (request, params));
+        return await this.v2PrivateAccountGroupPostFuturesMarginType (this.extend (request, params));
     }
 
     async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
@@ -2812,7 +2812,7 @@ export default class ascendex extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).v2PublicGetFuturesContract (params);
+        const response = await this.v2PublicGetFuturesContract (params);
         //
         //     {
         //         "code":0,
@@ -2925,7 +2925,7 @@ export default class ascendex extends Exchange {
             'fromAccount': fromId,
             'toAccount': toId,
         };
-        const response = await (this as any).v1PrivateAccountGroupPostTransfer (this.extend (request, params));
+        const response = await this.v1PrivateAccountGroupPostTransfer (this.extend (request, params));
         //
         //    { code: '0' }
         //

@@ -1134,7 +1134,6 @@ export default class cex extends Exchange {
         const market = this.market(symbol);
         const request = { 'pair': market['id'] };
         const response = await this[method](this.extend(request, params));
-        // @ts-expect-error
         return this.parseOrders(response, market, since, limit);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {

@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\InvalidNonce;
+use ccxt\Precise;
 use React\Async;
 
 class idex extends \ccxt\async\idex {
@@ -113,34 +114,34 @@ class idex extends \ccxt\async\idex {
         $symbol = $this->safe_symbol($marketId);
         $messageHash = $type . ':' . $marketId;
         $timestamp = $this->safe_integer($data, 't');
-        $close = $this->safe_float($data, 'c');
-        $percentage = $this->safe_float($data, 'P');
+        $close = $this->safe_string($data, 'c');
+        $percentage = $this->safe_string($data, 'P');
         $change = null;
         if (($percentage !== null) && ($close !== null)) {
-            $change = $close * $percentage;
+            $change = Precise::string_mul($close, $percentage);
         }
-        $ticker = array(
+        $ticker = $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($data, 'h'),
-            'low' => $this->safe_float($data, 'l'),
-            'bid' => $this->safe_float($data, 'b'),
+            'high' => $this->safe_string($data, 'h'),
+            'low' => $this->safe_string($data, 'l'),
+            'bid' => $this->safe_string($data, 'b'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($data, 'a'),
+            'ask' => $this->safe_string($data, 'a'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_float($data, 'o'),
+            'open' => $this->safe_string($data, 'o'),
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
             'change' => $change,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_float($data, 'v'),
-            'quoteVolume' => $this->safe_float($data, 'q'),
+            'baseVolume' => $this->safe_string($data, 'v'),
+            'quoteVolume' => $this->safe_string($data, 'q'),
             'info' => $message,
-        );
+        ));
         $client->resolve ($ticker, $messageHash);
     }
 

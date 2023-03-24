@@ -335,7 +335,7 @@ export default class poloniex extends Exchange {
             // limit should in between 100 and 500
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetMarketsSymbolCandles (this.extend (request, params));
+        const response = await this.publicGetMarketsSymbolCandles (this.extend (request, params));
         //
         //     [
         //         [
@@ -376,7 +376,7 @@ export default class poloniex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const markets = await (this as any).publicGetMarkets (params);
+        const markets = await this.publicGetMarkets (params);
         //
         //     [
         //         {
@@ -468,7 +468,7 @@ export default class poloniex extends Exchange {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetTimestamp (params);
+        const response = await this.publicGetTimestamp (params);
         return this.safeInteger (response, 'serverTime');
     }
 
@@ -532,7 +532,7 @@ export default class poloniex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).publicGetMarketsTicker24h (params);
+        const response = await this.publicGetMarketsTicker24h (params);
         //
         //     [
         //         {
@@ -563,7 +563,7 @@ export default class poloniex extends Exchange {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetCurrencies (params);
+        const response = await this.publicGetCurrencies (params);
         //
         //     [
         //         {
@@ -641,7 +641,7 @@ export default class poloniex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetMarketsSymbolTicker24h (this.extend (request, params));
+        const response = await this.publicGetMarketsSymbolTicker24h (this.extend (request, params));
         //
         //     {
         //         "symbol" : "BTC_USDT",
@@ -773,7 +773,7 @@ export default class poloniex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const trades = await (this as any).publicGetMarketsSymbolTrades (this.extend (request, params));
+        const trades = await this.publicGetMarketsSymbolTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -816,7 +816,7 @@ export default class poloniex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = parseInt (limit);
         }
-        const response = await (this as any).privateGetTrades (this.extend (request, params));
+        const response = await this.privateGetTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -1016,7 +1016,7 @@ export default class poloniex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1073,7 +1073,7 @@ export default class poloniex extends Exchange {
             // 'amount': amount,
         };
         const orderRequest = this.orderRequest (symbol, type, side, amount, request, price, params);
-        let response = await (this as any).privatePostOrders (this.extend (orderRequest[0], orderRequest[1]));
+        let response = await this.privatePostOrders (this.extend (orderRequest[0], orderRequest[1]));
         //
         //     {
         //         "id" : "78923648051920896",
@@ -1140,7 +1140,7 @@ export default class poloniex extends Exchange {
             // 'timeInForce': timeInForce,
         };
         const orderRequest = this.orderRequest (symbol, type, side, amount, request, price, params);
-        let response = await (this as any).privatePutOrdersId (this.extend (orderRequest[0], orderRequest[1]));
+        let response = await this.privatePutOrdersId (this.extend (orderRequest[0], orderRequest[1]));
         //
         //     {
         //         "id" : "78923648051920896",
@@ -1171,7 +1171,7 @@ export default class poloniex extends Exchange {
         }
         request['id'] = id;
         params = this.omit (params, 'clientOrderId');
-        return await (this as any).privateDeleteOrdersId (this.extend (request, params));
+        return await this.privateDeleteOrdersId (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol: string = undefined, params = {}) {
@@ -1194,7 +1194,7 @@ export default class poloniex extends Exchange {
                 market['id'],
             ];
         }
-        const response = await (this as any).privateDeleteOrders (this.extend (request, params));
+        const response = await this.privateDeleteOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1230,7 +1230,7 @@ export default class poloniex extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateGetOrdersId (this.extend (request, params));
+        const response = await this.privateGetOrdersId (this.extend (request, params));
         //
         //     {
         //         "id": "21934611974062080",
@@ -1279,7 +1279,7 @@ export default class poloniex extends Exchange {
         const request = {
             'id': id,
         };
-        const trades = await (this as any).privateGetOrdersIdTrades (this.extend (request, params));
+        const trades = await this.privateGetOrdersIdTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -1338,7 +1338,7 @@ export default class poloniex extends Exchange {
         const request = {
             'accountType': 'SPOT',
         };
-        const response = await (this as any).privateGetAccountsBalances (this.extend (request, params));
+        const response = await this.privateGetAccountsBalances (this.extend (request, params));
         //
         //     [
         //         {
@@ -1367,7 +1367,7 @@ export default class poloniex extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetFeeinfo (params);
+        const response = await this.privateGetFeeinfo (params);
         //
         //     {
         //         "trxDiscount" : false,
@@ -1409,7 +1409,7 @@ export default class poloniex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
         }
-        const response = await (this as any).publicGetMarketsSymbolOrderBook (this.extend (request, params));
+        const response = await this.publicGetMarketsSymbolOrderBook (this.extend (request, params));
         //
         //     {
         //         "time" : 1659695219507,
@@ -1473,7 +1473,7 @@ export default class poloniex extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createDepositAddress requires a network parameter for ' + code + '.');
             }
         }
-        const response = await (this as any).privatePostWalletsAddress (this.extend (request, params));
+        const response = await this.privatePostWalletsAddress (this.extend (request, params));
         //
         //     {
         //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
@@ -1523,7 +1523,7 @@ export default class poloniex extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
             }
         }
-        const response = await (this as any).privateGetWalletsAddresses (this.extend (request, params));
+        const response = await this.privateGetWalletsAddresses (this.extend (request, params));
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
@@ -1572,7 +1572,7 @@ export default class poloniex extends Exchange {
             'fromAccount': fromId,
             'toAccount': toId,
         };
-        const response = await (this as any).privatePostAccountsTransfer (this.extend (request, params));
+        const response = await this.privatePostAccountsTransfer (this.extend (request, params));
         //
         //    {
         //        success: '1',
@@ -1647,7 +1647,7 @@ export default class poloniex extends Exchange {
             request['currency'] += network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
             params = this.omit (params, 'network');
         }
-        const response = await (this as any).privatePostWalletsWithdraw (this.extend (request, params));
+        const response = await this.privatePostWalletsWithdraw (this.extend (request, params));
         //
         //     {
         //         response: 'Withdrew 1.00000000 USDT.',
@@ -1667,7 +1667,7 @@ export default class poloniex extends Exchange {
             'start': start, // UNIX timestamp, required
             'end': now, // UNIX timestamp, required
         };
-        const response = await (this as any).privateGetWalletsActivity (this.extend (request, params));
+        const response = await this.privateGetWalletsActivity (this.extend (request, params));
         //
         //     {
         //         "adjustments":[],
@@ -1799,7 +1799,7 @@ export default class poloniex extends Exchange {
          * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetCurrencies (this.extend (params, { 'includeMultiChainCurrencies': true }));
+        const response = await this.publicGetCurrencies (this.extend (params, { 'includeMultiChainCurrencies': true }));
         //
         //     [
         //         {

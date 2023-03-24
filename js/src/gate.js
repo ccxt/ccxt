@@ -2519,7 +2519,6 @@ export default class gate extends Exchange {
         //     }
         //
         const rates = [];
-        // @ts-expect-error
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const timestamp = this.safeTimestamp(entry, 't');

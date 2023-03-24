@@ -608,7 +608,7 @@ export default class ace extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const response = await this.privatePostV2OrderOrder(this.extend(request, params), params);
+        const response = await this.privatePostV2OrderOrder(this.extend(request, params));
         //
         //     {
         //         "attachment": "15697850529570392100421100482693",
@@ -711,7 +711,7 @@ export default class ace extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.privatePostV2OrderGetOrderList(this.extend(request, params), params);
+        const response = await this.privatePostV2OrderGetOrderList(this.extend(request, params));
         const orders = this.safeValue(response, 'attachment');
         //
         //     {

@@ -635,7 +635,7 @@ class btcmarkets(Exchange):
         request = {
             'id': market['id'],
         }
-        response = self.publicGetMarketIdTick(self.extend(request, params))
+        response = self.publicGetMarketsMarketIdTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):

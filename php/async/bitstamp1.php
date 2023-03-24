@@ -377,11 +377,7 @@ class bitstamp1 extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $pair = $market ? $market['id'] : 'all';
-            $request = array(
-                'id' => $pair,
-            );
-            $response = Async\await($this->privatePostOpenOrdersId (array_merge($request, $params)));
+            $response = Async\await($this->privatePostUserTransactions ($params));
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }

@@ -217,7 +217,7 @@ export default class alpaca extends Exchange {
             'asset_class': 'crypto',
             'tradeable': true,
         };
-        const assets = await (this as any).marketsGetAssetsPublicBeta (this.extend (request, params));
+        const assets = await this.marketsGetAssetsPublicBeta (this.extend (request, params));
         //
         //    [
         //        {
@@ -367,7 +367,7 @@ export default class alpaca extends Exchange {
         const request = {
             'symbols': id,
         };
-        const response = await (this as any).cryptoPublicGetCryptoLatestOrderbooks (this.extend (request, params));
+        const response = await this.cryptoPublicGetCryptoLatestOrderbooks (this.extend (request, params));
         //
         //   {
         //       "orderbooks":{
@@ -544,7 +544,7 @@ export default class alpaca extends Exchange {
         const clientOrderId = this.safeString (params, 'clientOrderId', defaultClientId);
         request['client_order_id'] = clientOrderId;
         params = this.omit (params, [ 'clientOrderId' ]);
-        const order = await (this as any).privatePostOrders (this.extend (request, params));
+        const order = await this.privatePostOrders (this.extend (request, params));
         //
         //   {
         //      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -597,7 +597,7 @@ export default class alpaca extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateDeleteOrdersOrderId (this.extend (request, params));
+        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
         //
         //   {
         //       "code": 40410000,
@@ -620,7 +620,7 @@ export default class alpaca extends Exchange {
         const request = {
             'order_id': id,
         };
-        const order = await (this as any).privateGetOrdersOrderId (this.extend (request, params));
+        const order = await this.privateGetOrdersOrderId (this.extend (request, params));
         const marketId = this.safeString (order, 'symbol');
         const market = this.safeMarket (marketId);
         return this.parseOrder (order, market);
@@ -642,7 +642,7 @@ export default class alpaca extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const orders = await (this as any).privateGetOrders (params);
+        const orders = await this.privateGetOrders (params);
         return this.parseOrders (orders, market, since, limit);
     }
 

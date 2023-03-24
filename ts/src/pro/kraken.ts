@@ -557,7 +557,7 @@ export default class kraken extends krakenRest {
         const authenticated = 'authenticated';
         let subscription = this.safeValue (client.subscriptions, authenticated);
         if (subscription === undefined) {
-            const response = await (this as any).privatePostGetWebSocketsToken (params);
+            const response = await this.privatePostGetWebSocketsToken (params);
             //
             //     {
             //         "error":[],

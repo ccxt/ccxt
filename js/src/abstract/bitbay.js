@@ -4,6 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
+// -------------------------------------------------------------------------------
 import _zonda from '../zonda.js';
 export default class zonda extends _zonda {
 }

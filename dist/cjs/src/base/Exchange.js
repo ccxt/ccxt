@@ -38,10 +38,6 @@ class Exchange {
         this.debug = false;
         this.userAgent = undefined;
         this.twofa = undefined; // two-factor authentication (2FA)
-        this.login = undefined;
-        this.privateKey = undefined; // a "0x"-prefixed hexstring private key for a wallet
-        this.walletAddress = undefined; // a wallet address "0x"-prefixed hexstring
-        this.token = undefined; // reserved for HTTP auth in some cases
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
@@ -59,12 +55,11 @@ class Exchange {
         this.id = undefined;
         this.markets = undefined;
         this.status = undefined;
-        this.rateLimit = undefined;
+        this.rateLimit = undefined; // milliseconds
         this.tokenBucket = undefined;
         this.throttle = undefined;
         this.enableRateLimit = undefined;
         this.httpExceptions = undefined;
-        this.fees = undefined;
         this.markets_by_id = undefined;
         this.symbols = undefined;
         this.ids = undefined;
@@ -86,7 +81,6 @@ class Exchange {
         this.version = undefined;
         this.marketsByAltname = undefined;
         this.name = undefined;
-        this.lastRestRequestTimestamp = undefined;
         this.targetAccount = undefined;
         this.stablePairs = {};
         // WS/PRO options

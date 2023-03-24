@@ -3111,7 +3111,7 @@ export default class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateGetMarginTradeLast(this.extend(request, params));
+        const response = await this.publicGetMarginTradeLast(this.extend(request, params));
         //
         //     {
         //         "code": "200000",

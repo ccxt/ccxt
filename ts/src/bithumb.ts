@@ -293,7 +293,7 @@ export default class bithumb extends Exchange {
         const request = {
             'currency': 'ALL',
         };
-        const response = await (this as any).privatePostInfoBalance (this.extend (request, params));
+        const response = await this.privatePostInfoBalance (this.extend (request, params));
         return this.parseBalance (response);
     }
 
@@ -315,7 +315,7 @@ export default class bithumb extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 30, max 30
         }
-        const response = await (this as any).publicGetOrderbookCurrency (this.extend (request, params));
+        const response = await this.publicGetOrderbookCurrency (this.extend (request, params));
         //
         //     {
         //         "status":"0000",
@@ -459,7 +459,7 @@ export default class bithumb extends Exchange {
         const request = {
             'currency': market['base'],
         };
-        const response = await (this as any).publicGetTickerCurrency (this.extend (request, params));
+        const response = await this.publicGetTickerCurrency (this.extend (request, params));
         //
         //     {
         //         "status":"0000",
@@ -522,7 +522,7 @@ export default class bithumb extends Exchange {
             'currency': market['base'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        const response = await (this as any).publicGetCandlestickCurrencyInterval (this.extend (request, params));
+        const response = await this.publicGetCandlestickCurrencyInterval (this.extend (request, params));
         //
         //     {
         //         'status': '0000',
@@ -647,7 +647,7 @@ export default class bithumb extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 20, max 100
         }
-        const response = await (this as any).publicGetTransactionHistoryCurrency (this.extend (request, params));
+        const response = await this.publicGetTransactionHistoryCurrency (this.extend (request, params));
         //
         //     {
         //         "status":"0000",
@@ -727,7 +727,7 @@ export default class bithumb extends Exchange {
             'order_currency': market['base'],
             'payment_currency': market['quote'],
         };
-        const response = await (this as any).privatePostInfoOrderDetail (this.extend (request, params));
+        const response = await this.privatePostInfoOrderDetail (this.extend (request, params));
         //
         //     {
         //         "status": "0000",
@@ -894,7 +894,7 @@ export default class bithumb extends Exchange {
         if (since !== undefined) {
             request['after'] = since;
         }
-        const response = await (this as any).privatePostInfoOrders (this.extend (request, params));
+        const response = await this.privatePostInfoOrders (this.extend (request, params));
         //
         //     {
         //         "status": "0000",
@@ -943,7 +943,7 @@ export default class bithumb extends Exchange {
             'order_currency': market['base'],
             'payment_currency': market['quote'],
         };
-        return await (this as any).privatePostTradeCancel (this.extend (request, params));
+        return await this.privatePostTradeCancel (this.extend (request, params));
     }
 
     cancelUnifiedOrder (order, params = {}) {
@@ -982,7 +982,7 @@ export default class bithumb extends Exchange {
                 request['destination'] = tag;
             }
         }
-        const response = await (this as any).privatePostTradeBtcWithdrawal (this.extend (request, params));
+        const response = await this.privatePostTradeBtcWithdrawal (this.extend (request, params));
         //
         // { "status" : "0000"}
         //

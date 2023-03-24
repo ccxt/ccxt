@@ -2419,7 +2419,6 @@ class gate(Exchange):
         #     }
         #
         rates = []
-        # @ts-expect-error
         for i in range(0, len(response)):
             entry = response[i]
             timestamp = self.safe_timestamp(entry, 't')

@@ -600,7 +600,7 @@ export default class tokocrypto extends Exchange {
          * @param {object} params extra parameters specific to the tokocrypto api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetTime (params);
+        const response = await this.publicGetOpenV1CommonTime (params);
         //
         //
         //
@@ -615,7 +615,7 @@ export default class tokocrypto extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetOpenV1CommonSymbols (params);
+        const response = await this.publicGetOpenV1CommonSymbols (params);
         //
         //     {
         //         "code":0,
@@ -790,7 +790,7 @@ export default class tokocrypto extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        const response = await (this as any).binanceGetDepth (this.extend (request, params));
+        const response = await this.binanceGetDepth (this.extend (request, params));
         //
         // future
         //
@@ -1149,7 +1149,7 @@ export default class tokocrypto extends Exchange {
         const request = {
             'symbol': market['baseId'] + market['quoteId'],
         };
-        const response = await (this as any).binanceGetTicker24hr (this.extend (request, params));
+        const response = await this.binanceGetTicker24hr (this.extend (request, params));
         if (Array.isArray (response)) {
             const firstTicker = this.safeValue (response, 0, {});
             return this.parseTicker (firstTicker, market);
@@ -1167,7 +1167,7 @@ export default class tokocrypto extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).binanceGetTickerBookTicker (params);
+        const response = await this.binanceGetTickerBookTicker (params);
         return this.parseTickers (response, symbols);
     }
 
@@ -1256,7 +1256,7 @@ export default class tokocrypto extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await (this as any).binanceGetKlines (this.extend (request, params));
+        const response = await this.binanceGetKlines (this.extend (request, params));
         //
         //     [
         //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
@@ -1284,7 +1284,7 @@ export default class tokocrypto extends Exchange {
         const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
         const marginMode = this.safeStringLower (params, 'marginMode', defaultMarginMode);
         const request = {};
-        const response = await (this as any).privateGetOpenV1AccountSpot (this.extend (request, params));
+        const response = await this.privateGetOpenV1AccountSpot (this.extend (request, params));
         //
         // spot
         //
@@ -1647,7 +1647,7 @@ export default class tokocrypto extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
-        const response = await (this as any).privatePostOpenV1Orders (this.extend (request, params));
+        const response = await this.privatePostOpenV1Orders (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1692,7 +1692,7 @@ export default class tokocrypto extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response = await (this as any).privateGetOpenV1Orders (this.extend (request, params));
+        const response = await this.privateGetOpenV1Orders (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1761,7 +1761,7 @@ export default class tokocrypto extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetOpenV1Orders (this.extend (request, params));
+        const response = await this.privateGetOpenV1Orders (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1843,7 +1843,7 @@ export default class tokocrypto extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response = await (this as any).privatePostOpenV1OrdersCancel (this.extend (request, params));
+        const response = await this.privatePostOpenV1OrdersCancel (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1906,7 +1906,7 @@ export default class tokocrypto extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetOpenV1OrdersTrades (this.extend (request, params));
+        const response = await this.privateGetOpenV1OrdersTrades (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1961,7 +1961,7 @@ export default class tokocrypto extends Exchange {
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        const response = await (this as any).privateGetOpenV1DepositsAddress (this.extend (request, params));
+        const response = await this.privateGetOpenV1DepositsAddress (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -2025,7 +2025,7 @@ export default class tokocrypto extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetOpenV1Deposits (this.extend (request, params));
+        const response = await this.privateGetOpenV1Deposits (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -2080,7 +2080,7 @@ export default class tokocrypto extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetOpenV1Withdraws (this.extend (request, params));
+        const response = await this.privateGetOpenV1Withdraws (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -2279,7 +2279,7 @@ export default class tokocrypto extends Exchange {
         if (networkId !== undefined) {
             request['network'] = networkId.toUpperCase ();
         }
-        const response = await (this as any).privatePostOpenV1Withdraws (this.extend (request, query));
+        const response = await this.privatePostOpenV1Withdraws (this.extend (request, query));
         //
         //     {
         //         "code": 0,

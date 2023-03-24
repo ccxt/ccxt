@@ -296,7 +296,7 @@ export default class coinex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await (this as any).publicGetCommonAssetConfig (params);
+        const response = await this.publicGetCommonAssetConfig (params);
         //     {
         //         code: 0,
         //         data: {
@@ -404,7 +404,7 @@ export default class coinex extends Exchange {
     }
 
     async fetchSpotMarkets (params) {
-        const response = await (this as any).publicGetMarketInfo (params);
+        const response = await this.publicGetMarketInfo (params);
         //
         //     {
         //         "code": 0,
@@ -493,7 +493,7 @@ export default class coinex extends Exchange {
     }
 
     async fetchContractMarkets (params) {
-        const response = await (this as any).perpetualPublicGetMarketList (params);
+        const response = await this.perpetualPublicGetMarketList (params);
         //
         //     {
         //         "code": 0,
@@ -837,7 +837,7 @@ export default class coinex extends Exchange {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).perpetualPublicGetTime (params);
+        const response = await this.perpetualPublicGetTime (params);
         //
         //     {
         //         code: '0',
@@ -1103,7 +1103,7 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).publicGetMarketDetail (this.extend (request, params));
+        const response = await this.publicGetMarketDetail (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1133,7 +1133,7 @@ export default class coinex extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetMarketInfo (params);
+        const response = await this.publicGetMarketInfo (params);
         //
         //     {
         //         "code": 0,
@@ -1266,7 +1266,7 @@ export default class coinex extends Exchange {
         const request = {
             'market': marketId,
         };
-        const response = await (this as any).privateGetMarginAccount (this.extend (request, params));
+        const response = await this.privateGetMarginAccount (this.extend (request, params));
         //
         //      {
         //          "code":    0,
@@ -1334,7 +1334,7 @@ export default class coinex extends Exchange {
 
     async fetchSpotBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await (this as any).privateGetBalanceInfo (params);
+        const response = await this.privateGetBalanceInfo (params);
         //
         //     {
         //       "code": 0,
@@ -1372,7 +1372,7 @@ export default class coinex extends Exchange {
 
     async fetchSwapBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await (this as any).perpetualPrivateGetAssetQuery (params);
+        const response = await this.perpetualPrivateGetAssetQuery (params);
         //
         //     {
         //         "code": 0,
@@ -2553,7 +2553,7 @@ export default class coinex extends Exchange {
             params = this.omit (params, 'network');
             request['smart_contract_name'] = network;
         }
-        const response = await (this as any).privatePutBalanceDepositAddressCoinType (this.extend (request, params));
+        const response = await this.privatePutBalanceDepositAddressCoinType (this.extend (request, params));
         //
         //     {
         //         code: 0,
@@ -2597,7 +2597,7 @@ export default class coinex extends Exchange {
         if (network !== undefined) {
             request['smart_contract_name'] = network;
         }
-        const response = await (this as any).privateGetBalanceDepositAddressCoinType (this.extend (request, params));
+        const response = await this.privateGetBalanceDepositAddressCoinType (this.extend (request, params));
         //
         //      {
         //          code: 0,
@@ -2829,7 +2829,7 @@ export default class coinex extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const response = await (this as any).perpetualPrivateGetPositionPending (this.extend (request, params));
+        const response = await this.perpetualPrivateGetPositionPending (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -2911,7 +2911,7 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).perpetualPrivateGetPositionPending (this.extend (request, params));
+        const response = await this.perpetualPrivateGetPositionPending (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -3119,7 +3119,7 @@ export default class coinex extends Exchange {
             'leverage': leverage.toString (),
             'position_type': positionType, // 1: isolated, 2: cross
         };
-        return await (this as any).perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
+        return await this.perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
     }
 
     async setLeverage (leverage, symbol: string = undefined, params = {}) {
@@ -3160,7 +3160,7 @@ export default class coinex extends Exchange {
             'leverage': leverage.toString (),
             'position_type': positionType, // 1: isolated, 2: cross
         };
-        return await (this as any).perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
+        return await this.perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
     }
 
     async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
@@ -3173,7 +3173,7 @@ export default class coinex extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).perpetualPublicGetMarketLimitConfig (params);
+        const response = await this.perpetualPublicGetMarketLimitConfig (params);
         //
         //     {
         //         "code": 0,
@@ -3254,7 +3254,7 @@ export default class coinex extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'type': addOrReduce,
         };
-        const response = await (this as any).perpetualPrivatePostPositionAdjustMargin (this.extend (request, params));
+        const response = await this.perpetualPrivatePostPositionAdjustMargin (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -3385,7 +3385,7 @@ export default class coinex extends Exchange {
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        const response = await (this as any).perpetualPrivateGetPositionFunding (this.extend (request, params));
+        const response = await this.perpetualPrivateGetPositionFunding (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -3451,7 +3451,7 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).perpetualPublicGetMarketTicker (this.extend (request, params));
+        const response = await this.perpetualPublicGetMarketTicker (this.extend (request, params));
         //
         //     {
         //          "code": 0,
@@ -3563,7 +3563,7 @@ export default class coinex extends Exchange {
                 throw new BadSymbol (this.id + ' fetchFundingRates() supports swap contracts only');
             }
         }
-        const response = await (this as any).perpetualPublicGetMarketTickerAll (params);
+        const response = await this.perpetualPublicGetMarketTickerAll (params);
         //
         //     {
         //         "code": 0,
@@ -3639,7 +3639,7 @@ export default class coinex extends Exchange {
             'actual_amount': parseFloat (amount), // the actual amount without fees, https://www.coinex.com/fees
             'transfer_method': 'onchain', // onchain, local
         };
-        const response = await (this as any).privatePostBalanceCoinWithdraw (this.extend (request, params));
+        const response = await this.privatePostBalanceCoinWithdraw (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -3701,7 +3701,7 @@ export default class coinex extends Exchange {
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        const response = await (this as any).perpetualPublicGetMarketFundingHistory (this.extend (request, params));
+        const response = await this.perpetualPublicGetMarketFundingHistory (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -4069,7 +4069,7 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['Limit'] = limit;
         }
-        const response = await (this as any).privateGetBalanceCoinWithdraw (this.extend (request, params));
+        const response = await this.privateGetBalanceCoinWithdraw (this.extend (request, params));
         //
         //    {
         //        "code": 0,
@@ -4137,7 +4137,7 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['Limit'] = limit;
         }
-        const response = await (this as any).privateGetBalanceCoinDeposit (this.extend (request, params));
+        const response = await this.privateGetBalanceCoinDeposit (this.extend (request, params));
         //
         //    {
         //        "code": 0,
@@ -4232,7 +4232,7 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).privateGetMarginConfig (this.extend (request, params));
+        const response = await this.privateGetMarginConfig (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -4266,7 +4266,7 @@ export default class coinex extends Exchange {
          * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetMarginConfig (params);
+        const response = await this.privateGetMarginConfig (params);
         //
         //     {
         //         "code": 0,
@@ -4320,7 +4320,7 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetMarginLoanHistory (this.extend (request, params));
+        const response = await this.privateGetMarginLoanHistory (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -4421,7 +4421,7 @@ export default class coinex extends Exchange {
             'coin_type': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await (this as any).privatePostMarginLoan (this.extend (request, params));
+        const response = await this.privatePostMarginLoan (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -4467,7 +4467,7 @@ export default class coinex extends Exchange {
         if (loanId !== undefined) {
             request['loan_id'] = loanId;
         }
-        const response = await (this as any).privatePostMarginFlat (this.extend (request, params));
+        const response = await this.privatePostMarginFlat (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -4527,7 +4527,7 @@ export default class coinex extends Exchange {
                 request['coin_type'] = this.safeValue (codes, 0);
             }
         }
-        const response = await (this as any).publicGetCommonAssetConfig (this.extend (request, params));
+        const response = await this.publicGetCommonAssetConfig (this.extend (request, params));
         //
         //    {
         //        "code": 0,

@@ -158,7 +158,7 @@ export default class bitbns extends Exchange {
          * @param {object} params extra parameters specific to the bitbns api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
-        const response = await (this as any).v1GetPlatformStatus (params);
+        const response = await this.v1GetPlatformStatus (params);
         //
         //     {
         //         "data":{
@@ -189,7 +189,7 @@ export default class bitbns extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).wwwGetOrderFetchMarkets (params);
+        const response = await this.wwwGetOrderFetchMarkets (params);
         //
         //     [
         //         {
@@ -300,7 +300,7 @@ export default class bitbns extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
-        const response = await (this as any).wwwGetOrderFetchOrderbook (this.extend (request, params));
+        const response = await this.wwwGetOrderFetchOrderbook (this.extend (request, params));
         //
         //     {
         //         "bids":[
@@ -391,7 +391,7 @@ export default class bitbns extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).wwwGetOrderFetchTickers (params);
+        const response = await this.wwwGetOrderFetchTickers (params);
         //
         //     {
         //         "BTC/INR":{
@@ -465,7 +465,7 @@ export default class bitbns extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v1PostCurrentCoinBalanceEVERYTHING (params);
+        const response = await this.v1PostCurrentCoinBalanceEVERYTHING (params);
         //
         //     {
         //         "data":{
@@ -664,7 +664,7 @@ export default class bitbns extends Exchange {
             'symbol': market['uppercaseId'],
             'side': quoteSide,
         };
-        const response = await (this as any).v2PostCancel (this.extend (request, params));
+        const response = await this.v2PostCancel (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -686,7 +686,7 @@ export default class bitbns extends Exchange {
             'symbol': market['id'],
             'entry_id': id,
         };
-        const response = await (this as any).v1PostOrderStatusSymbol (this.extend (request, params));
+        const response = await this.v1PostOrderStatusSymbol (this.extend (request, params));
         //
         //     {
         //         "data":[
@@ -739,7 +739,7 @@ export default class bitbns extends Exchange {
             'side': quoteSide,
             'page': 0,
         };
-        const response = await (this as any).v2PostGetordersnew (this.extend (request, params));
+        const response = await this.v2PostGetordersnew (this.extend (request, params));
         //
         //     {
         //         "data":[
@@ -865,7 +865,7 @@ export default class bitbns extends Exchange {
         if (since !== undefined) {
             request['since'] = this.iso8601 (since);
         }
-        const response = await (this as any).v1PostListExecutedOrdersSymbol (this.extend (request, params));
+        const response = await this.v1PostListExecutedOrdersSymbol (this.extend (request, params));
         //
         //     {
         //         "data": [
@@ -931,7 +931,7 @@ export default class bitbns extends Exchange {
             'coin': market['baseId'],
             'market': market['quoteId'],
         };
-        const response = await (this as any).wwwGetExchangeDataTradedetails (this.extend (request, params));
+        const response = await this.wwwGetExchangeDataTradedetails (this.extend (request, params));
         //
         //     [
         //         {"tradeId":"1909151","price":"61904.6300","quote_volume":1618.05,"base_volume":0.02607254,"timestamp":1634548602000,"type":"buy"},
@@ -962,7 +962,7 @@ export default class bitbns extends Exchange {
             'symbol': currency['id'],
             'page': 0,
         };
-        const response = await (this as any).v1PostDepositHistorySymbol (this.extend (request, params));
+        const response = await this.v1PostDepositHistorySymbol (this.extend (request, params));
         //
         //     {
         //         "data":[
@@ -1010,7 +1010,7 @@ export default class bitbns extends Exchange {
             'symbol': currency['id'],
             'page': 0,
         };
-        const response = await (this as any).v1PostWithdrawHistorySymbol (this.extend (request, params));
+        const response = await this.v1PostWithdrawHistorySymbol (this.extend (request, params));
         //
         //     ...
         //
@@ -1119,7 +1119,7 @@ export default class bitbns extends Exchange {
         const request = {
             'symbol': currency['id'],
         };
-        const response = await (this as any).v1PostGetCoinAddressSymbol (this.extend (request, params));
+        const response = await this.v1PostGetCoinAddressSymbol (this.extend (request, params));
         //
         //     {
         //         "data":{

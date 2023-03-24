@@ -1729,7 +1729,7 @@ class digifinex extends Exchange {
             'market' => $orderType,
             'order_id' => implode(',', $ids),
         );
-        $response = $this->privateSpotPostCancelOrder (array_merge($request, $params));
+        $response = $this->privateSpotPostSpotOrderCancel (array_merge($request, $params));
         //
         //     {
         //         "code" => 0,

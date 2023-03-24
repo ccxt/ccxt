@@ -297,7 +297,7 @@ export default class bitpanda extends Exchange {
          * @param {object} params extra parameters specific to the bitpanda api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetTime (params);
+        const response = await this.publicGetTime (params);
         //
         //     {
         //         iso: '2020-07-10T05:17:26.716Z',
@@ -315,7 +315,7 @@ export default class bitpanda extends Exchange {
          * @param {object} params extra parameters specific to the bitpanda api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetCurrencies (params);
+        const response = await this.publicGetCurrencies (params);
         //
         //     [
         //         {
@@ -356,7 +356,7 @@ export default class bitpanda extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetInstruments (params);
+        const response = await this.publicGetInstruments (params);
         //
         //     [
         //         {
@@ -451,7 +451,7 @@ export default class bitpanda extends Exchange {
 
     async fetchPublicTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await (this as any).publicGetFees (params);
+        const response = await this.publicGetFees (params);
         //
         //     [
         //         {
@@ -493,7 +493,7 @@ export default class bitpanda extends Exchange {
 
     async fetchPrivateTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccountFees (params);
+        const response = await this.privateGetAccountFees (params);
         //
         //     {
         //         "account_id": "ed524d00-820a-11e9-8f1e-69602df16d85",
@@ -624,7 +624,7 @@ export default class bitpanda extends Exchange {
         const request = {
             'instrument_code': market['id'],
         };
-        const response = await (this as any).publicGetMarketTickerInstrumentCode (this.extend (request, params));
+        const response = await this.publicGetMarketTickerInstrumentCode (this.extend (request, params));
         //
         //     {
         //         "instrument_code":"BTC_EUR",
@@ -657,7 +657,7 @@ export default class bitpanda extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).publicGetMarketTicker (params);
+        const response = await this.publicGetMarketTicker (params);
         //
         //     [
         //         {
@@ -711,7 +711,7 @@ export default class bitpanda extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const response = await (this as any).publicGetOrderBookInstrumentCode (this.extend (request, params));
+        const response = await this.publicGetOrderBookInstrumentCode (this.extend (request, params));
         //
         // level 1
         //
@@ -850,7 +850,7 @@ export default class bitpanda extends Exchange {
             request['from'] = this.iso8601 (since);
             request['to'] = this.iso8601 (this.sum (since, limit * duration));
         }
-        const response = await (this as any).publicGetCandlesticksInstrumentCode (this.extend (request, params));
+        const response = await this.publicGetCandlesticksInstrumentCode (this.extend (request, params));
         //
         //     [
         //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9252.65","low":"9115.27","open":"9250.0","close":"9132.35","total_amount":"33.85924","volume":"311958.9635744","time":"2020-05-08T22:59:59.999Z","last_sequence":461123},
@@ -967,7 +967,7 @@ export default class bitpanda extends Exchange {
             request['from'] = this.iso8601 (since);
             request['to'] = this.iso8601 (this.sum (since, 14400000));
         }
-        const response = await (this as any).publicGetPriceTicksInstrumentCode (this.extend (request, params));
+        const response = await this.publicGetPriceTicksInstrumentCode (this.extend (request, params));
         //
         //     [
         //         {
@@ -1009,7 +1009,7 @@ export default class bitpanda extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccountBalances (params);
+        const response = await this.privateGetAccountBalances (params);
         //
         //     {
         //         "account_id":"4b95934f-55f1-460c-a525-bd5afc0cf071",
@@ -1060,7 +1060,7 @@ export default class bitpanda extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privatePostAccountDepositCrypto (this.extend (request, params));
+        const response = await this.privatePostAccountDepositCrypto (this.extend (request, params));
         //
         //     {
         //         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
@@ -1086,7 +1086,7 @@ export default class bitpanda extends Exchange {
         const request = {
             'currency_code': currency['id'],
         };
-        const response = await (this as any).privateGetAccountDepositCryptoCurrencyCode (this.extend (request, params));
+        const response = await this.privateGetAccountDepositCryptoCurrencyCode (this.extend (request, params));
         //
         //     {
         //         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
@@ -1129,7 +1129,7 @@ export default class bitpanda extends Exchange {
             }
             request['from'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetAccountDeposits (this.extend (request, params));
+        const response = await this.privateGetAccountDeposits (this.extend (request, params));
         //
         //     {
         //         "deposit_history": [
@@ -1194,7 +1194,7 @@ export default class bitpanda extends Exchange {
             }
             request['from'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetAccountWithdrawals (this.extend (request, params));
+        const response = await this.privateGetAccountWithdrawals (this.extend (request, params));
         //
         //     {
         //         "withdrawal_history": [
@@ -1551,7 +1551,7 @@ export default class bitpanda extends Exchange {
             request['client_id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         }
-        const response = await (this as any).privatePostAccountOrders (this.extend (request, params));
+        const response = await this.privatePostAccountOrders (this.extend (request, params));
         //
         //     {
         //         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
@@ -1613,7 +1613,7 @@ export default class bitpanda extends Exchange {
             const market = this.market (symbol);
             request['instrument_code'] = market['id'];
         }
-        const response = await (this as any).privateDeleteAccountOrders (this.extend (request, params));
+        const response = await this.privateDeleteAccountOrders (this.extend (request, params));
         //
         //     [
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
@@ -1636,7 +1636,7 @@ export default class bitpanda extends Exchange {
         const request = {
             'ids': ids.join (','),
         };
-        const response = await (this as any).privateDeleteAccountOrders (this.extend (request, params));
+        const response = await this.privateDeleteAccountOrders (this.extend (request, params));
         //
         //     [
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
@@ -1658,7 +1658,7 @@ export default class bitpanda extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateGetAccountOrdersOrderId (this.extend (request, params));
+        const response = await this.privateGetAccountOrdersOrderId (this.extend (request, params));
         //
         //     {
         //         "order": {
@@ -1740,7 +1740,7 @@ export default class bitpanda extends Exchange {
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
-        const response = await (this as any).privateGetAccountOrders (this.extend (request, params));
+        const response = await this.privateGetAccountOrders (this.extend (request, params));
         //
         //     {
         //         "order_history": [
@@ -1862,7 +1862,7 @@ export default class bitpanda extends Exchange {
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
-        const response = await (this as any).privateGetAccountOrdersOrderIdTrades (this.extend (request, params));
+        const response = await this.privateGetAccountOrdersOrderIdTrades (this.extend (request, params));
         //
         //     {
         //         "trade_history": [
@@ -1935,7 +1935,7 @@ export default class bitpanda extends Exchange {
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
-        const response = await (this as any).privateGetAccountTrades (this.extend (request, params));
+        const response = await this.privateGetAccountTrades (this.extend (request, params));
         //
         //     {
         //         "trade_history": [

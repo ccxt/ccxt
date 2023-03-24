@@ -620,7 +620,7 @@ class tokocrypto(Exchange):
         :param dict params: extra parameters specific to the tokocrypto api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
-        response = await self.publicGetTime(params)
+        response = await self.publicGetOpenV1CommonTime(params)
         #
         #
         #

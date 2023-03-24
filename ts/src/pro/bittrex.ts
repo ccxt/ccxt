@@ -181,7 +181,7 @@ export default class bittrex extends bittrexRest {
             future = client.future (messageHash);
             client.subscriptions[messageHash] = future;
             const request = this.createSignalRQuery (params);
-            const response = await (this as any).signalrGetNegotiate (this.extend (request, params));
+            const response = await this.signalrGetNegotiate (this.extend (request, params));
             //
             //     {
             //         Url: '/signalr/v1.1/signalr',
@@ -210,7 +210,7 @@ export default class bittrex extends bittrexRest {
         const request = this.createSignalRQuery (this.extend (negotiation['request'], {
             'connectionToken': connectionToken,
         }));
-        return await (this as any).signalrGetStart (request);
+        return await this.signalrGetStart (request);
     }
 
     async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {

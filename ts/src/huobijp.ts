@@ -334,7 +334,7 @@ export default class huobijp extends Exchange {
          * @param {object} params extra parameters specific to the huobijp api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetCommonTimestamp (params);
+        const response = await this.publicGetCommonTimestamp (params);
         return this.safeInteger (response, 'data');
     }
 
@@ -358,7 +358,7 @@ export default class huobijp extends Exchange {
         const request = {
             'symbol': id,
         };
-        const response = await (this as any).publicGetCommonExchange (this.extend (request, params));
+        const response = await this.publicGetCommonExchange (this.extend (request, params));
         //
         //     { status:   "ok",
         //         data: {                                  symbol: "aidocbtc",
@@ -626,7 +626,7 @@ export default class huobijp extends Exchange {
             'symbol': market['id'],
             'type': 'step0',
         };
-        const response = await (this as any).marketGetDepth (this.extend (request, params));
+        const response = await this.marketGetDepth (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -675,7 +675,7 @@ export default class huobijp extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).marketGetDetailMerged (this.extend (request, params));
+        const response = await this.marketGetDetailMerged (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -714,7 +714,7 @@ export default class huobijp extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).marketGetTickers (params);
+        const response = await this.marketGetTickers (params);
         const tickers = this.safeValue (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = {};
@@ -831,7 +831,7 @@ export default class huobijp extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateGetOrderOrdersIdMatchresults (this.extend (request, params));
+        const response = await this.privateGetOrderOrdersIdMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], undefined, since, limit);
     }
 
@@ -860,7 +860,7 @@ export default class huobijp extends Exchange {
             request['start-time'] = since; // a date within 120 days from today
             // request['end-time'] = this.sum (since, 172800000); // 48 hours window
         }
-        const response = await (this as any).privateGetOrderMatchresults (this.extend (request, params));
+        const response = await this.privateGetOrderMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
 
@@ -883,7 +883,7 @@ export default class huobijp extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await (this as any).marketGetHistoryTrade (this.extend (request, params));
+        const response = await this.marketGetHistoryTrade (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -965,7 +965,7 @@ export default class huobijp extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await (this as any).marketGetHistoryKline (this.extend (request, params));
+        const response = await this.marketGetHistoryKline (this.extend (request, params));
         //
         //     {
         //         "status":"ok",
@@ -991,7 +991,7 @@ export default class huobijp extends Exchange {
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccountAccounts (params);
+        const response = await this.privateGetAccountAccounts (params);
         return response['data'];
     }
 
@@ -1006,7 +1006,7 @@ export default class huobijp extends Exchange {
         const request = {
             'language': this.options['language'],
         };
-        const response = await (this as any).publicGetSettingsCurrencys (this.extend (request, params));
+        const response = await this.publicGetSettingsCurrencys (this.extend (request, params));
         //
         //     {
         //         "status":"ok",
@@ -1181,7 +1181,7 @@ export default class huobijp extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateGetOrderOrdersId (this.extend (request, params));
+        const response = await this.privateGetOrderOrdersId (this.extend (request, params));
         const order = this.safeValue (response, 'data');
         return this.parseOrder (order);
     }
@@ -1263,7 +1263,7 @@ export default class huobijp extends Exchange {
             request['size'] = limit;
         }
         const omitted = this.omit (params, 'account-id');
-        const response = await (this as any).privateGetOrderOpenOrders (this.extend (request, omitted));
+        const response = await this.privateGetOrderOpenOrders (this.extend (request, omitted));
         //
         //     {
         //         "status":"ok",
@@ -1476,7 +1476,7 @@ export default class huobijp extends Exchange {
          * @param {object} params extra parameters specific to the huobijp api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const response = await (this as any).privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
+        const response = await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
         //
         //     {
         //         'status': 'ok',
@@ -1508,7 +1508,7 @@ export default class huobijp extends Exchange {
         } else {
             request['client-order-ids'] = clientOrderIds;
         }
-        const response = await (this as any).privatePostOrderOrdersBatchcancel (this.extend (request, params));
+        const response = await this.privatePostOrderOrdersBatchcancel (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -1566,7 +1566,7 @@ export default class huobijp extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await (this as any).privatePostOrderOrdersBatchCancelOpenOrders (this.extend (request, params));
+        const response = await this.privatePostOrderOrdersBatchCancelOpenOrders (this.extend (request, params));
         //
         //     {
         //         code: 200,
@@ -1652,7 +1652,7 @@ export default class huobijp extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // max 100
         }
-        const response = await (this as any).privateGetQueryDepositWithdraw (this.extend (request, params));
+        const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
         return this.parseTransactions (response['data'], currency, since, limit);
     }
@@ -1686,7 +1686,7 @@ export default class huobijp extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // max 100
         }
-        const response = await (this as any).privateGetQueryDepositWithdraw (this.extend (request, params));
+        const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
         return this.parseTransactions (response['data'], currency, since, limit);
     }
@@ -1830,7 +1830,7 @@ export default class huobijp extends Exchange {
             }
             params = this.omit (params, 'network');
         }
-        const response = await (this as any).privatePostDwWithdrawApiCreate (this.extend (request, params));
+        const response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
         //
         //     {
         //         "status": "ok",

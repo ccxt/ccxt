@@ -680,7 +680,7 @@ class btcmarkets extends Exchange {
             $request = array(
                 'id' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketIdTick (array_merge($request, $params)));
+            $response = Async\await($this->publicGetMarketsMarketIdTicker (array_merge($request, $params)));
             return $this->parse_ticker($response, $market);
         }) ();
     }

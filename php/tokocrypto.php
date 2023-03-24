@@ -597,7 +597,7 @@ class tokocrypto extends Exchange {
          * @param {array} $params extra parameters specific to the tokocrypto api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
-        $response = $this->publicGetTime ($params);
+        $response = $this->publicGetOpenV1CommonTime ($params);
         //
         //
         //

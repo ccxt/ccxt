@@ -130,7 +130,7 @@ export default class btctradeua extends Exchange {
          * @param {object} params extra parameters specific to the btctradeua api endpoint
          * @returns response from exchange
          */
-        return await (this as any).privatePostAuth (params);
+        return await this.privatePostAuth (params);
     }
 
     parseBalance (response) {
@@ -156,7 +156,7 @@ export default class btctradeua extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostBalance (params);
+        const response = await this.privatePostBalance (params);
         return this.parseBalance (response);
     }
 
@@ -175,8 +175,8 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const bids = await (this as any).publicGetTradesBuySymbol (this.extend (request, params));
-        const asks = await (this as any).publicGetTradesSellSymbol (this.extend (request, params));
+        const bids = await this.publicGetTradesBuySymbol (this.extend (request, params));
+        const asks = await this.publicGetTradesSellSymbol (this.extend (request, params));
         const orderbook = {
             'bids': [],
             'asks': [],
@@ -269,7 +269,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetJapanStatHighSymbol (this.extend (request, params));
+        const response = await this.publicGetJapanStatHighSymbol (this.extend (request, params));
         const ticker = this.safeValue (response, 'trades');
         //
         // {
@@ -395,7 +395,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetDealsSymbol (this.extend (request, params));
+        const response = await this.publicGetDealsSymbol (this.extend (request, params));
         // they report each trade twice (once for both of the two sides of the fill)
         // deduplicate trades for that reason
         const trades = [];
@@ -449,7 +449,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'id': id,
         };
-        return await (this as any).privatePostRemoveOrderId (this.extend (request, params));
+        return await this.privatePostRemoveOrderId (this.extend (request, params));
     }
 
     parseOrder (order, market = undefined) {
@@ -504,7 +504,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).privatePostMyOrdersSymbol (this.extend (request, params));
+        const response = await this.privatePostMyOrdersSymbol (this.extend (request, params));
         const orders = this.safeValue (response, 'your_open_orders');
         return this.parseOrders (orders, market, since, limit);
     }

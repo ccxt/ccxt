@@ -655,7 +655,7 @@ class btcmarkets extends Exchange {
         $request = array(
             'id' => $market['id'],
         );
-        $response = $this->publicGetMarketIdTick (array_merge($request, $params));
+        $response = $this->publicGetMarketsMarketIdTicker (array_merge($request, $params));
         return $this->parse_ticker($response, $market);
     }
 

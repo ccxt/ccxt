@@ -1075,7 +1075,6 @@ class cex(Exchange):
         market = self.market(symbol)
         request = {'pair': market['id']}
         response = await getattr(self, method)(self.extend(request, params))
-        # @ts-expect-error
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):

@@ -26,4 +26,7 @@ export default abstract class Exchange extends _Exchange {
     abstract v1PrivatePostWithdrawCommit(params?: {}): Promise<implicitReturnType>;
     abstract v1PrivateDeleteOrder(params?: {}): Promise<implicitReturnType>;
     abstract v2PrivateGetMyTrades(params?: {}): Promise<implicitReturnType>;
+    abstract openPrivatePostPoseidonApiV1ListenKey(params?: {}): Promise<implicitReturnType>;
+    abstract openPrivatePutPoseidonApiV1ListenKeyListenKey(params?: {}): Promise<implicitReturnType>;
+    abstract openPrivateDeletePoseidonApiV1ListenKeyListenKey(params?: {}): Promise<implicitReturnType>;
 }

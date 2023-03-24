@@ -136,7 +136,7 @@ export default class bitstamp1 extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only');
         }
         await this.loadMarkets ();
-        const orderbook = await (this as any).publicGetOrderBook (params);
+        const orderbook = await this.publicGetOrderBook (params);
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, symbol, timestamp);
     }
@@ -199,7 +199,7 @@ export default class bitstamp1 extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const ticker = await (this as any).publicGetTicker (params);
+        const ticker = await this.publicGetTicker (params);
         //
         // {
         //     "volume": "2836.47827985",
@@ -261,7 +261,7 @@ export default class bitstamp1 extends Exchange {
         const request = {
             'time': 'minute',
         };
-        const response = await (this as any).publicGetTransactions (this.extend (request, params));
+        const response = await this.publicGetTransactions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -289,7 +289,7 @@ export default class bitstamp1 extends Exchange {
          * @param {object} params extra parameters specific to the bitstamp1 api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
-        const response = await (this as any).privatePostBalance (params);
+        const response = await this.privatePostBalance (params);
         return this.parseBalance (response);
     }
 
@@ -318,7 +318,7 @@ export default class bitstamp1 extends Exchange {
             'amount': amount,
             'price': price,
         };
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'id');
         return this.safeOrder ({
             'info': response,
@@ -336,7 +336,7 @@ export default class bitstamp1 extends Exchange {
          * @param {object} params extra parameters specific to the bitstamp1 api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        return await (this as any).privatePostCancelOrder ({ 'id': id });
+        return await this.privatePostCancelOrder ({ 'id': id });
     }
 
     parseOrderStatus (status) {
@@ -354,7 +354,7 @@ export default class bitstamp1 extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privatePostOrderStatus (this.extend (request, params));
+        const response = await this.privatePostOrderStatus (this.extend (request, params));
         return this.parseOrderStatus (response);
     }
 
@@ -374,11 +374,7 @@ export default class bitstamp1 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const pair = market ? market['id'] : 'all';
-        const request = {
-            'id': pair,
-        };
-        const response = await (this as any).privatePostOpenOrdersId (this.extend (request, params));
+        const response = await this.privatePostUserTransactions (params);
         return this.parseTrades (response, market, since, limit);
     }
 
