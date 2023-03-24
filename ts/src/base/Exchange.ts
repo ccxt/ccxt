@@ -188,14 +188,14 @@ export default class Exchange {
     timeout       = 10000 // milliseconds
     verbose       = false
     debug         = false
-    userAgent     = undefined
+    userAgent: { 'User-Agent': string } | false = undefined;
     twofa         = undefined // two-factor authentication (2FA)
 
     apiKey: string;
     secret: string;
     uid: string;
     login         = undefined
-    password
+    password: string;
     privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
     walletAddress = undefined // a wallet address "0x"-prefixed hexstring
     token         = undefined // reserved for HTTP auth in some cases
@@ -252,10 +252,10 @@ export default class Exchange {
         walletAddress: boolean;
         token: boolean;
     };
-    rateLimit = undefined
+    rateLimit: number = undefined; // milliseconds
     tokenBucket = undefined
     throttle = undefined
-    enableRateLimit = undefined
+    enableRateLimit: boolean = undefined;
 
     httpExceptions = undefined
 
@@ -267,7 +267,7 @@ export default class Exchange {
     };
     fees = undefined
     markets_by_id: Dictionary<any> = undefined
-    symbols = undefined
+    symbols: string[] = undefined;
     ids: string[] = undefined
     currencies: Dictionary<Currency> = undefined
 
@@ -284,15 +284,15 @@ export default class Exchange {
 
     commonCurrencies = undefined
 
-    hostname = undefined
+    hostname: string = undefined;
 
-    precisionMode = undefined
+    precisionMode: number = undefined;
     paddingMode = undefined
 
     exceptions = {}
     timeframes: Dictionary<number | string> = {}
 
-    version = undefined
+    version: string = undefined;
 
     marketsByAltname = undefined
 
