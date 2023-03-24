@@ -355,6 +355,7 @@ export default class cryptocom extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         let promises = [ this.fetchSpotMarkets (params), this.fetchDerivativesMarkets (params) ];
+        // @ts-ignore
         promises = await Promise.all (promises);
         const spotMarkets = promises[0];
         const derivativeMarkets = promises[1];
