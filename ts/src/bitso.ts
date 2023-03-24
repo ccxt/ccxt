@@ -5,6 +5,7 @@ import Exchange from './abstract/bitso.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1712,7 +1713,7 @@ export default class bitso extends Exchange {
                     request += body;
                 }
             }
-            const signature = this.hmac (this.encode (request), this.encode (this.secret));
+            const signature = this.hmac (this.encode (request), this.encode (this.secret), sha256);
             const auth = this.apiKey + ':' + nonce + ':' + signature;
             headers = {
                 'Authorization': 'Bitso ' + auth,

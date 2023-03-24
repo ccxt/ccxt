@@ -511,7 +511,6 @@ class Exchange {
         'asFloat' => 'as_float',
         'asInteger' => 'as_integer',
         'binaryToBase58' => 'binary_to_base58',
-        'byteArrayToWordArray' => 'byte_array_to_word_array',
         'hasProps' => 'has_props',
         'isDictionary' => 'is_dictionary',
         'isInteger' => 'is_integer',
@@ -1621,34 +1620,24 @@ class Exchange {
         return $hmac;
     }
 
-    public static function jwt($request, $secret, $alg = 'HS256') {
-        $algorithms = array(
-            'HS256' => 'sha256',
-            'HS384' => 'sha384',
-            'HS512' => 'sha512',
-        );
+    public static function jwt($request, $secret, $algorithm = 'sha256', $is_rsa = false) {
+        $alg = ($is_rsa ? 'RS' : 'HS') . mb_substr($algorithm, 3, 3);
         $encodedHeader = static::urlencodeBase64(json_encode(array('alg' => $alg, 'typ' => 'JWT')));
         $encodedData = static::urlencodeBase64(json_encode($request, JSON_UNESCAPED_SLASHES));
         $token = $encodedHeader . '.' . $encodedData;
-        $algoType = substr($alg, 0, 2);
-
-        if ($algoType === 'HS') {
-            $algName = $algorithms[$alg];
-            if (!array_key_exists($alg, $algorithms)) {
-                throw new ExchangeError($alg . ' is not a supported jwt algorithm.');
-            }
-            $signature =  static::hmac($token, $secret, $algName, 'binary');
-        } elseif ($algoType === 'RS') {
-            $signature = \base64_decode(static::rsa($token, $secret, $alg));
+        if ($is_rsa) {
+            $signature = \base64_decode(static::rsa($token, $secret, $algorithm));
+        } else {
+            $signature =  static::hmac($token, $secret, $algorithm, 'binary');
         }
         return $token . '.' . static::urlencodeBase64($signature);
     }
 
-    public static function rsa($request, $secret, $alg = 'RS256') {
+    public static function rsa($request, $secret, $alg = 'sha256') {
         $algorithms = array(
-            'RS256' => \OPENSSL_ALGO_SHA256,
-            'RS384' => \OPENSSL_ALGO_SHA384,
-            'RS512' => \OPENSSL_ALGO_SHA512,
+            'sha256' => \OPENSSL_ALGO_SHA256,
+            'sha384' => \OPENSSL_ALGO_SHA384,
+            'sha512' => \OPENSSL_ALGO_SHA512,
         );
         if (!array_key_exists($alg, $algorithms)) {
             throw new ExchangeError($alg . ' is not a supported rsa signing algorithm.');
@@ -4121,7 +4110,7 @@ class Exchange {
 
     public function oath() {
         if ($this->twofa !== null) {
-            return $this->totp ($this->twofa);
+            return $this->totp($this->twofa);
         } else {
             throw new ExchangeError($this->id . ' exchange.twofa has not been set for 2FA Two-Factor Authentication');
         }

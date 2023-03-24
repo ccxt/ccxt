@@ -1,4 +1,3 @@
-
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';

@@ -5,6 +5,7 @@ import Exchange from './abstract/huobijp.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1867,7 +1868,7 @@ export default class huobijp extends Exchange {
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             const payload = [ method, this.hostname, url, auth ].join ("\n");
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             auth += '&' + this.urlencode ({ 'Signature': signature });
             url += '?' + auth;
             if (method === 'POST') {

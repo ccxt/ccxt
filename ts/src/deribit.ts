@@ -5,6 +5,8 @@ import Exchange from './abstract/deribit.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import totp from './base/functions/totp.js';
 //  ---------------------------------------------------------------------------
 
 // @ts-expect-error
@@ -2618,7 +2620,7 @@ export default class deribit extends Exchange {
             // 'tfa': '123456', // if enabled
         };
         if (this.twofa !== undefined) {
-            request['tfa'] = this.oath ();
+            request['tfa'] = totp (this.twofa);
         }
         const response = await (this as any).privateGetWithdraw (this.extend (request, params));
         return this.parseTransaction (response, currency);
@@ -2645,7 +2647,7 @@ export default class deribit extends Exchange {
             }
             const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
             const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             headers = {
                 'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             };

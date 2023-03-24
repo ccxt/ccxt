@@ -5,6 +5,7 @@ import Exchange from './abstract/bitstamp1.js';
 import { BadSymbol, ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -392,7 +393,7 @@ export default class bitstamp1 extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const auth = nonce + this.uid + this.apiKey;
-            const signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             query = this.extend ({
                 'key': this.apiKey,
                 'signature': signature.toUpperCase (),

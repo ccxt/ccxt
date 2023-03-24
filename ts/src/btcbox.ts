@@ -5,6 +5,7 @@ import Exchange from './abstract/btcbox.js';
 import { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, PermissionDenied, InvalidNonce, OrderNotFound, DDoSProtection } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -531,8 +532,8 @@ export default class btcbox extends Exchange {
                 'nonce': nonce,
             }, params);
             const request = this.urlencode (query);
-            const secret = this.hash (this.encode (this.secret));
-            query['signature'] = this.hmac (this.encode (request), this.encode (secret));
+            const secret = this.hash (this.encode (this.secret), sha256);
+            query['signature'] = this.hmac (this.encode (request), this.encode (secret), sha256);
             body = this.urlencode (query);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

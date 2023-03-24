@@ -5,6 +5,7 @@ import Exchange from './abstract/coinmate.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -964,7 +965,7 @@ export default class coinmate extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const auth = nonce + this.uid + this.apiKey;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             body = this.urlencode (this.extend ({
                 'clientId': this.uid,
                 'nonce': nonce,

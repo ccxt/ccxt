@@ -5,6 +5,7 @@ import Exchange from './abstract/bitvavo.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } from './base/errors.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1751,7 +1752,7 @@ export default class bitvavo extends Exchange {
             }
             const timestamp = this.milliseconds ().toString ();
             const auth = timestamp + method + url + payload;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             const accessWindow = this.safeString (this.options, 'BITVAVO-ACCESS-WINDOW', '10000');
             headers = {
                 'BITVAVO-ACCESS-KEY': this.apiKey,

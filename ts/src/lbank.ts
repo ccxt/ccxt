@@ -5,6 +5,8 @@ import Exchange from './abstract/lbank.js';
 import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { rsa } from './base/functions/rsa.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -824,7 +826,7 @@ export default class lbank extends Exchange {
                 'api_key': this.apiKey,
             }, params));
             const queryString = this.rawencode (query);
-            const message = this.hash (this.encode (queryString)).toUpperCase ();
+            const message = this.hash (this.encode (queryString), sha256).toUpperCase ();
             const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
             let pem = undefined;
             if (cacheSecretAsPem) {
@@ -836,7 +838,7 @@ export default class lbank extends Exchange {
             } else {
                 pem = this.convertSecretToPem (this.secret);
             }
-            query['sign'] = this.rsa (message, pem, 'RS256');
+            query['sign'] = rsa (message, pem, sha256);
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         }
