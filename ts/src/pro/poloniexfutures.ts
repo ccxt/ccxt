@@ -816,62 +816,49 @@ export default class poloniexfutures extends poloniexfuturesRest {
     handleBalance (client, message) {
         //
         //    {
-        //       "channel": "balances",
-        //       "data": [
-        //            {
-        //                "changeTime": 1657312008411,
-        //                "accountId": "1234",
-        //                "accountType": "SPOT",
-        //                "eventType": "place_order",
-        //                "available": "9999999983.668",
-        //                "currency": "BTC",
-        //                "id": 60018450912695040,
-        //                "userId": 12345,
-        //                "hold": "16.332",
-        //                "ts": 1657312008443
-        //            }
-        //        ]
+        //        "topic": "/contractAccount/wallet",
+        //        "subject": "orderMargin.change",
+        //        "channelType": "private",
+        //        "data": {
+        //            "orderMargin": 5923,              // not present if availableBalance is present
+        //            "availableBalance": 5923,         // not present if orderMargin is present
+        //            "currency": "USDT",               // Currency
+        //            "timestamp": 1553842862614
+        //        }
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const messageHash = 'balances';
-        this.balance = this.parseWsBalance (data);
-        client.resolve (this.balance, messageHash);
+        const availableBalance = this.safeNumber (message, 'availableBalance');
+        if (availableBalance !== undefined) {
+            const currencyId = this.safeString (data, 'currency');
+            const messageHash = 'wallet:' + currencyId;
+            this.balance = this.parseWsBalance (data);
+            client.resolve (this.balance, messageHash);
+        }
+        return message;
     }
 
     parseWsBalance (response) {
         //
-        //    [
-        //        {
-        //            "changeTime": 1657312008411,
-        //            "accountId": "1234",
-        //            "accountType": "SPOT",
-        //            "eventType": "place_order",
-        //            "available": "9999999983.668",
-        //            "currency": "BTC",
-        //            "id": 60018450912695040,
-        //            "userId": 12345,
-        //            "hold": "16.332",
-        //            "ts": 1657312008443
-        //        }
-        //    ]
+        //    {
+        //        "orderMargin": 5923,              // not present if availableBalance is present
+        //        "availableBalance": 5923,         // not present if orderMargin is present
+        //        "currency": "USDT",               // Currency
+        //        "timestamp": 1553842862614
+        //    }
         //
-        const firstBalance = this.safeValue (response, 0, {});
-        const timestamp = this.safeInteger (firstBalance, 'ts');
+        const timestamp = this.safeInteger (response, 'timestamp');
         const result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeValue (response, i);
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const newAccount = this.account ();
-            newAccount['free'] = this.safeString (balance, 'available');
-            newAccount['used'] = this.safeString (balance, 'hold');
-            result[code] = newAccount;
-        }
+        const currencyId = this.safeString (response, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const newAccount = this.account ();
+        newAccount['free'] = this.safeString (response, 'availableBalance');
+        newAccount['used'] = this.safeString (response, 'orderMargin');
+        result[code] = newAccount;
         return this.safeBalance (result);
     }
 
