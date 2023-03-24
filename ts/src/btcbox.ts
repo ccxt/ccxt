@@ -145,7 +145,7 @@ export default class btcbox extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostBalance (params);
+        const response = await this.privatePostBalance (params);
         return this.parseBalance (response);
     }
 
@@ -166,7 +166,7 @@ export default class btcbox extends Exchange {
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
-        const response = await (this as any).publicGetDepth (this.extend (request, params));
+        const response = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol']);
     }
 
@@ -214,7 +214,7 @@ export default class btcbox extends Exchange {
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
@@ -272,7 +272,7 @@ export default class btcbox extends Exchange {
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
-        const response = await (this as any).publicGetOrders (this.extend (request, params));
+        const response = await this.publicGetOrders (this.extend (request, params));
         //
         //     [
         //          {
@@ -308,7 +308,7 @@ export default class btcbox extends Exchange {
             'type': side,
             'coin': market['baseId'],
         };
-        const response = await (this as any).privatePostTradeAdd (this.extend (request, params));
+        const response = await this.privatePostTradeAdd (this.extend (request, params));
         //
         //     {
         //         "result":true,
@@ -338,7 +338,7 @@ export default class btcbox extends Exchange {
             'id': id,
             'coin': market['baseId'],
         };
-        const response = await (this as any).privatePostTradeCancel (this.extend (request, params));
+        const response = await this.privatePostTradeCancel (this.extend (request, params));
         //
         //     {"result":true, "id":"11"}
         //
@@ -435,7 +435,7 @@ export default class btcbox extends Exchange {
             'id': id,
             'coin': market['baseId'],
         }, params);
-        const response = await (this as any).privatePostTradeView (this.extend (request, params));
+        const response = await this.privatePostTradeView (this.extend (request, params));
         //
         //      {
         //          "id":11,
@@ -462,7 +462,7 @@ export default class btcbox extends Exchange {
             'type': type, // 'open' or 'all'
             'coin': market['baseId'],
         };
-        const response = await (this as any).privatePostTradeList (this.extend (request, params));
+        const response = await this.privatePostTradeList (this.extend (request, params));
         //
         // [
         //      {

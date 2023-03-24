@@ -785,7 +785,7 @@ export default class wazirx extends wazirxRest {
         let subscription = this.safeValue (client.subscriptions, messageHash);
         const expires = this.safeInteger (subscription, 'expires');
         if (subscription === undefined || now > expires) {
-            subscription = await (this as any).privatePostCreateAuthToken ();
+            subscription = await this.privatePostCreateAuthToken ();
             subscription['expires'] = now + this.safeInteger (subscription, 'timeout_duration') * 1000;
             //
             //     {

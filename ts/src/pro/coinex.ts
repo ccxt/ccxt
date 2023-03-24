@@ -376,7 +376,7 @@ export default class coinex extends coinexRest {
         }
         for (let i = 0; i < ohlcvs.length; i++) {
             const candle = ohlcvs[i];
-            (this as any).ohlcvs.append (candle);
+            this.ohlcvs.append (candle);
         }
         client.resolve (this.ohlcvs, messageHash);
     }

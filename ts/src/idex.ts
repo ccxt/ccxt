@@ -193,7 +193,7 @@ export default class idex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetMarkets (params);
+        const response = await this.publicGetMarkets (params);
         //
         //    [
         //        {
@@ -212,7 +212,7 @@ export default class idex extends Exchange {
         //        },
         //    ]
         //
-        const response2 = await (this as any).publicGetExchange ();
+        const response2 = await this.publicGetExchange ();
         //
         //    {
         //        "timeZone": "UTC",
@@ -347,7 +347,7 @@ export default class idex extends Exchange {
         //     sequence: 3902
         //   }
         // ]
-        const response = await (this as any).publicGetTickers (this.extend (request, params));
+        const response = await this.publicGetTickers (this.extend (request, params));
         const ticker = this.safeValue (response, 0);
         return this.parseTicker (ticker, market);
     }
@@ -380,7 +380,7 @@ export default class idex extends Exchange {
         //     sequence: 3902
         //   }, ...
         // ]
-        const response = await (this as any).publicGetTickers (params);
+        const response = await this.publicGetTickers (params);
         return this.parseTickers (response, symbols);
     }
 
@@ -454,7 +454,7 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetCandles (this.extend (request, params));
+        const response = await this.publicGetCandles (this.extend (request, params));
         if (Array.isArray (response)) {
             // [
             //   {
@@ -526,7 +526,7 @@ export default class idex extends Exchange {
         //     sequence: 3853
         //   }, ...
         // ]
-        const response = await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -623,7 +623,7 @@ export default class idex extends Exchange {
             'nonce': nonce,
         };
         let response = undefined;
-        response = await (this as any).privateGetUser (this.extend (request, params));
+        response = await this.privateGetUser (this.extend (request, params));
         //
         //     {
         //         depositEnabled: true,
@@ -693,7 +693,7 @@ export default class idex extends Exchange {
         //     [ '0.09995250', '3.40192141', 1 ]
         //   ]
         // }
-        const response = await (this as any).publicGetOrderbook (this.extend (request, params));
+        const response = await this.publicGetOrderbook (this.extend (request, params));
         const nonce = this.safeInteger (response, 'sequence');
         return {
             'symbol': symbol,
@@ -727,7 +727,7 @@ export default class idex extends Exchange {
          * @param {object} params extra parameters specific to the idex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetAssets (params);
+        const response = await this.publicGetAssets (params);
         //
         //     [
         //        {
@@ -816,12 +816,12 @@ export default class idex extends Exchange {
         }
         let response = undefined;
         try {
-            response = await (this as any).privateGetBalances (extendedRequest);
+            response = await this.privateGetBalances (extendedRequest);
         } catch (e) {
             if (e instanceof InvalidAddress) {
                 const walletAddress = extendedRequest['wallet'];
                 await this.associateWallet (walletAddress);
-                response = await (this as any).privateGetBalances (extendedRequest);
+                response = await this.privateGetBalances (extendedRequest);
             } else {
                 throw e;
             }
@@ -883,12 +883,12 @@ export default class idex extends Exchange {
         }
         let response = undefined;
         try {
-            response = await (this as any).privateGetFills (extendedRequest);
+            response = await this.privateGetFills (extendedRequest);
         } catch (e) {
             if (e instanceof InvalidAddress) {
                 const walletAddress = extendedRequest['wallet'];
                 await this.associateWallet (walletAddress);
-                response = await (this as any).privateGetFills (extendedRequest);
+                response = await this.privateGetFills (extendedRequest);
             } else {
                 throw e;
             }
@@ -962,7 +962,7 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         // fetchClosedOrders / fetchOpenOrders
         // [
         //   {
@@ -1139,7 +1139,7 @@ export default class idex extends Exchange {
             },
             'signature': signature,
         };
-        const result = await (this as any).privatePostWallets (request);
+        const result = await this.privatePostWallets (request);
         return result;
     }
 
@@ -1332,7 +1332,7 @@ export default class idex extends Exchange {
         //   avgExecutionPrice: '0.09905990'
         // }
         // we don't use extend here because it is a signed endpoint
-        const response = await (this as any).privatePostOrders (request);
+        const response = await this.privatePostOrders (request);
         return this.parseOrder (response, market);
     }
 
@@ -1374,7 +1374,7 @@ export default class idex extends Exchange {
             },
             'signature': signature,
         };
-        const response = await (this as any).privatePostWithdrawals (request);
+        const response = await this.privatePostWithdrawals (request);
         //
         //     {
         //         withdrawalId: 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
@@ -1426,7 +1426,7 @@ export default class idex extends Exchange {
         const signature = this.signMessageString (hash, this.privateKey);
         request['signature'] = signature;
         // [ { orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e' } ]
-        const response = await (this as any).privateDeleteOrders (this.extend (request, params));
+        const response = await this.privateDeleteOrders (this.extend (request, params));
         return this.parseOrders (response, market);
     }
 
@@ -1465,7 +1465,7 @@ export default class idex extends Exchange {
             'signature': signature,
         };
         // [ { orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e' } ]
-        const response = await (this as any).privateDeleteOrders (this.extend (request, params));
+        const response = await this.privateDeleteOrders (this.extend (request, params));
         const canceledOrder = this.safeValue (response, 0);
         return this.parseOrder (canceledOrder, market);
     }
@@ -1499,7 +1499,7 @@ export default class idex extends Exchange {
             'wallet': this.walletAddress,
             'depositId': id,
         };
-        const response = await (this as any).privateGetDeposits (this.extend (request, params));
+        const response = await this.privateGetDeposits (this.extend (request, params));
         return this.parseTransaction (response, code);
     }
 
@@ -1528,7 +1528,7 @@ export default class idex extends Exchange {
          * @param {object} params extra parameters specific to the idex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetTime (params);
+        const response = await this.publicGetTime (params);
         //
         //    { serverTime: '1655258263236' }
         //
@@ -1552,7 +1552,7 @@ export default class idex extends Exchange {
             'wallet': this.walletAddress,
             'withdrawalId': id,
         };
-        const response = await (this as any).privateGetWithdrawals (this.extend (request, params));
+        const response = await this.privateGetWithdrawals (this.extend (request, params));
         return this.parseTransaction (response, code);
     }
 

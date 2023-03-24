@@ -562,7 +562,7 @@ export default class zb extends Exchange {
         //         },
         //     }
         //
-        let promises = [ (this as any).spotV1PublicGetMarkets (params), (this as any).contractV2PublicGetConfigMarketList (params) ];
+        let promises = [ this.spotV1PublicGetMarkets (params), this.contractV2PublicGetConfigMarketList (params) ];
         promises = await Promise.all (promises);
         const markets = promises[0];
         const contracts = promises[1];
@@ -704,7 +704,7 @@ export default class zb extends Exchange {
          * @param {object} params extra parameters specific to the zb api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).spotV1PublicGetGetFeeInfo (params);
+        const response = await this.spotV1PublicGetGetFeeInfo (params);
         //
         //     {
         //         "code":1000,
@@ -1186,7 +1186,7 @@ export default class zb extends Exchange {
 
     async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await (this as any).spotV1PrivateGetGetPayinAddress (params);
+        const response = await this.spotV1PrivateGetGetPayinAddress (params);
         //
         //     {
         //         "code": 1000,
@@ -1232,7 +1232,7 @@ export default class zb extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).spotV1PrivateGetGetUserAddress (this.extend (request, params));
+        const response = await this.spotV1PrivateGetGetUserAddress (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -1339,7 +1339,7 @@ export default class zb extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).spotV1PublicGetAllTicker (params);
+        const response = await this.spotV1PublicGetAllTicker (params);
         const result = {};
         const marketsByIdWithoutUnderscore = {};
         const marketIds = this.ids;
@@ -3118,7 +3118,7 @@ export default class zb extends Exchange {
             'leverage': leverage,
             'futuresAccountType': accountType, // 1: USDT perpetual swaps
         };
-        return await (this as any).contractV2PrivatePostSettingSetLeverage (this.extend (request, params));
+        return await this.contractV2PrivatePostSettingSetLeverage (this.extend (request, params));
     }
 
     async fetchFundingRateHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
@@ -3156,7 +3156,7 @@ export default class zb extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).contractV2PublicGetFundingRate (this.extend (request, params));
+        const response = await this.contractV2PublicGetFundingRate (this.extend (request, params));
         //
         //     {
         //         "code": 10000,
@@ -3206,7 +3206,7 @@ export default class zb extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).contractV1PublicGetFundingRate (this.extend (request, params));
+        const response = await this.contractV1PublicGetFundingRate (this.extend (request, params));
         //
         //     {
         //         "code": 10000,
@@ -3277,7 +3277,7 @@ export default class zb extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).contractV2PublicGetPremiumIndex (params);
+        const response = await this.contractV2PublicGetPremiumIndex (params);
         //
         //     {
         //         "code": 10000,
@@ -3334,7 +3334,7 @@ export default class zb extends Exchange {
             'receiveAddr': address,
             'safePwd': password,
         };
-        const response = await (this as any).spotV1PrivateGetWithdraw (this.extend (request, params));
+        const response = await this.spotV1PrivateGetWithdraw (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -3376,7 +3376,7 @@ export default class zb extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await (this as any).spotV1PrivateGetGetWithdrawRecord (this.extend (request, params));
+        const response = await this.spotV1PrivateGetGetWithdrawRecord (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -3434,7 +3434,7 @@ export default class zb extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await (this as any).spotV1PrivateGetGetChargeRecord (this.extend (request, params));
+        const response = await this.spotV1PrivateGetGetChargeRecord (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -3489,7 +3489,7 @@ export default class zb extends Exchange {
             // 'marketId': market['id'],
             // 'side': params['side'],
         };
-        const response = await (this as any).contractV2PrivateGetPositionsGetPositions (this.extend (request, params));
+        const response = await this.contractV2PrivateGetPositionsGetPositions (this.extend (request, params));
         //
         //     {
         //         "code": 10000,
@@ -3560,7 +3560,7 @@ export default class zb extends Exchange {
             // 'marketId': market['id'],
             // 'side': params['side'],
         };
-        const response = await (this as any).contractV2PrivateGetPositionsGetPositions (this.extend (request, params));
+        const response = await this.contractV2PrivateGetPositionsGetPositions (this.extend (request, params));
         //
         //     {
         //         "code": 10000,
@@ -3833,7 +3833,7 @@ export default class zb extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await (this as any).contractV2PrivateGetFundGetBill (this.extend (request, params));
+        const response = await this.contractV2PrivateGetFundGetBill (this.extend (request, params));
         //
         //     {
         //         "code": 10000,
@@ -3976,7 +3976,7 @@ export default class zb extends Exchange {
             'type': type, // 1 increase, 0 reduce
             'futuresAccountType': 1, // 1: USDT Perpetual Futures
         };
-        const response = await (this as any).contractV2PrivatePostPositionsUpdateMargin (this.extend (request, params));
+        const response = await this.contractV2PrivatePostPositionsUpdateMargin (this.extend (request, params));
         //
         //     {
         //         "code": 10000,
@@ -4084,7 +4084,7 @@ export default class zb extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await (this as any).spotV1PrivateGetGetLoans (this.extend (request, params));
+        const response = await this.spotV1PrivateGetGetLoans (this.extend (request, params));
         //
         //     {
         //         code: '1000',
@@ -4131,7 +4131,7 @@ export default class zb extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await (this as any).spotV1PrivateGetGetLoans (this.extend (request, params));
+        const response = await this.spotV1PrivateGetGetLoans (this.extend (request, params));
         //
         //     {
         //         code: '1000',
@@ -4192,7 +4192,7 @@ export default class zb extends Exchange {
             'positionMode': hedged ? 2 : 1,
             'futuresAccountType': accountType, // 1: USDT perpetual swaps, 2: QC perpetual futures
         };
-        const response = await (this as any).contractV2PrivatePostSettingSetPositionsMode (this.extend (request, params));
+        const response = await this.contractV2PrivatePostSettingSetPositionsMode (this.extend (request, params));
         //
         //     {
         //         "code": 10000,

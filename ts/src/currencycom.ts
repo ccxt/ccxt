@@ -301,7 +301,7 @@ export default class currencycom extends Exchange {
          * @param {object} params extra parameters specific to the currencycom api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetV2Time (params);
+        const response = await this.publicGetV2Time (params);
         //
         //     {
         //         "serverTime": 1590998366609
@@ -322,7 +322,7 @@ export default class currencycom extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
         }
-        const response = await (this as any).privateGetV2Currencies (params);
+        const response = await this.privateGetV2Currencies (params);
         //
         //     [
         //         {
@@ -391,7 +391,7 @@ export default class currencycom extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetV2ExchangeInfo (params);
+        const response = await this.publicGetV2ExchangeInfo (params);
         //
         //     {
         //         timezone: "UTC",
@@ -578,7 +578,7 @@ export default class currencycom extends Exchange {
          * @param {object} params extra parameters specific to the currencycom api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
-        const response = await (this as any).privateGetV2Account (params);
+        const response = await this.privateGetV2Account (params);
         //
         //     {
         //         "makerCommission": "0.20",
@@ -636,7 +636,7 @@ export default class currencycom extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetV2Account (params);
+        const response = await this.privateGetV2Account (params);
         //
         //    {
         //        makerCommission: '0.20',
@@ -714,7 +714,7 @@ export default class currencycom extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetV2Account (params);
+        const response = await this.privateGetV2Account (params);
         //
         //     {
         //         "makerCommission": "0.20",
@@ -767,7 +767,7 @@ export default class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000, 5000
         }
-        const response = await (this as any).publicGetV2Depth (this.extend (request, params));
+        const response = await this.publicGetV2Depth (this.extend (request, params));
         //
         //     {
         //         "lastUpdateId":1590999849037,
@@ -881,7 +881,7 @@ export default class currencycom extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetV2Ticker24hr (this.extend (request, params));
+        const response = await this.publicGetV2Ticker24hr (this.extend (request, params));
         //
         //     {
         //         "symbol":"ETH/BTC",
@@ -915,7 +915,7 @@ export default class currencycom extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetV2Ticker24hr (params);
+        const response = await this.publicGetV2Ticker24hr (params);
         //
         //     [
         //         {
@@ -982,7 +982,7 @@ export default class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
-        const response = await (this as any).publicGetV2Klines (this.extend (request, params));
+        const response = await this.publicGetV2Klines (this.extend (request, params));
         //
         //     [
         //         [1590971040000,"0.02454","0.02456","0.02452","0.02456",249],
@@ -1094,7 +1094,7 @@ export default class currencycom extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await (this as any).publicGetV2AggTrades (this.extend (request, params));
+        const response = await this.publicGetV2AggTrades (this.extend (request, params));
         //
         // [
         //     {
@@ -1317,7 +1317,7 @@ export default class currencycom extends Exchange {
                 }
             }
         }
-        const response = await (this as any).privatePostV2Order (this.extend (request, params));
+        const response = await this.privatePostV2Order (this.extend (request, params));
         //
         // limit
         //
@@ -1383,7 +1383,7 @@ export default class currencycom extends Exchange {
             const fetchOpenOrdersRateLimit = this.parseToInt (numSymbols / 2);
             throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
-        const response = await (this as any).privateGetV2OpenOrders (this.extend (request, params));
+        const response = await this.privateGetV2OpenOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1432,7 +1432,7 @@ export default class currencycom extends Exchange {
         } else {
             request['origClientOrderId'] = origClientOrderId;
         }
-        const response = await (this as any).privateDeleteV2Order (this.extend (request, params));
+        const response = await this.privateDeleteV2Order (this.extend (request, params));
         //
         //     {
         //         "symbol": "DOGE/USD",
@@ -1471,7 +1471,7 @@ export default class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetV2MyTrades (this.extend (request, params));
+        const response = await this.privateGetV2MyTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -1548,7 +1548,7 @@ export default class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //    [
         //        {
@@ -1659,7 +1659,7 @@ export default class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetV2Ledger (this.extend (request, params));
+        const response = await this.privateGetV2Ledger (this.extend (request, params));
         // in the below example, first item expresses withdrawal/deposit type, second example expresses trade
         //
         // [
@@ -1755,7 +1755,7 @@ export default class currencycom extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).privateGetV2LeverageSettings (this.extend (request, params));
+        const response = await this.privateGetV2LeverageSettings (this.extend (request, params));
         //
         // {
         //     "values": [ 1, 2, 5, 10, ],
@@ -1779,7 +1779,7 @@ export default class currencycom extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await (this as any).privateGetV2DepositAddress (this.extend (request, params));
+        const response = await this.privateGetV2DepositAddress (this.extend (request, params));
         //
         //     { "address":"0x97d64eb014ac779194991e7264f01c74c90327f0" }
         //
@@ -1842,7 +1842,7 @@ export default class currencycom extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetV2TradingPositions (params);
+        const response = await this.privateGetV2TradingPositions (params);
         //
         // {
         //     "positions": [

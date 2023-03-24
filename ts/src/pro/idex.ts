@@ -507,7 +507,7 @@ export default class idex extends idexRest {
                 'wallet': this.walletAddress,
                 'nonce': this.uuidv1 (),
             };
-            const response = await (this as any).privateGetWsToken (this.extend (request, params));
+            const response = await this.privateGetWsToken (this.extend (request, params));
             this.options['lastAuthenticatedTime'] = time;
             this.options['token'] = this.safeString (response, 'token');
         }

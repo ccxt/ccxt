@@ -207,7 +207,7 @@ export default class hollaex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetConstants (params);
+        const response = await this.publicGetConstants (params);
         //
         //     {
         //         coins: {
@@ -322,7 +322,7 @@ export default class hollaex extends Exchange {
          * @param {object} params extra parameters specific to the hollaex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetConstants (params);
+        const response = await this.publicGetConstants (params);
         //
         //     {
         //         "coins":{
@@ -411,7 +411,7 @@ export default class hollaex extends Exchange {
          * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetOrderbooks (params);
+        const response = await this.publicGetOrderbooks (params);
         const result = {};
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
@@ -439,7 +439,7 @@ export default class hollaex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetOrderbooks (this.extend (request, params));
+        const response = await this.publicGetOrderbooks (this.extend (request, params));
         //
         //     {
         //         "btc-usdt": {
@@ -478,7 +478,7 @@ export default class hollaex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         //
         //     {
         //         open: 8615.55,
@@ -504,7 +504,7 @@ export default class hollaex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).publicGetTickers (this.extend (params));
+        const response = await this.publicGetTickers (this.extend (params));
         //
         //     {
         //         "bch-usdt": {
@@ -609,7 +609,7 @@ export default class hollaex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         //
         //     {
         //         "btc-usdt": [
@@ -692,7 +692,7 @@ export default class hollaex extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetTiers (params);
+        const response = await this.publicGetTiers (params);
         //
         //     {
         //         '1': {
@@ -780,7 +780,7 @@ export default class hollaex extends Exchange {
                 request['to'] = this.sum (start, duration * limit);
             }
         }
-        const response = await (this as any).publicGetChart (this.extend (request, params));
+        const response = await this.publicGetChart (this.extend (request, params));
         //
         //     [
         //         {
@@ -847,7 +847,7 @@ export default class hollaex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetUserBalance (params);
+        const response = await this.privateGetUserBalance (params);
         //
         //     {
         //         "updated_at": "2020-03-02T22:27:38.428Z",
@@ -877,7 +877,7 @@ export default class hollaex extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateGetOrder (this.extend (request, params));
+        const response = await this.privateGetOrder (this.extend (request, params));
         //
         //     {
         //         "id": "string",
@@ -952,7 +952,7 @@ export default class hollaex extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateGetOrder (this.extend (request, params));
+        const response = await this.privateGetOrder (this.extend (request, params));
         //             {
         //                 "id": "string",
         //                 "side": "sell",
@@ -1017,7 +1017,7 @@ export default class hollaex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 100
         }
-        const response = await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         //
         //     {
         //         "count": 1,
@@ -1169,7 +1169,7 @@ export default class hollaex extends Exchange {
             request['meta'] = { 'post_only': true };
         }
         params = this.omit (params, [ 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop' ]);
-        const response = await (this as any).privatePostOrder (this.extend (request, params));
+        const response = await this.privatePostOrder (this.extend (request, params));
         //
         //     {
         //         "fee": 0,
@@ -1210,7 +1210,7 @@ export default class hollaex extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateDeleteOrder (this.extend (request, params));
+        const response = await this.privateDeleteOrder (this.extend (request, params));
         //
         //     {
         //         "title": "string",
@@ -1244,7 +1244,7 @@ export default class hollaex extends Exchange {
         let market = undefined;
         market = this.market (symbol);
         request['symbol'] = market['id'];
-        const response = await (this as any).privateDeleteOrderAll (this.extend (request, params));
+        const response = await this.privateDeleteOrderAll (this.extend (request, params));
         //
         //     [
         //         {
@@ -1295,7 +1295,7 @@ export default class hollaex extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetUserTrades (this.extend (request, params));
+        const response = await this.privateGetUserTrades (this.extend (request, params));
         //
         //     {
         //         "count": 1,
@@ -1358,7 +1358,7 @@ export default class hollaex extends Exchange {
         await this.loadMarkets ();
         const network = this.safeString (params, 'network');
         params = this.omit (params, 'network');
-        const response = await (this as any).privateGetUser (params);
+        const response = await this.privateGetUser (params);
         //
         //     {
         //         "id":620,
@@ -1441,7 +1441,7 @@ export default class hollaex extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetUserDeposits (this.extend (request, params));
+        const response = await this.privateGetUserDeposits (this.extend (request, params));
         //
         //     {
         //         "count": 1,
@@ -1488,7 +1488,7 @@ export default class hollaex extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await (this as any).privateGetUserWithdrawals (this.extend (request, params));
+        const response = await this.privateGetUserWithdrawals (this.extend (request, params));
         //
         //     {
         //         "count": 1,
@@ -1549,7 +1549,7 @@ export default class hollaex extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetUserWithdrawals (this.extend (request, params));
+        const response = await this.privateGetUserWithdrawals (this.extend (request, params));
         //
         //     {
         //         "count": 1,
@@ -1706,7 +1706,7 @@ export default class hollaex extends Exchange {
             'address': address,
             'network': networkId,
         };
-        const response = await (this as any).privatePostUserWithdrawal (this.extend (request, params));
+        const response = await this.privatePostUserWithdrawal (this.extend (request, params));
         //
         //     {
         //         message: 'Withdrawal request is in the queue and will be processed.',

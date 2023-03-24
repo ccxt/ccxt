@@ -138,7 +138,7 @@ export default class paymium extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetUser (params);
+        const response = await this.privateGetUser (params);
         return this.parseBalance (response);
     }
 
@@ -157,7 +157,7 @@ export default class paymium extends Exchange {
         const request = {
             'currency': market['id'],
         };
-        const response = await (this as any).publicGetDataCurrencyDepth (this.extend (request, params));
+        const response = await this.publicGetDataCurrencyDepth (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -224,7 +224,7 @@ export default class paymium extends Exchange {
         const request = {
             'currency': market['id'],
         };
-        const ticker = await (this as any).publicGetDataCurrencyTicker (this.extend (request, params));
+        const ticker = await this.publicGetDataCurrencyTicker (this.extend (request, params));
         //
         // {
         //     "high":"33740.82",
@@ -287,7 +287,7 @@ export default class paymium extends Exchange {
         const request = {
             'currency': market['id'],
         };
-        const response = await (this as any).publicGetDataCurrencyTrades (this.extend (request, params));
+        const response = await this.publicGetDataCurrencyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -301,7 +301,7 @@ export default class paymium extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostUserAddresses (params);
+        const response = await this.privatePostUserAddresses (params);
         //
         //     {
         //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -326,7 +326,7 @@ export default class paymium extends Exchange {
         const request = {
             'address': code,
         };
-        const response = await (this as any).privateGetUserAddressesAddress (this.extend (request, params));
+        const response = await this.privateGetUserAddressesAddress (this.extend (request, params));
         //
         //     {
         //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -348,7 +348,7 @@ export default class paymium extends Exchange {
          * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetUserAddresses (params);
+        const response = await this.privateGetUserAddresses (params);
         //
         //     [
         //         {
@@ -406,7 +406,7 @@ export default class paymium extends Exchange {
         if (type !== 'market') {
             request['price'] = price;
         }
-        const response = await (this as any).privatePostUserOrders (this.extend (request, params));
+        const response = await this.privatePostUserOrders (this.extend (request, params));
         return this.safeOrder ({
             'info': response,
             'id': response['uuid'],
@@ -426,7 +426,7 @@ export default class paymium extends Exchange {
         const request = {
             'uuid': id,
         };
-        return await (this as any).privateDeleteUserOrdersUuidCancel (this.extend (request, params));
+        return await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -455,7 +455,7 @@ export default class paymium extends Exchange {
             'email': toAccount,
             // 'comment': 'a small note explaining the transfer'
         };
-        const response = await (this as any).privatePostUserEmailTransfers (this.extend (request, params));
+        const response = await this.privatePostUserEmailTransfers (this.extend (request, params));
         //
         //     {
         //         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",

@@ -307,7 +307,7 @@ export default class yobit extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGetInfo (params);
+        const response = await this.privatePostGetInfo (params);
         //
         //     {
         //         "success":1,
@@ -344,7 +344,7 @@ export default class yobit extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetInfo (params);
+        const response = await this.publicGetInfo (params);
         //
         //     {
         //         "server_time":1615856752,
@@ -450,7 +450,7 @@ export default class yobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 150, max = 2000
         }
-        const response = await (this as any).publicGetDepthPair (this.extend (request, params));
+        const response = await this.publicGetDepthPair (this.extend (request, params));
         const market_id_in_reponse = (market['id'] in response);
         if (!market_id_in_reponse) {
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
@@ -489,7 +489,7 @@ export default class yobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetDepthPair (this.extend (request, params));
+        const response = await this.publicGetDepthPair (this.extend (request, params));
         const result = {};
         ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
@@ -567,7 +567,7 @@ export default class yobit extends Exchange {
         const request = {
             'pair': ids,
         };
-        const tickers = await (this as any).publicGetTickerPair (this.extend (request, params));
+        const tickers = await this.publicGetTickerPair (this.extend (request, params));
         const result = {};
         const keys = Object.keys (tickers);
         for (let k = 0; k < keys.length; k++) {
@@ -691,7 +691,7 @@ export default class yobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetTradesPair (this.extend (request, params));
+        const response = await this.publicGetTradesPair (this.extend (request, params));
         //
         //      {
         //          "doge_usdt": [
@@ -724,7 +724,7 @@ export default class yobit extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetInfo (params);
+        const response = await this.publicGetInfo (params);
         //
         //     {
         //         "server_time":1615856752,
@@ -791,7 +791,7 @@ export default class yobit extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'rate': this.priceToPrecision (symbol, price),
         };
-        const response = await (this as any).privatePostTrade (this.extend (request, params));
+        const response = await this.privatePostTrade (this.extend (request, params));
         //
         //      {
         //          "success":1,
@@ -831,7 +831,7 @@ export default class yobit extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        const response = await (this as any).privatePostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
         //
         //      {
         //          "success":1,
@@ -982,7 +982,7 @@ export default class yobit extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        const response = await (this as any).privatePostOrderInfo (this.extend (request, params));
+        const response = await this.privatePostOrderInfo (this.extend (request, params));
         id = id.toString ();
         const orders = this.safeValue (response, 'return', {});
         //
@@ -1025,7 +1025,7 @@ export default class yobit extends Exchange {
             const market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        const response = await (this as any).privatePostActiveOrders (this.extend (request, params));
+        const response = await this.privatePostActiveOrders (this.extend (request, params));
         //
         //      {
         //          "success":1,
@@ -1086,7 +1086,7 @@ export default class yobit extends Exchange {
         if (since !== undefined) {
             request['since'] = this.parseToInt (since / 1000);
         }
-        const response = await (this as any).privatePostTradeHistory (this.extend (request, params));
+        const response = await this.privatePostTradeHistory (this.extend (request, params));
         //
         //      {
         //          "success":1,
@@ -1164,7 +1164,7 @@ export default class yobit extends Exchange {
             'coinName': currencyId,
             'need_new': 0,
         };
-        const response = await (this as any).privatePostGetDepositAddress (this.extend (request, params));
+        const response = await this.privatePostGetDepositAddress (this.extend (request, params));
         const address = this.safeString (response['return'], 'address');
         this.checkAddress (address);
         return {
@@ -1201,7 +1201,7 @@ export default class yobit extends Exchange {
         if (tag !== undefined) {
             throw new ExchangeError (this.id + ' withdraw() does not support the tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.');
         }
-        const response = await (this as any).privatePostWithdrawCoinsToAddress (this.extend (request, params));
+        const response = await this.privatePostWithdrawCoinsToAddress (this.extend (request, params));
         return {
             'info': response,
             'id': undefined,

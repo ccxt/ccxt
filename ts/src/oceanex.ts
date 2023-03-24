@@ -153,7 +153,7 @@ export default class oceanex extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         const request = { 'show_details': true };
-        const response = await (this as any).publicGetMarkets (this.extend (request, params));
+        const response = await this.publicGetMarkets (this.extend (request, params));
         //
         //    {
         //        id: 'xtzusdt',
@@ -245,7 +245,7 @@ export default class oceanex extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).publicGetTickersPair (this.extend (request, params));
+        const response = await this.publicGetTickersPair (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -283,7 +283,7 @@ export default class oceanex extends Exchange {
         }
         const marketIds = this.marketIds (symbols);
         const request = { 'markets': marketIds };
-        const response = await (this as any).publicGetTickersMulti (this.extend (request, params));
+        const response = await this.publicGetTickersMulti (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -372,7 +372,7 @@ export default class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetOrderBook (this.extend (request, params));
+        const response = await this.publicGetOrderBook (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -418,7 +418,7 @@ export default class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetOrderBookMulti (this.extend (request, params));
+        const response = await this.publicGetOrderBookMulti (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -473,7 +473,7 @@ export default class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         //
         //      {
         //          "code":0,
@@ -550,7 +550,7 @@ export default class oceanex extends Exchange {
          * @param {object} params extra parameters specific to the oceanex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetTimestamp (params);
+        const response = await this.publicGetTimestamp (params);
         //
         //     {"code":0,"message":"Operation successful","data":1559433420}
         //
@@ -565,7 +565,7 @@ export default class oceanex extends Exchange {
          * @param {object} params extra parameters specific to the oceanex api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
-        const response = await (this as any).publicGetFeesTrading (params);
+        const response = await this.publicGetFeesTrading (params);
         const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
@@ -586,7 +586,7 @@ export default class oceanex extends Exchange {
     }
 
     async fetchKey (params = {}) {
-        const response = await (this as any).privateGetKey (params);
+        const response = await this.privateGetKey (params);
         return this.safeValue (response, 'data');
     }
 
@@ -615,7 +615,7 @@ export default class oceanex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetMembersMe (params);
+        const response = await this.privateGetMembersMe (params);
         return this.parseBalance (response);
     }
 
@@ -643,7 +643,7 @@ export default class oceanex extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
     }
@@ -667,7 +667,7 @@ export default class oceanex extends Exchange {
             market = this.market (symbol);
         }
         const request = { 'ids': ids };
-        const response = await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const dataLength = data.length;
         if (data === undefined) {
@@ -742,7 +742,7 @@ export default class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetOrdersFilter (this.extend (request, query));
+        const response = await this.privateGetOrdersFilter (this.extend (request, query));
         const data = this.safeValue (response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
@@ -797,7 +797,7 @@ export default class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicPostK (this.extend (request, params));
+        const response = await this.publicPostK (this.extend (request, params));
         const ohlcvs = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
@@ -875,7 +875,7 @@ export default class oceanex extends Exchange {
             'orders': orders,
         };
         // orders: [{"side":"buy", "volume":.2, "price":1001}, {"side":"sell", "volume":0.2, "price":1002}]
-        const response = await (this as any).privatePostOrdersMulti (this.extend (request, params));
+        const response = await this.privatePostOrdersMulti (this.extend (request, params));
         const data = response['data'];
         return this.parseOrders (data);
     }
@@ -891,7 +891,7 @@ export default class oceanex extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostOrderDelete (this.extend ({ 'id': id }, params));
+        const response = await this.privatePostOrderDelete (this.extend ({ 'id': id }, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data);
     }
@@ -907,7 +907,7 @@ export default class oceanex extends Exchange {
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostOrderDeleteMulti (this.extend ({ 'ids': ids }, params));
+        const response = await this.privatePostOrderDeleteMulti (this.extend ({ 'ids': ids }, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data);
     }
@@ -922,7 +922,7 @@ export default class oceanex extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostOrdersClear (params);
+        const response = await this.privatePostOrdersClear (params);
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data);
     }
