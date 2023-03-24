@@ -504,7 +504,7 @@ export default class hollaex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetTickers (this.extend (params));
+        const response = await this.publicGetTickers (params);
         //
         //     {
         //         "bch-usdt": {
