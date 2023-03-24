@@ -6,9 +6,11 @@ import {
     ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError,
 } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class huobi extends huobiRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -122,7 +124,7 @@ export default class huobi extends huobiRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -185,7 +187,7 @@ export default class huobi extends huobiRest {
         return message;
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name huobi#watchTrades
@@ -250,7 +252,7 @@ export default class huobi extends huobiRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name huobi#watchOHLCV
@@ -323,7 +325,7 @@ export default class huobi extends huobiRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -640,7 +642,7 @@ export default class huobi extends huobiRest {
         }
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name huobi#watchMyTrades
@@ -649,7 +651,7 @@ export default class huobi extends huobiRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         this.checkRequiredCredentials ();
         let type = undefined;
@@ -738,7 +740,7 @@ export default class huobi extends huobiRest {
         return [ channel, messageHash ];
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name huobi#watchOrders
@@ -747,7 +749,7 @@ export default class huobi extends huobiRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
@@ -2138,7 +2140,7 @@ export default class huobi extends huobiRest {
             signatureParams = this.keysort (signatureParams);
             const auth = this.urlencode (signatureParams);
             const payload = [ 'GET', hostname, relativePath, auth ].join ("\n"); // eslint-disable-line quotes
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             let request = undefined;
             if (type === 'spot') {
                 const params = {

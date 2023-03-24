@@ -246,6 +246,9 @@ class Transpiler {
             [ /\.isPostOnly\s/g, '.is_post_only'],
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
+            [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
+            [ /\s(md5|secp256k1|ed25519)([,)])/g, ' \'$1\'$2'], // from js imports to this
+            [ /(?<!assert|equals)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
 
         ].concat(this.getTypescriptRemovalRegexes())
     }
@@ -1778,10 +1781,13 @@ class Transpiler {
         const pythonHeader = [
             "",
             "import ccxt  # noqa: F402",
+            "import hashlib  # noqa: F402",
             "",
             "Exchange = ccxt.Exchange",
             "hash = Exchange.hash",
+            "hmac = Exchange.hmac",
             "ecdsa = Exchange.ecdsa",
+            "eddsa = Exchange.eddsa",
             "jwt = Exchange.jwt",
             "crc32 = Exchange.crc32",
             "rsa = Exchange.rsa",
@@ -1799,12 +1805,20 @@ class Transpiler {
             "    return Exchange::hash(...$args);",
             "}",
             "",
+            "function hmac(...$args) {",
+            "    return Exchange::hmac(...$args);",
+            "}",
+            "",
             "function encode(...$args) {",
             "    return Exchange::encode(...$args);",
             "}",
             "",
             "function ecdsa(...$args) {",
             "    return Exchange::ecdsa(...$args);",
+            "}",
+            "",
+            "function eddsa(...$args) {",
+            "    return Exchange::eddsa(...$args);",
             "}",
             "",
             "function jwt(...$args) {",
@@ -1983,11 +1997,14 @@ class Transpiler {
         this.getAllFilesRecursively(jsFolder, jsFiles);
 
         jsFiles.filter(f => !f.includes(".d.ts")).map (jsFilePath => {
-            let contents = [
-                this.getJsPreamble(),
-                fs.readFileSync (jsFilePath, 'utf8')
-            ].join ("\n")
-            overwriteFile (jsFilePath, contents)
+            const content = fs.readFileSync (jsFilePath, 'utf8');
+            if (content.indexOf (this.getJsPreamble()) === -1) {
+                let contents = [
+                    this.getJsPreamble(),
+                    content
+                ].join ("\n")
+                overwriteFile (jsFilePath, contents)
+            }
         })
         log.bright.yellow ('Added JS preamble to all ', jsFiles.length + ' files.')
     }

@@ -61,7 +61,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 105 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 106 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                                            | id                 | name                                                                                                    | ver                                                                                                                                                | certified                                                                                                                   | pro                                                                          |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|---------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -113,6 +113,7 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
 | [![coinfalcon](https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg)](https://coinfalcon.com/?ref=CFJSVGTUPASB)                                                  | coinfalcon         | [CoinFalcon](https://coinfalcon.com/?ref=CFJSVGTUPASB)                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.coinfalcon.com)                                                          |                                                                                                                             |                                                                              |
 | [![coinmate](https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg)](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0)                   | coinmate           | [CoinMate](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0)                    | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://coinmate.docs.apiary.io)                                                      |                                                                                                                             |                                                                              |
 | [![coinone](https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg)](https://coinone.co.kr)                                                                        | coinone            | [CoinOne](https://coinone.co.kr)                                                                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://doc.coinone.co.kr)                                                            |                                                                                                                             |                                                                              |
+| [![coinsph](https://user-images.githubusercontent.com/1294454/225719995-48ab2026-4ddb-496c-9da7-0d7566617c9b.jpg)](https://coins.ph/)                                                                           | coinsph            | [Coins.ph](https://coins.ph/)                                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://coins-docs.github.io/rest-api)                                                |                                                                                                                             |                                                                              |
 | [![coinspot](https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg)](https://www.coinspot.com.au/register?code=PJURCU)                                            | coinspot           | [CoinSpot](https://www.coinspot.com.au/register?code=PJURCU)                                            | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.coinspot.com.au/api)                                                      |                                                                                                                             |                                                                              |
 | [![cryptocom](https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg)](https://crypto.com/exch/5835vstech)                                                       | cryptocom          | [Crypto.com](https://crypto.com/exch/5835vstech)                                                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html)                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![currencycom](https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg)](https://currency.com/trading/signup?c=362jaimv&pid=referral)                              | currencycom        | [Currency.com](https://currency.com/trading/signup?c=362jaimv&pid=referral)                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://currency.com/api)                                                             |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -1493,16 +1494,15 @@ To use the async version of the library, use the `ccxt_async` namespace, as in t
 ```php
 // PHP
 <?php
-include 'ccxt.php';
+include 'vendor/autoload.php';
 
-$loop = \React\EventLoop\Factory::create();
-$kernel = \Recoil\React\ReactKernel::create($loop);
-$kernel->execute(function() use ($loop, $kernel) {
-    $poloniex = new \ccxt\async\poloniex(array('loop' => $loop, 'kernel' => $kernel, 'enableRateLimit' => true));
-    $result = yield $poloniex->fetch_ticker('ETH/BTC');
+use function React\Async\await;
+
+$okx = new \ccxt\async\okx();
+while (true) {
+    $result = await($okx->fetch_ticker('ETH/BTC'));
     var_dump($result);
-}, $loop);
-$kernel->run();
+}
 ```
 
 See further examples in the `examples/php` directory; look for filenames that include the `async` word. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react react/http`. Lastly, [this article](https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/) provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a `yield` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
@@ -1600,7 +1600,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - ...
 
 ```text
-TODO: ADD LINKS ABOVE
+TODO: better formatting
 ```
 
 ## Overriding Unified API Params
@@ -1902,7 +1902,6 @@ if ($exchange->has['fetchMyTrades']) {
 - [Leverage Tiers](#leverage-tiers)
 - [Funding Rate](#funding-rate)
 - [Funding Rate History](#funding-rate-history)
-- [Positions Risk](#positions-risk)
 - [Open Interest History](#open-interest-history)
 
 ## Order Book
@@ -2908,52 +2907,6 @@ Returns
         sumOpenInterestValue: '3508262107.38000000',
         timestamp: '1649379000000'
     }
-}
-```
-
-## Positions Risk
-
-*contract only*
-
-```javascript
-fetchPositionsRisk (symbols = undefined, params = {})
-```
-
-Parameters
-
-- **symbols** (\[String\]) Unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
-
-Returns
-
-- A [position risk structures](#position-risk-structure)
-
-#### Positions Risk Structure
-
-```javascript
-{
-    info: { ... },
-    symbol: 'CTSI/USDT',
-    contracts: 0,
-    contractSize: 1,
-    unrealizedPnl: 0,
-    leverage: 20,
-    liquidationPrice: 0.7313,
-    collateral: 0,
-    notional: 0,
-    markPrice: 0.7724,
-    entryPrice: 0,
-    timestamp: 1647420354000,
-    initialMargin: 0,
-    initialMarginPercentage: 0.05,
-    maintenanceMargin: 0,
-    maintenanceMarginPercentage: 0.01,
-    marginRatio: 0.4881,
-    datetime: "2022-03-16T08:45:54.000Z",
-    marginMode: 'cross',
-    side: "long",
-    hedged: false,
-    percentage: 78
 }
 ```
 

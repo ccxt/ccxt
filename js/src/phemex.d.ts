@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/phemex.js';
 export default class phemex extends Exchange {
     describe(): any;
     parseSafeNumber(value?: any): any;
@@ -126,14 +126,14 @@ export default class phemex extends Exchange {
     fromEv(ev: any, market?: any): any;
     fromEr(er: any, market?: any): any;
     parseOHLCV(ohlcv: any, market?: any): any[];
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    parseSpotBalance(response: any): object;
-    parseSwapBalance(response: any): object;
-    fetchBalance(params?: {}): Promise<object>;
+    parseSpotBalance(response: any): import("./base/types.js").Balances;
+    parseSwapBalance(response: any): import("./base/types.js").Balances;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseOrderStatus(status: any): string;
     parseOrderType(type: any): string;
     parseTimeInForce(timeInForce: any): string;
@@ -143,13 +143,13 @@ export default class phemex extends Exchange {
     parseOrder(order: any, market?: any): any;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     editOrder(id: any, symbol: any, type?: any, side?: any, amount?: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: any, params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    fetchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchDepositAddress(code: any, params?: {}): Promise<{
         currency: any;
         address: string;
@@ -157,8 +157,8 @@ export default class phemex extends Exchange {
         network: any;
         info: any;
     }>;
-    fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -180,7 +180,7 @@ export default class phemex extends Exchange {
         updated: any;
         fee: any;
     };
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): {
         info: any;
         id: any;
@@ -206,7 +206,7 @@ export default class phemex extends Exchange {
         hedged: boolean;
         percentage: number;
     };
-    fetchFundingHistory(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any[]>;
+    fetchFundingHistory(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any[]>;
     fetchFundingRate(symbol: any, params?: {}): Promise<{
         info: any;
         symbol: any;
@@ -256,19 +256,19 @@ export default class phemex extends Exchange {
         symbol: any;
         status: string;
     };
-    setMarginMode(marginMode: any, symbol?: any, params?: {}): Promise<any>;
-    setPositionMode(hedged: any, symbol?: any, params?: {}): Promise<any>;
-    fetchLeverageTiers(symbols?: any, params?: {}): Promise<{}>;
+    setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
+    setPositionMode(hedged: any, symbol?: string, params?: {}): Promise<any>;
+    fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;
         headers: any;
     };
-    setLeverage(leverage: any, symbol?: any, params?: {}): Promise<any>;
+    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
-    fetchTransfers(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchTransfers(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseTransfer(transfer: any, currency?: any): {
         info: any;
         id: string;

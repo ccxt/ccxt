@@ -1,13 +1,15 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitstamp.js';
 import { AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class bitstamp extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -412,7 +414,7 @@ export default class bitstamp extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).fetchMarketsFromCache (params);
+        const response = await this.fetchMarketsFromCache (params);
         //
         //     [
         //         {
@@ -539,7 +541,7 @@ export default class bitstamp extends Exchange {
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
         if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const response = await (this as any).publicGetTradingPairsInfo (params);
+            const response = await this.publicGetTradingPairsInfo (params);
             this.options['fetchMarkets'] = this.extend (options, {
                 'response': response,
                 'timestamp': now,
@@ -556,7 +558,7 @@ export default class bitstamp extends Exchange {
          * @param {object} params extra parameters specific to the bitstamp api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).fetchMarketsFromCache (params);
+        const response = await this.fetchMarketsFromCache (params);
         //
         //     [
         //         {
@@ -605,14 +607,14 @@ export default class bitstamp extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).publicGetOrderBookPair (this.extend (request, params));
+        const response = await this.publicGetOrderBookPair (this.extend (request, params));
         //
         //     {
         //         "timestamp": "1583652948",
@@ -688,14 +690,14 @@ export default class bitstamp extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
         };
-        const ticker = await (this as any).publicGetTickerPair (this.extend (request, params));
+        const ticker = await this.publicGetTickerPair (this.extend (request, params));
         //
         // {
         //     "high": "37534.15",
@@ -846,7 +848,8 @@ export default class bitstamp extends Exchange {
         }
         const feeCostString = this.safeString (trade, 'fee');
         const feeCurrency = market['quote'];
-        priceString = this.safeString (trade, rawMarketId, priceString);
+        const priceId = (rawMarketId !== undefined) ? rawMarketId : market['marketId'];
+        priceString = this.safeString (trade, priceId, priceString);
         amountString = this.safeString (trade, market['baseId'], amountString);
         costString = this.safeString (trade, market['quoteId'], costString);
         symbol = market['symbol'];
@@ -910,7 +913,7 @@ export default class bitstamp extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchTrades
@@ -927,7 +930,7 @@ export default class bitstamp extends Exchange {
             'pair': market['id'],
             'time': 'hour',
         };
-        const response = await (this as any).publicGetTransactionsPair (this.extend (request, params));
+        const response = await this.publicGetTransactionsPair (this.extend (request, params));
         //
         //     [
         //         {
@@ -970,7 +973,7 @@ export default class bitstamp extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchOHLCV
@@ -1007,7 +1010,7 @@ export default class bitstamp extends Exchange {
             }
             request['limit'] = Math.min (limit, 1000); // min 1, max 1000
         }
-        const response = await (this as any).publicGetOhlcPair (this.extend (request, params));
+        const response = await this.publicGetOhlcPair (this.extend (request, params));
         //
         //     {
         //         "data": {
@@ -1054,7 +1057,7 @@ export default class bitstamp extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostBalance (params);
+        const response = await this.privatePostBalance (params);
         //
         //     {
         //         "aave_available": "0.00000000",
@@ -1083,14 +1086,14 @@ export default class bitstamp extends Exchange {
          * @description fetch the trading fees for a market
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).privatePostBalancePair (this.extend (request, params));
+        const response = await this.privatePostBalancePair (this.extend (request, params));
         return this.parseTradingFee (response, market);
     }
 
@@ -1125,14 +1128,14 @@ export default class bitstamp extends Exchange {
          * @name bitstamp#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostBalance (params);
+        const response = await this.privatePostBalance (params);
         return this.parseTradingFees (response);
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchTransactionFees
@@ -1140,10 +1143,10 @@ export default class bitstamp extends Exchange {
          * @see https://www.bitstamp.net/api/#balance
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const balance = await (this as any).privatePostBalance (params);
+        const balance = await this.privatePostBalance (params);
         return this.parseTransactionFees (balance);
     }
 
@@ -1196,7 +1199,7 @@ export default class bitstamp extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchDepositWithdrawFees
@@ -1204,10 +1207,10 @@ export default class bitstamp extends Exchange {
          * @see https://www.bitstamp.net/api/#balance
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostBalance (params);
+        const response = await this.privatePostBalance (params);
         //
         //    {
         //        yfi_available: '0.00000000',
@@ -1228,7 +1231,7 @@ export default class bitstamp extends Exchange {
         return this.parseDepositWithdrawFees (response, codes);
     }
 
-    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined) {
         //
         //    {
         //        yfi_available: '0.00000000',
@@ -1281,7 +1284,7 @@ export default class bitstamp extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1310,7 +1313,7 @@ export default class bitstamp extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#cancelOrder
@@ -1318,23 +1321,23 @@ export default class bitstamp extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'id': id,
         };
-        return await (this as any).privatePostCancelOrder (this.extend (request, params));
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#cancelAllOrders
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1358,7 +1361,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrderStatus (id, symbol = undefined, params = {}) {
+    async fetchOrderStatus (id, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
         const request = {};
@@ -1368,18 +1371,18 @@ export default class bitstamp extends Exchange {
         } else {
             request['id'] = id;
         }
-        const response = await (this as any).privatePostOrderStatus (this.extend (request, params));
+        const response = await this.privatePostOrderStatus (this.extend (request, params));
         return this.parseOrderStatus (this.safeString (response, 'status'));
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1394,7 +1397,7 @@ export default class bitstamp extends Exchange {
         } else {
             request['id'] = id;
         }
-        const response = await (this as any).privatePostOrderStatus (this.extend (request, params));
+        const response = await this.privatePostOrderStatus (this.extend (request, params));
         //
         //      {
         //          "status": "Finished",
@@ -1416,7 +1419,7 @@ export default class bitstamp extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchMyTrades
@@ -1425,7 +1428,7 @@ export default class bitstamp extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1444,7 +1447,7 @@ export default class bitstamp extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchTransactions
@@ -1453,14 +1456,14 @@ export default class bitstamp extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privatePostUserTransactions (this.extend (request, params));
+        const response = await this.privatePostUserTransactions (this.extend (request, params));
         //
         //     [
         //         {
@@ -1495,7 +1498,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchWithdrawals
@@ -1504,7 +1507,7 @@ export default class bitstamp extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1513,7 +1516,7 @@ export default class bitstamp extends Exchange {
         } else {
             request['timedelta'] = 50000000; // use max bitstamp approved value
         }
-        const response = await (this as any).privatePostWithdrawalRequests (this.extend (request, params));
+        const response = await this.privatePostWithdrawalRequests (this.extend (request, params));
         //
         //     [
         //         {
@@ -1861,7 +1864,7 @@ export default class bitstamp extends Exchange {
         }
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchLedger
@@ -1870,14 +1873,14 @@ export default class bitstamp extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
         const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privatePostUserTransactions (this.extend (request, params));
+        const response = await this.privatePostUserTransactions (this.extend (request, params));
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1885,7 +1888,7 @@ export default class bitstamp extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchOpenOrders
@@ -1894,14 +1897,14 @@ export default class bitstamp extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         let market = undefined;
         await this.loadMarkets ();
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await (this as any).privatePostOpenOrdersAll (params);
+        const response = await this.privatePostOpenOrdersAll (params);
         //
         //     [
         //         {
@@ -1942,7 +1945,7 @@ export default class bitstamp extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         if (this.isFiat (code)) {
             throw new NotSupported (this.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!');
@@ -1972,7 +1975,7 @@ export default class bitstamp extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
@@ -2011,7 +2014,7 @@ export default class bitstamp extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.urls['api'][api] + '/';
         url += this.version + '/';
         url += this.implodeParams (path, params);
@@ -2050,7 +2053,7 @@ export default class bitstamp extends Exchange {
             }
             const authBody = body ? body : '';
             const auth = xAuth + method + url.replace ('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             headers['X-Auth-Signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

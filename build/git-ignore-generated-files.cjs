@@ -44,12 +44,6 @@ let files = [
     'wiki/Exchange-Markets-By-Country.md',
     'wiki/Exchange-Markets.md',
 
-    'doc/FAQ.rst',
-    'doc/README.rst',
-    'doc/exchanges-by-country.rst',
-    'doc/exchanges.rst',
-    'doc/install.rst',
-    'doc/manual.rst',
     'python/README.rst',
 
     // NB: Add more generated files here

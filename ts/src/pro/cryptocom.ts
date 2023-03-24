@@ -4,9 +4,11 @@
 import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class cryptocom extends cryptocomRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -58,7 +60,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -111,7 +113,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchTrades
@@ -179,7 +181,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (stored, channel);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchMyTrades
@@ -188,7 +190,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -213,7 +215,7 @@ export default class cryptocom extends cryptocomRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -260,7 +262,7 @@ export default class cryptocom extends cryptocomRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchOHLCV
@@ -320,7 +322,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchOrders
@@ -329,7 +331,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -579,7 +581,7 @@ export default class cryptocom extends cryptocomRest {
             const method = 'public/auth';
             const nonce = this.nonce ().toString ();
             const auth = method + nonce + this.apiKey + nonce;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             const request = {
                 'id': nonce,
                 'nonce': nonce,

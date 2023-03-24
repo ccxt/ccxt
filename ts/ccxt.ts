@@ -33,11 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
+import { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax } from './src/base/types.js'
+import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending }  from './src/base/errors.js'
+
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.0.4';
+const version = '3.0.32';
 
 (Exchange as any).ccxtVersion = version
 
@@ -93,6 +96,7 @@ import coinex from  './src/coinex.js'
 import coinfalcon from  './src/coinfalcon.js'
 import coinmate from  './src/coinmate.js'
 import coinone from  './src/coinone.js'
+import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
 import cryptocom from  './src/cryptocom.js'
 import currencycom from  './src/currencycom.js'
@@ -263,6 +267,7 @@ const exchanges = {
     'coinfalcon':             coinfalcon,
     'coinmate':               coinmate,
     'coinone':                coinone,
+    'coinsph':                coinsph,
     'coinspot':               coinspot,
     'cryptocom':              cryptocom,
     'currencycom':            currencycom,
@@ -406,6 +411,54 @@ export {
     Precise,
     functions,
     errors,
+    BaseError,
+    ExchangeError,
+    PermissionDenied,
+    AccountNotEnabled,
+    AccountSuspended,
+    ArgumentsRequired,
+    BadRequest,
+    BadSymbol,
+    MarginModeAlreadySet,
+    BadResponse,
+    NullResponse,
+    InsufficientFunds,
+    InvalidAddress,
+    InvalidOrder,
+    OrderNotFound,
+    OrderNotCached,
+    CancelPending,
+    OrderImmediatelyFillable,
+    OrderNotFillable,
+    DuplicateOrderId,
+    NotSupported,
+    NetworkError,
+    DDoSProtection,
+    RateLimitExceeded,
+    ExchangeNotAvailable,
+    OnMaintenance,
+    InvalidNonce,
+    RequestTimeout,
+    AuthenticationError,
+    AddressPending,
+    Market,
+    Trade,
+    Fee,
+    Ticker,
+    OrderBook,
+    Order,
+    Transaction,
+    Tickers,
+    Currency,
+    Balance,
+    DepositAddress,
+    WithdrawalResponse,
+    DepositAddressResponse,
+    OHLCV,
+    Balances,
+    PartialBalances,
+    Dictionary,
+    MinMax,
     ace,
     alpaca,
     ascendex,
@@ -456,6 +509,7 @@ export {
     coinfalcon,
     coinmate,
     coinone,
+    coinsph,
     coinspot,
     cryptocom,
     currencycom,

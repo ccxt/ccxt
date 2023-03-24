@@ -5,9 +5,11 @@ import bitfinexRest from '../bitfinex.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
+import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class bitfinex extends bitfinexRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -54,7 +56,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#watchTrades
@@ -81,7 +83,7 @@ export default class bitfinex extends bitfinexRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.subscribe ('ticker', symbol, params);
     }
@@ -263,7 +265,7 @@ export default class bitfinex extends bitfinexRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         if (limit !== undefined) {
             if ((limit !== 25) && (limit !== 100)) {
@@ -423,7 +425,7 @@ export default class bitfinex extends bitfinexRest {
         if (authenticated === undefined) {
             const nonce = this.milliseconds ();
             const payload = 'AUTH' + nonce.toString ();
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha384', 'hex');
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384, 'hex');
             const request = {
                 'apiKey': this.apiKey,
                 'authSig': signature,
@@ -457,14 +459,14 @@ export default class bitfinex extends bitfinexRest {
         }
     }
 
-    async watchOrder (id, symbol = undefined, params = {}) {
+    async watchOrder (id, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws']['private'];
         await this.authenticate ();
         return await this.watch (url, id, undefined, 1);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#watchOrders
@@ -473,7 +475,7 @@ export default class bitfinex extends bitfinexRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         await this.authenticate ();

@@ -4,9 +4,11 @@
 import bybitRest from '../bybit.js';
 import { AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class bybit extends bybitRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -118,7 +120,7 @@ export default class bybit extends bybitRest {
         return requestId;
     }
 
-    getUrlByMarketType (symbol = undefined, isPrivate = false, method = undefined, params = {}) {
+    getUrlByMarketType (symbol: string = undefined, isPrivate = false, method = undefined, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
         let isUsdcSettled = undefined;
         let isSpot = undefined;
@@ -168,7 +170,7 @@ export default class bybit extends bybitRest {
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -315,7 +317,7 @@ export default class bybit extends bybitRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchOHLCV
@@ -431,7 +433,7 @@ export default class bybit extends bybitRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return.
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -532,7 +534,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchTrades
@@ -542,7 +544,7 @@ export default class bybit extends bybitRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -682,7 +684,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchMyTrades
@@ -693,7 +695,7 @@ export default class bybit extends bybitRest {
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @param {boolean} params.unifiedMargin use unified margin account
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         const method = 'watchMyTrades';
         let messageHash = 'myTrades';
@@ -810,7 +812,7 @@ export default class bybit extends bybitRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchOrders
@@ -820,7 +822,7 @@ export default class bybit extends bybitRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         const method = 'watchOrders';
@@ -1364,7 +1366,7 @@ export default class bybit extends bybitRest {
             const expires = expiresInt.toString ();
             const path = 'GET/realtime';
             const auth = path + expires;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'hex');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'hex');
             const request = {
                 'op': 'auth',
                 'args': [

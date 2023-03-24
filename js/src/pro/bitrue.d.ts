@@ -4,7 +4,7 @@ export default class bitrue extends bitrueRest {
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: any, message: any): void;
     parseWSBalances(balances: any): void;
-    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrder(client: any, message: any): void;
     parseWSOrder(order: any, market?: any): any;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;

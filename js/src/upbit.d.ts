@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/upbit.js';
 export default class upbit extends Exchange {
     describe(): any;
     fetchCurrency(code: any, params?: {}): Promise<{
@@ -132,12 +132,12 @@ export default class upbit extends Exchange {
         };
     }>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    parseBalance(response: any): object;
-    fetchBalance(params?: {}): Promise<object>;
-    fetchOrderBooks(symbols?: any, limit?: any, params?: {}): Promise<{}>;
+    parseBalance(response: any): import("./base/types.js").Balances;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    fetchOrderBooks(symbols?: string[], limit?: any, params?: {}): Promise<{}>;
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: any, params?: {}): Promise<any>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
@@ -150,7 +150,7 @@ export default class upbit extends Exchange {
         tierBased: boolean;
     }>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<{
         info: any;
         id: string;
@@ -175,7 +175,7 @@ export default class upbit extends Exchange {
         fee: any;
         trades: any;
     }>;
-    cancelOrder(id: any, symbol?: any, params?: {}): Promise<{
+    cancelOrder(id: any, symbol?: string, params?: {}): Promise<{
         info: any;
         id: string;
         clientOrderId: any;
@@ -199,8 +199,8 @@ export default class upbit extends Exchange {
         fee: any;
         trades: any;
     }>;
-    fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -250,11 +250,11 @@ export default class upbit extends Exchange {
         fee: any;
         trades: any;
     };
-    fetchOrdersByState(state: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchCanceledOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchOrder(id: any, symbol?: any, params?: {}): Promise<{
+    fetchOrdersByState(state: any, symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchCanceledOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrder(id: any, symbol?: string, params?: {}): Promise<{
         info: any;
         id: string;
         clientOrderId: any;
@@ -278,7 +278,7 @@ export default class upbit extends Exchange {
         fee: any;
         trades: any;
     }>;
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<any>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: any;
         address: string;
@@ -324,7 +324,7 @@ export default class upbit extends Exchange {
         };
     }>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;

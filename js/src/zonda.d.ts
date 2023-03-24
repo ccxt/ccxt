@@ -1,17 +1,17 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/zonda.js';
 export default class zonda extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
     parseOrder(order: any, market?: any): any;
-    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
-    parseBalance(response: any): object;
-    fetchBalance(params?: {}): Promise<object>;
+    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    parseBalance(response: any): import("./base/types.js").Balances;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
-    fetchLedger(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: any): {
         info: any;
         id: string;
@@ -31,11 +31,11 @@ export default class zonda extends Exchange {
     };
     parseLedgerEntryType(type: any): string;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
+    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
     isFiat(currency: any): any;
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: any;
@@ -51,7 +51,7 @@ export default class zonda extends Exchange {
         network: any;
         info: any;
     }>;
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<any>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
     transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: any;
@@ -117,7 +117,7 @@ export default class zonda extends Exchange {
         fee: any;
         info: any;
     };
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;

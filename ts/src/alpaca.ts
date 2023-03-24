@@ -1,19 +1,12 @@
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
-import {
-    ExchangeError,
-    BadRequest,
-    PermissionDenied,
-    BadSymbol,
-    NotSupported,
-    InsufficientFunds,
-    InvalidOrder,
-} from './base/errors.js';
+import Exchange from './abstract/alpaca.js';
+import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------xs
 
+// @ts-expect-error
 export default class alpaca extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -224,7 +217,7 @@ export default class alpaca extends Exchange {
             'asset_class': 'crypto',
             'tradeable': true,
         };
-        const assets = await (this as any).marketsGetAssetsPublicBeta (this.extend (request, params));
+        const assets = await this.marketsGetAssetsPublicBeta (this.extend (request, params));
         //
         //    [
         //        {
@@ -312,7 +305,7 @@ export default class alpaca extends Exchange {
         return markets;
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchTrades
@@ -366,7 +359,7 @@ export default class alpaca extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -374,7 +367,7 @@ export default class alpaca extends Exchange {
         const request = {
             'symbols': id,
         };
-        const response = await (this as any).cryptoPublicGetCryptoLatestOrderbooks (this.extend (request, params));
+        const response = await this.cryptoPublicGetCryptoLatestOrderbooks (this.extend (request, params));
         //
         //   {
         //       "orderbooks":{
@@ -418,7 +411,7 @@ export default class alpaca extends Exchange {
         return this.parseOrderBook (rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchOHLCV
@@ -515,7 +508,7 @@ export default class alpaca extends Exchange {
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the alpaca api endpoint
          * @param {float} params.triggerPrice The price at which a trigger order is triggered at
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -551,7 +544,7 @@ export default class alpaca extends Exchange {
         const clientOrderId = this.safeString (params, 'clientOrderId', defaultClientId);
         request['client_order_id'] = clientOrderId;
         params = this.omit (params, [ 'clientOrderId' ]);
-        const order = await (this as any).privatePostOrders (this.extend (request, params));
+        const order = await this.privatePostOrders (this.extend (request, params));
         //
         //   {
         //      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -591,7 +584,7 @@ export default class alpaca extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#cancelOrder
@@ -599,12 +592,12 @@ export default class alpaca extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateDeleteOrdersOrderId (this.extend (request, params));
+        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
         //
         //   {
         //       "code": 40410000,
@@ -614,26 +607,26 @@ export default class alpaca extends Exchange {
         return this.safeValue (response, 'message', {});
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        const order = await (this as any).privateGetOrdersOrderId (this.extend (request, params));
+        const order = await this.privateGetOrdersOrderId (this.extend (request, params));
         const marketId = this.safeString (order, 'symbol');
         const market = this.safeMarket (marketId);
         return this.parseOrder (order, market);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchOpenOrders
@@ -642,14 +635,14 @@ export default class alpaca extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const orders = await (this as any).privateGetOrders (params);
+        const orders = await this.privateGetOrders (params);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -798,7 +791,7 @@ export default class alpaca extends Exchange {
         }, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const versions = this.safeValue (this.options, 'versions');
         const version = this.safeString (versions, api);
         let endpoint = '/' + this.implodeParams (path, params);

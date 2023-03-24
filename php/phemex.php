@@ -197,7 +197,6 @@ class phemex extends Exchange {
                         'assets/spots/sub-accounts/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/futures/sub-accounts/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote', // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
-                        'assets/convert', // ?fromCurrency=<currency>&toCurrency=<currency>&startTime=<start>&endTime=<end>&limit=<limit>&offset=<offset>
                     ),
                     'post' => array(
                         // spot
@@ -560,7 +559,7 @@ class phemex extends Exchange {
             'valueScale' => $valueScale,
             'ratioScale' => $ratioScale,
             'precision' => array(
-                'amount' => $this->safe_number($market, 'lotSize'),
+                'amount' => $this->safe_number_2($market, 'lotSize', 'qtyStepSize'),
                 'price' => $this->safe_number($market, 'tickSize'),
             ),
             'limits' => array(
@@ -934,7 +933,7 @@ class phemex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order $book for
          * @param {int|null} $limit the maximum amount of order $book entries to return
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-$book-structure order $book structures} indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-$book-structure order $book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1225,7 +1224,7 @@ class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2140,7 +2139,7 @@ class phemex extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2367,16 +2366,11 @@ class phemex extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {string|null} $params->posSide either 'Hedged' or 'OneWay' or 'Merged'
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
-        }
-        if ($type !== null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() $type changing is not implemented. Try to cancel & recreate order for that purpose');
-        }
-        if ($side !== null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() $side changing is not implemented. Try to cancel & recreate order for that purpose');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2385,14 +2379,15 @@ class phemex extends Exchange {
         );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdID');
         $params = $this->omit($params, array( 'clientOrderId', 'clOrdID' ));
+        $isUSDTSettled = ($market['settle'] === 'USDT');
         if ($clientOrderId !== null) {
             $request['clOrdID'] = $clientOrderId;
         } else {
             $request['orderID'] = $id;
         }
         if ($price !== null) {
-            if ($market['settle'] === 'USDT') {
-                $request['priceRp'] = $this->price_to_precision($symbol, $price);
+            if ($isUSDTSettled) {
+                $request['priceRp'] = $this->price_to_precision($market['symbol'], $price);
             } else {
                 $request['priceEp'] = $this->to_ep($price, $market);
             }
@@ -2403,11 +2398,15 @@ class phemex extends Exchange {
         if ($finalQty !== null) {
             $request['baseQtyEV'] = $finalQty;
         } elseif ($amount !== null) {
-            $request['baseQtyEV'] = $this->to_ev($amount, $market);
+            if ($isUSDTSettled) {
+                $request['baseQtyEV'] = $this->amount_to_precision($market['symbol'], $amount);
+            } else {
+                $request['baseQtyEV'] = $this->to_ev($amount, $market);
+            }
         }
         $stopPrice = $this->safe_string_2($params, 'stopPx', 'stopPrice');
         if ($stopPrice !== null) {
-            if ($market['settle'] === 'USDT') {
+            if ($isUSDTSettled) {
                 $request['stopPxRp'] = $this->price_to_precision($symbol, $stopPrice);
             } else {
                 $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
@@ -2417,8 +2416,12 @@ class phemex extends Exchange {
         $method = 'privatePutSpotOrders';
         if ($market['inverse']) {
             $method = 'privatePutOrdersReplace';
-        } elseif ($market['settle'] === 'USDT') {
+        } elseif ($isUSDTSettled) {
             $method = 'privatePutGOrdersReplace';
+            $posSide = $this->safe_string($params, 'posSide');
+            if ($posSide === null) {
+                $request['posSide'] = 'Merged';
+            }
         }
         $response = $this->$method (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
@@ -2433,7 +2436,7 @@ class phemex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} $params extra parameters specific to the phemex api endpoint
          * @param {string|null} $params->posSide either 'Hedged' or 'OneWay' or 'Merged'
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -2471,7 +2474,7 @@ class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -2498,7 +2501,7 @@ class phemex extends Exchange {
          * fetches information on an $order made by the user
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
@@ -2544,7 +2547,7 @@ class phemex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -2581,7 +2584,7 @@ class phemex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -2623,7 +2626,7 @@ class phemex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
@@ -2701,7 +2704,7 @@ class phemex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades structures to retrieve
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -2851,7 +2854,7 @@ class phemex extends Exchange {
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2899,7 +2902,7 @@ class phemex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $currency = null;
@@ -2938,7 +2941,7 @@ class phemex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $currency = null;
@@ -3063,7 +3066,7 @@ class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-$positions
          * @param {[string]|null} $symbols list of unified $market $symbols
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -3327,7 +3330,7 @@ class phemex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch funding history for
          * @param {int|null} $limit the maximum number of funding history structures to retrieve
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
          */
         $this->load_markets();
         if ($symbol === null) {
@@ -3396,7 +3399,7 @@ class phemex extends Exchange {
          * fetch the current funding rate
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3508,7 +3511,7 @@ class phemex extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market to set margin in
          * @param {float} $amount the $amount to set the margin to
          * @param {array} $params parameters specific to the phemex api endpoint
-         * @return {array} A {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
+         * @return {array} A ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3620,7 +3623,7 @@ class phemex extends Exchange {
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {[string]|null} $symbols list of unified market $symbols
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
          */
         $this->load_markets();
         $response = $this->publicGetCfgV2Products ($params);
@@ -3772,7 +3775,7 @@ class phemex extends Exchange {
                 $headers['Content-Type'] = 'application/json';
             }
             $auth = $requestPath . $queryString . $expiryString . $payload;
-            $headers['x-phemex-request-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $headers['x-phemex-request-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         }
         $url = $this->implode_hostname($this->urls['api'][$api]) . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
@@ -3819,7 +3822,7 @@ class phemex extends Exchange {
          * @param {string} $toAccount account to $transfer to
          * @param {array} $params extra parameters specific to the phemex api endpoint
          * @param {string|null} $params->bizType for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -3901,7 +3904,7 @@ class phemex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $transfers for
          * @param {int|null} $limit the maximum number of  $transfers structures to retrieve
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
          */
         $this->load_markets();
         if ($code === null) {

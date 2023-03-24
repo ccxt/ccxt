@@ -9,6 +9,7 @@ import kucoinRest from '../kucoin.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class kucoin extends kucoinRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -127,7 +128,7 @@ export default class kucoin extends kucoinRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -340,7 +341,7 @@ export default class kucoin extends kucoinRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         //
         // https://docs.kucoin.com/#level-2-market-data
@@ -504,7 +505,7 @@ export default class kucoin extends kucoinRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const url = await this.negotiate(true);
@@ -627,7 +628,7 @@ export default class kucoin extends kucoinRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
         const url = await this.negotiate(true);
@@ -829,8 +830,8 @@ export default class kucoin extends kucoinRest {
         };
     }
     handlePong(client, message) {
-        // https://docs.kucoin.com/#ping
         client.lastPong = this.milliseconds();
+        // https://docs.kucoin.com/#ping
     }
     handleErrorMessage(client, message) {
         return message;

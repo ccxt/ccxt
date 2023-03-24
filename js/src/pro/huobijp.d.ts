@@ -4,9 +4,9 @@ export default class huobijp extends huobijpRest {
     requestId(): any;
     watchTicker(symbol: any, params?: {}): Promise<any>;
     handleTicker(client: any, message: any): any;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): any;
-    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOHLCV(client: any, message: any): void;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     handleOrderBookSnapshot(client: any, message: any, subscription: any): void;

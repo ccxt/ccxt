@@ -8,6 +8,7 @@ import { execSync } from 'child_process'
 import ccxt from '../../js/ccxt.js'
 import { Agent } from 'https'
 
+const fsPromises = fs.promises;
 ansi.nice
 const log = ololog.configure ({ locate: false }).unlimited
 const { ExchangeError , NetworkError} = ccxt

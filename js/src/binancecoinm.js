@@ -7,6 +7,7 @@
 //  ---------------------------------------------------------------------------
 import binance from './binance.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class binancecoinm extends binance {
     describe() {
         return this.deepExtend(super.describe(), {

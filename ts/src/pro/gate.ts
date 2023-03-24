@@ -10,9 +10,11 @@ import {
     InvalidNonce,
 } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class gate extends gateRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -93,7 +95,7 @@ export default class gate extends gateRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -272,7 +274,7 @@ export default class gate extends gateRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -287,14 +289,14 @@ export default class gate extends gateRest {
         return await this.subscribePublic (url, messageHash, payload, channel, undefined, query);
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {[string]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -373,7 +375,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchTrades
@@ -437,7 +439,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchOHLCV
@@ -521,7 +523,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchMyTrades
@@ -530,7 +532,7 @@ export default class gate extends gateRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         let subType = undefined;
@@ -732,7 +734,7 @@ export default class gate extends gateRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchOrders
@@ -743,7 +745,7 @@ export default class gate extends gateRest {
          * @param {object} params extra parameters specific to the gate api endpoint
          * @param {string} params.type spot, margin, swap, future, or option. Required if listening to all symbols.
          * @param {boolean} params.isInverse if future, listen to inverse or linear contracts
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1107,7 +1109,7 @@ export default class gate extends gateRest {
         const time = this.seconds ();
         const event = 'subscribe';
         const signaturePayload = 'channel=' + subscriptionHash + '&' + 'event=' + event + '&' + 'time=' + time.toString ();
-        const signature = this.hmac (this.encode (signaturePayload), this.encode (this.secret), 'sha512', 'hex');
+        const signature = this.hmac (this.encode (signaturePayload), this.encode (this.secret), sha512, 'hex');
         const auth = {
             'method': 'api_key',
             'KEY': this.apiKey,

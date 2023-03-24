@@ -8,6 +8,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../ba
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class whitebit extends whitebitRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -58,7 +59,7 @@ export default class whitebit extends whitebitRest {
         });
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#watchOHLCV
@@ -138,7 +139,7 @@ export default class whitebit extends whitebitRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -243,7 +244,7 @@ export default class whitebit extends whitebitRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -304,7 +305,7 @@ export default class whitebit extends whitebitRest {
         return message;
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#watchTrades
@@ -372,7 +373,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#watchMyTrades
@@ -381,7 +382,7 @@ export default class whitebit extends whitebitRest {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol argument');
@@ -474,7 +475,7 @@ export default class whitebit extends whitebitRest {
         }, market);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#watchOrders
@@ -483,7 +484,7 @@ export default class whitebit extends whitebitRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
@@ -799,7 +800,7 @@ export default class whitebit extends whitebitRest {
         const future = client.future ('authenticated');
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
-            const authToken = await (this as any).v4PrivatePostProfileWebsocketToken ();
+            const authToken = await this.v4PrivatePostProfileWebsocketToken ();
             //
             //   {
             //       websocket_token: '$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y'

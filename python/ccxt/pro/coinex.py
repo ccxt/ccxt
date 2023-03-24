@@ -367,7 +367,7 @@ class coinex(ccxt.async_support.coinex):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         return await self.watch_tickers([symbol], params)
 
@@ -377,7 +377,7 @@ class coinex(ccxt.async_support.coinex):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param [str] symbols: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -439,7 +439,7 @@ class coinex(ccxt.async_support.coinex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -469,7 +469,7 @@ class coinex(ccxt.async_support.coinex):
             'params': list(watchOrderBookSubscriptions.values()),
         }
         self.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions
-        subscriptionHash = self.hash(self.encode(self.json(watchOrderBookSubscriptions)))
+        subscriptionHash = self.hash(self.encode(self.json(watchOrderBookSubscriptions)), 'sha256')
         request = self.deep_extend(subscribe, params)
         orderbook = await self.watch(url, messageHash, request, subscriptionHash, request)
         return orderbook.limit()
@@ -578,29 +578,8 @@ class coinex(ccxt.async_support.coinex):
             currentOrderBook['timestamp'] = timestamp
             currentOrderBook['datetime'] = self.iso8601(timestamp)
             self.orderbooks[symbol] = currentOrderBook
-        # self.check_order_book_checksum(self.orderbooks[symbol])
+        # self.checkOrderBookChecksum(self.orderbooks[symbol])
         client.resolve(self.orderbooks[symbol], messageHash)
-
-    def check_order_book_checksum(self, orderBook):
-        asks = self.safe_value(orderBook, 'asks', [])
-        bids = self.safe_value(orderBook, 'bids', [])
-        string = ''
-        bidsLength = len(bids)
-        for i in range(0, bidsLength):
-            bid = bids[i]
-            if i != 0:
-                string += ':'
-            string += bid[0] + ':' + bid[1]
-        asksLength = len(asks)
-        for i in range(0, asksLength):
-            ask = asks[i]
-            if bidsLength != 0:
-                string += ':'
-            string += ask[0] + ':' + ask[1]
-        signedString = self.hash(string, 'cr32', 'hex')
-        checksum = self.safe_string(orderBook, 'checksum')
-        if checksum != signedString:
-            raise ExchangeError(self.id + ' watchOrderBook() checksum failed')
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

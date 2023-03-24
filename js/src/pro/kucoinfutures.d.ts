@@ -7,7 +7,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     subscribe(url: any, messageHash: any, subscriptionHash: any, subscription: any, params?: {}): Promise<any>;
     watchTicker(symbol: any, params?: {}): Promise<any>;
     handleTicker(client: any, message: any): any;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTrade(client: any, message: any): any;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     handleDelta(orderbook: any, delta: any): void;
@@ -17,7 +17,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     handleOrderBookSubscription(client: any, message: any, subscription: any): void;
     handleSubscriptionStatus(client: any, message: any): any;
     handleSystemStatus(client: any, message: any): any;
-    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseWsOrderStatus(status: any): string;
     parseWsOrder(order: any, market?: any): any;
     handleOrder(client: any, message: any): void;

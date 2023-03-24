@@ -1,12 +1,12 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/idex.js';
 export default class idex extends Exchange {
     describe(): any;
     priceToPrecision(symbol: any, price: any): any;
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
@@ -14,13 +14,13 @@ export default class idex extends Exchange {
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     parseSide(book: any, side: any): any;
     fetchCurrencies(params?: {}): Promise<{}>;
-    parseBalance(response: any): object;
-    fetchBalance(params?: {}): Promise<object>;
-    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
-    fetchOrdersHelper(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    parseBalance(response: any): import("./base/types.js").Balances;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchClosedOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchOrdersHelper(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
     associateWallet(walletAddress: any, params?: {}): Promise<any>;
@@ -45,8 +45,8 @@ export default class idex extends Exchange {
         updated: number;
         fee: any;
     }>;
-    cancelAllOrders(symbol?: any, params?: {}): Promise<object[]>;
-    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
+    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
     fetchDeposit(id: any, code?: any, params?: {}): Promise<{
         info: any;
@@ -68,7 +68,7 @@ export default class idex extends Exchange {
         updated: number;
         fee: any;
     }>;
-    fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchTime(params?: {}): Promise<number>;
     fetchWithdrawal(id: any, code?: any, params?: {}): Promise<{
         info: any;
@@ -90,8 +90,8 @@ export default class idex extends Exchange {
         updated: number;
         fee: any;
     }>;
-    fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchTransactionsHelper(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchTransactionsHelper(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -114,7 +114,7 @@ export default class idex extends Exchange {
         fee: any;
     };
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}, context?: {}): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

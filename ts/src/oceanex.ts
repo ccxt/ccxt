@@ -1,12 +1,15 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/oceanex.js';
 import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { jwt } from './base/functions/rsa.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class oceanex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -150,7 +153,7 @@ export default class oceanex extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         const request = { 'show_details': true };
-        const response = await (this as any).publicGetMarkets (this.extend (request, params));
+        const response = await this.publicGetMarkets (this.extend (request, params));
         //
         //    {
         //        id: 'xtzusdt',
@@ -235,14 +238,14 @@ export default class oceanex extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the oceanex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).publicGetTickersPair (this.extend (request, params));
+        const response = await this.publicGetTickersPair (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -264,14 +267,14 @@ export default class oceanex extends Exchange {
         return this.parseTicker (data, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the oceanex api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -280,7 +283,7 @@ export default class oceanex extends Exchange {
         }
         const marketIds = this.marketIds (symbols);
         const request = { 'markets': marketIds };
-        const response = await (this as any).publicGetTickersMulti (this.extend (request, params));
+        const response = await this.publicGetTickersMulti (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -359,7 +362,7 @@ export default class oceanex extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the oceanex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -369,7 +372,7 @@ export default class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetOrderBook (this.extend (request, params));
+        const response = await this.publicGetOrderBook (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -394,7 +397,7 @@ export default class oceanex extends Exchange {
         return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
-    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
+    async fetchOrderBooks (symbols: string[] = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchOrderBooks
@@ -402,7 +405,7 @@ export default class oceanex extends Exchange {
          * @param {[string]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
          * @param {int|undefined} limit max number of entries per orderbook to return, default is undefined
          * @param {object} params extra parameters specific to the oceanex api endpoint
-         * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbol
+         * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
          */
         await this.loadMarkets ();
         if (symbols === undefined) {
@@ -415,7 +418,7 @@ export default class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetOrderBookMulti (this.extend (request, params));
+        const response = await this.publicGetOrderBookMulti (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -451,7 +454,7 @@ export default class oceanex extends Exchange {
         return result;
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchTrades
@@ -470,7 +473,7 @@ export default class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         //
         //      {
         //          "code":0,
@@ -547,7 +550,7 @@ export default class oceanex extends Exchange {
          * @param {object} params extra parameters specific to the oceanex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetTimestamp (params);
+        const response = await this.publicGetTimestamp (params);
         //
         //     {"code":0,"message":"Operation successful","data":1559433420}
         //
@@ -560,9 +563,9 @@ export default class oceanex extends Exchange {
          * @name oceanex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} params extra parameters specific to the oceanex api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
-        const response = await (this as any).publicGetFeesTrading (params);
+        const response = await this.publicGetFeesTrading (params);
         const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
@@ -583,7 +586,7 @@ export default class oceanex extends Exchange {
     }
 
     async fetchKey (params = {}) {
-        const response = await (this as any).privateGetKey (params);
+        const response = await this.privateGetKey (params);
         return this.safeValue (response, 'data');
     }
 
@@ -612,7 +615,7 @@ export default class oceanex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetMembersMe (params);
+        const response = await this.privateGetMembersMe (params);
         return this.parseBalance (response);
     }
 
@@ -627,7 +630,7 @@ export default class oceanex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the oceanex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -640,19 +643,19 @@ export default class oceanex extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the oceanex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         let ids = id;
         if (!Array.isArray (id)) {
@@ -664,7 +667,7 @@ export default class oceanex extends Exchange {
             market = this.market (symbol);
         }
         const request = { 'ids': ids };
-        const response = await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const dataLength = data.length;
         if (data === undefined) {
@@ -679,7 +682,7 @@ export default class oceanex extends Exchange {
         return this.parseOrder (data[0], market);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchOpenOrders
@@ -688,7 +691,7 @@ export default class oceanex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the oceanex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'states': [ 'wait' ],
@@ -696,7 +699,7 @@ export default class oceanex extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchClosedOrders
@@ -705,7 +708,7 @@ export default class oceanex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the oceanex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'states': [ 'done', 'cancel' ],
@@ -713,7 +716,7 @@ export default class oceanex extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchOrders
@@ -722,7 +725,7 @@ export default class oceanex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the oceanex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a `symbol` argument');
@@ -739,7 +742,7 @@ export default class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetOrdersFilter (this.extend (request, query));
+        const response = await this.privateGetOrdersFilter (this.extend (request, query));
         const data = this.safeValue (response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
@@ -770,7 +773,7 @@ export default class oceanex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchOHLCV
@@ -794,7 +797,7 @@ export default class oceanex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicPostK (this.extend (request, params));
+        const response = await this.publicPostK (this.extend (request, params));
         const ohlcvs = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
@@ -872,12 +875,12 @@ export default class oceanex extends Exchange {
             'orders': orders,
         };
         // orders: [{"side":"buy", "volume":.2, "price":1001}, {"side":"sell", "volume":0.2, "price":1002}]
-        const response = await (this as any).privatePostOrdersMulti (this.extend (request, params));
+        const response = await this.privatePostOrdersMulti (this.extend (request, params));
         const data = response['data'];
         return this.parseOrders (data);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#cancelOrder
@@ -885,15 +888,15 @@ export default class oceanex extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol not used by oceanex cancelOrder ()
          * @param {object} params extra parameters specific to the oceanex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostOrderDelete (this.extend ({ 'id': id }, params));
+        const response = await this.privatePostOrderDelete (this.extend ({ 'id': id }, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelOrders (ids, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#cancelOrders
@@ -901,30 +904,30 @@ export default class oceanex extends Exchange {
          * @param {[string]} ids order ids
          * @param {string|undefined} symbol not used by oceanex cancelOrders ()
          * @param {object} params extra parameters specific to the oceanex api endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostOrderDeleteMulti (this.extend ({ 'ids': ids }, params));
+        const response = await this.privatePostOrderDeleteMulti (this.extend ({ 'ids': ids }, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#cancelAllOrders
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the oceanex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostOrdersClear (params);
+        const response = await this.privatePostOrdersClear (params);
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
@@ -951,7 +954,7 @@ export default class oceanex extends Exchange {
             // to set the private key:
             // const fs = require ('fs')
             // exchange.secret = fs.readFileSync ('oceanex.pem', 'utf8')
-            const jwt_token = this.jwt (request, this.encode (this.secret), 'RS256');
+            const jwt_token = jwt (request, this.encode (this.secret), sha256, true);
             url += '?user_jwt=' + jwt_token;
         }
         headers = { 'Content-Type': 'application/json' };

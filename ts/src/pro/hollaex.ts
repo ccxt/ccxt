@@ -4,9 +4,11 @@
 import hollaexRest from '../hollaex.js';
 import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class hollaex extends hollaexRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -59,7 +61,7 @@ export default class hollaex extends hollaexRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -110,7 +112,7 @@ export default class hollaex extends hollaexRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#watchTrades
@@ -168,7 +170,7 @@ export default class hollaex extends hollaexRest {
         client.resolve (stored, channel);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#watchMyTrades
@@ -177,7 +179,7 @@ export default class hollaex extends hollaexRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         let messageHash = 'usertrade';
@@ -250,7 +252,7 @@ export default class hollaex extends hollaexRest {
         }
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#watchOrders
@@ -259,7 +261,7 @@ export default class hollaex extends hollaexRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let messageHash = 'order';
@@ -446,7 +448,7 @@ export default class hollaex extends hollaexRest {
         }
         const url = this.urls['api']['ws'];
         const auth = 'CONNECT' + '/stream' + expires;
-        const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+        const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         const authParams = {
             'api-key': this.apiKey,
             'api-signature': signature,

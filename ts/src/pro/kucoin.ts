@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class kucoin extends kucoinRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -58,7 +59,7 @@ export default class kucoin extends kucoinRest {
         let response = undefined;
         const connectId = privateChannel ? 'private' : 'public';
         if (privateChannel) {
-            response = await (this as any).privatePostBulletPrivate (params);
+            response = await this.privatePostBulletPrivate (params);
             //
             //     {
             //         code: "200000",
@@ -77,7 +78,7 @@ export default class kucoin extends kucoinRest {
             //     }
             //
         } else {
-            response = await (this as any).publicPostBulletPublic (params);
+            response = await this.publicPostBulletPublic (params);
         }
         const data = this.safeValue (response, 'data', {});
         const instanceServers = this.safeValue (data, 'instanceServers', []);
@@ -128,7 +129,7 @@ export default class kucoin extends kucoinRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -211,7 +212,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchOHLCV
@@ -281,7 +282,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchTrades
@@ -347,7 +348,7 @@ export default class kucoin extends kucoinRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         //
         // https://docs.kucoin.com/#level-2-market-data
@@ -509,7 +510,7 @@ export default class kucoin extends kucoinRest {
         return message;
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchOrders
@@ -518,7 +519,7 @@ export default class kucoin extends kucoinRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const url = await this.negotiate (true);
@@ -636,7 +637,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (this.orders, symbolSpecificMessageHash);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchMyTrades
@@ -645,7 +646,7 @@ export default class kucoin extends kucoinRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         const url = await this.negotiate (true);
@@ -853,8 +854,8 @@ export default class kucoin extends kucoinRest {
     }
 
     handlePong (client, message) {
-        // https://docs.kucoin.com/#ping
         client.lastPong = this.milliseconds ();
+        // https://docs.kucoin.com/#ping
     }
 
     handleErrorMessage (client, message) {

@@ -6,6 +6,7 @@ import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class ndax extends ndaxRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -45,7 +46,7 @@ export default class ndax extends ndaxRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -105,7 +106,7 @@ export default class ndax extends ndaxRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name ndax#watchTrades
@@ -188,7 +189,7 @@ export default class ndax extends ndaxRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
         /**
          * @method
          * @name ndax#watchOHLCV
@@ -328,7 +329,7 @@ export default class ndax extends ndaxRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();

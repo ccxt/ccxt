@@ -86,25 +86,25 @@ class kraken(ccxt.async_support.kraken):
         market = self.safe_value(self.options['marketsByWsName'], wsName)
         symbol = market['symbol']
         ticker = message[1]
-        vwap = self.safe_float(ticker['p'], 0)
+        vwap = self.safe_string(ticker['p'], 0)
         quoteVolume = None
-        baseVolume = self.safe_float(ticker['v'], 0)
+        baseVolume = self.safe_string(ticker['v'], 0)
         if baseVolume is not None and vwap is not None:
-            quoteVolume = baseVolume * vwap
-        last = self.safe_float(ticker['c'], 0)
+            quoteVolume = Precise.string_mul(baseVolume, vwap)
+        last = self.safe_string(ticker['c'], 0)
         timestamp = self.milliseconds()
-        result = {
+        result = self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker['h'], 0),
-            'low': self.safe_float(ticker['l'], 0),
-            'bid': self.safe_float(ticker['b'], 0),
-            'bidVolume': self.safe_float(ticker['b'], 2),
-            'ask': self.safe_float(ticker['a'], 0),
-            'askVolume': self.safe_float(ticker['a'], 2),
+            'high': self.safe_string(ticker['h'], 0),
+            'low': self.safe_string(ticker['l'], 0),
+            'bid': self.safe_string(ticker['b'], 0),
+            'bidVolume': self.safe_string(ticker['b'], 2),
+            'ask': self.safe_string(ticker['a'], 0),
+            'askVolume': self.safe_string(ticker['a'], 2),
             'vwap': vwap,
-            'open': self.safe_float(ticker['o'], 0),
+            'open': self.safe_string(ticker['o'], 0),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -114,7 +114,7 @@ class kraken(ccxt.async_support.kraken):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        })
         # todo add support for multiple tickers(may be tricky)
         # kraken confirms multi-pair subscriptions separately one by one
         # trigger correct watchTickers calls upon receiving any of symbols
@@ -230,7 +230,7 @@ class kraken(ccxt.async_support.kraken):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         return await self.watch_public('ticker', symbol, params)
 
@@ -257,7 +257,7 @@ class kraken(ccxt.async_support.kraken):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         name = 'book'
         request = {}
@@ -483,13 +483,10 @@ class kraken(ccxt.async_support.kraken):
     def handle_deltas(self, bookside, deltas, timestamp=None):
         for j in range(0, len(deltas)):
             delta = deltas[j]
-            price = float(delta[0])
-            amount = float(delta[1])
+            price = self.parse_number(delta[0])
+            amount = self.parse_number(delta[1])
             oldTimestamp = timestamp if timestamp else 0
-            calcMul = delta[2] * 1000
-            calcStr = self.number_to_string(calcMul)
-            calc = self.number_to_string(float(calcStr))
-            timestamp = max(oldTimestamp, int(calc))
+            timestamp = max(oldTimestamp, self.parse_to_int(float(delta[2]) * 1000))
             bookside.store(price, amount)
         return timestamp
 
@@ -559,7 +556,7 @@ class kraken(ccxt.async_support.kraken):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         return await self.watch_private('ownTrades', symbol, since, limit, params)
 
@@ -709,7 +706,7 @@ class kraken(ccxt.async_support.kraken):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return await self.watch_private('openOrders', symbol, since, limit, params)
 
