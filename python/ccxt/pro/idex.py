@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class idex(ccxt.async_support.idex):
@@ -102,33 +103,33 @@ class idex(ccxt.async_support.idex):
         symbol = self.safe_symbol(marketId)
         messageHash = type + ':' + marketId
         timestamp = self.safe_integer(data, 't')
-        close = self.safe_float(data, 'c')
-        percentage = self.safe_float(data, 'P')
+        close = self.safe_string(data, 'c')
+        percentage = self.safe_string(data, 'P')
         change = None
         if (percentage is not None) and (close is not None):
-            change = close * percentage
-        ticker = {
+            change = Precise.string_mul(close, percentage)
+        ticker = self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(data, 'h'),
-            'low': self.safe_float(data, 'l'),
-            'bid': self.safe_float(data, 'b'),
+            'high': self.safe_string(data, 'h'),
+            'low': self.safe_string(data, 'l'),
+            'bid': self.safe_string(data, 'b'),
             'bidVolume': None,
-            'ask': self.safe_float(data, 'a'),
+            'ask': self.safe_string(data, 'a'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(data, 'o'),
+            'open': self.safe_string(data, 'o'),
             'close': close,
             'last': close,
             'previousClose': None,
             'change': change,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(data, 'v'),
-            'quoteVolume': self.safe_float(data, 'q'),
+            'baseVolume': self.safe_string(data, 'v'),
+            'quoteVolume': self.safe_string(data, 'q'),
             'info': message,
-        }
+        })
         client.resolve(ticker, messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
