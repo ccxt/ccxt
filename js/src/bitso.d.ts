@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitso.js';
 export default class bitso extends Exchange {
     describe(): any;
     fetchLedger(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;

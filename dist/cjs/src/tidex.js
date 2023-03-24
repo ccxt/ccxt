@@ -1,11 +1,12 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var tidex$1 = require('./abstract/tidex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-class tidex extends Exchange["default"] {
+// @ts-expect-error
+class tidex extends tidex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'tidex',

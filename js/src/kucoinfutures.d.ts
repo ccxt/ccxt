@@ -1,4 +1,4 @@
-import kucoin from './kucoin.js';
+import kucoin from './abstract/kucoinfutures.js';
 export default class kucoinfutures extends kucoin {
     describe(): any;
     fetchStatus(params?: {}): Promise<{

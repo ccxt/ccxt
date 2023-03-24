@@ -8,6 +8,7 @@ import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 
 // ----------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class bitopro extends bitoproRest {
     describe () {
         return this.deepExtend (super.describe (), {

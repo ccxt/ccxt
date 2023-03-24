@@ -1051,7 +1051,7 @@ class gate(Exchange):
         underlyings = self.fetch_option_underlyings()
         for i in range(0, len(underlyings)):
             underlying = underlyings[i]
-            query = params
+            query = self.extend({}, params)
             query['underlying'] = underlying
             response = self.publicOptionsGetContracts(query)
             #
@@ -2419,6 +2419,7 @@ class gate(Exchange):
         #     }
         #
         rates = []
+        # @ts-expect-error
         for i in range(0, len(response)):
             entry = response[i]
             timestamp = self.safe_timestamp(entry, 't')

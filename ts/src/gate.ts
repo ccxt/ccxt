@@ -1,11 +1,12 @@
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
+// @ts-expect-error
 export default class gate extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -1046,7 +1047,7 @@ export default class gate extends Exchange {
         const underlyings = await this.fetchOptionUnderlyings ();
         for (let i = 0; i < underlyings.length; i++) {
             const underlying = underlyings[i];
-            const query = params;
+            const query = this.extend ({}, params);
             query['underlying'] = underlying;
             const response = await (this as any).publicOptionsGetContracts (query);
             //
@@ -2539,6 +2540,7 @@ export default class gate extends Exchange {
         //     }
         //
         const rates = [];
+        // @ts-expect-error
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const timestamp = this.safeTimestamp (entry, 't');

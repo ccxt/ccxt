@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bitbns$1 = require('./abstract/bitbns.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitbns extends Exchange["default"] {
+// @ts-expect-error
+class bitbns extends bitbns$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitbns',
@@ -109,7 +110,6 @@ class bitbns extends Exchange["default"] {
                         'placeBuyOrder/{symbol}',
                         'buyStopLoss/{symbol}',
                         'sellStopLoss/{symbol}',
-                        'placeSellOrder/{symbol}',
                         'cancelOrder/{symbol}',
                         'cancelStopLossOrder/{symbol}',
                         'listExecutedOrders/{symbol}',

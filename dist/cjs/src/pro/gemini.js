@@ -6,6 +6,7 @@ var errors = require('../base/errors.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 class gemini extends gemini$1 {
     describe() {
         return this.deepExtend(super.describe(), {

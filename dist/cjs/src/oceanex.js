@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var oceanex$1 = require('./abstract/oceanex.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class oceanex extends Exchange["default"] {
+// @ts-expect-error
+class oceanex extends oceanex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'oceanex',

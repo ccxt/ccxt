@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var delta$1 = require('./abstract/delta.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class delta extends Exchange["default"] {
+// @ts-expect-error
+class delta extends delta$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'delta',

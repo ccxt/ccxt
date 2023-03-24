@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/oceanex.js';
 import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -9,6 +9,7 @@ import { jwt } from './base/functions/rsa.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class oceanex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

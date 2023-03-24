@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var btctradeua$1 = require('./abstract/btctradeua.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class btctradeua extends Exchange["default"] {
+// @ts-expect-error
+class btctradeua extends btctradeua$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'btctradeua',

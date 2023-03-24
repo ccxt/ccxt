@@ -9,6 +9,7 @@ import huobiRest from '../huobi.js';
 import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError, } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class huobi extends huobiRest {
     describe() {
         return this.deepExtend(super.describe(), {

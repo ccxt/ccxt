@@ -6,6 +6,7 @@ var Cache = require('../base/ws/Cache.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 class bybit extends bybit$1 {
     describe() {
         return this.deepExtend(super.describe(), {

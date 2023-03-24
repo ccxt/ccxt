@@ -1,11 +1,12 @@
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 // ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class blockchaincom extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

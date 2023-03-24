@@ -1546,6 +1546,7 @@ class bybit(Exchange):
             inverse = (category == 'inverse')
             contractType = self.safe_string(market, 'contractType')
             inverseFutures = (contractType == 'InverseFutures')
+            linearFutures = (contractType == 'LinearFutures')
             linearPerpetual = (contractType == 'LinearPerpetual')
             inversePerpetual = (contractType == 'InversePerpetual')
             id = self.safe_string(market, 'symbol')
@@ -1567,7 +1568,7 @@ class bybit(Exchange):
             status = self.safe_string(market, 'status')
             active = (status == 'Trading')
             swap = linearPerpetual or inversePerpetual
-            future = inverseFutures
+            future = inverseFutures or linearFutures
             option = (category == 'option')
             type = None
             if swap:
@@ -1851,10 +1852,11 @@ class bybit(Exchange):
             # 'expDate': '', Expiry date. e.g., 25DEC22. For option only
         }
         type = None
+        isTypeInParams = ('type' in params)
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         if type == 'spot':
             request['category'] = 'spot'
-        elif type == 'swap':
+        elif type == 'swap' or type == 'future':
             subType = None
             subType, params = self.handle_sub_type_and_params('fetchTickers', market, params, 'linear')
             request['category'] = subType
@@ -1902,10 +1904,19 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         tickerList = self.safe_value(result, 'list', [])
         tickers = {}
+        if market is None and isTypeInParams:
+            # create a "fake" market for the type
+            market = {
+                'type': 'swap' if (type == 'swap' or type == 'future') else type,
+            }
         for i in range(0, len(tickerList)):
             ticker = self.parse_ticker(tickerList[i], market)
             symbol = ticker['symbol']
-            tickers[symbol] = ticker
+            # self is needed because bybit returns
+            # futures with type = swap
+            marketInner = self.market(symbol)
+            if marketInner['type'] == type:
+                tickers[symbol] = ticker
         return self.filter_by_array(tickers, 'symbol', symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
@@ -7702,7 +7713,7 @@ class bybit(Exchange):
                 }
                 if isV3UnifiedMargin or isV3Contract:
                     headers['X-BAPI-SIGN-TYPE'] = '2'
-                query = params
+                query = self.extend({}, params)
                 queryEncoded = self.rawencode(query)
                 auth_base = str(timestamp) + self.apiKey + str(self.options['recvWindow'])
                 authFull = None

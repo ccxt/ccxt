@@ -1552,6 +1552,7 @@ class bybit extends Exchange {
             $inverse = ($category === 'inverse');
             $contractType = $this->safe_string($market, 'contractType');
             $inverseFutures = ($contractType === 'InverseFutures');
+            $linearFutures = ($contractType === 'LinearFutures');
             $linearPerpetual = ($contractType === 'LinearPerpetual');
             $inversePerpetual = ($contractType === 'InversePerpetual');
             $id = $this->safe_string($market, 'symbol');
@@ -1574,7 +1575,7 @@ class bybit extends Exchange {
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'Trading');
             $swap = $linearPerpetual || $inversePerpetual;
-            $future = $inverseFutures;
+            $future = $inverseFutures || $linearFutures;
             $option = ($category === 'option');
             $type = null;
             if ($swap) {
@@ -1870,10 +1871,11 @@ class bybit extends Exchange {
             // 'expDate' => '', Expiry date. e.g., 25DEC22. For option only
         );
         $type = null;
+        $isTypeInParams = (is_array($params) && array_key_exists('type', $params));
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         if ($type === 'spot') {
             $request['category'] = 'spot';
-        } elseif ($type === 'swap') {
+        } elseif ($type === 'swap' || $type === 'future') {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
             $request['category'] = $subType;
@@ -1922,10 +1924,21 @@ class bybit extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $tickerList = $this->safe_value($result, 'list', array());
         $tickers = array();
+        if ($market === null && $isTypeInParams) {
+            // create a "fake" $market for the $type
+            $market = array(
+                'type' => ($type === 'swap' || $type === 'future') ? 'swap' : $type,
+            );
+        }
         for ($i = 0; $i < count($tickerList); $i++) {
             $ticker = $this->parse_ticker($tickerList[$i], $market);
             $symbol = $ticker['symbol'];
-            $tickers[$symbol] = $ticker;
+            // this is needed because bybit returns
+            // futures with $type = swap
+            $marketInner = $this->market($symbol);
+            if ($marketInner['type'] === $type) {
+                $tickers[$symbol] = $ticker;
+            }
         }
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
@@ -8151,7 +8164,7 @@ class bybit extends Exchange {
                 if ($isV3UnifiedMargin || $isV3Contract) {
                     $headers['X-BAPI-SIGN-TYPE'] = '2';
                 }
-                $query = $params;
+                $query = array_merge(array(), $params);
                 $queryEncoded = $this->rawencode($query);
                 $auth_base = (string) $timestamp . $this->apiKey . (string) $this->options['recvWindow'];
                 $authFull = null;

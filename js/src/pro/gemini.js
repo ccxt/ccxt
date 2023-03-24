@@ -9,6 +9,7 @@ import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class gemini extends geminiRest {
     describe() {
         return this.deepExtend(super.describe(), {

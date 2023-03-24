@@ -6,10 +6,11 @@
 
 //  ---------------------------------------------------------------------------
 import { Precise } from './base/Precise.js';
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/poloniexfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class poloniexfutures extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

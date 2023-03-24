@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btcbox.js';
 export default class btcbox extends Exchange {
     describe(): any;
     parseBalance(response: any): import("./base/types.js").Balances;

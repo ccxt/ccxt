@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.27'
+__version__ = '3.0.30'
 
 # -----------------------------------------------------------------------------
 
@@ -1720,11 +1720,12 @@ class Exchange(BaseExchange):
                 if numMarkets == 1:
                     return markets[0]
                 else:
-                    if marketType is None:
+                    if marketType is None and market is None:
                         raise ArgumentsRequired(self.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id')
+                    inferedMarketType = market['type'] if (market is not None) else marketType
                     for i in range(0, len(markets)):
                         market = markets[i]
-                        if market[marketType]:
+                        if market[inferedMarketType]:
                             return market
             elif delimiter is not None:
                 parts = marketId.split(delimiter)

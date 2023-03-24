@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/wavesexchange.js';
 export default class wavesexchange extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;

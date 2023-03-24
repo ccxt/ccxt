@@ -2,12 +2,13 @@
 
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var Exchange = require('./base/Exchange.js');
+var bitfinex2$1 = require('./abstract/bitfinex2.js');
 var number = require('./base/functions/number.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class bitfinex2 extends Exchange["default"] {
+// @ts-expect-error
+class bitfinex2 extends bitfinex2$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitfinex2',

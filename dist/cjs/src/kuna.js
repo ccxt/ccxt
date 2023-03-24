@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var kuna$1 = require('./abstract/kuna.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class kuna extends Exchange["default"] {
+// @ts-expect-error
+class kuna extends kuna$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'kuna',

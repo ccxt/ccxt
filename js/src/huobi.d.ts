@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/huobi.js';
 export default class huobi extends Exchange {
     describe(): any;
     fetchStatus(params?: {}): Promise<{

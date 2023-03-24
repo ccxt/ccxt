@@ -14,6 +14,7 @@ import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class gate extends gateRest {
     describe () {
         return this.deepExtend (super.describe (), {

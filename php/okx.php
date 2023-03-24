@@ -1271,7 +1271,7 @@ class okx extends Exchange {
                 $canWithdraw = $this->safe_value($chain, 'canWd');
                 $canInternal = $this->safe_value($chain, 'canInternal');
                 $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
-                $currencyActive = ($currencyActive === null) ? $active : $currencyActive;
+                $currencyActive = ($active) ? $active : $currencyActive;
                 $networkId = $this->safe_string($chain, 'chain');
                 if ($canDeposit && !$depositEnabled) {
                     $depositEnabled = true;

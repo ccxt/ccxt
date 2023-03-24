@@ -1,7 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/ndax.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
@@ -9,6 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
 // ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class ndax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

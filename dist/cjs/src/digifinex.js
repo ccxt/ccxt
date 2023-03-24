@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var digifinex$1 = require('./abstract/digifinex.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class digifinex extends Exchange["default"] {
+// @ts-expect-error
+class digifinex extends digifinex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'digifinex',

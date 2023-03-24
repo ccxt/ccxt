@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/upbit.js';
 import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -11,6 +11,7 @@ import { jwt } from './base/functions/rsa.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class upbit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

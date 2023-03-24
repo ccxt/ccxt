@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var okx$1 = require('./abstract/okx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class okx extends Exchange["default"] {
+// @ts-expect-error
+class okx extends okx$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'okx',
@@ -1271,7 +1272,7 @@ class okx extends Exchange["default"] {
                 const canWithdraw = this.safeValue(chain, 'canWd');
                 const canInternal = this.safeValue(chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
-                currencyActive = (currencyActive === undefined) ? active : currencyActive;
+                currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString(chain, 'chain');
                 if (canDeposit && !depositEnabled) {
                     depositEnabled = true;

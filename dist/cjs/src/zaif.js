@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var zaif$1 = require('./abstract/zaif.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class zaif extends Exchange["default"] {
+// @ts-expect-error
+class zaif extends zaif$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'zaif',

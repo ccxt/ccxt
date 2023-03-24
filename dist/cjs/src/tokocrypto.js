@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var tokocrypto$1 = require('./abstract/tokocrypto.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class tokocrypto extends Exchange["default"] {
+// @ts-expect-error
+class tokocrypto extends tokocrypto$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'tokocrypto',

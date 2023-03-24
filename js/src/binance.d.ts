@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/binance.js';
 export default class binance extends Exchange {
     describe(): any;
     isInverse(type: any, subType?: any): boolean;

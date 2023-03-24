@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var zonda$1 = require('./abstract/zonda.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class zonda extends Exchange["default"] {
+// @ts-expect-error
+class zonda extends zonda$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'zonda',

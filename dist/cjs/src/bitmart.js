@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bitmart$1 = require('./abstract/bitmart.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitmart extends Exchange["default"] {
+// @ts-expect-error
+class bitmart extends bitmart$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitmart',

@@ -6,6 +6,7 @@ var Cache = require('../base/ws/Cache.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 class coinbasepro extends coinbasepro$1 {
     describe() {
         return this.deepExtend(super.describe(), {

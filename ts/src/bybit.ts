@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bybit.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
@@ -9,6 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class bybit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -1559,6 +1560,7 @@ export default class bybit extends Exchange {
             const inverse = (category === 'inverse');
             const contractType = this.safeString (market, 'contractType');
             const inverseFutures = (contractType === 'InverseFutures');
+            const linearFutures = (contractType === 'LinearFutures');
             const linearPerpetual = (contractType === 'LinearPerpetual');
             const inversePerpetual = (contractType === 'InversePerpetual');
             const id = this.safeString (market, 'symbol');
@@ -1581,7 +1583,7 @@ export default class bybit extends Exchange {
             const status = this.safeString (market, 'status');
             const active = (status === 'Trading');
             const swap = linearPerpetual || inversePerpetual;
-            const future = inverseFutures;
+            const future = inverseFutures || linearFutures;
             const option = (category === 'option');
             let type = undefined;
             if (swap) {
@@ -1881,10 +1883,11 @@ export default class bybit extends Exchange {
             // 'expDate': '', Expiry date. e.g., 25DEC22. For option only
         };
         let type = undefined;
+        const isTypeInParams = ('type' in params);
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         if (type === 'spot') {
             request['category'] = 'spot';
-        } else if (type === 'swap') {
+        } else if (type === 'swap' || type === 'future') {
             let subType = undefined;
             [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params, 'linear');
             request['category'] = subType;
@@ -1933,10 +1936,21 @@ export default class bybit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const tickerList = this.safeValue (result, 'list', []);
         const tickers = {};
+        if (market === undefined && isTypeInParams) {
+            // create a "fake" market for the type
+            market = {
+                'type': (type === 'swap' || type === 'future') ? 'swap' : type,
+            };
+        }
         for (let i = 0; i < tickerList.length; i++) {
             const ticker = this.parseTicker (tickerList[i], market);
             const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+            // this is needed because bybit returns
+            // futures with type = swap
+            const marketInner = this.market (symbol);
+            if (marketInner['type'] === type) {
+                tickers[symbol] = ticker;
+            }
         }
         return this.filterByArray (tickers, 'symbol', symbols);
     }
@@ -8234,7 +8248,7 @@ export default class bybit extends Exchange {
                 if (isV3UnifiedMargin || isV3Contract) {
                     headers['X-BAPI-SIGN-TYPE'] = '2';
                 }
-                const query = params;
+                const query = this.extend ({}, params);
                 const queryEncoded = this.rawencode (query);
                 const auth_base = timestamp.toString () + this.apiKey + this.options['recvWindow'].toString ();
                 let authFull = undefined;

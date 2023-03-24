@@ -9,6 +9,7 @@ import coinbaseproRest from '../coinbasepro.js';
 import { BadSymbol } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class coinbasepro extends coinbaseproRest {
     describe() {
         return this.deepExtend(super.describe(), {

@@ -5,6 +5,7 @@ var Cache = require('../base/ws/Cache.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 class ripio extends ripio$1 {
     describe() {
         return this.deepExtend(super.describe(), {

@@ -9,6 +9,7 @@ import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 // ----------------------------------------------------------------------------
+// @ts-expect-error
 export default class bitopro extends bitoproRest {
     describe() {
         return this.deepExtend(super.describe(), {

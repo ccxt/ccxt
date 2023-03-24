@@ -10,6 +10,7 @@ import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class bitfinex extends bitfinexRest {
     describe() {
         return this.deepExtend(super.describe(), {

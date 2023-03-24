@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var latoken$1 = require('./abstract/latoken.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class latoken extends Exchange["default"] {
+// @ts-expect-error
+class latoken extends latoken$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'latoken',
