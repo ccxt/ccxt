@@ -1467,13 +1467,14 @@ class binance(Exchange):
         else:
             base = self.safe_string(optionParts, 0)
         expiry = self.safe_string(optionParts, 1)
-        strike = self.safe_string(optionParts, 2)
+        strike = self.safe_integer(optionParts, 2)
+        strikeAsString = self.safe_string(optionParts, 2)
         optionType = self.safe_string(optionParts, 3)
         datetime = self.convert_expire_date(expiry)
         timestamp = self.parse8601(datetime)
         return {
-            'id': base + '-' + expiry + '-' + strike + '-' + optionType,
-            'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'id': base + '-' + expiry + '-' + strikeAsString + '-' + optionType,
+            'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strikeAsString + '-' + optionType,
             'base': base,
             'quote': settle,
             'baseId': base,

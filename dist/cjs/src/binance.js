@@ -1450,13 +1450,14 @@ class binance extends binance$1 {
             base = this.safeString(optionParts, 0);
         }
         const expiry = this.safeString(optionParts, 1);
-        const strike = this.safeString(optionParts, 2);
+        const strike = this.safeInteger(optionParts, 2);
+        const strikeAsString = this.safeString(optionParts, 2);
         const optionType = this.safeString(optionParts, 3);
         const datetime = this.convertExpireDate(expiry);
         const timestamp = this.parse8601(datetime);
         return {
-            'id': base + '-' + expiry + '-' + strike + '-' + optionType,
-            'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'id': base + '-' + expiry + '-' + strikeAsString + '-' + optionType,
+            'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strikeAsString + '-' + optionType,
             'base': base,
             'quote': settle,
             'baseId': base,

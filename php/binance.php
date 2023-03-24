@@ -1450,13 +1450,14 @@ class binance extends Exchange {
             $base = $this->safe_string($optionParts, 0);
         }
         $expiry = $this->safe_string($optionParts, 1);
-        $strike = $this->safe_string($optionParts, 2);
+        $strike = $this->safe_integer($optionParts, 2);
+        $strikeAsString = $this->safe_string($optionParts, 2);
         $optionType = $this->safe_string($optionParts, 3);
         $datetime = $this->convert_expire_date($expiry);
         $timestamp = $this->parse8601($datetime);
         return array(
-            'id' => $base . '-' . $expiry . '-' . $strike . '-' . $optionType,
-            'symbol' => $base . '/' . $settle . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
+            'id' => $base . '-' . $expiry . '-' . $strikeAsString . '-' . $optionType,
+            'symbol' => $base . '/' . $settle . ':' . $settle . '-' . $expiry . '-' . $strikeAsString . '-' . $optionType,
             'base' => $base,
             'quote' => $settle,
             'baseId' => $base,

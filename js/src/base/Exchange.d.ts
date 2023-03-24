@@ -588,7 +588,7 @@ export default class Exchange {
     selectNetworkKeyFromNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode?: boolean): any;
     safeNumber2(dictionary: any, key1: any, key2: any, d?: any): number;
     parseOrderBook(orderbook: object, symbol: string, timestamp?: number, bidsKey?: string, asksKey?: string, priceKey?: number | string, amountKey?: number | string): OrderBook;
-    parseOHLCVs(ohlcvs: object[], market?: string, timeframe?: string, since?: number, limit?: any): OHLCV[];
+    parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: number, limit?: any): OHLCV[];
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     loadTradingLimits(symbols?: string[], reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     parsePositions(positions: any, symbols?: string[], params?: {}): any;
