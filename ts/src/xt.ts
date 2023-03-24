@@ -34,6 +34,7 @@ export default class xt extends Exchange {
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': true,
                 'fetchBalance': true,
+                'fetchBidsAsks': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -1476,6 +1477,51 @@ export default class xt extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
+    async fetchBidsAsks (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchBidsAsks
+         * @description fetches the bid and ask price and volume for multiple markets
+         * @see https://doc.xt.com/#market9tickerBook
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request = {};
+        let market = undefined;
+        if (symbols !== undefined) {
+            market = this.market (symbols[0]);
+            request['symbols'] = symbols;
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
+        if (subType !== undefined) {
+            throw new NotSupported (this.id + ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported');
+        }
+        const response = await (this as any).publicSpotGetTickerBook (this.extend (request, params));
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": [
+        //             {
+        //                 "s": "kas_usdt",
+        //                 "t": 1679539891853,
+        //                 "ap": "0.016298",
+        //                 "aq": "5119.09",
+        //                 "bp": "0.016290",
+        //                 "bq": "135.37"
+        //             },
+        //         ]
+        //     }
+        //
+        const tickers = this.safeValue (response, 'result', []);
+        return this.parseTickers (tickers, symbols);
+    }
+
     parseTicker (ticker, market = undefined) {
         //
         // spot: fetchTicker, fetchTickers
@@ -1511,10 +1557,21 @@ export default class xt extends Exchange {
         //         "ap": "22415.5"
         //     }
         //
+        // fetchBidsAsks
+        //
+        //     {
+        //         "s": "kas_usdt",
+        //         "t": 1679539891853,
+        //         "ap": "0.016298",
+        //         "aq": "5119.09",
+        //         "bp": "0.016290",
+        //         "bq": "135.37"
+        //     }
+        //
         const marketId = this.safeString (ticker, 's');
         let marketType = (market !== undefined) ? market['type'] : undefined;
         if (marketType === undefined) {
-            marketType = ('cv' in ticker) ? 'spot' : 'contract';
+            marketType = ('cv' in ticker) || ('aq' in ticker) ? 'spot' : 'contract';
         }
         market = this.safeMarket (marketId, market, '_', marketType);
         const symbol = market['symbol'];
@@ -1526,9 +1583,9 @@ export default class xt extends Exchange {
             'high': this.safeNumber (ticker, 'h'),
             'low': this.safeNumber (ticker, 'l'),
             'bid': this.safeNumber (ticker, 'bp'),
-            'bidVolume': undefined,
+            'bidVolume': this.safeNumber (ticker, 'bq'),
             'ask': this.safeNumber (ticker, 'ap'),
-            'askVolume': undefined,
+            'askVolume': this.safeNumber (ticker, 'aq'),
             'vwap': undefined,
             'open': this.safeString (ticker, 'o'),
             'close': this.safeString (ticker, 'c'),
