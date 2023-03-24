@@ -1103,12 +1103,6 @@ export default class bybit extends Exchange {
                             'FOK': 'FOK',
                             'PO': 'PostOnly',
                         },
-                        'booleans': {
-                            'GTC': undefined,
-                            'IOC': undefined,
-                            'FOK': undefined,
-                            'PO': undefined,
-                        },
                     },
                 },
             },

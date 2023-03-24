@@ -820,12 +820,6 @@ export default class okx extends Exchange {
                             'PO': 'post_only',
                             'optimal_limit_ioc': 'optimal_limit_ioc',
                         },
-                        'booleans': {
-                            'GTC': undefined,
-                            'IOC': undefined,
-                            'FOK': undefined,
-                            'PO': undefined,
-                        },
                     },
                 },
                 'brokerId': 'e847386590ce4dBC',

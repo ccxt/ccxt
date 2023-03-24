@@ -510,12 +510,6 @@ export default class gate extends Exchange {
                             'FOK': 'fok',
                             'PO': 'poc',
                         },
-                        'booleans': {
-                            'GTC': undefined,
-                            'IOC': undefined,
-                            'FOK': undefined,
-                            'PO': undefined,
-                        },
                         'defaultMarketOrderTimeInForce': 'GTC',
                     },
                     'contract': {
@@ -526,12 +520,6 @@ export default class gate extends Exchange {
                             'FOK': 'fok',
                             'PO': 'poc',
                         },
-                        'booleans': {
-                            'GTC': undefined,
-                            'IOC': undefined,
-                            'FOK': undefined,
-                            'PO': undefined,
-                        },
                         'defaultMarketOrderTimeInForce': 'GTC',
                     },
                     'options': {
@@ -540,12 +528,6 @@ export default class gate extends Exchange {
                             'GTC': 'gtc',
                             'IOC': 'ioc',
                             'PO': 'poc',
-                        },
-                        'booleans': {
-                            'GTC': undefined,
-                            'IOC': undefined,
-                            'FOK': undefined,
-                            'PO': undefined,
                         },
                     },
                 },
