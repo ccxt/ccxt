@@ -516,6 +516,7 @@ export default class gate extends Exchange {
                             'FOK': undefined,
                             'PO': undefined,
                         },
+                        'defaultMarketOrderTimeInForce': 'GTC',
                     },
                     'contract': {
                         'exchangeSpecificKey': 'tif',
@@ -531,6 +532,7 @@ export default class gate extends Exchange {
                             'FOK': undefined,
                             'PO': undefined,
                         },
+                        'defaultMarketOrderTimeInForce': 'GTC',
                     },
                     'options': {
                         'exchangeSpecificKey': 'tif',

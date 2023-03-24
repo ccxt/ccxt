@@ -2188,7 +2188,7 @@ export default class okx extends Exchange {
         params = this.omit (params, [ 'currency', 'ccy', 'marginMode', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin' ]);
         const handledTif = this.handlePoTif ('default', type, params);
         params = handledTif['params'];
-        if (handledTif['requestKey'] !== undefined) {
+        if (handledTif['requestValue'] !== undefined) {
             request[handledTif['requestKey']] = handledTif['requestValue'];
         }
         const ioc = handledTif['timeInForce'] === 'IOC';

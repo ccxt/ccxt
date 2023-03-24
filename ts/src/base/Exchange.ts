@@ -3743,12 +3743,33 @@ export default class Exchange {
     }
 
     handlePoTif (accountMarketType: string, orderType: string, params: any = {}) {
-        // our unified strings
-        const unifiedTifKey = 'timeInForce';
-        const unifiedTifKey_IOC = 'IOC';
-        const unifiedTifKey_FOK = 'FOK';
-        const unifiedTifKey_PO = 'PO';
-        const unifiedTifKey_GTC = 'GTC';
+        //
+        // inside optins, we excepts such structure
+        //
+        // 'options': {
+        //     'timeInForceMap': {
+        //         'whateverTitle': {
+        //             'exchangeSpecificKey': 'ordType',
+        //             'strings': {
+        //                 'GTC': undefined,
+        //                 'IOC': 'ioc',
+        //                 'FOK': 'fok',
+        //                 'PO': 'post_only',
+        //                 'optimal_limit_ioc': 'optimal_limit_ioc',
+        //             },
+        //             'booleans': {
+        //                 'GTC': undefined,
+        //                 'IOC': undefined,
+        //                 'FOK': undefined,
+        //                 'PO': undefined,
+        //             },
+        //         },
+        //     },
+        // }
+        //
+        // - "strings" map is used for exchange-specific TIF values
+        // - "booleans" map is used for exchange-specific postOnly values, i.e. some exchange
+        // might need to have `'POST_ONLY': true` toward api, instead of setting TIF
         //
         const isMarketOrder = orderType === 'market';
         // get exchange TIF mappings
@@ -3770,7 +3791,7 @@ export default class Exchange {
             }
         }
         // unified or exchangeSpecific TIF value (if set in PARAMS)
-        let providedTifValue = this.safeString2 (params, exchangeSpecificTifKey, unifiedTifKey);
+        let providedTifValue = this.safeString2 (params, exchangeSpecificTifKey, 'timeInForce');
         if (providedTifValue === undefined) {
             // support for TIF values in orderType i.e. OKX, where you can `.createOrder ('BTC/USDT', 'ioc', 'buy', ...)`
             if (orderType in tifMapUnifiedToEx) {
@@ -3778,27 +3799,27 @@ export default class Exchange {
             }
         }
         // exchangeSpecific values for different TIME IN FORCE values
-        const exTifValue_IOC = this.safeString (tifMapUnifiedToEx, unifiedTifKey_IOC);
-        const exTifValue_FOK = this.safeString (tifMapUnifiedToEx, unifiedTifKey_FOK);
-        const exTifValue_PO = this.safeString (tifMapUnifiedToEx, unifiedTifKey_PO);
-        const exTifValue_GTC = this.safeString (tifMapUnifiedToEx, unifiedTifKey_GTC);
+        const exTifValue_IOC = this.safeString (tifMapUnifiedToEx, 'IOC');
+        const exTifValue_FOK = this.safeString (tifMapUnifiedToEx, 'FOK');
+        const exTifValue_PO = this.safeString (tifMapUnifiedToEx, 'PO');
+        const exTifValue_GTC = this.safeString (tifMapUnifiedToEx, 'GTC');
         //
         // ############### STRING TIF CHECK ############### //
         //
         // check if unified 'timeInForce' (if set in PARAMS) matches to either unified or exchange-specific value
-        const is_TIF_IOC = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ unifiedTifKey_IOC, exTifValue_IOC ]);
-        const is_TIF_FOK = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ unifiedTifKey_FOK, exTifValue_FOK ]);
-        const is_TIF_PO = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ unifiedTifKey_PO, exTifValue_PO ]);
+        const is_TIF_IOC = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ 'IOC', exTifValue_IOC ]);
+        const is_TIF_FOK = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ 'FOK', exTifValue_FOK ]);
+        const is_TIF_PO = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ 'PO', exTifValue_PO ]);
         // eslint-disable-next-line no-unused-vars
-        const is_TIF_GTC = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ unifiedTifKey_GTC, exTifValue_GTC ]);
+        const is_TIF_GTC = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ 'GTC', exTifValue_GTC ]);
         //
         // ############### BOOLEAN CHECK ############### //
         //
         // check if unified POST-ONLY flag (if set in PARAMS) is set to true
-        const unifiedBoolPo = this.safeValueN (params, [ 'postOnly', 'post_only' ]);
+        const unifiedBoolPo = this.safeValue (params, 'postOnly');
         // exchangeSpecific value for post-only flag (if such exists)
         const exchangeSpecificBooleanKeys = this.safeValue (tifOptions, 'booleans', {});
-        const exchangeSpecificPoKey = this.safeString (exchangeSpecificBooleanKeys, unifiedTifKey_PO);
+        const exchangeSpecificPoKey = this.safeString (exchangeSpecificBooleanKeys, 'PO');
         // check if exchange-specific POST-ONLY flag (if set in PARAMS) is set to true
         const exchangeSpecificBoolPo = this.safeValue (params, exchangeSpecificPoKey);
         // if both unified and exchange-specific POST-ONLY were not set, then set the below value to `undefined`. otherwise true or false (same as passed POST-ONLY value)
@@ -3812,12 +3833,11 @@ export default class Exchange {
         //
         // ############### set final value ############### //
         //
-        // throw exception if i.e. TIF=PO && POSTONLY:FALSE
-        if (providedPoValue === false && is_TIF_PO) {
+        if (is_TIF_PO && providedPoValue === false) {
             throw new InvalidOrder (this.id + ' if postOnly is set to false, timeInForce can not be postOnly value');
         }
-        let requestKey = undefined;
-        let requestValue = undefined;
+        let setRequestTifKey = undefined;
+        let setRequestTifValue = undefined;
         const isAnyPo = is_TIF_PO || is_BOOL_PO;
         if (isAnyPo) {
             if (is_TIF_IOC || is_TIF_FOK) {
@@ -3826,26 +3846,32 @@ export default class Exchange {
                 throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
             } else {
                 if (exchangeSpecificBoolPo) {
-                    requestKey = exchangeSpecificPoKey;
-                    requestValue = true;
+                    setRequestTifKey = exchangeSpecificPoKey;
+                    setRequestTifValue = true;
                 } else if (exTifValue_PO !== undefined) {
-                    requestKey = exchangeSpecificTifKey;
-                    requestValue = exTifValue_PO;
+                    setRequestTifKey = exchangeSpecificTifKey;
+                    setRequestTifValue = exTifValue_PO;
                 }
             }
         }
         let providedTifUnifiedValue = undefined;
         if (providedTifValue !== undefined) {
             const tifValueToSend = this.safeString (tifMapUnifiedToEx, providedTifValue, providedTifValue);
-            requestKey = exchangeSpecificTifKey;
-            requestValue = tifValueToSend;
+            setRequestTifValue = tifValueToSend;
             providedTifUnifiedValue = this.safeString (tifMapExToUnified, providedTifValue);
         }
-        const paramsOmited = this.omit (params, [ 'postOnly', 'post_only', exchangeSpecificPoKey, exchangeSpecificTifKey, unifiedTifKey ]);
+        const defaultMarketOrderTif = this.safeString (tifOptions, 'defaultMarketOrderTimeInForce');
+        if (defaultMarketOrderTif !== exchangeSpecificTifKey) {
+            if (isMarketOrder && setRequestTifValue === undefined) {
+                setRequestTifKey = exchangeSpecificTifKey;
+                setRequestTifValue = this.safeString (tifMapUnifiedToEx, defaultMarketOrderTif);
+            }
+        }
+        const paramsOmited = this.omit (params, [ 'postOnly', exchangeSpecificPoKey, 'timeInForce', exchangeSpecificTifKey ]);
         // returns: object, object, boolean, string
         return {
-            'requestKey': requestKey,
-            'requestValue': requestValue,
+            'setRequestTifKey': setRequestTifKey,
+            'setRequestTifValue': setRequestTifValue,
             'params': paramsOmited,
             'isPostOnly': isAnyPo,
             'timeInForce': providedTifUnifiedValue,
