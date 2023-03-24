@@ -26,10 +26,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             },
             'urls': {
                 'api': {
-                    'ws': {
-                        'public': 'wss://ws.poloniex.com/ws/public',
-                        'private': 'wss://ws.poloniex.com/ws/private',
-                    },
+                    'ws': 'wss://futures-apiws.poloniex.com',
                 },
             },
             'options': {
@@ -697,42 +694,33 @@ export default class poloniexfutures extends poloniexfuturesRest {
     handleTicker (client, message) {
         //
         //    {
-        //        channel: 'ticker',
-        //        data: [
-        //            {
-        //                symbol: 'BTC_USDT',
-        //                startTime: 1677280800000,
-        //                open: '23154.32',
-        //                high: '23212.21',
-        //                low: '22761.01',
-        //                close: '23148.86',
-        //                quantity: '105.179566',
-        //                amount: '2423161.17436702',
-        //                tradeCount: 17582,
-        //                dailyChange: '-0.0002',
-        //                markPrice: '23151.09',
-        //                closeTime: 1677367197924,
-        //                ts: 1677367251090
-        //            }
-        //        ]
+        //        "subject": "ticker",
+        //        "topic": "/contractMarket/ticker:BTCUSDTPERP",
+        //        "data": {
+        //            "symbol": "BTCUSDTPERP",                    // Market of the symbol
+        //            "sequence": 45,                             // Sequence number which is used to judge the continuity of the pushed messages
+        //            "side": "sell",                             // Transaction side of the last traded taker order
+        //            "price": 3600.00,                           // Filled price
+        //            "size": 16,                                 // Filled quantity
+        //            "tradeId": "5c9dcf4170744d6f5a3d32fb",      // Order ID
+        //            "bestBidSize": 795,                         // Best bid size
+        //            "bestBidPrice": 3200.00,                    // Best bid
+        //            "bestAskPrice": 3600.00,                    // Best ask size
+        //            "bestAskSize": 284,                         // Best ask
+        //            "ts": 1553846081210004941                   // Filled time - nanosecond
+        //       }
         //    }
         //
-        const data = this.safeValue (message, 'data');
-        if (data !== undefined) {
-            for (let i = 0; i < data.length; i++) {
-                const item = data[i];
-                const marketId = this.safeString (item, 'symbol');
-                if (marketId !== undefined) {
-                    const ticker = this.parseTicker (item);
-                    const symbol = ticker['symbol'];
-                    this.tickers[symbol] = ticker;
-                    const messageHash = 'ticker:' + marketId;
-                    client.resolve (ticker, messageHash);
-                }
-            }
-            client.resolve (this.tickers, 'ticker');
-            return message;
+        const data = this.safeValue (message, 'data', {});
+        const marketId = this.safeString (data, 'symbol');
+        if (marketId !== undefined) {
+            const ticker = this.parseTicker (data);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
+            const messageHash = 'ticker:' + marketId;
+            client.resolve (ticker, messageHash);
         }
+        return message;
     }
 
     handleOrderBook (client, message) {
