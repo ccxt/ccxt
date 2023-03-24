@@ -188,17 +188,17 @@ export default class Exchange {
     timeout       = 10000 // milliseconds
     verbose       = false
     debug         = false
-    userAgent     = undefined
+    userAgent: { 'User-Agent': string } | false = undefined;
     twofa         = undefined // two-factor authentication (2FA)
 
     apiKey: string;
     secret: string;
     uid: string;
-    login         = undefined
-    password
-    privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
-    walletAddress = undefined // a wallet address "0x"-prefixed hexstring
-    token         = undefined // reserved for HTTP auth in some cases
+    login:string;
+    password: string;
+    privateKey: string;// a "0x"-prefixed hexstring private key for a wallet
+    walletAddress: string; // a wallet address "0x"-prefixed hexstring
+    token: string; // reserved for HTTP auth in some cases
 
     balance      = {}
     orderbooks   = {}
@@ -252,10 +252,10 @@ export default class Exchange {
         walletAddress: boolean;
         token: boolean;
     };
-    rateLimit = undefined
+    rateLimit: number = undefined; // milliseconds
     tokenBucket = undefined
     throttle = undefined
-    enableRateLimit = undefined
+    enableRateLimit: boolean = undefined;
 
     httpExceptions = undefined
 
@@ -265,11 +265,11 @@ export default class Exchange {
         leverage?: MinMax,
         price?: MinMax,
     };
-    fees = undefined
-    markets_by_id: Dictionary<any> = undefined
-    symbols = undefined
-    ids: string[] = undefined
-    currencies: Dictionary<Currency> = undefined
+    fees: object;
+    markets_by_id: Dictionary<any> = undefined;
+    symbols: string[] = undefined;
+    ids: string[] = undefined;
+    currencies: Dictionary<Currency> = undefined;
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
@@ -284,21 +284,21 @@ export default class Exchange {
 
     commonCurrencies = undefined
 
-    hostname = undefined
+    hostname: string = undefined;
 
-    precisionMode = undefined
+    precisionMode: number = undefined;
     paddingMode = undefined
 
     exceptions = {}
     timeframes: Dictionary<number | string> = {}
 
-    version = undefined
+    version: string = undefined;
 
     marketsByAltname = undefined
 
-    name = undefined
+    name:string = undefined
 
-    lastRestRequestTimestamp = undefined
+    lastRestRequestTimestamp:number;
 
     targetAccount = undefined
 
