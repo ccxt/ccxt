@@ -724,7 +724,7 @@ class bitflyer extends Exchange {
         $request = array(
             'product_code' => $this->market_ids($symbols),
         );
-        $response = $this->privateGetpositions (array_merge($request, $params));
+        $response = $this->privateGetGetpositions (array_merge($request, $params));
         //
         //     array(
         //         {

@@ -1002,7 +1002,7 @@ class bitopro extends Exchange {
         if ($postOnly) {
             $request['timeInForce'] = 'POST_ONLY';
         }
-        $response = $this->privatePostOrdersPair (array_merge($request, $params), $params);
+        $response = $this->privatePostOrdersPair (array_merge($request, $params));
         //
         //     {
         //         orderId => '2220595581',

@@ -2925,7 +2925,7 @@ class kucoin(Exchange):
         request = {
             'currency': currency['id'],
         }
-        response = await self.privateGetMarginTradeLast(self.extend(request, params))
+        response = await self.publicGetMarginTradeLast(self.extend(request, params))
         #
         #     {
         #         "code": "200000",

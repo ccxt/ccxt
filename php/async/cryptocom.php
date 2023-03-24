@@ -360,6 +360,7 @@ class cryptocom extends Exchange {
              * @return {[array]} an array of objects representing market data
              */
             $promises = array( $this->fetch_spot_markets($params), $this->fetch_derivatives_markets($params) );
+            // @ts-ignore
             $promises = Async\await(Promise\all($promises));
             $spotMarkets = $promises[0];
             $derivativeMarkets = $promises[1];

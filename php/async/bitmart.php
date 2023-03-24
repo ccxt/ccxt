@@ -2414,7 +2414,7 @@ class bitmart extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privateAccountGetDepositWithdrawDetail (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountV1DepositWithdrawDetail (array_merge($request, $params)));
             //
             //     {
             //         "message":"OK",

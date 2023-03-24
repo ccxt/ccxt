@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var wazirx$1 = require('./abstract/wazirx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-class wazirx extends Exchange["default"] {
+// @ts-expect-error
+class wazirx extends wazirx$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'wazirx',

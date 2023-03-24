@@ -1678,7 +1678,7 @@ class digifinex(Exchange):
             'market': orderType,
             'order_id': ','.join(ids),
         }
-        response = await self.privateSpotPostCancelOrder(self.extend(request, params))
+        response = await self.privateSpotPostSpotOrderCancel(self.extend(request, params))
         #
         #     {
         #         "code": 0,

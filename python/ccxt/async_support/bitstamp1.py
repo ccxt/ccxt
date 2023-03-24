@@ -343,11 +343,7 @@ class bitstamp1(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        pair = market['id'] if market else 'all'
-        request = {
-            'id': pair,
-        }
-        response = await self.privatePostOpenOrdersId(self.extend(request, params))
+        response = await self.privatePostUserTransactions(params)
         return self.parse_trades(response, market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

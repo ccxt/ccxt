@@ -1762,7 +1762,7 @@ class digifinex extends digifinex$1 {
             'market': orderType,
             'order_id': ids.join(','),
         };
-        const response = await this.privateSpotPostCancelOrder(this.extend(request, params));
+        const response = await this.privateSpotPostSpotOrderCancel(this.extend(request, params));
         //
         //     {
         //         "code": 0,

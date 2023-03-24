@@ -1013,7 +1013,7 @@ class bitopro extends bitopro$1 {
         if (postOnly) {
             request['timeInForce'] = 'POST_ONLY';
         }
-        const response = await this.privatePostOrdersPair(this.extend(request, params), params);
+        const response = await this.privatePostOrdersPair(this.extend(request, params));
         //
         //     {
         //         orderId: '2220595581',

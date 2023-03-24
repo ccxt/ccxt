@@ -3131,7 +3131,7 @@ class kucoin extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privateGetMarginTradeLast (array_merge($request, $params)));
+            $response = Async\await($this->publicGetMarginTradeLast (array_merge($request, $params)));
             //
             //     {
             //         "code" => "200000",

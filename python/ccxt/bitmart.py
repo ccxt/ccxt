@@ -2250,7 +2250,7 @@ class bitmart(Exchange):
         request = {
             'id': id,
         }
-        response = self.privateAccountGetDepositWithdrawDetail(self.extend(request, params))
+        response = self.privateGetAccountV1DepositWithdrawDetail(self.extend(request, params))
         #
         #     {
         #         "message":"OK",

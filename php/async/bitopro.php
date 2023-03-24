@@ -1026,7 +1026,7 @@ class bitopro extends Exchange {
             if ($postOnly) {
                 $request['timeInForce'] = 'POST_ONLY';
             }
-            $response = Async\await($this->privatePostOrdersPair (array_merge($request, $params), $params));
+            $response = Async\await($this->privatePostOrdersPair (array_merge($request, $params)));
             //
             //     {
             //         orderId => '2220595581',

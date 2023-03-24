@@ -657,7 +657,7 @@ class btcmarkets extends btcmarkets$1 {
         const request = {
             'id': market['id'],
         };
-        const response = await this.publicGetMarketIdTick(this.extend(request, params));
+        const response = await this.publicGetMarketsMarketIdTicker(this.extend(request, params));
         return this.parseTicker(response, market);
     }
     parseTrade(trade, market = undefined) {

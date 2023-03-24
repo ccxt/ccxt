@@ -601,7 +601,7 @@ export default class tokocrypto extends Exchange {
          * @param {object} params extra parameters specific to the tokocrypto api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetTime(params);
+        const response = await this.publicGetOpenV1CommonTime(params);
         //
         //
         //

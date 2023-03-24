@@ -737,7 +737,7 @@ export default class bitflyer extends Exchange {
         const request = {
             'product_code': this.marketIds(symbols),
         };
-        const response = await this.privateGetpositions(this.extend(request, params));
+        const response = await this.privateGetGetpositions(this.extend(request, params));
         //
         //     [
         //         {

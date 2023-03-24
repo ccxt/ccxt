@@ -686,7 +686,7 @@ class bitflyer(Exchange):
         request = {
             'product_code': self.market_ids(symbols),
         }
-        response = await self.privateGetpositions(self.extend(request, params))
+        response = await self.privateGetGetpositions(self.extend(request, params))
         #
         #     [
         #         {
