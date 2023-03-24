@@ -29,7 +29,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import InvalidAddress
 from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES
 
 # -----------------------------------------------------------------------------
