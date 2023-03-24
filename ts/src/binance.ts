@@ -1412,7 +1412,7 @@ export default class binance extends Exchange {
         });
     }
 
-    isInverse (type, subType = undefined) {
+    isInverse (type: string, subType = undefined): boolean {
         if (subType === undefined) {
             return type === 'delivery';
         } else {
@@ -1420,7 +1420,7 @@ export default class binance extends Exchange {
         }
     }
 
-    isLinear (type, subType = undefined) {
+    isLinear (type: string, subType = undefined): boolean {
         if (subType === undefined) {
             return (type === 'future') || (type === 'swap');
         } else {
@@ -1505,7 +1505,7 @@ export default class binance extends Exchange {
         };
     }
 
-    market (symbol) {
+    market (symbol: string): Market {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
