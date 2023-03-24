@@ -2403,7 +2403,7 @@ export default class bitmart extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateAccountGetDepositWithdrawDetail (this.extend (request, params));
+        const response = await this.privateGetAccountV1DepositWithdrawDetail (this.extend (request, params));
         //
         //     {
         //         "message":"OK",

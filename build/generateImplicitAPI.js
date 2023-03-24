@@ -6,7 +6,6 @@ import log from 'ololog'
 const PATH = './ts/src/abstract/';
 const IDEN = '    ';
 
-const promiseReadFile = promisify (fs.readFile);
 const promisedWriteFile = promisify(fs.writeFile);
 
 function isHttpMethod(method){
@@ -47,14 +46,12 @@ function generateImplicitMethodNames(id, api, paths = []){
                 }
             }
             for (const endpoint of endpoints){
-                const input = paths.join("/")  + "/" + key + "/" + endpoint;
                 const pattern = /[^a-zA-Z0-9]/g;
-                const result = input.split(pattern);
+                const result = paths.concat (key).concat (endpoint.split(pattern));
                 let completePath = result.filter(r => r.length > 0).map(capitalize).join('');
                 completePath = lowercaseFirstLetter(completePath);
                 storedResult[id].push(completePath)
             }
-
         } else {
             generateImplicitMethodNames(id, value, paths.concat([ key ]))
         }
@@ -94,6 +91,11 @@ async function main() {
         const exchange = exchanges[index];
         const exchangeClass = ccxt[exchange]
         const instance = new exchangeClass();
+        let api = instance.api
+        if (exchange in ccxt.pro) {
+            const proInstance = new ccxt.pro[exchange] ()
+            api = proInstance.api
+        }
         const parent = Object.getPrototypeOf (Object.getPrototypeOf(instance)).constructor.name
         const importType = 'import { implicitReturnType } from \'../base/types.js\''
         const importParent = (parent === 'Exchange') ?
@@ -102,7 +104,7 @@ async function main() {
         const header = `export default abstract class ${parent} extends _${parent} {` // hotswap later
         storedResult[exchange] = []
         storedMethods[exchange] = [ importType, importParent, '', header ];
-        generateImplicitMethodNames(exchange, instance.api)
+        generateImplicitMethodNames(exchange, api)
     }
     createImplicitMethods()
     await editTypesFiles();

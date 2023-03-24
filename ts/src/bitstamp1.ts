@@ -374,11 +374,7 @@ export default class bitstamp1 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const pair = market ? market['id'] : 'all';
-        const request = {
-            'id': pair,
-        };
-        const response = await this.privatePostOpenOrdersId (this.extend (request, params));
+        const response = await this.privatePostUserTransactions (params);
         return this.parseTrades (response, market, since, limit);
     }
 

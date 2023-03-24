@@ -72,4 +72,6 @@ export default abstract class Exchange extends _Exchange {
     abstract privateDeleteOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     abstract privateDeleteWithdrawalsWithdrawalId (params?: {}): Promise<implicitReturnType>;
     abstract privateDeleteConditionalOrdersConditionalOrderId (params?: {}): Promise<implicitReturnType>;
+    abstract signalrGetNegotiate (params?: {}): Promise<implicitReturnType>;
+    abstract signalrGetStart (params?: {}): Promise<implicitReturnType>;
 }

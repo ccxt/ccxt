@@ -1,9 +1,10 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/wazirx.js';
 import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
+// @ts-expect-error
 export default class wazirx extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
