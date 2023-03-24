@@ -3433,7 +3433,7 @@ export default class bybit extends Exchange {
         if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
         }
-        let request = {
+        const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
             'orderType': this.capitalize (lowerCaseType), // limit or market
@@ -3485,14 +3485,15 @@ export default class bybit extends Exchange {
         } else {
             request['qty'] = this.amountToPrecision (symbol, amount);
         }
-        const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
         if (isLimit) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const handledTif = this.handlePoTif ('unified', isMarket, params);
+        const handledTif = this.handlePoTif ('unified', lowerCaseType, params);
         params = handledTif['params'];
-        request = this.extend (request, handledTif['requestExtend']);
+        if (handledTif['requestKey'] !== undefined) {
+            request[handledTif['requestKey']] = handledTif['requestValue'];
+        }
         let triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');

@@ -3742,13 +3742,15 @@ export default class Exchange {
         return [ false, params ];
     }
 
-    handlePoTif (accountMarketType: string, isMarketOrder: boolean, params: any = {}) {
+    handlePoTif (accountMarketType: string, orderType: string, params: any = {}) {
         // our unified strings
         const unifiedTifKey = 'timeInForce';
         const unifiedTifKey_IOC = 'IOC';
         const unifiedTifKey_FOK = 'FOK';
         const unifiedTifKey_PO = 'PO';
-        // const unifiedTifKey_GTC = 'GTC';
+        const unifiedTifKey_GTC = 'GTC';
+        //
+        const isMarketOrder = orderType === 'market';
         // get exchange TIF mappings
         const tifOptionsAllMarkets = this.safeValue (this.options, 'timeInForceMap', {});
         // accountMarketType might 'spot', 'swap', 'unified', 'whatever_custom' ...
@@ -3756,24 +3758,30 @@ export default class Exchange {
         // get exchangeSpecific TIF key
         const exchangeSpecificTifKey = this.safeString (tifOptions, 'exchangeSpecificKey');
         // get unified-to-exchangeSpecific TIF values map
-        const exchangeSpecificTifMap = this.safeValue (tifOptions, 'strings');
+        const tifMapUnifiedToEx = this.safeValue (tifOptions, 'strings');
         // get exchangeSpecific-to-unified TIF values map
-        let exchangeSpecificToUnifiedTifMap = this.safeValue (tifOptions, 'stringsReversed');
-        if (exchangeSpecificToUnifiedTifMap === undefined) {
+        let tifMapExToUnified = this.safeValue (tifOptions, 'stringsReversed');
+        if (tifMapExToUnified === undefined) {
             // only create if TIF tree exists
-            if (exchangeSpecificTifMap !== undefined) {
+            if (tifMapUnifiedToEx !== undefined) {
                 // automatically inverse (only once per instance lifetime)
-                exchangeSpecificToUnifiedTifMap = this.invertStringDictionary (exchangeSpecificTifMap);
-                this.options['timeInForceMap'][accountMarketType]['stringsReversed'] = exchangeSpecificToUnifiedTifMap;
+                tifMapExToUnified = this.invertStringDictionary (tifMapUnifiedToEx);
+                this.options['timeInForceMap'][accountMarketType]['stringsReversed'] = tifMapExToUnified;
             }
         }
         // unified or exchangeSpecific TIF value (if set in PARAMS)
-        const providedTifValue = this.safeString2 (params, exchangeSpecificTifKey, unifiedTifKey);
+        let providedTifValue = this.safeString2 (params, exchangeSpecificTifKey, unifiedTifKey);
+        if (providedTifValue === undefined) {
+            // support for TIF values in orderType i.e. OKX, where you can `.createOrder ('BTC/USDT', 'ioc', 'buy', ...)`
+            if (orderType in tifMapUnifiedToEx) {
+                providedTifValue = orderType;
+            }
+        }
         // exchangeSpecific values for different TIME IN FORCE values
-        const exTifValue_IOC = this.safeString (exchangeSpecificTifMap, unifiedTifKey_IOC);
-        const exTifValue_FOK = this.safeString (exchangeSpecificTifMap, unifiedTifKey_FOK);
-        const exTifValue_PO = this.safeString (exchangeSpecificTifMap, unifiedTifKey_PO);
-        // const exTifValue_GTC = this.safeString (exchangeSpecificTifMap, unifiedTifKey_GTC);
+        const exTifValue_IOC = this.safeString (tifMapUnifiedToEx, unifiedTifKey_IOC);
+        const exTifValue_FOK = this.safeString (tifMapUnifiedToEx, unifiedTifKey_FOK);
+        const exTifValue_PO = this.safeString (tifMapUnifiedToEx, unifiedTifKey_PO);
+        const exTifValue_GTC = this.safeString (tifMapUnifiedToEx, unifiedTifKey_GTC);
         //
         // ############### STRING TIF CHECK ############### //
         //
@@ -3781,7 +3789,8 @@ export default class Exchange {
         const is_TIF_IOC = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ unifiedTifKey_IOC, exTifValue_IOC ]);
         const is_TIF_FOK = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ unifiedTifKey_FOK, exTifValue_FOK ]);
         const is_TIF_PO = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ unifiedTifKey_PO, exTifValue_PO ]);
-        // const is_TIF_GTC = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ unifiedTifKey_GTC, exTifValue_GTC ]);
+        // eslint-disable-next-line no-unused-vars
+        const is_TIF_GTC = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ unifiedTifKey_GTC, exTifValue_GTC ]);
         //
         // ############### BOOLEAN CHECK ############### //
         //
@@ -3807,7 +3816,8 @@ export default class Exchange {
         if (providedPoValue === false && is_TIF_PO) {
             throw new InvalidOrder (this.id + ' if postOnly is set to false, timeInForce can not be postOnly value');
         }
-        const requestAddition = {};
+        let requestKey = undefined;
+        let requestValue = undefined;
         const isAnyPo = is_TIF_PO || is_BOOL_PO;
         if (isAnyPo) {
             if (is_TIF_IOC || is_TIF_FOK) {
@@ -3816,22 +3826,26 @@ export default class Exchange {
                 throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
             } else {
                 if (exchangeSpecificBoolPo) {
-                    requestAddition[exchangeSpecificPoKey] = true;
+                    requestKey = exchangeSpecificPoKey;
+                    requestValue = true;
                 } else if (exTifValue_PO !== undefined) {
-                    requestAddition[exchangeSpecificTifKey] = exTifValue_PO;
+                    requestKey = exchangeSpecificTifKey;
+                    requestValue = exTifValue_PO;
                 }
             }
         }
         let providedTifUnifiedValue = undefined;
         if (providedTifValue !== undefined) {
-            const tifValueToSend = this.safeString (exchangeSpecificTifMap, providedTifValue, providedTifValue);
-            requestAddition[exchangeSpecificTifKey] = tifValueToSend;
-            providedTifUnifiedValue = this.safeString (exchangeSpecificToUnifiedTifMap, providedTifValue);
+            const tifValueToSend = this.safeString (tifMapUnifiedToEx, providedTifValue, providedTifValue);
+            requestKey = exchangeSpecificTifKey;
+            requestValue = tifValueToSend;
+            providedTifUnifiedValue = this.safeString (tifMapExToUnified, providedTifValue);
         }
         const paramsOmited = this.omit (params, [ 'postOnly', 'post_only', exchangeSpecificPoKey, exchangeSpecificTifKey, unifiedTifKey ]);
         // returns: object, object, boolean, string
         return {
-            'requestAddition': requestAddition,
+            'requestKey': requestKey,
+            'requestValue': requestValue,
             'params': paramsOmited,
             'isPostOnly': isAnyPo,
             'timeInForce': providedTifUnifiedValue,
