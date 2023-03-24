@@ -405,88 +405,29 @@ export default class coinbase extends coinbaseRest {
         //        ]
         //    }
         //
-        let orders = this.orders;
-        if (orders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            orders = new ArrayCacheBySymbolById (limit);
-            this.orders = orders;
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const type = this.safeString (message, 'type');
-        const marketId = this.safeString (message, 'product_id');
-        if (marketId !== undefined) {
-            const messageHash = 'orders:' + marketId;
-            const symbol = this.safeSymbol (marketId);
-            const orderId = this.safeString (message, 'order_id');
-            const makerOrderId = this.safeString (message, 'maker_order_id');
-            const takerOrderId = this.safeString (message, 'taker_order_id');
-            const orders = this.orders;
-            const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-            let previousOrder = this.safeValue (previousOrders, orderId);
-            if (previousOrder === undefined) {
-                previousOrder = this.safeValue2 (previousOrders, makerOrderId, takerOrderId);
-            }
-            if (previousOrder === undefined) {
-                const parsed = this.parseWsOrder (message);
-                orders.append (parsed);
-                client.resolve (orders, messageHash);
-            } else {
-                const sequence = this.safeInteger (message, 'sequence');
-                const previousInfo = this.safeValue (previousOrder, 'info', {});
-                const previousSequence = this.safeInteger (previousInfo, 'sequence');
-                if ((previousSequence === undefined) || (sequence > previousSequence)) {
-                    if (type === 'match') {
-                        const trade = this.parseTrade (message);
-                        if (previousOrder['trades'] === undefined) {
-                            previousOrder['trades'] = [];
-                        }
-                        previousOrder['trades'].push (trade);
-                        previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                        let totalCost = 0;
-                        let totalAmount = 0;
-                        const trades = previousOrder['trades'];
-                        for (let i = 0; i < trades.length; i++) {
-                            const trade = trades[i];
-                            totalCost = this.sum (totalCost, trade['cost']);
-                            totalAmount = this.sum (totalAmount, trade['amount']);
-                        }
-                        if (totalAmount > 0) {
-                            previousOrder['average'] = totalCost / totalAmount;
-                        }
-                        previousOrder['cost'] = totalCost;
-                        if (previousOrder['filled'] !== undefined) {
-                            previousOrder['filled'] += trade['amount'];
-                            if (previousOrder['amount'] !== undefined) {
-                                previousOrder['remaining'] = previousOrder['amount'] - previousOrder['filled'];
-                            }
-                        }
-                        if (previousOrder['fee'] === undefined) {
-                            previousOrder['fee'] = {
-                                'cost': 0,
-                                'currency': trade['fee']['currency'],
-                            };
-                        }
-                        if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                            previousOrder['fee']['cost'] = this.sum (previousOrder['fee']['cost'], trade['fee']['cost']);
-                        }
-                        // update the newUpdates count
-                        orders.append (previousOrder);
-                        client.resolve (orders, messageHash);
-                    } else if ((type === 'received') || (type === 'done')) {
-                        const info = this.extend (previousOrder['info'], message);
-                        const order = this.parseWsOrder (info);
-                        const keys = Object.keys (order);
-                        // update the reference
-                        for (let i = 0; i < keys.length; i++) {
-                            const key = keys[i];
-                            if (order[key] !== undefined) {
-                                previousOrder[key] = order[key];
-                            }
-                        }
-                        // update the newUpdates count
-                        orders.append (previousOrder);
-                        client.resolve (orders, messageHash);
-                    }
+        const myOrders = this.orders;
+        const events = this.safeValue (message, 'events');
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
+            const orders = this.safeValue (event, 'orders', []);
+            const parsedOrders = {};
+            for (let i = 0; i < orders.length; i++) {
+                const order = this.parseWsOrder (orders[i]);
+                const marketId = order['symbol'];
+                if (!(marketId in parsedOrders)) {
+                    parsedOrders[marketId] = {};
                 }
+                myOrders.append (order);
+            }
+            const orderKeys = Object.keys (parsedOrders);
+            for (let i = 0; i < orderKeys.length; i++) {
+                const marketId = orderKeys[i];
+                const messageHash = 'user:' + marketId;
+                client.resolve (orders, messageHash);
             }
         }
     }
