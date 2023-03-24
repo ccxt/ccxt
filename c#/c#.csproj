@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- <Nullable>enable</Nullable> -->
     <Nullable>disable</Nullable>
+    <NoWarn>1998,CS0168</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="*"/>

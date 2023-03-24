@@ -14,7 +14,7 @@ public partial class Exchange
     public object currencies { get; set; } = new dict();
     public object fees { get; set; } = new dict();
     public object requiredCredentials { get; set; } = new dict();
-    public object timeframes { get; set; } = new list();
+    public object timeframes { get; set; } = new dict();
     public object rateLimit { get; set; } = new dict();
     public object exceptions { get; set; } = new dict();
     public object urls { get; set; } = new dict();

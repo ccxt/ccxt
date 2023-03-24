@@ -323,7 +323,7 @@ public partial class Exchange
         {
             return null;
         }
-        var startdatetime = (Int64)ts;
+        var startdatetime = Convert.ToInt64(ts);
         var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
         return date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
 
@@ -340,7 +340,7 @@ public partial class Exchange
         {
             return null;
         }
-        var startdatetime = (Int64)ts;
+        var startdatetime = Convert.ToInt64(ts);
         var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
         return date.ToString("yyyy" + infix + "MM" + infix + "dd HH:mm:ss");
 
@@ -357,7 +357,7 @@ public partial class Exchange
         {
             return null;
         }
-        var startdatetime = (Int64)ts;
+        var startdatetime = Convert.ToInt64(ts);
         var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
         return date.ToString("yyyy" + infix + "MM" + infix + "dd");
     }
@@ -373,9 +373,19 @@ public partial class Exchange
         {
             return null;
         }
-        var startdatetime = (Int64)ts;
-        var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
-        return date.ToString("yy" + infix + "MM" + infix + "dd");
+        object startdatetime = null;
+        var date = "";
+        try
+        {
+            startdatetime = Convert.ToInt64(ts);
+            var tmp = (new DateTime(1970, 1, 1)).AddMilliseconds((Int64)startdatetime);
+            date = tmp.ToString("yy" + infix + "MM" + infix + "dd");
+        }
+        catch (Exception e)
+        {
+
+        }
+        return date;
     }
 
     public object ymd(object ts, object infix = null)
@@ -389,7 +399,7 @@ public partial class Exchange
         {
             return null;
         }
-        var startdatetime = (Int64)ts;
+        var startdatetime = Convert.ToInt64(ts);
         var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
         return date.ToString("yyyy" + infix + "MM" + infix + "dd");
     }
@@ -415,20 +425,32 @@ public partial class Exchange
         return outList;
     }
 
-    public List<object> arrayConcat(object aa, object bb)
+    public object arrayConcat(object aa, object bb)
     {
-        var a = (List<object>)aa;
-        var b = (List<object>)bb;
-        var outList = new List<object>();
-        foreach (object elem in a)
+        if (aa.GetType() == typeof(List<object>))
         {
-            outList.Add(elem);
+            var a = (List<object>)aa;
+            var b = (List<object>)bb;
+            var outList = new List<object>();
+            foreach (object elem in a)
+                outList.Add(elem);
+            foreach (object elem in b)
+                outList.Add(elem);
+            return outList;
         }
-        foreach (object elem in b)
+
+        if (aa.GetType() == typeof(List<Task<object>>))
         {
-            outList.Add(elem);
+            var a = (List<Task<object>>)aa;
+            var b = (List<Task<object>>)bb;
+            var outList = new List<Task<object>>();
+            foreach (var elem in a)
+                outList.Add(elem);
+            foreach (var elem in b)
+                outList.Add(elem);
+            return outList;
         }
-        return outList;
+        return null;
     }
 
     public object omitZero(object value)
@@ -436,6 +458,20 @@ public partial class Exchange
         if (value is double)
         {
             if ((double)value == 0.0)
+            {
+                return null;
+            }
+        }
+        if (value is Int64)
+        {
+            if ((Int64)value == 0)
+            {
+                return null;
+            }
+        }
+        if (value is string)
+        {
+            if ((string)value == "0")
             {
                 return null;
             }

@@ -9,6 +9,18 @@ public partial class Exchange
 {
 
     // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient
+
+    public object normalizeIntIfNeeded(object a)
+    {
+        if (a == null)
+            return null;
+
+        if (a.GetType() == typeof(int))
+        {
+            return System.Convert.ToInt64(a);
+        }
+        return a;
+    }
     public object postFixIncrement(ref object a)
     {
         if (a.GetType() == typeof(Int64))
@@ -86,6 +98,10 @@ public partial class Exchange
 
     public object plusEqual(object a, object value)
     {
+
+        a = normalizeIntIfNeeded(a);
+        value = normalizeIntIfNeeded(value);
+
         if (value == null)
             return null;
         if (a.GetType() == typeof(Int64))
@@ -123,18 +139,16 @@ public partial class Exchange
             return false;
         }
 
-        var i = 1;
-        double d = 1.0;
-        var s = i == d;
+        value = normalizeIntIfNeeded(value);
 
         // return value != null && value != false && value != 0 && value != "" && value != "0" && value != "false" && value != "False" && value != "FALSE";
         if (value.GetType() == typeof(bool))
         {
             return (bool)value;
         }
-        else if (value.GetType() == typeof(int))
+        else if (value.GetType() == typeof(Int64))
         {
-            return (int)value != 0;
+            return (Int64)value != 0;
         }
         else if (value.GetType() == typeof(double))
         {
@@ -172,6 +186,10 @@ public partial class Exchange
 
     public bool isEqual(object a, object b)
     {
+
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+
         if (a == null && b == null)
         {
             return true;
@@ -206,6 +224,10 @@ public partial class Exchange
         {
             return ((string)a) == ((string)b);
         }
+        else if (a.GetType() == typeof(bool))
+        {
+            return ((bool)a) == ((bool)b);
+        }
         else
         {
             return false;
@@ -222,6 +244,10 @@ public partial class Exchange
         {
             return false;
         }
+
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+
         if (a.GetType() == typeof(Int64))
         {
             return (Int64)a > (Int64)b;
@@ -269,6 +295,9 @@ public partial class Exchange
         if (a.GetType() != b.GetType())
             return null;
 
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+
         if (a.GetType() == typeof(string) || a.GetType() == typeof(Int64) || a.GetType() == typeof(int))
             return ((int)a) % ((int)b);
 
@@ -279,6 +308,9 @@ public partial class Exchange
 
     public object add(object a, object b)
     {
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+
         if (a.GetType() == typeof(Int64))
         {
             return (Int64)a + (Int64)b;
@@ -336,9 +368,17 @@ public partial class Exchange
 
     public object subtract(object a, object b)
     {
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+
+        // subtract logic
         if (a.GetType() == typeof(Int64))
         {
             return (Int64)a - (Int64)b;
+        }
+        else if (a.GetType() == typeof(int))
+        {
+            return (int)a - (int)b;
         }
         else if (a.GetType() == typeof(double))
         {
@@ -362,6 +402,9 @@ public partial class Exchange
 
     public object divide(object a, object b)
     {
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+
         if (a.GetType() == typeof(Int64))
         {
             return (Int64)a / (Int64)b;
@@ -378,6 +421,8 @@ public partial class Exchange
 
     public object multiply(object a, object b)
     {
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
         if (a.GetType() == typeof(Int64))
         {
             return (Int64)a * (Int64)b;
@@ -415,6 +460,8 @@ public partial class Exchange
 
     public object mathMin(object a, object b)
     {
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
         if (a.GetType() == typeof(Int64))
         {
             return Math.Min((Int64)a, (Int64)b);
@@ -431,6 +478,8 @@ public partial class Exchange
 
     public object mathMax(object a, object b)
     {
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
         if (a.GetType() == typeof(Int64))
         {
             return Math.Max((Int64)a, (Int64)b);
@@ -461,9 +510,9 @@ public partial class Exchange
         }
     }
 
-    public int parseInt(object a)
+    public object parseInt(object a)
     {
-        return int.Parse((string)a);
+        return Int64.Parse((string)a);
     }
 
     public float parseFloat(object a)
@@ -546,7 +595,7 @@ public partial class Exchange
 
     public async Task<List<object>> promiseAll(object promisesObj)
     {
-        var promises = (List<Task<object>>)promisesObj;
+        var promises = (List<object>)promisesObj;
         var tasks = new List<Task<object>>();
         foreach (var promise in promises)
         {

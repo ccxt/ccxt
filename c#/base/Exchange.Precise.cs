@@ -1,5 +1,6 @@
 using System.Text;
 using System.Security.Cryptography;
+using System.Globalization;
 
 namespace Main;
 
@@ -21,19 +22,35 @@ public partial class Exchange
         }
         static public string stringMul(object a, object b)
         {
-            return (float.Parse((string)a) * float.Parse((string)b)).ToString(); // tmp
+            if (a == null || b == null)
+                return null;
+            var first = float.Parse((string)a, CultureInfo.InvariantCulture);
+            var second = float.Parse((string)b, CultureInfo.InvariantCulture);
+            return (first * second).ToString();// tmp
         }
         static public string stringSub(object a, object b)
         {
-            return (float.Parse((string)a) - float.Parse((string)b)).ToString(); // tmp
+            if (a == null || b == null)
+                return null;
+            var first = float.Parse((string)a, CultureInfo.InvariantCulture);
+            var second = float.Parse((string)b, CultureInfo.InvariantCulture);
+            return (first - second).ToString();// tmp
         }
         static public string stringAdd(object a, object b)
         {
-            return (float.Parse((string)a) + float.Parse((string)b)).ToString(); // tmp
+            if (a == null || b == null)
+                return null;
+            var first = float.Parse((string)a, CultureInfo.InvariantCulture);
+            var second = float.Parse((string)b, CultureInfo.InvariantCulture);
+            return (first + second).ToString();// tmp
         }
         static public string stringDiv(object a, object b, object c = null)
         {
-            return (float.Parse((string)a) / float.Parse((string)b)).ToString(); // tmp
+            if (a == null || b == null)
+                return null;
+            var first = float.Parse((string)a, CultureInfo.InvariantCulture);
+            var second = float.Parse((string)b, CultureInfo.InvariantCulture);
+            return (first / second).ToString();// tmp
         }
         static public bool stringGt(object a, object b)
         {

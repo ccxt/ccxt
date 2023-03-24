@@ -94,26 +94,62 @@ public partial class Exchange
         defaultValue ??= 0;
         multiplier ??= 1;
         var result = safeValueN(obj, new List<object> { key }, defaultValue);
-        return result == null ? defaultValue : (Convert.ToInt64(result) * Convert.ToInt64(multiplier));
+        object parsedValue = null;
+        try
+        {
+            parsedValue = (Convert.ToInt64(result) * Convert.ToInt64(multiplier));
+        }
+        catch (Exception e)
+        {
+
+        }
+        return parsedValue == null ? defaultValue : parsedValue;
     }
 
     public object safeIntegerProduct2(object obj, object key1, object key2, object defaultValue = null, object multiplier = null)
     {
         var result = safeValueN(obj, new List<object> { key1, key2 }, defaultValue);
-        return result == null ? defaultValue : (Convert.ToInt64(result) * Convert.ToInt64(multiplier));
+        object parsedValue = null;
+        try
+        {
+            parsedValue = (Convert.ToInt64(result) * Convert.ToInt64(multiplier));
+        }
+        catch (Exception e)
+        {
+
+        }
+        return parsedValue == null ? defaultValue : parsedValue;
     }
 
     public object safeIntegerN(object obj, List<object> keys, object defaultValue = null)
     {
         defaultValue ??= 0;
         var result = safeValueN(obj, keys, defaultValue);
-        return result == null ? defaultValue : (Convert.ToInt64(result));
+        object parsedValue = null;
+        try
+        {
+            parsedValue = Convert.ToInt64(result);
+        }
+        catch (Exception e)
+        {
+
+        }
+        return parsedValue == null ? defaultValue : parsedValue;
     }
 
     public object safeStringN(object obj, object keys, object defaultValue = null)
     {
         var result = safeValueN(obj, keys, defaultValue);
-        return result == null ? defaultValue : (result).ToString();
+        var returnResult = result == null ? defaultValue : (result).ToString();
+        if (returnResult != null)
+        {
+            var stringRest = (string)returnResult;
+            if (stringRest.Length > 0)
+            {
+                return stringRest;
+            }
+        }
+        return defaultValue;
     }
 
 
@@ -121,7 +157,16 @@ public partial class Exchange
     {
         defaultValue ??= -1;
         var result = safeValueN(obj, keys, defaultValue);
-        return result == null ? defaultValue : Convert.ToSingle(result);
+        object parsedValue = null;
+        try
+        {
+            parsedValue = Convert.ToSingle(result);
+        }
+        catch (Exception e)
+        {
+
+        }
+        return parsedValue == null ? defaultValue : Convert.ToSingle(result);
     }
 
     public object safeValueN(object obj, object keys2, object defaultValue = null)
