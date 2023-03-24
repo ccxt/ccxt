@@ -1455,8 +1455,8 @@ export default class bybit extends Exchange {
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {
                 params['cursor'] = paginationCursor;
-                const response = await this.publicGetDerivativesV3PublicInstrumentsInfo (params);
-                const dataNew = this.safeValue (response, 'result', {});
+                const responseInner = await this.publicGetDerivativesV3PublicInstrumentsInfo (params);
+                const dataNew = this.safeValue (responseInner, 'result', {});
                 const rawMarkets = this.safeValue (dataNew, 'list', []);
                 const rawMarketsLength = rawMarkets.length;
                 if (rawMarketsLength === 0) {

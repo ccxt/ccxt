@@ -1862,7 +1862,7 @@ export default class wavesexchange extends Exchange {
             const requestInner = {
                 'ids': assetIds,
             };
-            const response = await this.publicGetAssets (request);
+            const response = await this.publicGetAssets (requestInner);
             const data = this.safeValue (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
@@ -2279,8 +2279,8 @@ export default class wavesexchange extends Exchange {
                 'currency': code,
             };
             const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
-            const currency = this.safeValue (withdrawAddress, 'currency');
-            const allowedAmount = this.safeValue (currency, 'allowed_amount');
+            const currencyInner = this.safeValue (withdrawAddress, 'currency');
+            const allowedAmount = this.safeValue (currencyInner, 'allowed_amount');
             const minimum = this.safeNumber (allowedAmount, 'min');
             if (amount <= minimum) {
                 throw new BadRequest (this.id + ' ' + code + ' withdraw failed, amount ' + amount.toString () + ' must be greater than the minimum allowed amount of ' + minimum.toString ());
