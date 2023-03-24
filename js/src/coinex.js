@@ -10,6 +10,7 @@ import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNo
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { md5 } from './static_dependencies/noble-hashes/md5.js';
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class coinex extends Exchange {
@@ -4621,7 +4622,7 @@ export default class coinex extends Exchange {
             }, query);
             query = this.keysort(query);
             const urlencoded = this.rawencode(query);
-            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), sha256);
+            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), md5);
             headers = {
                 'Authorization': signature.toUpperCase(),
                 'Content-Type': 'application/json',

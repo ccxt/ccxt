@@ -4671,7 +4671,7 @@ class coinex extends Exchange {
             ), $query);
             $query = $this->keysort($query);
             $urlencoded = $this->rawencode($query);
-            $signature = $this->hash($this->encode($urlencoded . '&secret_key=' . $this->secret), 'sha256');
+            $signature = $this->hash($this->encode($urlencoded . '&secret_key=' . $this->secret), 'md5');
             $headers = array(
                 'Authorization' => strtoupper($signature),
                 'Content-Type' => 'application/json',
