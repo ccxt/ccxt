@@ -194,11 +194,11 @@ export default class Exchange {
     apiKey: string;
     secret: string;
     uid: string;
-    login         = undefined
+    login:string;
     password: string;
-    privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
-    walletAddress = undefined // a wallet address "0x"-prefixed hexstring
-    token         = undefined // reserved for HTTP auth in some cases
+    privateKey: string;// a "0x"-prefixed hexstring private key for a wallet
+    walletAddress: string; // a wallet address "0x"-prefixed hexstring
+    token: string; // reserved for HTTP auth in some cases
 
     balance      = {}
     orderbooks   = {}
@@ -265,11 +265,11 @@ export default class Exchange {
         leverage?: MinMax,
         price?: MinMax,
     };
-    fees = undefined
-    markets_by_id: Dictionary<any> = undefined
+    fees: object;
+    markets_by_id: Dictionary<any> = undefined;
     symbols: string[] = undefined;
-    ids: string[] = undefined
-    currencies: Dictionary<Currency> = undefined
+    ids: string[] = undefined;
+    currencies: Dictionary<Currency> = undefined;
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
@@ -296,9 +296,9 @@ export default class Exchange {
 
     marketsByAltname = undefined
 
-    name = undefined
+    name:string = undefined
 
-    lastRestRequestTimestamp = undefined
+    lastRestRequestTimestamp:number;
 
     targetAccount = undefined
 
