@@ -501,6 +501,52 @@ export default class gate extends Exchange {
                         'settlementCurrencies': [ 'usdt' ],
                     },
                 },
+                'timeInForceMap': {
+                    'spot': {
+                        'exchangeSpecificKey': 'time_in_force',
+                        'strings': {
+                            'GTC': 'gtc',
+                            'IOC': 'ioc',
+                            'FOK': 'fok',
+                            'PO': 'poc',
+                        },
+                        'booleans': {
+                            'GTC': undefined,
+                            'IOC': undefined,
+                            'FOK': undefined,
+                            'PO': undefined,
+                        },
+                    },
+                    'contract': {
+                        'exchangeSpecificKey': 'tif',
+                        'strings': {
+                            'GTC': 'gtc',
+                            'IOC': 'ioc',
+                            'FOK': 'fok',
+                            'PO': 'poc',
+                        },
+                        'booleans': {
+                            'GTC': undefined,
+                            'IOC': undefined,
+                            'FOK': undefined,
+                            'PO': undefined,
+                        },
+                    },
+                    'options': {
+                        'exchangeSpecificKey': 'tif',
+                        'strings': {
+                            'GTC': 'gtc',
+                            'IOC': 'ioc',
+                            'PO': 'poc',
+                        },
+                        'booleans': {
+                            'GTC': undefined,
+                            'IOC': undefined,
+                            'FOK': undefined,
+                            'PO': undefined,
+                        },
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
             'fees': {
@@ -3188,31 +3234,25 @@ export default class gate extends Exchange {
         }
         let methodTail = 'Orders';
         const reduceOnly = this.safeValue (params, 'reduceOnly');
-        const exchangeSpecificTimeInForce = this.safeStringLowerN (params, [ 'timeInForce', 'tif', 'time_in_force' ]);
-        let postOnly = undefined;
-        [ postOnly, params ] = this.handlePostOnly (type === 'market', exchangeSpecificTimeInForce === 'poc', params);
-        let timeInForce = this.handleTimeInForce (params);
-        if (postOnly) {
-            timeInForce = 'poc';
-        }
         // we only omit the unified params here
         // this is because the other params will get extended into the request
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ]);
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly' ]);
         const isLimitOrder = (type === 'limit');
         const isMarketOrder = (type === 'market');
         if (isLimitOrder && price === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for ' + type + ' orders');
         }
+        let tifKey = undefined;
+        let tifValue = undefined;
+        if (market['spot'] || market['contract'] || market['option']) {
+            // eslint-disable-next-line
+            const accountTitle = market['option'] ? 'options' : (market['contract'] ? 'contract' : 'spot');
+            const handledTif = this.handlePoTif (accountTitle, type, params);
+            params = handledTif['params'];
+            tifKey = handledTif['tifKey'];
+            tifValue = handledTif['tifValue'];
+        }
         if (isMarketOrder) {
-            if ((timeInForce === 'poc') || (timeInForce === 'gtc')) {
-                throw new ExchangeError (this.id + ' createOrder () timeInForce for market order can only be "FOK" or "IOC"');
-            } else {
-                if (timeInForce === undefined) {
-                    const defaultTif = this.safeString (this.options, 'defaultTimeInForce', 'IOC');
-                    const exchangeSpecificTif = this.safeString (this.options['timeInForce'], defaultTif, 'ioc');
-                    timeInForce = exchangeSpecificTif;
-                }
-            }
             if (contract) {
                 price = 0;
             }
@@ -3246,8 +3286,8 @@ export default class gate extends Exchange {
                 if (reduceOnly !== undefined) {
                     request['reduce_only'] = reduceOnly;
                 }
-                if (timeInForce !== undefined) {
-                    request['tif'] = timeInForce;
+                if (tifKey !== undefined) {
+                    request[tifKey] = tifValue;
                 }
             } else {
                 let marginMode = undefined;
@@ -3286,8 +3326,8 @@ export default class gate extends Exchange {
                 if (isLimitOrder) {
                     request['price'] = this.priceToPrecision (symbol, price);
                 }
-                if (timeInForce !== undefined) {
-                    request['time_in_force'] = timeInForce;
+                if (tifKey !== undefined) {
+                    request[tifKey] = tifValue;
                 }
             }
             let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
@@ -3348,17 +3388,14 @@ export default class gate extends Exchange {
                 if (reduceOnly !== undefined) {
                     request['initial']['reduce_only'] = reduceOnly;
                 }
-                if (timeInForce !== undefined) {
-                    request['initial']['tif'] = timeInForce;
+                if (tifKey !== undefined) {
+                    request['initial'][tifKey] = tifValue;
                 }
             } else {
                 // spot conditional order
                 const options = this.safeValue (this.options, 'createOrder', {});
                 let marginMode = undefined;
                 [ marginMode, params ] = this.getMarginMode (true, params);
-                if (timeInForce === undefined) {
-                    timeInForce = 'gtc';
-                }
                 request = {
                     'put': {
                         'type': type,
@@ -3366,10 +3403,13 @@ export default class gate extends Exchange {
                         'price': this.priceToPrecision (symbol, price),
                         'amount': this.amountToPrecision (symbol, amount),
                         'account': marginMode,
-                        'time_in_force': timeInForce, // gtc, ioc (ioc is for taker only, so shouldnt't be in conditional order)
+                        'time_in_force': 'gtc', // gtc, ioc (ioc is for taker only, so shouldnt't be in conditional order)
                     },
                     'market': market['id'],
                 };
+                if (tifKey !== undefined) {
+                    request['put'][tifKey] = tifValue;
+                }
                 if (trigger === undefined) {
                     const defaultExpiration = this.safeInteger (options, 'expiration');
                     const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
