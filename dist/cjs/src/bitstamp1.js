@@ -4,6 +4,7 @@ var bitstamp1$1 = require('./abstract/bitstamp1.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -379,7 +380,7 @@ class bitstamp1 extends bitstamp1$1 {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const auth = nonce + this.uid + this.apiKey;
-            const signature = this.encode(this.hmac(this.encode(auth), this.encode(this.secret)));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
             query = this.extend({
                 'key': this.apiKey,
                 'signature': signature.toUpperCase(),

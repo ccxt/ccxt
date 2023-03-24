@@ -1,5 +1,4 @@
 import * as functions from './functions.js';
-import { inflate, inflate64, gunzip } from './ws/functions.js';
 import { // eslint-disable-line object-curly-newline
 ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, RateLimitExceeded } from "./errors.js";
 import WsClient from './ws/WsClient.js';
@@ -159,10 +158,9 @@ export default class Exchange {
     safeFloat2: (o: import("./types").implicitReturnType, k1: string | number, k2: string | number, $default?: number) => number;
     seconds: () => number;
     milliseconds: () => number;
-    binaryToBase16: (binary: any) => any;
-    numberToBE: (n: any, padding?: any) => any;
-    base16ToBinary: (string: any) => any;
-    stringToBinary: (string: any) => any;
+    binaryToBase16: (data: Uint8Array) => string;
+    numberToBE: (n: number, padding: number) => Uint8Array;
+    base16ToBinary: (str: string) => Uint8Array;
     iso8601: (timestamp: any) => string;
     omit: (x: any, ...args: any[]) => any;
     isJsonEncodedObject: (object: any) => boolean;
@@ -174,14 +172,22 @@ export default class Exchange {
     json: (data: any, params?: any) => string;
     vwap: typeof functions.vwap;
     merge: (target: any, ...args: any[]) => any;
-    binaryConcat: (...args: any[]) => any;
-    hash: (request: any, hash?: string, digest?: string) => any;
-    ecdsa: typeof functions.ecdsa;
-    totp: (secret: any) => string;
+    binaryConcat: typeof import("../static_dependencies/noble-curves/abstract/utils.js").concatBytes;
+    hash: (request: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
+        (message: import("../static_dependencies/noble-hashes/utils.js").Input): Uint8Array;
+        outputLen: number;
+        blockLen: number;
+        create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
+    }, digest?: "hex" | "base64" | "binary") => any;
     arrayConcat: (a: any, b: any) => any;
-    encode: (x: any) => any;
+    encode: (str: string) => Uint8Array;
     urlencode: (object: any) => string;
-    hmac: (request: any, secret: any, hash?: string, digest?: string) => any;
+    hmac: (request: import("../static_dependencies/noble-hashes/utils.js").Input, secret: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
+        (message: import("../static_dependencies/noble-hashes/utils.js").Input): Uint8Array;
+        outputLen: number;
+        blockLen: number;
+        create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
+    }, digest?: "hex" | "base64" | "binary") => any;
     numberToString: typeof functions.numberToString;
     parseTimeframe: (timeframe: any) => number;
     safeInteger2: (o: import("./types").implicitReturnType, k1: string | number, k2: string | number, $default?: number) => number;
@@ -190,19 +196,18 @@ export default class Exchange {
     yyyymmdd: (timestamp: any, infix?: string) => string;
     safeStringUpper: (o: import("./types").implicitReturnType, k: string | number, $default?: string) => string;
     safeTimestamp: (o: import("./types").implicitReturnType, k: string | number, $default?: number) => number;
-    binaryConcatArray: (arr: any) => any;
+    binaryConcatArray: (arr: any) => Uint8Array;
     uuidv1: () => string;
-    numberToLE: (n: any, padding: any) => any;
+    numberToLE: (n: number, padding: number) => Uint8Array;
     ymdhms: (timestamp: any, infix?: string) => string;
     yymmdd: (timestamp: any, infix?: string) => string;
-    stringToBase64: (string: any) => any;
-    decode: (x: any) => any;
+    stringToBase64: (string: any) => string;
+    decode: (data: Uint8Array) => string;
     uuid22: (a?: any) => string;
     safeIntegerProduct2: (o: import("./types").implicitReturnType, k1: string | number, k2: string | number, $factor: number, $default?: number) => number;
     safeIntegerProduct: (o: import("./types").implicitReturnType, k: string | number, $factor: number, $default?: number) => number;
-    base58ToBinary: (string: any) => any;
-    base64ToBinary: (string: any) => any;
-    eddsa: typeof functions.eddsa;
+    base58ToBinary: (str: string) => Uint8Array;
+    base64ToBinary: (str: string) => Uint8Array;
     safeTimestamp2: (o: import("./types").implicitReturnType, k1: string | number, k2: string | number, $default?: any) => number;
     rawencode: (object: any) => string;
     keysort: (x: any, out?: {}) => {};
@@ -211,13 +216,11 @@ export default class Exchange {
     safeStringUpper2: (o: import("./types").implicitReturnType, k1: string | number, k2: string | number, $default?: string) => string;
     isEmpty: (object: any) => boolean;
     ordered: (x: any) => any;
-    jwt: typeof functions.jwt;
     filterBy: (x: any, k: any, value?: any, out?: any[]) => any[];
     uuid16: (a?: any) => string;
     urlencodeWithArrayRepeat: (object: any) => string;
     microseconds: () => number;
-    binaryToBase64: (binary: any) => any;
-    rsa: typeof functions.rsa;
+    binaryToBase64: (data: Uint8Array) => string;
     strip: (s: string) => string;
     toArray: (object: any) => unknown[];
     safeFloatN: (o: import("./types").implicitReturnType, k: (string | number)[], $default?: number) => number;
@@ -232,11 +235,8 @@ export default class Exchange {
     parseDate: (x: any) => number;
     ymd: (timestamp: any, infix: any, fullYear?: boolean) => string;
     isArray: (arg: any) => arg is any[];
-    base64ToString: (string: any) => any;
+    base64ToString: (string: any) => string;
     crc32: typeof functions.crc32;
-    inflate: typeof inflate;
-    inflate64: typeof inflate64;
-    gunzip: typeof gunzip;
     describe(): {
         id: any;
         name: any;
@@ -463,12 +463,12 @@ export default class Exchange {
     signHash(hash: string, privateKey: string): {
         r: string;
         s: string;
-        v: any;
+        v: number;
     };
     signMessage(message: string, privateKey: string): {
         r: string;
         s: string;
-        v: any;
+        v: number;
     };
     signMessageString(message: string, privateKey: string): string;
     parseNumber(value: string | number, d?: number): number;

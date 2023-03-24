@@ -4,6 +4,8 @@ var deribit$1 = require('./abstract/deribit.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var totp = require('./base/functions/totp.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -2595,7 +2597,7 @@ class deribit extends deribit$1 {
             // 'tfa': '123456', // if enabled
         };
         if (this.twofa !== undefined) {
-            request['tfa'] = this.oath();
+            request['tfa'] = totp.totp(this.twofa);
         }
         const response = await this.privateGetWithdraw(this.extend(request, params));
         return this.parseTransaction(response, currency);
@@ -2620,7 +2622,7 @@ class deribit extends deribit$1 {
             }
             const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
             const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
             headers = {
                 'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             };

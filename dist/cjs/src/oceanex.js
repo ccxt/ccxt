@@ -3,6 +3,8 @@
 var oceanex$1 = require('./abstract/oceanex.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var rsa = require('./base/functions/rsa.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -927,7 +929,7 @@ class oceanex extends oceanex$1 {
             // to set the private key:
             // const fs = require ('fs')
             // exchange.secret = fs.readFileSync ('oceanex.pem', 'utf8')
-            const jwt_token = this.jwt(request, this.encode(this.secret), 'RS256');
+            const jwt_token = rsa.jwt(request, this.encode(this.secret), sha256.sha256, true);
             url += '?user_jwt=' + jwt_token;
         }
         headers = { 'Content-Type': 'application/json' };

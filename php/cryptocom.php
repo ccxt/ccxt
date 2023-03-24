@@ -2451,7 +2451,7 @@ class cryptocom extends Exchange {
                 $strSortKey = $strSortKey . (string) $paramsKeys[$i] . (string) $requestParams[$paramsKeys[$i]];
             }
             $payload = $path . $nonce . $this->apiKey . $strSortKey . $nonce;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
             $paramsKeysLength = count($paramsKeys);
             $body = $this->json(array(
                 'id' => $nonce,

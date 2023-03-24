@@ -4,6 +4,7 @@ var phemex$1 = require('./abstract/phemex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -3818,7 +3819,7 @@ class phemex extends phemex$1 {
                 headers['Content-Type'] = 'application/json';
             }
             const auth = requestPath + queryString + expiryString + payload;
-            headers['x-phemex-request-signature'] = this.hmac(this.encode(auth), this.encode(this.secret));
+            headers['x-phemex-request-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
         }
         url = this.implodeHostname(this.urls['api'][api]) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

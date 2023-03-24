@@ -4,6 +4,7 @@ var coinex$1 = require('./abstract/coinex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -4591,7 +4592,7 @@ class coinex extends coinex$1 {
             }, query);
             query = this.keysort(query);
             const urlencoded = this.rawencode(query);
-            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), 'sha256');
+            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), sha256.sha256);
             headers = {
                 'Authorization': signature.toLowerCase(),
                 'AccessId': this.apiKey,
@@ -4617,7 +4618,7 @@ class coinex extends coinex$1 {
             }, query);
             query = this.keysort(query);
             const urlencoded = this.rawencode(query);
-            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret));
+            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), sha256.sha256);
             headers = {
                 'Authorization': signature.toUpperCase(),
                 'Content-Type': 'application/json',

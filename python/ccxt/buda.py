@@ -1036,7 +1036,7 @@ class buda(Exchange):
             components = [method, '/api/' + self.version + '/' + request]
             if body:
                 base64Body = self.string_to_base64(body)
-                components.append(self.decode(base64Body))
+                components.append(base64Body)
             components.append(nonce)
             message = ' '.join(components)
             signature = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha384)

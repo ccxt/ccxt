@@ -4,6 +4,7 @@ var ace$1 = require('./abstract/ace.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1016,7 +1017,7 @@ class ace extends ace$1 {
                 const key = sortedDataKeys[i];
                 auth += this.safeString(data, key);
             }
-            const signature = this.hash(this.encode(auth), 'sha256', 'hex');
+            const signature = this.hash(this.encode(auth), sha256.sha256, 'hex');
             data['signKey'] = signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

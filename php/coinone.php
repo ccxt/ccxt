@@ -855,7 +855,7 @@ class coinone extends Exchange {
                 'nonce' => $nonce,
             ), $params));
             $payload = base64_encode($json);
-            $body = $this->decode($payload);
+            $body = $payload;
             $secret = strtoupper($this->secret);
             $signature = $this->hmac($payload, $this->encode($secret), 'sha512');
             $headers = array(

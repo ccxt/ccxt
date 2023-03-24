@@ -4,6 +4,7 @@ var btcturk$1 = require('./abstract/btcturk.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -898,7 +899,7 @@ class btcturk extends btcturk$1 {
             headers = {
                 'X-PCK': this.apiKey,
                 'X-Stamp': nonce,
-                'X-Signature': this.hmac(this.encode(auth), secret, 'sha256', 'base64'),
+                'X-Signature': this.hmac(this.encode(auth), secret, sha256.sha256, 'base64'),
                 'Content-Type': 'application/json',
             };
         }

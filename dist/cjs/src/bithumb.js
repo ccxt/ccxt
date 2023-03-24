@@ -4,6 +4,7 @@ var bithumb$1 = require('./abstract/bithumb.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1028,8 +1029,8 @@ class bithumb extends bithumb$1 {
             }, query));
             const nonce = this.nonce().toString();
             const auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha512');
-            const signature64 = this.decode(this.stringToBase64(signature));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512.sha512);
+            const signature64 = this.stringToBase64(signature);
             headers = {
                 'Accept': 'application/json',
                 'Content-Type': 'application/x-www-form-urlencoded',

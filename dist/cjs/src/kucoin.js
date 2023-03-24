@@ -4,6 +4,7 @@ var kucoin$1 = require('./abstract/kucoin.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -3535,14 +3536,14 @@ class kucoin extends kucoin$1 {
             }, headers);
             const apiKeyVersion = this.safeString(headers, 'KC-API-KEY-VERSION');
             if (apiKeyVersion === '2') {
-                const passphrase = this.hmac(this.encode(this.password), this.encode(this.secret), 'sha256', 'base64');
+                const passphrase = this.hmac(this.encode(this.password), this.encode(this.secret), sha256.sha256, 'base64');
                 headers['KC-API-PASSPHRASE'] = passphrase;
             }
             else {
                 headers['KC-API-PASSPHRASE'] = this.password;
             }
             const payload = timestamp + method + endpoint + endpart;
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'base64');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
             headers['KC-API-SIGN'] = signature;
             let partner = this.safeValue(this.options, 'partner', {});
             partner = isFuturePrivate ? this.safeValue(partner, 'future', partner) : this.safeValue(partner, 'spot', partner);
@@ -3550,7 +3551,7 @@ class kucoin extends kucoin$1 {
             const partnerSecret = this.safeString2(partner, 'secret', 'key');
             if ((partnerId !== undefined) && (partnerSecret !== undefined)) {
                 const partnerPayload = timestamp + partnerId + this.apiKey;
-                const partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), 'sha256', 'base64');
+                const partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256.sha256, 'base64');
                 headers['KC-API-PARTNER-SIGN'] = partnerSignature;
                 headers['KC-API-PARTNER'] = partnerId;
             }

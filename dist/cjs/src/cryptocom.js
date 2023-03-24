@@ -4,6 +4,7 @@ var cryptocom$1 = require('./abstract/cryptocom.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
@@ -2462,7 +2463,7 @@ class cryptocom extends cryptocom$1 {
                 strSortKey = strSortKey + paramsKeys[i].toString() + requestParams[paramsKeys[i]].toString();
             }
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret));
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
             const paramsKeysLength = paramsKeys.length;
             body = this.json({
                 'id': nonce,

@@ -4,6 +4,7 @@ var currencycom$1 = require('./abstract/currencycom.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1775,7 +1776,7 @@ class currencycom extends currencycom$1 {
                 'timestamp': this.nonce(),
                 'recvWindow': this.options['recvWindow'],
             }, params));
-            const signature = this.hmac(this.encode(query), this.encode(this.secret));
+            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,

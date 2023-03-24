@@ -8,6 +8,7 @@
 import Exchange from './abstract/coincheck.js';
 import { BadSymbol, ExchangeError, AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class coincheck extends Exchange {
@@ -810,7 +811,7 @@ export default class coincheck extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-NONCE': nonce,
-                'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret)),
+                'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret), sha256),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

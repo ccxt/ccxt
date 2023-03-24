@@ -3,6 +3,8 @@
 var bigone$1 = require('./abstract/bigone.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
+var rsa = require('./base/functions/rsa.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1145,8 +1147,8 @@ class bigone extends bigone$1 {
                 'nonce': nonce,
                 // 'recv_window': '30', // default 30
             };
-            const jwt = this.jwt(request, this.encode(this.secret));
-            headers['Authorization'] = 'Bearer ' + jwt;
+            const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256);
+            headers['Authorization'] = 'Bearer ' + token;
             if (method === 'GET') {
                 if (Object.keys(query).length) {
                     url += '?' + this.urlencode(query);

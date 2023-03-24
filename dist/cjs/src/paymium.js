@@ -4,6 +4,7 @@ var paymium$1 = require('./abstract/paymium.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -562,7 +563,7 @@ class paymium extends paymium$1 {
                     url += '?' + queryString;
                 }
             }
-            headers['Api-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret));
+            headers['Api-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

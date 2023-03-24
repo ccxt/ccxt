@@ -9,6 +9,8 @@ import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { rsa } from './base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class binance extends Exchange {
@@ -7409,10 +7411,10 @@ export default class binance extends Exchange {
             }
             let signature = undefined;
             if (this.secret.indexOf('PRIVATE KEY') > -1) {
-                signature = this.encodeURIComponent(this.rsa(query, this.secret));
+                signature = this.encodeURIComponent(rsa(query, this.secret, sha256));
             }
             else {
-                signature = this.hmac(this.encode(query), this.encode(this.secret));
+                signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
             }
             query += '&' + 'signature=' + signature;
             headers = {

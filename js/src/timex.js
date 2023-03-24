@@ -1526,7 +1526,7 @@ export default class timex extends Exchange {
         if (api !== 'public') {
             this.checkRequiredCredentials();
             const auth = this.stringToBase64(this.apiKey + ':' + this.secret);
-            const secret = 'Basic ' + this.decode(auth);
+            const secret = 'Basic ' + auth;
             headers = { 'authorization': secret };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

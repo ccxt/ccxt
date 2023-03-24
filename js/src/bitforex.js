@@ -8,6 +8,7 @@
 import Exchange from './abstract/bitforex.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class bitforex extends Exchange {
@@ -693,7 +694,7 @@ export default class bitforex extends Exchange {
             }
             // let message = '/' + 'api/' + this.version + '/' + path + '?' + payload;
             const message = '/' + path + '?' + payload;
-            const signature = this.hmac(this.encode(message), this.encode(this.secret));
+            const signature = this.hmac(this.encode(message), this.encode(this.secret), sha256);
             body = payload + '&signData=' + signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

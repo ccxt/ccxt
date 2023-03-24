@@ -4353,7 +4353,7 @@ class coinex(Exchange):
             }, query)
             query = self.keysort(query)
             urlencoded = self.rawencode(query)
-            signature = self.hash(self.encode(urlencoded + '&secret_key=' + self.secret))
+            signature = self.hash(self.encode(urlencoded + '&secret_key=' + self.secret), 'sha256')
             headers = {
                 'Authorization': signature.upper(),
                 'Content-Type': 'application/json',

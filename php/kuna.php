@@ -871,7 +871,7 @@ class kuna extends Exchange {
                     'tonce' => $nonce,
                 ), $params));
                 $auth = $method . '|' . $request . '|' . $query;
-                $signed = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                $signed = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 $suffix = $query . '&signature=' . $signed;
                 if ($method === 'GET') {
                     $url .= '?' . $suffix;

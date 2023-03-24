@@ -1667,7 +1667,7 @@ class bitso extends Exchange {
                     $request .= $body;
                 }
             }
-            $signature = $this->hmac($this->encode($request), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($request), $this->encode($this->secret), 'sha256');
             $auth = $this->apiKey . ':' . $nonce . ':' . $signature;
             $headers = array(
                 'Authorization' => 'Bitso ' . $auth,

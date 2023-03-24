@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+import hashlib
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
 
@@ -547,7 +548,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             timestamp = self.milliseconds()
             stringTimestamp = str(timestamp)
             auth = stringTimestamp + 'GET/' + self.version + '/websocket'
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             action = 'authenticate'
             request = {
                 'action': action,

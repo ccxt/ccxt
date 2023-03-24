@@ -1078,8 +1078,8 @@ class bigone(Exchange):
                 'nonce': nonce,
                 # 'recv_window': '30',  # default 30
             }
-            jwt = self.jwt(request, self.encode(self.secret))
-            headers['Authorization'] = 'Bearer ' + jwt
+            token = self.jwt(request, self.encode(self.secret), 'sha256')
+            headers['Authorization'] = 'Bearer ' + token
             if method == 'GET':
                 if query:
                     url += '?' + self.urlencode(query)

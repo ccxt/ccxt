@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import asyncio
+import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -6827,9 +6828,9 @@ class binance(Exchange):
                 query = self.urlencode(extendedParams)
             signature = None
             if self.secret.find('PRIVATE KEY') > -1:
-                signature = self.encode_uri_component(self.rsa(query, self.secret))
+                signature = self.encode_uri_component(rsa(query, self.secret, 'sha256'))
             else:
-                signature = self.hmac(self.encode(query), self.encode(self.secret))
+                signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
             query += '&' + 'signature=' + signature
             headers = {
                 'X-MBX-APIKEY': self.apiKey,

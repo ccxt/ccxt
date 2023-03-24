@@ -8,6 +8,8 @@
 import Exchange from './abstract/bigone.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { jwt } from './base/functions/rsa.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class bigone extends Exchange {
@@ -1148,8 +1150,8 @@ export default class bigone extends Exchange {
                 'nonce': nonce,
                 // 'recv_window': '30', // default 30
             };
-            const jwt = this.jwt(request, this.encode(this.secret));
-            headers['Authorization'] = 'Bearer ' + jwt;
+            const token = jwt(request, this.encode(this.secret), sha256);
+            headers['Authorization'] = 'Bearer ' + token;
             if (method === 'GET') {
                 if (Object.keys(query).length) {
                     url += '?' + this.urlencode(query);

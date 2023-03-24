@@ -4,6 +4,7 @@ var bitmex$1 = require('./abstract/bitmex.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -2790,7 +2791,7 @@ class bitmex extends bitmex$1 {
                     auth += body;
                 }
             }
-            headers['api-signature'] = this.hmac(this.encode(auth), this.encode(this.secret));
+            headers['api-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

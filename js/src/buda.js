@@ -9,6 +9,7 @@ import Exchange from './abstract/buda.js';
 import { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class buda extends Exchange {
@@ -1099,11 +1100,11 @@ export default class buda extends Exchange {
             const components = [method, '/api/' + this.version + '/' + request];
             if (body) {
                 const base64Body = this.stringToBase64(body);
-                components.push(this.decode(base64Body));
+                components.push(base64Body);
             }
             components.push(nonce);
             const message = components.join(' ');
-            const signature = this.hmac(this.encode(message), this.encode(this.secret), 'sha384');
+            const signature = this.hmac(this.encode(message), this.encode(this.secret), sha384);
             headers = {
                 'X-SBTC-APIKEY': this.apiKey,
                 'X-SBTC-SIGNATURE': signature,

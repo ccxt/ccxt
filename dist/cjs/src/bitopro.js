@@ -4,6 +4,7 @@ var bitopro$1 = require('./abstract/bitopro.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1589,7 +1590,7 @@ class bitopro extends bitopro$1 {
             if (method === 'POST' || method === 'PUT') {
                 body = this.json(params);
                 const payload = this.stringToBase64(body);
-                const signature = this.hmac(payload, this.encode(this.secret), 'sha384');
+                const signature = this.hmac(payload, this.encode(this.secret), sha512.sha384);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
@@ -1604,7 +1605,7 @@ class bitopro extends bitopro$1 {
                 };
                 const data = this.json(rawData);
                 const payload = this.stringToBase64(data);
-                const signature = this.hmac(payload, this.encode(this.secret), 'sha384');
+                const signature = this.hmac(payload, this.encode(this.secret), sha512.sha384);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;

@@ -8,6 +8,7 @@
 import Exchange from './abstract/bkex.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class bkex extends Exchange {
@@ -1893,7 +1894,7 @@ export default class bkex extends Exchange {
         }
         if (signed) {
             this.checkRequiredCredentials();
-            const signature = this.hmac(this.encode(paramsSortedEncoded), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(paramsSortedEncoded), this.encode(this.secret), sha256);
             headers = {
                 'Cache-Control': 'no-cache',
                 'Content-type': 'application/x-www-form-urlencoded',

@@ -9,6 +9,7 @@ import Exchange from './abstract/ace.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class ace extends Exchange {
@@ -1019,7 +1020,7 @@ export default class ace extends Exchange {
                 const key = sortedDataKeys[i];
                 auth += this.safeString(data, key);
             }
-            const signature = this.hash(this.encode(auth), 'sha256', 'hex');
+            const signature = this.hash(this.encode(auth), sha256, 'hex');
             data['signKey'] = signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

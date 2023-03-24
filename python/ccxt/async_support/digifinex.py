@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import asyncio
+import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -3617,7 +3618,7 @@ class digifinex(Exchange):
             else:
                 nonce = str(self.nonce())
                 auth = urlencoded
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             if method == 'GET':
                 if urlencoded:
                     url += '?' + urlencoded

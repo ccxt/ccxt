@@ -4,6 +4,7 @@ var tokocrypto$1 = require('./abstract/tokocrypto.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -2328,7 +2329,7 @@ class tokocrypto extends tokocrypto$1 {
             else {
                 query = this.urlencode(extendedParams);
             }
-            const signature = this.hmac(this.encode(query), this.encode(this.secret));
+            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,

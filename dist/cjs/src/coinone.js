@@ -4,6 +4,7 @@ var coinone$1 = require('./abstract/coinone.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -866,9 +867,9 @@ class coinone extends coinone$1 {
                 'nonce': nonce,
             }, params));
             const payload = this.stringToBase64(json);
-            body = this.decode(payload);
+            body = payload;
             const secret = this.secret.toUpperCase();
-            const signature = this.hmac(payload, this.encode(secret), 'sha512');
+            const signature = this.hmac(payload, this.encode(secret), sha512.sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,

@@ -1555,7 +1555,7 @@ class probit extends Exchange {
             $auth = $this->apiKey . ':' . $this->secret;
             $auth64 = base64_encode($auth);
             $headers = array(
-                'Authorization' => 'Basic ' . $this->decode($auth64),
+                'Authorization' => 'Basic ' . $auth64,
                 'Content-Type' => 'application/json',
             );
             if ($query) {

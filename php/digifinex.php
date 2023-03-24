@@ -3804,7 +3804,7 @@ class digifinex extends Exchange {
                 $nonce = (string) $this->nonce();
                 $auth = $urlencoded;
             }
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             if ($method === 'GET') {
                 if ($urlencoded) {
                     $url .= '?' . $urlencoded;

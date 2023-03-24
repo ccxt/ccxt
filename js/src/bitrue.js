@@ -9,6 +9,7 @@ import Exchange from './abstract/bitrue.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class bitrue extends Exchange {
@@ -1933,7 +1934,7 @@ export default class bitrue extends Exchange {
                 'timestamp': this.nonce(),
                 'recvWindow': recvWindow,
             }, params));
-            const signature = this.hmac(this.encode(query), this.encode(this.secret));
+            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,

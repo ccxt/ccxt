@@ -8,6 +8,7 @@
 import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 // ----------------------------------------------------------------------------
 // @ts-expect-error
 export default class bitopro extends bitoproRest {
@@ -233,7 +234,7 @@ export default class bitopro extends bitoproRest {
             'identity': this.login,
         });
         const payload = this.stringToBase64(rawData);
-        const signature = this.hmac(payload, this.encode(this.secret), 'sha384');
+        const signature = this.hmac(payload, this.encode(this.secret), sha384);
         const defaultOptions = {
             'ws': {
                 'options': {

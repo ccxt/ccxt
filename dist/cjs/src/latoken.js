@@ -3,6 +3,7 @@
 var latoken$1 = require('./abstract/latoken.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1545,7 +1546,7 @@ class latoken extends latoken$1 {
         if (api === 'private') {
             this.checkRequiredCredentials();
             const auth = method + request + urlencodedQuery;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha512');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512.sha512);
             headers = {
                 'X-LA-APIKEY': this.apiKey,
                 'X-LA-SIGNATURE': signature,

@@ -1734,9 +1734,9 @@ class upbit extends Exchange {
                 $request['query_hash'] = $hash;
                 $request['query_hash_alg'] = 'SHA512';
             }
-            $jwt = $this->jwt($request, $this->encode($this->secret));
+            $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
             $headers = array(
-                'Authorization' => 'Bearer ' . $jwt,
+                'Authorization' => 'Bearer ' . $token,
             );
             if (($method !== 'GET') && ($method !== 'DELETE')) {
                 $body = $this->json($params);

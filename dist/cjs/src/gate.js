@@ -4,6 +4,7 @@ var gate$1 = require('./abstract/gate.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
@@ -4978,14 +4979,14 @@ class gate extends gate$1 {
                 body = this.json(query);
             }
             const bodyPayload = (body === undefined) ? '' : body;
-            const bodySignature = this.hash(this.encode(bodyPayload), 'sha512');
+            const bodySignature = this.hash(this.encode(bodyPayload), sha512.sha512);
             const timestamp = this.seconds();
             const timestampString = timestamp.toString();
             const signaturePath = '/api/' + this.version + entirePath;
             const payloadArray = [method.toUpperCase(), signaturePath, queryString, bodySignature, timestampString];
             // eslint-disable-next-line quotes
             const payload = payloadArray.join("\n");
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha512');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha512);
             headers = {
                 'KEY': this.apiKey,
                 'Timestamp': timestampString,

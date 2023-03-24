@@ -9,6 +9,7 @@ import Exchange from './abstract/cex.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class cex extends Exchange {
@@ -1564,7 +1565,7 @@ export default class cex extends Exchange {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const auth = nonce + this.uid + this.apiKey;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             body = this.json(this.extend({
                 'key': this.apiKey,
                 'signature': signature.toUpperCase(),

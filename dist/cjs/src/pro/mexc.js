@@ -3,6 +3,8 @@
 var mexc$1 = require('../mexc.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
+var md5 = require('../static_dependencies/noble-hashes/md5.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1072,7 +1074,7 @@ class mexc extends mexc$1 {
         const sortedParams = this.keysort(request);
         sortedParams['api_secret'] = this.secret;
         const encodedParams = this.urlencode(sortedParams);
-        const hash = this.hash(this.encode(encodedParams), 'md5');
+        const hash = this.hash(this.encode(encodedParams), md5.md5);
         request['sign'] = hash;
         const extendedRequest = this.extend(request, params);
         return await this.watch(url, messageHash, extendedRequest, channel);
@@ -1083,7 +1085,7 @@ class mexc extends mexc$1 {
         const url = this.urls['api']['ws']['swap'];
         const timestamp = this.milliseconds().toString();
         const payload = this.apiKey + timestamp;
-        const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256');
+        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
         const request = {
             'method': channel,
             'param': {

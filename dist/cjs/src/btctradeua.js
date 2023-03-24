@@ -4,6 +4,7 @@ var btctradeua$1 = require('./abstract/btctradeua.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -515,7 +516,7 @@ class btctradeua extends btctradeua$1 {
             const auth = body + this.secret;
             headers = {
                 'public-key': this.apiKey,
-                'api-sign': this.hash(this.encode(auth), 'sha256'),
+                'api-sign': this.hash(this.encode(auth), sha256.sha256),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }

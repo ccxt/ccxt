@@ -9,6 +9,8 @@ import Exchange from './abstract/ndax.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import totp from './base/functions/totp.js';
 // ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class ndax extends Exchange {
@@ -297,7 +299,7 @@ export default class ndax extends Exchange {
             }
             this.options['pending2faToken'] = pending2faToken;
             request = {
-                'Code': this.oath(),
+                'Code': totp(this.twofa),
             };
             const response = await this.publicGetAuthenticate2FA(this.extend(request, params));
             //
@@ -2322,7 +2324,7 @@ export default class ndax extends Exchange {
         };
         const withdrawRequest = {
             'TfaType': 'Google',
-            'TFaCode': this.oath(),
+            'TFaCode': totp(this.twofa),
             'Payload': this.json(withdrawPayload),
         };
         const response = await this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, params));
@@ -2339,7 +2341,7 @@ export default class ndax extends Exchange {
                 const auth = this.login + ':' + this.password;
                 const auth64 = this.stringToBase64(auth);
                 headers = {
-                    'Authorization': 'Basic ' + this.decode(auth64),
+                    'Authorization': 'Basic ' + auth64,
                     // 'Content-Type': 'application/json',
                 };
             }
@@ -2363,7 +2365,7 @@ export default class ndax extends Exchange {
             if (sessionToken === undefined) {
                 const nonce = this.nonce().toString();
                 const auth = nonce + this.uid + this.apiKey;
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = {
                     'Nonce': nonce,
                     'APIKey': this.apiKey,

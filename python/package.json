@@ -32,7 +32,7 @@
     "pre-transpile": "npm run export-exchanges && npm run vss && npm run tsBuild && npm run emitTypes && npm run copy-python-files && npm run check-js-syntax && npm run bundle",
     "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
     "test-ws": "npm run build && node run-tests-ws",
-    "test": "npm run build && && npm run commonjs-test && node run-tests",
+    "test": "npm run build && npm run commonjs-test && node run-tests",
     "fast-test": "npm run commonjs-test && node run-tests --js",
     "commonjs-test": "node test-commonjs.cjs",
     "fast-test-ws": "node run-tests-ws --js",
@@ -87,7 +87,7 @@
     "check-ws-php-syntax": "php -f php/pro/test/syntax.php",
     "bundle": "npm run bundle-cjs && npm run bundle-browser",
     "bundle-cjs": "rollup -c rollup.config.js",
-    "bundle-browser": "browserify ./js/ccxt.js -p esmify --standalone ccxt  > dist/ccxt.browser.js",
+    "bundle-browser": "webpack build -c webpack.config.js && webpack build -c webpack.config.js --optimization-minimize --output-filename ccxt.browser.min.js",
     "copy-python-files": "npm run copy-python-package && npm run copy-python-license && npm run copy-python-keys && npm run copy-python-readme",
     "copy-python-package": "node build/copy package.json python/package.json",
     "copy-python-license": "node build/copy LICENSE.txt python/LICENSE.txt",
@@ -106,7 +106,6 @@
     "as-table": "1.0.37",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
-    "browserify": "^17.0.0",
     "eslint": "^8.8.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.25.4",
@@ -116,8 +115,11 @@
     "replace-in-file": "^6.3.5",
     "rollup": "^2.70.1",
     "rollup-plugin-execute": "1.1.1",
+    "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
-    "typescript": "4.7.4"
+    "typescript": "4.7.4",
+    "webpack": "^5.76.2",
+    "webpack-cli": "^5.0.1"
   },
   "author": {
     "name": "Igor Kroitor",

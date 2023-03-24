@@ -1104,7 +1104,7 @@ class btcmarkets(Exchange):
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
-            secret = self.base64_to_binary(self.encode(self.secret))
+            secret = self.base64_to_binary(self.secret)
             auth = method + request + nonce
             if (method == 'GET') or (method == 'DELETE'):
                 if query:

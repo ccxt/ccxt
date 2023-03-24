@@ -9,6 +9,7 @@ import Exchange from './abstract/cryptocom.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // @ts-expect-error
 export default class cryptocom extends Exchange {
     describe() {
@@ -2465,7 +2466,7 @@ export default class cryptocom extends Exchange {
                 strSortKey = strSortKey + paramsKeys[i].toString() + requestParams[paramsKeys[i]].toString();
             }
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret));
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
             const paramsKeysLength = paramsKeys.length;
             body = this.json({
                 'id': nonce,

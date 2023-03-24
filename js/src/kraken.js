@@ -9,6 +9,8 @@ import Exchange from './abstract/kraken.js';
 import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class kraken extends Exchange {
@@ -2426,11 +2428,11 @@ export default class kraken extends Exchange {
                 body = this.urlencodeNested(this.extend({ 'nonce': nonce }, params));
             }
             const auth = this.encode(nonce + body);
-            const hash = this.hash(auth, 'sha256', 'binary');
-            const binary = this.stringToBinary(this.encode(url));
+            const hash = this.hash(auth, sha256, 'binary');
+            const binary = this.encode(url);
             const binhash = this.binaryConcat(binary, hash);
             const secret = this.base64ToBinary(this.secret);
-            const signature = this.hmac(binhash, secret, 'sha512', 'base64');
+            const signature = this.hmac(binhash, secret, sha512, 'base64');
             headers = {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,

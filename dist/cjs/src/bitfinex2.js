@@ -4,6 +4,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var bitfinex2$1 = require('./abstract/bitfinex2.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -2431,7 +2432,7 @@ class bitfinex2 extends bitfinex2$1 {
             const nonce = this.nonce().toString();
             body = this.json(query);
             const auth = '/api/' + request + nonce + body;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha384');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512.sha384);
             headers = {
                 'bfx-nonce': nonce,
                 'bfx-apikey': this.apiKey,

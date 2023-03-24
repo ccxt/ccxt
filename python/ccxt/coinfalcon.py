@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
@@ -930,7 +931,7 @@ class coinfalcon(Exchange):
             payload = '|'.join([seconds, method, request])
             if body:
                 payload += '|' + body
-            signature = self.hmac(self.encode(payload), self.encode(self.secret))
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'CF-API-KEY': self.apiKey,
                 'CF-API-TIMESTAMP': seconds,

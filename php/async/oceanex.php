@@ -960,7 +960,7 @@ class oceanex extends Exchange {
             // to set the private key:
             // $fs = require ('fs')
             // exchange.secret = $fs->readFileSync ('oceanex.pem', 'utf8')
-            $jwt_token = $this->jwt($request, $this->encode($this->secret), 'RS256');
+            $jwt_token = $this->jwt($request, $this->encode($this->secret), 'sha256', true);
             $url .= '?user_jwt=' . $jwt_token;
         }
         $headers = array( 'Content-Type' => 'application/json' );

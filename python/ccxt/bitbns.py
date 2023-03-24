@@ -1105,7 +1105,7 @@ class bitbns(Exchange):
             }
             payload = self.string_to_base64(self.json(auth))
             signature = self.hmac(payload, self.encode(self.secret), hashlib.sha512)
-            headers['X-BITBNS-PAYLOAD'] = self.decode(payload)
+            headers['X-BITBNS-PAYLOAD'] = payload
             headers['X-BITBNS-SIGNATURE'] = signature
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

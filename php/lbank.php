@@ -797,7 +797,7 @@ class lbank extends Exchange {
                 'api_key' => $this->apiKey,
             ), $params));
             $queryString = $this->rawencode($query);
-            $message = strtoupper($this->hash($this->encode($queryString)));
+            $message = strtoupper($this->hash($this->encode($queryString), 'sha256'));
             $cacheSecretAsPem = $this->safe_value($this->options, 'cacheSecretAsPem', true);
             $pem = null;
             if ($cacheSecretAsPem) {
@@ -809,7 +809,7 @@ class lbank extends Exchange {
             } else {
                 $pem = $this->convert_secret_to_pem($this->secret);
             }
-            $query['sign'] = $this->rsa($message, $pem, 'RS256');
+            $query['sign'] = $this->rsa($message, $pem, 'sha256');
             $body = $this->urlencode($query);
             $headers = array( 'Content-Type' => 'application/x-www-form-urlencoded' );
         }

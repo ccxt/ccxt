@@ -4,6 +4,8 @@ var kraken$1 = require('./abstract/kraken.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -2423,11 +2425,11 @@ class kraken extends kraken$1 {
                 body = this.urlencodeNested(this.extend({ 'nonce': nonce }, params));
             }
             const auth = this.encode(nonce + body);
-            const hash = this.hash(auth, 'sha256', 'binary');
-            const binary = this.stringToBinary(this.encode(url));
+            const hash = this.hash(auth, sha256.sha256, 'binary');
+            const binary = this.encode(url);
             const binhash = this.binaryConcat(binary, hash);
             const secret = this.base64ToBinary(this.secret);
-            const signature = this.hmac(binhash, secret, 'sha512', 'base64');
+            const signature = this.hmac(binhash, secret, sha512.sha512, 'base64');
             headers = {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,

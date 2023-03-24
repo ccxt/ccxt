@@ -9,6 +9,7 @@ import Exchange from './abstract/coinbasepro.js';
 import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
 // @ts-expect-error
 export default class coinbasepro extends Exchange {
@@ -1769,7 +1770,7 @@ export default class coinbasepro extends Exchange {
             catch (e) {
                 throw new AuthenticationError(this.id + ' sign() invalid base64 secret');
             }
-            const signature = this.hmac(this.encode(what), secret, 'sha256', 'base64');
+            const signature = this.hmac(this.encode(what), secret, sha256, 'base64');
             headers = {
                 'CB-ACCESS-KEY': this.apiKey,
                 'CB-ACCESS-SIGN': signature,

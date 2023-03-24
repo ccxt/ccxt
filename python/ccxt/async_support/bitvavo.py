@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -1640,7 +1641,7 @@ class bitvavo(Exchange):
                     payload = body
             timestamp = str(self.milliseconds())
             auth = timestamp + method + url + payload
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             accessWindow = self.safe_string(self.options, 'BITVAVO-ACCESS-WINDOW', '10000')
             headers = {
                 'BITVAVO-ACCESS-KEY': self.apiKey,

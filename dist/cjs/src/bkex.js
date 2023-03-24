@@ -3,6 +3,7 @@
 var bkex$1 = require('./abstract/bkex.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -1890,7 +1891,7 @@ class bkex extends bkex$1 {
         }
         if (signed) {
             this.checkRequiredCredentials();
-            const signature = this.hmac(this.encode(paramsSortedEncoded), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(paramsSortedEncoded), this.encode(this.secret), sha256.sha256);
             headers = {
                 'Cache-Control': 'no-cache',
                 'Content-type': 'application/x-www-form-urlencoded',

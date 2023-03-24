@@ -9,6 +9,7 @@ import Exchange from './abstract/coinfalcon.js';
 import { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class coinfalcon extends Exchange {
@@ -986,7 +987,7 @@ export default class coinfalcon extends Exchange {
             if (body) {
                 payload += '|' + body;
             }
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret));
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
             headers = {
                 'CF-API-KEY': this.apiKey,
                 'CF-API-TIMESTAMP': seconds,

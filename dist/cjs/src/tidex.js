@@ -4,6 +4,7 @@ var tidex$1 = require('./abstract/tidex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // @ts-expect-error
 class tidex extends tidex$1 {
@@ -972,7 +973,7 @@ class tidex extends tidex$1 {
                 'nonce': nonce,
                 'method': path,
             }, query));
-            const signature = this.hmac(this.encode(body), this.encode(this.secret), 'sha512');
+            const signature = this.hmac(this.encode(body), this.encode(this.secret), sha512.sha512);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,

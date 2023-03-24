@@ -9,6 +9,7 @@ import Exchange from './abstract/huobi.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class huobi extends Exchange {
@@ -5746,7 +5747,7 @@ export default class huobi extends Exchange {
                 let auth = this.urlencode(sortedRequest);
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, this.hostname, url, auth].join("\n"); // eslint-disable-line quotes
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'base64');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
                 auth += '&' + this.urlencode({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {
@@ -5808,7 +5809,7 @@ export default class huobi extends Exchange {
                 let auth = this.urlencode(request);
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, hostname, url, auth].join("\n"); // eslint-disable-line quotes
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'base64');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
                 auth += '&' + this.urlencode({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {

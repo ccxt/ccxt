@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
@@ -1410,7 +1411,7 @@ class novadax(Exchange):
                     url += '?' + self.urlencode(query)
                 queryString = self.urlencode(self.keysort(query))
             auth = method + "\n" + request + "\n" + queryString + "\n" + timestamp  # eslint-disable-line quotes
-            headers['X-Nova-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
+            headers['X-Nova-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

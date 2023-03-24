@@ -4,6 +4,7 @@ var huobi$1 = require('./abstract/huobi.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -5743,7 +5744,7 @@ class huobi extends huobi$1 {
                 let auth = this.urlencode(sortedRequest);
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, this.hostname, url, auth].join("\n"); // eslint-disable-line quotes
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'base64');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
                 auth += '&' + this.urlencode({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {
@@ -5805,7 +5806,7 @@ class huobi extends huobi$1 {
                 let auth = this.urlencode(request);
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, hostname, url, auth].join("\n"); // eslint-disable-line quotes
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'base64');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
                 auth += '&' + this.urlencode({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {

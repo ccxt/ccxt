@@ -2264,7 +2264,7 @@ class lbank2 extends Exchange {
                 'timestamp' => $timestamp,
             ), $query)));
             $encoded = $this->encode($auth);
-            $hash = $this->hash($encoded);
+            $hash = $this->hash($encoded, 'sha256');
             $uppercaseHash = strtoupper($hash);
             $sign = null;
             if ($signatureMethod === 'RSA') {
@@ -2279,9 +2279,9 @@ class lbank2 extends Exchange {
                 } else {
                     $pem = $this->convert_secret_to_pem($this->encode($this->secret));
                 }
-                $sign = $this->rsa($uppercaseHash, $pem);
+                $sign = $this->rsa($uppercaseHash, $pem, 'sha256');
             } elseif ($signatureMethod === 'HmacSHA256') {
-                $sign = $this->hmac($this->encode($uppercaseHash), $this->encode($this->secret));
+                $sign = $this->hmac($this->encode($uppercaseHash), $this->encode($this->secret), 'sha256');
             }
             $query['sign'] = $sign;
             $body = $this->urlencode($this->keysort($query));

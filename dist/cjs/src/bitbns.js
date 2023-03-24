@@ -4,6 +4,7 @@ var bitbns$1 = require('./abstract/bitbns.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1159,8 +1160,8 @@ class bitbns extends bitbns$1 {
                 'body': body,
             };
             const payload = this.stringToBase64(this.json(auth));
-            const signature = this.hmac(payload, this.encode(this.secret), 'sha512');
-            headers['X-BITBNS-PAYLOAD'] = this.decode(payload);
+            const signature = this.hmac(payload, this.encode(this.secret), sha512.sha512);
+            headers['X-BITBNS-PAYLOAD'] = payload;
             headers['X-BITBNS-SIGNATURE'] = signature;
             headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }

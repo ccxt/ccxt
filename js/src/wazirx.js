@@ -8,6 +8,7 @@ import { Exchange } from './base/Exchange.js';
 import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 export default class wazirx extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -875,7 +876,7 @@ export default class wazirx extends Exchange {
             const timestamp = this.milliseconds();
             let data = this.extend({ 'recvWindow': this.options['recvWindow'], 'timestamp': timestamp }, params);
             data = this.keysort(data);
-            const signature = this.hmac(this.encode(this.urlencode(data)), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(this.urlencode(data)), this.encode(this.secret), sha256);
             url += '?' + this.urlencode(data);
             url += '&' + 'signature=' + signature;
             headers = {

@@ -4,6 +4,8 @@ var binance$1 = require('./abstract/binance.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var rsa = require('./base/functions/rsa.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -7406,10 +7408,10 @@ class binance extends binance$1 {
             }
             let signature = undefined;
             if (this.secret.indexOf('PRIVATE KEY') > -1) {
-                signature = this.encodeURIComponent(this.rsa(query, this.secret));
+                signature = this.encodeURIComponent(rsa.rsa(query, this.secret, sha256.sha256));
             }
             else {
-                signature = this.hmac(this.encode(query), this.encode(this.secret));
+                signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
             }
             query += '&' + 'signature=' + signature;
             headers = {

@@ -9,6 +9,7 @@ import Exchange from './abstract/bitbns.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class bitbns extends Exchange {
@@ -1162,8 +1163,8 @@ export default class bitbns extends Exchange {
                 'body': body,
             };
             const payload = this.stringToBase64(this.json(auth));
-            const signature = this.hmac(payload, this.encode(this.secret), 'sha512');
-            headers['X-BITBNS-PAYLOAD'] = this.decode(payload);
+            const signature = this.hmac(payload, this.encode(this.secret), sha512);
+            headers['X-BITBNS-PAYLOAD'] = payload;
             headers['X-BITBNS-SIGNATURE'] = signature;
             headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }

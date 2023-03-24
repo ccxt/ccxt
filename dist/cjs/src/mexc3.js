@@ -4,6 +4,7 @@ var mexc3$1 = require('./abstract/mexc3.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -4872,7 +4873,7 @@ class mexc3 extends mexc3$1 {
             }
             if (access === 'private') {
                 this.checkRequiredCredentials();
-                const signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), 'sha256');
+                const signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256.sha256);
                 url += '&' + 'signature=' + signature;
                 headers = {
                     'X-MEXC-APIKEY': this.apiKey,
@@ -4913,7 +4914,7 @@ class mexc3 extends mexc3$1 {
                     }
                 }
                 auth = this.apiKey + timestamp + auth;
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha256');
+                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
                 headers['Signature'] = signature;
             }
         }

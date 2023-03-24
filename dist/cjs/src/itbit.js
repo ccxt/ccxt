@@ -4,6 +4,8 @@ var itbit$1 = require('./abstract/itbit.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -794,10 +796,10 @@ class itbit extends itbit$1 {
             const authBody = (method === 'POST') ? body : '';
             const auth = [method, url, authBody, nonce, timestamp];
             const message = nonce + this.json(auth).replace('\\/', '/');
-            const hash = this.hash(this.encode(message), 'sha256', 'binary');
-            const binaryUrl = this.stringToBinary(this.encode(url));
+            const hash = this.hash(this.encode(message), sha256.sha256, 'binary');
+            const binaryUrl = this.encode(url);
             const binhash = this.binaryConcat(binaryUrl, hash);
-            const signature = this.hmac(binhash, this.encode(this.secret), 'sha512', 'base64');
+            const signature = this.hmac(binhash, this.encode(this.secret), sha512.sha512, 'base64');
             headers = {
                 'Authorization': this.apiKey + ':' + signature,
                 'Content-Type': 'application/json',

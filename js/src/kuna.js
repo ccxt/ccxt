@@ -8,6 +8,7 @@
 import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
 // @ts-expect-error
 export default class kuna extends Exchange {
@@ -883,7 +884,7 @@ export default class kuna extends Exchange {
                     'tonce': nonce,
                 }, params));
                 const auth = method + '|' + request + '|' + query;
-                const signed = this.hmac(this.encode(auth), this.encode(this.secret));
+                const signed = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 const suffix = query + '&signature=' + signed;
                 if (method === 'GET') {
                     url += '?' + suffix;

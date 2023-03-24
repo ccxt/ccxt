@@ -4,6 +4,7 @@ var coinfalcon$1 = require('./abstract/coinfalcon.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -983,7 +984,7 @@ class coinfalcon extends coinfalcon$1 {
             if (body) {
                 payload += '|' + body;
             }
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret));
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
             headers = {
                 'CF-API-KEY': this.apiKey,
                 'CF-API-TIMESTAMP': seconds,
