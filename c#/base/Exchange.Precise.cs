@@ -54,16 +54,25 @@ public partial class Exchange
         }
         static public bool stringGt(object a, object b)
         {
-            return (float.Parse((string)a) > float.Parse((string)b));// tmp
+            if (a == null || b == null)
+                return false;
+            var first = float.Parse((string)a, CultureInfo.InvariantCulture);
+            var second = float.Parse((string)b, CultureInfo.InvariantCulture);
+            return first > second;// tmp
         }
 
         static public bool stringEq(object a, object b)
         {
-            return (float.Parse((string)a) == float.Parse((string)b));// tmp;
+            if (a == null || b == null)
+                return false;
+            var first = float.Parse((string)a, CultureInfo.InvariantCulture);
+            var second = float.Parse((string)b, CultureInfo.InvariantCulture);
+            return (first == second);// tmp;
         }
 
         static public string stringMax(object a, object b)
         {
+
             if (a == null || b == null)
                 return null;
             if (a == null)

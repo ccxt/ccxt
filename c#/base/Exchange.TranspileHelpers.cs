@@ -512,12 +512,28 @@ public partial class Exchange
 
     public object parseInt(object a)
     {
-        return Int64.Parse((string)a);
+        object parsedValue = null;
+        try
+        {
+            parsedValue = (Convert.ToInt64(a));
+        }
+        catch (Exception e)
+        {
+        }
+        return parsedValue;
     }
 
-    public float parseFloat(object a)
+    public object parseFloat(object a)
     {
-        return float.Parse((string)a, CultureInfo.InvariantCulture.NumberFormat);
+        object parsedValue = null;
+        try
+        {
+            parsedValue = float.Parse((string)a, CultureInfo.InvariantCulture.NumberFormat);
+        }
+        catch (Exception e)
+        {
+        }
+        return parsedValue;
     }
 
     // generic getValue to replace elementAccesses

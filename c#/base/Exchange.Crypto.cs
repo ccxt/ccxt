@@ -7,11 +7,24 @@ namespace Main;
 public partial class Exchange
 {
 
-    public string hmac(object request2, object secret2, string algorithm = "sha256", string digest = "hex")
+    public string sha1() => "sha1";
+    public string sha256() => "sha256";
+    public string sha384() => "sha384";
+    public string sha512() => "sha512";
+    public string md5() => "md5";
+    public string ed25519() => "ed25519";
+    public string keccak() => "keccak";
+    public string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex")
     {
         var request = request2 as String;
         var secretBytes = secret2 as byte[];
         // var secretBytes = Encoding.UTF8.GetBytes(secret);
+
+        var algorithm = "md5";
+        if (algorithm2 != null)
+        {
+            algorithm = algorithm2.DynamicInvoke() as String;
+        }
 
         var signature = new Byte[] { };
         switch (algorithm)
@@ -63,7 +76,7 @@ public partial class Exchange
         return (string)data; // stub for python
     }
 
-    public string jwt(object data, object secret, object alg = null)
+    public string jwt(object data, object secret, object alg = null, bool isRsa = false)
     {
         alg ??= "HS256";
         return (string)data; // stub for python

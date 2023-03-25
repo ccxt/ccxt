@@ -29,20 +29,23 @@ namespace Main
 
         async static Task bot()
         {
-            var exchanges = new List<string> { "huobi", "gate", "binance", "bybit", "okx", "whitebit", "kucoin", "bitget" };
+            // var exchanges = new List<string> { "huobi", "gate", "binance", "bybit", "okx", "whitebit", "kucoin", "cryptocom", "bitstamp", "mexc3", "mexc" };
+            var exchanges = new List<string> { "binance" };
             var promises = new List<Task<object>>();
             foreach (string exchange in exchanges)
             {
                 var instance = MagicallyCreateInstance(exchange);
-                promises.Add(instance.fetchTicker("BTC/USDT"));
+                // instance.verbose = true;
+                promises.Add(instance.fetchOHLCV("BTC/USDT"));
 
             }
             var resolved = await Task.WhenAll(promises);
             for (int i = 0; i < resolved.Length; i++)
             {
                 var ticker = resolved[i];
-                var ticker2 = (dict)ticker;
-                Console.WriteLine($"{exchanges[i]} :: Ticker :: {ticker2["symbol"]}, {ticker2["timestamp"]}, {ticker2["high"]}, {ticker2["change"]}, {ticker2["baseVolume"]}");
+                var ticker2 = (list)ticker;
+                Console.WriteLine(JsonConvert.SerializeObject(ticker2, Formatting.Indented));
+                // Console.WriteLine($"{exchanges[i]} :: Ticker :: {ticker2["symbol"]}, {ticker2["timestamp"]},  {ticker2["datetime"]}, {ticker2["high"]}, {ticker2["change"]}, {ticker2["baseVolume"]}");
             }
         }
     }

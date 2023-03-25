@@ -19,11 +19,13 @@ public partial class Exchange
     public object safeTimestamp(object obj, object key, object defaultValue = null)
     {
         var value = safeValue(obj, key, defaultValue);
+        if (value == null)
+            return null;
         if (value is string)
         {
-            return (Int64)milliseconds() / 1000;
+            return Convert.ToInt64(value) / 1000;
         }
-        return (Int64)safeInteger(value, defaultValue);
+        return safeInteger(value, defaultValue);
     }
 
     public object safeTimestamp2(object obj, object key1, object key2, int defaultValue = -1)
@@ -123,8 +125,9 @@ public partial class Exchange
 
     public object safeIntegerN(object obj, List<object> keys, object defaultValue = null)
     {
-        defaultValue ??= 0;
         var result = safeValueN(obj, keys, defaultValue);
+        if (result == null)
+            return defaultValue;
         object parsedValue = null;
         try
         {
@@ -155,8 +158,10 @@ public partial class Exchange
 
     public object safeFloatN(object obj, List<object> keys, object defaultValue = null)
     {
-        defaultValue ??= -1;
+        defaultValue ??= null;
         var result = safeValueN(obj, keys, defaultValue);
+        if (result == null)
+            return defaultValue;
         object parsedValue = null;
         try
         {

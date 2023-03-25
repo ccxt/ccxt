@@ -288,7 +288,7 @@ public partial class Exchange
         this.api = this.safeValue(properties, "api") as dict;
         this.hostname = (string)this.safeString(properties, "hostname");
         this.urls = this.safeValue(properties, "urls") as dict;
-        this.options = this.safeValue(properties, "options") as dict;
+        this.options = this.safeValue(properties, "options") as dict ?? new dict();
         this.verbose = (bool)this.safeValue(properties, "verbose", false);
         this.has = this.safeValue(properties, "has") as dict;
     }

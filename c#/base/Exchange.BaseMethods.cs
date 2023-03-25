@@ -1871,16 +1871,17 @@ public partial class Exchange
                     return getValue(markets, 0);
                 } else
                 {
-                    if (isTrue(isEqual(marketType, null)))
+                    if (isTrue(isTrue(isEqual(marketType, null)) && isTrue(isEqual(market, null))))
                     {
                         throw new ArgumentsRequired ((string)add(add(add(this.id, " safeMarket() requires a fourth argument for "), marketId), " to disambiguate between different markets with the same market id")) ;
                     }
+                    object inferedMarketType = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "type") : marketType;
                     for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
                     {
-                        object marketNew = getValue(markets, i);
-                        if (isTrue(getValue(marketNew, marketType)))
+                        object marketInner = getValue(markets, i);
+                        if (isTrue(getValue(marketInner, inferedMarketType)))
                         {
-                            return marketNew;
+                            return marketInner;
                         }
                     }
                 }
@@ -1934,7 +1935,7 @@ public partial class Exchange
     {
         if (isTrue(!isEqual(this.twofa, null)))
         {
-            return this.totp(this.twofa);
+            return totp(this.twofa);
         } else
         {
             throw new ExchangeError ((string)add(this.id, " exchange.twofa has not been set for 2FA Two-Factor Authentication")) ;
@@ -2937,6 +2938,44 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchLastPrices() is not supported yet")) ;
+    }
+
+    public virtual object handlePostOnly(object isMarketOrder, object exchangeSpecificPostOnlyOption, object parameters = null)
+    {
+        /**
+        * @ignore
+        * @method
+        * @param {string} type Order type
+        * @param {boolean} exchangeSpecificBoolean exchange specific postOnly
+        * @param {object} params exchange specific params
+        * @returns {[boolean, params]}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object timeInForce = this.safeStringUpper(parameters, "timeInForce");
+        object postOnly = this.safeValue(parameters, "postOnly", false);
+        object ioc = isEqual(timeInForce, "IOC");
+        object fok = isEqual(timeInForce, "FOK");
+        object po = isEqual(timeInForce, "PO");
+        postOnly = isTrue(isTrue(postOnly) || isTrue(po)) || isTrue(exchangeSpecificPostOnlyOption);
+        if (isTrue(postOnly))
+        {
+            if (isTrue(isTrue(ioc) || isTrue(fok)))
+            {
+                throw new InvalidOrder ((string)add(add(this.id, " postOnly orders cannot have timeInForce equal to "), timeInForce)) ;
+            } else if (isTrue(isMarketOrder))
+            {
+                throw new InvalidOrder ((string)add(this.id, " market orders cannot be postOnly")) ;
+            } else
+            {
+                if (isTrue(po))
+                {
+                    parameters = this.omit(parameters, "timeInForce");
+                }
+                parameters = this.omit(parameters, "postOnly");
+                return new List<object>() {true, parameters};
+            }
+        }
+        return new List<object>() {false, parameters};
     }
 
     public async virtual Task<object> fetchTradingFees(object parameters = null)

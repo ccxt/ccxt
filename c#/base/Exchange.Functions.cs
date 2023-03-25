@@ -5,6 +5,8 @@ using System.Text.Json;
 namespace Main;
 
 using dict = Dictionary<string, object>;
+using list = List<object>;
+
 
 public partial class Exchange
 {
@@ -224,21 +226,30 @@ public partial class Exchange
         return list.Contains(elem);
     }
 
-    public List<object> sortBy(object aa, object value1, object desc2 = null)
+    public List<object> sortBy(object array, object value1, object desc2 = null)
     {
         desc2 ??= false;
         var desc = (bool)desc2;
-        var list = (List<object>)aa;
-        var value = (string)value1;
+        var list = (List<object>)array;
 
-        var sortedList = list.OrderBy(x => ((dict)x)[value]).ToList();
-
-        if (desc)
+        if (value1.GetType() == typeof(string))
         {
-            sortedList.Reverse();
+            var sortedList2 = list.OrderBy(x => ((dict)x)[(string)value1]).ToList();
+            return sortedList2;
+        }
+        else
+        {
+            var value = (int)value1;
+            var sortedList = list.OrderBy(x => ((list)x)[value]).ToList();
+
+            if (desc)
+            {
+                sortedList.Reverse();
+            }
+
+            return sortedList;
         }
 
-        return sortedList;
         // var outList = new List<object>();
         // var keys = new List<string>();
         // foreach (object elem in a)
@@ -587,7 +598,7 @@ public partial class Exchange
                 var value = parameter[key];
                 if (value.GetType() != typeof(List<object>))
                 {
-                    path = path.Replace("{" + key + "}", (string)parameter[key]);
+                    path = path.Replace("{" + key + "}", Convert.ToString(value));
                 }
                 // outList.Add(key + "=" + parameter[key]);
             }
