@@ -40,6 +40,7 @@ export default class xt extends Exchange {
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -2831,6 +2832,116 @@ export default class xt extends Exchange {
             'EXPIRED': 'expired',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://doc.xt.com/#futures_usergetBalanceBill
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry
+         * @param {int|undefined} limit max number of ledger entries to return
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLedger', undefined, params);
+        const response = (subType === 'inverse') ? await this.privateInverseGetFutureUserV1BalanceBills (this.extend (request, params)) : await this.privateLinearGetFutureUserV1BalanceBills (this.extend (request, params));
+        //
+        // swap and future
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "hasPrev": false,
+        //             "hasNext": false,
+        //             "items": [
+        //                 {
+        //                     "id": "207260567109387524",
+        //                     "coin": "usdt",
+        //                     "symbol": "btc_usdt",
+        //                     "type": "FEE",
+        //                     "amount": "-0.0213",
+        //                     "side": "SUB",
+        //                     "afterAmount": null,
+        //                     "createdTime": 1679116769914
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const ledger = this.safeValue (data, 'items', []);
+        return this.parseLedger (ledger, currency, since, limit);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     {
+        //         "id": "207260567109387524",
+        //         "coin": "usdt",
+        //         "symbol": "btc_usdt",
+        //         "type": "FEE",
+        //         "amount": "-0.0213",
+        //         "side": "SUB",
+        //         "afterAmount": null,
+        //         "createdTime": 1679116769914
+        //     }
+        //
+        const side = this.safeString (item, 'side');
+        const direction = (side === 'ADD') ? 'in' : 'out';
+        const currencyId = this.safeString (item, 'coin');
+        const timestamp = this.safeInteger (item, 'createdTime');
+        return {
+            'id': this.safeString (item, 'id'),
+            'direction': direction,
+            'account': undefined,
+            'referenceId': undefined,
+            'referenceAccount': undefined,
+            'type': this.parseLedgerEntryType (this.safeString (item, 'type')),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (item, 'amount'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': undefined,
+            'after': this.safeNumber (item, 'afterAmount'),
+            'status': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+            },
+            'info': item,
+        };
+    }
+
+    parseLedgerEntryType (type) {
+        const ledgerType = {
+            'EXCHANGE': 'transfer',
+            'CLOSE_POSITION': 'trade',
+            'TAKE_OVER': 'trade',
+            'MERGE': 'trade',
+            'QIANG_PING_MANAGER': 'fee',
+            'FUND': 'fee',
+            'FEE': 'fee',
+            'ADL': 'auto-deleveraging',
+        };
+        return this.safeString (ledgerType, type, type);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
