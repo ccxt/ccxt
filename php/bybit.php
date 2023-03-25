@@ -6771,6 +6771,7 @@ class bybit extends Exchange {
         }
         if ($enableUnified[1]) {
             $request['settleCoin'] = $settle;
+            $request['limit'] = 200;
         }
         // $market null
         list($type, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);

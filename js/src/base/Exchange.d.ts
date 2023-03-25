@@ -149,7 +149,7 @@ export default class Exchange {
     precisionFromString: typeof functions.precisionFromString;
     capitalize: (s: string) => string;
     now: () => number;
-    buildOHLCVC: (trades: any, timeframe?: string, since?: number, limit?: number) => any[];
+    buildOHLCVC: (trades: Trade[], timeframe?: string, since?: number, limit?: number) => import("./types").OHLCVC[];
     decimalToPrecision: (x: any, roundingMode: any, numPrecisionDigits: any, countingMode?: number, paddingMode?: number) => any;
     safeValue: (o: any, k: string | number, $default?: any) => any;
     safeValue2: (o: any, k1: string | number, k2: string | number, $default?: any) => any;
@@ -190,7 +190,7 @@ export default class Exchange {
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
     }, digest?: "hex" | "base64" | "binary") => any;
     numberToString: typeof functions.numberToString;
-    parseTimeframe: (timeframe: any) => number;
+    parseTimeframe: (timeframe: string) => number;
     safeInteger2: (o: any, k1: string | number, k2: string | number, $default?: number) => number;
     safeStringLower: (o: any, k: string | number, $default?: string) => string;
     parse8601: (x: any) => number;
@@ -605,7 +605,7 @@ export default class Exchange {
     fetch2(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
     request(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
     loadAccounts(reload?: boolean, params?: {}): Promise<any>;
-    fetchOHLCVC(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any[]>;
+    fetchOHLCVC(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./types").OHLCVC[]>;
     parseTradingViewOHLCV(ohlcvs: any, market?: any, timeframe?: string, since?: number, limit?: any): OHLCV[];
     editLimitBuyOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editLimitSellOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;

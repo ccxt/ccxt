@@ -3,12 +3,13 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var number = require('./number.js');
+var type = require('./type.js');
 var errors = require('../errors.js');
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
 const parseTimeframe = (timeframe) => {
-    const amount = timeframe.slice(0, -1);
+    const amount = type.asFloat(timeframe.slice(0, -1));
     const unit = timeframe.slice(-1);
     let scale = undefined;
     if (unit === 'y') {

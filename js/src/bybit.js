@@ -6889,6 +6889,7 @@ export default class bybit extends Exchange {
         }
         if (enableUnified[1]) {
             request['settleCoin'] = settle;
+            request['limit'] = 200;
         }
         // market undefined
         [type, params] = this.handleMarketTypeAndParams('fetchPositions', undefined, params);

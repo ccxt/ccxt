@@ -6413,6 +6413,7 @@ class bybit(Exchange):
             request['symbol'] = market['id']
         if enableUnified[1]:
             request['settleCoin'] = settle
+            request['limit'] = 200
         # market None
         type, params = self.handle_market_type_and_params('fetchPositions', None, params)
         subType = None
