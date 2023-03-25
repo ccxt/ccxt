@@ -2577,13 +2577,13 @@ export default class Exchange {
                     return markets[0];
                 }
                 else {
-                    if (marketType === undefined && market === undefined) {
+                    if ((marketType === undefined) && (market === undefined)) {
                         throw new ArgumentsRequired(this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
                     }
-                    const inferedMarketType = (market !== undefined) ? market['type'] : marketType;
+                    const inferredMarketType = (marketType === undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const market = markets[i];
-                        if (market[inferedMarketType]) {
+                        if (market[inferredMarketType]) {
                             return market;
                         }
                     }

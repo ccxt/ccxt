@@ -9,7 +9,6 @@ export default class Exchange {
     options: {
         [key: string]: any;
     };
-    fetchOptions: any;
     userAgents: any;
     headers: any;
     httpAgent: any;
