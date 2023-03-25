@@ -56,6 +56,7 @@ Exchange::$exchanges = array(
     'huobijp',
     'huobipro',
     'idex',
+    'independentreserve',
     'kraken',
     'kucoin',
     'kucoinfutures',
@@ -72,6 +73,5 @@ Exchange::$exchanges = array(
     'whitebit',
     'woo',
     'zb',
-    'zipmex',
 );
 

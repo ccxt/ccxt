@@ -13,8 +13,6 @@ use React\Async;
 
 class woo extends \ccxt\async\woo {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -282,7 +280,7 @@ class woo extends \ccxt\async\woo {
                 throw new ExchangeError($this->id . ' watchOHLCV $timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
             }
             $market = $this->market($symbol);
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $name = 'kline';
             $topic = $market['id'] . '@' . $name . '_' . $interval;
             $request = array(
@@ -669,14 +667,16 @@ class woo extends \ccxt\async\woo {
                 return $method($client, $message);
             }
             $splitTopic = explode('@', $topic);
-            if (strlen($splitTopic) === 2) {
+            $splitLength = count($splitTopic);
+            if ($splitLength === 2) {
                 $name = $this->safe_string($splitTopic, 1);
                 $method = $this->safe_value($methods, $name);
                 if ($method !== null) {
                     return $method($client, $message);
                 }
                 $splitName = explode('_', $name);
-                if (strlen($splitName) === 2) {
+                $splitNameLength = count($splitTopic);
+                if ($splitNameLength === 2) {
                     $method = $this->safe_value($methods, $this->safe_string($splitName, 0));
                     if ($method !== null) {
                         return $method($client, $message);

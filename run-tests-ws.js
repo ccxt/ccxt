@@ -1,14 +1,13 @@
-"use strict";
-
 // ----------------------------------------------------------------------------
 // Usage: node run-tests [--php] [--js] [--python] [exchange] [symbol]
 
 // ----------------------------------------------------------------------------
 
-const fs = require ('fs')
-    , log = require ('ololog').handleNodeErrors ().unlimited
-    , ansi = require ('ansicolor').nice
-    , { spawn, execSync } = require ('child_process')
+import fs from 'fs'
+import ansi from 'ansicolor'
+import log from 'ololog'
+import {spawn} from 'child_process'
+ansi.nice
 
 // ----------------------------------------------------------------------------
 
@@ -42,8 +41,9 @@ if (!exchanges.length) {
         log.bright.red ('\n\tNo', 'exchanges.json'.white, 'found, please run', 'npm run build'.white, 'to generate it!\n')
         process.exit (1)
     }
-
-    exchanges = require ('./exchanges.json').ws
+    let exchangesFile =  fs.readFileSync('./exchanges.json');
+    exchangesFile = JSON.parse(exchangesFile)
+    exchanges = exchangesFile.ws
 }
 
 // ----------------------------------------------------------------------------
@@ -130,7 +130,7 @@ const testExchange = async (exchange) => {
 
     const args = [exchange, ... (symbol === 'all') ? [] : [ symbol ]]
         , allTests = [
-            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/pro/test/test.js',           ...args] },
+            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/pro/test/test.js',           ...args] },
             { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/pro/test/test_async.py',       ...args] },
             { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/pro/test/test_async.py',       ...args] },
             { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/pro/test/test.php',         ...args] }

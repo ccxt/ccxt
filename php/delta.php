@@ -141,26 +141,26 @@ class delta extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.15 / 100,
-                    'maker' => 0.10 / 100,
+                    'taker' => $this->parse_number('0.0015'),
+                    'maker' => $this->parse_number('0.0010'),
                     'tiers' => array(
                         'taker' => array(
-                            array( 0, 0.15 / 100 ),
-                            array( 100, 0.13 / 100 ),
-                            array( 250, 0.13 / 100 ),
-                            array( 1000, 0.1 / 100 ),
-                            array( 5000, 0.09 / 100 ),
-                            array( 10000, 0.075 / 100 ),
-                            array( 20000, 0.065 / 100 ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('100'), $this->parse_number('0.0013') ),
+                            array( $this->parse_number('250'), $this->parse_number('0.0013') ),
+                            array( $this->parse_number('1000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('5000'), $this->parse_number('0.0009') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.00075') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.00065') ),
                         ),
                         'maker' => array(
-                            array( 0, 0.1 / 100 ),
-                            array( 100, 0.1 / 100 ),
-                            array( 250, 0.09 / 100 ),
-                            array( 1000, 0.075 / 100 ),
-                            array( 5000, 0.06 / 100 ),
-                            array( 10000, 0.05 / 100 ),
-                            array( 20000, 0.05 / 100 ),
+                            array( $this->parse_number('0'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('100'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('250'), $this->parse_number('0.0009') ),
+                            array( $this->parse_number('1000'), $this->parse_number('0.00075') ),
+                            array( $this->parse_number('5000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.0005') ),
                         ),
                     ),
                 ),
@@ -180,19 +180,19 @@ class delta extends Exchange {
             'precisionMode' => TICK_SIZE,
             'requiredCredentials' => array(
                 'apiKey' => true,
-                'secret' => false,
+                'secret' => true,
             ),
             'exceptions' => array(
                 'exact' => array(
                     // Margin required to place order with selected leverage and quantity is insufficient.
                     'insufficient_margin' => '\\ccxt\\InsufficientFunds', // array("error":array("code":"insufficient_margin","context":array("available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000")),"success":false)
                     'order_size_exceed_available' => '\\ccxt\\InvalidOrder', // The order book doesn't have sufficient liquidity, hence the order couldnt be filled, for example, ioc orders
-                    'risk_limits_breached' => '\\ccxt\\BadRequest', // orders couldn't be placed as it will breach allowed risk limits.
+                    'risk_limits_breached' => '\\ccxt\\BadRequest', // orders couldn't be placed will breach allowed risk limits.
                     'invalid_contract' => '\\ccxt\\BadSymbol', // The contract/product is either doesn't exist or has already expired.
                     'immediate_liquidation' => '\\ccxt\\InvalidOrder', // Order will cause immediate liquidation.
                     'out_of_bankruptcy' => '\\ccxt\\InvalidOrder', // Order prices are out of position bankruptcy limits.
                     'self_matching_disrupted_post_only' => '\\ccxt\\InvalidOrder', // Self matching is not allowed during auction.
-                    'immediate_execution_post_only' => '\\ccxt\\InvalidOrder', // orders couldn't be placed as it includes post only orders which will be immediately executed
+                    'immediate_execution_post_only' => '\\ccxt\\InvalidOrder', // orders couldn't be placed includes post only orders which will be immediately executed
                     'bad_schema' => '\\ccxt\\BadRequest', // array("error":array("code":"bad_schema","context":array("schema_errors":[array("code":"validation_error","message":"id is required","param":"")])),"success":false)
                     'invalid_api_key' => '\\ccxt\\AuthenticationError', // array("success":false,"error":array("code":"invalid_api_key"))
                     'invalid_signature' => '\\ccxt\\AuthenticationError', // array("success":false,"error":array("code":"invalid_signature"))
@@ -221,7 +221,7 @@ class delta extends Exchange {
         /**
          * the latest known information on the availability of the exchange API
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
          */
         $response = $this->publicGetSettings ($params);
         //
@@ -737,7 +737,7 @@ class delta extends Exchange {
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -775,7 +775,7 @@ class delta extends Exchange {
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -819,7 +819,7 @@ class delta extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1015,13 +1015,13 @@ class delta extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'resolution' => $this->timeframes[$timeframe],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe);
         $limit = $limit ? $limit : 2000; // max 2000
@@ -1030,7 +1030,7 @@ class delta extends Exchange {
             $request['end'] = $end;
             $request['start'] = $end - $limit * $duration;
         } else {
-            $start = intval($since / 1000);
+            $start = $this->parse_to_int($since / 1000);
             $request['start'] = $start;
             $request['end'] = $this->sum($start, $limit * $duration);
         }
@@ -1103,7 +1103,7 @@ class delta extends Exchange {
          * fetch data on a single open contract trade position
          * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1122,7 +1122,7 @@ class delta extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $result;
+        return $this->parse_position($result, $market);
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
@@ -1130,7 +1130,7 @@ class delta extends Exchange {
          * fetch all open positions
          * @param {[string]|null} $symbols list of unified market $symbols
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
         $this->load_markets();
         $response = $this->privateGetPositionsMargined ($params);
@@ -1138,21 +1138,93 @@ class delta extends Exchange {
         //     {
         //         "success" => true,
         //         "result" => array(
-        //             {
-        //                 "user_id" => 0,
-        //                 "size" => 0,
-        //                 "entry_price" => "string",
-        //                 "margin" => "string",
-        //                 "liquidation_price" => "string",
-        //                 "bankruptcy_price" => "string",
-        //                 "adl_level" => 0,
-        //                 "product_id" => 0
-        //             }
+        //           {
+        //             "user_id" => 0,
+        //             "size" => 0,
+        //             "entry_price" => "string",
+        //             "margin" => "string",
+        //             "liquidation_price" => "string",
+        //             "bankruptcy_price" => "string",
+        //             "adl_level" => 0,
+        //             "product_id" => 0,
+        //             "product_symbol" => "string",
+        //             "commission" => "string",
+        //             "realized_pnl" => "string",
+        //             "realized_funding" => "string"
+        //           }
         //         )
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $result;
+        return $this->parse_positions($result, $symbols);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        // fetchPosition
+        //
+        //     {
+        //         "entry_price":null,
+        //         "size":0,
+        //         "timestamp":1605454074268079
+        //     }
+        //
+        //
+        // fetchPositions
+        //
+        //     {
+        //         "user_id" => 0,
+        //         "size" => 0,
+        //         "entry_price" => "string",
+        //         "margin" => "string",
+        //         "liquidation_price" => "string",
+        //         "bankruptcy_price" => "string",
+        //         "adl_level" => 0,
+        //         "product_id" => 0,
+        //         "product_symbol" => "string",
+        //         "commission" => "string",
+        //         "realized_pnl" => "string",
+        //         "realized_funding" => "string"
+        //     }
+        //
+        $marketId = $this->safe_string($position, 'product_symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $timestamp = $this->safe_integer_product($position, 'timestamp', 0.001);
+        $sizeString = $this->safe_string($position, 'size');
+        $side = null;
+        if ($sizeString !== null) {
+            if (Precise::string_gt($sizeString, '0')) {
+                $side = 'buy';
+            } elseif (Precise::string_lt($sizeString, '0')) {
+                $side = 'sell';
+            }
+        }
+        return array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $symbol,
+            'notional' => null,
+            'marginMode' => null,
+            'liquidationPrice' => $this->safe_number($position, 'liquidation_price'),
+            'entryPrice' => $this->safe_number($position, 'entry_price'),
+            'unrealizedPnl' => null, // todo - realized_pnl ?
+            'percentage' => null,
+            'contracts' => $this->parse_number($sizeString),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'markPrice' => null,
+            'side' => $side,
+            'hedged' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'collateral' => null,
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'leverage' => null,
+            'marginRatio' => null,
+        );
     }
 
     public function parse_order_status($status) {
@@ -1261,7 +1333,7 @@ class delta extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $orderType = $type . '_order';
@@ -1369,7 +1441,7 @@ class delta extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -1426,7 +1498,7 @@ class delta extends Exchange {
          * cancel all open orders in a $market
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -1455,7 +1527,7 @@ class delta extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_with_method('privateGetOrders', $symbol, $since, $limit, $params);
     }
@@ -1467,7 +1539,7 @@ class delta extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_with_method('privateGetOrdersHistory', $symbol, $since, $limit, $params);
     }
@@ -1530,7 +1602,7 @@ class delta extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades structures to retrieve
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array(
@@ -1610,7 +1682,7 @@ class delta extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
          * @param {int|null} $limit max number of ledger entrys to return, default is null
          * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
         $this->load_markets();
         $request = array(
@@ -1733,7 +1805,7 @@ class delta extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the delta api endpoint
          * @param {string} $params->network unified network $code
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1822,7 +1894,7 @@ class delta extends Exchange {
                 $auth .= $body;
                 $headers['Content-Type'] = 'application/json';
             }
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $headers['signature'] = $signature;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

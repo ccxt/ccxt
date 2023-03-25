@@ -70,7 +70,7 @@ class idex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => null,
+                'fetchOrders' => false,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
@@ -81,7 +81,7 @@ class idex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
-                'fetchTransactions' => null,
+                'fetchTransactions' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -179,7 +179,7 @@ class idex extends Exchange {
         //
         // we override priceToPrecision to fix the following issue
         // https://github.com/ccxt/ccxt/issues/13367
-        // array("code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\" => all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes")
+        // array("code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\" => all quantities and prices must be below 100 billion, above 0, need to be provided, and always require 4 decimals ending with 4 zeroes")
         //
         $market = $this->market($symbol);
         $info = $this->safe_value($market, 'info', array());
@@ -324,7 +324,7 @@ class idex extends Exchange {
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -361,7 +361,7 @@ class idex extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             // array(
@@ -442,7 +442,7 @@ class idex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -616,7 +616,7 @@ class idex extends Exchange {
             /**
              * fetch the trading fees for multiple markets
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
@@ -664,7 +664,7 @@ class idex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -840,7 +840,7 @@ class idex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
@@ -905,7 +905,7 @@ class idex extends Exchange {
              * fetches information on an order made by the user
              * @param {string|null} $symbol unified $symbol of the market the order was made in
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $request = array(
                 'orderId' => $id,
@@ -922,7 +922,7 @@ class idex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $request = array(
                 'closed' => false,
@@ -939,7 +939,7 @@ class idex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $request = array(
                 'closed' => true,
@@ -1131,7 +1131,7 @@ class idex extends Exchange {
                 $this->base16_to_binary($noPrefix),
             );
             $binary = $this->binary_concat_array($byteArray);
-            $hash = $this->hash($binary, 'keccak', 'hex');
+            $hash = $this->hash($binary, keccak, 'hex');
             $signature = $this->sign_message_string($hash, $this->privateKey);
             // {
             //   address => '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
@@ -1160,7 +1160,7 @@ class idex extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
@@ -1252,7 +1252,7 @@ class idex extends Exchange {
                 $this->number_to_be($orderVersion, 1),
                 $this->base16_to_binary($nonce),
                 $this->base16_to_binary($walletBytes),
-                $this->encode($market['id']),  // TODO => refactor to remove either encode or stringToBinary
+                $this->encode($market['id']),
                 $this->number_to_be($typeEnum, 1),
                 $this->number_to_be($sideEnum, 1),
                 $this->encode($amountString),
@@ -1277,7 +1277,7 @@ class idex extends Exchange {
             );
             $allBytes = $this->array_concat($byteArray, $after);
             $binary = $this->binary_concat_array($allBytes);
-            $hash = $this->hash($binary, 'keccak', 'hex');
+            $hash = $this->hash($binary, keccak, 'hex');
             $signature = $this->sign_message_string($hash, $this->privateKey);
             $request = array(
                 'parameters' => array(
@@ -1352,7 +1352,7 @@ class idex extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string|null} $tag
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_required_credentials();
@@ -1369,7 +1369,7 @@ class idex extends Exchange {
                 $this->number_to_be(1, 1), // bool set to true
             ];
             $binary = $this->binary_concat_array($byteArray);
-            $hash = $this->hash($binary, 'keccak', 'hex');
+            $hash = $this->hash($binary, keccak, 'hex');
             $signature = $this->sign_message_string($hash, $this->privateKey);
             $request = array(
                 'parameters' => array(
@@ -1403,7 +1403,7 @@ class idex extends Exchange {
              * cancel all open orders
              * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
@@ -1428,7 +1428,7 @@ class idex extends Exchange {
                 $request['parameters']['market'] = $market['id'];
             }
             $binary = $this->binary_concat_array($byteArray);
-            $hash = $this->hash($binary, 'keccak', 'hex');
+            $hash = $this->hash($binary, keccak, 'hex');
             $signature = $this->sign_message_string($hash, $this->privateKey);
             $request['signature'] = $signature;
             // array( array( orderId => '688336f0-ec50-11ea-9842-b332f8a34d0e' ) )
@@ -1444,7 +1444,7 @@ class idex extends Exchange {
              * @param {string} $id order $id
              * @param {string|null} $symbol unified $symbol of the $market the order was made in
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
@@ -1460,7 +1460,7 @@ class idex extends Exchange {
                 $this->encode($id),
             );
             $binary = $this->binary_concat_array($byteArray);
-            $hash = $this->hash($binary, 'keccak', 'hex');
+            $hash = $this->hash($binary, keccak, 'hex');
             $signature = $this->sign_message_string($hash, $this->privateKey);
             $request = array(
                 'parameters' => array(
@@ -1496,7 +1496,7 @@ class idex extends Exchange {
              * @param {string} $id deposit $id
              * @param {string|null} $code not used by idex fetchDeposit ()
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $nonce = $this->uuidv1();
@@ -1517,7 +1517,7 @@ class idex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the idex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $params = array_merge(array(
             'method' => 'privateGetDeposits',
@@ -1547,7 +1547,7 @@ class idex extends Exchange {
              * @param {string} $id withdrawal $id
              * @param {string|null} $code not used by idex.fetchWithdrawal
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $nonce = $this->uuidv1();
@@ -1568,7 +1568,7 @@ class idex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
          * @param {array} $params extra parameters specific to the idex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $params = array_merge(array(
             'method' => 'privateGetWithdrawals',
