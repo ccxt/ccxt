@@ -500,7 +500,7 @@ export default class Exchange {
     fetchDepositAddresses(codes?: string[], params?: {}): Promise<any>;
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<OrderBook>;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<OrderBook>;
-    fetchTime(params?: {}): Promise<any>;
+    fetchTime(params?: {}): Promise<number>;
     fetchTradingLimits(symbols?: string[], params?: {}): Promise<any>;
     parseTicker(ticker: object, market?: any): Ticker;
     parseDepositAddress(depositAddress: any, currency?: any): void;
