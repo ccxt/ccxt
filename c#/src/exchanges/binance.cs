@@ -1,11 +1,11 @@
 using Main;
 namespace Main;
 
-class binance : Exchange
+partial class binance : Exchange
 {
     public override object describe()
     {
-        return ((Dictionary<string, object>) (this.deepExtend(base.describe(), new Dictionary<string, object>() {
+        return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "binance" },
             { "name", "Binance" },
             { "countries", new List<object>() {"JP", "MT"} },
@@ -1398,32 +1398,32 @@ class binance : Exchange
                     { "MAX_POSITION", typeof(InvalidOrder) },
                 } },
             } },
-        })));
+        });
     }
 
     public virtual object isInverse(object type, object subType = null)
     {
-        if (isEqual(subType, null))
+        if (isTrue(isEqual(subType, null)))
         {
-            return ((bool) (isEqual(type, "delivery")));
+            return isEqual(type, "delivery");
         } else
         {
-            return ((bool) (isEqual(subType, "inverse")));
+            return isEqual(subType, "inverse");
         }
     }
 
     public virtual object isLinear(object type, object subType = null)
     {
-        if (isEqual(subType, null))
+        if (isTrue(isEqual(subType, null)))
         {
-            return ((bool) ((isEqual(type, "future")) || (isEqual(type, "swap"))));
+            return isTrue((isEqual(type, "future"))) || isTrue((isEqual(type, "swap")));
         } else
         {
-            return ((bool) (isEqual(subType, "linear")));
+            return isEqual(subType, "linear");
         }
     }
 
-    public override object setSandboxMode(object enable)
+    public override void setSandboxMode(object enable)
     {
         base.setSandboxMode(enable);
         ((Dictionary<string, object>)this.options)["sandboxMode"] = enable;
@@ -1432,33 +1432,33 @@ class binance : Exchange
     public virtual object convertExpireDate(object date)
     {
         // parse YYMMDD to timestamp
-        var year = ((string)date).Substring((int)0, (int)2);
-        var month = ((string)date).Substring((int)2, (int)4);
-        var day = ((string)date).Substring((int)4, (int)6);
-        var reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
-        return ((string) (reconstructedDate));
+        object year = ((string)date).Substring((int)0, (int)2);
+        object month = ((string)date).Substring((int)2, (int)4);
+        object day = ((string)date).Substring((int)4, (int)6);
+        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
+        return reconstructedDate;
     }
 
     public virtual object createExpiredOptionMarket(object symbol)
     {
         // support expired option contracts
-        var settle = "USDT";
-        var optionParts = ((string)symbol).Split("-").ToList<object>();
-        var symbolBase = ((string)symbol).Split("/").ToList<object>();
+        object settle = "USDT";
+        object optionParts = ((string)symbol).Split((string)"-").ToList<object>();
+        object symbolBase = ((string)symbol).Split((string)"/").ToList<object>();
         object bs = null;
-        if (isGreaterThan(getIndexOf(symbol, "/"), -1))
+        if (isTrue(isGreaterThan(getIndexOf(symbol, "/"), -1)))
         {
             bs = this.safeString(symbolBase, 0);
         } else
         {
             bs = this.safeString(optionParts, 0);
         }
-        var expiry = this.safeString(optionParts, 1);
-        var strike = this.safeString(optionParts, 2);
-        var optionType = this.safeString(optionParts, 3);
-        var datetime = this.convertExpireDate(expiry);
-        var timestamp = this.parse8601(datetime);
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        object expiry = this.safeString(optionParts, 1);
+        object strike = this.safeString(optionParts, 2);
+        object optionType = this.safeString(optionParts, 3);
+        object datetime = this.convertExpireDate(expiry);
+        object timestamp = this.parse8601(datetime);
+        return new Dictionary<string, object>() {
             { "id", add(add(add(add(add(add(bs, "-"), expiry), "-"), strike), "-"), optionType) },
             { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), settle), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType) },
             { "base", bs },
@@ -1478,7 +1478,7 @@ class binance : Exchange
             { "contractSize", null },
             { "expiry", timestamp },
             { "expiryDatetime", datetime },
-            { "optionType", (isEqual(optionType, "C")) ? "call" : "put" },
+            { "optionType", ((bool) isTrue((isEqual(optionType, "C")))) ? "call" : "put" },
             { "strike", strike },
             { "settle", settle },
             { "settleId", settle },
@@ -1501,32 +1501,32 @@ class binance : Exchange
                 } },
             } },
             { "info", null },
-        }));
+        };
     }
 
     public override object market(object symbol)
     {
-        if (isEqual(this.markets, null))
+        if (isTrue(isEqual(this.markets, null)))
         {
-throw new ExchangeError(add(this.id, " markets not loaded"));
+            throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
         }
         // defaultType has legacy support on binance
-        var defaultType = this.safeString(this.options, "defaultType");
-        var defaultSubType = this.safeString(this.options, "defaultSubType");
-        var isLegacyLinear = isEqual(defaultType, "future");
-        var isLegacyInverse = isEqual(defaultType, "delivery");
-        var isLegacy = isTrue(isLegacyLinear) || isTrue(isLegacyInverse);
-        if ((symbol).GetType() == typeof(string))
+        object defaultType = this.safeString(this.options, "defaultType");
+        object defaultSubType = this.safeString(this.options, "defaultSubType");
+        object isLegacyLinear = isEqual(defaultType, "future");
+        object isLegacyInverse = isEqual(defaultType, "delivery");
+        object isLegacy = isTrue(isLegacyLinear) || isTrue(isLegacyInverse);
+        if (isTrue(((symbol).GetType() == typeof(string))))
         {
-            if (((Dictionary<string,object>)this.markets).ContainsKey((string)symbol))
+            if (isTrue(((Dictionary<string,object>)this.markets).ContainsKey(toStringOrNull(symbol))))
             {
-                var market = getValue(this.markets, symbol);
+                object market = getValue(this.markets, symbol);
                 // begin diff
-                if (isTrue(isLegacy) && isTrue(getValue(market, "spot")))
+                if (isTrue(isTrue(isLegacy) && isTrue(getValue(market, "spot"))))
                 {
-                    var settle = isTrue(isLegacyLinear) ? getValue(market, "quote") : getValue(market, "base");
-                    var futuresSymbol = add(add(symbol, ":"), settle);
-                    if (((Dictionary<string,object>)this.markets).ContainsKey((string)futuresSymbol))
+                    object settle = ((bool) isTrue(isLegacyLinear)) ? getValue(market, "quote") : getValue(market, "base");
+                    object futuresSymbol = add(add(symbol, ":"), settle);
+                    if (isTrue(((Dictionary<string,object>)this.markets).ContainsKey(toStringOrNull(futuresSymbol))))
                     {
                         return getValue(this.markets, futuresSymbol);
                     }
@@ -1534,9 +1534,9 @@ throw new ExchangeError(add(this.id, " markets not loaded"));
                 {
                     return market;
                 }
-            } else if (((Dictionary<string,object>)this.markets_by_id).ContainsKey((string)symbol))
+            } else if (isTrue(((Dictionary<string,object>)this.markets_by_id).ContainsKey(toStringOrNull(symbol))))
             {
-                var markets = getValue(this.markets_by_id, symbol);
+                object markets = getValue(this.markets_by_id, symbol);
                 // begin diff
                 if (isTrue(isLegacyLinear))
                 {
@@ -1544,44 +1544,44 @@ throw new ExchangeError(add(this.id, " markets not loaded"));
                 } else if (isTrue(isLegacyInverse))
                 {
                     defaultType = "inverse";
-                } else if (isEqual(defaultType, null))
+                } else if (isTrue(isEqual(defaultType, null)))
                 {
                     defaultType = defaultSubType;
                 }
                 // end diff
-                for (var i = 0; isLessThan(i, getArrayLength(markets)); i++)
+                for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
                 {
-                    var market = getValue(markets, i);
+                    object market = getValue(markets, i);
                     if (isTrue(getValue(market, defaultType)))
                     {
                         return market;
                     }
                 }
                 return getValue(markets, 0);
-            } else if ((isGreaterThan(getIndexOf(symbol, "/"), -1)) && (isLessThan(getIndexOf(symbol, ":"), 0)))
+            } else if (isTrue(isTrue((isGreaterThan(getIndexOf(symbol, "/"), -1))) && isTrue((isLessThan(getIndexOf(symbol, ":"), 0)))))
             {
                 // support legacy symbols
-                var bsquoteVariable = ((string)symbol).Split("/").ToList<object>();
+                var bsquoteVariable = ((string)symbol).Split((string)"/").ToList<object>();
                 var bs = ((List<object>) bsquoteVariable)[0];
                 var quote = ((List<object>) bsquoteVariable)[1];
-                var settle = (isEqual(quote, "USD")) ? bs : quote;
-                var futuresSymbol = add(add(symbol, ":"), settle);
-                if (((Dictionary<string,object>)this.markets).ContainsKey((string)futuresSymbol))
+                object settle = ((bool) isTrue((isEqual(quote, "USD")))) ? bs : quote;
+                object futuresSymbol = add(add(symbol, ":"), settle);
+                if (isTrue(((Dictionary<string,object>)this.markets).ContainsKey(toStringOrNull(futuresSymbol))))
                 {
                     return getValue(this.markets, futuresSymbol);
                 }
-            } else if ((isGreaterThan(getIndexOf(symbol, "-C"), -1)) || (isGreaterThan(getIndexOf(symbol, "-P"), -1)))
+            } else if (isTrue(isTrue((isGreaterThan(getIndexOf(symbol, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(symbol, "-P"), -1)))))
             {
                 return this.createExpiredOptionMarket(symbol);
             }
         }
-throw new BadSymbol(add(add(this.id, " does not have market symbol "), symbol));
+        throw new BadSymbol ((string)add(add(this.id, " does not have market symbol "), symbol)) ;
     }
 
     public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
-        var isOption = (!isEqual(marketId, null)) && ((isGreaterThan(getIndexOf(marketId, "-C"), -1)) || (isGreaterThan(getIndexOf(marketId, "-P"), -1)));
-        if (isTrue(isOption) && !(((Dictionary<string,object>)this.markets_by_id).ContainsKey((string)marketId)))
+        object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue((isGreaterThan(getIndexOf(marketId, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(marketId, "-P"), -1)))));
+        if (isTrue(isTrue(isOption) && !isTrue((((Dictionary<string,object>)this.markets_by_id).ContainsKey(toStringOrNull(marketId))))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -1597,7 +1597,7 @@ throw new BadSymbol(add(add(this.id, " does not have market symbol "), symbol));
     public override object currencyToPrecision(object code, object fee, object networkCode = null)
     {
         // info is available in currencies only if the user has configured his api keys
-        if (!isEqual(this.safeValue(getValue(this.currencies, code), "precision"), null))
+        if (isTrue(!isEqual(this.safeValue(getValue(this.currencies, code), "precision"), null)))
         {
             return this.decimalToPrecision(fee, TRUNCATE, getValue(getValue(this.currencies, code), "precision"), this.precisionMode, this.paddingMode);
         } else
@@ -1608,7 +1608,7 @@ throw new BadSymbol(add(add(this.id, " does not have market symbol "), symbol));
 
     public override object nonce()
     {
-        return ((object) (subtract(this.milliseconds(), getValue(this.options, "timeDifference"))));
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     public async override Task<object> fetchTime(object parameters = null)
@@ -1621,14 +1621,14 @@ throw new BadSymbol(add(add(this.id, " does not have market symbol "), symbol));
         * @returns {int} the current integer timestamp in milliseconds from the exchange server
         */
         parameters ??= new Dictionary<string, object>();
-        var defaultType = this.safeString2(this.options, "fetchTime", "defaultType", "spot");
-        var type = this.safeString(parameters, "type", defaultType);
-        var query = this.omit(parameters, "type");
+        object defaultType = this.safeString2(this.options, "fetchTime", "defaultType", "spot");
+        object type = this.safeString(parameters, "type", defaultType);
+        object query = this.omit(parameters, "type");
         object subType = null;
                 var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTime", null, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
-        var method = "publicGetTime";
+        object method = "publicGetTime";
         if (isTrue(this.isLinear(type, subType)))
         {
             method = "fapiPublicGetTime";
@@ -1636,11 +1636,11 @@ throw new BadSymbol(add(add(this.id, " does not have market symbol "), symbol));
         {
             method = "dapiPublicGetTime";
         }
-        var response = await this.callAsync(method, query);
-        return ((object) (this.safeInteger(response, "serverTime")));
+        object response = await this.callAsync(method, query);
+        return this.safeInteger(response, "serverTime");
     }
 
-    public async override object fetchCurrencies(object parameters = null)
+    public async override Task<object> fetchCurrencies(object parameters = null)
     {
         /**
         * @method
@@ -1650,10 +1650,10 @@ throw new BadSymbol(add(add(this.id, " does not have market symbol "), symbol));
         * @returns {object} an associative dictionary of currencies
         */
         parameters ??= new Dictionary<string, object>();
-        var fetchCurrenciesEnabled = this.safeValue(this.options, "fetchCurrencies");
+        object fetchCurrenciesEnabled = this.safeValue(this.options, "fetchCurrencies");
         if (!isTrue(fetchCurrenciesEnabled))
         {
-            return ((Dictionary<string, object>) (null));
+            return null;
         }
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
@@ -1661,17 +1661,17 @@ throw new BadSymbol(add(add(this.id, " does not have market symbol "), symbol));
         // and fallback to generating the currencies from the markets
         if (!isTrue(this.checkRequiredCredentials(false)))
         {
-            return ((Dictionary<string, object>) (null));
+            return null;
         }
         // sandbox/testnet does not support sapi endpoints
-        var apiBackup = this.safeString(this.urls, "apiBackup");
-        if (!isEqual(apiBackup, null))
+        object apiBackup = this.safeString(this.urls, "apiBackup");
+        if (isTrue(!isEqual(apiBackup, null)))
         {
-            return ((Dictionary<string, object>) (null));
+            return null;
         }
-        var response = await this.callAsync("sapiGetCapitalConfigGetall", parameters);
-        var result = new Dictionary<string, object>() {};
-        for (var i = 0; isLessThan(i, getArrayLength(response)); i++)
+        object response = await this.sapiGetCapitalConfigGetall(parameters);
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             //
             //    {
@@ -1768,44 +1768,44 @@ throw new BadSymbol(add(add(this.id, " does not have market symbol "), symbol));
             //        ]
             //    }
             //
-            var entry = getValue(response, i);
-            var id = this.safeString(entry, "coin");
-            var name = this.safeString(entry, "name");
-            var code = this.safeCurrencyCode(id);
+            object entry = getValue(response, i);
+            object id = this.safeString(entry, "coin");
+            object name = this.safeString(entry, "name");
+            object code = this.safeCurrencyCode(id);
             object minPrecision = null;
-            var isWithdrawEnabled = true;
-            var isDepositEnabled = true;
-            var networkList = this.safeValue(entry, "networkList", new List<object>() {});
-            var fees = new Dictionary<string, object>() {};
+            object isWithdrawEnabled = true;
+            object isDepositEnabled = true;
+            object networkList = this.safeValue(entry, "networkList", new List<object>() {});
+            object fees = new Dictionary<string, object>() {};
             object fee = null;
-            for (var j = 0; isLessThan(j, getArrayLength(networkList)); j++)
+            for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
             {
-                var networkItem = getValue(networkList, j);
-                var network = this.safeString(networkItem, "network");
+                object networkItem = getValue(networkList, j);
+                object network = this.safeString(networkItem, "network");
                 // const name = this.safeString (networkItem, 'name');
-                var withdrawFee = this.safeNumber(networkItem, "withdrawFee");
-                var depositEnable = this.safeValue(networkItem, "depositEnable");
-                var withdrawEnable = this.safeValue(networkItem, "withdrawEnable");
-                                isDepositEnabled = (bool)(isTrue(isDepositEnabled) || isTrue(depositEnable));
-                                isWithdrawEnabled = (bool)(isTrue(isWithdrawEnabled) || isTrue(withdrawEnable));
+                object withdrawFee = this.safeNumber(networkItem, "withdrawFee");
+                object depositEnable = this.safeValue(networkItem, "depositEnable");
+                object withdrawEnable = this.safeValue(networkItem, "withdrawEnable");
+                isDepositEnabled = isTrue(isDepositEnabled) || isTrue(depositEnable);
+                isWithdrawEnabled = isTrue(isWithdrawEnabled) || isTrue(withdrawEnable);
                 ((Dictionary<string, object>)fees)[(string)network] = withdrawFee;
-                var isDefault = this.safeValue(networkItem, "isDefault");
-                if (isTrue(isDefault) || (isEqual(fee, null)))
+                object isDefault = this.safeValue(networkItem, "isDefault");
+                if (isTrue(isTrue(isDefault) || isTrue((isEqual(fee, null)))))
                 {
                     fee = withdrawFee;
                 }
-                var precisionTick = this.safeString(networkItem, "withdrawIntegerMultiple");
+                object precisionTick = this.safeString(networkItem, "withdrawIntegerMultiple");
                 // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
                 // so, when there is zero instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended or other reasons
                 if (!isTrue(Precise.stringEq(precisionTick, "0")))
                 {
-                    minPrecision = (isEqual(minPrecision, null)) ? precisionTick : Precise.stringMin(minPrecision, precisionTick);
+                    minPrecision = ((bool) isTrue((isEqual(minPrecision, null)))) ? precisionTick : Precise.stringMin(minPrecision, precisionTick);
                 }
             }
-            var trading = this.safeValue(entry, "trading");
-            var active = (isTrue(isWithdrawEnabled) && isTrue(isDepositEnabled) && isTrue(trading));
+            object trading = this.safeValue(entry, "trading");
+            object active = (isTrue(isTrue(isWithdrawEnabled) && isTrue(isDepositEnabled)) && isTrue(trading));
             object maxDecimalPlaces = null;
-            if (!isEqual(minPrecision, null))
+            if (isTrue(!isEqual(minPrecision, null)))
             {
                 maxDecimalPlaces = parseInt(this.numberToString(this.precisionFromString(minPrecision)));
             }
@@ -1824,10 +1824,10 @@ throw new BadSymbol(add(add(this.id, " does not have market symbol "), symbol));
                 { "limits", this.limits },
             };
         }
-        return ((Dictionary<string, object>) (result));
+        return result;
     }
 
-    public async override object fetchMarkets(object parameters = null)
+    public async override Task<object> fetchMarkets(object parameters = null)
     {
         /**
         * @method
@@ -1837,45 +1837,45 @@ throw new BadSymbol(add(add(this.id, " does not have market symbol "), symbol));
         * @returns {[object]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        var promises = new List<object>() {};
-        var rawFetchMarkets = this.safeValue(this.options, "fetchMarkets", new List<object>() {"spot", "linear", "inverse"});
-        var sandboxMode = this.safeValue(this.options, "sandboxMode", false);
-        var fetchMarkets = new List<object>() {};
-        for (var i = 0; isLessThan(i, getArrayLength(rawFetchMarkets)); i++)
+        object promisesRaw = new List<object>() {};
+        object rawFetchMarkets = this.safeValue(this.options, "fetchMarkets", new List<object>() {"spot", "linear", "inverse"});
+        object sandboxMode = this.safeValue(this.options, "sandboxMode", false);
+        object fetchMarkets = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawFetchMarkets)); postFixIncrement(ref i))
         {
-            var type = getValue(rawFetchMarkets, i);
-            if (isEqual(type, "option") && isTrue(sandboxMode))
+            object type = getValue(rawFetchMarkets, i);
+            if (isTrue(isTrue(isEqual(type, "option")) && isTrue(sandboxMode)))
             {
 
             }
             ((List<object>)fetchMarkets).Add(type);
         }
-        for (var i = 0; isLessThan(i, getArrayLength(fetchMarkets)); i++)
+        for (object i = 0; isLessThan(i, getArrayLength(fetchMarkets)); postFixIncrement(ref i))
         {
-            var marketType = getValue(fetchMarkets, i);
-            if (isEqual(marketType, "spot"))
+            object marketType = getValue(fetchMarkets, i);
+            if (isTrue(isEqual(marketType, "spot")))
             {
-                ((List<object>)promises).Add(this.callAsync("publicGetExchangeInfo", parameters));
-            } else if (isEqual(marketType, "linear"))
+                ((List<object>)promisesRaw).Add(this.publicGetExchangeInfo(parameters));
+            } else if (isTrue(isEqual(marketType, "linear")))
             {
-                ((List<object>)promises).Add(this.callAsync("fapiPublicGetExchangeInfo", parameters));
-            } else if (isEqual(marketType, "inverse"))
+                ((List<object>)promisesRaw).Add(this.fapiPublicGetExchangeInfo(parameters));
+            } else if (isTrue(isEqual(marketType, "inverse")))
             {
-                ((List<object>)promises).Add(this.callAsync("dapiPublicGetExchangeInfo", parameters));
-            } else if (isEqual(marketType, "option"))
+                ((List<object>)promisesRaw).Add(this.dapiPublicGetExchangeInfo(parameters));
+            } else if (isTrue(isEqual(marketType, "option")))
             {
-                ((List<object>)promises).Add(this.callAsync("eapiPublicGetExchangeInfo", parameters));
+                ((List<object>)promisesRaw).Add(this.eapiPublicGetExchangeInfo(parameters));
             } else
             {
-throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type"));
+                throw new ExchangeError ((string)add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;
             }
         }
-        promises = await Task.WhenAll(promises);
-        var spotMarkets = this.safeValue(this.safeValue(promises, 0), "symbols", new List<object>() {});
-        var futureMarkets = this.safeValue(this.safeValue(promises, 1), "symbols", new List<object>() {});
-        var deliveryMarkets = this.safeValue(this.safeValue(promises, 2), "symbols", new List<object>() {});
-        var optionMarkets = this.safeValue(this.safeValue(promises, 3), "optionSymbols", new List<object>() {});
-        var markets = spotMarkets;
+        object promises = await promiseAll(promisesRaw);
+        object spotMarkets = this.safeValue(this.safeValue(promises, 0), "symbols", new List<object>() {});
+        object futureMarkets = this.safeValue(this.safeValue(promises, 1), "symbols", new List<object>() {});
+        object deliveryMarkets = this.safeValue(this.safeValue(promises, 2), "symbols", new List<object>() {});
+        object optionMarkets = this.safeValue(this.safeValue(promises, 3), "optionSymbols", new List<object>() {});
+        object markets = spotMarkets;
         markets = this.arrayConcat(markets, futureMarkets);
         markets = this.arrayConcat(markets, deliveryMarkets);
         markets = this.arrayConcat(markets, optionMarkets);
@@ -2085,56 +2085,56 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         {
             await this.loadTimeDifference();
         }
-        var result = new List<object>() {};
-        for (var i = 0; isLessThan(i, getArrayLength(markets)); i++)
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             ((List<object>)result).Add(this.parseMarket(getValue(markets, i)));
         }
-        return ((List<object>) (result));
+        return result;
     }
 
     public virtual object parseMarket(object market)
     {
-        var swap = false;
-        var future = false;
-        var option = false;
-        var underlying = this.safeString(market, "underlying");
-        var id = this.safeString(market, "symbol");
-        var optionParts = ((string)id).Split("-").ToList<object>();
-        var optionBase = this.safeString(optionParts, 0);
-        var lowercaseId = this.safeStringLower(market, "symbol");
-        var baseId = this.safeString(market, "baseAsset", optionBase);
-        var quoteId = this.safeString(market, "quoteAsset");
-        var bs = this.safeCurrencyCode(baseId);
-        var quote = this.safeCurrencyCode(quoteId);
-        var contractType = this.safeString(market, "contractType");
-        var contract = (((Dictionary<string,object>)market).ContainsKey((string)"contractType"));
-        var expiry = this.safeInteger2(market, "deliveryDate", "expiryDate");
-        var settleId = this.safeString(market, "marginAsset");
-        if ((isEqual(contractType, "PERPETUAL")) || (isEqual(expiry, 4133404800000)))
+        object swap = false;
+        object future = false;
+        object option = false;
+        object underlying = this.safeString(market, "underlying");
+        object id = this.safeString(market, "symbol");
+        object optionParts = ((string)id).Split((string)"-").ToList<object>();
+        object optionBase = this.safeString(optionParts, 0);
+        object lowercaseId = this.safeStringLower(market, "symbol");
+        object baseId = this.safeString(market, "baseAsset", optionBase);
+        object quoteId = this.safeString(market, "quoteAsset");
+        object bs = this.safeCurrencyCode(baseId);
+        object quote = this.safeCurrencyCode(quoteId);
+        object contractType = this.safeString(market, "contractType");
+        object contract = (((Dictionary<string,object>)market).ContainsKey(toStringOrNull("contractType")));
+        object expiry = this.safeInteger2(market, "deliveryDate", "expiryDate");
+        object settleId = this.safeString(market, "marginAsset");
+        if (isTrue(isTrue((isEqual(contractType, "PERPETUAL"))) || isTrue((isEqual(expiry, 4133404800000)))))
         {
             expiry = null;
             swap = true;
-        } else if (!isEqual(underlying, null))
+        } else if (isTrue(!isEqual(underlying, null)))
         {
             contract = true;
             option = true;
-            settleId = (isEqual(settleId, null)) ? "USDT" : settleId;
+            settleId = ((bool) isTrue((isEqual(settleId, null)))) ? "USDT" : settleId;
         } else
         {
             future = true;
         }
-        var settle = this.safeCurrencyCode(settleId);
-        var spot = !isTrue(contract);
-        var filters = this.safeValue(market, "filters", new List<object>() {});
-        var filtersByType = this.indexBy(filters, "filterType");
-        var status = this.safeString2(market, "status", "contractStatus");
+        object settle = this.safeCurrencyCode(settleId);
+        object spot = !isTrue(contract);
+        object filters = this.safeValue(market, "filters", new List<object>() {});
+        object filtersByType = this.indexBy(filters, "filterType");
+        object status = this.safeString2(market, "status", "contractStatus");
         object contractSize = null;
-        var fees = this.fees;
+        object fees = this.fees;
         object linear = null;
         object inverse = null;
-        var strike = this.safeInteger(market, "strikePrice");
-        var symbol = add(add(bs, "/"), quote);
+        object strike = this.safeInteger(market, "strikePrice");
+        object symbol = add(add(bs, "/"), quote);
         if (isTrue(contract))
         {
             if (isTrue(swap))
@@ -2150,23 +2150,23 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = isEqual(settle, quote);
             inverse = isEqual(settle, bs);
-            var feesType = isTrue(linear) ? "linear" : "inverse";
+            object feesType = ((bool) isTrue(linear)) ? "linear" : "inverse";
             fees = this.safeValue(this.fees, feesType, new Dictionary<string, object>() {});
         }
-        var active = (isEqual(status, "TRADING"));
+        object active = (isEqual(status, "TRADING"));
         if (isTrue(spot))
         {
-            var permissions = this.safeValue(market, "permissions", new List<object>() {});
-            for (var j = 0; isLessThan(j, getArrayLength(permissions)); j++)
+            object permissions = this.safeValue(market, "permissions", new List<object>() {});
+            for (object j = 0; isLessThan(j, getArrayLength(permissions)); postFixIncrement(ref j))
             {
-                if (isEqual(getValue(permissions, j), "TRD_GRP_003"))
+                if (isTrue(isEqual(getValue(permissions, j), "TRD_GRP_003")))
                 {
                     active = false;
                     break;
                 }
             }
         }
-        var isMarginTradingAllowed = this.safeValue(market, "isMarginTradingAllowed", false);
+        object isMarginTradingAllowed = this.safeValue(market, "isMarginTradingAllowed", false);
         object unifiedType = null;
         if (isTrue(spot))
         {
@@ -2182,7 +2182,7 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
             unifiedType = "option";
             active = null;
         }
-        var entry = new Dictionary<string, object>() {
+        object entry = new Dictionary<string, object>() {
             { "id", id },
             { "lowercaseId", lowercaseId },
             { "symbol", symbol },
@@ -2235,9 +2235,9 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
             } },
             { "info", market },
         };
-        if (((Dictionary<string,object>)filtersByType).ContainsKey((string)"PRICE_FILTER"))
+        if (isTrue(((Dictionary<string,object>)filtersByType).ContainsKey(toStringOrNull("PRICE_FILTER"))))
         {
-            var filter = this.safeValue(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
+            object filter = this.safeValue(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
             // PRICE_FILTER reports zero values for maxPrice
             // since they updated filter types in November 2018
             // https://github.com/ccxt/ccxt/issues/4286
@@ -2246,132 +2246,132 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
                 { "min", this.safeNumber(filter, "minPrice") },
                 { "max", this.safeNumber(filter, "maxPrice") },
             };
-                        ((Dictionary<string, object>)getValue(entry, "precision"))["price"] = (object)(this.precisionFromString(getValue(filter, "tickSize")));
+            ((Dictionary<string, object>)getValue(entry, "precision"))["price"] = this.precisionFromString(getValue(filter, "tickSize"));
         }
-        if (((Dictionary<string,object>)filtersByType).ContainsKey((string)"LOT_SIZE"))
+        if (isTrue(((Dictionary<string,object>)filtersByType).ContainsKey(toStringOrNull("LOT_SIZE"))))
         {
-            var filter = this.safeValue(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
-            var stepSize = this.safeString(filter, "stepSize");
-                        ((Dictionary<string, object>)getValue(entry, "precision"))["amount"] = (object)(this.precisionFromString(stepSize));
+            object filter = this.safeValue(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
+            object stepSize = this.safeString(filter, "stepSize");
+            ((Dictionary<string, object>)getValue(entry, "precision"))["amount"] = this.precisionFromString(stepSize);
             ((Dictionary<string, object>)getValue(entry, "limits"))["amount"] = new Dictionary<string, object>() {
                 { "min", this.safeNumber(filter, "minQty") },
                 { "max", this.safeNumber(filter, "maxQty") },
             };
         }
-        if (((Dictionary<string,object>)filtersByType).ContainsKey((string)"MARKET_LOT_SIZE"))
+        if (isTrue(((Dictionary<string,object>)filtersByType).ContainsKey(toStringOrNull("MARKET_LOT_SIZE"))))
         {
-            var filter = this.safeValue(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
+            object filter = this.safeValue(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
             ((Dictionary<string, object>)getValue(entry, "limits"))["market"] = new Dictionary<string, object>() {
                 { "min", this.safeNumber(filter, "minQty") },
                 { "max", this.safeNumber(filter, "maxQty") },
             };
         }
-        if (((Dictionary<string,object>)filtersByType).ContainsKey((string)"MIN_NOTIONAL"))
+        if (isTrue(((Dictionary<string,object>)filtersByType).ContainsKey(toStringOrNull("MIN_NOTIONAL"))))
         {
-            var filter = this.safeValue(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
+            object filter = this.safeValue(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
             ((Dictionary<string, object>)getValue(getValue(entry, "limits"), "cost"))["min"] = this.safeNumber2(filter, "minNotional", "notional");
         }
-        return ((Dictionary<string, object>) (entry));
+        return entry;
     }
 
     public virtual object parseBalanceHelper(object entry)
     {
-        var account = this.account();
+        object account = this.account();
         ((Dictionary<string, object>)account)["used"] = this.safeString(entry, "locked");
         ((Dictionary<string, object>)account)["free"] = this.safeString(entry, "free");
-        var interest = this.safeString(entry, "interest");
-        var debt = this.safeString(entry, "borrowed");
+        object interest = this.safeString(entry, "interest");
+        object debt = this.safeString(entry, "borrowed");
         ((Dictionary<string, object>)account)["debt"] = Precise.stringAdd(debt, interest);
         return account;
     }
 
     public virtual object parseBalance(object response, object type = null, object marginMode = null)
     {
-        var result = new Dictionary<string, object>() {
+        object result = new Dictionary<string, object>() {
             { "info", response },
         };
         object timestamp = null;
-        var isolated = isEqual(marginMode, "isolated");
-        var cross = (isEqual(type, "margin")) || (isEqual(marginMode, "cross"));
-        if (!isTrue(isolated) && ((isEqual(type, "spot")) || isTrue(cross)))
+        object isolated = isEqual(marginMode, "isolated");
+        object cross = isTrue((isEqual(type, "margin"))) || isTrue((isEqual(marginMode, "cross")));
+        if (isTrue(!isTrue(isolated) && isTrue((isTrue((isEqual(type, "spot"))) || isTrue(cross)))))
         {
             timestamp = this.safeInteger(response, "updateTime");
-            var balances = this.safeValue2(response, "balances", "userAssets", new List<object>() {});
-            for (var i = 0; isLessThan(i, getArrayLength(balances)); i++)
+            object balances = this.safeValue2(response, "balances", "userAssets", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
             {
-                var balance = getValue(balances, i);
-                var currencyId = this.safeString(balance, "asset");
-                var code = this.safeCurrencyCode(currencyId);
-                var account = this.account();
+                object balance = getValue(balances, i);
+                object currencyId = this.safeString(balance, "asset");
+                object code = this.safeCurrencyCode(currencyId);
+                object account = this.account();
                 ((Dictionary<string, object>)account)["free"] = this.safeString(balance, "free");
                 ((Dictionary<string, object>)account)["used"] = this.safeString(balance, "locked");
                 if (isTrue(cross))
                 {
-                    var debt = this.safeString(balance, "borrowed");
-                    var interest = this.safeString(balance, "interest");
+                    object debt = this.safeString(balance, "borrowed");
+                    object interest = this.safeString(balance, "interest");
                     ((Dictionary<string, object>)account)["debt"] = Precise.stringAdd(debt, interest);
                 }
                 ((Dictionary<string, object>)result)[(string)code] = account;
             }
         } else if (isTrue(isolated))
         {
-            var assets = this.safeValue(response, "assets");
-            for (var i = 0; isLessThan(i, getArrayLength(assets)); i++)
+            object assets = this.safeValue(response, "assets");
+            for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
             {
-                var asset = getValue(assets, i);
-                var marketId = this.safeValue(asset, "symbol");
-                var symbol = this.safeSymbol(marketId, null, null, "spot");
-                var bs = this.safeValue(asset, "baseAsset", new Dictionary<string, object>() {});
-                var quote = this.safeValue(asset, "quoteAsset", new Dictionary<string, object>() {});
-                var baseCode = this.safeCurrencyCode(this.safeString(bs, "asset"));
-                var quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
-                var subResult = new Dictionary<string, object>() {};
+                object asset = getValue(assets, i);
+                object marketId = this.safeValue(asset, "symbol");
+                object symbol = this.safeSymbol(marketId, null, null, "spot");
+                object bs = this.safeValue(asset, "baseAsset", new Dictionary<string, object>() {});
+                object quote = this.safeValue(asset, "quoteAsset", new Dictionary<string, object>() {});
+                object baseCode = this.safeCurrencyCode(this.safeString(bs, "asset"));
+                object quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
+                object subResult = new Dictionary<string, object>() {};
                 ((Dictionary<string, object>)subResult)[(string)baseCode] = this.parseBalanceHelper(bs);
                 ((Dictionary<string, object>)subResult)[(string)quoteCode] = this.parseBalanceHelper(quote);
                 ((Dictionary<string, object>)result)[(string)symbol] = this.safeBalance(subResult);
             }
-        } else if (isEqual(type, "savings"))
+        } else if (isTrue(isEqual(type, "savings")))
         {
-            var positionAmountVos = this.safeValue(response, "positionAmountVos", new List<object>() {});
-            for (var i = 0; isLessThan(i, getArrayLength(positionAmountVos)); i++)
+            object positionAmountVos = this.safeValue(response, "positionAmountVos", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(positionAmountVos)); postFixIncrement(ref i))
             {
-                var entry = getValue(positionAmountVos, i);
-                var currencyId = this.safeString(entry, "asset");
-                var code = this.safeCurrencyCode(currencyId);
-                var account = this.account();
-                var usedAndTotal = this.safeString(entry, "amount");
+                object entry = getValue(positionAmountVos, i);
+                object currencyId = this.safeString(entry, "asset");
+                object code = this.safeCurrencyCode(currencyId);
+                object account = this.account();
+                object usedAndTotal = this.safeString(entry, "amount");
                 ((Dictionary<string, object>)account)["total"] = usedAndTotal;
                 ((Dictionary<string, object>)account)["used"] = usedAndTotal;
                 ((Dictionary<string, object>)result)[(string)code] = account;
             }
-        } else if (isEqual(type, "funding"))
+        } else if (isTrue(isEqual(type, "funding")))
         {
-            for (var i = 0; isLessThan(i, getArrayLength(response)); i++)
+            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
-                var entry = getValue(response, i);
-                var account = this.account();
-                var currencyId = this.safeString(entry, "asset");
-                var code = this.safeCurrencyCode(currencyId);
+                object entry = getValue(response, i);
+                object account = this.account();
+                object currencyId = this.safeString(entry, "asset");
+                object code = this.safeCurrencyCode(currencyId);
                 ((Dictionary<string, object>)account)["free"] = this.safeString(entry, "free");
-                var frozen = this.safeString(entry, "freeze");
-                var withdrawing = this.safeString(entry, "withdrawing");
-                var locked = this.safeString(entry, "locked");
+                object frozen = this.safeString(entry, "freeze");
+                object withdrawing = this.safeString(entry, "withdrawing");
+                object locked = this.safeString(entry, "locked");
                 ((Dictionary<string, object>)account)["used"] = Precise.stringAdd(frozen, Precise.stringAdd(locked, withdrawing));
                 ((Dictionary<string, object>)result)[(string)code] = account;
             }
         } else
         {
-            var balances = response;
+            object balances = response;
             if (!isTrue((response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 balances = this.safeValue(response, "assets", new List<object>() {});
             }
-            for (var i = 0; isLessThan(i, getArrayLength(balances)); i++)
+            for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
             {
-                var balance = getValue(balances, i);
-                var currencyId = this.safeString(balance, "asset");
-                var code = this.safeCurrencyCode(currencyId);
-                var account = this.account();
+                object balance = getValue(balances, i);
+                object currencyId = this.safeString(balance, "asset");
+                object code = this.safeCurrencyCode(currencyId);
+                object account = this.account();
                 ((Dictionary<string, object>)account)["free"] = this.safeString(balance, "availableBalance");
                 ((Dictionary<string, object>)account)["used"] = this.safeString(balance, "initialMargin");
                 ((Dictionary<string, object>)account)["total"] = this.safeString2(balance, "marginBalance", "balance");
@@ -2380,7 +2380,7 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         }
         ((Dictionary<string, object>)result)["timestamp"] = timestamp;
         ((Dictionary<string, object>)result)["datetime"] = this.iso8601(timestamp);
-        return ((Dictionary<string, object>) (isTrue(isolated) ? result : this.safeBalance(result)));
+        return ((bool) isTrue(isolated)) ? result : this.safeBalance(result);
     }
 
     public async override Task<object> fetchBalance(object parameters = null)
@@ -2397,8 +2397,8 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
-        var type = this.safeString(parameters, "type", defaultType);
+        object defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
+        object type = this.safeString(parameters, "type", defaultType);
         object subType = null;
                 var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBalance", null, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
@@ -2406,54 +2406,54 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         var marginModequeryVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
         var marginMode = ((List<object>) marginModequeryVariable)[0];
         var query = ((List<object>) marginModequeryVariable)[1];
-        var method = "privateGetAccount";
-        var request = new Dictionary<string, object>() {};
+        object method = "privateGetAccount";
+        object request = new Dictionary<string, object>() {};
         if (isTrue(this.isLinear(type, subType)))
         {
-            var options = this.safeValue(this.options, type, new Dictionary<string, object>() {});
-            var fetchBalanceOptions = this.safeValue(options, "fetchBalance", new Dictionary<string, object>() {});
+            object options = this.safeValue(this.options, type, new Dictionary<string, object>() {});
+            object fetchBalanceOptions = this.safeValue(options, "fetchBalance", new Dictionary<string, object>() {});
             method = this.safeString(fetchBalanceOptions, "method", "fapiPrivateV2GetAccount");
             type = "linear";
         } else if (isTrue(this.isInverse(type, subType)))
         {
-            var options = this.safeValue(this.options, type, new Dictionary<string, object>() {});
-            var fetchBalanceOptions = this.safeValue(options, "fetchBalance", new Dictionary<string, object>() {});
+            object options = this.safeValue(this.options, type, new Dictionary<string, object>() {});
+            object fetchBalanceOptions = this.safeValue(options, "fetchBalance", new Dictionary<string, object>() {});
             method = this.safeString(fetchBalanceOptions, "method", "dapiPrivateGetAccount");
             type = "inverse";
-        } else if (isEqual(marginMode, "isolated"))
+        } else if (isTrue(isEqual(marginMode, "isolated")))
         {
             method = "sapiGetMarginIsolatedAccount";
-            var paramSymbols = this.safeValue(parameters, "symbols");
-            if (!isEqual(paramSymbols, null))
+            object paramSymbols = this.safeValue(parameters, "symbols");
+            if (isTrue(!isEqual(paramSymbols, null)))
             {
-                var symbols = "";
+                object symbols = "";
                 if (isTrue((paramSymbols.GetType().IsGenericType && paramSymbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {
                     symbols = this.marketId(getValue(paramSymbols, 0));
-                    for (var i = 1; isLessThan(i, getArrayLength(paramSymbols)); i++)
+                    for (object i = 1; isLessThan(i, getArrayLength(paramSymbols)); postFixIncrement(ref i))
                     {
-                        var symbol = getValue(paramSymbols, i);
-                        var id = this.marketId(symbol);
-                        symbols += add(",", id);
+                        object symbol = getValue(paramSymbols, i);
+                        object id = this.marketId(symbol);
+                        symbols = add(symbols, add(",", id));
                     }
                 } else
                 {
-                                        symbols = (string)(paramSymbols);
+                    symbols = paramSymbols;
                 }
                 ((Dictionary<string, object>)request)["symbols"] = symbols;
             }
-        } else if ((isEqual(type, "margin")) || (isEqual(marginMode, "cross")))
+        } else if (isTrue(isTrue((isEqual(type, "margin"))) || isTrue((isEqual(marginMode, "cross")))))
         {
             method = "sapiGetMarginAccount";
-        } else if (isEqual(type, "savings"))
+        } else if (isTrue(isEqual(type, "savings")))
         {
             method = "sapiGetLendingUnionAccount";
-        } else if (isEqual(type, "funding"))
+        } else if (isTrue(isEqual(type, "funding")))
         {
             method = "sapiPostAssetGetFundingAsset";
         }
-        var requestParams = this.omit(query, new List<object>() {"type", "symbols"});
-        var response = await this.callAsync(method, this.extend(request, requestParams));
+        object requestParams = this.omit(query, new List<object>() {"type", "symbols"});
+        object response = await this.callAsync(method, this.extend(request, requestParams));
         //
         // spot
         //
@@ -2680,7 +2680,7 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         //       }
         //     ]
         //
-        return ((Dictionary<string, object>) (this.parseBalance(response, type, marginMode)));
+        return this.parseBalance(response, type, marginMode);
     }
 
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
@@ -2696,15 +2696,15 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var market = this.market(symbol);
-        var request = new Dictionary<string, object>() {
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        if (!isEqual(limit, null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((Dictionary<string, object>)request)["limit"] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        var method = "publicGetDepth";
+        object method = "publicGetDepth";
         if (isTrue(getValue(market, "option")))
         {
             method = "eapiPublicGetDepth";
@@ -2715,7 +2715,7 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         {
             method = "dapiPublicGetDepth";
         }
-        var response = await this.callAsync(method, this.extend(request, parameters));
+        object response = await this.callAsync(method, this.extend(request, parameters));
         //
         // future
         //
@@ -2752,8 +2752,8 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         //         "u": 1015939
         //     }
         //
-        var timestamp = this.safeInteger(response, "T");
-        var orderbook = this.parseOrderBook(response, symbol, timestamp);
+        object timestamp = this.safeInteger(response, "T");
+        object orderbook = this.parseOrderBook(response, symbol, timestamp);
         ((Dictionary<string, object>)orderbook)["nonce"] = this.safeInteger2(response, "lastUpdateId", "u");
         return orderbook;
     }
@@ -2833,20 +2833,20 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         //         "time":"1673899278514"
         //     }
         //
-        var timestamp = this.safeInteger(ticker, "closeTime");
+        object timestamp = this.safeInteger(ticker, "closeTime");
         object marketType = null;
-        if ((((Dictionary<string,object>)ticker).ContainsKey((string)"time")))
+        if (isTrue((((Dictionary<string,object>)ticker).ContainsKey(toStringOrNull("time")))))
         {
             marketType = "contract";
         }
-        if (isEqual(marketType, null))
+        if (isTrue(isEqual(marketType, null)))
         {
-            marketType = (((Dictionary<string,object>)ticker).ContainsKey((string)"bidQty")) ? "spot" : "contract";
+            marketType = ((bool) isTrue((((Dictionary<string,object>)ticker).ContainsKey(toStringOrNull("bidQty"))))) ? "spot" : "contract";
         }
-        var marketId = this.safeString(ticker, "symbol");
-        var symbol = this.safeSymbol(marketId, market, null, marketType);
-        var last = this.safeString(ticker, "lastPrice");
-        var isCoinm = (((Dictionary<string,object>)ticker).ContainsKey((string)"baseVolume"));
+        object marketId = this.safeString(ticker, "symbol");
+        object symbol = this.safeSymbol(marketId, market, null, marketType);
+        object last = this.safeString(ticker, "lastPrice");
+        object isCoinm = (((Dictionary<string,object>)ticker).ContainsKey(toStringOrNull("baseVolume")));
         object baseVolume = null;
         object quoteVolume = null;
         if (isTrue(isCoinm))
@@ -2892,15 +2892,15 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        var response = await this.callAsync("sapiGetSystemStatus", parameters);
+        object response = await this.sapiGetSystemStatus(parameters);
         //
         //     {
         //         "status": 0,              // 0: normal，1：system maintenance
         //         "msg": "normal"           // "normal", "system_maintenance"
         //     }
         //
-        var statusRaw = this.safeString(response, "status");
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        object statusRaw = this.safeString(response, "status");
+        return new Dictionary<string, object>() {
             { "status", this.safeString(new Dictionary<string, object>() {
                 { "0", "ok" },
                 { "1", "maintenance" },
@@ -2909,7 +2909,7 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
             { "eta", null },
             { "url", null },
             { "info", response },
-        }));
+        };
     }
 
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
@@ -2924,11 +2924,11 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var market = this.market(symbol);
-        var request = new Dictionary<string, object>() {
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        var method = "publicGetTicker24hr";
+        object method = "publicGetTicker24hr";
         if (isTrue(getValue(market, "linear")))
         {
             method = "fapiPublicGetTicker24hr";
@@ -2936,10 +2936,10 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         {
             method = "dapiPublicGetTicker24hr";
         }
-        var response = await this.callAsync(method, this.extend(request, parameters));
+        object response = await this.callAsync(method, this.extend(request, parameters));
         if (isTrue((response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            var firstTicker = this.safeValue(response, 0, new Dictionary<string, object>() {});
+            object firstTicker = this.safeValue(response, 0, new Dictionary<string, object>() {});
             return this.parseTicker(firstTicker, market);
         }
         return this.parseTicker(response, market);
@@ -2957,11 +2957,11 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-                symbols = (List<object>)(this.marketSymbols(symbols));
+        symbols = this.marketSymbols(symbols);
         object market = null;
-        if (!isEqual(symbols, null))
+        if (isTrue(!isEqual(symbols, null)))
         {
-            var first = this.safeString(symbols, 0);
+            object first = this.safeString(symbols, 0);
             market = this.market(first);
         }
         object type = null;
@@ -2983,11 +2983,11 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         {
             method = "publicGetTickerBookTicker";
         }
-        var response = await this.callAsync(method, parameters);
-        return ((Task) (this.parseTickers(response, symbols)));
+        object response = await this.callAsync(method, parameters);
+        return this.parseTickers(response, symbols);
     }
 
-    public async override Task<object> fetchLastPrices(object symbols = null)
+    public async override Task<object> fetchLastPrices(object symbols = null, object parameters = null)
     {
         /**
         * @method
@@ -2999,26 +2999,26 @@ throw new ExchangeError(add(add(add(this.id, " fetchMarkets() this.options fetch
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var market = this.getMarketFromSymbols(symbols);
+        object market = this.getMarketFromSymbols(symbols);
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
         var marketType = ((List<object>) marketTypequeryVariable)[0];
         var query = ((List<object>) marketTypequeryVariable)[1];
         object method = null;
-        if (isEqual(marketType, "future"))
+        if (isTrue(isEqual(marketType, "future")))
         {
             method = "fapiPublicGetTickerPrice";
-        } else if (isEqual(marketType, "delivery"))
+        } else if (isTrue(isEqual(marketType, "delivery")))
         {
             method = "dapiPublicGetTickerPrice";
-        } else if (isEqual(marketType, "spot"))
+        } else if (isTrue(isEqual(marketType, "spot")))
         {
             method = "publicGetTickerPrice";
         } else
         {
-throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support "), marketType), " markets yet"));
+            throw new NotSupported ((string)add(add(add(this.id, " fetchLastPrices() does not support "), marketType), " markets yet")) ;
         }
-        var response = await this.callAsync(method, query);
-        return ((Task) (this.parseLastPrices(response, symbols)));
+        object response = await this.callAsync(method, query);
+        return this.parseLastPrices(response, symbols);
     }
 
     public override object parseLastPrice(object info, object market = null)
@@ -3049,12 +3049,12 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
         //         "time": 1591257246176
         //     }
         //
-        var marketId = this.safeString(info, "symbol");
-        var defaultType = this.safeString(this.options, "defaultType", "spot");
+        object marketId = this.safeString(info, "symbol");
+        object defaultType = this.safeString(this.options, "defaultType", "spot");
         market = this.safeMarket(marketId, market, null, defaultType);
-        var timestamp = this.safeInteger(info, "time");
-        var price = this.safeNumber(info, "price");
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        object timestamp = this.safeInteger(info, "time");
+        object price = this.safeNumber(info, "price");
+        return new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -3063,7 +3063,7 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
             { "baseVolume", null },
             { "quoteVolume", null },
             { "info", info },
-        }));
+        };
     }
 
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
@@ -3078,13 +3078,13 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var defaultType = this.safeString2(this.options, "fetchTickers", "defaultType", "spot");
-        var type = this.safeString(parameters, "type", defaultType);
+        object defaultType = this.safeString2(this.options, "fetchTickers", "defaultType", "spot");
+        object type = this.safeString(parameters, "type", defaultType);
         object subType = null;
                 var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", null, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
-        var query = this.omit(parameters, "type");
+        object query = this.omit(parameters, "type");
         object defaultMethod = null;
         if (isTrue(this.isLinear(type, subType)))
         {
@@ -3096,8 +3096,8 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
         {
             defaultMethod = "publicGetTicker24hr";
         }
-        var method = this.safeString(this.options, "fetchTickersMethod", defaultMethod);
-        var response = await this.callAsync(method, query);
+        object method = this.safeString(this.options, "fetchTickersMethod", defaultMethod);
+        object response = await this.callAsync(method, query);
         return this.parseTickers(response, symbols);
     }
 
@@ -3112,7 +3112,7 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
         //         "0.02500000",  // close
         //         "22.19000000", // volume
         //         1591478579999, // close time
-        //         "0.55490906",  // quote asset volume
+        //         "0.55490906",  // quote asset volume, base asset volume for dapi
         //         40,            // number of trades
         //         "10.92900000", // taker buy base asset volume
         //         "0.27336462",  // taker buy quote asset volume
@@ -3154,7 +3154,8 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
         //         "closeTime": 1677097200000
         //     }
         //
-        return ((List<object>) (new List<object> {this.safeInteger2(ohlcv, 0, "closeTime"), this.safeNumber2(ohlcv, 1, "open"), this.safeNumber2(ohlcv, 2, "high"), this.safeNumber2(ohlcv, 3, "low"), this.safeNumber2(ohlcv, 4, "close"), this.safeNumber2(ohlcv, 5, "volume")}));
+        object volumeIndex = ((bool) isTrue((getValue(market, "inverse")))) ? 7 : 5;
+        return new List<object> {this.safeInteger2(ohlcv, 0, "closeTime"), this.safeNumber2(ohlcv, 1, "open"), this.safeNumber2(ohlcv, 2, "high"), this.safeNumber2(ohlcv, 3, "low"), this.safeNumber2(ohlcv, 4, "close"), this.safeNumber2(ohlcv, volumeIndex, "volume")};
     }
 
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -3175,20 +3176,20 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var market = this.market(symbol);
+        object market = this.market(symbol);
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
-        var defaultLimit = 500;
-        var maxLimit = 1500;
-        var price = this.safeString(parameters, "price");
-        var until = this.safeInteger(parameters, "until");
-                parameters = (Dictionary<string, object>)(this.omit(parameters, new List<object>() {"price", "until"}));
-        limit = (isEqual(limit, null)) ? defaultLimit : mathMin(limit, maxLimit);
-        var request = new Dictionary<string, object>() {
+        object defaultLimit = 500;
+        object maxLimit = 1500;
+        object price = this.safeString(parameters, "price");
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"price", "until"});
+        limit = ((bool) isTrue((isEqual(limit, null)))) ? defaultLimit : mathMin(limit, maxLimit);
+        object request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
             { "limit", limit },
         };
-        if (isEqual(price, "index"))
+        if (isTrue(isEqual(price, "index")))
         {
             ((Dictionary<string, object>)request)["pair"] = getValue(market, "id"); // Index price takes this argument instead of symbol
         } else
@@ -3196,7 +3197,7 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
             ((Dictionary<string, object>)request)["symbol"] = getValue(market, "id");
         }
         // const duration = this.parseTimeframe (timeframe);
-        if (!isEqual(since, null))
+        if (isTrue(!isEqual(since, null)))
         {
             ((Dictionary<string, object>)request)["startTime"] = since;
             //
@@ -3205,24 +3206,24 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
             //
             if (isTrue(getValue(market, "inverse")))
             {
-                if (isGreaterThan(since, 0))
+                if (isTrue(isGreaterThan(since, 0)))
                 {
-                    var duration = this.parseTimeframe(timeframe);
-                    var endTime = this.sum(since, subtract(multiply(multiply(limit, duration), 1000), 1));
-                    var now = this.milliseconds();
+                    object duration = this.parseTimeframe(timeframe);
+                    object endTime = this.sum(since, subtract(multiply(multiply(limit, duration), 1000), 1));
+                    object now = this.milliseconds();
                     ((Dictionary<string, object>)request)["endTime"] = mathMin(now, endTime);
                 }
             }
         }
-        if (!isEqual(until, null))
+        if (isTrue(!isEqual(until, null)))
         {
             ((Dictionary<string, object>)request)["endTime"] = until;
         }
-        var method = "publicGetKlines";
+        object method = "publicGetKlines";
         if (isTrue(getValue(market, "option")))
         {
             method = "eapiPublicGetKlines";
-        } else if (isEqual(price, "mark"))
+        } else if (isTrue(isEqual(price, "mark")))
         {
             if (isTrue(getValue(market, "inverse")))
             {
@@ -3231,7 +3232,7 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
             {
                 method = "fapiPublicGetMarkPriceKlines";
             }
-        } else if (isEqual(price, "index"))
+        } else if (isTrue(isEqual(price, "index")))
         {
             if (isTrue(getValue(market, "inverse")))
             {
@@ -3247,7 +3248,7 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
         {
             method = "dapiPublicGetKlines";
         }
-        var response = await this.callAsync(method, this.extend(request, parameters));
+        object response = await this.callAsync(method, this.extend(request, parameters));
         //
         //     [
         //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
@@ -3274,12 +3275,12 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
         //         }
         //     ]
         //
-        return ((List<object>) (this.parseOHLCVs(response, market, timeframe, since, limit)));
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
     {
-        if (((Dictionary<string,object>)trade).ContainsKey((string)"isDustTrade"))
+        if (isTrue(((Dictionary<string,object>)trade).ContainsKey(toStringOrNull("isDustTrade"))))
         {
             return this.parseDustTrade(trade, market);
         }
@@ -3410,69 +3411,69 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
         //         "time": 1676366446072
         //     }
         //
-        var timestamp = this.safeInteger2(trade, "T", "time");
-        var price = this.safeString2(trade, "p", "price");
-        var amount = this.safeString2(trade, "q", "qty");
+        object timestamp = this.safeInteger2(trade, "T", "time");
+        object price = this.safeString2(trade, "p", "price");
+        object amount = this.safeString2(trade, "q", "qty");
         amount = this.safeString(trade, "quantity", amount);
-        var cost = this.safeString2(trade, "quoteQty", "baseQty"); // inverse futures
-        var marketId = this.safeString(trade, "symbol");
-        var isSpotTrade = (((Dictionary<string,object>)trade).ContainsKey((string)"isIsolated")) || (((Dictionary<string,object>)trade).ContainsKey((string)"M")) || (((Dictionary<string,object>)trade).ContainsKey((string)"orderListId"));
-        var marketType = isTrue(isSpotTrade) ? "spot" : "contract";
+        object cost = this.safeString2(trade, "quoteQty", "baseQty"); // inverse futures
+        object marketId = this.safeString(trade, "symbol");
+        object isSpotTrade = isTrue(isTrue((((Dictionary<string,object>)trade).ContainsKey(toStringOrNull("isIsolated")))) || isTrue((((Dictionary<string,object>)trade).ContainsKey(toStringOrNull("M"))))) || isTrue((((Dictionary<string,object>)trade).ContainsKey(toStringOrNull("orderListId"))));
+        object marketType = ((bool) isTrue(isSpotTrade)) ? "spot" : "contract";
         market = this.safeMarket(marketId, market, null, marketType);
-        var symbol = getValue(market, "symbol");
-        var id = this.safeString2(trade, "t", "a");
+        object symbol = getValue(market, "symbol");
+        object id = this.safeString2(trade, "t", "a");
         id = this.safeString2(trade, "tradeId", "id", id);
         object side = null;
-        var orderId = this.safeString(trade, "orderId");
-        var buyerMaker = this.safeValue2(trade, "m", "isBuyerMaker");
+        object orderId = this.safeString(trade, "orderId");
+        object buyerMaker = this.safeValue2(trade, "m", "isBuyerMaker");
         object takerOrMaker = null;
-        if (!isEqual(buyerMaker, null))
+        if (isTrue(!isEqual(buyerMaker, null)))
         {
-            side = isTrue(buyerMaker) ? "sell" : "buy"; // this is reversed intentionally
-        } else if (((Dictionary<string,object>)trade).ContainsKey((string)"side"))
+            side = ((bool) isTrue(buyerMaker)) ? "sell" : "buy"; // this is reversed intentionally
+        } else if (isTrue(((Dictionary<string,object>)trade).ContainsKey(toStringOrNull("side"))))
         {
             side = this.safeStringLower(trade, "side");
         } else
         {
-            if (((Dictionary<string,object>)trade).ContainsKey((string)"isBuyer"))
+            if (isTrue(((Dictionary<string,object>)trade).ContainsKey(toStringOrNull("isBuyer"))))
             {
-                side = isTrue(getValue(trade, "isBuyer")) ? "buy" : "sell"; // this is a true side
+                side = ((bool) isTrue(getValue(trade, "isBuyer"))) ? "buy" : "sell"; // this is a true side
             }
         }
         object fee = null;
-        if (((Dictionary<string,object>)trade).ContainsKey((string)"commission"))
+        if (isTrue(((Dictionary<string,object>)trade).ContainsKey(toStringOrNull("commission"))))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", this.safeString(trade, "commission") },
                 { "currency", this.safeCurrencyCode(this.safeString(trade, "commissionAsset")) },
             };
         }
-        if (((Dictionary<string,object>)trade).ContainsKey((string)"isMaker"))
+        if (isTrue(((Dictionary<string,object>)trade).ContainsKey(toStringOrNull("isMaker"))))
         {
-            takerOrMaker = isTrue(getValue(trade, "isMaker")) ? "maker" : "taker";
+            takerOrMaker = ((bool) isTrue(getValue(trade, "isMaker"))) ? "maker" : "taker";
         }
-        if (((Dictionary<string,object>)trade).ContainsKey((string)"maker"))
+        if (isTrue(((Dictionary<string,object>)trade).ContainsKey(toStringOrNull("maker"))))
         {
-            takerOrMaker = isTrue(getValue(trade, "maker")) ? "maker" : "taker";
+            takerOrMaker = ((bool) isTrue(getValue(trade, "maker"))) ? "maker" : "taker";
         }
-        if ((((Dictionary<string,object>)trade).ContainsKey((string)"optionSide")) || isTrue(getValue(market, "option")))
+        if (isTrue(isTrue((((Dictionary<string,object>)trade).ContainsKey(toStringOrNull("optionSide")))) || isTrue(getValue(market, "option"))))
         {
-            var settle = this.safeCurrencyCode(this.safeString(trade, "quoteAsset", "USDT"));
+            object settle = this.safeCurrencyCode(this.safeString(trade, "quoteAsset", "USDT"));
             takerOrMaker = this.safeStringLower(trade, "liquidity");
-            if (((Dictionary<string,object>)trade).ContainsKey((string)"fee"))
+            if (isTrue(((Dictionary<string,object>)trade).ContainsKey(toStringOrNull("fee"))))
             {
                 fee = new Dictionary<string, object>() {
                     { "cost", this.safeString(trade, "fee") },
                     { "currency", settle },
                 };
             }
-            if ((!isEqual(side, "buy")) && (!isEqual(side, "sell")))
+            if (isTrue(isTrue((!isEqual(side, "buy"))) && isTrue((!isEqual(side, "sell")))))
             {
-                side = (isEqual(side, "1")) ? "buy" : "sell";
+                side = ((bool) isTrue((isEqual(side, "1")))) ? "buy" : "sell";
             }
-            if (((Dictionary<string,object>)trade).ContainsKey((string)"optionSide"))
+            if (isTrue(((Dictionary<string,object>)trade).ContainsKey(toStringOrNull("optionSide"))))
             {
-                if (!isEqual(side, "buy"))
+                if (isTrue(!isEqual(side, "buy")))
                 {
                     amount = Precise.stringMul("-1", amount);
                 }
@@ -3509,12 +3510,12 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var market = this.market(symbol);
-        var request = new Dictionary<string, object>() {
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        var method = this.safeString(this.options, "fetchTradesMethod");
-        if (isEqual(method, null))
+        object method = this.safeString(this.options, "fetchTradesMethod");
+        if (isTrue(isEqual(method, null)))
         {
             if (isTrue(getValue(market, "option")))
             {
@@ -3532,7 +3533,7 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
         }
         if (!isTrue(getValue(market, "option")))
         {
-            if (!isEqual(since, null))
+            if (isTrue(!isEqual(since, null)))
             {
                 ((Dictionary<string, object>)request)["startTime"] = since;
                 // https://github.com/ccxt/ccxt/issues/6400
@@ -3540,7 +3541,7 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
                 ((Dictionary<string, object>)request)["endTime"] = this.sum(since, 3600000);
             }
         }
-        if (!isEqual(limit, null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((Dictionary<string, object>)request)["limit"] = limit; // default = 500, maximum = 1000
         }
@@ -3553,7 +3554,7 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
         // - 'tradeId' accepted and returned by this method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
-        var response = await this.callAsync(method, this.extend(request, parameters));
+        object response = await this.callAsync(method, this.extend(request, parameters));
         //
         // aggregate trades
         //
@@ -3597,7 +3598,7 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
         //         },
         //     ]
         //
-        return ((List<object>) (this.parseTrades(response, market, since, limit)));
+        return this.parseTrades(response, market, since, limit);
     }
 
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -3618,59 +3619,59 @@ throw new NotSupported(add(add(add(this.id, " fetchLastPrices() does not support
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var market = this.market(symbol);
+        object market = this.market(symbol);
         if (!isTrue(getValue(market, "spot")))
         {
-throw new NotSupported(add(add(add(this.id, " editOrder() does not support "), getValue(market, "type")), " orders, only spot orders are accepted"));
+            throw new NotSupported ((string)add(add(add(this.id, " editOrder() does not support "), getValue(market, "type")), " orders, only spot orders are accepted")) ;
         }
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", ((string)side).ToUpper() },
             { "cancelReplaceMode", "STOP_ON_FAILURE" },
         };
-        var cancelId = this.safeString2(parameters, "cancelNewClientOrderId", "cancelOrigClientOrderId");
-        if (isEqual(cancelId, null))
+        object cancelId = this.safeString2(parameters, "cancelNewClientOrderId", "cancelOrigClientOrderId");
+        if (isTrue(isEqual(cancelId, null)))
         {
             ((Dictionary<string, object>)request)["cancelOrderId"] = id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
         }
-        var clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
-        var initialUppercaseType = ((string)type).ToUpper();
-        var uppercaseType = initialUppercaseType;
-        var postOnly = this.isPostOnly(isEqual(initialUppercaseType, "MARKET"), isEqual(initialUppercaseType, "LIMIT_MAKER"), parameters);
+        object clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
+        object initialUppercaseType = ((string)type).ToUpper();
+        object uppercaseType = initialUppercaseType;
+        object postOnly = this.isPostOnly(isEqual(initialUppercaseType, "MARKET"), isEqual(initialUppercaseType, "LIMIT_MAKER"), parameters);
         if (isTrue(postOnly))
         {
             uppercaseType = "LIMIT_MAKER";
         }
         ((Dictionary<string, object>)request)["type"] = uppercaseType;
-        var stopPrice = this.safeNumber(parameters, "stopPrice");
-        if (!isEqual(stopPrice, null))
+        object stopPrice = this.safeNumber(parameters, "stopPrice");
+        if (isTrue(!isEqual(stopPrice, null)))
         {
-            if (isEqual(uppercaseType, "MARKET"))
+            if (isTrue(isEqual(uppercaseType, "MARKET")))
             {
                 uppercaseType = "STOP_LOSS";
-            } else if (isEqual(uppercaseType, "LIMIT"))
+            } else if (isTrue(isEqual(uppercaseType, "LIMIT")))
             {
                 uppercaseType = "STOP_LOSS_LIMIT";
             }
         }
-        var validOrderTypes = this.safeValue(getValue(market, "info"), "orderTypes");
+        object validOrderTypes = this.safeValue(getValue(market, "info"), "orderTypes");
         if (!isTrue(this.inArray(uppercaseType, validOrderTypes)))
         {
-            if (!isEqual(initialUppercaseType, uppercaseType))
+            if (isTrue(!isEqual(initialUppercaseType, uppercaseType)))
             {
-throw new InvalidOrder(add(add(add(add(add(this.id, " stopPrice parameter is not allowed for "), symbol), " "), type), " orders"));
+                throw new InvalidOrder ((string)add(add(add(add(add(this.id, " stopPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
             } else
             {
-throw new InvalidOrder(add(add(add(add(add(this.id, " "), type), " is not a valid order type for the "), symbol), " market"));
+                throw new InvalidOrder ((string)add(add(add(add(add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
             }
         }
-        if (isEqual(clientOrderId, null))
+        if (isTrue(isEqual(clientOrderId, null)))
         {
-            var broker = this.safeValue(this.options, "broker");
-            if (!isEqual(broker, null))
+            object broker = this.safeValue(this.options, "broker");
+            if (isTrue(!isEqual(broker, null)))
             {
-                var brokerId = this.safeString(broker, "spot");
-                if (!isEqual(brokerId, null))
+                object brokerId = this.safeString(broker, "spot");
+                if (isTrue(!isEqual(brokerId, null)))
                 {
                     ((Dictionary<string, object>)request)["newClientOrderId"] = add(brokerId, this.uuid22());
                 }
@@ -3680,25 +3681,25 @@ throw new InvalidOrder(add(add(add(add(add(this.id, " "), type), " is not a vali
             ((Dictionary<string, object>)request)["newClientOrderId"] = clientOrderId;
         }
         ((Dictionary<string, object>)request)["newOrderRespType"] = this.safeValue(getValue(this.options, "newOrderRespType"), type, "RESULT"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        var timeInForceIsRequired = false;
-        var priceIsRequired = false;
-        var stopPriceIsRequired = false;
-        var quantityIsRequired = false;
-        if (isEqual(uppercaseType, "MARKET"))
+        object timeInForceIsRequired = false;
+        object priceIsRequired = false;
+        object stopPriceIsRequired = false;
+        object quantityIsRequired = false;
+        if (isTrue(isEqual(uppercaseType, "MARKET")))
         {
-            var quoteOrderQty = this.safeValue(this.options, "quoteOrderQty", true);
+            object quoteOrderQty = this.safeValue(this.options, "quoteOrderQty", true);
             if (isTrue(quoteOrderQty))
             {
-                var quoteOrderQty = this.safeValue2(parameters, "quoteOrderQty", "cost");
-                var precision = getValue(getValue(market, "precision"), "price");
-                if (!isEqual(quoteOrderQty, null))
+                object quoteOrderQtyNew = this.safeValue2(parameters, "quoteOrderQty", "cost");
+                object precision = getValue(getValue(market, "precision"), "price");
+                if (isTrue(!isEqual(quoteOrderQtyNew, null)))
                 {
-                    ((Dictionary<string, object>)request)["quoteOrderQty"] = this.decimalToPrecision(quoteOrderQty, TRUNCATE, precision, this.precisionMode);
-                } else if (!isEqual(price, null))
+                    ((Dictionary<string, object>)request)["quoteOrderQty"] = this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
+                } else if (isTrue(!isEqual(price, null)))
                 {
-                    var amountString = this.numberToString(amount);
-                    var priceString = this.numberToString(price);
-                    var quoteOrderQuantity = Precise.stringMul(amountString, priceString);
+                    object amountString = this.numberToString(amount);
+                    object priceString = this.numberToString(price);
+                    object quoteOrderQuantity = Precise.stringMul(amountString, priceString);
                     ((Dictionary<string, object>)request)["quoteOrderQty"] = this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
                 } else
                 {
@@ -3708,22 +3709,22 @@ throw new InvalidOrder(add(add(add(add(add(this.id, " "), type), " is not a vali
             {
                 quantityIsRequired = true;
             }
-        } else if (isEqual(uppercaseType, "LIMIT"))
+        } else if (isTrue(isEqual(uppercaseType, "LIMIT")))
         {
             priceIsRequired = true;
             timeInForceIsRequired = true;
             quantityIsRequired = true;
-        } else if ((isEqual(uppercaseType, "STOP_LOSS")) || (isEqual(uppercaseType, "TAKE_PROFIT")))
+        } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_LOSS"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT")))))
         {
             stopPriceIsRequired = true;
             quantityIsRequired = true;
-        } else if ((isEqual(uppercaseType, "STOP_LOSS_LIMIT")) || (isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))
+        } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_LOSS_LIMIT"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
         {
             quantityIsRequired = true;
             stopPriceIsRequired = true;
             priceIsRequired = true;
             timeInForceIsRequired = true;
-        } else if (isEqual(uppercaseType, "LIMIT_MAKER"))
+        } else if (isTrue(isEqual(uppercaseType, "LIMIT_MAKER")))
         {
             priceIsRequired = true;
             quantityIsRequired = true;
@@ -3734,9 +3735,9 @@ throw new InvalidOrder(add(add(add(add(add(this.id, " "), type), " is not a vali
         }
         if (isTrue(priceIsRequired))
         {
-            if (isEqual(price, null))
+            if (isTrue(isEqual(price, null)))
             {
-throw new InvalidOrder(add(add(add(this.id, " editOrder() requires a price argument for a "), type), " order"));
+                throw new InvalidOrder ((string)add(add(add(this.id, " editOrder() requires a price argument for a "), type), " order")) ;
             }
             ((Dictionary<string, object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -3746,16 +3747,21 @@ throw new InvalidOrder(add(add(add(this.id, " editOrder() requires a price argum
         }
         if (isTrue(stopPriceIsRequired))
         {
-            if (isEqual(stopPrice, null))
+            if (isTrue(isEqual(stopPrice, null)))
             {
-throw new InvalidOrder(add(add(add(this.id, " editOrder() requires a stopPrice extra param for a "), type), " order"));
+                throw new InvalidOrder ((string)add(add(add(this.id, " editOrder() requires a stopPrice extra param for a "), type), " order")) ;
             } else
             {
                 ((Dictionary<string, object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
             }
         }
-        var requestParams = this.omit(parameters, new List<object>() {"quoteOrderQty", "cost", "stopPrice", "newClientOrderId", "clientOrderId", "postOnly"});
-        var response = await this.callAsync("privatePostOrderCancelReplace", this.extend(request, requestParams));
+        // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
+        if (isTrue(isEqual(this.safeString(parameters, "timeInForce"), "PO")))
+        {
+            parameters = this.omit(parameters, new List<object>() {"timeInForce"});
+        }
+        object requestParams = this.omit(parameters, new List<object>() {"quoteOrderQty", "cost", "stopPrice", "newClientOrderId", "clientOrderId", "postOnly"});
+        object response = await this.privatePostOrderCancelReplace(this.extend(request, requestParams));
         //
         //     {
         //         "cancelResult": "SUCCESS",
@@ -3793,13 +3799,13 @@ throw new InvalidOrder(add(add(add(this.id, " editOrder() requires a stopPrice e
         //         }
         //     }
         //
-        var data = this.safeValue(response, "newOrderResponse");
+        object data = this.safeValue(response, "newOrderResponse");
         return this.parseOrder(data, market);
     }
 
     public virtual object parseOrderStatus(object status)
     {
-        var statuses = new Dictionary<string, object>() {
+        object statuses = new Dictionary<string, object>() {
             { "NEW", "open" },
             { "PARTIALLY_FILLED", "open" },
             { "ACCEPTED", "open" },
@@ -3811,7 +3817,7 @@ throw new InvalidOrder(add(add(add(this.id, " editOrder() requires a stopPrice e
             { "EXPIRED", "expired" },
             { "EXPIRED_IN_MATCH", "expired" },
         };
-        return ((string) (this.safeString(statuses, status, status)));
+        return this.safeString(statuses, status, status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -3957,31 +3963,31 @@ throw new InvalidOrder(add(add(add(this.id, " editOrder() requires a stopPrice e
         //         "mmp": false
         //     }
         //
-        var status = this.parseOrderStatus(this.safeString(order, "status"));
-        var marketId = this.safeString(order, "symbol");
-        var marketType = (((Dictionary<string,object>)order).ContainsKey((string)"closePosition")) ? "contract" : "spot";
-        var symbol = this.safeSymbol(marketId, market, null, marketType);
-        var filled = this.safeString(order, "executedQty", "0");
+        object status = this.parseOrderStatus(this.safeString(order, "status"));
+        object marketId = this.safeString(order, "symbol");
+        object marketType = ((bool) isTrue((((Dictionary<string,object>)order).ContainsKey(toStringOrNull("closePosition"))))) ? "contract" : "spot";
+        object symbol = this.safeSymbol(marketId, market, null, marketType);
+        object filled = this.safeString(order, "executedQty", "0");
         object timestamp = null;
         object lastTradeTimestamp = null;
-        if (((Dictionary<string,object>)order).ContainsKey((string)"time"))
+        if (isTrue(((Dictionary<string,object>)order).ContainsKey(toStringOrNull("time"))))
         {
             timestamp = this.safeInteger(order, "time");
-        } else if (((Dictionary<string,object>)order).ContainsKey((string)"workingTime"))
+        } else if (isTrue(((Dictionary<string,object>)order).ContainsKey(toStringOrNull("workingTime"))))
         {
             lastTradeTimestamp = this.safeInteger(order, "transactTime");
             timestamp = this.safeInteger(order, "workingTime");
-        } else if (((Dictionary<string,object>)order).ContainsKey((string)"transactTime"))
+        } else if (isTrue(((Dictionary<string,object>)order).ContainsKey(toStringOrNull("transactTime"))))
         {
             lastTradeTimestamp = this.safeInteger(order, "transactTime");
             timestamp = this.safeInteger(order, "transactTime");
-        } else if (((Dictionary<string,object>)order).ContainsKey((string)"createTime"))
+        } else if (isTrue(((Dictionary<string,object>)order).ContainsKey(toStringOrNull("createTime"))))
         {
             lastTradeTimestamp = this.safeInteger(order, "updateTime");
             timestamp = this.safeInteger(order, "createTime");
-        } else if (((Dictionary<string,object>)order).ContainsKey((string)"updateTime"))
+        } else if (isTrue(((Dictionary<string,object>)order).ContainsKey(toStringOrNull("updateTime"))))
         {
-            if (isEqual(status, "open"))
+            if (isTrue(isEqual(status, "open")))
             {
                 if (isTrue(Precise.stringGt(filled, "0")))
                 {
@@ -3992,32 +3998,32 @@ throw new InvalidOrder(add(add(add(this.id, " editOrder() requires a stopPrice e
                 }
             }
         }
-        var average = this.safeString(order, "avgPrice");
-        var price = this.safeString(order, "price");
-        var amount = this.safeString2(order, "origQty", "quantity");
+        object average = this.safeString(order, "avgPrice");
+        object price = this.safeString(order, "price");
+        object amount = this.safeString2(order, "origQty", "quantity");
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
-        var cost = this.safeString2(order, "cummulativeQuoteQty", "cumQuote");
+        object cost = this.safeString2(order, "cummulativeQuoteQty", "cumQuote");
         cost = this.safeString(order, "cumBase", cost);
-        var id = this.safeString(order, "orderId");
-        var type = this.safeStringLower(order, "type");
-        var side = this.safeStringLower(order, "side");
-        var fills = this.safeValue(order, "fills", new List<object>() {});
-        var clientOrderId = this.safeString(order, "clientOrderId");
-        var timeInForce = this.safeString(order, "timeInForce");
-        if (isEqual(timeInForce, "GTX"))
+        object id = this.safeString(order, "orderId");
+        object type = this.safeStringLower(order, "type");
+        object side = this.safeStringLower(order, "side");
+        object fills = this.safeValue(order, "fills", new List<object>() {});
+        object clientOrderId = this.safeString(order, "clientOrderId");
+        object timeInForce = this.safeString(order, "timeInForce");
+        if (isTrue(isEqual(timeInForce, "GTX")))
         {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = "PO";
         }
-        var postOnly = (isEqual(type, "limit_maker")) || (isEqual(timeInForce, "PO"));
-        if (isEqual(type, "limit_maker"))
+        object postOnly = isTrue((isEqual(type, "limit_maker"))) || isTrue((isEqual(timeInForce, "PO")));
+        if (isTrue(isEqual(type, "limit_maker")))
         {
             type = "limit";
         }
-        var stopPriceString = this.safeString(order, "stopPrice");
-        var stopPrice = this.parseNumber(this.omitZero(stopPriceString));
+        object stopPriceString = this.safeString(order, "stopPrice");
+        object stopPrice = this.parseNumber(this.omitZero(stopPriceString));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -4065,50 +4071,50 @@ throw new InvalidOrder(add(add(add(this.id, " editOrder() requires a stopPrice e
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var market = this.market(symbol);
-        var marketType = this.safeString(parameters, "type", getValue(market, "type"));
-        var clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
-        var initialUppercaseType = ((string)type).ToUpper();
-        var isMarketOrder = isEqual(initialUppercaseType, "MARKET");
-        var isLimitOrder = isEqual(initialUppercaseType, "LIMIT");
-        var postOnly = this.isPostOnly(isMarketOrder, isEqual(initialUppercaseType, "LIMIT_MAKER"), parameters);
-        var triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-        var stopLossPrice = this.safeValue(parameters, "stopLossPrice", triggerPrice); // fallback to stopLoss
-        var takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
-        var isStopLoss = !isEqual(stopLossPrice, null);
-        var isTakeProfit = !isEqual(takeProfitPrice, null);
-                parameters = (Dictionary<string, object>)(this.omit(parameters, new List<object>() {"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice"}));
+        object market = this.market(symbol);
+        object marketType = this.safeString(parameters, "type", getValue(market, "type"));
+        object clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
+        object initialUppercaseType = ((string)type).ToUpper();
+        object isMarketOrder = isEqual(initialUppercaseType, "MARKET");
+        object isLimitOrder = isEqual(initialUppercaseType, "LIMIT");
+        object postOnly = this.isPostOnly(isMarketOrder, isEqual(initialUppercaseType, "LIMIT_MAKER"), parameters);
+        object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+        object stopLossPrice = this.safeValue(parameters, "stopLossPrice", triggerPrice); // fallback to stopLoss
+        object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
+        object isStopLoss = !isEqual(stopLossPrice, null);
+        object isTakeProfit = !isEqual(takeProfitPrice, null);
+        parameters = this.omit(parameters, new List<object>() {"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice"});
         var marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters);
         var marginMode = ((List<object>) marginModequeryVariable)[0];
         var query = ((List<object>) marginModequeryVariable)[1];
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", ((string)side).ToUpper() },
         };
-        var method = "privatePostOrder";
+        object method = "privatePostOrder";
         if (isTrue(getValue(market, "linear")))
         {
             method = "fapiPrivatePostOrder";
         } else if (isTrue(getValue(market, "inverse")))
         {
             method = "dapiPrivatePostOrder";
-        } else if (isEqual(marketType, "margin") || !isEqual(marginMode, null))
+        } else if (isTrue(isTrue(isEqual(marketType, "margin")) || isTrue(!isEqual(marginMode, null))))
         {
             method = "sapiPostMarginOrder";
-            var reduceOnly = this.safeValue(parameters, "reduceOnly");
+            object reduceOnly = this.safeValue(parameters, "reduceOnly");
             if (isTrue(reduceOnly))
             {
                 ((Dictionary<string, object>)request)["sideEffectType"] = "AUTO_REPAY";
-                                parameters = (Dictionary<string, object>)(this.omit(parameters, "reduceOnly"));
+                parameters = this.omit(parameters, "reduceOnly");
             }
         }
-        if (isTrue(getValue(market, "spot")) || isEqual(marketType, "margin"))
+        if (isTrue(isTrue(getValue(market, "spot")) || isTrue(isEqual(marketType, "margin"))))
         {
             // support for testing orders
-            var test = this.safeValue(query, "test", false);
+            object test = this.safeValue(query, "test", false);
             if (isTrue(test))
             {
-                method += "Test";
+                method = add(method, "Test");
             }
             // only supported for spot/margin api (all margin markets are spot markets)
             if (isTrue(postOnly))
@@ -4116,7 +4122,7 @@ throw new InvalidOrder(add(add(add(this.id, " editOrder() requires a stopPrice e
                 type = "LIMIT_MAKER";
             }
         }
-        var uppercaseType = ((string)type).ToUpper();
+        object uppercaseType = ((string)type).ToUpper();
         object stopPrice = null;
         if (isTrue(isStopLoss))
         {
@@ -4124,10 +4130,10 @@ throw new InvalidOrder(add(add(add(this.id, " editOrder() requires a stopPrice e
             if (isTrue(isMarketOrder))
             {
                 // spot STOP_LOSS market orders are not a valid order type
-                uppercaseType = isTrue(getValue(market, "contract")) ? "STOP_MARKET" : "STOP_LOSS";
+                uppercaseType = ((bool) isTrue(getValue(market, "contract"))) ? "STOP_MARKET" : "STOP_LOSS";
             } else if (isTrue(isLimitOrder))
             {
-                uppercaseType = isTrue(getValue(market, "contract")) ? "STOP" : "STOP_LOSS_LIMIT";
+                uppercaseType = ((bool) isTrue(getValue(market, "contract"))) ? "STOP" : "STOP_LOSS_LIMIT";
             }
         } else if (isTrue(isTakeProfit))
         {
@@ -4135,23 +4141,23 @@ throw new InvalidOrder(add(add(add(this.id, " editOrder() requires a stopPrice e
             if (isTrue(isMarketOrder))
             {
                 // spot TAKE_PROFIT market orders are not a valid order type
-                uppercaseType = isTrue(getValue(market, "contract")) ? "TAKE_PROFIT_MARKET" : "TAKE_PROFIT";
+                uppercaseType = ((bool) isTrue(getValue(market, "contract"))) ? "TAKE_PROFIT_MARKET" : "TAKE_PROFIT";
             } else if (isTrue(isLimitOrder))
             {
-                uppercaseType = isTrue(getValue(market, "contract")) ? "TAKE_PROFIT" : "TAKE_PROFIT_LIMIT";
+                uppercaseType = ((bool) isTrue(getValue(market, "contract"))) ? "TAKE_PROFIT" : "TAKE_PROFIT_LIMIT";
             }
         }
-        if (isEqual(marginMode, "isolated"))
+        if (isTrue(isEqual(marginMode, "isolated")))
         {
             ((Dictionary<string, object>)request)["isIsolated"] = true;
         }
-        if (isEqual(clientOrderId, null))
+        if (isTrue(isEqual(clientOrderId, null)))
         {
-            var broker = this.safeValue(this.options, "broker");
-            if (!isEqual(broker, null))
+            object broker = this.safeValue(this.options, "broker");
+            if (isTrue(!isEqual(broker, null)))
             {
-                var brokerId = this.safeString(broker, marketType);
-                if (!isEqual(brokerId, null))
+                object brokerId = this.safeString(broker, marketType);
+                if (isTrue(!isEqual(brokerId, null)))
                 {
                     ((Dictionary<string, object>)request)["newClientOrderId"] = add(brokerId, this.uuid22());
                 }
@@ -4160,7 +4166,7 @@ throw new InvalidOrder(add(add(add(this.id, " editOrder() requires a stopPrice e
         {
             ((Dictionary<string, object>)request)["newClientOrderId"] = clientOrderId;
         }
-        if ((isEqual(marketType, "spot")) || (isEqual(marketType, "margin")))
+        if (isTrue(isTrue((isEqual(marketType, "spot"))) || isTrue((isEqual(marketType, "margin")))))
         {
             ((Dictionary<string, object>)request)["newOrderRespType"] = this.safeValue(getValue(this.options, "newOrderRespType"), type, "RESULT"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else
@@ -4170,31 +4176,31 @@ throw new InvalidOrder(add(add(add(this.id, " editOrder() requires a stopPrice e
         }
         if (isTrue(getValue(market, "option")))
         {
-            if (isEqual(type, "market"))
+            if (isTrue(isEqual(type, "market")))
             {
-throw new InvalidOrder(add(add(add(add(add(this.id, " "), type), " is not a valid order type for the "), symbol), " market"));
+                throw new InvalidOrder ((string)add(add(add(add(add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
             }
             method = "eapiPrivatePostOrder";
         } else
         {
-            var validOrderTypes = this.safeValue(getValue(market, "info"), "orderTypes");
+            object validOrderTypes = this.safeValue(getValue(market, "info"), "orderTypes");
             if (!isTrue(this.inArray(uppercaseType, validOrderTypes)))
             {
-                if (!isEqual(initialUppercaseType, uppercaseType))
+                if (isTrue(!isEqual(initialUppercaseType, uppercaseType)))
                 {
-throw new InvalidOrder(add(add(add(add(add(this.id, " stopPrice parameter is not allowed for "), symbol), " "), type), " orders"));
+                    throw new InvalidOrder ((string)add(add(add(add(add(this.id, " stopPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
                 } else
                 {
-throw new InvalidOrder(add(add(add(add(add(this.id, " "), type), " is not a valid order type for the "), symbol), " market"));
+                    throw new InvalidOrder ((string)add(add(add(add(add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
                 }
             }
         }
         ((Dictionary<string, object>)request)["type"] = uppercaseType;
         // additional required fields depending on the order type
-        var timeInForceIsRequired = false;
-        var priceIsRequired = false;
-        var stopPriceIsRequired = false;
-        var quantityIsRequired = false;
+        object timeInForceIsRequired = false;
+        object priceIsRequired = false;
+        object stopPriceIsRequired = false;
+        object quantityIsRequired = false;
         //
         // spot/margin
         //
@@ -4215,23 +4221,23 @@ throw new InvalidOrder(add(add(add(add(add(this.id, " "), type), " is not a vali
         //     TAKE_PROFIT_MARKET   stopPrice
         //     TRAILING_STOP_MARKET callbackRate
         //
-        if (isEqual(uppercaseType, "MARKET"))
+        if (isTrue(isEqual(uppercaseType, "MARKET")))
         {
             if (isTrue(getValue(market, "spot")))
             {
-                var quoteOrderQty = this.safeValue(this.options, "quoteOrderQty", true);
+                object quoteOrderQty = this.safeValue(this.options, "quoteOrderQty", true);
                 if (isTrue(quoteOrderQty))
                 {
-                    var quoteOrderQty = this.safeValue2(query, "quoteOrderQty", "cost");
-                    var precision = getValue(getValue(market, "precision"), "price");
-                    if (!isEqual(quoteOrderQty, null))
+                    object quoteOrderQtyNew = this.safeValue2(query, "quoteOrderQty", "cost");
+                    object precision = getValue(getValue(market, "precision"), "price");
+                    if (isTrue(!isEqual(quoteOrderQtyNew, null)))
                     {
-                        ((Dictionary<string, object>)request)["quoteOrderQty"] = this.decimalToPrecision(quoteOrderQty, TRUNCATE, precision, this.precisionMode);
-                    } else if (!isEqual(price, null))
+                        ((Dictionary<string, object>)request)["quoteOrderQty"] = this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
+                    } else if (isTrue(!isEqual(price, null)))
                     {
-                        var amountString = this.numberToString(amount);
-                        var priceString = this.numberToString(price);
-                        var quoteOrderQuantity = Precise.stringMul(amountString, priceString);
+                        object amountString = this.numberToString(amount);
+                        object priceString = this.numberToString(price);
+                        object quoteOrderQuantity = Precise.stringMul(amountString, priceString);
                         ((Dictionary<string, object>)request)["quoteOrderQty"] = this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
                     } else
                     {
@@ -4245,49 +4251,49 @@ throw new InvalidOrder(add(add(add(add(add(this.id, " "), type), " is not a vali
             {
                 quantityIsRequired = true;
             }
-        } else if (isEqual(uppercaseType, "LIMIT"))
+        } else if (isTrue(isEqual(uppercaseType, "LIMIT")))
         {
             priceIsRequired = true;
             timeInForceIsRequired = true;
             quantityIsRequired = true;
-        } else if ((isEqual(uppercaseType, "STOP_LOSS")) || (isEqual(uppercaseType, "TAKE_PROFIT")))
+        } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_LOSS"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT")))))
         {
             stopPriceIsRequired = true;
             quantityIsRequired = true;
-            if (isTrue(getValue(market, "linear")) || isTrue(getValue(market, "inverse")))
+            if (isTrue(isTrue(getValue(market, "linear")) || isTrue(getValue(market, "inverse"))))
             {
                 priceIsRequired = true;
             }
-        } else if ((isEqual(uppercaseType, "STOP_LOSS_LIMIT")) || (isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))
+        } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_LOSS_LIMIT"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
         {
             quantityIsRequired = true;
             stopPriceIsRequired = true;
             priceIsRequired = true;
             timeInForceIsRequired = true;
-        } else if (isEqual(uppercaseType, "LIMIT_MAKER"))
+        } else if (isTrue(isEqual(uppercaseType, "LIMIT_MAKER")))
         {
             priceIsRequired = true;
             quantityIsRequired = true;
-        } else if (isEqual(uppercaseType, "STOP"))
+        } else if (isTrue(isEqual(uppercaseType, "STOP")))
         {
             quantityIsRequired = true;
             stopPriceIsRequired = true;
             priceIsRequired = true;
-        } else if ((isEqual(uppercaseType, "STOP_MARKET")) || (isEqual(uppercaseType, "TAKE_PROFIT_MARKET")))
+        } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_MARKET"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_MARKET")))))
         {
-            var closePosition = this.safeValue(query, "closePosition");
-            if (isEqual(closePosition, null))
+            object closePosition = this.safeValue(query, "closePosition");
+            if (isTrue(isEqual(closePosition, null)))
             {
                 quantityIsRequired = true;
             }
             stopPriceIsRequired = true;
-        } else if (isEqual(uppercaseType, "TRAILING_STOP_MARKET"))
+        } else if (isTrue(isEqual(uppercaseType, "TRAILING_STOP_MARKET")))
         {
             quantityIsRequired = true;
-            var callbackRate = this.safeNumber(query, "callbackRate");
-            if (isEqual(callbackRate, null))
+            object callbackRate = this.safeNumber(query, "callbackRate");
+            if (isTrue(isEqual(callbackRate, null)))
             {
-throw new InvalidOrder(add(add(add(this.id, " createOrder() requires a callbackRate extra param for a "), type), " order"));
+                throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a callbackRate extra param for a "), type), " order")) ;
             }
         }
         if (isTrue(quantityIsRequired))
@@ -4296,9 +4302,9 @@ throw new InvalidOrder(add(add(add(this.id, " createOrder() requires a callbackR
         }
         if (isTrue(priceIsRequired))
         {
-            if (isEqual(price, null))
+            if (isTrue(isEqual(price, null)))
             {
-throw new InvalidOrder(add(add(add(this.id, " createOrder() requires a price argument for a "), type), " order"));
+                throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
             }
             ((Dictionary<string, object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -4306,7 +4312,7 @@ throw new InvalidOrder(add(add(add(this.id, " createOrder() requires a price arg
         {
             ((Dictionary<string, object>)request)["timeInForce"] = getValue(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if (isTrue(getValue(market, "contract")) && isTrue(postOnly))
+        if (isTrue(isTrue(getValue(market, "contract")) && isTrue(postOnly)))
         {
             ((Dictionary<string, object>)request)["timeInForce"] = "GTX";
         }
@@ -4314,26 +4320,31 @@ throw new InvalidOrder(add(add(add(this.id, " createOrder() requires a price arg
         {
             if (isTrue(getValue(market, "contract")))
             {
-                if (isEqual(stopPrice, null))
+                if (isTrue(isEqual(stopPrice, null)))
                 {
-throw new InvalidOrder(add(add(add(this.id, " createOrder() requires a stopPrice extra param for a "), type), " order"));
+                    throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a stopPrice extra param for a "), type), " order")) ;
                 }
             } else
             {
                 // check for delta price as well
-                var trailingDelta = this.safeValue(parameters, "trailingDelta");
-                if (isEqual(trailingDelta, null) && isEqual(stopPrice, null))
+                object trailingDelta = this.safeValue(parameters, "trailingDelta");
+                if (isTrue(isTrue(isEqual(trailingDelta, null)) && isTrue(isEqual(stopPrice, null))))
                 {
-throw new InvalidOrder(add(add(add(this.id, " createOrder() requires a stopPrice or trailingDelta param for a "), type), " order"));
+                    throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a stopPrice or trailingDelta param for a "), type), " order")) ;
                 }
             }
-            if (!isEqual(stopPrice, null))
+            if (isTrue(!isEqual(stopPrice, null)))
             {
                 ((Dictionary<string, object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
             }
         }
-        var requestParams = this.omit(parameters, new List<object>() {"quoteOrderQty", "cost", "stopPrice", "test", "type", "newClientOrderId", "clientOrderId", "postOnly"});
-        var response = await this.callAsync(method, this.extend(request, requestParams));
+        // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
+        if (isTrue(isEqual(this.safeString(parameters, "timeInForce"), "PO")))
+        {
+            parameters = this.omit(parameters, new List<object>() {"timeInForce"});
+        }
+        object requestParams = this.omit(parameters, new List<object>() {"quoteOrderQty", "cost", "stopPrice", "test", "type", "newClientOrderId", "clientOrderId", "postOnly"});
+        object response = await this.callAsync(method, this.extend(request, requestParams));
         return this.parseOrder(response, market);
     }
 
@@ -4351,16 +4362,16 @@ throw new InvalidOrder(add(add(add(this.id, " createOrder() requires a stopPrice
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredSymbol("fetchOrder", symbol);
         await this.loadMarkets();
-        var market = this.market(symbol);
-        var defaultType = this.safeString2(this.options, "fetchOrder", "defaultType", "spot");
-        var type = this.safeString(parameters, "type", defaultType);
+        object market = this.market(symbol);
+        object defaultType = this.safeString2(this.options, "fetchOrder", "defaultType", "spot");
+        object type = this.safeString(parameters, "type", defaultType);
         var marginModequeryVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
         var marginMode = ((List<object>) marginModequeryVariable)[0];
         var query = ((List<object>) marginModequeryVariable)[1];
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        var method = "privateGetOrder";
+        object method = "privateGetOrder";
         if (isTrue(getValue(market, "option")))
         {
             method = "eapiPrivateGetOrder";
@@ -4370,16 +4381,16 @@ throw new InvalidOrder(add(add(add(this.id, " createOrder() requires a stopPrice
         } else if (isTrue(getValue(market, "inverse")))
         {
             method = "dapiPrivateGetOrder";
-        } else if (isEqual(type, "margin") || !isEqual(marginMode, null))
+        } else if (isTrue(isTrue(isEqual(type, "margin")) || isTrue(!isEqual(marginMode, null))))
         {
             method = "sapiGetMarginOrder";
-            if (isEqual(marginMode, "isolated"))
+            if (isTrue(isEqual(marginMode, "isolated")))
             {
                 ((Dictionary<string, object>)request)["isIsolated"] = true;
             }
         }
-        var clientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
-        if (!isEqual(clientOrderId, null))
+        object clientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
         {
             if (isTrue(getValue(market, "option")))
             {
@@ -4392,8 +4403,8 @@ throw new InvalidOrder(add(add(add(this.id, " createOrder() requires a stopPrice
         {
             ((Dictionary<string, object>)request)["orderId"] = id;
         }
-        var requestParams = this.omit(query, new List<object>() {"type", "clientOrderId", "origClientOrderId"});
-        var response = await this.callAsync(method, this.extend(request, requestParams));
+        object requestParams = this.omit(query, new List<object>() {"type", "clientOrderId", "origClientOrderId"});
+        object response = await this.callAsync(method, this.extend(request, requestParams));
         return this.parseOrder(response, market);
     }
 
@@ -4413,16 +4424,16 @@ throw new InvalidOrder(add(add(add(this.id, " createOrder() requires a stopPrice
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredSymbol("fetchOrders", symbol);
         await this.loadMarkets();
-        var market = this.market(symbol);
-        var defaultType = this.safeString2(this.options, "fetchOrders", "defaultType", "spot");
-        var type = this.safeString(parameters, "type", defaultType);
+        object market = this.market(symbol);
+        object defaultType = this.safeString2(this.options, "fetchOrders", "defaultType", "spot");
+        object type = this.safeString(parameters, "type", defaultType);
         var marginModequeryVariable = this.handleMarginModeAndParams("fetchOrders", parameters);
         var marginMode = ((List<object>) marginModequeryVariable)[0];
         var query = ((List<object>) marginModequeryVariable)[1];
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        var method = "privateGetAllOrders";
+        object method = "privateGetAllOrders";
         if (isTrue(getValue(market, "option")))
         {
             method = "eapiPrivateGetHistoryOrders";
@@ -4432,23 +4443,23 @@ throw new InvalidOrder(add(add(add(this.id, " createOrder() requires a stopPrice
         } else if (isTrue(getValue(market, "inverse")))
         {
             method = "dapiPrivateGetAllOrders";
-        } else if (isEqual(type, "margin") || !isEqual(marginMode, null))
+        } else if (isTrue(isTrue(isEqual(type, "margin")) || isTrue(!isEqual(marginMode, null))))
         {
             method = "sapiGetMarginAllOrders";
-            if (isEqual(marginMode, "isolated"))
+            if (isTrue(isEqual(marginMode, "isolated")))
             {
                 ((Dictionary<string, object>)request)["isIsolated"] = true;
             }
         }
-        if (!isEqual(since, null))
+        if (isTrue(!isEqual(since, null)))
         {
             ((Dictionary<string, object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((Dictionary<string, object>)request)["limit"] = limit;
         }
-        var response = await this.callAsync(method, this.extend(request, query));
+        object response = await this.callAsync(method, this.extend(request, query));
         //
         //  spot
         //
@@ -4523,7 +4534,7 @@ throw new InvalidOrder(add(add(add(this.id, " createOrder() requires a stopPrice
         //         }
         //     ]
         //
-        return ((List<object>) (this.parseOrders(response, market, since, limit)));
+        return this.parseOrders(response, market, since, limit);
     }
 
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -4543,44 +4554,44 @@ throw new InvalidOrder(add(add(add(this.id, " createOrder() requires a stopPrice
         await this.loadMarkets();
         object market = null;
         object type = null;
-        var request = new Dictionary<string, object>() {};
+        object request = new Dictionary<string, object>() {};
         object marginMode = null;
         object query = null;
                 var marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
         marginMode = ((List<object>)marginModequeryVariable)[0];
         query = ((List<object>)marginModequeryVariable)[1];
-        if (!isEqual(symbol, null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             ((Dictionary<string, object>)request)["symbol"] = getValue(market, "id");
-            var defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
-            var marketType = (((Dictionary<string,object>)market).ContainsKey((string)"type")) ? getValue(market, "type") : defaultType;
+            object defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
+            object marketType = ((bool) isTrue((((Dictionary<string,object>)market).ContainsKey(toStringOrNull("type"))))) ? getValue(market, "type") : defaultType;
             type = this.safeString(query, "type", marketType);
         } else if (isTrue(getValue(this.options, "warnOnFetchOpenOrdersWithoutSymbol")))
         {
-            var symbols = this.symbols;
-            var numSymbols = getArrayLength(symbols);
-            var fetchOpenOrdersRateLimit = this.parseToInt(divide(numSymbols, 2));
-throw new ExchangeError(add(add(add(add(add(this.id, " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per "), ((object)fetchOpenOrdersRateLimit).ToString()), " seconds. Do not call this method frequently to avoid ban. Set "), this.id), ".options[\"warnOnFetchOpenOrdersWithoutSymbol\"] = false to suppress this warning message."));
+            object symbols = this.symbols;
+            object numSymbols = getArrayLength(symbols);
+            object fetchOpenOrdersRateLimit = this.parseToInt(divide(numSymbols, 2));
+            throw new ExchangeError ((string)add(add(add(add(add(this.id, " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per "), ((object)fetchOpenOrdersRateLimit).ToString()), " seconds. Do not call this method frequently to avoid ban. Set "), this.id), ".options[\"warnOnFetchOpenOrdersWithoutSymbol\"] = false to suppress this warning message.")) ;
         } else
         {
-            var defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
+            object defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
             type = this.safeString(query, "type", defaultType);
         }
         object subType = null;
                 var subTypequeryVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, query);
         subType = ((List<object>)subTypequeryVariable)[0];
         query = ((List<object>)subTypequeryVariable)[1];
-        var requestParams = this.omit(query, "type");
-        var method = "privateGetOpenOrders";
-        if (isEqual(type, "option"))
+        object requestParams = this.omit(query, "type");
+        object method = "privateGetOpenOrders";
+        if (isTrue(isEqual(type, "option")))
         {
             method = "eapiPrivateGetOpenOrders";
-            if (!isEqual(since, null))
+            if (isTrue(!isEqual(since, null)))
             {
                 ((Dictionary<string, object>)request)["startTime"] = since;
             }
-            if (!isEqual(limit, null))
+            if (isTrue(!isEqual(limit, null)))
             {
                 ((Dictionary<string, object>)request)["limit"] = limit;
             }
@@ -4590,20 +4601,20 @@ throw new ExchangeError(add(add(add(add(add(this.id, " fetchOpenOrders() WARNING
         } else if (isTrue(this.isInverse(type, subType)))
         {
             method = "dapiPrivateGetOpenOrders";
-        } else if (isEqual(type, "margin") || !isEqual(marginMode, null))
+        } else if (isTrue(isTrue(isEqual(type, "margin")) || isTrue(!isEqual(marginMode, null))))
         {
             method = "sapiGetMarginOpenOrders";
-            if (isEqual(marginMode, "isolated"))
+            if (isTrue(isEqual(marginMode, "isolated")))
             {
                 ((Dictionary<string, object>)request)["isIsolated"] = true;
-                if (isEqual(symbol, null))
+                if (isTrue(isEqual(symbol, null)))
                 {
-throw new ArgumentsRequired(add(this.id, " fetchOpenOrders() requires a symbol argument for isolated markets"));
+                    throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument for isolated markets")) ;
                 }
             }
         }
-        var response = await this.callAsync(method, this.extend(request, requestParams));
-        return ((List<object>) (this.parseOrders(response, market, since, limit)));
+        object response = await this.callAsync(method, this.extend(request, requestParams));
+        return this.parseOrders(response, market, since, limit);
     }
 
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -4619,8 +4630,8 @@ throw new ArgumentsRequired(add(this.id, " fetchOpenOrders() requires a symbol a
         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        var orders = await this.fetchOrders(symbol, since, limit, parameters);
-        return ((List<object>) (this.filterBy(orders, "status", "closed")));
+        object orders = await this.fetchOrders(symbol, since, limit, parameters);
+        return this.filterBy(orders, "status", "closed");
     }
 
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -4637,17 +4648,17 @@ throw new ArgumentsRequired(add(this.id, " fetchOpenOrders() requires a symbol a
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredSymbol("cancelOrder", symbol);
         await this.loadMarkets();
-        var market = this.market(symbol);
-        var defaultType = this.safeString2(this.options, "cancelOrder", "defaultType", "spot");
-        var type = this.safeString(parameters, "type", defaultType);
+        object market = this.market(symbol);
+        object defaultType = this.safeString2(this.options, "cancelOrder", "defaultType", "spot");
+        object type = this.safeString(parameters, "type", defaultType);
         var marginModequeryVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
         var marginMode = ((List<object>) marginModequeryVariable)[0];
         var query = ((List<object>) marginModequeryVariable)[1];
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        var clientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
-        if (!isEqual(clientOrderId, null))
+        object clientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
         {
             if (isTrue(getValue(market, "option")))
             {
@@ -4660,7 +4671,7 @@ throw new ArgumentsRequired(add(this.id, " fetchOpenOrders() requires a symbol a
         {
             ((Dictionary<string, object>)request)["orderId"] = id;
         }
-        var method = "privateDeleteOrder";
+        object method = "privateDeleteOrder";
         if (isTrue(getValue(market, "option")))
         {
             method = "eapiPrivateDeleteOrder";
@@ -4670,20 +4681,20 @@ throw new ArgumentsRequired(add(this.id, " fetchOpenOrders() requires a symbol a
         } else if (isTrue(getValue(market, "inverse")))
         {
             method = "dapiPrivateDeleteOrder";
-        } else if (isEqual(type, "margin") || !isEqual(marginMode, null))
+        } else if (isTrue(isTrue(isEqual(type, "margin")) || isTrue(!isEqual(marginMode, null))))
         {
             method = "sapiDeleteMarginOrder";
-            if (isEqual(marginMode, "isolated"))
+            if (isTrue(isEqual(marginMode, "isolated")))
             {
                 ((Dictionary<string, object>)request)["isIsolated"] = true;
             }
         }
-        var requestParams = this.omit(query, new List<object>() {"type", "origClientOrderId", "clientOrderId"});
-        var response = await this.callAsync(method, this.extend(request, requestParams));
+        object requestParams = this.omit(query, new List<object>() {"type", "origClientOrderId", "clientOrderId"});
+        object response = await this.callAsync(method, this.extend(request, requestParams));
         return this.parseOrder(response, market);
     }
 
-    public async virtual Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         /**
         * @method
@@ -4697,16 +4708,16 @@ throw new ArgumentsRequired(add(this.id, " fetchOpenOrders() requires a symbol a
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredSymbol("cancelAllOrders", symbol);
         await this.loadMarkets();
-        var market = this.market(symbol);
-        var request = new Dictionary<string, object>() {
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        var type = this.safeString(parameters, "type", getValue(market, "type"));
-                parameters = (Dictionary<string, object>)(this.omit(parameters, new List<object>() {"type"}));
+        object type = this.safeString(parameters, "type", getValue(market, "type"));
+        parameters = this.omit(parameters, new List<object>() {"type"});
         var marginModequeryVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
         var marginMode = ((List<object>) marginModequeryVariable)[0];
         var query = ((List<object>) marginModequeryVariable)[1];
-        var method = "privateDeleteOpenOrders";
+        object method = "privateDeleteOpenOrders";
         if (isTrue(getValue(market, "option")))
         {
             method = "eapiPrivateDeleteAllOpenOrders";
@@ -4716,15 +4727,15 @@ throw new ArgumentsRequired(add(this.id, " fetchOpenOrders() requires a symbol a
         } else if (isTrue(getValue(market, "inverse")))
         {
             method = "dapiPrivateDeleteAllOpenOrders";
-        } else if ((isEqual(type, "margin")) || (!isEqual(marginMode, null)))
+        } else if (isTrue(isTrue((isEqual(type, "margin"))) || isTrue((!isEqual(marginMode, null)))))
         {
             method = "sapiDeleteMarginOpenOrders";
-            if (isEqual(marginMode, "isolated"))
+            if (isTrue(isEqual(marginMode, "isolated")))
             {
                 ((Dictionary<string, object>)request)["isIsolated"] = true;
             }
         }
-        var response = await this.callAsync(method, this.extend(request, query));
+        object response = await this.callAsync(method, this.extend(request, query));
         if (isTrue((response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return this.parseOrders(response, market);
@@ -4748,22 +4759,22 @@ throw new ArgumentsRequired(add(this.id, " fetchOpenOrders() requires a symbol a
         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if (isTrue(isEqual(symbol, null)))
         {
-throw new ArgumentsRequired(add(this.id, " fetchOrderTrades() requires a symbol argument"));
+            throw new ArgumentsRequired ((string)add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        var market = this.market(symbol);
-        var type = this.safeString(parameters, "type", getValue(market, "type"));
-                parameters = (Dictionary<string, object>)(this.omit(parameters, "type"));
-        if (!isEqual(type, "spot"))
+        object market = this.market(symbol);
+        object type = this.safeString(parameters, "type", getValue(market, "type"));
+        parameters = this.omit(parameters, "type");
+        if (isTrue(!isEqual(type, "spot")))
         {
-throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets only"));
+            throw new NotSupported ((string)add(this.id, " fetchOrderTrades() supports spot markets only")) ;
         }
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "orderId", id },
         };
-        return ((List<object>) (await this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))));
+        return await this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters));
     }
 
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -4780,12 +4791,12 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var request = new Dictionary<string, object>() {};
+        object request = new Dictionary<string, object>() {};
         object market = null;
         object type = null;
         object method = null;
         object marginMode = null;
-        if (!isEqual(symbol, null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             ((Dictionary<string, object>)request)["symbol"] = getValue(market, "id");
@@ -4793,7 +4804,7 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
                 var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
-        if (isEqual(type, "option"))
+        if (isTrue(isEqual(type, "option")))
         {
             method = "eapiPrivateGetUserTrades";
         } else
@@ -4802,13 +4813,13 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
                         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
             marginMode = ((List<object>)marginModeparametersVariable)[0];
             parameters = ((List<object>)marginModeparametersVariable)[1];
-            if (isEqual(type, "spot") || isEqual(type, "margin"))
+            if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
             {
                 method = "privateGetMyTrades";
-                if ((isEqual(type, "margin")) || (!isEqual(marginMode, null)))
+                if (isTrue(isTrue((isEqual(type, "margin"))) || isTrue((!isEqual(marginMode, null)))))
                 {
                     method = "sapiGetMarginMyTrades";
-                    if (isEqual(marginMode, "isolated"))
+                    if (isTrue(isEqual(marginMode, "isolated")))
                     {
                         ((Dictionary<string, object>)request)["isIsolated"] = true;
                     }
@@ -4821,40 +4832,40 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
                 method = "dapiPrivateGetUserTrades";
             }
         }
-        var endTime = this.safeInteger2(parameters, "until", "endTime");
-        if (!isEqual(since, null))
+        object endTime = this.safeInteger2(parameters, "until", "endTime");
+        if (isTrue(!isEqual(since, null)))
         {
-            var startTime = parseInt(since);
+            object startTime = parseInt(since);
             ((Dictionary<string, object>)request)["startTime"] = startTime;
             // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
             // If startTime and endTime are both not sent, then the last 7 days' data will be returned.
             // The time between startTime and endTime cannot be longer than 7 days.
             // The parameter fromId cannot be sent with startTime or endTime.
-            var currentTimestamp = this.milliseconds();
-            var oneWeek = multiply(multiply(multiply(multiply(7, 24), 60), 60), 1000);
-            if (isGreaterThanOrEqual((subtract(currentTimestamp, startTime)), oneWeek))
+            object currentTimestamp = this.milliseconds();
+            object oneWeek = multiply(multiply(multiply(multiply(7, 24), 60), 60), 1000);
+            if (isTrue(isGreaterThanOrEqual((subtract(currentTimestamp, startTime)), oneWeek)))
             {
-                if ((isEqual(endTime, null)) && isTrue(getValue(market, "linear")))
+                if (isTrue(isTrue((isEqual(endTime, null))) && isTrue(getValue(market, "linear"))))
                 {
-                                        endTime = (object)(this.sum(startTime, oneWeek));
+                    endTime = this.sum(startTime, oneWeek);
                     endTime = mathMin(endTime, currentTimestamp);
                 }
             }
         }
-        if (!isEqual(endTime, null))
+        if (isTrue(!isEqual(endTime, null)))
         {
             ((Dictionary<string, object>)request)["endTime"] = endTime;
-                        parameters = (Dictionary<string, object>)(this.omit(parameters, new List<object>() {"endTime", "until"}));
+            parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
         }
-        if (!isEqual(limit, null))
+        if (isTrue(!isEqual(limit, null)))
         {
-            if ((isEqual(type, "option")) || isTrue(getValue(market, "contract")))
+            if (isTrue(isTrue((isEqual(type, "option"))) || isTrue(getValue(market, "contract"))))
             {
                 limit = mathMin(limit, 1000); // above 1000, returns error
             }
             ((Dictionary<string, object>)request)["limit"] = limit;
         }
-        var response = await this.callAsync(method, this.extend(request, parameters));
+        object response = await this.callAsync(method, this.extend(request, parameters));
         //
         // spot trade
         //
@@ -4920,7 +4931,7 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
         //         }
         //     ]
         //
-        return ((List<object>) (this.parseTrades(response, market, since, limit)));
+        return this.parseTrades(response, market, since, limit);
     }
 
     public async virtual Task<object> fetchMyDustTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -4943,13 +4954,13 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
         //
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(since, null)))
         {
             ((Dictionary<string, object>)request)["startTime"] = since;
             ((Dictionary<string, object>)request)["endTime"] = this.sum(since, 7776000000);
         }
-        var response = await this.callAsync("sapiGetAssetDribblet", this.extend(request, parameters));
+        object response = await this.sapiGetAssetDribblet(this.extend(request, parameters));
         //     {
         //       "total": "4",
         //       "userAssetDribblets": [
@@ -4979,19 +4990,19 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
         //         },
         //       ]
         //     }
-        var results = this.safeValue(response, "userAssetDribblets", new List<object>() {});
-        var rows = this.safeInteger(response, "total", 0);
-        var data = new List<object>() {};
-        for (var i = 0; isLessThan(i, rows); i++)
+        object results = this.safeValue(response, "userAssetDribblets", new List<object>() {});
+        object rows = this.safeInteger(response, "total", 0);
+        object data = new List<object>() {};
+        for (object i = 0; isLessThan(i, rows); postFixIncrement(ref i))
         {
-            var logs = this.safeValue(getValue(results, i), "userAssetDribbletDetails", new List<object>() {});
-            for (var j = 0; isLessThan(j, getArrayLength(logs)); j++)
+            object logs = this.safeValue(getValue(results, i), "userAssetDribbletDetails", new List<object>() {});
+            for (object j = 0; isLessThan(j, getArrayLength(logs)); postFixIncrement(ref j))
             {
                 ((Dictionary<string, object>)getValue(logs, j))["isDustTrade"] = true;
                 ((List<object>)data).Add(getValue(logs, j));
             }
         }
-        var trades = this.parseTrades(data, null, since, limit);
+        object trades = this.parseTrades(data, null, since, limit);
         return this.filterBySinceLimit(trades, since, limit);
     }
 
@@ -5008,20 +5019,20 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
         //       "isDustTrade": true
         //     }
         //
-        var orderId = this.safeString(trade, "transId");
-        var timestamp = this.safeInteger(trade, "operateTime");
-        var currencyId = this.safeString(trade, "fromAsset");
-        var tradedCurrency = this.safeCurrencyCode(currencyId);
-        var bnb = this.currency("BNB");
-        var earnedCurrency = getValue(bnb, "code");
-        var applicantSymbol = add(add(earnedCurrency, "/"), tradedCurrency);
-        var tradedCurrencyIsQuote = false;
-        if (((Dictionary<string,object>)this.markets).ContainsKey((string)applicantSymbol))
+        object orderId = this.safeString(trade, "transId");
+        object timestamp = this.safeInteger(trade, "operateTime");
+        object currencyId = this.safeString(trade, "fromAsset");
+        object tradedCurrency = this.safeCurrencyCode(currencyId);
+        object bnb = this.currency("BNB");
+        object earnedCurrency = getValue(bnb, "code");
+        object applicantSymbol = add(add(earnedCurrency, "/"), tradedCurrency);
+        object tradedCurrencyIsQuote = false;
+        if (isTrue(((Dictionary<string,object>)this.markets).ContainsKey(toStringOrNull(applicantSymbol))))
         {
             tradedCurrencyIsQuote = true;
         }
-        var feeCostString = this.safeString(trade, "serviceChargeAmount");
-        var fee = new Dictionary<string, object>() {
+        object feeCostString = this.safeString(trade, "serviceChargeAmount");
+        object fee = new Dictionary<string, object>() {
             { "currency", earnedCurrency },
             { "cost", this.parseNumber(feeCostString) },
         };
@@ -5043,7 +5054,7 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
             side = "sell";
         }
         object priceString = null;
-        if (!isEqual(costString, null))
+        if (isTrue(!isEqual(costString, null)))
         {
             if (isTrue(amountString))
             {
@@ -5051,12 +5062,12 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
             }
         }
         object id = null;
-        var amount = this.parseNumber(amountString);
-        var price = this.parseNumber(priceString);
-        var cost = this.parseNumber(costString);
+        object amount = this.parseNumber(amountString);
+        object price = this.parseNumber(priceString);
+        object cost = this.parseNumber(costString);
         object type = null;
         object takerOrMaker = null;
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -5070,7 +5081,7 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
             { "cost", cost },
             { "fee", fee },
             { "info", trade },
-        }));
+        };
     }
 
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
@@ -5091,51 +5102,55 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
         await this.loadMarkets();
         object currency = null;
         object response = null;
-        var request = new Dictionary<string, object>() {};
-        var legalMoney = this.safeValue(this.options, "legalMoney", new Dictionary<string, object>() {});
-        var fiatOnly = this.safeValue(parameters, "fiat", false);
-                parameters = (Dictionary<string, object>)(this.omit(parameters, "fiatOnly"));
-        var until = this.safeInteger(parameters, "until");
-        if (isTrue(fiatOnly) || (((Dictionary<string,object>)legalMoney).ContainsKey((string)code)))
+        object request = new Dictionary<string, object>() {};
+        object legalMoney = this.safeValue(this.options, "legalMoney", new Dictionary<string, object>() {});
+        object fiatOnly = this.safeValue(parameters, "fiat", false);
+        parameters = this.omit(parameters, "fiatOnly");
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(isTrue(fiatOnly) || isTrue((((Dictionary<string,object>)legalMoney).ContainsKey(toStringOrNull(code))))))
         {
-            if (!isEqual(code, null))
+            if (isTrue(!isEqual(code, null)))
             {
                 currency = this.currency(code);
             }
             ((Dictionary<string, object>)request)["transactionType"] = 0;
-            if (!isEqual(since, null))
+            if (isTrue(!isEqual(since, null)))
             {
                 ((Dictionary<string, object>)request)["beginTime"] = since;
             }
-            if (!isEqual(until, null))
+            if (isTrue(!isEqual(until, null)))
             {
                 ((Dictionary<string, object>)request)["endTime"] = until;
             }
-            var raw = await this.callAsync("sapiGetFiatOrders", this.extend(request, parameters));
+            object raw = await this.sapiGetFiatOrders(this.extend(request, parameters));
             response = this.safeValue(raw, "data");
         } else
         {
-            if (!isEqual(code, null))
+            if (isTrue(!isEqual(code, null)))
             {
                 currency = this.currency(code);
                 ((Dictionary<string, object>)request)["coin"] = getValue(currency, "id");
             }
-            if (!isEqual(since, null))
+            if (isTrue(!isEqual(since, null)))
             {
                 ((Dictionary<string, object>)request)["startTime"] = since;
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-                var endTime = this.sum(since, 7776000000);
-                if (!isEqual(until, null))
+                object endTime = this.sum(since, 7776000000);
+                if (isTrue(!isEqual(until, null)))
                 {
                     endTime = mathMin(endTime, until);
                 }
                 ((Dictionary<string, object>)request)["endTime"] = endTime;
             }
-            if (!isEqual(limit, null))
+            if (isTrue(!isEqual(limit, null)))
             {
                 ((Dictionary<string, object>)request)["limit"] = limit;
             }
-            response = await this.callAsync("sapiGetCapitalDepositHisrec", this.extend(request, parameters));
+            response = await this.sapiGetCapitalDepositHisrec(this.extend(request, parameters));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            ((Dictionary<string, object>)getValue(response, i))["type"] = "deposit";
         }
         return this.parseTransactions(response, currency, since, limit);
     }
@@ -5155,50 +5170,54 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var legalMoney = this.safeValue(this.options, "legalMoney", new Dictionary<string, object>() {});
-        var fiatOnly = this.safeValue(parameters, "fiat", false);
-                parameters = (Dictionary<string, object>)(this.omit(parameters, "fiatOnly"));
-        var request = new Dictionary<string, object>() {};
+        object legalMoney = this.safeValue(this.options, "legalMoney", new Dictionary<string, object>() {});
+        object fiatOnly = this.safeValue(parameters, "fiat", false);
+        parameters = this.omit(parameters, "fiatOnly");
+        object request = new Dictionary<string, object>() {};
         object response = null;
         object currency = null;
-        if (isTrue(fiatOnly) || (((Dictionary<string,object>)legalMoney).ContainsKey((string)code)))
+        if (isTrue(isTrue(fiatOnly) || isTrue((((Dictionary<string,object>)legalMoney).ContainsKey(toStringOrNull(code))))))
         {
-            if (!isEqual(code, null))
+            if (isTrue(!isEqual(code, null)))
             {
                 currency = this.currency(code);
             }
             ((Dictionary<string, object>)request)["transactionType"] = 1;
-            if (!isEqual(since, null))
+            if (isTrue(!isEqual(since, null)))
             {
                 ((Dictionary<string, object>)request)["beginTime"] = since;
             }
-            var raw = await this.callAsync("sapiGetFiatOrders", this.extend(request, parameters));
+            object raw = await this.sapiGetFiatOrders(this.extend(request, parameters));
             response = this.safeValue(raw, "data");
         } else
         {
-            if (!isEqual(code, null))
+            if (isTrue(!isEqual(code, null)))
             {
                 currency = this.currency(code);
                 ((Dictionary<string, object>)request)["coin"] = getValue(currency, "id");
             }
-            if (!isEqual(since, null))
+            if (isTrue(!isEqual(since, null)))
             {
                 ((Dictionary<string, object>)request)["startTime"] = since;
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
                 ((Dictionary<string, object>)request)["endTime"] = this.sum(since, 7776000000);
             }
-            if (!isEqual(limit, null))
+            if (isTrue(!isEqual(limit, null)))
             {
                 ((Dictionary<string, object>)request)["limit"] = limit;
             }
-            response = await this.callAsync("sapiGetCapitalWithdrawHistory", this.extend(request, parameters));
+            response = await this.sapiGetCapitalWithdrawHistory(this.extend(request, parameters));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            ((Dictionary<string, object>)getValue(response, i))["type"] = "withdrawal";
         }
         return this.parseTransactions(response, currency, since, limit);
     }
 
     public virtual object parseTransactionStatusByType(object status, object type = null)
     {
-        var statusesByType = new Dictionary<string, object>() {
+        object statusesByType = new Dictionary<string, object>() {
             { "deposit", new Dictionary<string, object>() {
                 { "0", "pending" },
                 { "1", "ok" },
@@ -5226,8 +5245,8 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
                 { "Refund Failed", "failed" },
             } },
         };
-        var statuses = this.safeValue(statusesByType, type, new Dictionary<string, object>() {});
-        return ((string) (this.safeString(statuses, status, status)));
+        object statuses = this.safeValue(statusesByType, type, new Dictionary<string, object>() {});
+        return this.safeString(statuses, status, status);
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -5296,59 +5315,59 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
         //
         //    { id: '9a67628b16ba4988ae20d329333f16bc' }
         //
-        var id = this.safeString2(transaction, "id", "orderNo");
-        var address = this.safeString(transaction, "address");
-        var tag = this.safeString(transaction, "addressTag"); // set but unused
-        if (!isEqual(tag, null))
+        object id = this.safeString2(transaction, "id", "orderNo");
+        object address = this.safeString(transaction, "address");
+        object tag = this.safeString(transaction, "addressTag"); // set but unused
+        if (isTrue(!isEqual(tag, null)))
         {
-            if (isLessThan(((string)tag).Length, 1))
+            if (isTrue(isLessThan(((string)tag).Length, 1)))
             {
                 tag = null;
             }
         }
-        var txid = this.safeString(transaction, "txId");
-        if ((!isEqual(txid, null)) && (isGreaterThanOrEqual(getIndexOf(txid, "Internal transfer "), 0)))
+        object txid = this.safeString(transaction, "txId");
+        if (isTrue(isTrue((!isEqual(txid, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(txid, "Internal transfer "), 0)))))
         {
             txid = ((string)txid).Substring((int)18);
         }
-        var currencyId = this.safeString2(transaction, "coin", "fiatCurrency");
-        var code = this.safeCurrencyCode(currencyId, currency);
+        object currencyId = this.safeString2(transaction, "coin", "fiatCurrency");
+        object code = this.safeCurrencyCode(currencyId, currency);
         object timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "createTime");
-        if (isEqual(timestamp, null))
+        if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.parse8601(this.safeString(transaction, "applyTime"));
         }
-        var updated = this.safeInteger2(transaction, "successTime", "updateTime");
-        var type = this.safeString(transaction, "type");
-        if (isEqual(type, null))
+        object updated = this.safeInteger2(transaction, "successTime", "updateTime");
+        object type = this.safeString(transaction, "type");
+        if (isTrue(isEqual(type, null)))
         {
-            var txType = this.safeString(transaction, "transactionType");
-            if (!isEqual(txType, null))
+            object txType = this.safeString(transaction, "transactionType");
+            if (isTrue(!isEqual(txType, null)))
             {
-                type = (isEqual(txType, "0")) ? "deposit" : "withdrawal";
+                type = ((bool) isTrue((isEqual(txType, "0")))) ? "deposit" : "withdrawal";
             }
-            var legalMoneyCurrenciesById = this.safeValue(this.options, "legalMoneyCurrenciesById");
+            object legalMoneyCurrenciesById = this.safeValue(this.options, "legalMoneyCurrenciesById");
             code = this.safeString(legalMoneyCurrenciesById, code, code);
         }
-        var status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
-        var amount = this.safeNumber(transaction, "amount");
-        var feeCost = this.safeNumber2(transaction, "transactionFee", "totalFee");
+        object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
+        object amount = this.safeNumber(transaction, "amount");
+        object feeCost = this.safeNumber2(transaction, "transactionFee", "totalFee");
         object fee = null;
-        if (!isEqual(feeCost, null))
+        if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", code },
                 { "cost", feeCost },
             };
         }
-        var intern = this.safeInteger(transaction, "transferType");
-        if (!isEqual(intern, null))
+        object intern = this.safeInteger(transaction, "transferType");
+        if (isTrue(!isEqual(intern, null)))
         {
-                        intern = (object)(isTrue(intern) ? true : ((object)false));
+            intern = ((bool) isTrue(intern)) ? true : ((object)false);
         }
-        var network = this.safeString(transaction, "network");
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        object network = this.safeString(transaction, "network");
+        return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
             { "txid", txid },
@@ -5368,15 +5387,15 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
             { "updated", updated },
             { "internal", intern },
             { "fee", fee },
-        }));
+        };
     }
 
     public virtual object parseTransferStatus(object status)
     {
-        var statuses = new Dictionary<string, object>() {
+        object statuses = new Dictionary<string, object>() {
             { "CONFIRMED", "ok" },
         };
-        return ((string) (this.safeString(statuses, status, status)));
+        return this.safeString(statuses, status, status);
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -5399,25 +5418,25 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
         //         tranId: 43000126248
         //     }
         //
-        var id = this.safeString(transfer, "tranId");
-        var currencyId = this.safeString(transfer, "asset");
-        var code = this.safeCurrencyCode(currencyId, currency);
-        var amount = this.safeNumber(transfer, "amount");
-        var type = this.safeString(transfer, "type");
+        object id = this.safeString(transfer, "tranId");
+        object currencyId = this.safeString(transfer, "asset");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        object amount = this.safeNumber(transfer, "amount");
+        object type = this.safeString(transfer, "type");
         object fromAccount = null;
         object toAccount = null;
-        var accountsById = this.safeValue(this.options, "accountsById", new Dictionary<string, object>() {});
-        if (!isEqual(type, null))
+        object accountsById = this.safeValue(this.options, "accountsById", new Dictionary<string, object>() {});
+        if (isTrue(!isEqual(type, null)))
         {
-            var parts = ((string)type).Split("_").ToList<object>();
+            object parts = ((string)type).Split((string)"_").ToList<object>();
             fromAccount = this.safeValue(parts, 0);
             toAccount = this.safeValue(parts, 1);
             fromAccount = this.safeString(accountsById, fromAccount, fromAccount);
             toAccount = this.safeString(accountsById, toAccount, toAccount);
         }
-        var timestamp = this.safeInteger(transfer, "timestamp");
-        var status = this.parseTransferStatus(this.safeString(transfer, "status"));
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        object timestamp = this.safeInteger(transfer, "timestamp");
+        object status = this.parseTransferStatus(this.safeString(transfer, "status"));
+        return new Dictionary<string, object>() {
             { "info", transfer },
             { "id", id },
             { "timestamp", timestamp },
@@ -5427,7 +5446,7 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
             { "fromAccount", fromAccount },
             { "toAccount", toAccount },
             { "status", status },
-        }));
+        };
     }
 
     public override object parseIncome(object income, object market = null)
@@ -5444,14 +5463,14 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
         //       "tradeId": ""
         //     }
         //
-        var marketId = this.safeString(income, "symbol");
-        var symbol = this.safeSymbol(marketId, market, null, "swap");
-        var amount = this.safeNumber(income, "income");
-        var currencyId = this.safeString(income, "asset");
-        var code = this.safeCurrencyCode(currencyId);
-        var id = this.safeString(income, "tranId");
-        var timestamp = this.safeInteger(income, "time");
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        object marketId = this.safeString(income, "symbol");
+        object symbol = this.safeSymbol(marketId, market, null, "swap");
+        object amount = this.safeNumber(income, "income");
+        object currencyId = this.safeString(income, "asset");
+        object code = this.safeCurrencyCode(currencyId);
+        object id = this.safeString(income, "tranId");
+        object timestamp = this.safeInteger(income, "time");
+        return new Dictionary<string, object>() {
             { "info", income },
             { "symbol", symbol },
             { "code", code },
@@ -5459,7 +5478,7 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
             { "datetime", this.iso8601(timestamp) },
             { "id", id },
             { "amount", amount },
-        }));
+        };
     }
 
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
@@ -5479,64 +5498,64 @@ throw new NotSupported(add(this.id, " fetchOrderTrades() supports spot markets o
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var currency = this.currency(code);
-        var request = new Dictionary<string, object>() {
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
         };
         ((Dictionary<string, object>)request)["type"] = this.safeString(parameters, "type");
-        var method = "sapiPostAssetTransfer";
-        if (isEqual(getValue(request, "type"), null))
+        object method = "sapiPostAssetTransfer";
+        if (isTrue(isEqual(getValue(request, "type"), null)))
         {
-            var symbol = this.safeString(parameters, "symbol");
-            if (!isEqual(symbol, null))
+            object symbol = this.safeString(parameters, "symbol");
+            if (isTrue(!isEqual(symbol, null)))
             {
-                                parameters = (Dictionary<string, object>)(this.omit(parameters, "symbol"));
+                parameters = this.omit(parameters, "symbol");
             }
-            var fromId = ((string)this.convertTypeToAccount(fromAccount)).ToUpper();
-            var toId = ((string)this.convertTypeToAccount(toAccount)).ToUpper();
-            if (isEqual(fromId, "ISOLATED"))
+            object fromId = ((string)this.convertTypeToAccount(fromAccount)).ToUpper();
+            object toId = ((string)this.convertTypeToAccount(toAccount)).ToUpper();
+            if (isTrue(isEqual(fromId, "ISOLATED")))
             {
-                if (isEqual(symbol, null))
+                if (isTrue(isEqual(symbol, null)))
                 {
-throw new ArgumentsRequired(add(add(this.id, " transfer () requires params[\"symbol\"] when fromAccount is "), fromAccount));
+                    throw new ArgumentsRequired ((string)add(add(this.id, " transfer () requires params[\"symbol\"] when fromAccount is "), fromAccount)) ;
                 } else
                 {
                     fromId = this.marketId(symbol);
                 }
             }
-            if (isEqual(toId, "ISOLATED"))
+            if (isTrue(isEqual(toId, "ISOLATED")))
             {
-                if (isEqual(symbol, null))
+                if (isTrue(isEqual(symbol, null)))
                 {
-throw new ArgumentsRequired(add(add(this.id, " transfer () requires params[\"symbol\"] when toAccount is "), toAccount));
+                    throw new ArgumentsRequired ((string)add(add(this.id, " transfer () requires params[\"symbol\"] when toAccount is "), toAccount)) ;
                 } else
                 {
                     toId = this.marketId(symbol);
                 }
             }
-            var accountsById = this.safeValue(this.options, "accountsById", new Dictionary<string, object>() {});
-            var fromIsolated = !(((Dictionary<string,object>)accountsById).ContainsKey((string)fromId));
-            var toIsolated = !(((Dictionary<string,object>)accountsById).ContainsKey((string)toId));
-            if (isTrue(fromIsolated) || isTrue(toIsolated))
+            object accountsById = this.safeValue(this.options, "accountsById", new Dictionary<string, object>() {});
+            object fromIsolated = !isTrue((((Dictionary<string,object>)accountsById).ContainsKey(toStringOrNull(fromId))));
+            object toIsolated = !isTrue((((Dictionary<string,object>)accountsById).ContainsKey(toStringOrNull(toId))));
+            if (isTrue(isTrue(fromIsolated) || isTrue(toIsolated)))
             {
-                var fromFuture = isEqual(fromId, "UMFUTURE") || isEqual(fromId, "CMFUTURE");
-                var toFuture = isEqual(toId, "UMFUTURE") || isEqual(toId, "CMFUTURE");
-                var fromSpot = isEqual(fromId, "MAIN");
-                var toSpot = isEqual(toId, "MAIN");
-                var funding = isEqual(fromId, "FUNDING") || isEqual(toId, "FUNDING");
-                var mining = isEqual(fromId, "MINING") || isEqual(toId, "MINING");
-                var prohibitedWithIsolated = isTrue(fromFuture) || isTrue(toFuture) || isTrue(mining) || isTrue(funding);
-                if ((isTrue(fromIsolated) || isTrue(toIsolated)) && isTrue(prohibitedWithIsolated))
+                object fromFuture = isTrue(isEqual(fromId, "UMFUTURE")) || isTrue(isEqual(fromId, "CMFUTURE"));
+                object toFuture = isTrue(isEqual(toId, "UMFUTURE")) || isTrue(isEqual(toId, "CMFUTURE"));
+                object fromSpot = isEqual(fromId, "MAIN");
+                object toSpot = isEqual(toId, "MAIN");
+                object funding = isTrue(isEqual(fromId, "FUNDING")) || isTrue(isEqual(toId, "FUNDING"));
+                object mining = isTrue(isEqual(fromId, "MINING")) || isTrue(isEqual(toId, "MINING"));
+                object prohibitedWithIsolated = isTrue(isTrue(isTrue(fromFuture) || isTrue(toFuture)) || isTrue(mining)) || isTrue(funding);
+                if (isTrue(isTrue((isTrue(fromIsolated) || isTrue(toIsolated))) && isTrue(prohibitedWithIsolated)))
                 {
-throw new BadRequest(add(add(add(add(this.id, " transfer () does not allow transfers between "), fromAccount), " and "), toAccount));
-                } else if (isTrue(toSpot) && isTrue(fromIsolated))
+                    throw new BadRequest ((string)add(add(add(add(this.id, " transfer () does not allow transfers between "), fromAccount), " and "), toAccount)) ;
+                } else if (isTrue(isTrue(toSpot) && isTrue(fromIsolated)))
                 {
                     method = "sapiPostMarginIsolatedTransfer";
                     ((Dictionary<string, object>)request)["transFrom"] = "ISOLATED_MARGIN";
                     ((Dictionary<string, object>)request)["transTo"] = "SPOT";
                     ((Dictionary<string, object>)request)["symbol"] = fromId;
-                } else if (isTrue(fromSpot) && isTrue(toIsolated))
+                } else if (isTrue(isTrue(fromSpot) && isTrue(toIsolated)))
                 {
                     method = "sapiPostMarginIsolatedTransfer";
                     ((Dictionary<string, object>)request)["transFrom"] = "SPOT";
@@ -5561,14 +5580,14 @@ throw new BadRequest(add(add(add(add(this.id, " transfer () does not allow trans
                 ((Dictionary<string, object>)request)["type"] = add(add(fromId, "_"), toId);
             }
         }
-                parameters = (Dictionary<string, object>)(this.omit(parameters, "type"));
-        var response = await this.callAsync(method, this.extend(request, parameters));
+        parameters = this.omit(parameters, "type");
+        object response = await this.callAsync(method, this.extend(request, parameters));
         //
         //     {
         //         "tranId":13526853623
         //     }
         //
-        return ((Dictionary<string, object>) (this.parseTransfer(response, currency)));
+        return this.parseTransfer(response, currency);
     }
 
     public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
@@ -5586,44 +5605,44 @@ throw new BadRequest(add(add(add(add(this.id, " transfer () does not allow trans
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = null;
-        if (!isEqual(code, null))
+        if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
         }
-        var defaultType = this.safeString2(this.options, "fetchTransfers", "defaultType", "spot");
-        var fromAccount = this.safeString(parameters, "fromAccount", defaultType);
-        var defaultTo = (isEqual(fromAccount, "future")) ? "spot" : "future";
-        var toAccount = this.safeString(parameters, "toAccount", defaultTo);
-        var type = this.safeString(parameters, "type");
-        var accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
-        var fromId = this.safeString(accountsByType, fromAccount);
-        var toId = this.safeString(accountsByType, toAccount);
-        if (isEqual(type, null))
+        object defaultType = this.safeString2(this.options, "fetchTransfers", "defaultType", "spot");
+        object fromAccount = this.safeString(parameters, "fromAccount", defaultType);
+        object defaultTo = ((bool) isTrue((isEqual(fromAccount, "future")))) ? "spot" : "future";
+        object toAccount = this.safeString(parameters, "toAccount", defaultTo);
+        object type = this.safeString(parameters, "type");
+        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object fromId = this.safeString(accountsByType, fromAccount);
+        object toId = this.safeString(accountsByType, toAccount);
+        if (isTrue(isEqual(type, null)))
         {
-            if (isEqual(fromId, null))
+            if (isTrue(isEqual(fromId, null)))
             {
-                var keys = new List<string>(((Dictionary<string,object>)accountsByType).Keys);
-throw new ExchangeError(add(add(this.id, " fromAccount parameter must be one of "), String.Join(", ", keys)));
+                object keys = new List<string>(((Dictionary<string,object>)accountsByType).Keys);
+                throw new ExchangeError ((string)add(add(this.id, " fromAccount parameter must be one of "), String.Join(", ", keys))) ;
             }
-            if (isEqual(toId, null))
+            if (isTrue(isEqual(toId, null)))
             {
-                var keys = new List<string>(((Dictionary<string,object>)accountsByType).Keys);
-throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of "), String.Join(", ", keys)));
+                object keys = new List<string>(((Dictionary<string,object>)accountsByType).Keys);
+                throw new ExchangeError ((string)add(add(this.id, " toAccount parameter must be one of "), String.Join(", ", keys))) ;
             }
             type = add(add(fromId, "_"), toId);
         }
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "type", type },
         };
-        if (!isEqual(since, null))
+        if (isTrue(!isEqual(since, null)))
         {
             ((Dictionary<string, object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((Dictionary<string, object>)request)["size"] = limit;
         }
-        var response = await this.callAsync("sapiGetAssetTransfer", this.extend(request, parameters));
+        object response = await this.sapiGetAssetTransfer(this.extend(request, parameters));
         //
         //     {
         //         total: 3,
@@ -5639,7 +5658,7 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
         //         ]
         //     }
         //
-        var rows = this.safeValue(response, "rows", new List<object>() {});
+        object rows = this.safeValue(response, "rows", new List<object>() {});
         return this.parseTransfers(rows, currency, since, limit);
     }
 
@@ -5655,21 +5674,21 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var currency = this.currency(code);
-        var request = new Dictionary<string, object>() {
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
         };
-        var networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-        var network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
+        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+        object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        if (!isEqual(network, null))
+        if (isTrue(!isEqual(network, null)))
         {
             ((Dictionary<string, object>)request)["network"] = network;
-                        parameters = (Dictionary<string, object>)(this.omit(parameters, "network"));
+            parameters = this.omit(parameters, "network");
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        var response = await this.callAsync("sapiGetCapitalDepositAddress", this.extend(request, parameters));
+        object response = await this.sapiGetCapitalDepositAddress(this.extend(request, parameters));
         //
         //     {
         //         currency: 'XRP',
@@ -5683,24 +5702,24 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
         //         }
         //     }
         //
-        var address = this.safeString(response, "address");
-        var url = this.safeString(response, "url");
+        object address = this.safeString(response, "address");
+        object url = this.safeString(response, "url");
         object impliedNetwork = null;
-        if (!isEqual(url, null))
+        if (isTrue(!isEqual(url, null)))
         {
-            var reverseNetworks = this.safeValue(this.options, "reverseNetworks", new Dictionary<string, object>() {});
-            var parts = ((string)url).Split("/").ToList<object>();
-            var topLevel = this.safeString(parts, 2);
-            if ((isEqual(topLevel, "blockchair.com")) || (isEqual(topLevel, "viewblock.io")))
+            object reverseNetworks = this.safeValue(this.options, "reverseNetworks", new Dictionary<string, object>() {});
+            object parts = ((string)url).Split((string)"/").ToList<object>();
+            object topLevel = this.safeString(parts, 2);
+            if (isTrue(isTrue((isEqual(topLevel, "blockchair.com"))) || isTrue((isEqual(topLevel, "viewblock.io")))))
             {
-                var subLevel = this.safeString(parts, 3);
-                if (!isEqual(subLevel, null))
+                object subLevel = this.safeString(parts, 3);
+                if (isTrue(!isEqual(subLevel, null)))
                 {
                     topLevel = add(add(topLevel, "/"), subLevel);
                 }
             }
             impliedNetwork = this.safeString(reverseNetworks, topLevel);
-            var impliedNetworks = this.safeValue(this.options, "impliedNetworks", new Dictionary<string, object>() {
+            object impliedNetworks = this.safeValue(this.options, "impliedNetworks", new Dictionary<string, object>() {
                 { "ETH", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
                 } },
@@ -5708,25 +5727,25 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
                     { "TRC20", "TRX" },
                 } },
             });
-            if (((Dictionary<string,object>)impliedNetworks).ContainsKey((string)code))
+            if (isTrue(((Dictionary<string,object>)impliedNetworks).ContainsKey(toStringOrNull(code))))
             {
-                var conversion = this.safeValue(impliedNetworks, code, new Dictionary<string, object>() {});
+                object conversion = this.safeValue(impliedNetworks, code, new Dictionary<string, object>() {});
                 impliedNetwork = this.safeString(conversion, impliedNetwork, impliedNetwork);
             }
         }
-        var tag = this.safeString(response, "tag", "");
-        if (isEqual(((string)tag).Length, 0))
+        object tag = this.safeString(response, "tag", "");
+        if (isTrue(isEqual(((string)tag).Length, 0)))
         {
             tag = null;
         }
         this.checkAddress(address);
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "currency", code },
             { "address", address },
             { "tag", tag },
             { "network", impliedNetwork },
             { "info", response },
-        }));
+        };
     }
 
     public async override Task<object> fetchTransactionFees(object codes = null, object parameters = null)
@@ -5741,7 +5760,7 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var response = await this.callAsync("sapiGetCapitalConfigGetall", parameters);
+        object response = await this.sapiGetCapitalConfigGetall(parameters);
         //
         //  [
         //     {
@@ -5823,28 +5842,28 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
         //     }
         //  ]
         //
-        var withdrawFees = new Dictionary<string, object>() {};
-        for (var i = 0; isLessThan(i, getArrayLength(response)); i++)
+        object withdrawFees = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            var entry = getValue(response, i);
-            var currencyId = this.safeString(entry, "coin");
-            var code = this.safeCurrencyCode(currencyId);
-            var networkList = this.safeValue(entry, "networkList", new List<object>() {});
+            object entry = getValue(response, i);
+            object currencyId = this.safeString(entry, "coin");
+            object code = this.safeCurrencyCode(currencyId);
+            object networkList = this.safeValue(entry, "networkList", new List<object>() {});
             ((Dictionary<string, object>)withdrawFees)[(string)code] = new Dictionary<string, object>() {};
-            for (var j = 0; isLessThan(j, getArrayLength(networkList)); j++)
+            for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
             {
-                var networkEntry = getValue(networkList, j);
-                var networkId = this.safeString(networkEntry, "network");
-                var networkCode = this.safeCurrencyCode(networkId);
-                var fee = this.safeNumber(networkEntry, "withdrawFee");
+                object networkEntry = getValue(networkList, j);
+                object networkId = this.safeString(networkEntry, "network");
+                object networkCode = this.safeCurrencyCode(networkId);
+                object fee = this.safeNumber(networkEntry, "withdrawFee");
                 ((Dictionary<string, object>)getValue(withdrawFees, code))[(string)networkCode] = fee;
             }
         }
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "withdraw", withdrawFees },
             { "deposit", new Dictionary<string, object>() {} },
             { "info", response },
-        }));
+        };
     }
 
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
@@ -5859,7 +5878,7 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var response = await this.callAsync("sapiGetCapitalConfigGetall", parameters);
+        object response = await this.sapiGetCapitalConfigGetall(parameters);
         //
         //    [
         //        {
@@ -5947,16 +5966,16 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
         //        ]
         //    }
         //
-        var networkList = this.safeValue(fee, "networkList", new List<object>() {});
-        var result = this.depositWithdrawFee(fee);
-        for (var j = 0; isLessThan(j, getArrayLength(networkList)); j++)
+        object networkList = this.safeValue(fee, "networkList", new List<object>() {});
+        object result = this.depositWithdrawFee(fee);
+        for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
         {
-            var networkEntry = getValue(networkList, j);
-            var networkId = this.safeString(networkEntry, "network");
-            var networkCode = this.networkIdToCode(networkId);
-            var withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
-            var isDefault = this.safeValue(networkEntry, "isDefault");
-            if (isEqual(isDefault, true))
+            object networkEntry = getValue(networkList, j);
+            object networkId = this.safeString(networkEntry, "network");
+            object networkCode = this.networkIdToCode(networkId);
+            object withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
+            object isDefault = this.safeValue(networkEntry, "isDefault");
+            if (isTrue(isEqual(isDefault, true)))
             {
                 ((Dictionary<string, object>)result)["withdraw"] = new Dictionary<string, object>() {
                     { "fee", withdrawFee },
@@ -5996,27 +6015,27 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);
         await this.loadMarkets();
-        var currency = this.currency(code);
-        var request = new Dictionary<string, object>() {
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },
             { "amount", amount },
         };
-        if (!isEqual(tag, null))
+        if (isTrue(!isEqual(tag, null)))
         {
             ((Dictionary<string, object>)request)["addressTag"] = tag;
         }
-        var networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-        var network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
+        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+        object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        if (!isEqual(network, null))
+        if (isTrue(!isEqual(network, null)))
         {
             ((Dictionary<string, object>)request)["network"] = network;
-                        parameters = (Dictionary<string, object>)(this.omit(parameters, "network"));
+            parameters = this.omit(parameters, "network");
         }
-        var response = await this.callAsync("sapiPostCapitalWithdrawApply", this.extend(request, parameters));
+        object response = await this.sapiPostCapitalWithdrawApply(this.extend(request, parameters));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-        return ((Dictionary<string, object>) (this.parseTransaction(response, currency)));
+        return this.parseTransaction(response, currency);
     }
 
     public virtual object parseTradingFee(object fee, object market = null)
@@ -6028,14 +6047,14 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
         //         "takerCommission": 0.001
         //     }
         //
-        var marketId = this.safeString(fee, "symbol");
-        var symbol = this.safeSymbol(marketId, market, null, "spot");
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        object marketId = this.safeString(fee, "symbol");
+        object symbol = this.safeSymbol(marketId, market, null, "spot");
+        return new Dictionary<string, object>() {
             { "info", fee },
             { "symbol", symbol },
             { "maker", this.safeNumber(fee, "makerCommission") },
             { "taker", this.safeNumber(fee, "takerCommission") },
-        }));
+        };
     }
 
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
@@ -6050,11 +6069,11 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var market = this.market(symbol);
-        var request = new Dictionary<string, object>() {
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        var response = await this.callAsync("sapiGetAssetTradeFee", this.extend(request, parameters));
+        object response = await this.sapiGetAssetTradeFee(this.extend(request, parameters));
         //
         //     [
         //       {
@@ -6064,8 +6083,8 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
         //       }
         //     ]
         //
-        var first = this.safeValue(response, 0, new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>) (this.parseTradingFee(first)));
+        object first = this.safeValue(response, 0, new Dictionary<string, object>() {});
+        return this.parseTradingFee(first);
     }
 
     public async override Task<object> fetchTradingFees(object parameters = null)
@@ -6080,16 +6099,16 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object method = null;
-        var defaultType = this.safeString2(this.options, "fetchTradingFees", "defaultType", "linear");
-        var type = this.safeString(parameters, "type", defaultType);
-                parameters = (Dictionary<string, object>)(this.omit(parameters, "type"));
+        object defaultType = this.safeString2(this.options, "fetchTradingFees", "defaultType", "linear");
+        object type = this.safeString(parameters, "type", defaultType);
+        parameters = this.omit(parameters, "type");
         object subType = null;
                 var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTradingFees", null, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
-        var isSpotOrMargin = (isEqual(type, "spot")) || (isEqual(type, "margin"));
-        var isLinear = this.isLinear(type, subType);
-        var isInverse = this.isInverse(type, subType);
+        object isSpotOrMargin = isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")));
+        object isLinear = this.isLinear(type, subType);
+        object isInverse = this.isInverse(type, subType);
         if (isTrue(isSpotOrMargin))
         {
             method = "sapiGetAssetTradeFee";
@@ -6100,7 +6119,7 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
         {
             method = "dapiPrivateGetAccount";
         }
-        var response = await this.callAsync(method, parameters);
+        object response = await this.callAsync(method, parameters);
         //
         // sapi / spot
         //
@@ -6165,14 +6184,14 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
             //       },
             //    ]
             //
-            var result = new Dictionary<string, object>() {};
-            for (var i = 0; isLessThan(i, getArrayLength(response)); i++)
+            object result = new Dictionary<string, object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
-                var fee = this.parseTradingFee(getValue(response, i));
-                var symbol = getValue(fee, "symbol");
+                object fee = this.parseTradingFee(getValue(response, i));
+                object symbol = getValue(fee, "symbol");
                 ((Dictionary<string, object>)result)[(string)symbol] = fee;
             }
-            return ((Dictionary<string, object>) (result));
+            return result;
         } else if (isTrue(isLinear))
         {
             //
@@ -6196,16 +6215,16 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
             //         ...
             //     }
             //
-            var symbols = new List<string>(((Dictionary<string,object>)this.markets).Keys);
-            var result = new Dictionary<string, object>() {};
-            var feeTier = this.safeInteger(response, "feeTier");
-            var feeTiers = getValue(getValue(getValue(this.fees, "linear"), "trading"), "tiers");
-            var maker = getValue(getValue(getValue(feeTiers, "maker"), feeTier), 1);
-            var taker = getValue(getValue(getValue(feeTiers, "taker"), feeTier), 1);
-            for (var i = 0; isLessThan(i, getArrayLength(symbols)); i++)
+            object symbols = new List<string>(((Dictionary<string,object>)this.markets).Keys);
+            object result = new Dictionary<string, object>() {};
+            object feeTier = this.safeInteger(response, "feeTier");
+            object feeTiers = getValue(getValue(getValue(this.fees, "linear"), "trading"), "tiers");
+            object maker = getValue(getValue(getValue(feeTiers, "maker"), feeTier), 1);
+            object taker = getValue(getValue(getValue(feeTiers, "taker"), feeTier), 1);
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
-                var symbol = getValue(symbols, i);
-                var market = getValue(this.markets, symbol);
+                object symbol = getValue(symbols, i);
+                object market = getValue(this.markets, symbol);
                 if (isTrue(getValue(market, "linear")))
                 {
                     ((Dictionary<string, object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -6218,7 +6237,7 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
                     };
                 }
             }
-            return ((Dictionary<string, object>) (result));
+            return result;
         } else if (isTrue(isInverse))
         {
             //
@@ -6230,16 +6249,16 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
             //         "updateTime": 0
             //     }
             //
-            var symbols = new List<string>(((Dictionary<string,object>)this.markets).Keys);
-            var result = new Dictionary<string, object>() {};
-            var feeTier = this.safeInteger(response, "feeTier");
-            var feeTiers = getValue(getValue(getValue(this.fees, "inverse"), "trading"), "tiers");
-            var maker = getValue(getValue(getValue(feeTiers, "maker"), feeTier), 1);
-            var taker = getValue(getValue(getValue(feeTiers, "taker"), feeTier), 1);
-            for (var i = 0; isLessThan(i, getArrayLength(symbols)); i++)
+            object symbols = new List<string>(((Dictionary<string,object>)this.markets).Keys);
+            object result = new Dictionary<string, object>() {};
+            object feeTier = this.safeInteger(response, "feeTier");
+            object feeTiers = getValue(getValue(getValue(this.fees, "inverse"), "trading"), "tiers");
+            object maker = getValue(getValue(getValue(feeTiers, "maker"), feeTier), 1);
+            object taker = getValue(getValue(getValue(feeTiers, "taker"), feeTier), 1);
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
-                var symbol = getValue(symbols, i);
-                var market = getValue(this.markets, symbol);
+                object symbol = getValue(symbols, i);
+                object market = getValue(this.markets, symbol);
                 if (isTrue(getValue(market, "inverse")))
                 {
                     ((Dictionary<string, object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -6252,8 +6271,9 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
                     };
                 }
             }
-            return ((Dictionary<string, object>) (result));
+            return result;
         }
+        return null;
     }
 
     public async virtual Task<object> futuresTransfer(object code, object amount, object type, object parameters = null)
@@ -6270,24 +6290,24 @@ throw new ExchangeError(add(add(this.id, " toAccount parameter must be one of ")
         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=futures-transfer-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if ((isLessThan(type, 1)) || (isGreaterThan(type, 4)))
+        if (isTrue(isTrue((isLessThan(type, 1))) || isTrue((isGreaterThan(type, 4)))))
         {
-throw new ArgumentsRequired(add(this.id, " type must be between 1 and 4"));
+            throw new ArgumentsRequired ((string)add(this.id, " type must be between 1 and 4")) ;
         }
         await this.loadMarkets();
-        var currency = this.currency(code);
-        var request = new Dictionary<string, object>() {
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
             { "amount", amount },
             { "type", type },
         };
-        var response = await this.callAsync("sapiPostFuturesTransfer", this.extend(request, parameters));
+        object response = await this.sapiPostFuturesTransfer(this.extend(request, parameters));
         //
         //   {
         //       "tranId": 100000001
         //   }
         //
-        return ((Dictionary<string, object>) (this.parseTransfer(response, currency)));
+        return this.parseTransfer(response, currency);
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
@@ -6302,8 +6322,8 @@ throw new ArgumentsRequired(add(this.id, " type must be between 1 and 4"));
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var market = this.market(symbol);
-        var request = new Dictionary<string, object>() {
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         object method = null;
@@ -6315,9 +6335,9 @@ throw new ArgumentsRequired(add(this.id, " type must be between 1 and 4"));
             method = "dapiPublicGetPremiumIndex";
         } else
         {
-throw new NotSupported(add(this.id, " fetchFundingRate() supports linear and inverse contracts only"));
+            throw new NotSupported ((string)add(this.id, " fetchFundingRate() supports linear and inverse contracts only")) ;
         }
-        var response = await this.callAsync(method, this.extend(request, parameters));
+        object response = await this.callAsync(method, this.extend(request, parameters));
         if (isTrue(getValue(market, "inverse")))
         {
             response = getValue(response, 0);
@@ -6334,7 +6354,7 @@ throw new NotSupported(add(this.id, " fetchFundingRate() supports linear and inv
         //         "time": "1621252344001"
         //     }
         //
-        return ((Dictionary<string, object>) (this.parseFundingRate(response, market)));
+        return this.parseFundingRate(response, market);
     }
 
     public async virtual Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -6352,22 +6372,22 @@ throw new NotSupported(add(this.id, " fetchFundingRate() supports linear and inv
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var request = new Dictionary<string, object>() {};
+        object request = new Dictionary<string, object>() {};
         object method = null;
-        var defaultType = this.safeString2(this.options, "fetchFundingRateHistory", "defaultType", "future");
-        var type = this.safeString(parameters, "type", defaultType);
+        object defaultType = this.safeString2(this.options, "fetchFundingRateHistory", "defaultType", "future");
+        object type = this.safeString(parameters, "type", defaultType);
         object market = null;
-        if (!isEqual(symbol, null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-                        symbol = (string)(getValue(market, "symbol"));
+            symbol = getValue(market, "symbol");
             ((Dictionary<string, object>)request)["symbol"] = getValue(market, "id");
         }
         object subType = null;
                 var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingRateHistory", market, parameters, "linear");
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
-                parameters = (Dictionary<string, object>)(this.omit(parameters, "type"));
+        parameters = this.omit(parameters, "type");
         if (isTrue(this.isLinear(type, subType)))
         {
             method = "fapiPublicGetFundingRate";
@@ -6375,26 +6395,26 @@ throw new NotSupported(add(this.id, " fetchFundingRate() supports linear and inv
         {
             method = "dapiPublicGetFundingRate";
         }
-        if (isEqual(method, null))
+        if (isTrue(isEqual(method, null)))
         {
-throw new NotSupported(add(add(add(this.id, " fetchFundingRateHistory() is not supported for "), type), " markets"));
+            throw new NotSupported ((string)add(add(add(this.id, " fetchFundingRateHistory() is not supported for "), type), " markets")) ;
         }
-        if (!isEqual(since, null))
+        if (isTrue(!isEqual(since, null)))
         {
             ((Dictionary<string, object>)request)["startTime"] = since;
         }
-        var until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
-        var endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
-                parameters = (Dictionary<string, object>)(this.omit(parameters, new List<object>() {"endTime", "till", "until"}));
-        if (!isEqual(endTime, null))
+        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
+        parameters = this.omit(parameters, new List<object>() {"endTime", "till", "until"});
+        if (isTrue(!isEqual(endTime, null)))
         {
             ((Dictionary<string, object>)request)["endTime"] = endTime;
         }
-        if (!isEqual(limit, null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((Dictionary<string, object>)request)["limit"] = limit;
         }
-        var response = await this.callAsync(method, this.extend(request, parameters));
+        object response = await this.callAsync(method, this.extend(request, parameters));
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -6402,11 +6422,11 @@ throw new NotSupported(add(add(add(this.id, " fetchFundingRateHistory() is not s
         //         "fundingTime": "1621267200000",
         //     }
         //
-        var rates = new List<object>() {};
-        for (var i = 0; isLessThan(i, getArrayLength(response)); i++)
+        object rates = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            var entry = getValue(response, i);
-            var timestamp = this.safeInteger(entry, "fundingTime");
+            object entry = getValue(response, i);
+            object timestamp = this.safeInteger(entry, "fundingTime");
             ((List<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", this.safeSymbol(this.safeString(entry, "symbol"), null, null, "swap") },
@@ -6415,7 +6435,7 @@ throw new NotSupported(add(add(add(this.id, " fetchFundingRateHistory() is not s
                 { "datetime", this.iso8601(timestamp) },
             });
         }
-        var sorted = this.sortBy(rates, "timestamp");
+        object sorted = this.sortBy(rates, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
@@ -6431,15 +6451,15 @@ throw new NotSupported(add(add(add(this.id, " fetchFundingRateHistory() is not s
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-                symbols = (List<object>)(this.marketSymbols(symbols));
+        symbols = this.marketSymbols(symbols);
         object method = null;
-        var defaultType = this.safeString2(this.options, "fetchFundingRates", "defaultType", "future");
-        var type = this.safeString(parameters, "type", defaultType);
+        object defaultType = this.safeString2(this.options, "fetchFundingRates", "defaultType", "future");
+        object type = this.safeString(parameters, "type", defaultType);
         object subType = null;
                 var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingRates", null, parameters, "linear");
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
-        var query = this.omit(parameters, "type");
+        object query = this.omit(parameters, "type");
         if (isTrue(this.isLinear(type, subType)))
         {
             method = "fapiPublicGetPremiumIndex";
@@ -6448,14 +6468,14 @@ throw new NotSupported(add(add(add(this.id, " fetchFundingRateHistory() is not s
             method = "dapiPublicGetPremiumIndex";
         } else
         {
-throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and inverse contracts only"));
+            throw new NotSupported ((string)add(this.id, " fetchFundingRates() supports linear and inverse contracts only")) ;
         }
-        var response = await this.callAsync(method, query);
-        var result = new List<object>() {};
-        for (var i = 0; isLessThan(i, getArrayLength(response)); i++)
+        object response = await this.callAsync(method, query);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            var entry = getValue(response, i);
-            var parsed = this.parseFundingRate(entry);
+            object entry = getValue(response, i);
+            object parsed = this.parseFundingRate(entry);
             ((List<object>)result).Add(parsed);
         }
         return this.filterByArray(result, "symbol", symbols);
@@ -6476,16 +6496,16 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
         //     "time": "1621252344001"
         //  }
         //
-        var timestamp = this.safeInteger(contract, "time");
-        var marketId = this.safeString(contract, "symbol");
-        var symbol = this.safeSymbol(marketId, market, null, "contract");
-        var markPrice = this.safeNumber(contract, "markPrice");
-        var indexPrice = this.safeNumber(contract, "indexPrice");
-        var interestRate = this.safeNumber(contract, "interestRate");
-        var estimatedSettlePrice = this.safeNumber(contract, "estimatedSettlePrice");
-        var fundingRate = this.safeNumber(contract, "lastFundingRate");
-        var fundingTime = this.safeInteger(contract, "nextFundingTime");
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        object timestamp = this.safeInteger(contract, "time");
+        object marketId = this.safeString(contract, "symbol");
+        object symbol = this.safeSymbol(marketId, market, null, "contract");
+        object markPrice = this.safeNumber(contract, "markPrice");
+        object indexPrice = this.safeNumber(contract, "indexPrice");
+        object interestRate = this.safeNumber(contract, "interestRate");
+        object estimatedSettlePrice = this.safeNumber(contract, "estimatedSettlePrice");
+        object fundingRate = this.safeNumber(contract, "lastFundingRate");
+        object fundingTime = this.safeInteger(contract, "nextFundingTime");
+        return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
             { "markPrice", markPrice },
@@ -6503,44 +6523,44 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-        }));
+        };
     }
 
     public virtual object parseAccountPositions(object account)
     {
-        var positions = this.safeValue(account, "positions");
-        var assets = this.safeValue(account, "assets", new List<object>() {});
-        var balances = new Dictionary<string, object>() {};
-        for (var i = 0; isLessThan(i, getArrayLength(assets)); i++)
+        object positions = this.safeValue(account, "positions");
+        object assets = this.safeValue(account, "assets", new List<object>() {});
+        object balances = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
-            var entry = getValue(assets, i);
-            var currencyId = this.safeString(entry, "asset");
-            var code = this.safeCurrencyCode(currencyId);
-            var crossWalletBalance = this.safeString(entry, "crossWalletBalance");
-            var crossUnPnl = this.safeString(entry, "crossUnPnl");
+            object entry = getValue(assets, i);
+            object currencyId = this.safeString(entry, "asset");
+            object code = this.safeCurrencyCode(currencyId);
+            object crossWalletBalance = this.safeString(entry, "crossWalletBalance");
+            object crossUnPnl = this.safeString(entry, "crossUnPnl");
             ((Dictionary<string, object>)balances)[(string)code] = new Dictionary<string, object>() {
                 { "crossMargin", Precise.stringAdd(crossWalletBalance, crossUnPnl) },
                 { "crossWalletBalance", crossWalletBalance },
             };
         }
-        var result = new List<object>() {};
-        for (var i = 0; isLessThan(i, getArrayLength(positions)); i++)
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
-            var position = getValue(positions, i);
-            var marketId = this.safeString(position, "symbol");
-            var market = this.safeMarket(marketId, null, null, "contract");
-            var code = isTrue(getValue(market, "linear")) ? getValue(market, "quote") : getValue(market, "base");
+            object position = getValue(positions, i);
+            object marketId = this.safeString(position, "symbol");
+            object market = this.safeMarket(marketId, null, null, "contract");
+            object code = ((bool) isTrue(getValue(market, "linear"))) ? getValue(market, "quote") : getValue(market, "base");
             // sometimes not all the codes are correctly returned...
-            if (((Dictionary<string,object>)balances).ContainsKey((string)code))
+            if (isTrue(((Dictionary<string,object>)balances).ContainsKey(toStringOrNull(code))))
             {
-                var parsed = this.parseAccountPosition(this.extend(position, new Dictionary<string, object>() {
+                object parsed = this.parseAccountPosition(this.extend(position, new Dictionary<string, object>() {
                     { "crossMargin", getValue(getValue(balances, code), "crossMargin") },
                     { "crossWalletBalance", getValue(getValue(balances, code), "crossWalletBalance") },
                 }), market);
                 ((List<object>)result).Add(parsed);
             }
         }
-        return ((List<object>) (result));
+        return result;
     }
 
     public virtual object parseAccountPosition(object position, object market = null)
@@ -6585,59 +6605,59 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
         //       "crossWalletBalance": "34",
         //     }
         //
-        var marketId = this.safeString(position, "symbol");
+        object marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
-        var symbol = this.safeString(market, "symbol");
-        var leverageString = this.safeString(position, "leverage");
-        var leverage = parseInt(leverageString);
-        var initialMarginString = this.safeString(position, "initialMargin");
-        var initialMargin = this.parseNumber(initialMarginString);
-        var initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
-        var rational = isEqual((mod(1000, leverage)), 0);
+        object symbol = this.safeString(market, "symbol");
+        object leverageString = this.safeString(position, "leverage");
+        object leverage = parseInt(leverageString);
+        object initialMarginString = this.safeString(position, "initialMargin");
+        object initialMargin = this.parseNumber(initialMarginString);
+        object initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
+        object rational = isEqual((mod(1000, leverage)), 0);
         if (!isTrue(rational))
         {
             initialMarginPercentageString = Precise.stringDiv(Precise.stringAdd(initialMarginPercentageString, "1e-8"), "1", 8);
         }
         // as oppose to notionalValue
-        var usdm = (((Dictionary<string,object>)position).ContainsKey((string)"notional"));
-        var maintenanceMarginString = this.safeString(position, "maintMargin");
-        var maintenanceMargin = this.parseNumber(maintenanceMarginString);
-        var entryPriceString = this.safeString(position, "entryPrice");
-        var entryPrice = this.parseNumber(entryPriceString);
-        var notionalString = this.safeString2(position, "notional", "notionalValue");
-        var notionalStringAbs = Precise.stringAbs(notionalString);
-        var notional = this.parseNumber(notionalStringAbs);
-        var contractsString = this.safeString(position, "positionAmt");
-        var contractsStringAbs = Precise.stringAbs(contractsString);
-        if (isEqual(contractsString, null))
+        object usdm = (((Dictionary<string,object>)position).ContainsKey(toStringOrNull("notional")));
+        object maintenanceMarginString = this.safeString(position, "maintMargin");
+        object maintenanceMargin = this.parseNumber(maintenanceMarginString);
+        object entryPriceString = this.safeString(position, "entryPrice");
+        object entryPrice = this.parseNumber(entryPriceString);
+        object notionalString = this.safeString2(position, "notional", "notionalValue");
+        object notionalStringAbs = Precise.stringAbs(notionalString);
+        object notional = this.parseNumber(notionalStringAbs);
+        object contractsString = this.safeString(position, "positionAmt");
+        object contractsStringAbs = Precise.stringAbs(contractsString);
+        if (isTrue(isEqual(contractsString, null)))
         {
-            var entryNotional = Precise.stringMul(Precise.stringMul(leverageString, initialMarginString), entryPriceString);
-            var contractSize = this.safeString(market, "contractSize");
-            contractsString = Precise.stringDiv(entryNotional, contractSize);
+            object entryNotional = Precise.stringMul(Precise.stringMul(leverageString, initialMarginString), entryPriceString);
+            object contractSizeNew = this.safeString(market, "contractSize");
+            contractsString = Precise.stringDiv(entryNotional, contractSizeNew);
             contractsStringAbs = Precise.stringDiv(Precise.stringAdd(contractsString, "0.5"), "1", 0);
         }
-        var contracts = this.parseNumber(contractsStringAbs);
-        var leverageBrackets = this.safeValue(this.options, "leverageBrackets", new Dictionary<string, object>() {});
-        var leverageBracket = this.safeValue(leverageBrackets, symbol, new List<object>() {});
+        object contracts = this.parseNumber(contractsStringAbs);
+        object leverageBrackets = this.safeValue(this.options, "leverageBrackets", new Dictionary<string, object>() {});
+        object leverageBracket = this.safeValue(leverageBrackets, symbol, new List<object>() {});
         object maintenanceMarginPercentageString = null;
-        for (var i = 0; isLessThan(i, getArrayLength(leverageBracket)); i++)
+        for (object i = 0; isLessThan(i, getArrayLength(leverageBracket)); postFixIncrement(ref i))
         {
-            var bracket = getValue(leverageBracket, i);
+            object bracket = getValue(leverageBracket, i);
             if (isTrue(Precise.stringLt(notionalStringAbs, getValue(bracket, 0))))
             {
                 break;
             }
             maintenanceMarginPercentageString = getValue(bracket, 1);
         }
-        var maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
-        var unrealizedPnlString = this.safeString(position, "unrealizedProfit");
-        var unrealizedPnl = this.parseNumber(unrealizedPnlString);
-        var timestamp = this.safeInteger(position, "updateTime");
-        if (isEqual(timestamp, 0))
+        object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
+        object unrealizedPnlString = this.safeString(position, "unrealizedProfit");
+        object unrealizedPnl = this.parseNumber(unrealizedPnlString);
+        object timestamp = this.safeInteger(position, "updateTime");
+        if (isTrue(isEqual(timestamp, 0)))
         {
             timestamp = null;
         }
-        var isolated = this.safeValue(position, "isolated");
+        object isolated = this.safeValue(position, "isolated");
         object marginMode = null;
         object collateralString = null;
         object walletBalance = null;
@@ -6652,20 +6672,20 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
             walletBalance = this.safeString(position, "crossWalletBalance");
             collateralString = this.safeString(position, "crossMargin");
         }
-        var collateral = this.parseNumber(collateralString);
+        object collateral = this.parseNumber(collateralString);
         object marginRatio = null;
         object side = null;
         object percentage = null;
         object liquidationPriceStringRaw = null;
         object liquidationPrice = null;
-        var contractSize = this.safeValue(market, "contractSize");
-        var contractSizeString = this.numberToString(contractSize);
+        object contractSize = this.safeValue(market, "contractSize");
+        object contractSizeString = this.numberToString(contractSize);
         if (isTrue(Precise.stringEquals(notionalString, "0")))
         {
             entryPrice = null;
         } else
         {
-            side = isTrue(Precise.stringLt(notionalString, "0")) ? "short" : "long";
+            side = ((bool) isTrue(Precise.stringLt(notionalString, "0"))) ? "short" : "long";
             marginRatio = this.parseNumber(Precise.stringDiv(Precise.stringAdd(Precise.stringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100"));
             if (isTrue(usdm))
@@ -6678,8 +6698,8 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
                 // where ± is negative for long and positive for short
                 // TODO: calculate liquidation price for coinm contracts
                 object onePlusMaintenanceMarginPercentageString = null;
-                var entryPriceSignString = entryPriceString;
-                if (isEqual(side, "short"))
+                object entryPriceSignString = entryPriceString;
+                if (isTrue(isEqual(side, "short")))
                 {
                     onePlusMaintenanceMarginPercentageString = Precise.stringAdd("1", maintenanceMarginPercentageString);
                 } else
@@ -6687,8 +6707,8 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
                     onePlusMaintenanceMarginPercentageString = Precise.stringAdd("-1", maintenanceMarginPercentageString);
                     entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
                 }
-                var leftSide = Precise.stringDiv(walletBalance, Precise.stringMul(contractsStringAbs, onePlusMaintenanceMarginPercentageString));
-                var rightSide = Precise.stringDiv(entryPriceSignString, onePlusMaintenanceMarginPercentageString);
+                object leftSide = Precise.stringDiv(walletBalance, Precise.stringMul(contractsStringAbs, onePlusMaintenanceMarginPercentageString));
+                object rightSide = Precise.stringDiv(entryPriceSignString, onePlusMaintenanceMarginPercentageString);
                 liquidationPriceStringRaw = Precise.stringAdd(leftSide, rightSide);
             } else
             {
@@ -6697,8 +6717,8 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
                 // liquidationPrice = (contracts * contractSize(±1 - mmp)) / (±1/entryPrice * contracts * contractSize - walletBalance)
                 //
                 object onePlusMaintenanceMarginPercentageString = null;
-                var entryPriceSignString = entryPriceString;
-                if (isEqual(side, "short"))
+                object entryPriceSignString = entryPriceString;
+                if (isTrue(isEqual(side, "short")))
                 {
                     onePlusMaintenanceMarginPercentageString = Precise.stringSub("1", maintenanceMarginPercentageString);
                 } else
@@ -6706,20 +6726,20 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
                     onePlusMaintenanceMarginPercentageString = Precise.stringSub("-1", maintenanceMarginPercentageString);
                     entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
                 }
-                var size = Precise.stringMul(contractsStringAbs, contractSizeString);
-                var leftSide = Precise.stringMul(size, onePlusMaintenanceMarginPercentageString);
-                var rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
+                object size = Precise.stringMul(contractsStringAbs, contractSizeString);
+                object leftSide = Precise.stringMul(size, onePlusMaintenanceMarginPercentageString);
+                object rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            var pricePrecision = getValue(getValue(market, "precision"), "price");
-            var pricePrecisionPlusOne = add(pricePrecision, 1);
-            var pricePrecisionPlusOneString = ((object)pricePrecisionPlusOne).ToString();
+            object pricePrecision = getValue(getValue(market, "precision"), "price");
+            object pricePrecisionPlusOne = add(pricePrecision, 1);
+            object pricePrecisionPlusOneString = ((object)pricePrecisionPlusOne).ToString();
             // round half up
             var rounder = new Precise(add("5e-", pricePrecisionPlusOneString));
-            var rounderString = ((object)rounder).ToString();
-            var liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
-            var truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
-            if (isEqual(getValue(truncatedLiquidationPrice, 0), "-"))
+            object rounderString = ((object)rounder).ToString();
+            object liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
+            object truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
+            if (isTrue(isEqual(getValue(truncatedLiquidationPrice, 0), "-")))
             {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
@@ -6727,9 +6747,9 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
             }
             liquidationPrice = this.parseNumber(truncatedLiquidationPrice);
         }
-        var positionSide = this.safeString(position, "positionSide");
-        var hedged = !isEqual(positionSide, "BOTH");
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        object positionSide = this.safeString(position, "positionSide");
+        object hedged = !isEqual(positionSide, "BOTH");
+        return new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", symbol },
@@ -6753,7 +6773,7 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
             { "side", side },
             { "hedged", hedged },
             { "percentage", percentage },
-        }));
+        };
     }
 
     public virtual object parsePositionRisk(object position, object market = null)
@@ -6796,34 +6816,34 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
         //       "isolatedWallet": "0.00268058"
         //     }
         //
-        var marketId = this.safeString(position, "symbol");
+        object marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
-        var symbol = this.safeString(market, "symbol");
-        var leverageBrackets = this.safeValue(this.options, "leverageBrackets", new Dictionary<string, object>() {});
-        var leverageBracket = this.safeValue(leverageBrackets, symbol, new List<object>() {});
-        var notionalString = this.safeString2(position, "notional", "notionalValue");
-        var notionalStringAbs = Precise.stringAbs(notionalString);
+        object symbol = this.safeString(market, "symbol");
+        object leverageBrackets = this.safeValue(this.options, "leverageBrackets", new Dictionary<string, object>() {});
+        object leverageBracket = this.safeValue(leverageBrackets, symbol, new List<object>() {});
+        object notionalString = this.safeString2(position, "notional", "notionalValue");
+        object notionalStringAbs = Precise.stringAbs(notionalString);
         object maintenanceMarginPercentageString = null;
-        for (var i = 0; isLessThan(i, getArrayLength(leverageBracket)); i++)
+        for (object i = 0; isLessThan(i, getArrayLength(leverageBracket)); postFixIncrement(ref i))
         {
-            var bracket = getValue(leverageBracket, i);
+            object bracket = getValue(leverageBracket, i);
             if (isTrue(Precise.stringLt(notionalStringAbs, getValue(bracket, 0))))
             {
                 break;
             }
             maintenanceMarginPercentageString = getValue(bracket, 1);
         }
-        var notional = this.parseNumber(notionalStringAbs);
-        var contractsAbs = Precise.stringAbs(this.safeString(position, "positionAmt"));
-        var contracts = this.parseNumber(contractsAbs);
-        var unrealizedPnlString = this.safeString(position, "unRealizedProfit");
-        var unrealizedPnl = this.parseNumber(unrealizedPnlString);
-        var leverageString = this.safeString(position, "leverage");
-        var leverage = parseInt(leverageString);
-        var liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
-        var liquidationPrice = this.parseNumber(liquidationPriceString);
+        object notional = this.parseNumber(notionalStringAbs);
+        object contractsAbs = Precise.stringAbs(this.safeString(position, "positionAmt"));
+        object contracts = this.parseNumber(contractsAbs);
+        object unrealizedPnlString = this.safeString(position, "unRealizedProfit");
+        object unrealizedPnl = this.parseNumber(unrealizedPnlString);
+        object leverageString = this.safeString(position, "leverage");
+        object leverage = parseInt(leverageString);
+        object liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
+        object liquidationPrice = this.parseNumber(liquidationPriceString);
         object collateralString = null;
-        var marginMode = this.safeString(position, "marginType");
+        object marginMode = this.safeString(position, "marginType");
         object side = null;
         if (isTrue(Precise.stringGt(notionalString, "0")))
         {
@@ -6832,22 +6852,22 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
         {
             side = "short";
         }
-        var entryPriceString = this.safeString(position, "entryPrice");
-        var entryPrice = this.parseNumber(entryPriceString);
-        var contractSize = this.safeValue(market, "contractSize");
-        var contractSizeString = this.numberToString(contractSize);
+        object entryPriceString = this.safeString(position, "entryPrice");
+        object entryPrice = this.parseNumber(entryPriceString);
+        object contractSize = this.safeValue(market, "contractSize");
+        object contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
-        var linear = (((Dictionary<string,object>)position).ContainsKey((string)"notional"));
-        if (isEqual(marginMode, "cross"))
+        object linear = (((Dictionary<string,object>)position).ContainsKey(toStringOrNull("notional")));
+        if (isTrue(isEqual(marginMode, "cross")))
         {
             // calculate collateral
-            var precision = this.safeValue(market, "precision", new Dictionary<string, object>() {});
+            object precision = this.safeValue(market, "precision", new Dictionary<string, object>() {});
             if (isTrue(linear))
             {
                 // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 object onePlusMaintenanceMarginPercentageString = null;
-                var entryPriceSignString = entryPriceString;
-                if (isEqual(side, "short"))
+                object entryPriceSignString = entryPriceString;
+                if (isTrue(isEqual(side, "short")))
                 {
                     onePlusMaintenanceMarginPercentageString = Precise.stringAdd("1", maintenanceMarginPercentageString);
                     entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
@@ -6855,11 +6875,11 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
                 {
                     onePlusMaintenanceMarginPercentageString = Precise.stringAdd("-1", maintenanceMarginPercentageString);
                 }
-                var inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
-                var leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                var pricePrecision = this.safeInteger(precision, "price");
-                var quotePrecision = this.safeInteger(precision, "quote", pricePrecision);
-                if (!isEqual(quotePrecision, null))
+                object inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
+                object leftSide = Precise.stringAdd(inner, entryPriceSignString);
+                object pricePrecision = this.safeInteger(precision, "price");
+                object quotePrecision = this.safeInteger(precision, "quote", pricePrecision);
+                if (isTrue(!isEqual(quotePrecision, null)))
                 {
                     collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
                 }
@@ -6867,8 +6887,8 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
             {
                 // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                 object onePlusMaintenanceMarginPercentageString = null;
-                var entryPriceSignString = entryPriceString;
-                if (isEqual(side, "short"))
+                object entryPriceSignString = entryPriceString;
+                if (isTrue(isEqual(side, "short")))
                 {
                     onePlusMaintenanceMarginPercentageString = Precise.stringSub("1", maintenanceMarginPercentageString);
                 } else
@@ -6876,10 +6896,10 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
                     onePlusMaintenanceMarginPercentageString = Precise.stringSub("-1", maintenanceMarginPercentageString);
                     entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
                 }
-                var leftSide = Precise.stringMul(contractsAbs, contractSizeString);
-                var rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                var basePrecision = this.safeInteger(precision, "base");
-                if (!isEqual(basePrecision, null))
+                object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
+                object rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
+                object basePrecision = this.safeInteger(precision, "base");
+                if (isTrue(!isEqual(basePrecision, null)))
                 {
                     collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
                 }
@@ -6888,25 +6908,25 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
         {
             collateralString = this.safeString(position, "isolatedMargin");
         }
-        collateralString = (isEqual(collateralString, null)) ? "0" : collateralString;
-        var collateral = this.parseNumber(collateralString);
-        var markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
-        var timestamp = this.safeInteger(position, "updateTime");
-        if (isEqual(timestamp, 0))
+        collateralString = ((bool) isTrue((isEqual(collateralString, null)))) ? "0" : collateralString;
+        object collateral = this.parseNumber(collateralString);
+        object markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
+        object timestamp = this.safeInteger(position, "updateTime");
+        if (isTrue(isEqual(timestamp, 0)))
         {
             timestamp = null;
         }
-        var maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
-        var maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
-        var maintenanceMargin = this.parseNumber(maintenanceMarginString);
-        var initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
-        var rational = isEqual((mod(1000, leverage)), 0);
+        object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
+        object maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
+        object maintenanceMargin = this.parseNumber(maintenanceMarginString);
+        object initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
+        object rational = isEqual((mod(1000, leverage)), 0);
         if (!isTrue(rational))
         {
             initialMarginPercentageString = Precise.stringAdd(initialMarginPercentageString, "1e-8");
         }
-        var initialMarginString = Precise.stringDiv(Precise.stringMul(notionalStringAbs, initialMarginPercentageString), "1", 8);
-        var initialMargin = this.parseNumber(initialMarginString);
+        object initialMarginString = Precise.stringDiv(Precise.stringMul(notionalStringAbs, initialMarginPercentageString), "1", 8);
+        object initialMargin = this.parseNumber(initialMarginString);
         object marginRatio = null;
         object percentage = null;
         if (!isTrue(Precise.stringEquals(collateralString, "0")))
@@ -6914,9 +6934,9 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
             marginRatio = this.parseNumber(Precise.stringDiv(Precise.stringAdd(Precise.stringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100"));
         }
-        var positionSide = this.safeString(position, "positionSide");
-        var hedged = !isEqual(positionSide, "BOTH");
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        object positionSide = this.safeString(position, "positionSide");
+        object hedged = !isEqual(positionSide, "BOTH");
+        return new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", symbol },
@@ -6941,22 +6961,23 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
             { "side", side },
             { "hedged", hedged },
             { "percentage", percentage },
-        }));
+        };
     }
 
-    public async virtual Task<object> loadLeverageBrackets(object reload = false, object parameters = null)
+    public async virtual Task<object> loadLeverageBrackets(object reload = null, object parameters = null)
     {
+        reload ??= false;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        var leverageBrackets = this.safeValue(this.options, "leverageBrackets");
-        if ((isEqual(leverageBrackets, null)) || (reload))
+        object leverageBrackets = this.safeValue(this.options, "leverageBrackets");
+        if (isTrue(isTrue((isEqual(leverageBrackets, null))) || isTrue((reload))))
         {
             object method = null;
-            var defaultType = this.safeString(this.options, "defaultType", "future");
-            var type = this.safeString(parameters, "type", defaultType);
-            var query = this.omit(parameters, "type");
+            object defaultType = this.safeString(this.options, "defaultType", "future");
+            object type = this.safeString(parameters, "type", defaultType);
+            object query = this.omit(parameters, "type");
             object subType = null;
                         var subTypeparametersVariable = this.handleSubTypeAndParams("loadLeverageBrackets", null, parameters, "linear");
             subType = ((List<object>)subTypeparametersVariable)[0];
@@ -6969,22 +6990,22 @@ throw new NotSupported(add(this.id, " fetchFundingRates() supports linear and in
                 method = "dapiPrivateV2GetLeverageBracket";
             } else
             {
-throw new NotSupported(add(this.id, " loadLeverageBrackets() supports linear and inverse contracts only"));
+                throw new NotSupported ((string)add(this.id, " loadLeverageBrackets() supports linear and inverse contracts only")) ;
             }
-            var response = await this.callAsync(method, query);
+            object response = await this.callAsync(method, query);
             ((Dictionary<string, object>)this.options)["leverageBrackets"] = new Dictionary<string, object>() {};
-            for (var i = 0; isLessThan(i, getArrayLength(response)); i++)
+            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
-                var entry = getValue(response, i);
-                var marketId = this.safeString(entry, "symbol");
-                var symbol = this.safeSymbol(marketId, null, null, "contract");
-                var brackets = this.safeValue(entry, "brackets", new List<object>() {});
-                var result = new List<object>() {};
-                for (var j = 0; isLessThan(j, getArrayLength(brackets)); j++)
+                object entry = getValue(response, i);
+                object marketId = this.safeString(entry, "symbol");
+                object symbol = this.safeSymbol(marketId, null, null, "contract");
+                object brackets = this.safeValue(entry, "brackets", new List<object>() {});
+                object result = new List<object>() {};
+                for (object j = 0; isLessThan(j, getArrayLength(brackets)); postFixIncrement(ref j))
                 {
-                    var bracket = getValue(brackets, j);
-                    var floorValue = this.safeString2(bracket, "notionalFloor", "qtyFloor");
-                    var maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
+                    object bracket = getValue(brackets, j);
+                    object floorValue = this.safeString2(bracket, "notionalFloor", "qtyFloor");
+                    object maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
                     ((List<object>)result).Add(new List<object>() {floorValue, maintenanceMarginPercentage});
                 }
                 ((Dictionary<string, object>)getValue(this.options, "leverageBrackets"))[(string)symbol] = result;
@@ -7021,9 +7042,9 @@ throw new NotSupported(add(this.id, " loadLeverageBrackets() supports linear and
             method = "dapiPrivateV2GetLeverageBracket";
         } else
         {
-throw new NotSupported(add(this.id, " fetchLeverageTiers() supports linear and inverse contracts only"));
+            throw new NotSupported ((string)add(this.id, " fetchLeverageTiers() supports linear and inverse contracts only")) ;
         }
-        var response = await this.callAsync(method, query);
+        object response = await this.callAsync(method, query);
         //
         // usdm
         //
@@ -7062,7 +7083,7 @@ throw new NotSupported(add(this.id, " fetchLeverageTiers() supports linear and i
         //         }
         //     ]
         //
-        return ((Dictionary<string, object>) (this.parseLeverageTiers(response, symbols, "symbol")));
+        return this.parseLeverageTiers(response, symbols, "symbol");
     }
 
     public override object parseMarketLeverageTiers(object info, object market = null)
@@ -7089,13 +7110,13 @@ throw new NotSupported(add(this.id, " fetchLeverageTiers() supports linear and i
         //        ]
         //    }
         //
-        var marketId = this.safeString(info, "symbol");
+        object marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
-        var brackets = this.safeValue(info, "brackets", new List<object>() {});
-        var tiers = new List<object>() {};
-        for (var j = 0; isLessThan(j, getArrayLength(brackets)); j++)
+        object brackets = this.safeValue(info, "brackets", new List<object>() {});
+        object tiers = new List<object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(brackets)); postFixIncrement(ref j))
         {
-            var bracket = getValue(brackets, j);
+            object bracket = getValue(brackets, j);
             ((List<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeNumber(bracket, "bracket") },
                 { "currency", getValue(market, "quote") },
@@ -7106,7 +7127,7 @@ throw new NotSupported(add(this.id, " fetchLeverageTiers() supports linear and i
                 { "info", bracket },
             });
         }
-        return ((List<object>) (tiers));
+        return tiers;
     }
 
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
@@ -7120,16 +7141,16 @@ throw new NotSupported(add(this.id, " fetchLeverageTiers() supports linear and i
         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        var defaultMethod = this.safeString(this.options, "fetchPositions", "positionRisk");
-        if (isEqual(defaultMethod, "positionRisk"))
+        object defaultMethod = this.safeString(this.options, "fetchPositions", "positionRisk");
+        if (isTrue(isEqual(defaultMethod, "positionRisk")))
         {
             return await this.fetchPositionsRisk(symbols, parameters);
-        } else if (isEqual(defaultMethod, "account"))
+        } else if (isTrue(isEqual(defaultMethod, "account")))
         {
             return await this.fetchAccountPositions(symbols, parameters);
         } else
         {
-throw new NotSupported(add(add(add(this.id, ".options[\"fetchPositions\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\" and \"positionRisk\""));
+            throw new NotSupported ((string)add(add(add(this.id, ".options[\"fetchPositions\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
         }
     }
 
@@ -7144,19 +7165,19 @@ throw new NotSupported(add(add(add(this.id, ".options[\"fetchPositions\"] = \"")
         * @returns {object} data on account positions
         */
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(symbols, null))
+        if (isTrue(!isEqual(symbols, null)))
         {
             if (!isTrue((symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-throw new ArgumentsRequired(add(this.id, " fetchPositions() requires an array argument for symbols"));
+                throw new ArgumentsRequired ((string)add(this.id, " fetchPositions() requires an array argument for symbols")) ;
             }
         }
         await this.loadMarkets();
         await this.loadLeverageBrackets(false, parameters);
         object method = null;
-        var defaultType = this.safeString(this.options, "defaultType", "future");
-        var type = this.safeString(parameters, "type", defaultType);
-        var query = this.omit(parameters, "type");
+        object defaultType = this.safeString(this.options, "defaultType", "future");
+        object type = this.safeString(parameters, "type", defaultType);
+        object query = this.omit(parameters, "type");
         object subType = null;
                 var subTypequeryVariable = this.handleSubTypeAndParams("fetchAccountPositions", null, parameters, "linear");
         subType = ((List<object>)subTypequeryVariable)[0];
@@ -7169,11 +7190,11 @@ throw new ArgumentsRequired(add(this.id, " fetchPositions() requires an array ar
             method = "dapiPrivateGetAccount";
         } else
         {
-throw new NotSupported(add(this.id, " fetchPositions() supports linear and inverse contracts only"));
+            throw new NotSupported ((string)add(this.id, " fetchPositions() supports linear and inverse contracts only")) ;
         }
-        var account = await this.callAsync(method, query);
-        var result = this.parseAccountPositions(account);
-                symbols = (List<object>)(this.marketSymbols(symbols));
+        object account = await this.callAsync(method, query);
+        object result = this.parseAccountPositions(account);
+        symbols = this.marketSymbols(symbols);
         return this.filterByArray(result, "symbol", symbols, false);
     }
 
@@ -7188,25 +7209,25 @@ throw new NotSupported(add(this.id, " fetchPositions() supports linear and inver
         * @returns {object} data on the positions risk
         */
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(symbols, null))
+        if (isTrue(!isEqual(symbols, null)))
         {
             if (!isTrue((symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-throw new ArgumentsRequired(add(this.id, " fetchPositionsRisk() requires an array argument for symbols"));
+                throw new ArgumentsRequired ((string)add(this.id, " fetchPositionsRisk() requires an array argument for symbols")) ;
             }
         }
         await this.loadMarkets();
         await this.loadLeverageBrackets(false, parameters);
-        var request = new Dictionary<string, object>() {};
+        object request = new Dictionary<string, object>() {};
         object method = null;
-        var defaultType = "future";
+        object defaultType = "future";
         defaultType = this.safeString(this.options, "defaultType", defaultType);
-        var type = this.safeString(parameters, "type", defaultType);
+        object type = this.safeString(parameters, "type", defaultType);
         object subType = null;
                 var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsRisk", null, parameters, "linear");
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
-                parameters = (Dictionary<string, object>)(this.omit(parameters, "type"));
+        parameters = this.omit(parameters, "type");
         if (isTrue(this.isLinear(type, subType)))
         {
             method = "fapiPrivateGetPositionRisk";
@@ -7215,17 +7236,17 @@ throw new ArgumentsRequired(add(this.id, " fetchPositionsRisk() requires an arra
             method = "dapiPrivateGetPositionRisk";
         } else
         {
-throw new NotSupported(add(this.id, " fetchPositionsRisk() supports linear and inverse contracts only"));
+            throw new NotSupported ((string)add(this.id, " fetchPositionsRisk() supports linear and inverse contracts only")) ;
         }
-        var response = await this.callAsync(method, this.extend(request, parameters));
-        var result = new List<object>() {};
-        for (var i = 0; isLessThan(i, getArrayLength(response)); i++)
+        object response = await this.callAsync(method, this.extend(request, parameters));
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            var parsed = this.parsePositionRisk(getValue(response, i));
+            object parsed = this.parsePositionRisk(getValue(response, i));
             ((List<object>)result).Add(parsed);
         }
-                symbols = (List<object>)(this.marketSymbols(symbols));
-        return ((Task) (this.filterByArray(result, "symbol", symbols, false)));
+        symbols = this.marketSymbols(symbols);
+        return this.filterByArray(result, "symbol", symbols, false);
     }
 
     public async virtual Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -7244,33 +7265,33 @@ throw new NotSupported(add(this.id, " fetchPositionsRisk() supports linear and i
         await this.loadMarkets();
         object market = null;
         object method = null;
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "incomeType", "FUNDING_FEE" },
         };
-        if (!isEqual(symbol, null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             ((Dictionary<string, object>)request)["symbol"] = getValue(market, "id");
             if (!isTrue(getValue(market, "swap")))
             {
-throw new NotSupported(add(this.id, " fetchFundingHistory() supports swap contracts only"));
+                throw new NotSupported ((string)add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
             }
         }
         object subType = null;
                 var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, "linear");
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
-        if (!isEqual(since, null))
+        if (isTrue(!isEqual(since, null)))
         {
             ((Dictionary<string, object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((Dictionary<string, object>)request)["limit"] = limit;
         }
-        var defaultType = this.safeString2(this.options, "fetchFundingHistory", "defaultType", "future");
-        var type = this.safeString(parameters, "type", defaultType);
-                parameters = (Dictionary<string, object>)(this.omit(parameters, "type"));
+        object defaultType = this.safeString2(this.options, "fetchFundingHistory", "defaultType", "future");
+        object type = this.safeString(parameters, "type", defaultType);
+        parameters = this.omit(parameters, "type");
         if (isTrue(this.isLinear(type, subType)))
         {
             method = "fapiPrivateGetIncome";
@@ -7279,13 +7300,13 @@ throw new NotSupported(add(this.id, " fetchFundingHistory() supports swap contra
             method = "dapiPrivateGetIncome";
         } else
         {
-throw new NotSupported(add(this.id, " fetchFundingHistory() supports linear and inverse contracts only"));
+            throw new NotSupported ((string)add(this.id, " fetchFundingHistory() supports linear and inverse contracts only")) ;
         }
-        var response = await this.callAsync(method, this.extend(request, parameters));
+        object response = await this.callAsync(method, this.extend(request, parameters));
         return this.parseIncomes(response, market, since, limit);
     }
 
-    public async virtual Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
         /**
         * @method
@@ -7297,18 +7318,18 @@ throw new NotSupported(add(this.id, " fetchFundingHistory() supports linear and 
         * @returns {object} response from the exchange
         */
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if (isTrue(isEqual(symbol, null)))
         {
-throw new ArgumentsRequired(add(this.id, " setLeverage() requires a symbol argument"));
+            throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a symbol argument")) ;
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, 125)))
+        if (isTrue(isTrue((isLessThan(leverage, 1))) || isTrue((isGreaterThan(leverage, 125)))))
         {
-throw new BadRequest(add(this.id, " leverage should be between 1 and 125"));
+            throw new BadRequest ((string)add(this.id, " leverage should be between 1 and 125")) ;
         }
         await this.loadMarkets();
-        var market = this.market(symbol);
+        object market = this.market(symbol);
         object method = null;
         if (isTrue(getValue(market, "linear")))
         {
@@ -7318,9 +7339,9 @@ throw new BadRequest(add(this.id, " leverage should be between 1 and 125"));
             method = "dapiPrivatePostLeverage";
         } else
         {
-throw new NotSupported(add(this.id, " setLeverage() supports linear and inverse contracts only"));
+            throw new NotSupported ((string)add(this.id, " setLeverage() supports linear and inverse contracts only")) ;
         }
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "leverage", leverage },
         };
@@ -7339,9 +7360,9 @@ throw new NotSupported(add(this.id, " setLeverage() supports linear and inverse 
         * @returns {object} response from the exchange
         */
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if (isTrue(isEqual(symbol, null)))
         {
-throw new ArgumentsRequired(add(this.id, " setMarginMode() requires a symbol argument"));
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
         }
         //
         // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
@@ -7351,16 +7372,16 @@ throw new ArgumentsRequired(add(this.id, " setMarginMode() requires a symbol arg
         // { "code": 200, "msg": "success" }
         //
         marginMode = ((string)marginMode).ToUpper();
-        if (isEqual(marginMode, "CROSS"))
+        if (isTrue(isEqual(marginMode, "CROSS")))
         {
             marginMode = "CROSSED";
         }
-        if ((!isEqual(marginMode, "ISOLATED")) && (!isEqual(marginMode, "CROSSED")))
+        if (isTrue(isTrue((!isEqual(marginMode, "ISOLATED"))) && isTrue((!isEqual(marginMode, "CROSSED")))))
         {
-throw new BadRequest(add(this.id, " marginMode must be either isolated or cross"));
+            throw new BadRequest ((string)add(this.id, " marginMode must be either isolated or cross")) ;
         }
         await this.loadMarkets();
-        var market = this.market(symbol);
+        object market = this.market(symbol);
         object method = null;
         if (isTrue(getValue(market, "linear")))
         {
@@ -7370,9 +7391,9 @@ throw new BadRequest(add(this.id, " marginMode must be either isolated or cross"
             method = "dapiPrivatePostMarginType";
         } else
         {
-throw new NotSupported(add(this.id, " setMarginMode() supports linear and inverse contracts only"));
+            throw new NotSupported ((string)add(this.id, " setMarginMode() supports linear and inverse contracts only")) ;
         }
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "marginType", marginMode },
         };
@@ -7387,12 +7408,12 @@ throw new NotSupported(add(this.id, " setMarginMode() supports linear and invers
             // https://github.com/ccxt/ccxt/pull/11624
             // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
             // binanceusdm
-            if (e is MarginModeAlreadySet)
+            if (isTrue(e is MarginModeAlreadySet))
             {
-                var throwMarginModeAlreadySet = this.safeValue(this.options, "throwMarginModeAlreadySet", false);
+                object throwMarginModeAlreadySet = this.safeValue(this.options, "throwMarginModeAlreadySet", false);
                 if (isTrue(throwMarginModeAlreadySet))
                 {
-throw e;
+                    throw e;
                 } else
                 {
                     response = new Dictionary<string, object>() {
@@ -7417,9 +7438,9 @@ throw e;
         * @returns {object} response from the exchange
         */
         parameters ??= new Dictionary<string, object>();
-        var defaultType = this.safeString(this.options, "defaultType", "future");
-        var type = this.safeString(parameters, "type", defaultType);
-                parameters = (Dictionary<string, object>)(this.omit(parameters, new List<object>() {"type"}));
+        object defaultType = this.safeString(this.options, "defaultType", "future");
+        object type = this.safeString(parameters, "type", defaultType);
+        parameters = this.omit(parameters, new List<object>() {"type"});
         object dualSidePosition = null;
         if (isTrue(hedged))
         {
@@ -7428,7 +7449,7 @@ throw e;
         {
             dualSidePosition = "false";
         }
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "dualSidePosition", dualSidePosition },
         };
         object method = null;
@@ -7464,30 +7485,30 @@ throw e;
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var market = (isEqual(symbol, null)) ? null : this.market(symbol);
+        object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object type = null;
                 var typeparametersVariable = this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
-        if (!isEqual(type, "option"))
+        if (isTrue(!isEqual(type, "option")))
         {
-throw new NotSupported(add(this.id, " fetchSettlementHistory() supports option markets only"));
+            throw new NotSupported ((string)add(this.id, " fetchSettlementHistory() supports option markets only")) ;
         }
-        var request = new Dictionary<string, object>() {};
-        if (!isEqual(symbol, null))
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbol, null)))
         {
-                        symbol = (string)(getValue(market, "symbol"));
+            symbol = getValue(market, "symbol");
             ((Dictionary<string, object>)request)["underlying"] = add(getValue(market, "baseId"), getValue(market, "quoteId"));
         }
-        if (!isEqual(since, null))
+        if (isTrue(!isEqual(since, null)))
         {
             ((Dictionary<string, object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((Dictionary<string, object>)request)["limit"] = limit;
         }
-        var response = await this.callAsync("eapiPublicGetExerciseHistory", this.extend(request, parameters));
+        object response = await this.eapiPublicGetExerciseHistory(this.extend(request, parameters));
         //
         //     [
         //         {
@@ -7499,8 +7520,8 @@ throw new NotSupported(add(this.id, " fetchSettlementHistory() supports option m
         //         }
         //     ]
         //
-        var settlements = this.parseSettlements(response, market);
-        var sorted = this.sortBy(settlements, "timestamp");
+        object settlements = this.parseSettlements(response, market);
+        object sorted = this.sortBy(settlements, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
@@ -7515,15 +7536,15 @@ throw new NotSupported(add(this.id, " fetchSettlementHistory() supports option m
         //         "strikeResult": "REALISTIC_VALUE_STRICKEN"
         //     }
         //
-        var timestamp = this.safeInteger(settlement, "expiryDate");
-        var marketId = this.safeString(settlement, "symbol");
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        object timestamp = this.safeInteger(settlement, "expiryDate");
+        object marketId = this.safeString(settlement, "symbol");
+        return new Dictionary<string, object>() {
             { "info", settlement },
             { "symbol", this.safeSymbol(marketId, market) },
             { "price", this.safeNumber(settlement, "realStrikePrice") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-        }));
+        };
     }
 
     public virtual object parseSettlements(object settlements, object market)
@@ -7539,12 +7560,12 @@ throw new NotSupported(add(this.id, " fetchSettlementHistory() supports option m
         //         }
         //     ]
         //
-        var result = new List<object>() {};
-        for (var i = 0; isLessThan(i, getArrayLength(settlements)); i++)
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
             ((List<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }
-        return ((List<object>) (result));
+        return result;
     }
 
     public async virtual Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
@@ -7568,14 +7589,14 @@ throw new NotSupported(add(this.id, " fetchSettlementHistory() supports option m
         object subType = null;
         object currency = null;
         object method = null;
-        var request = new Dictionary<string, object>() {};
+        object request = new Dictionary<string, object>() {};
                 var typeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
                 var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLedger", null, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
-        if (isEqual(type, "option"))
+        if (isTrue(isEqual(type, "option")))
         {
             this.checkRequiredArgument("fetchLedger", code, "code");
             currency = this.currency(code);
@@ -7589,17 +7610,17 @@ throw new NotSupported(add(this.id, " fetchSettlementHistory() supports option m
             method = "dapiPrivateGetIncome";
         } else
         {
-throw new NotSupported(add(this.id, " fetchLedger() supports contract wallets only"));
+            throw new NotSupported ((string)add(this.id, " fetchLedger() supports contract wallets only")) ;
         }
-        if (!isEqual(since, null))
+        if (isTrue(!isEqual(since, null)))
         {
             ((Dictionary<string, object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((Dictionary<string, object>)request)["limit"] = limit;
         }
-        var response = await this.callAsync(method, this.extend(request, parameters));
+        object response = await this.callAsync(method, this.extend(request, parameters));
         //
         // options (eapi)
         //
@@ -7657,7 +7678,7 @@ throw new NotSupported(add(this.id, " fetchLedger() supports contract wallets on
         //         "tradeId": ""
         //     }
         //
-        var amount = this.safeString2(item, "amount", "income");
+        object amount = this.safeString2(item, "amount", "income");
         object direction = null;
         if (isTrue(Precise.stringLe(amount, "0")))
         {
@@ -7667,10 +7688,10 @@ throw new NotSupported(add(this.id, " fetchLedger() supports contract wallets on
         {
             direction = "in";
         }
-        var currencyId = this.safeString(item, "asset");
-        var timestamp = this.safeInteger2(item, "createDate", "time");
-        var type = this.safeString2(item, "type", "incomeType");
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        object currencyId = this.safeString(item, "asset");
+        object timestamp = this.safeInteger2(item, "createDate", "time");
+        object type = this.safeString2(item, "type", "incomeType");
+        return new Dictionary<string, object>() {
             { "id", this.safeString2(item, "id", "tranId") },
             { "direction", direction },
             { "account", null },
@@ -7686,12 +7707,12 @@ throw new NotSupported(add(this.id, " fetchLedger() supports contract wallets on
             { "status", null },
             { "fee", null },
             { "info", item },
-        }));
+        };
     }
 
     public virtual object parseLedgerEntryType(object type)
     {
-        var ledgerType = new Dictionary<string, object>() {
+        object ledgerType = new Dictionary<string, object>() {
             { "FEE", "fee" },
             { "FUNDING_FEE", "fee" },
             { "OPTIONS_PREMIUM_FEE", "fee" },
@@ -7712,7 +7733,7 @@ throw new NotSupported(add(this.id, " fetchLedger() supports contract wallets on
             { "REFERRAL_KICKBACK", "referral" },
             { "COMMISSION", "commission" },
         };
-        return ((string) (this.safeString(ledgerType, type, type)));
+        return this.safeString(ledgerType, type, type);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -7720,17 +7741,18 @@ throw new NotSupported(add(this.id, " fetchLedger() supports contract wallets on
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        if (!(((Dictionary<string,object>)getValue(this.urls, "api")).ContainsKey((string)api)))
+        object urls = ((object)this.urls);
+        if (!isTrue((((Dictionary<string,object>)getValue(urls, "api")).ContainsKey(toStringOrNull(api)))))
         {
-throw new NotSupported(add(add(add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints"));
+            throw new NotSupported ((string)add(add(add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;
         }
-        var url = getValue(getValue(this.urls, "api"), api);
-        url += add("/", path);
-        if (isEqual(api, "wapi"))
+        object url = getValue(getValue(this.urls, "api"), api);
+        url = add(url, add("/", path));
+        if (isTrue(isEqual(api, "wapi")))
         {
-            url += ".html";
+            url = add(url, ".html");
         }
-        if (isEqual(path, "historicalTrades"))
+        if (isTrue(isEqual(path, "historicalTrades")))
         {
             if (isTrue(this.apiKey))
             {
@@ -7739,10 +7761,10 @@ throw new NotSupported(add(add(add(this.id, " does not have a testnet/sandbox UR
                 };
             } else
             {
-throw new AuthenticationError(add(this.id, " historicalTrades endpoint requires `apiKey` credential"));
+                throw new AuthenticationError ((string)add(this.id, " historicalTrades endpoint requires `apiKey` credential")) ;
             }
         }
-        var userDataStream = (isEqual(path, "userDataStream")) || (isEqual(path, "listenKey"));
+        object userDataStream = isTrue((isEqual(path, "userDataStream"))) || isTrue((isEqual(path, "listenKey")));
         if (isTrue(userDataStream))
         {
             if (isTrue(this.apiKey))
@@ -7752,35 +7774,35 @@ throw new AuthenticationError(add(this.id, " historicalTrades endpoint requires 
                     { "X-MBX-APIKEY", this.apiKey },
                     { "Content-Type", "application/x-www-form-urlencoded" },
                 };
-                if (!isEqual(method, "GET"))
+                if (isTrue(!isEqual(method, "GET")))
                 {
                     body = this.urlencode(parameters);
                 }
             } else
             {
-throw new AuthenticationError(add(this.id, " userDataStream endpoint requires `apiKey` credential"));
+                throw new AuthenticationError ((string)add(this.id, " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if ((isEqual(api, "private")) || (isEqual(api, "eapiPrivate")) || (isEqual(api, "sapi") && !isEqual(path, "system/status")) || (isEqual(api, "sapiV2")) || (isEqual(api, "sapiV3")) || (isEqual(api, "sapiV4")) || (isEqual(api, "wapi") && !isEqual(path, "systemStatus")) || (isEqual(api, "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || (isEqual(api, "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")))
+        } else if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(api, "private"))) || isTrue((isEqual(api, "eapiPrivate")))) || isTrue((isTrue(isEqual(api, "sapi")) && isTrue(!isEqual(path, "system/status"))))) || isTrue((isEqual(api, "sapiV2")))) || isTrue((isEqual(api, "sapiV3")))) || isTrue((isEqual(api, "sapiV4")))) || isTrue((isTrue(isEqual(api, "wapi")) && isTrue(!isEqual(path, "systemStatus"))))) || isTrue((isEqual(api, "dapiPrivate")))) || isTrue((isEqual(api, "dapiPrivateV2")))) || isTrue((isEqual(api, "fapiPrivate")))) || isTrue((isEqual(api, "fapiPrivateV2")))))
         {
             this.checkRequiredCredentials();
             object query = null;
-            var defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
-            var extendedParams = this.extend(new Dictionary<string, object>() {
+            object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
+            object extendedParams = this.extend(new Dictionary<string, object>() {
                 { "timestamp", this.nonce() },
             }, parameters);
-            if (!isEqual(defaultRecvWindow, null))
+            if (isTrue(!isEqual(defaultRecvWindow, null)))
             {
                 ((Dictionary<string, object>)extendedParams)["recvWindow"] = defaultRecvWindow;
             }
-            var recvWindow = this.safeInteger(parameters, "recvWindow");
-            if (!isEqual(recvWindow, null))
+            object recvWindow = this.safeInteger(parameters, "recvWindow");
+            if (isTrue(!isEqual(recvWindow, null)))
             {
                 ((Dictionary<string, object>)extendedParams)["recvWindow"] = recvWindow;
             }
-            if ((isEqual(api, "sapi")) && (isEqual(path, "asset/dust")))
+            if (isTrue(isTrue((isEqual(api, "sapi"))) && isTrue((isEqual(path, "asset/dust")))))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
-            } else if ((isEqual(path, "batchOrders")) || (isGreaterThanOrEqual(getIndexOf(path, "sub-account"), 0)) || (isEqual(path, "capital/withdraw/apply")) || (isGreaterThanOrEqual(getIndexOf(path, "staking"), 0)))
+            } else if (isTrue(isTrue(isTrue(isTrue((isEqual(path, "batchOrders"))) || isTrue((isGreaterThanOrEqual(getIndexOf(path, "sub-account"), 0)))) || isTrue((isEqual(path, "capital/withdraw/apply")))) || isTrue((isGreaterThanOrEqual(getIndexOf(path, "staking"), 0)))))
             {
                 query = this.rawencode(extendedParams);
             } else
@@ -7788,20 +7810,20 @@ throw new AuthenticationError(add(this.id, " userDataStream endpoint requires `a
                 query = this.urlencode(extendedParams);
             }
             object signature = null;
-            if (isGreaterThan(getIndexOf(this.secret, "PRIVATE KEY"), -1))
+            if (isTrue(isGreaterThan(getIndexOf(this.secret, "PRIVATE KEY"), -1)))
             {
-                signature = this.encodeURIComponent(this.rsa(query, this.secret));
+                signature = this.encodeURIComponent(rsa(query, this.secret, sha256));
             } else
             {
-                signature = this.hmac(this.encode(query), this.encode(this.secret));
+                signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
             }
-            query += add(add("&", "signature="), signature);
+            query = add(query, add(add("&", "signature="), signature));
             headers = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
             };
-            if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")) || (isEqual(api, "wapi")))
+            if (isTrue(isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))) || isTrue((isEqual(api, "wapi")))))
             {
-                url += add("?", query);
+                url = add(url, add("?", query));
             } else
             {
                 body = query;
@@ -7811,126 +7833,127 @@ throw new AuthenticationError(add(this.id, " userDataStream endpoint requires `a
         {
             if (isTrue(getArrayLength(new List<string>(((Dictionary<string,object>)parameters).Keys))))
             {
-                url += add("?", this.urlencode(parameters));
+                url = add(url, add("?", this.urlencode(parameters)));
             }
         }
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
             { "body", body },
             { "headers", headers },
-        }));
+        };
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if ((isEqual(code, 418)) || (isEqual(code, 429)))
+        if (isTrue(isTrue((isEqual(code, 418))) || isTrue((isEqual(code, 429)))))
         {
-throw new DDoSProtection(add(add(add(add(add(add(this.id, " "), ((object)code).ToString()), " "), reason), " "), body));
+            throw new DDoSProtection ((string)add(add(add(add(add(add(this.id, " "), ((object)code).ToString()), " "), reason), " "), body)) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block cointains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (isGreaterThanOrEqual(code, 400))
+        if (isTrue(isGreaterThanOrEqual(code, 400)))
         {
-            if (isGreaterThanOrEqual(getIndexOf(body, "Price * QTY is zero or less"), 0))
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Price * QTY is zero or less"), 0)))
             {
-throw new InvalidOrder(add(add(this.id, " order cost = amount * price is zero or less "), body));
+                throw new InvalidOrder ((string)add(add(this.id, " order cost = amount * price is zero or less "), body)) ;
             }
-            if (isGreaterThanOrEqual(getIndexOf(body, "LOT_SIZE"), 0))
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "LOT_SIZE"), 0)))
             {
-throw new InvalidOrder(add(add(this.id, " order amount should be evenly divisible by lot size "), body));
+                throw new InvalidOrder ((string)add(add(this.id, " order amount should be evenly divisible by lot size "), body)) ;
             }
-            if (isGreaterThanOrEqual(getIndexOf(body, "PRICE_FILTER"), 0))
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "PRICE_FILTER"), 0)))
             {
-throw new InvalidOrder(add(add(this.id, " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) "), body));
+                throw new InvalidOrder ((string)add(add(this.id, " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) "), body)) ;
             }
         }
-        if (isEqual(response, null))
+        if (isTrue(isEqual(response, null)))
         {
-            return;  // fallback to default error handler
+            return null;  // fallback to default error handler
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        var success = this.safeValue(response, "success", true);
+        object success = this.safeValue(response, "success", true);
         if (!isTrue(success))
         {
-            var message = this.safeString(response, "msg");
+            object messageNew = this.safeString(response, "msg");
             object parsedMessage = null;
-            if (!isEqual(message, null))
+            if (isTrue(!isEqual(messageNew, null)))
             {
                 try
                 {
-                    parsedMessage = parseJson(message);
+                    parsedMessage = parseJson(messageNew);
                 } catch(Exception e)
                 {
                     // do nothing
                     parsedMessage = null;
                 }
-                if (!isEqual(parsedMessage, null))
+                if (isTrue(!isEqual(parsedMessage, null)))
                 {
                     response = parsedMessage;
                 }
             }
         }
-        var message = this.safeString(response, "msg");
-        if (!isEqual(message, null))
+        object message = this.safeString(response, "msg");
+        if (isTrue(!isEqual(message, null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, add(add(this.id, " "), message));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, add(add(this.id, " "), message));
         }
         // checks against error codes
-        var error = this.safeString(response, "code");
-        if (!isEqual(error, null))
+        object error = this.safeString(response, "code");
+        if (isTrue(!isEqual(error, null)))
         {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if ((isEqual(error, "200")) || isTrue(Precise.stringEquals(error, "0")))
+            if (isTrue(isTrue((isEqual(error, "200"))) || isTrue(Precise.stringEquals(error, "0"))))
             {
                 return null;
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((isEqual(error, "-2015")) && isTrue(getValue(this.options, "hasAlreadyAuthenticatedSuccessfully")))
+            if (isTrue(isTrue((isEqual(error, "-2015"))) && isTrue(getValue(this.options, "hasAlreadyAuthenticatedSuccessfully"))))
             {
-throw new DDoSProtection(add(add(this.id, " "), body));
+                throw new DDoSProtection ((string)add(add(this.id, " "), body)) ;
             }
-            var feedback = add(add(this.id, " "), body);
-            if (isEqual(message, "No need to change margin type."))
+            object feedback = add(add(this.id, " "), body);
+            if (isTrue(isEqual(message, "No need to change margin type.")))
             {
-throw new MarginModeAlreadySet(feedback);
+                throw new MarginModeAlreadySet ((string)feedback) ;
             }
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
-throw new ExchangeError(feedback);
+            throw new ExchangeError ((string)feedback) ;
         }
         if (!isTrue(success))
         {
-throw new ExchangeError(add(add(this.id, " "), body));
+            throw new ExchangeError ((string)add(add(this.id, " "), body)) ;
         }
+        return null;
     }
 
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null, object context = null)
     {
         config ??= new Dictionary<string, object>();
         context ??= new Dictionary<string, object>();
-        if ((((Dictionary<string,object>)config).ContainsKey((string)"noCoin")) && !(((Dictionary<string,object>)parameters).ContainsKey((string)"coin")))
+        if (isTrue(isTrue((((Dictionary<string,object>)config).ContainsKey(toStringOrNull("noCoin")))) && !isTrue((((Dictionary<string,object>)parameters).ContainsKey(toStringOrNull("coin"))))))
         {
             return getValue(config, "noCoin");
-        } else if ((((Dictionary<string,object>)config).ContainsKey((string)"noSymbol")) && !(((Dictionary<string,object>)parameters).ContainsKey((string)"symbol")))
+        } else if (isTrue(isTrue((((Dictionary<string,object>)config).ContainsKey(toStringOrNull("noSymbol")))) && !isTrue((((Dictionary<string,object>)parameters).ContainsKey(toStringOrNull("symbol"))))))
         {
             return getValue(config, "noSymbol");
-        } else if ((((Dictionary<string,object>)config).ContainsKey((string)"noPoolId")) && !(((Dictionary<string,object>)parameters).ContainsKey((string)"poolId")))
+        } else if (isTrue(isTrue((((Dictionary<string,object>)config).ContainsKey(toStringOrNull("noPoolId")))) && !isTrue((((Dictionary<string,object>)parameters).ContainsKey(toStringOrNull("poolId"))))))
         {
             return getValue(config, "noPoolId");
-        } else if ((((Dictionary<string,object>)config).ContainsKey((string)"byLimit")) && (((Dictionary<string,object>)parameters).ContainsKey((string)"limit")))
+        } else if (isTrue(isTrue((((Dictionary<string,object>)config).ContainsKey(toStringOrNull("byLimit")))) && isTrue((((Dictionary<string,object>)parameters).ContainsKey(toStringOrNull("limit"))))))
         {
-            var limit = getValue(parameters, "limit");
-            var byLimit = ((object)getValue(config, "byLimit"));
-            for (var i = 0; isLessThan(i, getArrayLength(byLimit)); i++)
+            object limit = getValue(parameters, "limit");
+            object byLimit = ((object)getValue(config, "byLimit"));
+            for (object i = 0; isLessThan(i, getArrayLength(byLimit)); postFixIncrement(ref i))
             {
-                var entry = getValue(byLimit, i);
-                if (isLessThanOrEqual(limit, getValue(entry, 0)))
+                object entry = getValue(byLimit, i);
+                if (isTrue(isLessThanOrEqual(limit, getValue(entry, 0))))
                 {
                     return getValue(entry, 1);
                 }
@@ -7946,9 +7969,9 @@ throw new ExchangeError(add(add(this.id, " "), body));
         parameters ??= new Dictionary<string, object>();
         config ??= new Dictionary<string, object>();
         context ??= new Dictionary<string, object>();
-        var response = await this.callAsync("fetch2", path, api, method, parameters, headers, body, config, context);
+        object response = await this.fetch2(path, api, method, parameters, headers, body, config, context);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if ((isEqual(api, "private")) || (isEqual(api, "wapi")))
+        if (isTrue(isTrue((isEqual(api, "private"))) || isTrue((isEqual(api, "wapi")))))
         {
             ((Dictionary<string, object>)this.options)["hasAlreadyAuthenticatedSuccessfully"] = true;
         }
@@ -7959,20 +7982,20 @@ throw new ExchangeError(add(add(this.id, " "), body));
     {
         // used to modify isolated positions
         parameters ??= new Dictionary<string, object>();
-        var defaultType = this.safeString(this.options, "defaultType", "future");
-        if (isEqual(defaultType, "spot"))
+        object defaultType = this.safeString(this.options, "defaultType", "future");
+        if (isTrue(isEqual(defaultType, "spot")))
         {
             defaultType = "future";
         }
-        var type = this.safeString(parameters, "type", defaultType);
-        if ((isEqual(type, "margin")) || (isEqual(type, "spot")))
+        object type = this.safeString(parameters, "type", defaultType);
+        if (isTrue(isTrue((isEqual(type, "margin"))) || isTrue((isEqual(type, "spot")))))
         {
-throw new NotSupported(add(this.id, " add / reduce margin only supported with type future or delivery"));
+            throw new NotSupported ((string)add(this.id, " add / reduce margin only supported with type future or delivery")) ;
         }
         await this.loadMarkets();
-        var market = this.market(symbol);
+        object market = this.market(symbol);
         amount = this.amountToPrecision(symbol, amount);
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "type", addOrReduce },
             { "symbol", getValue(market, "id") },
             { "amount", amount },
@@ -7988,7 +8011,7 @@ throw new NotSupported(add(this.id, " add / reduce margin only supported with ty
             method = "dapiPrivatePostPositionMargin";
             code = getValue(market, "base");
         }
-        var response = await this.callAsync(method, this.extend(request, parameters));
+        object response = await this.callAsync(method, this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -8004,19 +8027,19 @@ throw new NotSupported(add(this.id, " add / reduce margin only supported with ty
 
     public virtual object parseMarginModification(object data, object market = null)
     {
-        var rawType = this.safeInteger(data, "type");
-        var resultType = (isEqual(rawType, 1)) ? "add" : "reduce";
-        var resultAmount = this.safeNumber(data, "amount");
-        var errorCode = this.safeString(data, "code");
-        var status = (isEqual(errorCode, "200")) ? "ok" : "failed";
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        object rawType = this.safeInteger(data, "type");
+        object resultType = ((bool) isTrue((isEqual(rawType, 1)))) ? "add" : "reduce";
+        object resultAmount = this.safeNumber(data, "amount");
+        object errorCode = this.safeString(data, "code");
+        object status = ((bool) isTrue((isEqual(errorCode, "200")))) ? "ok" : "failed";
+        return new Dictionary<string, object>() {
             { "info", data },
             { "type", resultType },
             { "amount", resultAmount },
             { "code", null },
             { "symbol", getValue(market, "symbol") },
             { "status", status },
-        }));
+        };
     }
 
     public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
@@ -8061,11 +8084,11 @@ throw new NotSupported(add(this.id, " add / reduce margin only supported with ty
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var currency = this.currency(code);
-        var request = new Dictionary<string, object>() {
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
         };
-        var response = await this.callAsync("sapiGetMarginInterestRateHistory", this.extend(request, parameters));
+        object response = await this.sapiGetMarginInterestRateHistory(this.extend(request, parameters));
         //
         //     [
         //         {
@@ -8076,8 +8099,8 @@ throw new NotSupported(add(this.id, " add / reduce margin only supported with ty
         //         },
         //     ]
         //
-        var rate = this.safeValue(response, 0);
-        return ((Dictionary<string, object>) (this.parseBorrowRate(rate)));
+        object rate = this.safeValue(response, 0);
+        return this.parseBorrowRate(rate);
     }
 
     public async virtual Task<object> fetchBorrowRateHistory(object code, object since = null, object limit = null, object parameters = null)
@@ -8094,26 +8117,26 @@ throw new NotSupported(add(this.id, " add / reduce margin only supported with ty
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        if (isEqual(limit, null))
+        if (isTrue(isEqual(limit, null)))
         {
             limit = 93;
-        } else if (isGreaterThan(limit, 93))
+        } else if (isTrue(isGreaterThan(limit, 93)))
         {
-throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter cannot exceed 92"));
+            throw new BadRequest ((string)add(this.id, " fetchBorrowRateHistory() limit parameter cannot exceed 92")) ;
         }
-        var currency = this.currency(code);
-        var request = new Dictionary<string, object>() {
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
             { "limit", limit },
         };
-        if (!isEqual(since, null))
+        if (isTrue(!isEqual(since, null)))
         {
             ((Dictionary<string, object>)request)["startTime"] = since;
-            var endTime = subtract(this.sum(since, multiply(limit, 86400000)), 1); // required when startTime is further than 93 days in the past
-            var now = this.milliseconds();
+            object endTime = subtract(this.sum(since, multiply(limit, 86400000)), 1); // required when startTime is further than 93 days in the past
+            object now = this.milliseconds();
             ((Dictionary<string, object>)request)["endTime"] = mathMin(endTime, now); // cannot have an endTime later than current time
         }
-        var response = await this.callAsync("sapiGetMarginInterestRateHistory", this.extend(request, parameters));
+        object response = await this.sapiGetMarginInterestRateHistory(this.extend(request, parameters));
         //
         //     [
         //         {
@@ -8129,14 +8152,14 @@ throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter can
 
     public virtual object parseBorrowRateHistory(object response, object code, object since, object limit)
     {
-        var result = new List<object>() {};
-        for (var i = 0; isLessThan(i, getArrayLength(response)); i++)
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            var item = getValue(response, i);
-            var borrowRate = this.parseBorrowRate(item);
+            object item = getValue(response, i);
+            object borrowRate = this.parseBorrowRate(item);
             ((List<object>)result).Add(borrowRate);
         }
-        var sorted = this.sortBy(result, "timestamp");
+        object sorted = this.sortBy(result, "timestamp");
         return this.filterByCurrencySinceLimit(sorted, code, since, limit);
     }
 
@@ -8150,16 +8173,16 @@ throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter can
         //        "vipLevel": 0
         //    }
         //
-        var timestamp = this.safeNumber(info, "timestamp");
+        object timestamp = this.safeNumber(info, "timestamp");
         currency = this.safeString(info, "asset");
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "currency", this.safeCurrencyCode(currency) },
             { "rate", this.safeNumber(info, "dailyInterestRate") },
             { "period", 86400000 },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "info", info },
-        }));
+        };
     }
 
     public async virtual Task<object> createGiftCode(object code, object amount, object parameters = null)
@@ -8175,13 +8198,13 @@ throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter can
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var currency = this.currency(code);
+        object currency = this.currency(code);
         // ensure you have enough token in your funding account before calling this code
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "token", getValue(currency, "id") },
             { "amount", amount },
         };
-        var response = await this.callAsync("sapiPostGiftcardCreateCode", this.extend(request, parameters));
+        object response = await this.sapiPostGiftcardCreateCode(this.extend(request, parameters));
         //
         //     {
         //         code: '000000',
@@ -8190,16 +8213,16 @@ throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter can
         //         success: true
         //     }
         //
-        var data = this.safeValue(response, "data");
-        var giftcardCode = this.safeString(data, "code");
-        var id = this.safeString(data, "referenceNo");
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        object data = this.safeValue(response, "data");
+        object giftcardCode = this.safeString(data, "code");
+        object id = this.safeString(data, "referenceNo");
+        return new Dictionary<string, object>() {
             { "info", response },
             { "id", id },
             { "code", giftcardCode },
             { "currency", code },
             { "amount", amount },
-        }));
+        };
     }
 
     public async virtual Task<object> redeemGiftCode(object giftcardCode, object parameters = null)
@@ -8213,10 +8236,10 @@ throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter can
         * @returns {object} response from the exchange
         */
         parameters ??= new Dictionary<string, object>();
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "code", giftcardCode },
         };
-        var response = await this.callAsync("sapiPostGiftcardRedeemCode", this.extend(request, parameters));
+        object response = await this.sapiPostGiftcardRedeemCode(this.extend(request, parameters));
         //
         //     {
         //         code: '000000',
@@ -8242,10 +8265,10 @@ throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter can
         * @returns {object} response from the exchange
         */
         parameters ??= new Dictionary<string, object>();
-        var request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "referenceNo", id },
         };
-        var response = await this.callAsync("sapiGetGiftcardVerify", this.extend(request, parameters));
+        object response = await this.sapiGetGiftcardVerify(this.extend(request, parameters));
         //
         //     {
         //         code: '000000',
@@ -8272,27 +8295,27 @@ throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter can
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var request = new Dictionary<string, object>() {};
+        object request = new Dictionary<string, object>() {};
         object market = null;
-        if (!isEqual(code, null))
+        if (isTrue(!isEqual(code, null)))
         {
-            var currency = this.currency(code);
+            object currency = this.currency(code);
             ((Dictionary<string, object>)request)["asset"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if (isTrue(!isEqual(since, null)))
         {
             ((Dictionary<string, object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((Dictionary<string, object>)request)["size"] = limit;
         }
-        if (!isEqual(symbol, null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             ((Dictionary<string, object>)request)["isolatedSymbol"] = getValue(market, "id");
         }
-        var response = await this.callAsync("sapiGetMarginInterestHistory", this.extend(request, parameters));
+        object response = await this.sapiGetMarginInterestHistory(this.extend(request, parameters));
         //
         //     {
         //         "rows":[
@@ -8309,18 +8332,18 @@ throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter can
         //         "total": 1
         //     }
         //
-        var rows = this.safeValue(response, "rows");
-        var interest = this.parseBorrowInterests(rows, market);
+        object rows = this.safeValue(response, "rows");
+        object interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
 
     public override object parseBorrowInterest(object info, object market = null)
     {
-        var symbol = this.safeString(info, "isolatedSymbol");
-        var timestamp = this.safeNumber(info, "interestAccuredTime");
-        var marginMode = (isEqual(symbol, null)) ? "cross" : "isolated";
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
-            { "account", (isEqual(symbol, null)) ? "cross" : symbol },
+        object symbol = this.safeString(info, "isolatedSymbol");
+        object timestamp = this.safeNumber(info, "interestAccuredTime");
+        object marginMode = ((bool) isTrue((isEqual(symbol, null)))) ? "cross" : "isolated";
+        return new Dictionary<string, object>() {
+            { "account", ((bool) isTrue((isEqual(symbol, null)))) ? "cross" : symbol },
             { "symbol", symbol },
             { "marginMode", marginMode },
             { "currency", this.safeCurrencyCode(this.safeString(info, "asset")) },
@@ -8330,7 +8353,7 @@ throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter can
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "info", info },
-        }));
+        };
     }
 
     public async virtual Task<object> repayMargin(object code, object amount, object symbol = null, object parameters = null)
@@ -8352,25 +8375,25 @@ throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter can
         var query = ((List<object>) marginModequeryVariable)[1]; // cross or isolated
         this.checkRequiredMarginArgument("repayMargin", symbol, marginMode);
         await this.loadMarkets();
-        var currency = this.currency(code);
-        var request = new Dictionary<string, object>() {
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
         };
-        if (!isEqual(symbol, null))
+        if (isTrue(!isEqual(symbol, null)))
         {
-            var market = this.market(symbol);
+            object market = this.market(symbol);
             ((Dictionary<string, object>)request)["symbol"] = getValue(market, "id");
             ((Dictionary<string, object>)request)["isIsolated"] = "TRUE";
         }
-        var response = await this.callAsync("sapiPostMarginRepay", this.extend(request, query));
+        object response = await this.sapiPostMarginRepay(this.extend(request, query));
         //
         //     {
         //         "tranId": 108988250265,
         //         "clientTag":""
         //     }
         //
-        return ((Dictionary<string, object>) (this.parseMarginLoan(response, currency)));
+        return this.parseMarginLoan(response, currency);
     }
 
     public async virtual Task<object> borrowMargin(object code, object amount, object symbol = null, object parameters = null)
@@ -8392,25 +8415,25 @@ throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter can
         var query = ((List<object>) marginModequeryVariable)[1]; // cross or isolated
         this.checkRequiredMarginArgument("borrowMargin", symbol, marginMode);
         await this.loadMarkets();
-        var currency = this.currency(code);
-        var request = new Dictionary<string, object>() {
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
         };
-        if (!isEqual(symbol, null))
+        if (isTrue(!isEqual(symbol, null)))
         {
-            var market = this.market(symbol);
+            object market = this.market(symbol);
             ((Dictionary<string, object>)request)["symbol"] = getValue(market, "id");
             ((Dictionary<string, object>)request)["isIsolated"] = "TRUE";
         }
-        var response = await this.callAsync("sapiPostMarginLoan", this.extend(request, query));
+        object response = await this.sapiPostMarginLoan(this.extend(request, query));
         //
         //     {
         //         "tranId": 108988250265,
         //         "clientTag":""
         //     }
         //
-        return ((Dictionary<string, object>) (this.parseMarginLoan(response, currency)));
+        return this.parseMarginLoan(response, currency);
     }
 
     public virtual object parseMarginLoan(object info, object currency = null)
@@ -8421,7 +8444,7 @@ throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter can
         //         "clientTag":""
         //     }
         //
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "id", this.safeInteger(info, "tranId") },
             { "currency", this.safeCurrencyCode(null, currency) },
             { "amount", null },
@@ -8429,7 +8452,7 @@ throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter can
             { "timestamp", null },
             { "datetime", null },
             { "info", info },
-        }));
+        };
     }
 
     public async virtual Task<object> fetchOpenInterestHistory(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -8448,50 +8471,50 @@ throw new BadRequest(add(this.id, " fetchBorrowRateHistory() limit parameter can
         */
         timeframe ??= "5m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(timeframe, "1m"))
+        if (isTrue(isEqual(timeframe, "1m")))
         {
-throw new BadRequest(add(this.id, "fetchOpenInterestHistory cannot use the 1m timeframe"));
+            throw new BadRequest ((string)add(this.id, "fetchOpenInterestHistory cannot use the 1m timeframe")) ;
         }
         await this.loadMarkets();
-        var market = this.market(symbol);
-        var request = new Dictionary<string, object>() {
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
             { "period", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        if (!isEqual(limit, null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((Dictionary<string, object>)request)["limit"] = limit;
         }
-        var symbolKey = isTrue(getValue(market, "linear")) ? "symbol" : "pair";
+        object symbolKey = ((bool) isTrue(getValue(market, "linear"))) ? "symbol" : "pair";
         ((Dictionary<string, object>)request)[(string)symbolKey] = getValue(market, "id");
         if (isTrue(getValue(market, "inverse")))
         {
             ((Dictionary<string, object>)request)["contractType"] = this.safeString(parameters, "contractType", "CURRENT_QUARTER");
         }
-        if (!isEqual(since, null))
+        if (isTrue(!isEqual(since, null)))
         {
             ((Dictionary<string, object>)request)["startTime"] = since;
         }
-        var until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
-        var endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
-                parameters = (Dictionary<string, object>)(this.omit(parameters, new List<object>() {"endTime", "until", "till"}));
+        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
+        parameters = this.omit(parameters, new List<object>() {"endTime", "until", "till"});
         if (isTrue(endTime))
         {
             ((Dictionary<string, object>)request)["endTime"] = endTime;
         } else if (isTrue(since))
         {
-            if (isEqual(limit, null))
+            if (isTrue(isEqual(limit, null)))
             {
                 limit = 30; // Exchange default
             }
-            var duration = this.parseTimeframe(timeframe);
+            object duration = this.parseTimeframe(timeframe);
             ((Dictionary<string, object>)request)["endTime"] = this.sum(since, multiply(multiply(duration, limit), 1000));
         }
-        var method = "fapiDataGetOpenInterestHist";
+        object method = "fapiDataGetOpenInterestHist";
         if (isTrue(getValue(market, "inverse")))
         {
             method = "dapiDataGetOpenInterestHist";
         }
-        var response = await this.callAsync(method, this.extend(request, parameters));
+        object response = await this.callAsync(method, this.extend(request, parameters));
         //
         //  [
         //      {
@@ -8521,8 +8544,8 @@ throw new BadRequest(add(this.id, "fetchOpenInterestHistory cannot use the 1m ti
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var market = this.market(symbol);
-        var request = new Dictionary<string, object>() {};
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {};
         if (isTrue(getValue(market, "option")))
         {
             ((Dictionary<string, object>)request)["underlyingAsset"] = getValue(market, "baseId");
@@ -8531,7 +8554,7 @@ throw new BadRequest(add(this.id, "fetchOpenInterestHistory cannot use the 1m ti
         {
             ((Dictionary<string, object>)request)["symbol"] = getValue(market, "id");
         }
-        var method = "fapiPublicGetOpenInterest";
+        object method = "fapiPublicGetOpenInterest";
         if (isTrue(getValue(market, "option")))
         {
             method = "eapiPublicGetOpenInterest";
@@ -8539,7 +8562,7 @@ throw new BadRequest(add(this.id, "fetchOpenInterestHistory cannot use the 1m ti
         {
             method = "dapiPublicGetOpenInterest";
         }
-        var response = await this.callAsync(method, this.extend(request, parameters));
+        object response = await this.callAsync(method, this.extend(request, parameters));
         //
         // futures (fapi)
         //
@@ -8581,21 +8604,21 @@ throw new BadRequest(add(this.id, "fetchOpenInterestHistory cannot use the 1m ti
 
     public override object parseOpenInterest(object interest, object market = null)
     {
-        var timestamp = this.safeInteger(interest, "timestamp");
-        var id = this.safeString(interest, "symbol");
-        var amount = this.safeNumber2(interest, "sumOpenInterest", "openInterest");
-        var value = this.safeNumber2(interest, "sumOpenInterestValue", "sumOpenInterestUsd");
+        object timestamp = this.safeInteger(interest, "timestamp");
+        object id = this.safeString(interest, "symbol");
+        object amount = this.safeNumber2(interest, "sumOpenInterest", "openInterest");
+        object value = this.safeNumber2(interest, "sumOpenInterestValue", "sumOpenInterestUsd");
         // Inverse returns the number of contracts different from the base or quote volume in this case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-        return ((Dictionary<string, object>) (new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(id, market, null, "contract") },
-            { "baseVolume", isTrue(getValue(market, "inverse")) ? null : amount },
+            { "baseVolume", ((bool) isTrue(getValue(market, "inverse"))) ? null : amount },
             { "quoteVolume", value },
             { "openInterestAmount", amount },
             { "openInterestValue", value },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "info", interest },
-        }));
+        };
     }
 }
