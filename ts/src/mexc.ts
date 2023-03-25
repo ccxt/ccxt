@@ -3131,7 +3131,8 @@ export default class mexc extends Exchange {
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
-        const [ section, access ] = api;
+        const section = this.safeString (api, 0);
+        const access = this.safeString (api, 1);
         let url = this.urls['api'][section][access] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (access === 'public') {
