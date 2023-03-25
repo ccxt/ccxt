@@ -634,7 +634,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 const bookside = orderbook[side];
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise.stringGt (price, '0') ? size : 0;
-                bookside.store (price, amount, id);
+                bookside.store (this.parseNumber (price), amount, id);
             } else {
                 const amount = this.safeString (deltas, 2);
                 const counter = this.safeString (deltas, 1);
@@ -642,7 +642,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 const size = Precise.stringLt (amount, '0') ? Precise.stringNeg (amount) : amount;
                 const side = Precise.stringLt (amount, '0') ? 'asks' : 'bids';
                 const bookside = orderbook[side];
-                bookside.store (price, size, counter);
+                bookside.store (this.parseNumber (price), size, counter);
             }
             client.resolve (orderbook, messageHash);
         }
