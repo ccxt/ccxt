@@ -2483,7 +2483,8 @@ export default class cryptocom extends Exchange {
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
-        const [ type, access ] = api;
+        const type = this.safeString (api, 0);
+        const access = this.safeString (api, 1);
         let url = this.urls['api'][type] + '/' + path;
         const query = this.omit (params, this.extractParams (path));
         if (access === 'public') {
