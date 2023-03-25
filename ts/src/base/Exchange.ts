@@ -1419,7 +1419,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOrderBook() is not supported yet');
     }
 
-    async fetchTime (params = {}): Promise<any> {
+    async fetchTime (params = {}): Promise<number> {
         throw new NotSupported (this.id + ' fetchTime() is not supported yet');
     }
 
