@@ -34,8 +34,8 @@ class binanceus extends binance {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => $this->parse_number('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker' => $this->parse_number('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'taker' => $this->parse_number('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1.
+                    'maker' => $this->parse_number('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1.
                 ),
             ),
             'options' => array(

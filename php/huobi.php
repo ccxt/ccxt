@@ -18,8 +18,6 @@ class huobi extends Exchange {
             'userAgent' => $this->userAgents['chrome100'],
             'certified' => true,
             'version' => 'v1',
-            'accounts' => null,
-            'accountsById' => null,
             'hostname' => 'api.huobi.pro', // api.testnet.huobi.pro
             'pro' => true,
             'has' => array(
@@ -368,7 +366,6 @@ class huobi extends Exchange {
                             'market/depth' => 1,
                             'market/trade' => 1,
                             'market/history/trade' => 1,
-                            'market/detail/' => 1,
                             'market/etp' => 1, // Get real-time equity of leveraged ETP
                             // ETP
                             'v2/etp/reference' => 1,
@@ -854,7 +851,8 @@ class huobi extends Exchange {
                     '1066' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147)
                     '1067' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413)
                     '1094' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243)
-                    '1220' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718)
+                    '1220' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1220,"err_msg":"You don’t have access permission have not opened contracts trading.","ts":1645096660718)
+                    '1303' => '\\ccxt\\BadRequest', // array("code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true)
                     '1461' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits (5000USDT). Please modify.","ts":1652554651234)
                     'bad-request' => '\\ccxt\\BadRequest',
                     'validation-format-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-format-error","err-msg":"Format Error => order-id.","data":null)
@@ -967,6 +965,11 @@ class huobi extends Exchange {
                 'language' => 'en-US',
                 'broker' => array(
                     'id' => 'AA03022abc',
+                ),
+                'accountsByType' => array(
+                    'spot' => 'pro',
+                    'funding' => 'pro',
+                    'future' => 'futures',
                 ),
                 'accountsById' => array(
                     'spot' => 'spot',
@@ -1300,7 +1303,7 @@ class huobi extends Exchange {
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1415,7 +1418,7 @@ class huobi extends Exchange {
             $value = $this->safe_value($types, $type);
             if ($value === true) {
                 $promises[] = $this->fetch_markets_by_type_and_sub_type($type, null, $params);
-            } else {
+            } elseif ($value) {
                 $subKeys = is_array($value) ? array_keys($value) : array();
                 for ($j = 0; $j < count($subKeys); $j++) {
                     $subType = $subKeys[$j];
@@ -1426,6 +1429,7 @@ class huobi extends Exchange {
                 }
             }
         }
+        $promises = $promises;
         for ($i = 0; $i < count($promises); $i++) {
             $allMarkets = $this->array_concat($allMarkets, $promises[$i]);
         }
@@ -1832,7 +1836,7 @@ class huobi extends Exchange {
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1912,7 +1916,7 @@ class huobi extends Exchange {
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-$market-data-overview-v2
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -2060,7 +2064,7 @@ class huobi extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2286,7 +2290,7 @@ class huobi extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $market = null;
         if ($symbol !== null) {
@@ -2318,7 +2322,7 @@ class huobi extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $trades for
          * @param {int|null} $limit the maximum number of $trades structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $market = null;
@@ -2572,7 +2576,7 @@ class huobi extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2581,7 +2585,7 @@ class huobi extends Exchange {
             // 'symbol' => $market['id'], // spot, future
             // 'contract_code' => $market['id'], // swap
             // 'size' => 1000, // max 1000 for spot, 2000 for contracts
-            // 'from' => intval($since / 1000), spot only
+            // 'from' => intval(($since / (string) 1000)), spot only
             // 'to' => $this->seconds(), spot only
         );
         $fieldName = 'symbol';
@@ -2590,7 +2594,7 @@ class huobi extends Exchange {
         $method = 'spotPublicGetMarketHistoryCandles';
         if ($market['spot']) {
             if ($since !== null) {
-                $request['from'] = intval($since / 1000);
+                $request['from'] = $this->parse_to_int($since / 1000);
             }
             if ($limit !== null) {
                 $request['size'] = $limit; // max 2000
@@ -2654,7 +2658,7 @@ class huobi extends Exchange {
                     $request['from'] = $now - $duration * ($limit - 1);
                     $request['to'] = $now;
                 } else {
-                    $start = intval($since / 1000);
+                    $start = $this->parse_to_int($since / 1000);
                     $request['from'] = $start;
                     $request['to'] = $this->sum($start, $duration * ($limit - 1));
                 }
@@ -2682,7 +2686,7 @@ class huobi extends Exchange {
         /**
          * fetch all the accounts associated with a profile
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
         $this->load_markets();
         $response = $this->spotPrivateGetV1AccountAccounts ($params);
@@ -2772,6 +2776,7 @@ class huobi extends Exchange {
         //                "instStatus" => "normal"
         //            }
         //        )
+        //    }
         //    }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -2865,7 +2870,7 @@ class huobi extends Exchange {
     }
 
     public function network_id_to_code($networkId, $currencyCode = null) {
-        // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        // here network-id is provided pair of currency & chain (i.e. trc20usdt)
         $keys = is_array($this->options['networkNamesByChainIds']) ? array_keys($this->options['networkNamesByChainIds']) : array();
         $keysLength = count($keys);
         if ($keysLength === 0) {
@@ -3178,7 +3183,7 @@ class huobi extends Exchange {
          * fetches information on an $order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the $order was made in
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = null;
@@ -3582,7 +3587,7 @@ class huobi extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -3613,7 +3618,7 @@ class huobi extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -3640,7 +3645,7 @@ class huobi extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open $orders for
          * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -4077,7 +4082,7 @@ class huobi extends Exchange {
          * @param {string|null} $params->operator *spot and margin only* gte or lte, trigger $price condition
          * @param {string|null} $params->offset *contract only* 'open', 'close', or 'both', required in hedge mode
          * @param {bool|null} $params->postOnly *contract only* true or false
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4341,7 +4346,7 @@ class huobi extends Exchange {
          * @param {string} $id order $id
          * @param {string|null} $symbol unified $symbol of the $market the order was made in
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = null;
@@ -4437,7 +4442,7 @@ class huobi extends Exchange {
          * @param {[string]} $ids order $ids
          * @param {string|null} $symbol unified $market $symbol, default is null
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -4569,7 +4574,7 @@ class huobi extends Exchange {
          * cancel all open orders
          * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -4671,7 +4676,7 @@ class huobi extends Exchange {
          * fetch a dictionary of addresses for a $currency, indexed by network
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures} indexed by the network
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the network
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -4693,21 +4698,22 @@ class huobi extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $parsed = $this->parse_deposit_addresses($data, array( $code ), false);
+        $parsed = $this->parse_deposit_addresses($data, [ $currency['code'] ], false);
         return $this->index_by($parsed, 'network');
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
         /**
-         * fetch the deposit address for a currency associated with this account
-         * @param {string} $code unified currency $code
+         * fetch the deposit address for a $currency associated with this account
+         * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
+        $currency = $this->currency($code);
         list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
         $indexedAddresses = $this->fetch_deposit_addresses_by_network($code, $paramsOmited);
-        $selectedNetworkCode = $this->select_network_code_from_unified_networks($code, $networkCode, $indexedAddresses);
+        $selectedNetworkCode = $this->select_network_code_from_unified_networks($currency['code'], $networkCode, $indexedAddresses);
         return $indexedAddresses[$selectedNetworkCode];
     }
 
@@ -4733,7 +4739,7 @@ class huobi extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $allAddresses = $this->parse_deposit_addresses($data, array( $code ), false);
+        $allAddresses = $this->parse_deposit_addresses($data, [ $currency['code'] ], false); // cjg => to do remove this weird object or array ambiguity
         $addresses = array();
         for ($i = 0; $i < count($allAddresses); $i++) {
             $address = $allAddresses[$i];
@@ -4753,7 +4759,7 @@ class huobi extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         if ($limit === null || $limit > 100) {
             $limit = 100;
@@ -4811,7 +4817,7 @@ class huobi extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         if ($limit === null || $limit > 100) {
             $limit = 100;
@@ -4980,7 +4986,7 @@ class huobi extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string|null} $tag
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
@@ -5057,17 +5063,22 @@ class huobi extends Exchange {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
-         * $transfer $currency internally between wallets on the same account
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#$transfer-margin-between-spot-account-and-future-account
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#$transfer-fund-between-spot-account-and-future-contract-account
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-$transfer-margin-between-spot-account-and-usdt-margined-contracts-account
+         * transfer $currency internally between wallets on the same account
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated
          * @param {string} $code unified $currency $code
-         * @param {float} $amount amount to $transfer
-         * @param {string} $fromAccount account to $transfer from 'spot', 'future', 'swap'
-         * @param {string} $toAccount account to $transfer to 'spot', 'future', 'swap'
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from 'spot', 'future', 'swap'
+         * @param {string} $toAccount account to transfer to 'spot', 'future', 'swap'
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @param {string|null} $params->symbol used for isolated margin $transfer
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         * @param {string|null} $params->symbol used for isolated margin transfer
+         * @param {string|null} $params->subType 'linear' or 'inverse', only used when transfering to/from swap accounts
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -5078,32 +5089,40 @@ class huobi extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('transfer', null, $params);
         $method = null;
-        $fromAccount = strtolower($fromAccount);
-        $toAccount = strtolower($toAccount);
-        $futuresAccounts = array(
-            'future' => 'futures',
-            'spot' => 'pro',
-        );
-        $fromIdFuture = $this->safe_string($futuresAccounts, $fromAccount, $fromAccount);
-        $toIdFuture = $this->safe_string($futuresAccounts, $toAccount, $toAccount);
-        $isFromSpot = ($fromAccount === 'spot') || ($fromAccount === 'pro');
-        $isToSpot = ($toAccount === 'spot') || ($toAccount === 'pro');
-        if (!$isFromSpot && !$isToSpot) {
-            throw new BadRequest($this->id . ' $transfer() can only $transfer between spot and futures accounts or vice versa');
+        $fromAccountId = $this->convert_type_to_account($fromAccount);
+        $toAccountId = $this->convert_type_to_account($toAccount);
+        $toCross = $toAccountId === 'cross';
+        $fromCross = $fromAccountId === 'cross';
+        $toIsolated = $this->in_array($toAccountId, $this->ids);
+        $fromIsolated = $this->in_array($fromAccountId, $this->ids);
+        $fromSpot = $fromAccountId === 'pro';
+        $toSpot = $toAccountId === 'pro';
+        if ($fromSpot && $toSpot) {
+            throw new BadRequest($this->id . ' transfer () cannot make a transfer between ' . $fromAccount . ' and ' . $toAccount);
         }
-        $fromOrToFuturesAccount = ($fromIdFuture === 'futures') || ($toIdFuture === 'futures');
+        $fromOrToFuturesAccount = ($fromAccountId === 'futures') || ($toAccountId === 'futures');
         if ($fromOrToFuturesAccount) {
-            $type = $fromIdFuture . '-to-' . $toIdFuture;
+            $type = $fromAccountId . '-to-' . $toAccountId;
             $type = $this->safe_string($params, 'type', $type);
             $request['type'] = $type;
             $method = 'spotPrivatePostV1FuturesTransfer';
+        } elseif ($fromSpot && $toCross) {
+            $method = 'privatePostCrossMarginTransferIn';
+        } elseif ($fromCross && $toSpot) {
+            $method = 'privatePostCrossMarginTransferOut';
+        } elseif ($fromSpot && $toIsolated) {
+            $request['symbol'] = $toAccountId;
+            $method = 'privatePostDwTransferInMargin';
+        } elseif ($fromIsolated && $toSpot) {
+            $request['symbol'] = $fromAccountId;
+            $method = 'privatePostDwTransferOutMargin';
         } else {
             $method = 'v2PrivatePostAccountTransfer';
             if ($subType === 'linear') {
-                if (($fromAccount === 'swap') || ($fromAccount === 'linear-swap')) {
-                    $fromAccount = 'linear-swap';
+                if (($fromAccountId === 'swap') || ($fromAccount === 'linear-swap')) {
+                    $fromAccountId = 'linear-swap';
                 } else {
-                    $toAccount = 'linear-swap';
+                    $toAccountId = 'linear-swap';
                 }
                 // check if cross-margin or isolated
                 $symbol = $this->safe_string($params, 'symbol');
@@ -5115,30 +5134,27 @@ class huobi extends Exchange {
                     $request['margin-account'] = 'USDT'; // cross-margin
                 }
             }
-            $request['from'] = $fromAccount;
-            $request['to'] = $toAccount;
+            $request['from'] = $fromSpot ? 'spot' : $fromAccountId;
+            $request['to'] = $toSpot ? 'spot' : $toAccountId;
         }
         $response = $this->$method (array_merge($request, $params));
         //
-        //     {
-        //         "data" => 12345,
-        //         "status" => "ok"
-        //     }
+        //    {
+        //        $code => '200',
+        //        data => '660150061',
+        //        message => 'Succeed',
+        //        success => true,
+        //        'print-log' => true
+        //    }
         //
-        $transfer = $this->parse_transfer($response, $currency);
-        return array_merge($transfer, array(
-            'amount' => $amount,
-            'currency' => $code,
-            'fromAccount' => $fromAccount,
-            'toAccount' => $toAccount,
-        ));
+        return $this->parse_transfer($response, $currency);
     }
 
     public function fetch_borrow_rates_per_symbol($params = array ()) {
         /**
          * fetch borrow $rates for $currencies within individual markets
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$rate-structure borrow $rate structures} indexed by market $symbol
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=borrow-$rate-structure borrow $rate structures~ indexed by market $symbol
          */
         $this->load_markets();
         $response = $this->spotPrivateGetV1MarginLoanInfo ($params);
@@ -5203,7 +5219,7 @@ class huobi extends Exchange {
         /**
          * fetch the borrow interest $rates of all $currencies
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~
          */
         $this->load_markets();
         $response = $this->spotPrivateGetV1MarginLoanInfo ($params);
@@ -5372,7 +5388,7 @@ class huobi extends Exchange {
          * fetch the current funding rate
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -5412,7 +5428,7 @@ class huobi extends Exchange {
          * fetch the funding rate for multiple markets
          * @param {[string]|null} $symbols list of unified market $symbols
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -5460,7 +5476,7 @@ class huobi extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch borrrow $interest for
          * @param {int|null} $limit the maximum number of structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-$interest-structure borrow $interest structures~
          */
         $this->load_markets();
         $marginMode = null;
@@ -5600,8 +5616,8 @@ class huobi extends Exchange {
                 if ($method !== 'POST') {
                     $request = array_merge($request, $query);
                 }
-                $request = $this->keysort($request);
-                $auth = $this->urlencode($request);
+                $sortedRequest = $this->keysort($request);
+                $auth = $this->urlencode($sortedRequest);
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $this->hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
@@ -5716,11 +5732,14 @@ class huobi extends Exchange {
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this account
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-$query-account-financial-records-via-multiple-fields-new   // linear swaps
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#$query-financial-records-via-multiple-fields-new                          // coin-m futures
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#$query-financial-records-via-multiple-fields-new          // coin-m swaps
          * @param {string|null} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch funding history for
          * @param {int|null} $limit the maximum number of funding history structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -5732,41 +5751,42 @@ class huobi extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $since;
         }
-        if ($market['linear']) {
-            $method = 'contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact';
-            //
-            // {
-            //   status => 'ok',
-            //   $data => array(
-            //     financial_record => array(
-            //       array(
-            //         id => '1320088022',
-            //         type => '30',
-            //         amount => '0.004732510000000000',
-            //         ts => '1641168019321',
-            //         contract_code => 'BTC-USDT',
-            //         asset => 'USDT',
-            //         margin_account => 'BTC-USDT',
-            //         face_margin_account => ''
-            //       ),
-            //     ),
-            //     remain_size => '0',
-            //     next_id => null
-            //   ),
-            //   ts => '1641189898425'
-            // }
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchFundingHistory', $params);
-            $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-            if ($marginMode === 'isolated') {
-                $request['mar_acct'] = $market['id'];
+        if ($marketType === 'swap') {
+            $request['contract'] = $market['id'];
+            if ($market['linear']) {
+                $method = 'contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact';
+                //
+                //    {
+                //        status => 'ok',
+                //        $data => array(
+                //           financial_record => array(
+                //               array(
+                //                   id => '1320088022',
+                //                   type => '30',
+                //                   amount => '0.004732510000000000',
+                //                   ts => '1641168019321',
+                //                   contract_code => 'BTC-USDT',
+                //                   asset => 'USDT',
+                //                   margin_account => 'BTC-USDT',
+                //                   face_margin_account => ''
+                //               ),
+                //           ),
+                //           remain_size => '0',
+                //           next_id => null
+                //        ),
+                //        ts => '1641189898425'
+                //    }
+                //
+                $marginMode = null;
+                list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchFundingHistory', $params);
+                $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
+                if ($marginMode === 'isolated') {
+                    $request['mar_acct'] = $market['id'];
+                } else {
+                    $request['mar_acct'] = $market['quoteId'];
+                }
             } else {
-                $request['mar_acct'] = $market['quoteId'];
-            }
-        } else {
-            if ($marketType === 'swap') {
                 $method = 'contractPrivatePostSwapApiV3SwapFinancialRecordExact';
-                $request['contract'] = $market['id'];
                 //
                 //     {
                 //         "code" => 200,
@@ -5787,10 +5807,10 @@ class huobi extends Exchange {
                 //         "ts" => 1604312615051
                 //     }
                 //
-            } else {
-                $method = 'contractPrivatePostApiV3ContractFinancialRecordExact';
-                $request['symbol'] = $market['id'];
             }
+        } else {
+            $method = 'contractPrivatePostApiV3ContractFinancialRecordExact';
+            $request['symbol'] = $market['id'];
         }
         $response = $this->$method (array_merge($request, $query));
         $data = $this->safe_value($response, 'data', array());
@@ -5984,23 +6004,29 @@ class huobi extends Exchange {
     public function fetch_positions($symbols = null, $params = array ()) {
         /**
          * fetch all open positions
-         * @param {[string]|null} $symbols list of unified market $symbols
+         * @param {[string]|null} $symbols list of unified $market $symbols
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
+        $market = null;
+        if ($symbols !== null) {
+            $first = $this->safe_string($symbols, 0);
+            $market = $this->market($first);
+        }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositions', $params);
         $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params, 'linear');
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
         if ($marketType === 'spot') {
             $marketType = 'future';
         }
         $method = null;
-        if ($defaultSubType === 'linear') {
+        if ($subType === 'linear') {
             $method = $this->get_supported_mapping($marginMode, array(
                 'isolated' => 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
                 'cross' => 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',
@@ -6108,7 +6134,7 @@ class huobi extends Exchange {
          * fetch $data on a single open contract trade $position
          * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -6423,7 +6449,7 @@ class huobi extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
          * @param {int|null} $limit max number of ledger entrys to return, default is null
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
         $this->load_markets();
         $accountId = $this->fetch_account_id_by_type('spot', $params);
@@ -6490,7 +6516,7 @@ class huobi extends Exchange {
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {[string]|null} $symbols list of unified market $symbols
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
          */
         $this->load_markets();
         $response = $this->contractPublicGetLinearSwapApiV1SwapAdjustfactor ($params);
@@ -6532,7 +6558,7 @@ class huobi extends Exchange {
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-$tiers-structure leverage $tiers structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-$tiers-structure leverage $tiers structure~
          */
         $this->load_markets();
         $request = array();
@@ -6625,7 +6651,7 @@ class huobi extends Exchange {
          * @param {array} $params Exchange specific parameters
          * @param {int} $params->amount_type *required* Open interest unit. 1-cont，2-cryptocurrency
          * @param {int|null} $params->pair eg BTC-USDT *Only for USDT-M*
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#open-interest-structure open interest structures}
+         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
          */
         if ($timeframe !== '1h' && $timeframe !== '4h' && $timeframe !== '12h' && $timeframe !== '1d') {
             throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe');
@@ -6737,7 +6763,7 @@ class huobi extends Exchange {
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {array} $params exchange specific parameters
-         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=interest-history-structure)
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -6909,7 +6935,7 @@ class huobi extends Exchange {
          * @param {float} $amount the $amount to borrow
          * @param {string|null} $symbol unified $market $symbol, required for isolated margin
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -6961,7 +6987,7 @@ class huobi extends Exchange {
          * @param {float} $amount the $amount to repay
          * @param {string|null} $symbol unified market $symbol
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-$loan-structure margin $loan structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-$loan-structure margin $loan structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -7143,7 +7169,7 @@ class huobi extends Exchange {
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
          * @param {[string]|null} $codes list of unified currency $codes
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fees structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
          */
         $this->load_markets();
         $response = $this->spotPublicGetV2ReferenceCurrencies ($params);

@@ -1,8 +1,7 @@
-"use strict";
 
-const ccxt = require ('../../ccxt.js')
 
-;(async () => {
+import ccxt from '../../ccxt.js';
+(async () => {
 
     const exchanges = [
         'bittrex',

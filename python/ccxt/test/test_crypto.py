@@ -12,10 +12,13 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 
 import ccxt  # noqa: F402
+import hashlib  # noqa: F402
 
 Exchange = ccxt.Exchange
 hash = Exchange.hash
+hmac = Exchange.hmac
 ecdsa = Exchange.ecdsa
+eddsa = Exchange.eddsa
 jwt = Exchange.jwt
 crc32 = Exchange.crc32
 rsa = Exchange.rsa
@@ -38,23 +41,13 @@ assert hash(encode('sexyfish'), 'md5', 'hex') == 'c8a35464aa9d5683585786f44d5889
 
 assert hash(encode(''), 'sha1', 'hex') == 'da39a3ee5e6b4b0d3255bfef95601890afd80709'
 assert hash(encode('nutella'), 'sha1', 'hex') == 'b3d60a34b744159793c483b067c56d8affc5111a'
+assert hmac(encode('hello'), encode('there'), hashlib.sha256, 'hex') == '551e1c1ecbce0fe9b643745a376584a6289f5f43a46861b315fac9edc8d52a26'
 
 # ---------------------------------------------------------------------------------------------------------------------
 
+
 privateKey = '1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a'
 
-assert(equals(ecdsa('1a', privateKey, 'p256', 'sha256'), {
-    'r': '3f4537ef9e72240cdefaea19d68fd483b5e10227e89747c58a3b543bfaf9cc46',
-    's': '278d65adebd8d52dac34820c02cee0a0e3348f9aee91a21b8e9bfa0a23b40001',
-    'v': 1
-}))
-
-
-assert(equals(ecdsa(privateKey, privateKey, 'p256', None), {
-    'r': '9aadbfe7feca28a8b665731abd8fdd19f8b1be5fcdd1264d111b291a01c8dea2',
-    's': '5084765e08e169fbba470ed1f573c9fed8d68a9d883049054b601f66a6648912',
-    'v': 0,
-}))
 
 assert(equals(ecdsa('1a', privateKey, 'secp256k1', 'sha256'), {
     'r': '23dcb2a2a3728a35eb1a35cc01743c4609550d9cceaf2083550f13a9eb135f9f',
@@ -117,14 +110,16 @@ pemKeyArray = [
     '-----END RSA PRIVATE KEY-----',
 ]
 
-pemKey = "\n".join(pemKeyArray)
 
-assert jwt({'chicken': 'salad'}, encode(pemKey), 'RS256') == 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGlja2VuIjoic2FsYWQifQ.FSKD5Y6RNzkHTuHdvG3753U7QNZ-u-GUSPfP1FMjEaK0Rr_iyQTSSmHhkdYSFFnmBvrrN_l-UwKwir52WlsgmQm9HYm0kidxbj7fWwrK2E1oe0P7OjupFjv1BZxc5W69WeaHtOPWe28tiHiON1LCnax6HgfI5lcIBsESGIIBZMVeaioQn9gDVwea7JxJvAlrhDIWZowIHTIdCQocXip7g5jREWHeEIuJNug67mwnfAFxCjvTRiTd0Bw6oBwjM3FLya-RyEyWrejQOWSuC8CNWVUHISaSmEyZ7uM6wTi2m_58TaE9mQwlef32OPErPvvBpgL5pZIyQ4ymwrCIFQLBQQ'
-assert jwt({'lil': 'xan'}, encode('betrayed'), 'HS256') == 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWwiOiJ4YW4ifQ.md-oFvZagA-NXmZoRNyJOQ7zwK-PWUMmMQ_LI9ZOKaM'
+pemKey = "\n".join(pemKeyArray)
+assert rsa('hello', pemKey, 'sha256') == 'PqHotvSEBvM/AejnMOWBXUcOf3uHtcGu2zAYdlYdnlNSSQ80Uq4lcyAEstnZ2AnQJ9l5TCC53uoRZ26GQ47zlACgqtYglmPhQKLvQ5fldRzeBauYhGgM2C0mUuUGxh074fNGbK+bgmwEmDMIrnSPtXwiCqTAHh+8VEnC7us3t09D61y298dPBJYEBNN3dFZT0w0pCIQg3j3DSiFJOCfywmOKyXqS1pvmk6A38DVclQZORQ5WZXp2yvSKRLjxpzjxDl76h1GfbBl7sMLEFMyzk0wyIhIz8ZELMibYn036G4X1IcSlDcimthEkIbn2QjM0ntyYDZIS4QnsMBjvkV2UHw=='
+assert rsa('poopy', pemKey, 'sha256') == 'or069qHwRDyl162T1s5G5+LfLnvDxlgk9kEsJvwI3vM02KB1LHW4+8gWqsV4TENZpeqed2Tb4na6ex+L/UR8JxJnnZtpVp33nUBgcp3miqp/YhcGN4++qolP4YN/21/AyfLFZW+VYggc+Mhh6PJSm+0dSEWMVsP35uH+35abXVxgB8GVOn7YTOSPaL8aw7hn4wlZWf2ieikKAi7AwAjkxnd7/Bu5+cW8D+ZdPHQfSKj+XHuPXlJNuQX0MDIqhdD2yuYJOQL56eKYs6nHPlClATkndSaAemQSGKet3X3Iz1awG4MGgz2Ei6bOanlNugc0f6Rng6rdwmqiMU3G4it6cw=='
+
+assert jwt({'chicken': 'salad'}, encode(pemKey), 'sha256', True) == 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGlja2VuIjoic2FsYWQifQ.FSKD5Y6RNzkHTuHdvG3753U7QNZ-u-GUSPfP1FMjEaK0Rr_iyQTSSmHhkdYSFFnmBvrrN_l-UwKwir52WlsgmQm9HYm0kidxbj7fWwrK2E1oe0P7OjupFjv1BZxc5W69WeaHtOPWe28tiHiON1LCnax6HgfI5lcIBsESGIIBZMVeaioQn9gDVwea7JxJvAlrhDIWZowIHTIdCQocXip7g5jREWHeEIuJNug67mwnfAFxCjvTRiTd0Bw6oBwjM3FLya-RyEyWrejQOWSuC8CNWVUHISaSmEyZ7uM6wTi2m_58TaE9mQwlef32OPErPvvBpgL5pZIyQ4ymwrCIFQLBQQ'
+assert jwt({'lil': 'xan'}, encode('betrayed'), 'sha256', False) == 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWwiOiJ4YW4ifQ.md-oFvZagA-NXmZoRNyJOQ7zwK-PWUMmMQ_LI9ZOKaM'
 
 assert crc32('hello', True) == 907060870
 assert crc32('tasty chicken breast :)', True) == 825820175
 assert crc32('21101:0.00123125:21102:-0.001:21100:0.710705:21103:-0.001:21096:0.71076:21104:-0.001:21094:1.0746:21105:-0.001:21093:0.710854:21106:-0.419:21092:0.01368102:21107:-0.001:21090:0.710975:21109:-0.001:21089:0.63586344:21110:-1.186213:21087:0.299:21111:-0.48751202:21086:0.9493:21112:-0.03702409:21082:0.03537667:21113:-0.712385:21081:0.00101366:21114:-0.2903:21079:0.710713:21115:-0.001:21078:0.997048:21116:-0.60089827:21077:0.23770225:21117:-0.83201:21076:0.03619135:21118:-0.09996142:21075:0.1272433:21119:-1.09681107:21074:0.7447885:21120:-0.04771792:21073:0.0011:21121:-0.91495684:21072:0.73311632:21122:-0.07940416:21071:0.09817:21123:-0.39376843:21070:0.19101052:21124:-1.51692599:21069:0.2757:21125:-0.11107322:21068:0.12480303:21126:-0.12704666:21067:0.4201:21128:-0.12804666', True) == -51055998
 
-assert rsa('hello', pemKey) == 'PqHotvSEBvM/AejnMOWBXUcOf3uHtcGu2zAYdlYdnlNSSQ80Uq4lcyAEstnZ2AnQJ9l5TCC53uoRZ26GQ47zlACgqtYglmPhQKLvQ5fldRzeBauYhGgM2C0mUuUGxh074fNGbK+bgmwEmDMIrnSPtXwiCqTAHh+8VEnC7us3t09D61y298dPBJYEBNN3dFZT0w0pCIQg3j3DSiFJOCfywmOKyXqS1pvmk6A38DVclQZORQ5WZXp2yvSKRLjxpzjxDl76h1GfbBl7sMLEFMyzk0wyIhIz8ZELMibYn036G4X1IcSlDcimthEkIbn2QjM0ntyYDZIS4QnsMBjvkV2UHw=='
-assert rsa('poopy', pemKey) == 'or069qHwRDyl162T1s5G5+LfLnvDxlgk9kEsJvwI3vM02KB1LHW4+8gWqsV4TENZpeqed2Tb4na6ex+L/UR8JxJnnZtpVp33nUBgcp3miqp/YhcGN4++qolP4YN/21/AyfLFZW+VYggc+Mhh6PJSm+0dSEWMVsP35uH+35abXVxgB8GVOn7YTOSPaL8aw7hn4wlZWf2ieikKAi7AwAjkxnd7/Bu5+cW8D+ZdPHQfSKj+XHuPXlJNuQX0MDIqhdD2yuYJOQL56eKYs6nHPlClATkndSaAemQSGKet3X3Iz1awG4MGgz2Ei6bOanlNugc0f6Rng6rdwmqiMU3G4it6cw=='
+# assert eddsa('1b1b', privateKey, 'ed25519') == '3DBaaz8z4Pq9n6ncNCjB4pFLWaWTXbjaCUqKQmBgS3w7AP6opeDqANBhPssbV3jyfJB4LfK8kGR6pu6GU8fbjMuy'

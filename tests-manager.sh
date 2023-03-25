@@ -78,7 +78,7 @@ function run_tests {
   fi
   if [ -z "$rest_pid" ]; then
     # shellcheck disable=SC2086
-    node run-tests --js --python-async --php-async $rest_args &
+    node test-commonjs.cjs && node run-tests --js --python-async --php-async $rest_args &
     local rest_pid=$!
   fi
   if [ -z "$ws_pid" ]; then

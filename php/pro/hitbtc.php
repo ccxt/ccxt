@@ -10,8 +10,6 @@ use React\Async;
 
 class hitbtc extends \ccxt\async\hitbtc {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -71,7 +69,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $orderbook = Async\await($this->watch_public($symbol, 'orderbook', null, $params));
             return $orderbook->limit ();
@@ -178,7 +176,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             return Async\await($this->watch_public($symbol, 'ticker', null, $params));
         }) ();
@@ -292,7 +290,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             // if ($limit === null) {
             //     $limit = 100;
