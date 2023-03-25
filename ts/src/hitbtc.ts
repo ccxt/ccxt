@@ -1503,7 +1503,7 @@ export default class hitbtc extends Exchange {
             } else if (Object.keys (query).length) {
                 body = this.json (query);
             }
-            const payload = this.encode (this.apiKey + ':' + this.secret);
+            const payload = this.apiKey + ':' + this.secret;
             const auth = this.stringToBase64 (payload);
             headers = {
                 'Authorization': 'Basic ' + auth,

@@ -239,8 +239,8 @@ function md51_array(a) {
 
 // lame wrapper over the noble hashes API
 class MD5 extends Hash<MD5> {
-    public blockLen = 128;
-    public outputLen = 32;
+    public blockLen = 64;
+    public outputLen = 16;
     protected _buffer = new Uint8Array();
 
     digest (): Uint8Array {
