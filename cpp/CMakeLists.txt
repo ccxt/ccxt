@@ -12,7 +12,9 @@ set(CCXT_SRCS
     ccxt/base/exchange.cpp
     ccxt/base/functions/type.cpp
     ccxt/base/functions/throttle.cpp
-    ccxt/base/functions/string.cpp)
+    ccxt/base/functions/string.cpp
+    ccxt/base/functions/generic.cpp
+    binance.cpp)
 
 if(BUILD_SHARED_LIBS)
     add_library(ccxt SHARED ${CCXT_SRCS} ${CCXT_ALL_HEADERS})
@@ -20,6 +22,9 @@ else()
     add_library(ccxt STATIC ${CCXT_SRCS} ${CCXT_ALL_HEADERS})
 endif()
 
-target_include_directories(ccxt PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/cpp>")
+target_include_directories(ccxt PUBLIC 
+    "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/cpp>"
+    "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/cpp/3rdparty/plog-1.1.9/include>"
+)
 
 add_subdirectory(test)

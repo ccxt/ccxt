@@ -20,7 +20,6 @@ endif()
 # ---------------------------------------------------------------------------------------
 # Options
 # ---------------------------------------------------------------------------------------
-option(ENABLE_DOCTESTS "Include tests in the library. Setting this to OFF will remove all doctest related code.
-                        Tests in tests/*.cpp will still be enabled." ON)
+option(ENABLE_TESTS "Include tests in the library. Setting this to OFF will remove all test related code." ON)
 
 add_subdirectory(cpp)

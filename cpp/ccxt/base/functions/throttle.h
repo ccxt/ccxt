@@ -3,6 +3,8 @@
 #include <string>
 #include <map>
 
+namespace ccxt {
+
 class Throttle
 {
 public:
@@ -24,3 +26,5 @@ private:
     std::map<std::string, std::string> _queue;
     bool _running = false;
 };
+
+}

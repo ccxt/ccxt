@@ -1,6 +1,8 @@
 #include <doctest.h>
 #include <ccxt/base/exchange.h>
 
+using namespace ccxt;
+
 TEST_CASE("construct the exchange base class") {
     Exchange ex;
 }

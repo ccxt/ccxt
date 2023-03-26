@@ -1,9 +1,16 @@
 #include <ccxt/base/exchange.h>
-#include <fmt/xchar.h>
 #include <fmt/format.h>
+#include <fmt/xchar.h>
 #include <algorithm>
 #include <bits/stdc++.h>
 #include <ccxt/base/functions/string.h>
+#include <ccxt/base/functions/type.h>
+#include <plog/Log.h>
+#include <plog/Init.h>
+#include <plog/Formatters/TxtFormatter.h>
+#include <plog/Appenders/ColorConsoleAppender.h>
+
+namespace ccxt {
 
 Exchange::Exchange()
 {
@@ -26,10 +33,17 @@ Exchange::Exchange()
     // }
     // // init the request rate limiter
     // this.initRestRateLimiter ()
-    // // init predefined markets if any
-    // if (this.markets) {
-    //     this.setMarkets (this.markets)
-    // }
+    // init predefined markets if any
+    if (_markets.size() == 0) {
+        setMarkets(_markets);
+    }
+    
+    if (_verbose) {
+        static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+        plog::init(plog::debug, &consoleAppender);
+        // TODO: move this to the places where we want are logging.
+        PLOGD << "Hello log!";
+    }
 }
 
 bool Exchange::checkRequiredVersion(const std::wstring requiredVersion, bool error) 
@@ -108,6 +122,136 @@ void Exchange::setSandboxMode(bool enabled)
         }
     }
 }
+
+std::map<std::wstring, Market> Exchange::setMarkets(const std::map<std::wstring, Market>& markets, std::map<int, Currency> currencies)
+{
+    std::map<std::wstring, Market> values;
+    std::map<int, Market> values2;
+    _markets_by_id.clear();
+
+    // TODO: Since C++ uses std::map there are no multiple values for the same key,
+    // maybe this is a problem since we will have spot and derivatives markets which could have the same id
+    // If we want to have multiple entries we need to switch to multimap or change to map(type, id, market) instead.
+
+    // handle marketId conflicts
+    // we insert spot markets first
+    // const marketValues = this.sortBy(this.toArray(_markets), 'spot', true);
+    for (auto i : _markets) {
+        auto& value{i.second};
+        _markets_by_id[value.id] = value;
+
+        Market market = safeMarket();
+        market.precision = _precision;
+        market.limits = _limits;
+        market.fees.trading = _fees.trading;
+        // market.value = value; TODO: Do we really need this?
+        values[market.symbol] = market;
+        values2[market.id] = market;
+    }
+    _markets = values;
+    _markets_by_id = values2;    
+    _symbols.clear();
+    for (const auto& i : _markets)
+        _symbols.push_back(i.first);
+    std::sort(_symbols.begin(), _symbols.end());
+    _ids.clear();    
+    for (const auto& i : _markets)
+        _ids.push_back(i.second.id);
+    std::sort(_ids.begin(), _ids.end());
+    if (currencies.size() == 0) {
+        for (const auto& i : currencies) {
+            _currencies[i.first] = i.second;
+        }
+    }
+    else {
+        std::vector<Currency> baseCurrencies;
+        std::vector<Currency> quoteCurrencies;
+        for (auto i : _markets) {
+            auto market{i.second};
+            double defaultCurrencyPrecision = (_precisionMode == DECIMAL_PLACES) ? 8 : 1e-8;
+            const auto marketPrecision = market.precision;
+            if (market.base.size() > 0) {
+                const auto currencyPrecision = safeValue2(marketPrecision.base, marketPrecision.amount, defaultCurrencyPrecision);
+                Currency ccy;
+                ccy.id = safeString2(market.baseId, market.base);
+                ccy.numericId = safeString(market.baseNumericId);
+                ccy.code = safeString(market.base);
+                ccy.precision = currencyPrecision;
+                baseCurrencies.push_back(ccy);
+            }
+            if (market.quote.size() != 0) {
+                const auto currencyPrecision = safeValue2(marketPrecision.quote, marketPrecision.price, defaultCurrencyPrecision);
+                Currency ccy;
+                ccy.id = safeString2(market.quoteId, market.quote);
+                ccy.numericId = safeString(market.quoteNumericId);
+                ccy.code = safeString(market.quote);
+                ccy.precision = currencyPrecision;
+                quoteCurrencies.push_back(ccy);
+            }
+        }
+    }
+
+    throw std::runtime_error("Not Implemented");
+}
+
+std::map<std::wstring, Market> Exchange::loadMarketsHelper(bool reload)
+{
+    if (!reload && _markets.size() != 0) {
+        if (_markets_by_id.size() != 0) {
+            return setMarkets(_markets);
+        }
+        return _markets;
+    }
+    std::map<int, Currency> currencies;
+    // only call if exchange API provides endpoint (true), thus avoid emulated versions
+    if (_has.fetchCurrencies == L"true") {
+        currencies = fetchCurrencies();
+    }
+    const auto markets = fetchMarkets();
+    return setMarkets(markets, currencies);
+}
+
+std::map<std::wstring, Market> Exchange::loadMarkets(bool reload)
+{
+    if ((reload && !_reloadingMarkets) || _marketsLoading.size() != 0) {
+            _reloadingMarkets = true;
+            try {
+                _marketsLoading = loadMarketsHelper(reload);
+                _reloadingMarkets = false;
+            }
+            catch(std::exception ex) {
+                _reloadingMarkets = false;
+                throw ex;
+            }            
+        }
+        return _marketsLoading;
+}
+
+std::map<int, Currency> Exchange::fetchCurrencies()
+{
+    // markets are returned as a list
+    // currencies are returned as a dict
+    // this is for historical reasons
+    // and may be changed for consistency later
+    return _currencies;
+}
+
+std::map<std::wstring, Market> Exchange::fetchMarkets()
+{
+    // markets are returned as a list
+    // currencies are returned as a dict
+    // this is for historical reasons
+    // and may be changed for consistency later
+    return _markets;
+}
+
+Market Exchange::safeMarket(std::optional<int> marketId, 
+            std::optional<Market> market, std::optional<std::wstring> delimiter, 
+            std::optional<MarketType> marketType)
+{
+    throw std::runtime_error("Not Implemented");
+}
+
 
 void Exchange::defineRestApiEndpoint()
 {        
@@ -194,4 +338,6 @@ void Exchange::handleHttpStatusCode()
     //     {'407', AuthenticationError},
     //     {'511', AuthenticationError},
     // };
+}
+
 }

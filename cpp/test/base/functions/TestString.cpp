@@ -1,6 +1,8 @@
 #include <doctest.h>
 #include <ccxt/base/functions/string.h>
 
+using namespace ccxt;
+
 TEST_CASE("test string") {
     CHECK(L"Abc" == capitalize(L"abc"));
     CHECK(L"A" == capitalize(L"a"));

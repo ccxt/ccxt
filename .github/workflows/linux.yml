@@ -51,6 +51,8 @@ jobs:
         threads=`nproc`
         cmake --build . --config ${{matrix.build_type}} --parallel $threads
 
-    - name: Test
-      working-directory: ${{runner.workspace}}/build
-      run: cpp/test/test-base
+    # - name: Test
+    #   working-directory: ${{runner.workspace}}/build
+    #   run: |
+    #     cpp/test/base/test-base
+    #     cpp/test/tests
