@@ -215,10 +215,12 @@ class btcex extends Exchange {
                     '403' => '\\ccxt\\AuthenticationError', // ACCESS_DENIED_ERROR Access denied
                     '1000' => '\\ccxt\\ExchangeNotAvailable', // NO_SERVICE No service found
                     '1001' => '\\ccxt\\BadRequest', // BAD_REQUEST Bad requested
+                    '1005' => '\\ccxt\\DDoSProtection', // array("code":1005,"message":"Operate too frequently")
                     '2000' => '\\ccxt\\AuthenticationError', // NEED_LOGIN Login is required
                     '2001' => '\\ccxt\\AuthenticationError', // ACCOUNT_NOT_MATCH Account information does not match
                     '2002' => '\\ccxt\\AuthenticationError', // ACCOUNT_NEED_ENABLE Account needs to be activated
                     '2003' => '\\ccxt\\AuthenticationError', // ACCOUNT_NOT_AVAILABLE Account not available
+                    '2010' => '\\ccxt\\PermissionDenied', // array("code":2010,"message":"Access denied","data":array())
                     '3000' => '\\ccxt\\AuthenticationError', // TEST user
                     '3002' => '\\ccxt\\AuthenticationError', // NICKNAME_EXIST Nicknames exist
                     '3003' => '\\ccxt\\AuthenticationError', // ACCOUNT_NOT_EXIST No account
@@ -283,6 +285,7 @@ class btcex extends Exchange {
                     '5013' => '\\ccxt\\InvalidOrder', // ORDER_PRICE_RANGE_IS_TOO_HIGH order price range is too high.
                     '5014' => '\\ccxt\\InvalidOrder', // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
                     '5109' => '\\ccxt\\InvalidOrder', // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
+                    '5119' => '\\ccxt\\InvalidOrder', // array("code":5119,"message":"Cannot be less than the minimum order value：10USDT, instrument => GXE/USDT","data":array("coinType":"USDT","amount":"10","instrumentName":"GXE/USDT"))
                     '5135' => '\\ccxt\\InvalidOrder', // The quantity should be larger than => 0.01
                     '5901' => '\\ccxt\\InvalidOrder', // TRANSFER_RESULT transfer out success.
                     '5902' => '\\ccxt\\InvalidOrder', // ORDER_SUCCESS place order success.
@@ -1272,7 +1275,7 @@ class btcex extends Exchange {
          * @param {string|null} $params->timeInForce 'GTC', 'IOC', 'FOK'
          * @param {bool|null} $params->postOnly
          * @param {bool|null} $params->reduceOnly
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->sign_in();
         $this->load_markets();
@@ -1281,7 +1284,7 @@ class btcex extends Exchange {
             'instrument_name' => $market['id'],
             'type' => $type,
         );
-        if ($side === 'sell') {
+        if ($side === 'sell' || $type === 'limit') {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
         }
         if ($type === 'limit') {
@@ -1990,7 +1993,7 @@ class btcex extends Exchange {
          * fetch the set leverage for a $market
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the btcex api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
          */
         $this->sign_in();
         $this->load_markets();
@@ -2023,7 +2026,7 @@ class btcex extends Exchange {
          * retrieve information on the maximum leverage, for different trade sizes for a single $market
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the btcex api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2057,7 +2060,7 @@ class btcex extends Exchange {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, $market) {
+    public function parse_market_leverage_tiers($info, $market = null) {
         //
         //     array(
         //         array(
@@ -2094,7 +2097,7 @@ class btcex extends Exchange {
          * retrieve information on the maximum leverage, for different trade sizes
          * @param {[string]|null} $symbols a list of unified market $symbols
          * @param {array} $params extra parameters specific to the btcex api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
          */
         $this->load_markets();
         $response = $this->publicGetGetPerpetualLeverageBracketAll ($params);
@@ -2247,7 +2250,7 @@ class btcex extends Exchange {
          * @see https://docs.btcex.com/#contracts
          * @param {[string]} $symbols unified $market $symbols
          * @param {array} $params extra parameters specific to the btcex api endpoint
-         * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
+         * @return {[array]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -2309,7 +2312,7 @@ class btcex extends Exchange {
          * @see https://docs.btcex.com/#contracts
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the btcex api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2416,7 +2419,7 @@ class btcex extends Exchange {
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} $params extra parameters specific to the btcex api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
          */
         $this->sign_in();
         $this->load_markets();
@@ -2474,7 +2477,7 @@ class btcex extends Exchange {
          * @see https://docs.btcex.com/#contracts
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {array} $params extra parameters specific to the btcex api endpoint
-         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=interest-history-structure)
          */
         $this->load_markets();
         $market = $this->market($symbol);

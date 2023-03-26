@@ -202,7 +202,7 @@ class alpaca extends Exchange {
                     '40310000' => '\\ccxt\\InsufficientFunds', // array("available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested => 221.63, available => 0)","symbol":"USDT")
                 ),
                 'broad' => array(
-                    'Invalid format for parameter' => '\\ccxt\\BadRequest', // array("message":"Invalid format for parameter start => error parsing '0' as RFC3339 or 2006-01-02 time => parsing time \"0\" as \"2006-01-02\" => cannot parse \"0\" as \"2006\"")
+                    'Invalid format for parameter' => '\\ccxt\\BadRequest', // array("message":"Invalid format for parameter start => error parsing '0' or 2006-01-02 time => parsing time \"0\" as \"2006-01-02\" => cannot parse \"0\" as \"2006\"")
                     'Invalid symbol' => '\\ccxt\\BadSymbol', // array("message":"Invalid symbol(s) => BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$")
                 ),
             ),
@@ -362,7 +362,7 @@ class alpaca extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the alpaca api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?$id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -424,7 +424,7 @@ class alpaca extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the alpha api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -511,7 +511,7 @@ class alpaca extends Exchange {
              * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the alpaca api endpoint
              * @param {float} $params->triggerPrice The $price at which a trigger $order is triggered at
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -595,7 +595,7 @@ class alpaca extends Exchange {
              * @param {string} $id order $id
              * @param {string|null} $symbol unified $symbol of the market the order was made in
              * @param {array} $params extra parameters specific to the alpaca api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $request = array(
                 'order_id' => $id,
@@ -617,7 +617,7 @@ class alpaca extends Exchange {
              * fetches information on an $order made by the user
              * @param {string|null} $symbol unified $symbol of the $market the $order was made in
              * @param {array} $params extra parameters specific to the alpaca api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -638,7 +638,7 @@ class alpaca extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open $orders for
              * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
              * @param {array} $params extra parameters specific to the alpaca api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;

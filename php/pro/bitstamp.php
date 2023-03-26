@@ -11,8 +11,6 @@ use React\Async;
 
 class bitstamp extends \ccxt\async\bitstamp {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -55,7 +53,7 @@ class bitstamp extends \ccxt\async\bitstamp {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the bitstamp api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -211,12 +209,12 @@ class bitstamp extends \ccxt\async\bitstamp {
         //
         $microtimestamp = $this->safe_integer($trade, 'microtimestamp');
         $id = $this->safe_string($trade, 'id');
-        $timestamp = intval($microtimestamp / 1000);
+        $timestamp = $this->parse_to_int($microtimestamp / 1000);
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
         $symbol = $market['symbol'];
-        $side = $this->safe_integer($trade, 'type');
-        $side = ($side === 0) ? 'buy' : 'sell';
+        $sideRaw = $this->safe_integer($trade, 'type');
+        $side = ($sideRaw === 0) ? 'buy' : 'sell';
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -281,7 +279,7 @@ class bitstamp extends \ccxt\async\bitstamp {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bitstamp api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');

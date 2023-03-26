@@ -13,8 +13,6 @@ use React\Async;
 
 class binance extends \ccxt\async\binance {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -122,7 +120,7 @@ class binance extends \ccxt\async\binance {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the binance api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             //
             // todo add support for <levels>-snapshots (depth)
@@ -299,9 +297,8 @@ class binance extends \ccxt\async\binance {
         //         )
         //     }
         //
-        $testnetSpot = mb_strpos($client->url, 'testnet') > 0;
-        $isSpot = mb_strpos($client->url, '/stream.binance') > 0;
-        $marketType = ($testnetSpot || $isSpot) ? 'spot' : 'contract';
+        $index = mb_strpos($client->url, '/stream');
+        $marketType = ($index >= 0) ? 'spot' : 'contract';
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
@@ -639,7 +636,7 @@ class binance extends \ccxt\async\binance {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the binance api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -751,7 +748,7 @@ class binance extends \ccxt\async\binance {
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @param {string} $params->name stream to use can be ticker or bookTicker
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -787,7 +784,7 @@ class binance extends \ccxt\async\binance {
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {[string]} $symbols unified symbol of the $market to fetch the $ticker for
              * @param {array} $params extra parameters specific to the binance api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1300,7 +1297,7 @@ class binance extends \ccxt\async\binance {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'orders';
@@ -1426,8 +1423,8 @@ class binance extends \ccxt\async\binance {
             $lastTradeTimestamp = $T;
         }
         $fee = null;
-        $feeCost = $this->safe_float($order, 'n');
-        if (($feeCost !== null) && ($feeCost > 0)) {
+        $feeCost = $this->safe_string($order, 'n');
+        if (($feeCost !== null) && (Precise::string_gt($feeCost, '0'))) {
             $feeCurrencyId = $this->safe_string($order, 'N');
             $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
@@ -1579,7 +1576,7 @@ class binance extends \ccxt\async\binance {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
             $defaultType = $this->safe_string_2($this->options, 'watchMyTrades', 'defaultType', 'spot');

@@ -9,7 +9,7 @@ If your question is formulated in a short manner like the above, we won't help. 
 When asking a question:
 
 - Use the search button for duplicates first!
-- **Post your request and response in `verbose` mode!** Add `exchange.verbose = true` right before the line you're having issues with, and copypaste what you see on your screen. It's written and mentioned everywhere, in the [Troubleshooting](https://docs.ccxt.com/en/latest/manual.html#troubleshooting) section, in the [README](https://github.com/ccxt/ccxt/blob/master/README.md) and in many answers to similar questions among [previous issues](https://github.com/ccxt/ccxt/issues) and [pull requests](https://github.com/ccxt/ccxt/pulls). No excuses. The verbose output should include both the request and response from the exchange.
+- **Post your request and response in `verbose` mode!** Add `exchange.verbose = true` right before the line you're having issues with, and copypaste what you see on your screen. It's written and mentioned everywhere, in the [Troubleshooting](https://docs.ccxt.com/#/?id=troubleshooting) section, in the [README](https://github.com/ccxt/ccxt/blob/master/README.md) and in many answers to similar questions among [previous issues](https://github.com/ccxt/ccxt/issues) and [pull requests](https://github.com/ccxt/ccxt/pulls). No excuses. The verbose output should include both the request and response from the exchange.
 - Include the full error callstack!
 - Write your programming language **and language version number**
 - Write the CCXT / CCXT Pro library version number

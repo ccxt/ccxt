@@ -7,11 +7,10 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\InvalidNonce;
+use ccxt\Precise;
 use React\Async;
 
 class idex extends \ccxt\async\idex {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -78,7 +77,7 @@ class idex extends \ccxt\async\idex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -115,34 +114,34 @@ class idex extends \ccxt\async\idex {
         $symbol = $this->safe_symbol($marketId);
         $messageHash = $type . ':' . $marketId;
         $timestamp = $this->safe_integer($data, 't');
-        $close = $this->safe_float($data, 'c');
-        $percentage = $this->safe_float($data, 'P');
+        $close = $this->safe_string($data, 'c');
+        $percentage = $this->safe_string($data, 'P');
         $change = null;
         if (($percentage !== null) && ($close !== null)) {
-            $change = $close * $percentage;
+            $change = Precise::string_mul($close, $percentage);
         }
-        $ticker = array(
+        $ticker = $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($data, 'h'),
-            'low' => $this->safe_float($data, 'l'),
-            'bid' => $this->safe_float($data, 'b'),
+            'high' => $this->safe_string($data, 'h'),
+            'low' => $this->safe_string($data, 'l'),
+            'bid' => $this->safe_string($data, 'b'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($data, 'a'),
+            'ask' => $this->safe_string($data, 'a'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_float($data, 'o'),
+            'open' => $this->safe_string($data, 'o'),
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
             'change' => $change,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_float($data, 'v'),
-            'quoteVolume' => $this->safe_float($data, 'q'),
+            'baseVolume' => $this->safe_string($data, 'v'),
+            'quoteVolume' => $this->safe_string($data, 'q'),
             'info' => $message,
-        );
+        ));
         $client->resolve ($ticker, $messageHash);
     }
 
@@ -252,7 +251,7 @@ class idex extends \ccxt\async\idex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -423,7 +422,7 @@ class idex extends \ccxt\async\idex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -533,7 +532,7 @@ class idex extends \ccxt\async\idex {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $name = 'orders';

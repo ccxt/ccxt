@@ -13,8 +13,6 @@ use React\Async;
 
 class coinex extends \ccxt\async\coinex {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -384,7 +382,7 @@ class coinex extends \ccxt\async\coinex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             return Async\await($this->watch_tickers(array( $symbol ), $params));
         }) ();
@@ -397,7 +395,7 @@ class coinex extends \ccxt\async\coinex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {[string]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -467,7 +465,7 @@ class coinex extends \ccxt\async\coinex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -500,7 +498,7 @@ class coinex extends \ccxt\async\coinex {
                 'params' => is_array($watchOrderBookSubscriptions) ? array_values($watchOrderBookSubscriptions) : array(),
             );
             $this->options['watchOrderBookSubscriptions'] = $watchOrderBookSubscriptions;
-            $subscriptionHash = $this->hash($this->encode($this->json($watchOrderBookSubscriptions)));
+            $subscriptionHash = $this->hash($this->encode($this->json($watchOrderBookSubscriptions)), 'sha256');
             $request = $this->deep_extend($subscribe, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $request));
             return $orderbook->limit ();
@@ -516,7 +514,7 @@ class coinex extends \ccxt\async\coinex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -541,7 +539,7 @@ class coinex extends \ccxt\async\coinex {
                 'id' => $this->request_id(),
                 'params' => [
                     $market['id'],
-                    $this->safe_integer($timeframes, $timeframe, $timeframe),
+                    $this->safe_string($timeframes, $timeframe, $timeframe),
                 ],
             );
             $subscription = array(
@@ -622,35 +620,8 @@ class coinex extends \ccxt\async\coinex {
             $currentOrderBook['datetime'] = $this->iso8601($timestamp);
             $this->orderbooks[$symbol] = $currentOrderBook;
         }
-        // $this->check_order_book_checksum($this->orderbooks[$symbol]);
+        // $this->checkOrderBookChecksum ($this->orderbooks[$symbol]);
         $client->resolve ($this->orderbooks[$symbol], $messageHash);
-    }
-
-    public function check_order_book_checksum($orderBook) {
-        $asks = $this->safe_value($orderBook, 'asks', array());
-        $bids = $this->safe_value($orderBook, 'bids', array());
-        $string = '';
-        $bidsLength = count($bids);
-        for ($i = 0; $i < $bidsLength; $i++) {
-            $bid = $bids[$i];
-            if ($i !== 0) {
-                $string .= ':';
-            }
-            $string .= $bid[0] . ':' . $bid[1];
-        }
-        $asksLength = count($asks);
-        for ($i = 0; $i < $asksLength; $i++) {
-            $ask = $asks[$i];
-            if ($bidsLength !== 0) {
-                $string .= ':';
-            }
-            $string .= $ask[0] . ':' . $ask[1];
-        }
-        $signedString = $this->hash($string, 'cr32', 'hex');
-        $checksum = $this->safe_string($orderBook, 'checksum');
-        if ($checksum !== $signedString) {
-            throw new ExchangeError($this->id . ' watchOrderBook () $checksum failed');
-        }
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -924,7 +895,7 @@ class coinex extends \ccxt\async\coinex {
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => $this->safe_timestamp($order, 'last_deal_time'),
             'symbol' => $market['symbol'],
-            'type' => $type === 1 ? 'limit' : 'market',
+            'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
