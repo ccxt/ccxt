@@ -1192,10 +1192,13 @@ export default class bitmex extends bitmexRest {
                 side = (side === 'Buy') ? 'bids' : 'asks';
                 const bookside = orderbook[side];
                 bookside.store (price, size, id);
+                const datetime = this.safeString (data[i], 'timestamp');
+                orderbook['timestamp'] = this.parse8601 (datetime);
+                orderbook['datetime'] = datetime;
             }
             const messageHash = table + ':' + marketId;
             client.resolve (orderbook, messageHash);
-        } else { // update, insert or delete
+        } else {
             const numUpdatesByMarketId = {};
             for (let i = 0; i < data.length; i++) {
                 const marketId = this.safeValue (data[i], 'symbol');
