@@ -147,6 +147,8 @@ public partial class Exchange
 
     private void transformApiNew(dict api, List<string> paths = null)
     {
+        if (api == null)
+            return;
         paths ??= new List<string>();
         List<string> keyList = new List<string>(api.Keys);
         foreach (string key in keyList)
@@ -403,7 +405,7 @@ public partial class Exchange
         return this.setMarkets(markets, currencies);
     }
 
-    public virtual Task<object> loadMarkets(object reload2 = null, object parameters2 = null)
+    public virtual Task<object> loadMarkets(dynamic reload2 = null, object parameters2 = null)
     {
         // parameters ??= new dict();
         // await fetch("", "", new dict(), new dict());

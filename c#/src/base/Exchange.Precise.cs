@@ -98,7 +98,9 @@ public partial class Exchange
 
         static public bool stringLt(object a, object b)
         {
-            return false;
+            var first = float.Parse((string)a, CultureInfo.InvariantCulture);
+            var second = float.Parse((string)b, CultureInfo.InvariantCulture);
+            return first < second;
         }
 
         static public string stringAbs(object a)
@@ -113,7 +115,16 @@ public partial class Exchange
 
         static public bool stringLe(object a, object b)
         {
-            return false;
+            var first = float.Parse((string)a, CultureInfo.InvariantCulture);
+            var second = float.Parse((string)b, CultureInfo.InvariantCulture);
+            return first <= second;
+        }
+
+        static public bool stringGe(object a, object b)
+        {
+            var first = float.Parse((string)a, CultureInfo.InvariantCulture);
+            var second = float.Parse((string)b, CultureInfo.InvariantCulture);
+            return first >= second;
         }
 
     }

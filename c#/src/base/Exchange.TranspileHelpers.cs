@@ -178,6 +178,10 @@ public partial class Exchange
         {
             return ((List<double>)value).Count > 0;
         }
+        else if (value.GetType() == typeof(Dictionary<string, object>))
+        {
+            return true;
+        }
         else
         {
             return false;

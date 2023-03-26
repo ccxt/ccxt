@@ -23,9 +23,9 @@ public partial class Exchange
             return null;
         if (value is string)
         {
-            return Convert.ToInt64(value) / 1000;
+            return Convert.ToInt64(value) * 1000;
         }
-        return safeInteger(value, defaultValue);
+        return (Int64)(value) * 1000;
     }
 
     public object safeTimestamp2(object obj, object key1, object key2, int defaultValue = -1)
@@ -218,9 +218,10 @@ public partial class Exchange
             var list = (List<object>)obj;
             foreach (var key in keys)
             {
-                if (list.ElementAtOrDefault((int)key) != null)
+                var keyInt = Convert.ToInt32(key);
+                if (list.ElementAtOrDefault(keyInt) != null)
                 {
-                    var returnValue = list[(int)key];
+                    var returnValue = list[keyInt];
                     return returnValue;
                     // if ((returnValue.GetType() == typeof(dict)))
                     //     return (dict)returnValue;

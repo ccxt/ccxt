@@ -290,6 +290,8 @@ public partial class Exchange
         this.urls = this.safeValue(properties, "urls") as dict;
         this.options = this.safeValue(properties, "options") as dict ?? new dict();
         this.verbose = (bool)this.safeValue(properties, "verbose", false);
+        this.timeframes = this.safeValue(properties, "timeframes") as dict;
+        this.fees = this.safeValue(properties, "fees") as dict;
         this.has = this.safeValue(properties, "has") as dict;
     }
 }

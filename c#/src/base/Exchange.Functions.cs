@@ -12,7 +12,10 @@ public partial class Exchange
 {
     public long milliseconds()
     {
-        return DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+        // return DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        long unixTimeMilliseconds = now.ToUnixTimeMilliseconds();
+        return unixTimeMilliseconds;
     }
 
     // public object nonce()
@@ -417,6 +420,9 @@ public partial class Exchange
 
     public List<object> toArray(object a)
     {
+        if (a == null)
+            return null;
+
         if (a.GetType() == typeof(List<object>))
         {
             return (List<object>)a;
