@@ -893,7 +893,7 @@ export default class ace extends Exchange {
         if (trades === undefined) {
             return trades;
         }
-        return await this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
@@ -1068,5 +1068,6 @@ export default class ace extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], status, feedback);
         }
+        return undefined;
     }
 }
