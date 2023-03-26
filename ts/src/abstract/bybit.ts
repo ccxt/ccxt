@@ -50,6 +50,8 @@ export default abstract class Exchange extends _Exchange {
     abstract publicGetSpotV3PublicQuoteTickerBookTicker (params?: {}): Promise<implicitReturnType>;
     abstract publicGetSpotV3PublicServerTime (params?: {}): Promise<implicitReturnType>;
     abstract publicGetSpotV3PublicInfos (params?: {}): Promise<implicitReturnType>;
+    abstract publicGetSpotV3PublicMarginProductInfos (params?: {}): Promise<implicitReturnType>;
+    abstract publicGetSpotV3PublicMarginEnsureTokens (params?: {}): Promise<implicitReturnType>;
     abstract publicGetV2PublicTime (params?: {}): Promise<implicitReturnType>;
     abstract publicGetV3PublicTime (params?: {}): Promise<implicitReturnType>;
     abstract publicGetV2PublicAnnouncement (params?: {}): Promise<implicitReturnType>;
@@ -157,6 +159,9 @@ export default abstract class Exchange extends _Exchange {
     abstract privateGetSpotV3PrivateCrossMarginAccount (params?: {}): Promise<implicitReturnType>;
     abstract privateGetSpotV3PrivateCrossMarginLoanInfo (params?: {}): Promise<implicitReturnType>;
     abstract privateGetSpotV3PrivateCrossMarginRepayHistory (params?: {}): Promise<implicitReturnType>;
+    abstract privateGetSpotV3PrivateMarginLoanInfos (params?: {}): Promise<implicitReturnType>;
+    abstract privateGetSpotV3PrivateMarginRepaidInfos (params?: {}): Promise<implicitReturnType>;
+    abstract privateGetSpotV3PrivateMarginLtv (params?: {}): Promise<implicitReturnType>;
     abstract privateGetAssetV1PrivateTransferList (params?: {}): Promise<implicitReturnType>;
     abstract privateGetAssetV3PrivateTransferInterTransferListQuery (params?: {}): Promise<implicitReturnType>;
     abstract privateGetAssetV1PrivateSubMemberTransferList (params?: {}): Promise<implicitReturnType>;

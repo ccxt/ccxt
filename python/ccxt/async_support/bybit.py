@@ -187,6 +187,8 @@ class bybit(Exchange):
                         'spot/v3/public/quote/ticker/bookTicker': 1,
                         'spot/v3/public/server-time': 1,
                         'spot/v3/public/infos': 1,
+                        'spot/v3/public/margin-product-infos': 1,
+                        'spot/v3/public/margin-ensure-tokens': 1,
                         # data
                         'v2/public/time': 1,
                         'v3/public/time': 1,
@@ -309,6 +311,9 @@ class bybit(Exchange):
                         'spot/v3/private/cross-margin-account': 10,
                         'spot/v3/private/cross-margin-loan-info': 10,
                         'spot/v3/private/cross-margin-repay-history': 10,
+                        'spot/v3/private/margin-loan-infos': 10,
+                        'spot/v3/private/margin-repaid-infos': 10,
+                        'spot/v3/private/margin-ltv': 10,
                         # account
                         'asset/v1/private/transfer/list': 50,  # 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v3/private/transfer/inter-transfer/list/query': 0.84,  # 60/s
