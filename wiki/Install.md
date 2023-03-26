@@ -58,7 +58,7 @@ We also provide webpack minified and tree-shaken versions of the library startin
 | bitget.min.js  | ~200kb |
 | bitmart.min.js | ~200kb |
 | bybit.min.js   | ~300kb |
-| ccxt.min.js    | ~300kb |
+| ccxt.min.js    | ~3mb   |
 | huobi.min.js   | ~300kb |
 | kucoin.min.js  | ~200kb |
 | mexc.min.js    | ~200kb |
@@ -70,7 +70,7 @@ Note: the the file sizes are subject to change.
 <script type="text/javascript" src="https://cdn.ccxt.com/3.0.35/ccxt.min.js"></script>
 ```
 
-Here is an example using a custom bybit bundle from our cdn in the browser
+Here is an [example](https://cdn.ccxt.com/example.html) using a custom bybit bundle from our cdn in the browser
 
 ```html
 <html>
@@ -102,13 +102,13 @@ async function update () {
 </head>
 
 <body onload="update()">
-<h3>The current bitcoin bid on bybit is: <span id="bid"></span><br><br>and the best ask is <span id="ask"></span></h3>
+<h3>The current bitcoin bid on bybit is <span id="bid"></span><br><br>and the best ask is <span id="ask"></span></h3>
 <ul id="updates" style="color: red;"></ul>
 </body>
 </html>
 ```
 
-The default entry point for the browser is window.ccxt and it creates a global `ccxt` object:
+The default entry point for the browser is `window.ccxt` and it creates a global ccxt object:
 
 ```javascript
 console.log (ccxt.exchanges) // print all available exchanges
