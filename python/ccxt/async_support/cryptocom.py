@@ -1119,6 +1119,10 @@ class cryptocom(Exchange):
         }
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId:
+            request['client_oid'] = clientOrderId
+            params = self.omit(params, ['clientOrderId'])
         postOnly = self.safe_value(params, 'postOnly', False)
         if postOnly:
             request['exec_inst'] = 'POST_ONLY'

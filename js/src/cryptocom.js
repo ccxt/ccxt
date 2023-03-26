@@ -1152,6 +1152,11 @@ export default class cryptocom extends Exchange {
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId) {
+            request['client_oid'] = clientOrderId;
+            params = this.omit(params, ['clientOrderId']);
+        }
         const postOnly = this.safeValue(params, 'postOnly', false);
         if (postOnly) {
             request['exec_inst'] = 'POST_ONLY';

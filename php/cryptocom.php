@@ -1142,6 +1142,11 @@ class cryptocom extends Exchange {
         if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId) {
+            $request['client_oid'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId' ));
+        }
         $postOnly = $this->safe_value($params, 'postOnly', false);
         if ($postOnly) {
             $request['exec_inst'] = 'POST_ONLY';
