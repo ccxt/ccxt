@@ -1165,7 +1165,7 @@ export default class cryptocom extends Exchange {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId) {
             request['client_oid'] = clientOrderId;
-            params = this.omit (params, ['clientOrderId']);
+            params = this.omit (params, [ 'clientOrderId' ]);
         }
         const postOnly = this.safeValue (params, 'postOnly', false);
         if (postOnly) {
