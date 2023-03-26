@@ -1,5 +1,6 @@
 using System.Text;
 using System.Security.Cryptography;
+using System.Globalization;
 
 namespace Main;
 
@@ -131,10 +132,27 @@ public partial class Exchange
         object parsedValue = null;
         try
         {
-            parsedValue = Convert.ToInt64(result);
+            if (result is string)
+            {
+                parsedValue = Math.Round(float.Parse(result.ToString(), CultureInfo.InvariantCulture));
+
+            }
+            else
+            {
+                parsedValue = Convert.ToInt64(result);
+
+            }
         }
         catch (Exception e)
         {
+            // try
+            // {
+            //     parsedValue = Math.Round((float)result);
+            // }
+            // catch (Exception e2)
+            // {
+
+            // }
 
         }
         return parsedValue == null ? defaultValue : parsedValue;

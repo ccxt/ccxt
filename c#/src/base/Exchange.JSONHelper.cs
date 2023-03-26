@@ -1,14 +1,3 @@
-using System.Net.Http.Headers;
-using System.Text.Json.Serialization;
-using System.Text;
-using System.Text.Json;
-using System;
-using System.Collections.Generic;
-using System.Net.NetworkInformation;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Text.RegularExpressions;
-using System.Linq;
 using Newtonsoft.Json.Linq;
 
 namespace Main;
@@ -43,4 +32,37 @@ public partial class Exchange
         }
     }
 
+    public string stringifyObject(object d2)
+    {
+        var output = "";
+
+        if (d2 == null)
+            return output;
+
+        if (d2.GetType() == typeof(dict))
+        {
+            var d = (dict)d2;
+            if (d == null)
+                return output;
+
+            foreach (var key in d.Keys)
+            {
+                output += key + ", " + d[key] + "\n";
+            }
+            return output;
+        }
+        else if (d2.GetType() == typeof(List<object>))
+        {
+            var d = (List<object>)d2;
+            if (d == null)
+                return output;
+
+            foreach (var key in d)
+            {
+                output += key + "\n";
+            }
+            return output;
+        }
+        return (string)output;
+    }
 }

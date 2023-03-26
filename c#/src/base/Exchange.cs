@@ -9,8 +9,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
-// using Json.Net;
-// using Newtonsoft.Json;
 
 namespace Main;
 
@@ -18,132 +16,13 @@ using dict = Dictionary<string, object>;
 
 public partial class Exchange
 {
-    public HttpClient client { get; set; } = new HttpClient();
-    public string id { get; set; } = "Exchange";
-
-    public string version { get; set; } = "";
-    public string userAgent { get; set; }
-    public bool verbose { get; set; } = true;
-    public bool enableRateLimit { get; set; } = true;
-    public long lastRestRequestTimestamp { get; set; } = 0;
-    public string url { get; set; } = "";
-
-    public string hostname { get; set; } = "";
-
-    public dict baseCurrencies { get; set; } = new dict();
-
-    // public dict currencies  { get; set; } = new dict();
-
-    public bool reloadingMarkets { get; set; } = false;
-
-    public Task<object> marketsLoading { get; set; } = null;
-
-    public dict quoteCurrencies { get; set; } = new dict();
-
-    public dict api { get; set; } = new dict();
-
-    public dict transformedApi { get; set; } = new dict();
-
-    public bool reduceFees { get; set; } = false;
-
-    public dict markets_by_id { get; set; } = null;
-
-    public List<string> symbols { get; set; } = new List<string>();
-
-    public List<string> codes { get; set; } = new List<string>();
-
-    public List<string> ids { get; set; } = new List<string>();
-
-    public bool substituteCommonCurrencyCodes { get; set; } = false;
-
-    public dict commonCurrencies { get; set; } = new dict();
-
-    public object limits { get; set; } = new dict();
-
-    public string precisionMode { get; set; } = "SIGNIFICANT_DIGITS";
-
-    public object currencies_by_id { get; set; } = new dict();
-
-    public object accounts { get; set; } = new dict();
-
-    public object accountsById { get; set; } = new dict();
-
-    public object status { get; set; } = new dict();
-
-    public int paddingMode { get; set; } = 0;
-
-    public object number { get; set; }
 
     public Exchange()
     {
         this.initializeProperties();
         var empty = new List<string>();
         transformApiNew(this.api);
-        // Console.WriteLine(this.transformedApi);
     }
-
-    // private void transformApi(dict api, List<string> paths = null)
-    // {
-    //     paths ??= new List<string>();
-    //     List<string> keyList = new List<string>(api.Keys);
-    //     foreach (string key in keyList)
-    //     {
-    //         var value = api[key];
-    //         if (value.GetType() == typeof(dict))
-    //         {
-    //             var dictValue = value as dict;
-
-    //             if (dictValue.GetValueOrDefault("cost") != null)
-    //             {
-    //                 // handle cenarios like this: 
-    //                 // binance: 'continuousKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] }
-    //                 // duplicated for now:
-    //                 if (isHttpMethod(key))
-    //                 {
-    //                     string input = string.Join("/", paths) + "/" + key;
-    //                     string pattern = @"[^a-zA-Z0-9]";
-    //                     Regex rgx = new Regex(pattern);
-    //                     var result = rgx.Split(input);
-    //                     // create unified endpoint name
-    //                     var completePaths = result.Select(x => char.ToUpper(x[0]) + x.Substring(1)).ToList();
-    //                     var path = string.Join("", completePaths);
-    //                     path = char.ToLower(path[0]) + path.Substring(1); // lowercase first letter
-    //                     this.transformedApi[path] = new dict {
-    //                         { "method", paths.Last().ToUpper() },
-    //                         { "path",   key },
-    //                         { "api",    paths[paths.Count-2]},
-    //                         { "cost",   dictValue.GetValueOrDefault("cost")}
-    //                     };
-    //                 }
-    //             }
-    //             else
-    //             {
-    //                 paths.Add(key);
-    //                 transformApi(dictValue, paths);
-    //             }
-    //         }
-    //         else
-    //         {
-    //             if (isHttpMethod(paths.Last()))
-    //             {
-    //                 string input = string.Join("/", paths) + "/" + key;
-    //                 string pattern = @"[^a-zA-Z0-9]";
-    //                 Regex rgx = new Regex(pattern);
-    //                 var result = rgx.Split(input);
-    //                 // create unified endpoint name
-    //                 var completePaths = result.Select(x => char.ToUpper(x[0]) + x.Substring(1)).ToList();
-    //                 var path = string.Join("", completePaths);
-    //                 path = char.ToLower(path[0]) + path.Substring(1); // lowercase first letter
-    //                 this.transformedApi[path] = new dict {
-    //                     { "method", paths.Last().ToUpper() },
-    //                     { "path",   key },
-    //                     { "api",    paths[paths.Count-2]},
-    //                     { "cost",   value}
-    //                 };
-    //             }
-    //         };
-    //     }
-    // }
 
     private void transformApiNew(dict api, List<string> paths = null)
     {
@@ -468,42 +347,6 @@ public partial class Exchange
     public async Task throttle(object cost)
     {
         return;
-    }
-
-    public string stringifyObject(object d2)
-    {
-        var output = "";
-
-        if (d2 == null)
-            return output;
-
-        if (d2.GetType() == typeof(dict))
-        {
-            var d = (dict)d2;
-            if (d == null)
-                return output;
-
-            foreach (var key in d.Keys)
-            {
-                output += key + ", " + d[key] + "\n";
-            }
-            return output;
-        }
-        else if (d2.GetType() == typeof(List<object>))
-        {
-            var d = (List<object>)d2;
-            if (d == null)
-                return output;
-
-            foreach (var key in d)
-            {
-                output += key + "\n";
-            }
-            return output;
-        }
-
-        return (string)output;
-
     }
 
     public virtual void setSandboxMode(object enable)

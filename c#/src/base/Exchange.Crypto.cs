@@ -66,16 +66,6 @@ public partial class Exchange
         return digest == "hex" ? binaryToHex(signature) : binaryToBase64(signature);
     }
 
-    public string encode(object data)
-    {
-        return (string)data; // stub for python
-    }
-
-    public string decode(object data)
-    {
-        return (string)data; // stub for python
-    }
-
     public string jwt(object data, object secret, object alg = null, bool isRsa = false)
     {
         alg ??= "HS256";
@@ -137,71 +127,6 @@ public partial class Exchange
         return resultBytes;
     }
 
-    public static string binaryToHex(byte[] buff)
-    {
-        var result = string.Empty;
-        foreach (var t in buff)
-            result += t.ToString("X2");
-        // return result;
-        return result.ToLower();// check this
-    }
-
-    public string binaryToBase16(object buff2)
-    {
-        var buff = (byte[])buff2;
-        return binaryToHex(buff);
-    }
-
-    public static string binaryToBase64(byte[] buff)
-    {
-        return Convert.ToBase64String(buff);
-    }
-
-    public byte[] stringToBinary(string buff)
-    {
-        return Encoding.UTF8.GetBytes(buff);
-    }
-
-    public string stringToBase64(object pt)
-    {
-        var plainText = (string)pt;
-        var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
-        return System.Convert.ToBase64String(plainTextBytes);
-    }
-
-    public string base64ToBinary(object pt)
-    {
-        // check this
-        var plainText = (string)pt;
-        var base64EncodedBytes = System.Convert.FromBase64String(plainText);
-        return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
-    }
-
-    public string base58ToBinary(object str)
-    {
-        return (string)str; // stub
-    }
-
-    public object binaryConcat(object a, object b)
-    {
-        return (string)a + (string)b; // stub
-    }
-
-    public object binaryConcatArray(object a)
-    {
-        return (string)a; // stub
-    }
-
-    public object numberToBE(object n, object padding = null)
-    {
-        // implement number to big endian
-        return (string)n; // stub
-    }
-
-    // public object binaryToBase16(object buff)
-    // {
-    //     return (string)buff; // stub
-    // }
 
     public string rsa(object request, object secret, object alg = null)
     {
@@ -216,16 +141,6 @@ public partial class Exchange
         alg ??= "ES256";
         return String.Empty;
         // stub
-    }
-
-    public object base16ToBinary(object str)
-    {
-        return (string)str; // stub
-    }
-
-    public object remove0xPrefix(object str)
-    {
-        return (string)str; // stub
     }
 
     public object signMessageString(object str, object privateKey = null)

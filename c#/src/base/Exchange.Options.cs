@@ -8,6 +8,59 @@ using list = List<object>;
 
 public partial class Exchange
 {
+    public HttpClient client { get; set; } = new HttpClient();
+    public string id { get; set; } = "Exchange";
+
+    public string version { get; set; } = "";
+    public string userAgent { get; set; }
+    public bool verbose { get; set; } = true;
+    public bool enableRateLimit { get; set; } = true;
+    public long lastRestRequestTimestamp { get; set; } = 0;
+    public string url { get; set; } = "";
+
+    public string hostname { get; set; } = "";
+
+    public dict baseCurrencies { get; set; } = new dict();
+
+    public bool reloadingMarkets { get; set; } = false;
+
+    public Task<object> marketsLoading { get; set; } = null;
+
+    public dict quoteCurrencies { get; set; } = new dict();
+
+    public dict api { get; set; } = new dict();
+
+    public dict transformedApi { get; set; } = new dict();
+
+    public bool reduceFees { get; set; } = false;
+
+    public dict markets_by_id { get; set; } = null;
+
+    public List<string> symbols { get; set; } = new List<string>();
+
+    public List<string> codes { get; set; } = new List<string>();
+
+    public List<string> ids { get; set; } = new List<string>();
+
+    public bool substituteCommonCurrencyCodes { get; set; } = false;
+
+    public dict commonCurrencies { get; set; } = new dict();
+
+    public object limits { get; set; } = new dict();
+
+    public string precisionMode { get; set; } = "SIGNIFICANT_DIGITS";
+
+    public object currencies_by_id { get; set; } = new dict();
+
+    public object accounts { get; set; } = new dict();
+
+    public object accountsById { get; set; } = new dict();
+
+    public object status { get; set; } = new dict();
+
+    public int paddingMode { get; set; } = 0;
+
+    public object number { get; set; }
     public object has { get; set; } = new dict();
     public object options { get; set; } = new dict();
     public object markets { get; set; } = null;
