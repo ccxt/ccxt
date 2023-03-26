@@ -293,7 +293,7 @@ class NewTranspiler {
     }
 
     transpileBaseMethods(baseExchangeFile) {
-        const csharpExchangeBase = "./c#/base/Exchange.BaseMethods.cs";
+        const csharpExchangeBase = "./c#/src/base/Exchange.BaseMethods.cs";
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
 
         // to c#
@@ -330,7 +330,7 @@ class NewTranspiler {
             , python3Folder  = './new/python/ccxt/async_support/'
             , phpFolder      = './new/php/'
             , phpAsyncFolder = './new/php/async/'
-            , csharpFolder = './c#/exchanges/'
+            , csharpFolder = './c#/src/exchanges/'
             , tsFolder = './ts/src/'
             , exchangeBase = './ts/src/base/Exchange.ts'
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, csharpFolder ,exchanges }
