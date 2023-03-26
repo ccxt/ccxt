@@ -5,11 +5,14 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coinex.js';
 import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { md5 } from './static_dependencies/noble-hashes/md5.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class coinex extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -3792,7 +3795,7 @@ export default class coinex extends Exchange {
         const currencyId = this.safeString(transaction, 'coin_type');
         const code = this.safeCurrencyCode(currencyId, currency);
         const timestamp = this.safeTimestamp(transaction, 'create_time');
-        const type = ('coin_withdraw_id' in transaction) ? 'withdraw' : 'deposit';
+        const type = ('coin_withdraw_id' in transaction) ? 'withdrawal' : 'deposit';
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         const networkId = this.safeString(transaction, 'smart_contract_name');
         const amount = this.safeNumber(transaction, 'actual_amount');
@@ -4593,7 +4596,7 @@ export default class coinex extends Exchange {
             }, query);
             query = this.keysort(query);
             const urlencoded = this.rawencode(query);
-            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), 'sha256');
+            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), sha256);
             headers = {
                 'Authorization': signature.toLowerCase(),
                 'AccessId': this.apiKey,
@@ -4619,7 +4622,7 @@ export default class coinex extends Exchange {
             }, query);
             query = this.keysort(query);
             const urlencoded = this.rawencode(query);
-            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret));
+            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), md5);
             headers = {
                 'Authorization': signature.toUpperCase(),
                 'Content-Type': 'application/json',

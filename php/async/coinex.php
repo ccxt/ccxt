@@ -3835,7 +3835,7 @@ class coinex extends Exchange {
         $currencyId = $this->safe_string($transaction, 'coin_type');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->safe_timestamp($transaction, 'create_time');
-        $type = (is_array($transaction) && array_key_exists('coin_withdraw_id', $transaction)) ? 'withdraw' : 'deposit';
+        $type = (is_array($transaction) && array_key_exists('coin_withdraw_id', $transaction)) ? 'withdrawal' : 'deposit';
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $networkId = $this->safe_string($transaction, 'smart_contract_name');
         $amount = $this->safe_number($transaction, 'actual_amount');
@@ -4671,7 +4671,7 @@ class coinex extends Exchange {
             ), $query);
             $query = $this->keysort($query);
             $urlencoded = $this->rawencode($query);
-            $signature = $this->hash($this->encode($urlencoded . '&secret_key=' . $this->secret));
+            $signature = $this->hash($this->encode($urlencoded . '&secret_key=' . $this->secret), 'md5');
             $headers = array(
                 'Authorization' => strtoupper($signature),
                 'Content-Type' => 'application/json',

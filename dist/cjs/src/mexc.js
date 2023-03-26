@@ -1,13 +1,15 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var mexc$1 = require('./abstract/mexc.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class mexc extends Exchange["default"] {
+// @ts-expect-error
+class mexc extends mexc$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'mexc',
@@ -296,6 +298,7 @@ class mexc extends Exchange["default"] {
                 'FLUX': 'FLUX1',
                 'FREE': 'FreeRossDAO',
                 'GAS': 'GASDAO',
+                'GASNEO': 'GAS',
                 'GMT': 'GMT Token',
                 'HERO': 'Step Hero',
                 'MIMO': 'Mimosa',
@@ -3136,7 +3139,7 @@ class mexc extends Exchange["default"] {
                 }
             }
             auth = this.apiKey + timestamp + auth;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
             headers['Signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

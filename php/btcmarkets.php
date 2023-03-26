@@ -655,7 +655,7 @@ class btcmarkets extends Exchange {
         $request = array(
             'id' => $market['id'],
         );
-        $response = $this->publicGetMarketIdTick (array_merge($request, $params));
+        $response = $this->publicGetMarketsMarketIdTicker (array_merge($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
@@ -1159,7 +1159,7 @@ class btcmarkets extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $secret = base64_decode($this->encode($this->secret));
+            $secret = base64_decode($this->secret);
             $auth = $method . $request . $nonce;
             if (($method === 'GET') || ($method === 'DELETE')) {
                 if ($query) {

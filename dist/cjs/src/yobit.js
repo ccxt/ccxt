@@ -1,13 +1,15 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var yobit$1 = require('./abstract/yobit.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class yobit extends Exchange["default"] {
+// @ts-expect-error
+class yobit extends yobit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'yobit',
@@ -542,9 +544,9 @@ class yobit extends Exchange["default"] {
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        let ids = this.ids;
+        let ids = undefined;
         if (symbols === undefined) {
-            const numIds = ids.length;
+            const numIds = this.ids.length;
             ids = ids.join('-');
             const maxLength = this.safeInteger(this.options, 'fetchTickersMaxLength', 2048);
             // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
@@ -553,8 +555,8 @@ class yobit extends Exchange["default"] {
             }
         }
         else {
-            ids = this.marketIds(symbols);
-            ids = ids.join('-');
+            const newIds = this.marketIds(symbols);
+            ids = newIds.join('-');
         }
         const request = {
             'pair': ids,
@@ -1196,7 +1198,7 @@ class yobit extends Exchange["default"] {
                 'nonce': nonce,
                 'method': path,
             }, query));
-            const signature = this.hmac(this.encode(body), this.encode(this.secret), 'sha512');
+            const signature = this.hmac(this.encode(body), this.encode(this.secret), sha512.sha512);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,

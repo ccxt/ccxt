@@ -1,13 +1,15 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var mexc3$1 = require('./abstract/mexc3.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class mexc3 extends Exchange["default"] {
+// @ts-expect-error
+class mexc3 extends mexc3$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'mexc3',
@@ -429,6 +431,8 @@ class mexc3 extends Exchange["default"] {
                 'FLUX1': 'FLUX',
                 'FLUX': 'FLUX1',
                 'FREE': 'FreeRossDAO',
+                'GAS': 'GASDAO',
+                'GASNEO': 'GAS',
                 'GMT': 'GMT Token',
                 'STEPN': 'GMT',
                 'HERO': 'Step Hero',
@@ -4869,7 +4873,7 @@ class mexc3 extends Exchange["default"] {
             }
             if (access === 'private') {
                 this.checkRequiredCredentials();
-                const signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), 'sha256');
+                const signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256.sha256);
                 url += '&' + 'signature=' + signature;
                 headers = {
                     'X-MEXC-APIKEY': this.apiKey,
@@ -4910,7 +4914,7 @@ class mexc3 extends Exchange["default"] {
                     }
                 }
                 auth = this.apiKey + timestamp + auth;
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha256');
+                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
                 headers['Signature'] = signature;
             }
         }

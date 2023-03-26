@@ -1544,7 +1544,7 @@ class cex extends Exchange {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $auth = $nonce . $this->uid . $this->apiKey;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $body = $this->json(array_merge(array(
                 'key' => $this->apiKey,
                 'signature' => strtoupper($signature),

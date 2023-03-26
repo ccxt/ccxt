@@ -4,9 +4,11 @@
 import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class cryptocom extends cryptocomRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -579,7 +581,7 @@ export default class cryptocom extends cryptocomRest {
             const method = 'public/auth';
             const nonce = this.nonce ().toString ();
             const auth = method + nonce + this.apiKey + nonce;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             const request = {
                 'id': nonce,
                 'nonce': nonce,

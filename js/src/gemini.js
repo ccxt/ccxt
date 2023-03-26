@@ -5,11 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/gemini.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class gemini extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1560,11 +1562,11 @@ export default class gemini extends Exchange {
             }, query);
             let payload = this.json(request);
             payload = this.stringToBase64(payload);
-            const signature = this.hmac(payload, this.encode(this.secret), 'sha384');
+            const signature = this.hmac(payload, this.encode(this.secret), sha384);
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': this.apiKey,
-                'X-GEMINI-PAYLOAD': this.decode(payload),
+                'X-GEMINI-PAYLOAD': payload,
                 'X-GEMINI-SIGNATURE': signature,
             };
         }

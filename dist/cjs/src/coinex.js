@@ -1,13 +1,16 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var coinex$1 = require('./abstract/coinex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class coinex extends Exchange["default"] {
+// @ts-expect-error
+class coinex extends coinex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinex',
@@ -3789,7 +3792,7 @@ class coinex extends Exchange["default"] {
         const currencyId = this.safeString(transaction, 'coin_type');
         const code = this.safeCurrencyCode(currencyId, currency);
         const timestamp = this.safeTimestamp(transaction, 'create_time');
-        const type = ('coin_withdraw_id' in transaction) ? 'withdraw' : 'deposit';
+        const type = ('coin_withdraw_id' in transaction) ? 'withdrawal' : 'deposit';
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         const networkId = this.safeString(transaction, 'smart_contract_name');
         const amount = this.safeNumber(transaction, 'actual_amount');
@@ -4590,7 +4593,7 @@ class coinex extends Exchange["default"] {
             }, query);
             query = this.keysort(query);
             const urlencoded = this.rawencode(query);
-            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), 'sha256');
+            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), sha256.sha256);
             headers = {
                 'Authorization': signature.toLowerCase(),
                 'AccessId': this.apiKey,
@@ -4616,7 +4619,7 @@ class coinex extends Exchange["default"] {
             }, query);
             query = this.keysort(query);
             const urlencoded = this.rawencode(query);
-            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret));
+            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), md5.md5);
             headers = {
                 'Authorization': signature.toUpperCase(),
                 'Content-Type': 'application/json',

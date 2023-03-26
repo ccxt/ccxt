@@ -2473,7 +2473,7 @@ class deribit(Exchange):
             # 'tfa': '123456',  # if enabled
         }
         if self.twofa is not None:
-            request['tfa'] = self.oath()
+            request['tfa'] = self.totp(self.twofa)
         response = await self.privateGetWithdraw(self.extend(request, params))
         return self.parse_transaction(response, currency)
 

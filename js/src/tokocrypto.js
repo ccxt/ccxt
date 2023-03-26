@@ -5,11 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/tokocrypto.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class tokocrypto extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -599,7 +601,7 @@ export default class tokocrypto extends Exchange {
          * @param {object} params extra parameters specific to the tokocrypto api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetTime(params);
+        const response = await this.publicGetOpenV1CommonTime(params);
         //
         //
         //
@@ -2330,7 +2332,7 @@ export default class tokocrypto extends Exchange {
             else {
                 query = this.urlencode(extendedParams);
             }
-            const signature = this.hmac(this.encode(query), this.encode(this.secret));
+            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,

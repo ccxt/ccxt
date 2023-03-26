@@ -5,10 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/latoken.js';
 import { ExchangeError, AuthenticationError, ArgumentsRequired, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class latoken extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1547,7 +1549,7 @@ export default class latoken extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials();
             const auth = method + request + urlencodedQuery;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha512');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
             headers = {
                 'X-LA-APIKEY': this.apiKey,
                 'X-LA-SIGNATURE': signature,

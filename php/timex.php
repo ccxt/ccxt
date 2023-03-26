@@ -1512,7 +1512,7 @@ class timex extends Exchange {
         if ($api !== 'public') {
             $this->check_required_credentials();
             $auth = base64_encode($this->apiKey . ':' . $this->secret);
-            $secret = 'Basic ' . $this->decode($auth);
+            $secret = 'Basic ' . $auth;
             $headers = array( 'authorization' => $secret );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

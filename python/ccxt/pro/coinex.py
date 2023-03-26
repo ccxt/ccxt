@@ -469,7 +469,7 @@ class coinex(ccxt.async_support.coinex):
             'params': list(watchOrderBookSubscriptions.values()),
         }
         self.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions
-        subscriptionHash = self.hash(self.encode(self.json(watchOrderBookSubscriptions)))
+        subscriptionHash = self.hash(self.encode(self.json(watchOrderBookSubscriptions)), 'sha256')
         request = self.deep_extend(subscribe, params)
         orderbook = await self.watch(url, messageHash, request, subscriptionHash, request)
         return orderbook.limit()
@@ -578,29 +578,8 @@ class coinex(ccxt.async_support.coinex):
             currentOrderBook['timestamp'] = timestamp
             currentOrderBook['datetime'] = self.iso8601(timestamp)
             self.orderbooks[symbol] = currentOrderBook
-        # self.check_order_book_checksum(self.orderbooks[symbol])
+        # self.checkOrderBookChecksum(self.orderbooks[symbol])
         client.resolve(self.orderbooks[symbol], messageHash)
-
-    def check_order_book_checksum(self, orderBook):
-        asks = self.safe_value(orderBook, 'asks', [])
-        bids = self.safe_value(orderBook, 'bids', [])
-        string = ''
-        bidsLength = len(bids)
-        for i in range(0, bidsLength):
-            bid = bids[i]
-            if i != 0:
-                string += ':'
-            string += bid[0] + ':' + bid[1]
-        asksLength = len(asks)
-        for i in range(0, asksLength):
-            ask = asks[i]
-            if bidsLength != 0:
-                string += ':'
-            string += ask[0] + ':' + ask[1]
-        signedString = self.hash(string, 'cr32', 'hex')
-        checksum = self.safe_string(orderBook, 'checksum')
-        if checksum != signedString:
-            raise ExchangeError(self.id + ' watchOrderBook() checksum failed')
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

@@ -2416,18 +2416,18 @@ class ascendex(Exchange):
         #
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
-        notional = self.safe_number(position, 'buyOpenOrderNotional')
-        if notional == 0:
-            notional = self.safe_number(position, 'sellOpenOrderNotional')
+        notional = self.safe_string(position, 'buyOpenOrderNotional')
+        if Precise.string_eq(notional, '0'):
+            notional = self.safe_string(position, 'sellOpenOrderNotional')
         marginMode = self.safe_string(position, 'marginType')
         collateral = None
         if marginMode == 'isolated':
-            collateral = self.safe_number(position, 'isolatedMargin')
+            collateral = self.safe_string(position, 'isolatedMargin')
         return {
             'info': position,
             'id': None,
             'symbol': market['symbol'],
-            'notional': notional,
+            'notional': self.parse_number(notional),
             'marginMode': marginMode,
             'liquidationPrice': None,
             'entryPrice': self.safe_number(position, 'avgOpenPrice'),

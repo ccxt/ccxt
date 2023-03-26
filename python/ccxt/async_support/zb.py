@@ -2767,7 +2767,7 @@ class zb(Exchange):
             orderId = self.safe_value(order, 'id')
         rawSide = self.safe_integer_2(order, 'type', 'side')
         side = None
-        if side is not None:
+        if rawSide is not None:
             if market['spot']:
                 side = 'buy' if (rawSide == 1) else 'sell'
             elif market['swap']:

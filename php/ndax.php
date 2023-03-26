@@ -293,7 +293,7 @@ class ndax extends Exchange {
             }
             $this->options['pending2faToken'] = $pending2faToken;
             $request = array(
-                'Code' => $this->oath(),
+                'Code' => $this->totp($this->twofa),
             );
             $response = $this->publicGetAuthenticate2FA (array_merge($request, $params));
             //
@@ -2300,7 +2300,7 @@ class ndax extends Exchange {
         );
         $withdrawRequest = array(
             'TfaType' => 'Google',
-            'TFaCode' => $this->oath(),
+            'TFaCode' => $this->totp($this->twofa),
             'Payload' => $this->json($withdrawPayload),
         );
         $response = $this->privatePostCreateWithdrawTicket ($this->deep_extend($withdrawRequest, $params));
@@ -2319,7 +2319,7 @@ class ndax extends Exchange {
                 $auth = $this->login . ':' . $this->password;
                 $auth64 = base64_encode($auth);
                 $headers = array(
-                    'Authorization' => 'Basic ' . $this->decode($auth64),
+                    'Authorization' => 'Basic ' . $auth64,
                     // 'Content-Type' => 'application/json',
                 );
             } elseif ($path === 'Authenticate2FA') {
@@ -2341,7 +2341,7 @@ class ndax extends Exchange {
             if ($sessionToken === null) {
                 $nonce = (string) $this->nonce();
                 $auth = $nonce . $this->uid . $this->apiKey;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 $headers = array(
                     'Nonce' => $nonce,
                     'APIKey' => $this->apiKey,

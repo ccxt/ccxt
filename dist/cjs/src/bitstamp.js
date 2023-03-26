@@ -1,13 +1,15 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bitstamp$1 = require('./abstract/bitstamp.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitstamp extends Exchange["default"] {
+// @ts-expect-error
+class bitstamp extends bitstamp$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitstamp',
@@ -835,7 +837,8 @@ class bitstamp extends Exchange["default"] {
         }
         const feeCostString = this.safeString(trade, 'fee');
         const feeCurrency = market['quote'];
-        priceString = this.safeString(trade, rawMarketId, priceString);
+        const priceId = (rawMarketId !== undefined) ? rawMarketId : market['marketId'];
+        priceString = this.safeString(trade, priceId, priceString);
         amountString = this.safeString(trade, market['baseId'], amountString);
         costString = this.safeString(trade, market['quoteId'], costString);
         symbol = market['symbol'];
@@ -2026,7 +2029,7 @@ class bitstamp extends Exchange["default"] {
             }
             const authBody = body ? body : '';
             const auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
             headers['X-Auth-Signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

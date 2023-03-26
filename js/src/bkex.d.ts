@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bkex.js';
 export default class bkex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

@@ -3063,7 +3063,7 @@ class kucoin extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->privateGetMarginTradeLast (array_merge($request, $params));
+        $response = $this->publicGetMarginTradeLast (array_merge($request, $params));
         //
         //     {
         //         "code" => "200000",
@@ -3080,7 +3080,7 @@ class kucoin extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_borrow_rate_history($data, $code);
+        return $this->parse_borrow_rate_history($data, $code, $since, $limit);
     }
 
     public function parse_borrow_rate_history($response, $code, $since, $limit) {

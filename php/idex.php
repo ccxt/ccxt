@@ -1096,7 +1096,7 @@ class idex extends Exchange {
             $this->base16_to_binary($noPrefix),
         );
         $binary = $this->binary_concat_array($byteArray);
-        $hash = $this->hash($binary, 'keccak', 'hex');
+        $hash = $this->hash($binary, keccak, 'hex');
         $signature = $this->sign_message_string($hash, $this->privateKey);
         // {
         //   address => '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
@@ -1215,7 +1215,7 @@ class idex extends Exchange {
             $this->number_to_be($orderVersion, 1),
             $this->base16_to_binary($nonce),
             $this->base16_to_binary($walletBytes),
-            $this->encode($market['id']),  // TODO => refactor to remove either encode or stringToBinary
+            $this->encode($market['id']),
             $this->number_to_be($typeEnum, 1),
             $this->number_to_be($sideEnum, 1),
             $this->encode($amountString),
@@ -1240,7 +1240,7 @@ class idex extends Exchange {
         );
         $allBytes = $this->array_concat($byteArray, $after);
         $binary = $this->binary_concat_array($allBytes);
-        $hash = $this->hash($binary, 'keccak', 'hex');
+        $hash = $this->hash($binary, keccak, 'hex');
         $signature = $this->sign_message_string($hash, $this->privateKey);
         $request = array(
             'parameters' => array(
@@ -1330,7 +1330,7 @@ class idex extends Exchange {
             $this->number_to_be(1, 1), // bool set to true
         ];
         $binary = $this->binary_concat_array($byteArray);
-        $hash = $this->hash($binary, 'keccak', 'hex');
+        $hash = $this->hash($binary, keccak, 'hex');
         $signature = $this->sign_message_string($hash, $this->privateKey);
         $request = array(
             'parameters' => array(
@@ -1387,7 +1387,7 @@ class idex extends Exchange {
             $request['parameters']['market'] = $market['id'];
         }
         $binary = $this->binary_concat_array($byteArray);
-        $hash = $this->hash($binary, 'keccak', 'hex');
+        $hash = $this->hash($binary, keccak, 'hex');
         $signature = $this->sign_message_string($hash, $this->privateKey);
         $request['signature'] = $signature;
         // array( array( orderId => '688336f0-ec50-11ea-9842-b332f8a34d0e' ) )
@@ -1417,7 +1417,7 @@ class idex extends Exchange {
             $this->encode($id),
         );
         $binary = $this->binary_concat_array($byteArray);
-        $hash = $this->hash($binary, 'keccak', 'hex');
+        $hash = $this->hash($binary, keccak, 'hex');
         $signature = $this->sign_message_string($hash, $this->privateKey);
         $request = array(
             'parameters' => array(

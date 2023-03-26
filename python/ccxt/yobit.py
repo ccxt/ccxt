@@ -536,17 +536,17 @@ class yobit(Exchange):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        ids = self.ids
+        ids = None
         if symbols is None:
-            numIds = len(ids)
+            numIds = len(self.ids)
             ids = '-'.join(ids)
             maxLength = self.safe_integer(self.options, 'fetchTickersMaxLength', 2048)
             # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
             if len(ids) > self.options['fetchTickersMaxLength']:
                 raise ArgumentsRequired(self.id + ' fetchTickers() has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
         else:
-            ids = self.market_ids(symbols)
-            ids = '-'.join(ids)
+            newIds = self.market_ids(symbols)
+            ids = '-'.join(newIds)
         request = {
             'pair': ids,
         }

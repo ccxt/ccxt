@@ -1,13 +1,15 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bitget$1 = require('./abstract/bitget.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitget extends Exchange["default"] {
+// @ts-expect-error
+class bitget extends bitget$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitget',
@@ -617,6 +619,7 @@ class bitget extends Exchange["default"] {
                     '40016': errors.PermissionDenied,
                     '40017': errors.ExchangeError,
                     '40018': errors.PermissionDenied,
+                    '40019': errors.InvalidOrder,
                     '40102': errors.BadRequest,
                     '40103': errors.BadRequest,
                     '40104': errors.ExchangeError,
@@ -689,6 +692,7 @@ class bitget extends Exchange["default"] {
                     '40712': errors.InsufficientFunds,
                     '40713': errors.ExchangeError,
                     '40714': errors.ExchangeError,
+                    '41114': errors.OnMaintenance,
                     '43011': errors.InvalidOrder,
                     '43025': errors.InvalidOrder,
                     '45110': errors.InvalidOrder,
@@ -3349,7 +3353,7 @@ class bitget extends Exchange["default"] {
         //     }
         //
         const data = this.safeValue(response, 'data');
-        return await this.parseTrades(data, market, since, limit);
+        return this.parseTrades(data, market, since, limit);
     }
     async fetchPosition(symbol, params = {}) {
         /**
@@ -4279,7 +4283,7 @@ class bitget extends Exchange["default"] {
                     auth += query;
                 }
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha256', 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'base64');
             const broker = this.safeString(this.options, 'broker');
             headers = {
                 'ACCESS-KEY': this.apiKey,

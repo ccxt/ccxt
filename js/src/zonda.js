@@ -5,11 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/zonda.js';
 import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class zonda extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1667,7 +1669,7 @@ export default class zonda extends Exchange {
                 'Request-Timestamp': nonce,
                 'Operation-Id': this.uuid(),
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac(this.encode(payload), this.encode(this.secret), 'sha512'),
+                'API-Hash': this.hmac(this.encode(payload), this.encode(this.secret), sha512),
                 'Content-Type': 'application/json',
             };
         }
@@ -1680,7 +1682,7 @@ export default class zonda extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac(this.encode(body), this.encode(this.secret), 'sha512'),
+                'API-Hash': this.hmac(this.encode(body), this.encode(this.secret), sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

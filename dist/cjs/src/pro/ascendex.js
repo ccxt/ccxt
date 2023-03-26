@@ -3,9 +3,11 @@
 var ascendex$1 = require('../ascendex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 class ascendex extends ascendex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -914,16 +916,16 @@ class ascendex extends ascendex$1 {
         //
         //     { m: 'ping', hp: 3 }
         //
-        await client.send({ 'op': 'pong', 'hp': this.safeInteger(message, 'hp') });
-    }
-    async handlePing(client, message) {
         try {
-            await this.spawn(this.pong, client, message);
+            await client.send({ 'op': 'pong', 'hp': this.safeInteger(message, 'hp') });
         }
         catch (e) {
             const error = new errors.NetworkError(this.id + ' handlePing failed with error ' + this.json(e));
             client.reset(error);
         }
+    }
+    handlePing(client, message) {
+        this.spawn(this.pong, client, message);
     }
     authenticate(url, params = {}) {
         this.checkRequiredCredentials();
@@ -938,7 +940,7 @@ class ascendex extends ascendex$1 {
             const version = this.safeString(urlParts, partsLength - 2);
             const auth = timestamp + '+' + version + '/' + path;
             const secret = this.base64ToBinary(this.secret);
-            const signature = this.hmac(this.encode(auth), secret, 'sha256', 'base64');
+            const signature = this.hmac(this.encode(auth), secret, sha256.sha256, 'base64');
             const request = {
                 'op': 'auth',
                 'id': this.nonce().toString(),

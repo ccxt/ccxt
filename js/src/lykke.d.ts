@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/lykke.js';
 export default class lykke extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;

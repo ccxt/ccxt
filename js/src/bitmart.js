@@ -5,11 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitmart.js';
 import { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class bitmart extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1958,26 +1960,28 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#cancelAllOrders
          * @description cancel all open orders in a market
+         * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
+        await this.loadMarkets();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
+        if (type !== 'spot') {
+            throw new NotSupported(this.id + ' cancelAllOrders() does not support ' + type + ' orders, only spot orders are accepted');
         }
         const side = this.safeString(params, 'side');
-        if (side === undefined) {
-            throw new ArgumentsRequired(this.id + " cancelAllOrders() requires a `side` parameter ('buy' or 'sell')");
+        if (side !== undefined) {
+            request['side'] = side;
+            params = this.omit(params, 'side');
         }
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        if (!market['spot']) {
-            throw new NotSupported(this.id + ' cancelAllOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted');
-        }
-        const request = {
-            'symbol': market['id'],
-            'side': side, // 'buy' or 'sell'
-        };
         const response = await this.privatePostSpotV1CancelOrders(this.extend(request, params));
         //
         //     {
@@ -2379,7 +2383,7 @@ export default class bitmart extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateAccountGetDepositWithdrawDetail(this.extend(request, params));
+        const response = await this.privateGetAccountV1DepositWithdrawDetail(this.extend(request, params));
         //
         //     {
         //         "message":"OK",
@@ -3008,7 +3012,7 @@ export default class bitmart extends Exchange {
                 queryString = body;
             }
             const auth = timestamp + '#' + this.uid + '#' + queryString;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             headers['X-BM-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

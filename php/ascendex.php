@@ -2507,20 +2507,20 @@ class ascendex extends Exchange {
         //
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $notional = $this->safe_number($position, 'buyOpenOrderNotional');
-        if ($notional === 0) {
-            $notional = $this->safe_number($position, 'sellOpenOrderNotional');
+        $notional = $this->safe_string($position, 'buyOpenOrderNotional');
+        if (Precise::string_eq($notional, '0')) {
+            $notional = $this->safe_string($position, 'sellOpenOrderNotional');
         }
         $marginMode = $this->safe_string($position, 'marginType');
         $collateral = null;
         if ($marginMode === 'isolated') {
-            $collateral = $this->safe_number($position, 'isolatedMargin');
+            $collateral = $this->safe_string($position, 'isolatedMargin');
         }
         return array(
             'info' => $position,
             'id' => null,
             'symbol' => $market['symbol'],
-            'notional' => $notional,
+            'notional' => $this->parse_number($notional),
             'marginMode' => $marginMode,
             'liquidationPrice' => null,
             'entryPrice' => $this->safe_number($position, 'avgOpenPrice'),

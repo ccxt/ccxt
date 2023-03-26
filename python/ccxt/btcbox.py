@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -491,8 +492,8 @@ class btcbox(Exchange):
                 'nonce': nonce,
             }, params)
             request = self.urlencode(query)
-            secret = self.hash(self.encode(self.secret))
-            query['signature'] = self.hmac(self.encode(request), self.encode(secret))
+            secret = self.hash(self.encode(self.secret), 'sha256')
+            query['signature'] = self.hmac(self.encode(request), self.encode(secret), hashlib.sha256)
             body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

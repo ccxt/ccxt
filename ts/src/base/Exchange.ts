@@ -34,7 +34,6 @@ const {
     , binaryToBase16
     , numberToBE
     , base16ToBinary
-    , stringToBinary
     , iso8601
     , omit
     , isJsonEncodedObject
@@ -49,7 +48,6 @@ const {
     , binaryConcat
     , hash
     , ecdsa
-    , totp
     , arrayConcat
     , encode
     , urlencode
@@ -74,14 +72,12 @@ const {
     , safeStringLower2
     , yymmdd
     , base58ToBinary
-    , eddsa
     , safeTimestamp2
     , rawencode
     , keysort
     , inArray
     , isEmpty
     , ordered
-    , jwt
     , filterBy
     , uuid16
     , safeFloat
@@ -90,7 +86,6 @@ const {
     , urlencodeWithArrayRepeat
     , microseconds
     , binaryToBase64
-    , rsa
     , strip
     , toArray
     , safeFloatN
@@ -114,7 +109,9 @@ const {
     , TICK_SIZE
 } = functions
 
-import {inflate, inflate64, gunzip} from './ws/functions.js'
+// TODO: remove these imports to make browser package smaller
+import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js'
+import { keccak_256 as keccak } from '../static_dependencies/noble-hashes/sha3.js';
 
 // import exceptions from "./errors.js"
 
@@ -133,7 +130,6 @@ import {inflate, inflate64, gunzip} from './ws/functions.js'
     , ArgumentsRequired
     , RateLimitExceeded } from "./errors.js"
 
-import BN from '../static_dependencies/BN/bn.cjs'
 import { Precise } from './Precise.js'
 
 //-----------------------------------------------------------------------------
@@ -145,18 +141,19 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import {Market, Trade, Fee, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse } from './types'
+import {Market, Trade, Fee, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax } from './types'
 export {Market, Trade, Fee, Ticker} from './types'
-
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './ws/Cache.js'
+import totp from './functions/totp.js';
 
 // ----------------------------------------------------------------------------
 export default class Exchange {
-    options: {};
-    fetchOptions: any;
+    options: {
+        [key: string]: any;
+    }
     userAgents: any;
     headers: any;
 
@@ -190,17 +187,17 @@ export default class Exchange {
     timeout       = 10000 // milliseconds
     verbose       = false
     debug         = false
-    userAgent     = undefined
+    userAgent: { 'User-Agent': string } | false = undefined;
     twofa         = undefined // two-factor authentication (2FA)
 
-    apiKey        = undefined
-    secret        = undefined
-    uid           = undefined
-    login         = undefined
-    password      = undefined
-    privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
-    walletAddress = undefined // a wallet address "0x"-prefixed hexstring
-    token         = undefined // reserved for HTTP auth in some cases
+    apiKey: string;
+    secret: string;
+    uid: string;
+    login:string;
+    password: string;
+    privateKey: string;// a "0x"-prefixed hexstring private key for a wallet
+    walletAddress: string; // a wallet address "0x"-prefixed hexstring
+    token: string; // reserved for HTTP auth in some cases
 
     balance      = {}
     orderbooks   = {}
@@ -211,11 +208,23 @@ export default class Exchange {
     ohlcvs: any
     myTrades: any
     positions    = {}
-    urls = {}
+    urls: {
+        logo?: string;
+        api?: string | Dictionary<string>;
+        test?: string | Dictionary<string>;
+        www?: string;
+        doc?: string[];
+        api_management?: string;
+        fees?: string;
+        referral?: string;
+    };
 
     requiresWeb3 = false
     requiresEddsa = false
-    precision = {}
+    precision: {
+        amount: number | undefined,
+        price: number | undefined
+    };
 
     enableLastJsonResponse = true
     enableLastHttpResponse = true
@@ -224,27 +233,42 @@ export default class Exchange {
     last_json_response    = undefined
     last_response_headers = undefined
 
-    id = undefined
+    id: string = undefined
 
-    markets: Dictionary<Market> = undefined
-    has = {}
+    markets: Dictionary<any> = undefined
+    has: Dictionary<boolean | 'emulated'>
 
     status = undefined
 
-    requiredCredentials = undefined
-    rateLimit = undefined
+    requiredCredentials: {
+        apiKey: boolean;
+        secret: boolean;
+        uid: boolean;
+        login: boolean;
+        password: boolean;
+        twofa: boolean;
+        privateKey: boolean;
+        walletAddress: boolean;
+        token: boolean;
+    };
+    rateLimit: number = undefined; // milliseconds
     tokenBucket = undefined
     throttle = undefined
-    enableRateLimit = undefined
+    enableRateLimit: boolean = undefined;
 
     httpExceptions = undefined
 
-    limits = undefined
-    fees = undefined
-    markets_by_id = undefined
-    symbols = undefined
-    ids = undefined
-    currencies = undefined
+    limits: {
+        amount?: MinMax,
+        cost?: MinMax,
+        leverage?: MinMax,
+        price?: MinMax,
+    };
+    fees: object;
+    markets_by_id: Dictionary<any> = undefined;
+    symbols: string[] = undefined;
+    ids: string[] = undefined;
+    currencies: Dictionary<Currency> = undefined;
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
@@ -259,21 +283,21 @@ export default class Exchange {
 
     commonCurrencies = undefined
 
-    hostname = undefined
+    hostname: string = undefined;
 
-    precisionMode = undefined
+    precisionMode: number = undefined;
     paddingMode = undefined
 
     exceptions = {}
-    timeframes = []
+    timeframes: Dictionary<number | string> = {}
 
-    version = undefined
+    version: string = undefined;
 
     marketsByAltname = undefined
 
-    name = undefined
+    name:string = undefined
 
-    lastRestRequestTimestamp = undefined
+    lastRestRequestTimestamp:number;
 
     targetAccount = undefined
 
@@ -315,7 +339,6 @@ export default class Exchange {
     binaryToBase16 = binaryToBase16
     numberToBE = numberToBE
     base16ToBinary = base16ToBinary
-    stringToBinary = stringToBinary
     iso8601 = iso8601
     omit = omit
     isJsonEncodedObject = isJsonEncodedObject
@@ -329,8 +352,6 @@ export default class Exchange {
     merge = merge
     binaryConcat = binaryConcat
     hash = hash
-    ecdsa = ecdsa
-    totp = totp
     arrayConcat = arrayConcat
     encode = encode
     urlencode = urlencode
@@ -355,7 +376,6 @@ export default class Exchange {
     safeIntegerProduct = safeIntegerProduct
     base58ToBinary = base58ToBinary
     base64ToBinary = base64ToBinary
-    eddsa = eddsa
     safeTimestamp2 = safeTimestamp2
     rawencode = rawencode
     keysort = keysort
@@ -364,13 +384,11 @@ export default class Exchange {
     safeStringUpper2 = safeStringUpper2
     isEmpty = isEmpty
     ordered = ordered
-    jwt = jwt
     filterBy = filterBy
     uuid16 = uuid16
     urlencodeWithArrayRepeat = urlencodeWithArrayRepeat
     microseconds = microseconds
     binaryToBase64 = binaryToBase64
-    rsa = rsa
     strip = strip
     toArray = toArray
     safeFloatN = safeFloatN
@@ -387,10 +405,6 @@ export default class Exchange {
     isArray = isArray
     base64ToString = base64ToString
     crc32 = crc32
-
-    inflate = inflate
-    inflate64 = inflate64
-    gunzip = gunzip
 
     describe () {
         return {
@@ -596,9 +610,6 @@ export default class Exchange {
         //
         this.options = this.getDefaultOptions(); // exchange-specific options, if any
         // fetch implementation options (JS only)
-        this.fetchOptions = {
-            // keepalive: true, // does not work in Chrome, https://github.com/ccxt/ccxt/issues/6368
-        }
         // http properties
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -649,7 +660,6 @@ export default class Exchange {
         // web3 and cryptography flags
         this.requiresWeb3 = false
         this.requiresEddsa = false
-        this.precision = {}
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0
         this.enableLastJsonResponse = true
@@ -783,7 +793,7 @@ export default class Exchange {
             }
         } else if ('apiBackup' in this.urls) {
             if (typeof this.urls['api'] === 'string') {
-                this.urls['api'] = this.urls['apiBackup']
+                this.urls['api'] = this.urls['apiBackup'] as any
             } else {
                 this.urls['api'] = clone (this.urls['apiBackup'])
             }
@@ -871,7 +881,11 @@ export default class Exchange {
         }
         if (this.fetchImplementation === undefined) {
             if (isNode) {
-                const module = await import ('../static_dependencies/node-fetch/index.js')
+                const module = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js')
+                if (this.agent === undefined) {
+                    const { Agent } = await import (/* webpackIgnore: true */'node:https')
+                    this.agent = new Agent ({ keepAlive: true })
+                }
                 this.AbortError = module.AbortError
                 this.fetchImplementation = module.default
                 this.FetchError = module.FetchError
@@ -887,10 +901,6 @@ export default class Exchange {
         const params = { method, headers, body, timeout: this.timeout };
         if (this.agent) {
             params['agent'] = this.agent;
-        } else if (this.httpAgent && url.indexOf ('http://') === 0) {
-            params['agent'] = this.httpAgent;
-        } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
-            params['agent'] = this.httpsAgent;
         }
         const controller = new AbortController ()
         params['signal'] = controller.signal
@@ -898,7 +908,7 @@ export default class Exchange {
             controller.abort ()
         }, this.timeout)
         try {
-            const response = await fetchImplementation (url, this.extend (params, this.fetchOptions))
+            const response = await fetchImplementation (url, params)
             clearTimeout (timeout)
             return this.handleRestResponse (response, url, method, headers, body);
         } catch (e) {
@@ -1066,12 +1076,12 @@ export default class Exchange {
     hashMessage (message: string) {
         // takes a hex encoded message
         const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message))
-        const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes)
-        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), 'keccak', 'hex')
+        const prefix = this.encode ('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength)
+        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex')
     }
 
     signHash (hash: string, privateKey: string) {
-        const signature = this.ecdsa (hash.slice (-64), privateKey.slice (-64), 'secp256k1', undefined)
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined)
         return {
             'r': '0x' + signature['r'],
             's': '0x' + signature['s'],
@@ -1087,7 +1097,7 @@ export default class Exchange {
         // still takes the input as a hex string
         // same as above but returns a string instead of an object
         const signature = this.signMessage (message, privateKey)
-        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']))
+        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v'], 1))
     }
 
     parseNumber (value: string | number, d: number = undefined): number {
@@ -1190,7 +1200,7 @@ export default class Exchange {
                 'throttle': throttle (this.tokenBucket),
                 // add support for proxies
                 'options': {
-                    'agent': this.agent || this.httpsAgent || this.httpAgent,
+                    'agent': this.agent,
                 }
             }, wsOptions);
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
@@ -1385,108 +1395,112 @@ export default class Exchange {
         return {};
     }
 
-    async fetchAccounts (params = {}) {
-        return undefined;
+    async fetchAccounts (params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchAccounts() is not supported yet');
     }
 
     async fetchTrades (symbol: string, since: number = undefined, limit: any = undefined, params = {}): Promise<Trade[]> {
-        return undefined;
+        throw new NotSupported (this.id + ' fetchTrades() is not supported yet');
     }
 
     async watchTrades (symbol: string, since: number = undefined, limit: any = undefined, params = {}): Promise<Trade[]> {
-        return undefined;
+        throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
-        return undefined;
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchDepositAddresses() is not supported yet');
     }
 
     async fetchOrderBook (symbol, limit: any = undefined, params = {}): Promise<OrderBook> {
-        return undefined;
+        throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
     async watchOrderBook (symbol, limit: any = undefined, params = {}): Promise<OrderBook> {
-        return undefined;
+        throw new NotSupported (this.id + ' watchOrderBook() is not supported yet');
     }
 
-    async fetchTime (params = {}) {
-        return undefined;
+    async fetchTime (params = {}): Promise<number> {
+        throw new NotSupported (this.id + ' fetchTime() is not supported yet');
     }
 
-    async fetchTradingLimits (symbols: string[] = undefined, params = {}) {
-        return undefined;
+    async fetchTradingLimits (symbols: string[] = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchTradingLimits() is not supported yet');
     }
 
     parseTicker (ticker: object, market = undefined): Ticker {
-        return undefined;
+        throw new NotSupported (this.id + ' parseTicker() is not supported yet');
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseDepositAddress() is not supported yet');
     }
 
     parseTrade (trade: object, market = undefined): Trade {
-        return undefined;
+        throw new NotSupported (this.id + ' parseTrade() is not supported yet');
     }
 
     parseTransaction (transaction, currency = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseTransaction() is not supported yet');
     }
 
     parseTransfer (transfer, currency = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseTransfer() is not supported yet');
     }
 
     parseAccount (account) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseAccount() is not supported yet');
     }
 
     parseLedgerEntry (item, currency = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseLedgerEntry() is not supported yet');
     }
 
     parseOrder (order, market = undefined): Order {
-        return undefined;
+        throw new NotSupported (this.id + ' parseOrder() is not supported yet');
     }
 
-    async fetchBorrowRates (params = {}) {
-        return undefined;
+    async fetchBorrowRates (params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchBorrowRates() is not supported yet');
     }
 
     parseMarketLeverageTiers (info, market = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseMarketLeverageTiers() is not supported yet');
     }
 
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
-        return undefined;
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported yet');
     }
 
     parsePosition (position, market = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parsePosition() is not supported yet');
     }
 
     parseFundingRateHistory (info, market = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseFundingRateHistory() is not supported yet');
     }
 
     parseBorrowInterest (info, market = undefined) {
-        return undefined;
+        throw new NotSupported (this.id + ' parseBorrowInterest() is not supported yet');
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
-        return undefined;
+    async fetchFundingRates (symbols: string[] = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
-        return undefined;
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' transfer() is not supported yet');
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
-        return undefined;
+    async withdraw (code: string, amount, address, tag = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' withdraw() is not supported yet');
     }
 
     async createDepositAddress (code, params = {}): Promise<DepositAddressResponse> {
-        return undefined;
+        throw new NotSupported (this.id + ' createDepositAddress() is not supported yet');
+    }
+
+    async setLeverage (leverage, symbol: string = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' setLeverage() is not supported yet');
     }
 
     parseToInt (number: string | number) {
@@ -1563,9 +1577,9 @@ export default class Exchange {
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
             if (value['id'] in this.markets_by_id) {
-                this.markets_by_id[value['id']].push (value);
+                (this.markets_by_id[value['id']] as any).push (value);
             } else {
-                this.markets_by_id[value['id']] = [ value ];
+                this.markets_by_id[value['id']] = [ value ] as any;
             }
             const market = this.deepExtend (this.safeMarket (), {
                 'precision': this.precision,
@@ -2565,7 +2579,7 @@ export default class Exchange {
         } as any;
     }
 
-    parseOHLCVs (ohlcvs: object[], market: string = undefined, timeframe: string = '1m', since: number = undefined, limit: any = undefined): OHLCV[] {
+    parseOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: number = undefined, limit: any = undefined): OHLCV[] {
         const results = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push (this.parseOHLCV (ohlcvs[i], market));
@@ -2882,12 +2896,13 @@ export default class Exchange {
                 if (numMarkets === 1) {
                     return markets[0];
                 } else {
-                    if (marketType === undefined) {
+                    if ((marketType === undefined) && (market === undefined)) {
                         throw new ArgumentsRequired (this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
                     }
+                    const inferredMarketType = (marketType === undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const market = markets[i];
-                        if (market[marketType]) {
+                        if (market[inferredMarketType]) {
                             return market;
                         }
                     }
@@ -2930,7 +2945,7 @@ export default class Exchange {
 
     oath () {
         if (this.twofa !== undefined) {
-            return this.totp (this.twofa);
+            return totp (this.twofa);
         } else {
             throw new ExchangeError (this.id + ' exchange.twofa has not been set for 2FA Two-Factor Authentication');
         }
@@ -3204,6 +3219,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
+    async cancelAllOrders (symbol: string = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
+    }
+
     async cancelUnifiedOrder (order, params = {}) {
         return this.cancelOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
     }
@@ -3244,7 +3263,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
-    parseLastPrice (price, market = undefined) {
+    parseLastPrice (price, market = undefined): any {
         throw new NotSupported (this.id + ' parseLastPrice() is not supported yet');
     }
 
@@ -3313,7 +3332,7 @@ export default class Exchange {
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
     }
 
-    handleWithdrawTagAndParams (tag, params) {
+    handleWithdrawTagAndParams (tag, params): any {
         if (typeof tag === 'object') {
             params = this.extend (tag, params);
             tag = undefined;
@@ -3415,6 +3434,9 @@ export default class Exchange {
             return undefined;
         }
         const precisionNumber = parseInt (precision);
+        if (precisionNumber === 0) {
+            return '1';
+        }
         let parsedPrecision = '0.';
         for (let i = 0; i < precisionNumber - 1; i++) {
             parsedPrecision = parsedPrecision + '0';
@@ -3670,6 +3692,37 @@ export default class Exchange {
         } else {
             return false;
         }
+    }
+
+    handlePostOnly (isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params: any = {}) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} type Order type
+         * @param {boolean} exchangeSpecificBoolean exchange specific postOnly
+         * @param {object} params exchange specific params
+         * @returns {[boolean, params]}
+         */
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let postOnly = this.safeValue (params, 'postOnly', false);
+        const ioc = timeInForce === 'IOC';
+        const fok = timeInForce === 'FOK';
+        const po = timeInForce === 'PO';
+        postOnly = postOnly || po || exchangeSpecificPostOnlyOption;
+        if (postOnly) {
+            if (ioc || fok) {
+                throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
+            } else if (isMarketOrder) {
+                throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
+            } else {
+                if (po) {
+                    params = this.omit (params, 'timeInForce');
+                }
+                params = this.omit (params, 'postOnly');
+                return [ true, params ];
+            }
+        }
+        return [ false, params ];
     }
 
     async fetchLastPrices (params = {}) {

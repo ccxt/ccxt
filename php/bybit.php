@@ -172,6 +172,8 @@ class bybit extends Exchange {
                         'spot/v3/public/quote/ticker/bookTicker' => 1,
                         'spot/v3/public/server-time' => 1,
                         'spot/v3/public/infos' => 1,
+                        'spot/v3/public/margin-product-infos' => 1,
+                        'spot/v3/public/margin-ensure-tokens' => 1,
                         // data
                         'v2/public/time' => 1,
                         'v3/public/time' => 1,
@@ -294,6 +296,9 @@ class bybit extends Exchange {
                         'spot/v3/private/cross-margin-account' => 10,
                         'spot/v3/private/cross-margin-loan-info' => 10,
                         'spot/v3/private/cross-margin-repay-history' => 10,
+                        'spot/v3/private/margin-loan-infos' => 10,
+                        'spot/v3/private/margin-repaid-infos' => 10,
+                        'spot/v3/private/margin-ltv' => 10,
                         // account
                         'asset/v1/private/transfer/list' => 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v3/private/transfer/inter-transfer/list/query' => 0.84, // 60/s
@@ -1552,6 +1557,7 @@ class bybit extends Exchange {
             $inverse = ($category === 'inverse');
             $contractType = $this->safe_string($market, 'contractType');
             $inverseFutures = ($contractType === 'InverseFutures');
+            $linearFutures = ($contractType === 'LinearFutures');
             $linearPerpetual = ($contractType === 'LinearPerpetual');
             $inversePerpetual = ($contractType === 'InversePerpetual');
             $id = $this->safe_string($market, 'symbol');
@@ -1574,7 +1580,7 @@ class bybit extends Exchange {
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'Trading');
             $swap = $linearPerpetual || $inversePerpetual;
-            $future = $inverseFutures;
+            $future = $inverseFutures || $linearFutures;
             $option = ($category === 'option');
             $type = null;
             if ($swap) {
@@ -1870,10 +1876,11 @@ class bybit extends Exchange {
             // 'expDate' => '', Expiry date. e.g., 25DEC22. For option only
         );
         $type = null;
+        $isTypeInParams = (is_array($params) && array_key_exists('type', $params));
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         if ($type === 'spot') {
             $request['category'] = 'spot';
-        } elseif ($type === 'swap') {
+        } elseif ($type === 'swap' || $type === 'future') {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
             $request['category'] = $subType;
@@ -1922,10 +1929,21 @@ class bybit extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $tickerList = $this->safe_value($result, 'list', array());
         $tickers = array();
+        if ($market === null && $isTypeInParams) {
+            // create a "fake" $market for the $type
+            $market = array(
+                'type' => ($type === 'swap' || $type === 'future') ? 'swap' : $type,
+            );
+        }
         for ($i = 0; $i < count($tickerList); $i++) {
             $ticker = $this->parse_ticker($tickerList[$i], $market);
             $symbol = $ticker['symbol'];
-            $tickers[$symbol] = $ticker;
+            // this is needed because bybit returns
+            // futures with $type = swap
+            $marketInner = $this->market($symbol);
+            if ($marketInner['type'] === $type) {
+                $tickers[$symbol] = $ticker;
+            }
         }
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
@@ -1942,13 +1960,14 @@ class bybit extends Exchange {
         //         "2.4343353100000003"
         //     )
         //
+        $volumeIndex = ($market['inverse']) ? 6 : 5;
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
             $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 3),
             $this->safe_number($ohlcv, 4),
-            $this->safe_number($ohlcv, 5),
+            $this->safe_number($ohlcv, $volumeIndex),
         );
     }
 
@@ -3062,7 +3081,7 @@ class bybit extends Exchange {
             'New' => 'open',
             'Rejected' => 'rejected', // order is triggered but failed upon being placed
             'PartiallyFilled' => 'open',
-            'PartiallyFilledCancelled' => 'canceled',
+            'PartiallyFilledCanceled' => 'canceled',
             'Filled' => 'closed',
             'PendingCancel' => 'open',
             'Cancelled' => 'canceled',
@@ -3154,15 +3173,12 @@ class bybit extends Exchange {
         $status = $this->parse_order_status($rawStatus);
         $side = $this->safe_string_lower($order, 'side');
         $fee = null;
-        $isContract = $this->safe_value($market, 'contract');
-        if ($isContract) {
-            $feeCostString = $this->safe_string($order, 'cumExecFee');
-            if ($feeCostString !== null) {
-                $fee = array(
-                    'cost' => $feeCostString,
-                    'currency' => $market['settle'],
-                );
-            }
+        $feeCostString = $this->safe_string($order, 'cumExecFee');
+        if ($feeCostString !== null) {
+            $fee = array(
+                'cost' => $feeCostString,
+                'currency' => $market['settle'],
+            );
         }
         $clientOrderId = $this->safe_string($order, 'orderLinkId');
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
@@ -3462,7 +3478,7 @@ class bybit extends Exchange {
             $request['timeInForce'] = 'IOC';
         }
         $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice', $triggerPrice);
+        $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
         $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
         $stopLoss = $this->safe_number($params, 'stopLoss');
         $takeProfit = $this->safe_number($params, 'takeProfit');
@@ -3470,19 +3486,15 @@ class bybit extends Exchange {
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
         $isStopLoss = $stopLoss !== null;
         $isTakeProfit = $takeProfit !== null;
+        $isBuy = $side === 'buy';
+        $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
         if ($triggerPrice !== null) {
-            $isBuy = $side === 'buy';
-            $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
             $request['triggerDirection'] = $ascending ? 2 : 1;
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
-            if ($isStopLossTriggerOrder) {
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-                $request['triggerDirection'] = 2;
-            } else {
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
-                $request['triggerDirection'] = 1;
-            }
+            $request['triggerDirection'] = $ascending ? 2 : 1;
+            $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['reduceOnly'] = true;
         } elseif ($isStopLoss || $isTakeProfit) {
             if ($isStopLoss) {
@@ -3761,7 +3773,7 @@ class bybit extends Exchange {
             $request['timeInForce'] = 'ImmediateOrCancel';
         }
         $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice', $triggerPrice);
+        $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
         $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
         $stopLoss = $this->safe_number($params, 'stopLoss');
         $takeProfit = $this->safe_number($params, 'takeProfit');
@@ -3769,19 +3781,15 @@ class bybit extends Exchange {
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
         $isStopLoss = $stopLoss !== null;
         $isTakeProfit = $takeProfit !== null;
-        if ($triggerPrice) {
-            $isBuy = $side === 'buy';
-            $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
+        $isBuy = $side === 'buy';
+        $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
+        if ($triggerPrice !== null) {
             $request['triggerDirection'] = $ascending ? 2 : 1;
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
-            if ($isStopLossTriggerOrder) {
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-                $request['triggerDirection'] = 2;
-            } else {
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
-                $request['triggerDirection'] = 1;
-            }
+            $request['triggerDirection'] = $ascending ? 2 : 1;
+            $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['reduceOnly'] = true;
         } elseif ($isStopLoss || $isTakeProfit) {
             if ($isStopLoss) {
@@ -5875,7 +5883,7 @@ class bybit extends Exchange {
         list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
         if ($enableUnifiedAccount && !$isInverse) {
             $orderId = $this->safe_string($params, 'orderId');
-            if ($orderId === null) {
+            if ($orderId === null && $type !== 'spot') {
                 $this->check_required_symbol('fetchMyTrades', $symbol);
             }
             return $this->fetch_my_unified_trades($symbol, $since, $limit, $query);
@@ -6764,9 +6772,11 @@ class bybit extends Exchange {
             $first = $this->safe_value($symbols, 0);
             $market = $this->market($first);
             $settle = $market['settle'];
+            $request['symbol'] = $market['id'];
         }
         if ($enableUnified[1]) {
             $request['settleCoin'] = $settle;
+            $request['limit'] = 200;
         }
         // $market null
         list($type, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
@@ -8160,7 +8170,7 @@ class bybit extends Exchange {
                 if ($isV3UnifiedMargin || $isV3Contract) {
                     $headers['X-BAPI-SIGN-TYPE'] = '2';
                 }
-                $query = $params;
+                $query = array_merge(array(), $params);
                 $queryEncoded = $this->rawencode($query);
                 $auth_base = (string) $timestamp . $this->apiKey . (string) $this->options['recvWindow'];
                 $authFull = null;
@@ -8171,7 +8181,7 @@ class bybit extends Exchange {
                     $authFull = $auth_base . $queryEncoded;
                     $url .= '?' . $this->rawencode($query);
                 }
-                $headers['X-BAPI-SIGN'] = $this->hmac($this->encode($authFull), $this->encode($this->secret));
+                $headers['X-BAPI-SIGN'] = $this->hmac($this->encode($authFull), $this->encode($this->secret), 'sha256');
             } else {
                 $query = array_merge($params, array(
                     'api_key' => $this->apiKey,
@@ -8180,7 +8190,7 @@ class bybit extends Exchange {
                 ));
                 $sortedQuery = $this->keysort($query);
                 $auth = $this->rawencode($sortedQuery);
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 if ($method === 'POST') {
                     $isSpot = mb_strpos($url, 'spot') !== false;
                     $extendedQuery = array_merge($query, array(

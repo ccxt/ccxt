@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitopro.js';
 export default class bitopro extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
@@ -10,7 +10,7 @@ export default class bitopro extends Exchange {
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    parseOHLCV(ohlcv: any, market?: any, timeframe?: string, since?: any, limit?: any): number[];
+    parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     insertMissingCandles(candles: any, distance: any, since: any, limit: any): any;
     parseBalance(response: any): import("./base/types.js").Balances;

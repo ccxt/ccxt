@@ -838,7 +838,8 @@ class bitstamp extends Exchange {
         }
         $feeCostString = $this->safe_string($trade, 'fee');
         $feeCurrency = $market['quote'];
-        $priceString = $this->safe_string($trade, $rawMarketId, $priceString);
+        $priceId = ($rawMarketId !== null) ? $rawMarketId : $market['marketId'];
+        $priceString = $this->safe_string($trade, $priceId, $priceString);
         $amountString = $this->safe_string($trade, $market['baseId'], $amountString);
         $costString = $this->safe_string($trade, $market['quoteId'], $costString);
         $symbol = $market['symbol'];
@@ -2005,7 +2006,7 @@ class bitstamp extends Exchange {
             }
             $authBody = $body ? $body : '';
             $auth = $xAuth . $method . str_replace('https://', '', $url) . $contentType . $xAuthNonce . $xAuthTimestamp . $xAuthVersion . $authBody;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $headers['X-Auth-Signature'] = $signature;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

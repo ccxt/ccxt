@@ -5,11 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/okx.js';
 import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class okx extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -712,6 +714,7 @@ export default class okx extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'sandboxMode': false,
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'BTC': 'Bitcoin',
@@ -1200,7 +1203,8 @@ export default class okx extends Exchange {
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
-        if (!this.checkRequiredCredentials(false)) {
+        const isSandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+        if (!this.checkRequiredCredentials(false) || isSandboxMode) {
             return undefined;
         }
         //
@@ -1272,7 +1276,7 @@ export default class okx extends Exchange {
                 const canWithdraw = this.safeValue(chain, 'canWd');
                 const canInternal = this.safeValue(chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
-                currencyActive = (currencyActive === undefined) ? active : currencyActive;
+                currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString(chain, 'chain');
                 if (canDeposit && !depositEnabled) {
                     depositEnabled = true;
@@ -4697,7 +4701,7 @@ export default class okx extends Exchange {
                 }
                 headers['Content-Type'] = 'application/json';
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha256', 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, 'base64');
             headers['OK-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -5793,6 +5797,7 @@ export default class okx extends Exchange {
     }
     setSandboxMode(enable) {
         super.setSandboxMode(enable);
+        this.options['sandboxMode'] = enable;
         if (enable) {
             this.headers['x-simulated-trading'] = '1';
         }

@@ -5,11 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitget.js';
 import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class bitget extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -620,6 +622,7 @@ export default class bitget extends Exchange {
                     '40016': PermissionDenied,
                     '40017': ExchangeError,
                     '40018': PermissionDenied,
+                    '40019': InvalidOrder,
                     '40102': BadRequest,
                     '40103': BadRequest,
                     '40104': ExchangeError,
@@ -692,6 +695,7 @@ export default class bitget extends Exchange {
                     '40712': InsufficientFunds,
                     '40713': ExchangeError,
                     '40714': ExchangeError,
+                    '41114': OnMaintenance,
                     '43011': InvalidOrder,
                     '43025': InvalidOrder,
                     '45110': InvalidOrder,
@@ -3352,7 +3356,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data');
-        return await this.parseTrades(data, market, since, limit);
+        return this.parseTrades(data, market, since, limit);
     }
     async fetchPosition(symbol, params = {}) {
         /**
@@ -4282,7 +4286,7 @@ export default class bitget extends Exchange {
                     auth += query;
                 }
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha256', 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, 'base64');
             const broker = this.safeString(this.options, 'broker');
             headers = {
                 'ACCESS-KEY': this.apiKey,

@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coinone.js';
 export default class coinone extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

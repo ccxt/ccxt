@@ -5,11 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/ascendex.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class ascendex extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -2531,20 +2533,20 @@ export default class ascendex extends Exchange {
         //
         const marketId = this.safeString(position, 'symbol');
         market = this.safeMarket(marketId, market);
-        let notional = this.safeNumber(position, 'buyOpenOrderNotional');
-        if (notional === 0) {
-            notional = this.safeNumber(position, 'sellOpenOrderNotional');
+        let notional = this.safeString(position, 'buyOpenOrderNotional');
+        if (Precise.stringEq(notional, '0')) {
+            notional = this.safeString(position, 'sellOpenOrderNotional');
         }
         const marginMode = this.safeString(position, 'marginType');
         let collateral = undefined;
         if (marginMode === 'isolated') {
-            collateral = this.safeNumber(position, 'isolatedMargin');
+            collateral = this.safeString(position, 'isolatedMargin');
         }
         return {
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
-            'notional': notional,
+            'notional': this.parseNumber(notional),
             'marginMode': marginMode,
             'liquidationPrice': undefined,
             'entryPrice': this.safeNumber(position, 'avgOpenPrice'),
@@ -2975,7 +2977,7 @@ export default class ascendex extends Exchange {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             const payload = timestamp + '+' + request;
-            const hmac = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'base64');
+            const hmac = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
             headers = {
                 'x-auth-key': this.apiKey,
                 'x-auth-timestamp': timestamp,

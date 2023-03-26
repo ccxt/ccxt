@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
@@ -831,7 +832,7 @@ class bitbank(Exchange):
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-NONCE': nonce,
-                'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret)),
+                'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

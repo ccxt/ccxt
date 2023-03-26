@@ -110,7 +110,6 @@ class bitbns extends Exchange {
                         'placeBuyOrder/{symbol}',
                         'buyStopLoss/{symbol}',
                         'sellStopLoss/{symbol}',
-                        'placeSellOrder/{symbol}',
                         'cancelOrder/{symbol}',
                         'cancelStopLossOrder/{symbol}',
                         'listExecutedOrders/{symbol}',
@@ -1119,7 +1118,8 @@ class bitbns extends Exchange {
     }
 
     public function sign($path, $api = 'www', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if (!(is_array($this->urls['api']) && array_key_exists($api, $this->urls['api']))) {
+        $urls = $this->urls;
+        if (!(is_array($urls['api']) && array_key_exists($api, $urls['api']))) {
             throw new ExchangeError($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
         }
         if ($api !== 'www') {
@@ -1148,7 +1148,7 @@ class bitbns extends Exchange {
             );
             $payload = base64_encode($this->json($auth));
             $signature = $this->hmac($payload, $this->encode($this->secret), 'sha512');
-            $headers['X-BITBNS-PAYLOAD'] = $this->decode($payload);
+            $headers['X-BITBNS-PAYLOAD'] = $payload;
             $headers['X-BITBNS-SIGNATURE'] = $signature;
             $headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }

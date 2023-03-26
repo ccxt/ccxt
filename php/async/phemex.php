@@ -205,7 +205,6 @@ class phemex extends Exchange {
                         'assets/spots/sub-accounts/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/futures/sub-accounts/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote', // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
-                        'assets/convert', // ?fromCurrency=<currency>&toCurrency=<currency>&startTime=<start>&endTime=<end>&limit=<limit>&offset=<offset>
                     ),
                     'post' => array(
                         // spot
@@ -3836,7 +3835,7 @@ class phemex extends Exchange {
                 $headers['Content-Type'] = 'application/json';
             }
             $auth = $requestPath . $queryString . $expiryString . $payload;
-            $headers['x-phemex-request-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $headers['x-phemex-request-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         }
         $url = $this->implode_hostname($this->urls['api'][$api]) . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

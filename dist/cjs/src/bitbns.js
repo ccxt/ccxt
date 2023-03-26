@@ -1,13 +1,15 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bitbns$1 = require('./abstract/bitbns.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitbns extends Exchange["default"] {
+// @ts-expect-error
+class bitbns extends bitbns$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitbns',
@@ -109,7 +111,6 @@ class bitbns extends Exchange["default"] {
                         'placeBuyOrder/{symbol}',
                         'buyStopLoss/{symbol}',
                         'sellStopLoss/{symbol}',
-                        'placeSellOrder/{symbol}',
                         'cancelOrder/{symbol}',
                         'cancelStopLossOrder/{symbol}',
                         'listExecutedOrders/{symbol}',
@@ -1128,7 +1129,8 @@ class bitbns extends Exchange["default"] {
         return this.milliseconds();
     }
     sign(path, api = 'www', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!(api in this.urls['api'])) {
+        const urls = this.urls;
+        if (!(api in urls['api'])) {
             throw new errors.ExchangeError(this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
         if (api !== 'www') {
@@ -1158,8 +1160,8 @@ class bitbns extends Exchange["default"] {
                 'body': body,
             };
             const payload = this.stringToBase64(this.json(auth));
-            const signature = this.hmac(payload, this.encode(this.secret), 'sha512');
-            headers['X-BITBNS-PAYLOAD'] = this.decode(payload);
+            const signature = this.hmac(payload, this.encode(this.secret), sha512.sha512);
+            headers['X-BITBNS-PAYLOAD'] = payload;
             headers['X-BITBNS-SIGNATURE'] = signature;
             headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }

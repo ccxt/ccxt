@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitbank.js';
 export default class bitbank extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

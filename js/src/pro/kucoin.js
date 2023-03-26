@@ -9,6 +9,7 @@ import kucoinRest from '../kucoin.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class kucoin extends kucoinRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -829,8 +830,8 @@ export default class kucoin extends kucoinRest {
         };
     }
     handlePong(client, message) {
-        // https://docs.kucoin.com/#ping
         client.lastPong = this.milliseconds();
+        // https://docs.kucoin.com/#ping
     }
     handleErrorMessage(client, message) {
         return message;

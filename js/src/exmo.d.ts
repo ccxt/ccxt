@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/exmo.js';
 export default class exmo extends Exchange {
     describe(): any;
     modifyMarginHelper(symbol: any, amount: any, type: any, params?: {}): Promise<{
@@ -91,7 +91,7 @@ export default class exmo extends Exchange {
         network: any;
         info: any;
     }>;
-    getMarketFromTrades(trades: any): import("./base/types.js").Market;
+    getMarketFromTrades(trades: any): any;
     withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;

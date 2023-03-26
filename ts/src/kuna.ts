@@ -1,12 +1,14 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 // ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class kuna extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -299,7 +301,7 @@ export default class kuna extends Exchange {
          * @param {object} params extra parameters specific to the kuna api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetTimestamp (params);
+        const response = await this.publicGetTimestamp (params);
         //
         //     1594911427
         //
@@ -316,7 +318,7 @@ export default class kuna extends Exchange {
          */
         const quotes = [ 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' ];
         const markets = [];
-        const response = await (this as any).publicGetTickers (params);
+        const response = await this.publicGetTickers (params);
         //
         //    {
         //        shibuah: {
@@ -421,7 +423,7 @@ export default class kuna extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 300
         }
-        const orderbook = await (this as any).publicGetDepth (this.extend (request, params));
+        const orderbook = await this.publicGetDepth (this.extend (request, params));
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
@@ -466,7 +468,7 @@ export default class kuna extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).publicGetTickers (params);
+        const response = await this.publicGetTickers (params);
         const ids = Object.keys (response);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -492,7 +494,7 @@ export default class kuna extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).publicGetTickersMarket (this.extend (request, params));
+        const response = await this.publicGetTickersMarket (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
@@ -525,7 +527,7 @@ export default class kuna extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         //
         //      [
         //          {
@@ -661,7 +663,7 @@ export default class kuna extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetMembersMe (params);
+        const response = await this.privateGetMembersMe (params);
         return this.parseBalance (response);
     }
 
@@ -689,7 +691,7 @@ export default class kuna extends Exchange {
         if (type === 'limit') {
             request['price'] = price.toString ();
         }
-        const response = await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -707,7 +709,7 @@ export default class kuna extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privatePostOrderDelete (this.extend (request, params));
+        const response = await this.privatePostOrderDelete (this.extend (request, params));
         const order = this.parseOrder (response);
         const status = order['status'];
         if (status === 'closed' || status === 'canceled') {
@@ -772,7 +774,7 @@ export default class kuna extends Exchange {
         const request = {
             'id': parseInt (id),
         };
-        const response = await (this as any).privateGetOrder (this.extend (request, params));
+        const response = await this.privateGetOrder (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -795,7 +797,7 @@ export default class kuna extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         // with order cache + fetchOpenOrders
         // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
@@ -821,7 +823,7 @@ export default class kuna extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).privateGetTradesMy (this.extend (request, params));
+        const response = await this.privateGetTradesMy (this.extend (request, params));
         //
         //      [
         //          {
@@ -898,7 +900,7 @@ export default class kuna extends Exchange {
                     'tonce': nonce,
                 }, params));
                 const auth = method + '|' + request + '|' + query;
-                const signed = this.hmac (this.encode (auth), this.encode (this.secret));
+                const signed = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 const suffix = query + '&signature=' + signed;
                 if (method === 'GET') {
                     url += '?' + suffix;

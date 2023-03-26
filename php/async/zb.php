@@ -2908,7 +2908,7 @@ class zb extends Exchange {
         }
         $rawSide = $this->safe_integer_2($order, 'type', 'side');
         $side = null;
-        if ($side !== null) {
+        if ($rawSide !== null) {
             if ($market['spot']) {
                 $side = ($rawSide === 1) ? 'buy' : 'sell';
             } elseif ($market['swap']) {

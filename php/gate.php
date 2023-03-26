@@ -31,6 +31,7 @@ class gate extends Exchange {
                         'spot' => 'https://api.gateio.ws/api/v4',
                         'options' => 'https://api.gateio.ws/api/v4',
                         'sub_accounts' => 'https://api.gateio.ws/api/v4',
+                        'earn' => 'https://api.gateio.ws/api/v4',
                     ),
                     'private' => array(
                         'withdrawals' => 'https://api.gateio.ws/api/v4',
@@ -41,6 +42,8 @@ class gate extends Exchange {
                         'spot' => 'https://api.gateio.ws/api/v4',
                         'options' => 'https://api.gateio.ws/api/v4',
                         'subAccounts' => 'https://api.gateio.ws/api/v4',
+                        'rebate' => 'https://api.gateio.ws/api/v4',
+                        'earn' => 'https://api.gateio.ws/api/v4',
                     ),
                 ),
                 'test' => array(
@@ -72,7 +75,7 @@ class gate extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
-                'createMarketOrder' => false,
+                'createMarketOrder' => true,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -194,6 +197,12 @@ class gate extends Exchange {
                             'candlesticks' => 1.5,
                             'underlying/candlesticks' => 1.5,
                             'trades' => 1.5,
+                        ),
+                    ),
+                    'earn' => array(
+                        'get' => array(
+                            'uni/currencies' => 1.5,
+                            'uni/currencies/{currency}' => 1.5,
                         ),
                     ),
                 ),
@@ -322,6 +331,7 @@ class gate extends Exchange {
                             '{settle}/price_orders' => 1.5,
                             '{settle}/price_orders/{order_id}' => 1.5,
                             '{settle}/dual_comp/positions/{contract}' => 1.5,
+                            '{settle}/auto_deleverages' => 1.5,
                         ),
                         'post' => array(
                             '{settle}/positions/{contract}/margin' => 1.5,
@@ -390,6 +400,26 @@ class gate extends Exchange {
                             'orders/{order_id}' => 1.5,
                         ),
                     ),
+                    'rebate' => array(
+                        'get' => array(
+                            'agency/transaction_history' => 1.5,
+                            'agency/commission_history' => 1.5,
+                        ),
+                    ),
+                    'earn' => array(
+                        'get' => array(
+                            'uni/lends' => 1.5,
+                            'uni/lend_records' => 1.5,
+                            'uni/interests/{currency}' => 1.5,
+                            'uni/interest_records' => 1.5,
+                        ),
+                        'post' => array(
+                            'uni/lends' => 1.5,
+                        ),
+                        'patch' => array(
+                            'uni/lends' => 1.5,
+                        ),
+                    ),
                 ),
             ),
             'timeframes' => array(
@@ -449,6 +479,7 @@ class gate extends Exchange {
                     'IOC' => 'ioc',
                     'PO' => 'poc',
                     'POC' => 'poc',
+                    'FOK' => 'fok',
                 ),
                 'accountsByType' => array(
                     'funding' => 'spot',
@@ -1015,7 +1046,7 @@ class gate extends Exchange {
         $underlyings = $this->fetch_option_underlyings();
         for ($i = 0; $i < count($underlyings); $i++) {
             $underlying = $underlyings[$i];
-            $query = $params;
+            $query = array_merge(array(), $params);
             $query['underlying'] = $underlying;
             $response = $this->publicOptionsGetContracts ($query);
             //
@@ -3106,34 +3137,43 @@ class gate extends Exchange {
         }
         $methodTail = 'Orders';
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
-        $exchangeSpecificTimeInForce = $this->safe_string_lower_2($params, 'time_in_force', 'tif');
-        $postOnly = $this->is_post_only($type === 'market', $exchangeSpecificTimeInForce === 'poc', $params);
+        $exchangeSpecificTimeInForce = $this->safe_string_lower_n($params, array( 'timeInForce', 'tif', 'time_in_force' ));
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($type === 'market', $exchangeSpecificTimeInForce === 'poc', $params);
         $timeInForce = $this->handle_time_in_force($params);
-        // we only omit the unified $params here
-        // this is because the other $params will get extended into the $request
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ));
         if ($postOnly) {
             $timeInForce = 'poc';
         }
+        // we only omit the unified $params here
+        // this is because the other $params will get extended into the $request
+        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ));
         $isLimitOrder = ($type === 'limit');
         $isMarketOrder = ($type === 'market');
         if ($isLimitOrder && $price === null) {
             throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for ' . $type . ' orders');
         }
+        if ($isMarketOrder) {
+            if (($timeInForce === 'poc') || ($timeInForce === 'gtc')) {
+                throw new ExchangeError($this->id . ' createOrder () $timeInForce for $market order can only be "FOK" or "IOC"');
+            } else {
+                if ($timeInForce === null) {
+                    $defaultTif = $this->safe_string($this->options, 'defaultTimeInForce', 'IOC');
+                    $exchangeSpecificTif = $this->safe_string($this->options['timeInForce'], $defaultTif, 'ioc');
+                    $timeInForce = $exchangeSpecificTif;
+                }
+            }
+            if ($contract) {
+                $price = 0;
+            }
+        }
         if ($contract) {
             $amountToPrecision = $this->amount_to_precision($symbol, $amount);
             $signedAmount = ($side === 'sell') ? Precise::string_neg($amountToPrecision) : $amountToPrecision;
             $amount = intval($signedAmount);
-            if ($isMarketOrder) {
-                if (($timeInForce === 'poc') || ($timeInForce === 'gtc')) {
-                    throw new ExchangeError($this->id . ' createOrder () $timeInForce for $market orders must be "IOC"');
-                }
-                $timeInForce = 'ioc';
-                $price = 0;
-            }
         }
         $request = null;
-        if (!$isStopOrder && ($trigger === null)) {
+        $nonTriggerOrder = !$isStopOrder && ($trigger === null);
+        if ($nonTriggerOrder) {
             if ($contract) {
                 // $contract order
                 $request = array(
@@ -3194,8 +3234,6 @@ class gate extends Exchange {
                 }
                 if ($isLimitOrder) {
                     $request['price'] = $this->price_to_precision($symbol, $price);
-                } else {
-                    $timeInForce = 'ioc';
                 }
                 if ($timeInForce !== null) {
                     $request['time_in_force'] = $timeInForce;
@@ -3267,6 +3305,9 @@ class gate extends Exchange {
                 $options = $this->safe_value($this->options, 'createOrder', array());
                 $marginMode = null;
                 list($marginMode, $params) = $this->get_margin_mode(true, $params);
+                if ($timeInForce === null) {
+                    $timeInForce = 'gtc';
+                }
                 $request = array(
                     'put' => array(
                         'type' => $type,
@@ -3274,7 +3315,7 @@ class gate extends Exchange {
                         'price' => $this->price_to_precision($symbol, $price),
                         'amount' => $this->amount_to_precision($symbol, $amount),
                         'account' => $marginMode,
-                        'time_in_force' => 'gtc', // gtc, ioc for taker only
+                        'time_in_force' => $timeInForce, // gtc, ioc (ioc is for taker only, so shouldnt't be in conditional order)
                     ),
                     'market' => $market['id'],
                 );
@@ -3297,9 +3338,6 @@ class gate extends Exchange {
                         'rule' => $rule, // >= triggered when $market $price larger than or equal to $price field, <= triggered when $market $price less than or equal to $price field
                         'expiration' => $expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
                     );
-                }
-                if ($timeInForce !== null) {
-                    $request['put']['time_in_force'] = $timeInForce;
                 }
             }
             $methodTail = 'PriceOrders';

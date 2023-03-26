@@ -443,6 +443,8 @@ class mexc3(Exchange):
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
                 'FREE': 'FreeRossDAO',  # conflict with FREE Coin
+                'GAS': 'GASDAO',
+                'GASNEO': 'GAS',
                 'GMT': 'GMT Token',  # Conflict with GMT(STEPN)
                 'STEPN': 'GMT',  # Conflict with GMT Token
                 'HERO': 'Step Hero',  # conflict with Metahero

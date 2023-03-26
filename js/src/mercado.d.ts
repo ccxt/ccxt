@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/mercado.js';
 export default class mercado extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

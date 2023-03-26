@@ -2876,7 +2876,7 @@ class hitbtc3 extends Exchange {
             $payloadString = implode('', $payload);
             $signature = $this->hmac($this->encode($payloadString), $this->encode($this->secret), 'sha256', 'hex');
             $secondPayload = $this->apiKey . ':' . $signature . ':' . $timestamp;
-            $encoded = $this->decode(base64_encode($secondPayload));
+            $encoded = base64_encode($secondPayload);
             $headers['Authorization'] = 'HS256 ' . $encoded;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

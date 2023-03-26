@@ -3,11 +3,14 @@
 var _commonjsHelpers = require('./_commonjsHelpers.js');
 
 const commonjsRegister = _commonjsHelpers.commonjsRegister;
-commonjsRegister("/$$rollup_base$$/js/src/static_dependencies/elliptic/lib/elliptic/curve/index.cjs", function (module, exports) {
-var curve = exports;
-curve.base = _commonjsHelpers.commonjsRequire("./base.cjs", "/$$rollup_base$$/js/src/static_dependencies/elliptic/lib/elliptic/curve");
-curve.short = _commonjsHelpers.commonjsRequire("./short.cjs", "/$$rollup_base$$/js/src/static_dependencies/elliptic/lib/elliptic/curve");
-curve.mont = _commonjsHelpers.commonjsRequire("./mont.cjs", "/$$rollup_base$$/js/src/static_dependencies/elliptic/lib/elliptic/curve");
-curve.edwards = _commonjsHelpers.commonjsRequire("./edwards.cjs", "/$$rollup_base$$/js/src/static_dependencies/elliptic/lib/elliptic/curve");
+commonjsRegister("/$$rollup_base$$/js/src/static_dependencies/qs/index.cjs", function (module, exports) {
+var stringify = _commonjsHelpers.commonjsRequire("./stringify.cjs", "/$$rollup_base$$/js/src/static_dependencies/qs");
+var parse = _commonjsHelpers.commonjsRequire("./parse.cjs", "/$$rollup_base$$/js/src/static_dependencies/qs");
+var formats = _commonjsHelpers.commonjsRequire("./formats.cjs", "/$$rollup_base$$/js/src/static_dependencies/qs");
+module.exports = {
+    formats: formats,
+    parse: parse,
+    stringify: stringify
+};
 
 });

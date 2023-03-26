@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import AuthenticationError
@@ -553,7 +554,7 @@ class bitmex(ccxt.async_support.bitmex):
                 self.check_required_credentials()
                 timestamp = self.milliseconds()
                 message = 'GET' + '/realtime' + str(timestamp)
-                signature = self.hmac(self.encode(message), self.encode(self.secret))
+                signature = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256)
                 request = {
                     'op': action,
                     'args': [

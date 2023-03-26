@@ -1768,7 +1768,7 @@ class currencycom extends Exchange {
                 'timestamp' => $this->nonce(),
                 'recvWindow' => $this->options['recvWindow'],
             ), $params));
-            $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
             $query .= '&' . 'signature=' . $signature;
             $headers = array(
                 'X-MBX-APIKEY' => $this->apiKey,

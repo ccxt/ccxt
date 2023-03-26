@@ -6,6 +6,7 @@ var Cache = require('../base/ws/Cache.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 class kucoin extends kucoin$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -826,8 +827,8 @@ class kucoin extends kucoin$1 {
         };
     }
     handlePong(client, message) {
-        // https://docs.kucoin.com/#ping
         client.lastPong = this.milliseconds();
+        // https://docs.kucoin.com/#ping
     }
     handleErrorMessage(client, message) {
         return message;

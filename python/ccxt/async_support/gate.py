@@ -50,6 +50,7 @@ class gate(Exchange):
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
                         'sub_accounts': 'https://api.gateio.ws/api/v4',
+                        'earn': 'https://api.gateio.ws/api/v4',
                     },
                     'private': {
                         'withdrawals': 'https://api.gateio.ws/api/v4',
@@ -60,6 +61,8 @@ class gate(Exchange):
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
                         'subAccounts': 'https://api.gateio.ws/api/v4',
+                        'rebate': 'https://api.gateio.ws/api/v4',
+                        'earn': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -91,7 +94,7 @@ class gate(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
-                'createMarketOrder': False,
+                'createMarketOrder': True,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -213,6 +216,12 @@ class gate(Exchange):
                             'candlesticks': 1.5,
                             'underlying/candlesticks': 1.5,
                             'trades': 1.5,
+                        },
+                    },
+                    'earn': {
+                        'get': {
+                            'uni/currencies': 1.5,
+                            'uni/currencies/{currency}': 1.5,
                         },
                     },
                 },
@@ -341,6 +350,7 @@ class gate(Exchange):
                             '{settle}/price_orders': 1.5,
                             '{settle}/price_orders/{order_id}': 1.5,
                             '{settle}/dual_comp/positions/{contract}': 1.5,
+                            '{settle}/auto_deleverages': 1.5,
                         },
                         'post': {
                             '{settle}/positions/{contract}/margin': 1.5,
@@ -409,6 +419,26 @@ class gate(Exchange):
                             'orders/{order_id}': 1.5,
                         },
                     },
+                    'rebate': {
+                        'get': {
+                            'agency/transaction_history': 1.5,
+                            'agency/commission_history': 1.5,
+                        },
+                    },
+                    'earn': {
+                        'get': {
+                            'uni/lends': 1.5,
+                            'uni/lend_records': 1.5,
+                            'uni/interests/{currency}': 1.5,
+                            'uni/interest_records': 1.5,
+                        },
+                        'post': {
+                            'uni/lends': 1.5,
+                        },
+                        'patch': {
+                            'uni/lends': 1.5,
+                        },
+                    },
                 },
             },
             'timeframes': {
@@ -468,6 +498,7 @@ class gate(Exchange):
                     'IOC': 'ioc',
                     'PO': 'poc',
                     'POC': 'poc',
+                    'FOK': 'fok',
                 },
                 'accountsByType': {
                     'funding': 'spot',
@@ -1021,7 +1052,7 @@ class gate(Exchange):
         underlyings = await self.fetch_option_underlyings()
         for i in range(0, len(underlyings)):
             underlying = underlyings[i]
-            query = params
+            query = self.extend({}, params)
             query['underlying'] = underlying
             response = await self.publicOptionsGetContracts(query)
             #
@@ -2987,29 +3018,36 @@ class gate(Exchange):
             raise ExchangeError(self.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined')
         methodTail = 'Orders'
         reduceOnly = self.safe_value(params, 'reduceOnly')
-        exchangeSpecificTimeInForce = self.safe_string_lower_2(params, 'time_in_force', 'tif')
-        postOnly = self.is_post_only(type == 'market', exchangeSpecificTimeInForce == 'poc', params)
+        exchangeSpecificTimeInForce = self.safe_string_lower_n(params, ['timeInForce', 'tif', 'time_in_force'])
+        postOnly = None
+        postOnly, params = self.handle_post_only(type == 'market', exchangeSpecificTimeInForce == 'poc', params)
         timeInForce = self.handle_time_in_force(params)
+        if postOnly:
+            timeInForce = 'poc'
         # we only omit the unified params here
         # self is because the other params will get extended into the request
         params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly'])
-        if postOnly:
-            timeInForce = 'poc'
         isLimitOrder = (type == 'limit')
         isMarketOrder = (type == 'market')
         if isLimitOrder and price is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for ' + type + ' orders')
+        if isMarketOrder:
+            if (timeInForce == 'poc') or (timeInForce == 'gtc'):
+                raise ExchangeError(self.id + ' createOrder() timeInForce for market order can only be "FOK" or "IOC"')
+            else:
+                if timeInForce is None:
+                    defaultTif = self.safe_string(self.options, 'defaultTimeInForce', 'IOC')
+                    exchangeSpecificTif = self.safe_string(self.options['timeInForce'], defaultTif, 'ioc')
+                    timeInForce = exchangeSpecificTif
+            if contract:
+                price = 0
         if contract:
             amountToPrecision = self.amount_to_precision(symbol, amount)
             signedAmount = Precise.string_neg(amountToPrecision) if (side == 'sell') else amountToPrecision
             amount = int(signedAmount)
-            if isMarketOrder:
-                if (timeInForce == 'poc') or (timeInForce == 'gtc'):
-                    raise ExchangeError(self.id + ' createOrder() timeInForce for market orders must be "IOC"')
-                timeInForce = 'ioc'
-                price = 0
         request = None
-        if not isStopOrder and (trigger is None):
+        nonTriggerOrder = not isStopOrder and (trigger is None)
+        if nonTriggerOrder:
             if contract:
                 # contract order
                 request = {
@@ -3064,8 +3102,6 @@ class gate(Exchange):
                     request['amount'] = self.amount_to_precision(symbol, amount)
                 if isLimitOrder:
                     request['price'] = self.price_to_precision(symbol, price)
-                else:
-                    timeInForce = 'ioc'
                 if timeInForce is not None:
                     request['time_in_force'] = timeInForce
             clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
@@ -3126,6 +3162,8 @@ class gate(Exchange):
                 options = self.safe_value(self.options, 'createOrder', {})
                 marginMode = None
                 marginMode, params = self.get_margin_mode(True, params)
+                if timeInForce is None:
+                    timeInForce = 'gtc'
                 request = {
                     'put': {
                         'type': type,
@@ -3133,7 +3171,7 @@ class gate(Exchange):
                         'price': self.price_to_precision(symbol, price),
                         'amount': self.amount_to_precision(symbol, amount),
                         'account': marginMode,
-                        'time_in_force': 'gtc',  # gtc, ioc for taker only
+                        'time_in_force': timeInForce,  # gtc, ioc(ioc is for taker only, so shouldnt't be in conditional order)
                     },
                     'market': market['id'],
                 }
@@ -3155,8 +3193,6 @@ class gate(Exchange):
                         'rule': rule,  # >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
                         'expiration': expiration,  # required, how long(in seconds) to wait for the condition to be triggered before cancelling the order
                     }
-                if timeInForce is not None:
-                    request['put']['time_in_force'] = timeInForce
             methodTail = 'PriceOrders'
         method = self.get_supported_mapping(market['type'], {
             'spot': 'privateSpotPost' + methodTail,

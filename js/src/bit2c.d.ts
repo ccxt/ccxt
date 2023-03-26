@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bit2c.js';
 export default class bit2c extends Exchange {
     describe(): any;
     parseBalance(response: any): import("./base/types.js").Balances;

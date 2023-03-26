@@ -1,11 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var tidex$1 = require('./abstract/tidex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-class tidex extends Exchange["default"] {
+// @ts-expect-error
+class tidex extends tidex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'tidex',
@@ -510,10 +512,10 @@ class tidex extends Exchange["default"] {
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        let ids = this.ids;
+        let ids = undefined;
         if (symbols === undefined) {
-            const numIds = ids.length;
-            ids = ids.join('-');
+            const numIds = this.ids.length;
+            ids = this.ids.join('-');
             // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
             if (ids.length > this.options['fetchTickersMaxLength']) {
                 const maxLength = this.safeInteger(this.options, 'fetchTickersMaxLength', 2048);
@@ -521,8 +523,8 @@ class tidex extends Exchange["default"] {
             }
         }
         else {
-            ids = this.marketIds(symbols);
-            ids = ids.join('-');
+            const newIds = this.marketIds(symbols);
+            ids = newIds.join('-');
         }
         const request = {
             'pair': ids,
@@ -971,7 +973,7 @@ class tidex extends Exchange["default"] {
                 'nonce': nonce,
                 'method': path,
             }, query));
-            const signature = this.hmac(this.encode(body), this.encode(this.secret), 'sha512');
+            const signature = this.hmac(this.encode(body), this.encode(this.secret), sha512.sha512);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,

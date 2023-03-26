@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/zb.js';
 export default class zb extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

@@ -931,7 +931,7 @@ class luno(Exchange):
             self.check_required_credentials()
             auth = self.string_to_base64(self.apiKey + ':' + self.secret)
             headers = {
-                'Authorization': 'Basic ' + self.decode(auth),
+                'Authorization': 'Basic ' + auth,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

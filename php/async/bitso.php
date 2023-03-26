@@ -156,9 +156,6 @@ class bitso extends Exchange {
                         'bitcoin_withdrawal',
                         'debit_card_withdrawal',
                         'ether_withdrawal',
-                        'ripple_withdrawal',
-                        'bcash_withdrawal',
-                        'litecoin_withdrawal',
                         'orders',
                         'phone_number',
                         'phone_verification',
@@ -1720,7 +1717,7 @@ class bitso extends Exchange {
                     $request .= $body;
                 }
             }
-            $signature = $this->hmac($this->encode($request), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($request), $this->encode($this->secret), 'sha256');
             $auth = $this->apiKey . ':' . $nonce . ':' . $signature;
             $headers = array(
                 'Authorization' => 'Bitso ' . $auth,

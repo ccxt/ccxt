@@ -1767,7 +1767,7 @@ class digifinex extends Exchange {
                 'market' => $orderType,
                 'order_id' => implode(',', $ids),
             );
-            $response = Async\await($this->privateSpotPostCancelOrder (array_merge($request, $params)));
+            $response = Async\await($this->privateSpotPostSpotOrderCancel (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -3891,7 +3891,7 @@ class digifinex extends Exchange {
                 $nonce = (string) $this->nonce();
                 $auth = $urlencoded;
             }
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             if ($method === 'GET') {
                 if ($urlencoded) {
                     $url .= '?' . $urlencoded;

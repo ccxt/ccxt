@@ -1,12 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bittrex.js';
 import { ArgumentsRequired, BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class bittrex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -284,7 +286,7 @@ export default class bittrex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetMarkets (params);
+        const response = await this.publicGetMarkets (params);
         //
         //     [
         //         {
@@ -393,7 +395,7 @@ export default class bittrex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetBalances (params);
+        const response = await this.privateGetBalances (params);
         return this.parseBalance (response);
     }
 
@@ -418,7 +420,7 @@ export default class bittrex extends Exchange {
             }
             request['depth'] = limit;
         }
-        const response = await (this as any).publicGetMarketsMarketSymbolOrderbook (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketSymbolOrderbook (this.extend (request, params));
         //
         //     {
         //         "bid":[
@@ -447,7 +449,7 @@ export default class bittrex extends Exchange {
          * @param {object} params extra parameters specific to the bittrex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetCurrencies (params);
+        const response = await this.publicGetCurrencies (params);
         //
         //     [
         //         {
@@ -657,7 +659,7 @@ export default class bittrex extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetMarketsTickers (params);
+        const response = await this.publicGetMarketsTickers (params);
         //
         //     [
         //       {
@@ -761,7 +763,7 @@ export default class bittrex extends Exchange {
          * @param {object} params extra parameters specific to the bittrex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetPing (params);
+        const response = await this.publicGetPing (params);
         //
         //     {
         //         "serverTime": 1594596023162
@@ -786,7 +788,7 @@ export default class bittrex extends Exchange {
         const request = {
             'marketSymbol': market['id'],
         };
-        const response = await (this as any).publicGetMarketsMarketSymbolTrades (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketSymbolTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -815,7 +817,7 @@ export default class bittrex extends Exchange {
         const request = {
             'marketSymbol': market['id'],
         };
-        const response = await (this as any).privateGetAccountFeesTradingMarketSymbol (this.extend (request, params));
+        const response = await this.privateGetAccountFeesTradingMarketSymbol (this.extend (request, params));
         //
         //     {
         //         "marketSymbol":"1INCH-ETH",
@@ -835,7 +837,7 @@ export default class bittrex extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccountFeesTrading (params);
+        const response = await this.privateGetAccountFeesTrading (params);
         //
         //     [
         //         {"marketSymbol":"1ECO-BTC","makerRate":"0.00750000","takerRate":"0.00750000"},
@@ -1044,7 +1046,7 @@ export default class bittrex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response = await (this as any).privateGetOrdersOrderIdExecutions (this.extend (request, params));
+        const response = await this.privateGetOrdersOrderIdExecutions (this.extend (request, params));
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1335,7 +1337,7 @@ export default class bittrex extends Exchange {
             market = this.market (symbol);
             request['marketSymbol'] = market['id'];
         }
-        const response = await (this as any).privateDeleteOrdersOpen (this.extend (request, params));
+        const response = await this.privateDeleteOrdersOpen (this.extend (request, params));
         //
         //     [
         //         {
@@ -1386,7 +1388,7 @@ export default class bittrex extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await (this as any).privateGetDepositsByTxIdTxId (this.extend (request, params));
+        const response = await this.privateGetDepositsByTxIdTxId (this.extend (request, params));
         const transactions = this.parseTransactions (response, currency, undefined, undefined);
         return this.safeValue (transactions, 0);
     }
@@ -1473,7 +1475,7 @@ export default class bittrex extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await (this as any).privateGetWithdrawalsByTxIdTxId (this.extend (request, params));
+        const response = await this.privateGetWithdrawalsByTxIdTxId (this.extend (request, params));
         const transactions = this.parseTransactions (response, currency, undefined, undefined);
         return this.safeValue (transactions, 0);
     }
@@ -1885,7 +1887,7 @@ export default class bittrex extends Exchange {
             symbol = market['symbol'];
             request['marketSymbol'] = market['id'];
         }
-        const response = await (this as any).privateGetExecutions (this.extend (request, params));
+        const response = await this.privateGetExecutions (this.extend (request, params));
         const trades = this.parseTrades (response, market);
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit) as any;
     }
@@ -1988,7 +1990,7 @@ export default class bittrex extends Exchange {
         const request = {
             'currencySymbol': currency['id'],
         };
-        const response = await (this as any).privatePostAddresses (this.extend (request, params));
+        const response = await this.privatePostAddresses (this.extend (request, params));
         //
         //     {
         //         "status":"PROVISIONED",
@@ -2026,7 +2028,7 @@ export default class bittrex extends Exchange {
         const request = {
             'currencySymbol': currency['id'],
         };
-        const response = await (this as any).privateGetAddressesCurrencySymbol (this.extend (request, params));
+        const response = await this.privateGetAddressesCurrencySymbol (this.extend (request, params));
         //
         //     {
         //         "status":"PROVISIONED",
@@ -2074,7 +2076,7 @@ export default class bittrex extends Exchange {
         if (tag !== undefined) {
             request['cryptoAddressTag'] = tag;
         }
-        const response = await (this as any).privatePostWithdrawals (this.extend (request, params));
+        const response = await this.privatePostWithdrawals (this.extend (request, params));
         //
         //     {
         //         "currencySymbol": "string",
@@ -2106,14 +2108,14 @@ export default class bittrex extends Exchange {
                     url += '?' + this.rawencode (params);
                 }
             }
-            const contentHash = this.hash (this.encode (hashString), 'sha512', 'hex');
+            const contentHash = this.hash (this.encode (hashString), sha512, 'hex');
             const timestamp = this.milliseconds ().toString ();
             let auth = timestamp + url + method + contentHash;
             const subaccountId = this.safeValue (this.options, 'subaccountId');
             if (subaccountId !== undefined) {
                 auth += subaccountId;
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha512);
             headers = {
                 'Api-Key': this.apiKey,
                 'Api-Timestamp': timestamp,

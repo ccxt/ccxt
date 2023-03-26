@@ -617,7 +617,7 @@ class ace extends Exchange {
             if ($type === 'limit') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->privatePostV2OrderOrder (array_merge($request, $params), $params));
+            $response = Async\await($this->privatePostV2OrderOrder (array_merge($request, $params)));
             //
             //     {
             //         "attachment" => "15697850529570392100421100482693",
@@ -723,7 +723,7 @@ class ace extends Exchange {
             if ($limit !== null) {
                 $request['size'] = $limit;
             }
-            $response = Async\await($this->privatePostV2OrderGetOrderList (array_merge($request, $params), $params));
+            $response = Async\await($this->privatePostV2OrderGetOrderList (array_merge($request, $params)));
             $orders = $this->safe_value($response, 'attachment');
             //
             //     {

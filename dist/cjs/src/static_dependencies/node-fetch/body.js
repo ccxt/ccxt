@@ -18,13 +18,6 @@ var Stream__default = /*#__PURE__*/_interopDefaultLegacy(Stream);
  *
  * Body interface provides common methods for Request and Response
  */
-var __asyncValues = (undefined && undefined.__asyncValues) || function (o) {
-    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var m = o[Symbol.asyncIterator], i;
-    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
-    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
-    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
-};
 const pipeline = node_util.promisify(Stream__default["default"].pipeline);
 const INTERNALS = Symbol('Body internals');
 /**
@@ -181,7 +174,6 @@ Object.defineProperties(Body.prototype, {
  * @return Promise
  */
 async function consumeBody(data) {
-    var e_1, _a;
     if (data[INTERNALS].disturbed) {
         throw new TypeError(`body used already for: ${data.url}`);
     }
@@ -203,24 +195,14 @@ async function consumeBody(data) {
     const accum = [];
     let accumBytes = 0;
     try {
-        try {
-            for (var body_1 = __asyncValues(body), body_1_1; body_1_1 = await body_1.next(), !body_1_1.done;) {
-                const chunk = body_1_1.value;
-                if (data.size > 0 && accumBytes + chunk.length > data.size) {
-                    const error = new fetchError.FetchError(`content size at ${data.url} over limit: ${data.size}`, 'max-size');
-                    body.destroy(error);
-                    throw error;
-                }
-                accumBytes += chunk.length;
-                accum.push(chunk);
+        for await (const chunk of body) {
+            if (data.size > 0 && accumBytes + chunk.length > data.size) {
+                const error = new fetchError.FetchError(`content size at ${data.url} over limit: ${data.size}`, 'max-size');
+                body.destroy(error);
+                throw error;
             }
-        }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
-        finally {
-            try {
-                if (body_1_1 && !body_1_1.done && (_a = body_1.return)) await _a.call(body_1);
-            }
-            finally { if (e_1) throw e_1.error; }
+            accumBytes += chunk.length;
+            accum.push(chunk);
         }
     }
     catch (error) {

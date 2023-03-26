@@ -353,6 +353,7 @@ class cryptocom extends Exchange {
          * @return {[array]} an array of objects representing market data
          */
         $promises = array( $this->fetch_spot_markets($params), $this->fetch_derivatives_markets($params) );
+        // @ts-ignore
         $promises = $promises;
         $spotMarkets = $promises[0];
         $derivativeMarkets = $promises[1];
@@ -2451,7 +2452,7 @@ class cryptocom extends Exchange {
                 $strSortKey = $strSortKey . (string) $paramsKeys[$i] . (string) $requestParams[$paramsKeys[$i]];
             }
             $payload = $path . $nonce . $this->apiKey . $strSortKey . $nonce;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
             $paramsKeysLength = count($paramsKeys);
             $body = $this->json(array(
                 'id' => $nonce,

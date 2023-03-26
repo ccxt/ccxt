@@ -5,11 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/yobit.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 // ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class yobit extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -545,9 +547,9 @@ export default class yobit extends Exchange {
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        let ids = this.ids;
+        let ids = undefined;
         if (symbols === undefined) {
-            const numIds = ids.length;
+            const numIds = this.ids.length;
             ids = ids.join('-');
             const maxLength = this.safeInteger(this.options, 'fetchTickersMaxLength', 2048);
             // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
@@ -556,8 +558,8 @@ export default class yobit extends Exchange {
             }
         }
         else {
-            ids = this.marketIds(symbols);
-            ids = ids.join('-');
+            const newIds = this.marketIds(symbols);
+            ids = newIds.join('-');
         }
         const request = {
             'pair': ids,
@@ -1199,7 +1201,7 @@ export default class yobit extends Exchange {
                 'nonce': nonce,
                 'method': path,
             }, query));
-            const signature = this.hmac(this.encode(body), this.encode(this.secret), 'sha512');
+            const signature = this.hmac(this.encode(body), this.encode(this.secret), sha512);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,

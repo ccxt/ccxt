@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -2144,7 +2145,7 @@ class lbank2(Exchange):
                 'timestamp': timestamp,
             }, query)))
             encoded = self.encode(auth)
-            hash = self.hash(encoded)
+            hash = self.hash(encoded, 'sha256')
             uppercaseHash = hash.upper()
             sign = None
             if signatureMethod == 'RSA':
@@ -2157,9 +2158,9 @@ class lbank2(Exchange):
                         self.options['pem'] = pem
                 else:
                     pem = self.convert_secret_to_pem(self.encode(self.secret))
-                sign = self.rsa(uppercaseHash, pem)
+                sign = self.rsa(uppercaseHash, pem, 'sha256')
             elif signatureMethod == 'HmacSHA256':
-                sign = self.hmac(self.encode(uppercaseHash), self.encode(self.secret))
+                sign = self.hmac(self.encode(uppercaseHash), self.encode(self.secret), hashlib.sha256)
             query['sign'] = sign
             body = self.urlencode(self.keysort(query))
             headers = {

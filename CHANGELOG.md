@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.35 (2023-03-25)
+
+### 3.0.34 (2023-03-25)
+
+### 3.0.33 (2023-03-24)
+
+### 3.0.32 (2023-03-24)
+
+### 3.0.31 (2023-03-24)
+
+### 3.0.30 (2023-03-23)
+
+
+### Bug Fixes
+
+* **bybit,gate:** polluting markets loading ([2ba367e](https://github.com/ccxt/ccxt/commit/2ba367e1869b7c820a4f14c1ea6174b46a913626))
+
+### 3.0.29 (2023-03-23)
+
+### 3.0.27 (2023-03-22)
+
+### 3.0.26 (2023-03-21)
+
+
+### Bug Fixes
+
+* **kucoin:** handlePong ([756cb79](https://github.com/ccxt/ccxt/commit/756cb79fa2cdc7a34934c8f5cffaac1e6d422958))
+
+### 3.0.25 (2023-03-20)
+
+### 3.0.24 (2023-03-20)
+
+### 3.0.23 (2023-03-19)
+
 ### 3.0.22 (2023-03-18)
 
 ### 3.0.21 (2023-03-18)

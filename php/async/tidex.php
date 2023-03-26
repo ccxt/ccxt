@@ -523,18 +523,18 @@ class tidex extends Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $ids = $this->ids;
+            $ids = null;
             if ($symbols === null) {
-                $numIds = count($ids);
-                $ids = implode('-', $ids);
+                $numIds = count($this->ids);
+                $ids = implode('-', $this->ids);
                 // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
                 if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
                     $maxLength = $this->safe_integer($this->options, 'fetchTickersMaxLength', 2048);
                     throw new ArgumentsRequired($this->id . ' fetchTickers() has ' . (string) $numIds . ' markets exceeding max URL length for this endpoint (' . (string) $maxLength . ' characters), please, specify a list of $symbols of interest in the first argument to fetchTickers');
                 }
             } else {
-                $ids = $this->market_ids($symbols);
-                $ids = implode('-', $ids);
+                $newIds = $this->market_ids($symbols);
+                $ids = implode('-', $newIds);
             }
             $request = array(
                 'pair' => $ids,

@@ -8,6 +8,7 @@ import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class kraken extends krakenRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -81,26 +82,26 @@ export default class kraken extends krakenRest {
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
         const ticker = message[1];
-        const vwap = this.safeFloat (ticker['p'], 0);
+        const vwap = this.safeString (ticker['p'], 0);
         let quoteVolume = undefined;
-        const baseVolume = this.safeFloat (ticker['v'], 0);
+        const baseVolume = this.safeString (ticker['v'], 0);
         if (baseVolume !== undefined && vwap !== undefined) {
-            quoteVolume = baseVolume * vwap;
+            quoteVolume = Precise.stringMul (baseVolume, vwap);
         }
-        const last = this.safeFloat (ticker['c'], 0);
+        const last = this.safeString (ticker['c'], 0);
         const timestamp = this.milliseconds ();
-        const result = {
+        const result = this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker['h'], 0),
-            'low': this.safeFloat (ticker['l'], 0),
-            'bid': this.safeFloat (ticker['b'], 0),
-            'bidVolume': this.safeFloat (ticker['b'], 2),
-            'ask': this.safeFloat (ticker['a'], 0),
-            'askVolume': this.safeFloat (ticker['a'], 2),
+            'high': this.safeString (ticker['h'], 0),
+            'low': this.safeString (ticker['l'], 0),
+            'bid': this.safeString (ticker['b'], 0),
+            'bidVolume': this.safeString (ticker['b'], 2),
+            'ask': this.safeString (ticker['a'], 0),
+            'askVolume': this.safeString (ticker['a'], 2),
             'vwap': vwap,
-            'open': this.safeFloat (ticker['o'], 0),
+            'open': this.safeString (ticker['o'], 0),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -110,7 +111,7 @@ export default class kraken extends krakenRest {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        });
         // todo add support for multiple tickers (may be tricky)
         // kraken confirms multi-pair subscriptions separately one by one
         // trigger correct watchTickers calls upon receiving any of symbols
@@ -556,7 +557,7 @@ export default class kraken extends krakenRest {
         const authenticated = 'authenticated';
         let subscription = this.safeValue (client.subscriptions, authenticated);
         if (subscription === undefined) {
-            const response = await (this as any).privatePostGetWebSocketsToken (params);
+            const response = await this.privatePostGetWebSocketsToken (params);
             //
             //     {
             //         "error":[],

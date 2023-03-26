@@ -4,6 +4,7 @@ var coinbasepro = require('./coinbasepro.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
+// @ts-expect-error
 class coinbaseprime extends coinbasepro {
     describe() {
         return this.deepExtend(super.describe(), {

@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bl3p.js';
 export default class bl3p extends Exchange {
     describe(): any;
     parseBalance(response: any): import("./base/types.js").Balances;

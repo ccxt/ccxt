@@ -1,13 +1,15 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/delta.js';
 import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class delta extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -213,7 +215,7 @@ export default class delta extends Exchange {
          * @param {object} params extra parameters specific to the delta api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetSettings (params);
+        const response = await this.publicGetSettings (params);
         // full response sample under `fetchStatus`
         const result = this.safeValue (response, 'result', {});
         return this.safeIntegerProduct (result, 'server_time', 0.001);
@@ -227,7 +229,7 @@ export default class delta extends Exchange {
          * @param {object} params extra parameters specific to the delta api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
-        const response = await (this as any).publicGetSettings (params);
+        const response = await this.publicGetSettings (params);
         //
         //     {
         //         "result": {
@@ -302,7 +304,7 @@ export default class delta extends Exchange {
          * @param {object} params extra parameters specific to the delta api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetAssets (params);
+        const response = await this.publicGetAssets (params);
         //
         //     {
         //         "result":[
@@ -389,7 +391,7 @@ export default class delta extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetProducts (params);
+        const response = await this.publicGetProducts (params);
         //
         //     {
         //         "meta":{ "after":null, "before":null, "limit":100, "total_count":81 },
@@ -754,7 +756,7 @@ export default class delta extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetTickersSymbol (this.extend (request, params));
+        const response = await this.publicGetTickersSymbol (this.extend (request, params));
         //
         //     {
         //         "result":{
@@ -791,7 +793,7 @@ export default class delta extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).publicGetTickers (params);
+        const response = await this.publicGetTickers (params);
         //
         //     {
         //         "result":[
@@ -843,7 +845,7 @@ export default class delta extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const response = await (this as any).publicGetL2orderbookSymbol (this.extend (request, params));
+        const response = await this.publicGetL2orderbookSymbol (this.extend (request, params));
         //
         //     {
         //         "result":{
@@ -982,7 +984,7 @@ export default class delta extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetTradesSymbol (this.extend (request, params));
+        const response = await this.publicGetTradesSymbol (this.extend (request, params));
         //
         //     {
         //         "result":[
@@ -1052,7 +1054,7 @@ export default class delta extends Exchange {
             request['start'] = start;
             request['end'] = this.sum (start, limit * duration);
         }
-        const response = await (this as any).publicGetHistoryCandles (this.extend (request, params));
+        const response = await this.publicGetHistoryCandles (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -1093,7 +1095,7 @@ export default class delta extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetWalletBalances (params);
+        const response = await this.privateGetWalletBalances (params);
         //
         //     {
         //         "result":[
@@ -1132,7 +1134,7 @@ export default class delta extends Exchange {
         const request = {
             'product_id': market['numericId'],
         };
-        const response = await (this as any).privateGetPositions (this.extend (request, params));
+        const response = await this.privateGetPositions (this.extend (request, params));
         //
         //     {
         //         "result":{
@@ -1157,7 +1159,7 @@ export default class delta extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetPositionsMargined (params);
+        const response = await this.privateGetPositionsMargined (params);
         //
         //     {
         //         "success": true,
@@ -1383,7 +1385,7 @@ export default class delta extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        const response = await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
         //         "result":{
@@ -1439,7 +1441,7 @@ export default class delta extends Exchange {
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await (this as any).privatePutOrders (this.extend (request, params));
+        const response = await this.privatePutOrders (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1480,7 +1482,7 @@ export default class delta extends Exchange {
             'id': parseInt (id),
             'product_id': market['numericId'],
         };
-        const response = await (this as any).privateDeleteOrders (this.extend (request, params));
+        const response = await this.privateDeleteOrders (this.extend (request, params));
         //
         //     {
         //         "result":{
@@ -1540,7 +1542,7 @@ export default class delta extends Exchange {
             // 'cancel_limit_orders': 'true',
             // 'cancel_stop_orders': 'true',
         };
-        const response = (this as any).privateDeleteOrdersAll (this.extend (request, params));
+        const response = this.privateDeleteOrdersAll (this.extend (request, params));
         //
         //     {
         //         "result":{},
@@ -1661,7 +1663,7 @@ export default class delta extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await (this as any).privateGetFills (this.extend (request, params));
+        const response = await this.privateGetFills (this.extend (request, params));
         //
         //     {
         //         "meta":{
@@ -1738,7 +1740,7 @@ export default class delta extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await (this as any).privateGetWalletTransactions (this.extend (request, params));
+        const response = await this.privateGetWalletTransactions (this.extend (request, params));
         //
         //     {
         //         "meta":{"after":null,"before":null,"limit":10,"total_count":1},
@@ -1857,7 +1859,7 @@ export default class delta extends Exchange {
             request['network'] = this.networkCodeToId (networkCode, code);
             params = this.omit (params, 'network');
         }
-        const response = await (this as any).privateGetDepositsAddress (this.extend (request, params));
+        const response = await this.privateGetDepositsAddress (this.extend (request, params));
         //
         //    {
         //        "success": true,
@@ -1934,7 +1936,7 @@ export default class delta extends Exchange {
                 auth += body;
                 headers['Content-Type'] = 'application/json';
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             headers['signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

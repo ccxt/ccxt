@@ -571,7 +571,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $this->check_required_credentials();
                 $timestamp = $this->milliseconds();
                 $message = 'GET' . '/realtime' . (string) $timestamp;
-                $signature = $this->hmac($this->encode($message), $this->encode($this->secret));
+                $signature = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256');
                 $request = array(
                     'op' => $action,
                     'args' => array(

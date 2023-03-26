@@ -3,9 +3,11 @@
 var coinbasepro$1 = require('../coinbasepro.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 class coinbasepro extends coinbasepro$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -38,7 +40,7 @@ class coinbasepro extends coinbasepro$1 {
         const path = '/users/self/verify';
         const nonce = this.nonce();
         const payload = nonce.toString() + 'GET' + path;
-        const signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), 'sha256', 'base64');
+        const signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256.sha256, 'base64');
         return {
             'timestamp': nonce,
             'key': this.apiKey,

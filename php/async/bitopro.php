@@ -718,7 +718,7 @@ class bitopro extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return array(
             $this->safe_integer($ohlcv, 'timestamp'),
             $this->safe_number($ohlcv, 'open'),
@@ -1026,7 +1026,7 @@ class bitopro extends Exchange {
             if ($postOnly) {
                 $request['timeInForce'] = 'POST_ONLY';
             }
-            $response = Async\await($this->privatePostOrdersPair (array_merge($request, $params), $params));
+            $response = Async\await($this->privatePostOrdersPair (array_merge($request, $params)));
             //
             //     {
             //         orderId => '2220595581',
@@ -1213,7 +1213,7 @@ class bitopro extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOrdersAllPair (array_merge($request, $params), $params));
+            $response = Async\await($this->privateGetOrdersAllPair (array_merge($request, $params)));
             $orders = $this->safe_value($response, 'data');
             if ($orders === null) {
                 $orders = array();

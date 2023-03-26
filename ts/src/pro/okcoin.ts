@@ -4,9 +4,11 @@
 import okcoinRest from '../okcoin.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class okcoin extends okcoinRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -477,7 +479,7 @@ export default class okcoin extends okcoinRest {
             const method = 'GET';
             const path = '/users/self/verify';
             const auth = timestamp + method + path;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             const request = {
                 'op': messageHash,
                 'args': [
