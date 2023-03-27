@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- <Nullable>enable</Nullable> -->
     <Nullable>disable</Nullable>
-    <NoWarn>1998,CS0168</NoWarn>
+    <NoWarn>1998,CS0168, CS0108</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="*"/>
+    <PackageReference Include="Newtonsoft.Json" Version="*" />
   </ItemGroup>
 </Project>

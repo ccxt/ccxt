@@ -1,0 +1,47 @@
+using Main;
+namespace Main;
+
+partial class binanceusdm : binance
+{
+    public override object describe()
+    {
+        return this.deepExtend(base.describe(), new Dictionary<string, object>() {
+            { "id", "binanceusdm" },
+            { "name", "Binance USDⓈ-M" },
+            { "urls", new Dictionary<string, object>() {
+                { "logo", "https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg" },
+                { "doc", new List<object>() {"https://binance-docs.github.io/apidocs/futures/en/", "https://binance-docs.github.io/apidocs/spot/en"} },
+            } },
+            { "has", new Dictionary<string, object>() {
+                { "CORS", null },
+                { "spot", false },
+                { "margin", false },
+                { "swap", true },
+                { "future", true },
+                { "option", null },
+                { "createStopMarketOrder", true },
+            } },
+            { "options", new Dictionary<string, object>() {
+                { "fetchMarkets", new List<object>() {"linear"} },
+                { "defaultSubType", "linear" },
+                { "leverageBrackets", null },
+                { "marginTypes", new Dictionary<string, object>() {} },
+                { "marginModes", new Dictionary<string, object>() {} },
+            } },
+        });
+    }
+
+    public async virtual Task<object> transferIn(object code, object amount, object parameters = null)
+    {
+        // transfer from spot wallet to usdm futures wallet
+        parameters ??= new Dictionary<string, object>();
+        return await this.futuresTransfer(code, amount, 1, parameters);
+    }
+
+    public async virtual Task<object> transferOut(object code, object amount, object parameters = null)
+    {
+        // transfer from usdm futures wallet to spot wallet
+        parameters ??= new Dictionary<string, object>();
+        return await this.futuresTransfer(code, amount, 2, parameters);
+    }
+}
