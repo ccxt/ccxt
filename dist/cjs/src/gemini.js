@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var gemini$1 = require('./abstract/gemini.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class gemini extends Exchange["default"] {
+class gemini extends gemini$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gemini',
@@ -1557,11 +1558,11 @@ class gemini extends Exchange["default"] {
             }, query);
             let payload = this.json(request);
             payload = this.stringToBase64(payload);
-            const signature = this.hmac(payload, this.encode(this.secret), 'sha384');
+            const signature = this.hmac(payload, this.encode(this.secret), sha512.sha384);
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': this.apiKey,
-                'X-GEMINI-PAYLOAD': this.decode(payload),
+                'X-GEMINI-PAYLOAD': payload,
                 'X-GEMINI-SIGNATURE': signature,
             };
         }

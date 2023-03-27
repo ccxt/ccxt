@@ -1046,7 +1046,7 @@ class gate extends Exchange {
         $underlyings = $this->fetch_option_underlyings();
         for ($i = 0; $i < count($underlyings); $i++) {
             $underlying = $underlyings[$i];
-            $query = $params;
+            $query = array_merge(array(), $params);
             $query['underlying'] = $underlying;
             $response = $this->publicOptionsGetContracts ($query);
             //

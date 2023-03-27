@@ -8,6 +8,7 @@
 import bitmartRest from '../bitmart.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class bitmart extends bitmartRest {
     describe() {
@@ -495,7 +496,7 @@ export default class bitmart extends bitmartRest {
             const memo = this.uid;
             const path = 'bitmart.WebSocket';
             const auth = timestamp + '#' + memo + '#' + path;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             const operation = 'login';
             const request = {
                 'op': operation,

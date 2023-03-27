@@ -1,9 +1,10 @@
 //  ---------------------------------------------------------------------------
 
 import { Precise } from './base/Precise.js';
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/poloniexfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -200,7 +201,7 @@ export default class poloniexfutures extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetContractsActive (params);
+        const response = await this.publicGetContractsActive (params);
         //
         // {
         //  "code": "200000",
@@ -381,7 +382,7 @@ export default class poloniexfutures extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         //
         // {
         //     code: '200000',
@@ -414,7 +415,7 @@ export default class poloniexfutures extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetTickers (params);
+        const response = await this.publicGetTickers (params);
         return this.parseTickers (this.safeValue (response, 'data', []), symbols);
     }
 
@@ -442,9 +443,9 @@ export default class poloniexfutures extends Exchange {
         };
         let response = undefined;
         if (level === 3) {
-            response = await (this as any).publicGetLevel3Snapshot (this.extend (request, params));
+            response = await this.publicGetLevel3Snapshot (this.extend (request, params));
         } else {
-            response = await (this as any).publicGetLevel2Snapshot (this.extend (request, params));
+            response = await this.publicGetLevel2Snapshot (this.extend (request, params));
         }
         // L2
         //
@@ -629,7 +630,7 @@ export default class poloniexfutures extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetTradeHistory (this.extend (request, params));
+        const response = await this.publicGetTradeHistory (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -659,7 +660,7 @@ export default class poloniexfutures extends Exchange {
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
          */
-        const response = await (this as any).publicGetTimestamp (params);
+        const response = await this.publicGetTimestamp (params);
         //
         // {
         //     "code":"200000",
@@ -708,7 +709,7 @@ export default class poloniexfutures extends Exchange {
             since = endAt - limit * duration;
             request['from'] = since;
         }
-        const response = await (this as any).publicGetKlineQuery (this.extend (request, params));
+        const response = await this.publicGetKlineQuery (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -757,7 +758,7 @@ export default class poloniexfutures extends Exchange {
                 'currency': currency['id'],
             };
         }
-        const response = await (this as any).privateGetAccountOverview (this.extend (request, params));
+        const response = await this.privateGetAccountOverview (this.extend (request, params));
         //
         //     {
         //         code: '200000',
@@ -849,7 +850,7 @@ export default class poloniexfutures extends Exchange {
             }
         }
         params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
-        const response = await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         //
         //    {
         //        code: "200000",
@@ -899,7 +900,7 @@ export default class poloniexfutures extends Exchange {
         const request = {
             'order-id': id,
         };
-        const response = await (this as any).privateDeleteOrdersOrderId (this.extend (request, params));
+        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
         //
         //    {
         //        code: "200000",
@@ -936,7 +937,7 @@ export default class poloniexfutures extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetPositions (params);
+        const response = await this.privateGetPositions (params);
         //
         //    {
         //        "code": "200000",
@@ -1105,7 +1106,7 @@ export default class poloniexfutures extends Exchange {
             // * Since is ignored if limit is defined
             request['maxCount'] = limit;
         }
-        const response = await (this as any).privateGetFundingHistory (this.extend (request, params));
+        const response = await this.privateGetFundingHistory (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -1571,7 +1572,7 @@ export default class poloniexfutures extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetFundingRateSymbolCurrent (this.extend (request, params));
+        const response = await this.publicGetFundingRateSymbolCurrent (this.extend (request, params));
         //
         //    {
         //        "symbol": ".BTCUSDTPERPFPI8H",
@@ -1632,7 +1633,7 @@ export default class poloniexfutures extends Exchange {
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        const response = await (this as any).privateGetFills (this.extend (request, params));
+        const response = await this.privateGetFills (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -1694,7 +1695,7 @@ export default class poloniexfutures extends Exchange {
             'symbol': market['id'],
             'marginType': marginMode,
         };
-        return await (this as any).privatePostMarginTypeChange (request);
+        return await this.privatePostMarginTypeChange (request);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
@@ -1731,7 +1732,7 @@ export default class poloniexfutures extends Exchange {
                 endpart = body;
             }
             const payload = now + method + endpoint + endpart;
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             headers = {
                 'PF-API-SIGN': signature,
                 'PF-API-TIMESTAMP': now,

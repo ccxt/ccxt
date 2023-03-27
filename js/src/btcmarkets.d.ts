@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btcmarkets.js';
 export default class btcmarkets extends Exchange {
     describe(): any;
     fetchTransactionsWithMethod(method: any, code?: any, since?: any, limit?: any, params?: {}): Promise<any>;

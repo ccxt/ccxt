@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var okcoin$1 = require('./abstract/okcoin.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class okcoin extends Exchange["default"] {
+class okcoin extends okcoin$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'okcoin',
@@ -254,7 +255,6 @@ class okcoin extends Exchange["default"] {
                         'fills',
                         'trade_fee',
                         'accounts/{instrument_id}/holds',
-                        'order_algo/{instrument_id}',
                         // public
                         'instruments',
                         'instruments/{instrument_id}/book',
@@ -330,8 +330,6 @@ class okcoin extends Exchange["default"] {
                         'cancel_algos',
                         'close_position',
                         'cancel_all',
-                        'order_algo',
-                        'cancel_algos',
                     ],
                 },
                 'option': {
@@ -3805,7 +3803,7 @@ class okcoin extends Exchange["default"] {
                 }
                 headers['Content-Type'] = 'application/json';
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha256', 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'base64');
             headers['OK-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

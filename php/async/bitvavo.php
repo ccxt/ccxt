@@ -1758,7 +1758,7 @@ class bitvavo extends Exchange {
             }
             $timestamp = (string) $this->milliseconds();
             $auth = $timestamp . $method . $url . $payload;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $accessWindow = $this->safe_string($this->options, 'BITVAVO-ACCESS-WINDOW', '10000');
             $headers = array(
                 'BITVAVO-ACCESS-KEY' => $this->apiKey,

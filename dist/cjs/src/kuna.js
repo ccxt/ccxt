@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var kuna$1 = require('./abstract/kuna.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class kuna extends Exchange["default"] {
+class kuna extends kuna$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'kuna',
@@ -879,7 +880,7 @@ class kuna extends Exchange["default"] {
                     'tonce': nonce,
                 }, params));
                 const auth = method + '|' + request + '|' + query;
-                const signed = this.hmac(this.encode(auth), this.encode(this.secret));
+                const signed = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
                 const suffix = query + '&signature=' + signed;
                 if (method === 'GET') {
                     url += '?' + suffix;

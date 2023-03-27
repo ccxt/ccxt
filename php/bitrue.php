@@ -1912,7 +1912,7 @@ class bitrue extends Exchange {
                 'timestamp' => $this->nonce(),
                 'recvWindow' => $recvWindow,
             ), $params));
-            $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
             $query .= '&' . 'signature=' . $signature;
             $headers = array(
                 'X-MBX-APIKEY' => $this->apiKey,

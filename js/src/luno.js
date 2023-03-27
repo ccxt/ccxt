@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/luno.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -1012,7 +1012,7 @@ export default class luno extends Exchange {
             this.checkRequiredCredentials();
             const auth = this.stringToBase64(this.apiKey + ':' + this.secret);
             headers = {
-                'Authorization': 'Basic ' + this.decode(auth),
+                'Authorization': 'Basic ' + auth,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

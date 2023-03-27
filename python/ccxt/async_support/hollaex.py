@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -1637,7 +1638,7 @@ class hollaex(Exchange):
                 if query:
                     body = self.json(query)
                     auth += body
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers['api-signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

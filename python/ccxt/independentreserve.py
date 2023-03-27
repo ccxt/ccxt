@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -681,7 +682,7 @@ class independentreserve(Exchange):
                 value = str(params[key])
                 auth.append(key + '=' + value)
             message = ','.join(auth)
-            signature = self.hmac(self.encode(message), self.encode(self.secret))
+            signature = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256)
             query = self.ordered({})
             query['apiKey'] = self.apiKey
             query['nonce'] = nonce

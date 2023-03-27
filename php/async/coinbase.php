@@ -2796,7 +2796,7 @@ class coinbase extends Exchange {
                 } else {
                     $auth = $nonce . $method . $fullPath . $payload;
                 }
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 $headers = array(
                     'CB-ACCESS-KEY' => $this->apiKey,
                     'CB-ACCESS-SIGN' => $signature,

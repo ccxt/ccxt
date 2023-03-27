@@ -870,7 +870,7 @@ class oceanex(Exchange):
             # to set the private key:
             # fs = require('fs')
             # exchange.secret = fs.readFileSync('oceanex.pem', 'utf8')
-            jwt_token = self.jwt(request, self.encode(self.secret), 'RS256')
+            jwt_token = self.jwt(request, self.encode(self.secret), 'sha256', True)
             url += '?user_jwt=' + jwt_token
         headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

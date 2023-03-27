@@ -1,9 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coincheck.js';
 import { BadSymbol, ExchangeError, AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -187,7 +188,7 @@ export default class coincheck extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccountsBalance (params);
+        const response = await this.privateGetAccountsBalance (params);
         return this.parseBalance (response);
     }
 
@@ -208,7 +209,7 @@ export default class coincheck extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await (this as any).privateGetExchangeOrdersOpens (params);
+        const response = await this.privateGetExchangeOrdersOpens (params);
         const rawOrders = this.safeValue (response, 'orders', []);
         const parsedOrders = this.parseOrders (rawOrders, market, since, limit);
         const result = [];
@@ -283,7 +284,7 @@ export default class coincheck extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).publicGetOrderBooks (this.extend (request, params));
+        const response = await this.publicGetOrderBooks (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol']);
     }
 
@@ -343,7 +344,7 @@ export default class coincheck extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const ticker = await (this as any).publicGetTicker (this.extend (request, params));
+        const ticker = await this.publicGetTicker (this.extend (request, params));
         //
         // {
         //     "last":4192632.0,
@@ -456,7 +457,7 @@ export default class coincheck extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetExchangeOrdersTransactionsPagination (this.extend (request, params));
+        const response = await this.privateGetExchangeOrdersTransactionsPagination (this.extend (request, params));
         //
         //      {
         //          "success": true,
@@ -502,7 +503,7 @@ export default class coincheck extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         //
         //      {
         //          "id": "206849494",
@@ -526,7 +527,7 @@ export default class coincheck extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccounts (params);
+        const response = await this.privateGetAccounts (params);
         //
         //     {
         //         success: true,
@@ -592,7 +593,7 @@ export default class coincheck extends Exchange {
             request['rate'] = price;
             request['amount'] = amount;
         }
-        const response = await (this as any).privatePostExchangeOrders (this.extend (request, params));
+        const response = await this.privatePostExchangeOrders (this.extend (request, params));
         const id = this.safeString (response, 'id');
         return this.safeOrder ({
             'id': id,
@@ -613,7 +614,7 @@ export default class coincheck extends Exchange {
         const request = {
             'id': id,
         };
-        return await (this as any).privateDeleteExchangeOrdersId (this.extend (request, params));
+        return await this.privateDeleteExchangeOrdersId (this.extend (request, params));
     }
 
     async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
@@ -637,7 +638,7 @@ export default class coincheck extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetDepositMoney (this.extend (request, params));
+        const response = await this.privateGetDepositMoney (this.extend (request, params));
         // {
         //   "success": true,
         //   "deposits": [
@@ -685,7 +686,7 @@ export default class coincheck extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetWithdraws (this.extend (request, params));
+        const response = await this.privateGetWithdraws (this.extend (request, params));
         //  {
         //   "success": true,
         //   "pagination": {
@@ -821,7 +822,7 @@ export default class coincheck extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-NONCE': nonce,
-                'ACCESS-SIGNATURE': this.hmac (this.encode (auth), this.encode (this.secret)),
+                'ACCESS-SIGNATURE': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

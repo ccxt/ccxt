@@ -1955,7 +1955,7 @@ class whitebit(Exchange):
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': self.apiKey,
-                'X-TXC-PAYLOAD': self.decode(payload),
+                'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

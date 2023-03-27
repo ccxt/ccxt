@@ -1,14 +1,16 @@
 
 import { ROUND_UP, ROUND_DOWN } from './number.js'
+import { asFloat } from './type.js'
 import { NotSupported } from '../errors.js'
+import { OHLCVC, Trade } from '../types.js'
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
-const parseTimeframe = (timeframe) => {
+const parseTimeframe = (timeframe: string): number => {
 
-    const amount = timeframe.slice (0, -1);
+    const amount = asFloat (timeframe.slice (0, -1));
     const unit = timeframe.slice (-1);
-    let scale = undefined;
+    let scale: number = undefined;
 
     if (unit === 'y') {
         scale = 60 * 60 * 24 * 365;
@@ -39,9 +41,9 @@ const roundTimeframe = (timeframe, timestamp, direction = ROUND_DOWN) => {
 };
 
 // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
-const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infinity) => {
+const buildOHLCVC = (trades: Trade[], timeframe: string = '1m', since: number = -Infinity, limit: number = Infinity): OHLCVC[] => {
     const ms = parseTimeframe (timeframe) * 1000;
-    const ohlcvs = [];
+    const ohlcvs: OHLCVC[] = [];
     const [ timestamp, /* open */, high, low, close, volume, count ] = [ 0, 1, 2, 3, 4, 5, 6 ];
     const oldest = Math.min (trades.length - 1, limit);
 

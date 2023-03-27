@@ -596,7 +596,7 @@ class gemini(ccxt.async_support.gemini):
             'request': request,
             'nonce': self.nonce(),
         }
-        b64 = self.string_to_base64(self.encode(self.json(payload)))
+        b64 = self.string_to_base64(self.json(payload))
         signature = self.hmac(b64, self.encode(self.secret), hashlib.sha384, 'hex')
         defaultOptions = {
             'ws': {
@@ -609,7 +609,7 @@ class gemini(ccxt.async_support.gemini):
         originalHeaders = self.options['ws']['options']['headers']
         headers = {
             'X-GEMINI-APIKEY': self.apiKey,
-            'X-GEMINI-PAYLOAD': self.decode(b64),
+            'X-GEMINI-PAYLOAD': b64,
             'X-GEMINI-SIGNATURE': signature,
         }
         self.options['ws']['options']['headers'] = headers

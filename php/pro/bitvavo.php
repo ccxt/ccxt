@@ -611,7 +611,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             $timestamp = $this->milliseconds();
             $stringTimestamp = (string) $timestamp;
             $auth = $stringTimestamp . 'GET/' . $this->version . '/websocket';
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $action = 'authenticate';
             $request = array(
                 'action' => $action,

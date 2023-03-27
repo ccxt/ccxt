@@ -1,10 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/cryptocom.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 export default class cryptocom extends Exchange {
     describe () {
@@ -38,6 +39,8 @@ export default class cryptocom extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
@@ -292,6 +295,17 @@ export default class cryptocom extends Exchange {
                     'swap': 'DERIVATIVES',
                     'future': 'DERIVATIVES',
                 },
+                'networks': {
+                    'BEP20': 'BSC',
+                    'ERC20': 'ETH',
+                    'TRX': 'TRON',
+                    'TRC20': 'TRON',
+                },
+                'networksById': {
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'TRON': 'TRC20',
+                },
             },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -352,7 +366,8 @@ export default class cryptocom extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let promises = [ (this as any).fetchSpotMarkets (params), (this as any).fetchDerivativesMarkets (params) ];
+        let promises = [ this.fetchSpotMarkets (params), this.fetchDerivativesMarkets (params) ];
+        // @ts-ignore
         promises = await Promise.all (promises);
         const spotMarkets = promises[0];
         const derivativeMarkets = promises[1];
@@ -361,7 +376,7 @@ export default class cryptocom extends Exchange {
     }
 
     async fetchSpotMarkets (params = {}) {
-        const response = await (this as any).v2PublicGetPublicGetInstruments (params);
+        const response = await this.v2PublicGetPublicGetInstruments (params);
         //
         //    {
         //        id: 11,
@@ -465,7 +480,7 @@ export default class cryptocom extends Exchange {
 
     async fetchDerivativesMarkets (params = {}) {
         const result = [];
-        const futuresResponse = await (this as any).derivativesPublicGetPublicGetInstruments ();
+        const futuresResponse = await this.derivativesPublicGetPublicGetInstruments ();
         //
         //     {
         //       id: -1,
@@ -636,7 +651,7 @@ export default class cryptocom extends Exchange {
         if (marketType !== 'spot') {
             throw new NotSupported (this.id + ' fetchTicker() only supports spot markets');
         }
-        const response = await (this as any).v2PublicGetPublicGetTicker (this.extend (request, query));
+        const response = await this.v2PublicGetPublicGetTicker (this.extend (request, query));
         //
         //   {
         //       "id":"-1",
@@ -1159,6 +1174,11 @@ export default class cryptocom extends Exchange {
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId) {
+            request['client_oid'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId' ]);
+        }
         const postOnly = this.safeValue (params, 'postOnly', false);
         if (postOnly) {
             request['exec_inst'] = 'POST_ONLY';
@@ -1447,7 +1467,7 @@ export default class cryptocom extends Exchange {
         if (tag !== undefined) {
             request['address_tag'] = tag;
         }
-        const response = await (this as any).v2PrivatePostPrivateCreateWithdrawal (this.extend (request, params));
+        const response = await this.v2PrivatePostPrivateCreateWithdrawal (this.extend (request, params));
         //
         //    {
         //        "id":-1,
@@ -1482,7 +1502,7 @@ export default class cryptocom extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).v2PrivatePostPrivateGetDepositAddress (this.extend (request, params));
+        const response = await this.v2PrivatePostPrivateGetDepositAddress (this.extend (request, params));
         // {
         //     "id": 11,
         //     "method": "private/get-deposit-address",
@@ -1593,7 +1613,7 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await (this as any).v2PrivatePostPrivateGetDepositHistory (this.extend (request, params));
+        const response = await this.v2PrivatePostPrivateGetDepositHistory (this.extend (request, params));
         // {
         //     "id": 11,
         //     "method": "private/get-deposit-history",
@@ -1643,7 +1663,7 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await (this as any).v2PrivatePostPrivateGetWithdrawalHistory (this.extend (request, params));
+        const response = await this.v2PrivatePostPrivateGetWithdrawalHistory (this.extend (request, params));
         //
         //     {
         //       id: 1640704829096,
@@ -2235,7 +2255,7 @@ export default class cryptocom extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await (this as any).v2PrivatePostPrivateMarginRepay (this.extend (request, params));
+        const response = await this.v2PrivatePostPrivateMarginRepay (this.extend (request, params));
         //
         //     {
         //         "id": 1656620104211,
@@ -2270,7 +2290,7 @@ export default class cryptocom extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await (this as any).v2PrivatePostPrivateMarginBorrow (this.extend (request, params));
+        const response = await this.v2PrivatePostPrivateMarginBorrow (this.extend (request, params));
         //
         //     {
         //         "id": 1656619578559,
@@ -2334,7 +2354,7 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await (this as any).v2PrivatePostPrivateMarginGetInterestHistory (this.extend (request, params));
+        const response = await this.v2PrivatePostPrivateMarginGetInterestHistory (this.extend (request, params));
         //
         //     {
         //         "id": 1656705829020,
@@ -2401,7 +2421,7 @@ export default class cryptocom extends Exchange {
          * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v2PrivatePostPrivateMarginGetUserConfig (params);
+        const response = await this.v2PrivatePostPrivateMarginGetUserConfig (params);
         //
         //     {
         //         "id": 1656707947456,
@@ -2475,6 +2495,73 @@ export default class cryptocom extends Exchange {
         return [ marginMode, params ];
     }
 
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        full_name: 'Alchemix',
+        //        default_network: 'ETH',
+        //        network_list: [
+        //          {
+        //            network_id: 'ETH',
+        //            withdrawal_fee: '0.25000000',
+        //            withdraw_enabled: true,
+        //            min_withdrawal_amount: '0.5',
+        //            deposit_enabled: true,
+        //            confirmation_required: '0'
+        //          }
+        //        ]
+        //    }
+        //
+        const networkList = this.safeValue (fee, 'network_list');
+        const networkListLength = networkList.length;
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        if (networkList !== undefined) {
+            for (let i = 0; i < networkListLength; i++) {
+                const networkInfo = networkList[i];
+                const networkId = this.safeString (networkInfo, 'network_id');
+                const currencyCode = this.safeString (currency, 'code');
+                const networkCode = this.networkIdToCode (networkId, currencyCode);
+                result['networks'][networkCode] = {
+                    'deposit': { 'fee': undefined, 'percentage': undefined },
+                    'withdraw': { 'fee': this.safeNumber (networkInfo, 'withdrawal_fee'), 'percentage': false },
+                };
+                if (networkListLength === 1) {
+                    result['withdraw']['fee'] = this.safeNumber (networkInfo, 'withdrawal_fee');
+                    result['withdraw']['percentage'] = false;
+                }
+            }
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await (this as any).v2PrivatePostPrivateGetCurrencyNetworks (params);
+        const data = this.safeValue (response, 'result');
+        const currencyMap = this.safeValue (data, 'currency_map');
+        return this.parseDepositWithdrawFees (currencyMap, codes, 'full_name');
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -2498,7 +2585,7 @@ export default class cryptocom extends Exchange {
                 strSortKey = strSortKey + paramsKeys[i].toString () + requestParams[paramsKeys[i]].toString ();
             }
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret));
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
             const paramsKeysLength = paramsKeys.length;
             body = this.json ({
                 'id': nonce,

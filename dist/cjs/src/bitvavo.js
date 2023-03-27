@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bitvavo$1 = require('./abstract/bitvavo.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-class bitvavo extends Exchange["default"] {
+class bitvavo extends bitvavo$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitvavo',
@@ -1720,7 +1721,7 @@ class bitvavo extends Exchange["default"] {
             }
             const timestamp = this.milliseconds().toString();
             const auth = timestamp + method + url + payload;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
             const accessWindow = this.safeString(this.options, 'BITVAVO-ACCESS-WINDOW', '10000');
             headers = {
                 'BITVAVO-ACCESS-KEY': this.apiKey,

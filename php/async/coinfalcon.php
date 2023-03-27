@@ -1010,7 +1010,7 @@ class coinfalcon extends Exchange {
             if ($body) {
                 $payload .= '|' . $body;
             }
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
             $headers = array(
                 'CF-API-KEY' => $this->apiKey,
                 'CF-API-TIMESTAMP' => $seconds,

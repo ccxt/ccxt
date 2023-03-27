@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitget.js';
 export default class bitget extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;

@@ -3,6 +3,7 @@
 var ascendex$1 = require('../ascendex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -938,7 +939,7 @@ class ascendex extends ascendex$1 {
             const version = this.safeString(urlParts, partsLength - 2);
             const auth = timestamp + '+' + version + '/' + path;
             const secret = this.base64ToBinary(this.secret);
-            const signature = this.hmac(this.encode(auth), secret, 'sha256', 'base64');
+            const signature = this.hmac(this.encode(auth), secret, sha256.sha256, 'base64');
             const request = {
                 'op': 'auth',
                 'id': this.nonce().toString(),

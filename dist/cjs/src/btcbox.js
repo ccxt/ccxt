@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var btcbox$1 = require('./abstract/btcbox.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class btcbox extends Exchange["default"] {
+class btcbox extends btcbox$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'btcbox',
@@ -513,8 +514,8 @@ class btcbox extends Exchange["default"] {
                 'nonce': nonce,
             }, params);
             const request = this.urlencode(query);
-            const secret = this.hash(this.encode(this.secret));
-            query['signature'] = this.hmac(this.encode(request), this.encode(secret));
+            const secret = this.hash(this.encode(this.secret), sha256.sha256);
+            query['signature'] = this.hmac(this.encode(request), this.encode(secret), sha256.sha256);
             body = this.urlencode(query);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

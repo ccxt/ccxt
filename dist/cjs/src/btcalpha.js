@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var btcalpha$1 = require('./abstract/btcalpha.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class btcalpha extends Exchange["default"] {
+class btcalpha extends btcalpha$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'btcalpha',
@@ -879,7 +880,7 @@ class btcalpha extends Exchange["default"] {
                 url += '?' + query;
             }
             headers['X-KEY'] = this.apiKey;
-            headers['X-SIGN'] = this.hmac(this.encode(payload), this.encode(this.secret));
+            headers['X-SIGN'] = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
             headers['X-NONCE'] = this.nonce().toString();
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

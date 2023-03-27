@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitopro.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, InsufficientFunds, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 export default class bitopro extends Exchange {
     describe() {
@@ -1014,7 +1015,7 @@ export default class bitopro extends Exchange {
         if (postOnly) {
             request['timeInForce'] = 'POST_ONLY';
         }
-        const response = await this.privatePostOrdersPair(this.extend(request, params), params);
+        const response = await this.privatePostOrdersPair(this.extend(request, params));
         //
         //     {
         //         orderId: '2220595581',
@@ -1591,7 +1592,7 @@ export default class bitopro extends Exchange {
             if (method === 'POST' || method === 'PUT') {
                 body = this.json(params);
                 const payload = this.stringToBase64(body);
-                const signature = this.hmac(payload, this.encode(this.secret), 'sha384');
+                const signature = this.hmac(payload, this.encode(this.secret), sha384);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
@@ -1606,7 +1607,7 @@ export default class bitopro extends Exchange {
                 };
                 const data = this.json(rawData);
                 const payload = this.stringToBase64(data);
-                const signature = this.hmac(payload, this.encode(this.secret), 'sha384');
+                const signature = this.hmac(payload, this.encode(this.secret), sha384);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;

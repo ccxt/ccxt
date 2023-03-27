@@ -5,9 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitflyer.js';
 import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class bitflyer extends Exchange {
     describe() {
@@ -735,7 +736,7 @@ export default class bitflyer extends Exchange {
         const request = {
             'product_code': this.marketIds(symbols),
         };
-        const response = await this.privateGetpositions(this.extend(request, params));
+        const response = await this.privateGetGetpositions(this.extend(request, params));
         //
         //     [
         //         {
@@ -983,7 +984,7 @@ export default class bitflyer extends Exchange {
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
-                'ACCESS-SIGN': this.hmac(this.encode(auth), this.encode(this.secret)),
+                'ACCESS-SIGN': this.hmac(this.encode(auth), this.encode(this.secret), sha256),
                 'Content-Type': 'application/json',
             };
         }

@@ -187,6 +187,8 @@ class bybit(Exchange):
                         'spot/v3/public/quote/ticker/bookTicker': 1,
                         'spot/v3/public/server-time': 1,
                         'spot/v3/public/infos': 1,
+                        'spot/v3/public/margin-product-infos': 1,
+                        'spot/v3/public/margin-ensure-tokens': 1,
                         # data
                         'v2/public/time': 1,
                         'v3/public/time': 1,
@@ -246,6 +248,7 @@ class bybit(Exchange):
                         'v5/market/delivery-price': 1,
                         'v5/spot-lever-token/info': 1,
                         'v5/spot-lever-token/reference': 1,
+                        'v5/announcements/index': 1,
                     },
                 },
                 'private': {
@@ -309,6 +312,9 @@ class bybit(Exchange):
                         'spot/v3/private/cross-margin-account': 10,
                         'spot/v3/private/cross-margin-loan-info': 10,
                         'spot/v3/private/cross-margin-repay-history': 10,
+                        'spot/v3/private/margin-loan-infos': 10,
+                        'spot/v3/private/margin-repaid-infos': 10,
+                        'spot/v3/private/margin-ltv': 10,
                         # account
                         'asset/v1/private/transfer/list': 50,  # 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v3/private/transfer/inter-transfer/list/query': 0.84,  # 60/s
@@ -1547,6 +1553,7 @@ class bybit(Exchange):
             inverse = (category == 'inverse')
             contractType = self.safe_string(market, 'contractType')
             inverseFutures = (contractType == 'InverseFutures')
+            linearFutures = (contractType == 'LinearFutures')
             linearPerpetual = (contractType == 'LinearPerpetual')
             inversePerpetual = (contractType == 'InversePerpetual')
             id = self.safe_string(market, 'symbol')
@@ -1568,7 +1575,7 @@ class bybit(Exchange):
             status = self.safe_string(market, 'status')
             active = (status == 'Trading')
             swap = linearPerpetual or inversePerpetual
-            future = inverseFutures
+            future = inverseFutures or linearFutures
             option = (category == 'option')
             type = None
             if swap:
@@ -1852,10 +1859,11 @@ class bybit(Exchange):
             # 'expDate': '', Expiry date. e.g., 25DEC22. For option only
         }
         type = None
+        isTypeInParams = ('type' in params)
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         if type == 'spot':
             request['category'] = 'spot'
-        elif type == 'swap':
+        elif type == 'swap' or type == 'future':
             subType = None
             subType, params = self.handle_sub_type_and_params('fetchTickers', market, params, 'linear')
             request['category'] = subType
@@ -1903,10 +1911,19 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         tickerList = self.safe_value(result, 'list', [])
         tickers = {}
+        if market is None and isTypeInParams:
+            # create a "fake" market for the type
+            market = {
+                'type': 'swap' if (type == 'swap' or type == 'future') else type,
+            }
         for i in range(0, len(tickerList)):
             ticker = self.parse_ticker(tickerList[i], market)
             symbol = ticker['symbol']
-            tickers[symbol] = ticker
+            # self is needed because bybit returns
+            # futures with type = swap
+            marketInner = self.market(symbol)
+            if marketInner['type'] == type:
+                tickers[symbol] = ticker
         return self.filter_by_array(tickers, 'symbol', symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
@@ -6403,6 +6420,7 @@ class bybit(Exchange):
             request['symbol'] = market['id']
         if enableUnified[1]:
             request['settleCoin'] = settle
+            request['limit'] = 200
         # market None
         type, params = self.handle_market_type_and_params('fetchPositions', None, params)
         subType = None
@@ -7703,7 +7721,7 @@ class bybit(Exchange):
                 }
                 if isV3UnifiedMargin or isV3Contract:
                     headers['X-BAPI-SIGN-TYPE'] = '2'
-                query = params
+                query = self.extend({}, params)
                 queryEncoded = self.rawencode(query)
                 auth_base = str(timestamp) + self.apiKey + str(self.options['recvWindow'])
                 authFull = None
@@ -7713,7 +7731,7 @@ class bybit(Exchange):
                 else:
                     authFull = auth_base + queryEncoded
                     url += '?' + self.rawencode(query)
-                headers['X-BAPI-SIGN'] = self.hmac(self.encode(authFull), self.encode(self.secret))
+                headers['X-BAPI-SIGN'] = self.hmac(self.encode(authFull), self.encode(self.secret), hashlib.sha256)
             else:
                 query = self.extend(params, {
                     'api_key': self.apiKey,
@@ -7722,7 +7740,7 @@ class bybit(Exchange):
                 })
                 sortedQuery = self.keysort(query)
                 auth = self.rawencode(sortedQuery)
-                signature = self.hmac(self.encode(auth), self.encode(self.secret))
+                signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 if method == 'POST':
                     isSpot = url.find('spot') >= 0
                     extendedQuery = self.extend(query, {

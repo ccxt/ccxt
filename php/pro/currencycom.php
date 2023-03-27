@@ -334,7 +334,7 @@ class currencycom extends \ccxt\async\currencycom {
                 'correlationId' => $requestId,
                 'payload' => $payload,
             ), $params);
-            $request['payload']['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $request['payload']['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $subscription = array_merge($request, array(
                 'messageHash' => $messageHash,
             ));

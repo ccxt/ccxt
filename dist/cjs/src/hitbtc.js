@@ -1,13 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var hitbtc$1 = require('./abstract/hitbtc.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class hitbtc extends Exchange["default"] {
+class hitbtc extends hitbtc$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'hitbtc',
@@ -1466,10 +1466,10 @@ class hitbtc extends Exchange["default"] {
             else if (Object.keys(query).length) {
                 body = this.json(query);
             }
-            const payload = this.encode(this.apiKey + ':' + this.secret);
+            const payload = this.apiKey + ':' + this.secret;
             const auth = this.stringToBase64(payload);
             headers = {
-                'Authorization': 'Basic ' + this.decode(auth),
+                'Authorization': 'Basic ' + auth,
                 'Content-Type': 'application/json',
             };
         }

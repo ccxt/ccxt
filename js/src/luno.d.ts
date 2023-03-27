@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/luno.js';
 export default class luno extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

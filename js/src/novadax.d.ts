@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/novadax.js';
 export default class novadax extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;

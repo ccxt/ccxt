@@ -872,7 +872,7 @@ class btcalpha extends Exchange {
                 $url .= '?' . $query;
             }
             $headers['X-KEY'] = $this->apiKey;
-            $headers['X-SIGN'] = $this->hmac($this->encode($payload), $this->encode($this->secret));
+            $headers['X-SIGN'] = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
             $headers['X-NONCE'] = (string) $this->nonce();
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

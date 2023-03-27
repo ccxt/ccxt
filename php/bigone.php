@@ -1125,8 +1125,8 @@ class bigone extends Exchange {
                 'nonce' => $nonce,
                 // 'recv_window' => '30', // default 30
             );
-            $jwt = $this->jwt($request, $this->encode($this->secret));
-            $headers['Authorization'] = 'Bearer ' . $jwt;
+            $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
+            $headers['Authorization'] = 'Bearer ' . $token;
             if ($method === 'GET') {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);

@@ -3,6 +3,7 @@
 var phemex$1 = require('../phemex.js');
 var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
+var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1068,7 +1069,7 @@ class phemex extends phemex$1 {
             const expiryDelta = this.safeInteger(this.options, 'expires', 120);
             const expiration = this.seconds() + expiryDelta;
             const payload = this.apiKey + expiration.toString();
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
             const request = {
                 'method': 'user.auth',
                 'params': ['API', this.apiKey, signature, expiration],

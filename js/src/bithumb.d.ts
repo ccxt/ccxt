@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bithumb.js';
 export default class bithumb extends Exchange {
     describe(): any;
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;

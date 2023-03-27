@@ -8,6 +8,7 @@
 import deribitRest from '../deribit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class deribit extends deribitRest {
     describe() {
@@ -803,7 +804,7 @@ export default class deribit extends deribitRest {
         if (authenticated === undefined) {
             this.checkRequiredCredentials();
             const requestId = this.requestId();
-            const signature = this.hmac(this.encode(timeString + '\n' + nonce + '\n'), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(timeString + '\n' + nonce + '\n'), this.encode(this.secret), sha256);
             const request = {
                 'jsonrpc': '2.0',
                 'id': requestId,

@@ -597,7 +597,7 @@ class tokocrypto extends Exchange {
          * @param {array} $params extra parameters specific to the tokocrypto api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
-        $response = $this->publicGetTime ($params);
+        $response = $this->publicGetOpenV1CommonTime ($params);
         //
         //
         //
@@ -2296,7 +2296,7 @@ class tokocrypto extends Exchange {
             } else {
                 $query = $this->urlencode($extendedParams);
             }
-            $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
             $query .= '&' . 'signature=' . $signature;
             $headers = array(
                 'X-MBX-APIKEY' => $this->apiKey,

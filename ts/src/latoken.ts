@@ -1,9 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/latoken.js';
 import { ExchangeError, AuthenticationError, ArgumentsRequired, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -221,7 +222,7 @@ export default class latoken extends Exchange {
          * @param {object} params extra parameters specific to the latoken api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetTime (params);
+        const response = await this.publicGetTime (params);
         //
         //     {
         //         "serverTime": 1570615577321
@@ -271,7 +272,7 @@ export default class latoken extends Exchange {
         //         },
         //     ]
         //
-        const response = await (this as any).publicGetPair (params);
+        const response = await this.publicGetPair (params);
         //
         //     [
         //         {
@@ -372,7 +373,7 @@ export default class latoken extends Exchange {
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
         if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const response = await (this as any).publicGetCurrency (params);
+            const response = await this.publicGetCurrency (params);
             this.options['fetchCurrencies'] = this.extend (options, {
                 'response': response,
                 'timestamp': now,
@@ -389,7 +390,7 @@ export default class latoken extends Exchange {
          * @param {object} params extra parameters specific to the latoken api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).fetchCurrenciesFromCache (params);
+        const response = await this.fetchCurrenciesFromCache (params);
         //
         //     [
         //         {
@@ -472,7 +473,7 @@ export default class latoken extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAuthAccount (params);
+        const response = await this.privateGetAuthAccount (params);
         //
         //     [
         //         {
@@ -548,7 +549,7 @@ export default class latoken extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000
         }
-        const response = await (this as any).publicGetBookCurrencyQuote (this.extend (request, params));
+        const response = await this.publicGetBookCurrencyQuote (this.extend (request, params));
         //
         //     {
         //         "ask":[
@@ -625,7 +626,7 @@ export default class latoken extends Exchange {
             'base': market['baseId'],
             'quote': market['quoteId'],
         };
-        const response = await (this as any).publicGetTickerBaseQuote (this.extend (request, params));
+        const response = await this.publicGetTickerBaseQuote (this.extend (request, params));
         //
         //     {
         //         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
@@ -651,7 +652,7 @@ export default class latoken extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetTicker (params);
+        const response = await this.publicGetTicker (params);
         //
         //     [
         //         {
@@ -777,7 +778,7 @@ export default class latoken extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        const response = await (this as any).publicGetTradeHistoryCurrencyQuote (this.extend (request, params));
+        const response = await this.publicGetTradeHistoryCurrencyQuote (this.extend (request, params));
         //
         //     [
         //         {"id":"c152f814-8eeb-44f0-8f3f-e5c568f2ffcf","isMakerBuyer":false,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.56","quantity":"0.32534","cost":"1443.0650904","timestamp":1635854642725,"makerBuyer":false},
@@ -813,7 +814,7 @@ export default class latoken extends Exchange {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         };
-        const response = await (this as any).publicGetTradeFeeCurrencyQuote (this.extend (request, params));
+        const response = await this.publicGetTradeFeeCurrencyQuote (this.extend (request, params));
         //
         //     {
         //         makerFee: '0.004900000000000000',
@@ -837,7 +838,7 @@ export default class latoken extends Exchange {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         };
-        const response = await (this as any).privateGetAuthTradeFeeCurrencyQuote (this.extend (request, params));
+        const response = await this.privateGetAuthTradeFeeCurrencyQuote (this.extend (request, params));
         //
         //     {
         //         makerFee: '0.004900000000000000',
@@ -1057,7 +1058,7 @@ export default class latoken extends Exchange {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         };
-        const response = await (this as any).privateGetAuthOrderPairCurrencyQuoteActive (this.extend (request, params));
+        const response = await this.privateGetAuthOrderPairCurrencyQuoteActive (this.extend (request, params));
         //
         //     [
         //         {
@@ -1151,7 +1152,7 @@ export default class latoken extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateGetAuthOrderGetOrderId (this.extend (request, params));
+        const response = await this.privateGetAuthOrderGetOrderId (this.extend (request, params));
         //
         //     {
         //         "id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
@@ -1206,7 +1207,7 @@ export default class latoken extends Exchange {
         }
         request['quantity'] = this.amountToPrecision (symbol, amount);
         request['timestamp'] = this.seconds ();
-        const response = await (this as any).privatePostAuthOrderPlace (this.extend (request, params));
+        const response = await this.privatePostAuthOrderPlace (this.extend (request, params));
         //
         //     {
         //         "orderId":"1563460093.134037.704945@0370:2",
@@ -1236,7 +1237,7 @@ export default class latoken extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privatePostAuthOrderCancel (this.extend (request, params));
+        const response = await this.privatePostAuthOrderCancel (this.extend (request, params));
         //
         //     {
         //         "id": "12345678-1234-1244-1244-123456789012",
@@ -1297,7 +1298,7 @@ export default class latoken extends Exchange {
             // 'page': '1',
             // 'size': 100,
         };
-        const response = await (this as any).privateGetAuthTransaction (this.extend (request, params));
+        const response = await this.privateGetAuthTransaction (this.extend (request, params));
         //
         //     {
         //         "hasNext":false,
@@ -1422,7 +1423,7 @@ export default class latoken extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const response = await (this as any).privateGetAuthTransfer (params);
+        const response = await this.privateGetAuthTransfer (params);
         //
         //     {
         //         "hasNext": true,
@@ -1574,7 +1575,7 @@ export default class latoken extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const auth = method + request + urlencodedQuery;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha512);
             headers = {
                 'X-LA-APIKEY': this.apiKey,
                 'X-LA-SIGNATURE': signature,

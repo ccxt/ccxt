@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var poloniex$1 = require('./abstract/poloniex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class poloniex extends Exchange["default"] {
+class poloniex extends poloniex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'poloniex',
@@ -2018,7 +2019,7 @@ class poloniex extends Exchange["default"] {
                     url += '?' + this.urlencode(query);
                 }
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha256', 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'base64');
             headers = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,

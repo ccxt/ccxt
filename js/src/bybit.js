@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bybit.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class bybit extends Exchange {
     describe() {
@@ -174,6 +175,8 @@ export default class bybit extends Exchange {
                         'spot/v3/public/quote/ticker/bookTicker': 1,
                         'spot/v3/public/server-time': 1,
                         'spot/v3/public/infos': 1,
+                        'spot/v3/public/margin-product-infos': 1,
+                        'spot/v3/public/margin-ensure-tokens': 1,
                         // data
                         'v2/public/time': 1,
                         'v3/public/time': 1,
@@ -233,6 +236,7 @@ export default class bybit extends Exchange {
                         'v5/market/delivery-price': 1,
                         'v5/spot-lever-token/info': 1,
                         'v5/spot-lever-token/reference': 1,
+                        'v5/announcements/index': 1,
                     },
                 },
                 'private': {
@@ -296,6 +300,9 @@ export default class bybit extends Exchange {
                         'spot/v3/private/cross-margin-account': 10,
                         'spot/v3/private/cross-margin-loan-info': 10,
                         'spot/v3/private/cross-margin-repay-history': 10,
+                        'spot/v3/private/margin-loan-infos': 10,
+                        'spot/v3/private/margin-repaid-infos': 10,
+                        'spot/v3/private/margin-ltv': 10,
                         // account
                         'asset/v1/private/transfer/list': 50,
                         'asset/v3/private/transfer/inter-transfer/list/query': 0.84,
@@ -1551,6 +1558,7 @@ export default class bybit extends Exchange {
             const inverse = (category === 'inverse');
             const contractType = this.safeString(market, 'contractType');
             const inverseFutures = (contractType === 'InverseFutures');
+            const linearFutures = (contractType === 'LinearFutures');
             const linearPerpetual = (contractType === 'LinearPerpetual');
             const inversePerpetual = (contractType === 'InversePerpetual');
             const id = this.safeString(market, 'symbol');
@@ -1574,7 +1582,7 @@ export default class bybit extends Exchange {
             const status = this.safeString(market, 'status');
             const active = (status === 'Trading');
             const swap = linearPerpetual || inversePerpetual;
-            const future = inverseFutures;
+            const future = inverseFutures || linearFutures;
             const option = (category === 'option');
             let type = undefined;
             if (swap) {
@@ -1877,11 +1885,12 @@ export default class bybit extends Exchange {
         // 'expDate': '', Expiry date. e.g., 25DEC22. For option only
         };
         let type = undefined;
+        const isTypeInParams = ('type' in params);
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         if (type === 'spot') {
             request['category'] = 'spot';
         }
-        else if (type === 'swap') {
+        else if (type === 'swap' || type === 'future') {
             let subType = undefined;
             [subType, params] = this.handleSubTypeAndParams('fetchTickers', market, params, 'linear');
             request['category'] = subType;
@@ -1931,10 +1940,21 @@ export default class bybit extends Exchange {
         const result = this.safeValue(response, 'result', {});
         const tickerList = this.safeValue(result, 'list', []);
         const tickers = {};
+        if (market === undefined && isTypeInParams) {
+            // create a "fake" market for the type
+            market = {
+                'type': (type === 'swap' || type === 'future') ? 'swap' : type,
+            };
+        }
         for (let i = 0; i < tickerList.length; i++) {
             const ticker = this.parseTicker(tickerList[i], market);
             const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+            // this is needed because bybit returns
+            // futures with type = swap
+            const marketInner = this.market(symbol);
+            if (marketInner['type'] === type) {
+                tickers[symbol] = ticker;
+            }
         }
         return this.filterByArray(tickers, 'symbol', symbols);
     }
@@ -6874,6 +6894,7 @@ export default class bybit extends Exchange {
         }
         if (enableUnified[1]) {
             request['settleCoin'] = settle;
+            request['limit'] = 200;
         }
         // market undefined
         [type, params] = this.handleMarketTypeAndParams('fetchPositions', undefined, params);
@@ -8266,7 +8287,7 @@ export default class bybit extends Exchange {
                     body = '{}';
                 }
                 const payload = timestamp + this.apiKey + body;
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'hex');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'hex');
                 headers = {
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': this.apiKey,
@@ -8284,7 +8305,7 @@ export default class bybit extends Exchange {
                 if (isV3UnifiedMargin || isV3Contract) {
                     headers['X-BAPI-SIGN-TYPE'] = '2';
                 }
-                const query = params;
+                const query = this.extend({}, params);
                 const queryEncoded = this.rawencode(query);
                 const auth_base = timestamp.toString() + this.apiKey + this.options['recvWindow'].toString();
                 let authFull = undefined;
@@ -8296,7 +8317,7 @@ export default class bybit extends Exchange {
                     authFull = auth_base + queryEncoded;
                     url += '?' + this.rawencode(query);
                 }
-                headers['X-BAPI-SIGN'] = this.hmac(this.encode(authFull), this.encode(this.secret));
+                headers['X-BAPI-SIGN'] = this.hmac(this.encode(authFull), this.encode(this.secret), sha256);
             }
             else {
                 const query = this.extend(params, {
@@ -8306,7 +8327,7 @@ export default class bybit extends Exchange {
                 });
                 const sortedQuery = this.keysort(query);
                 const auth = this.rawencode(sortedQuery);
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 if (method === 'POST') {
                     const isSpot = url.indexOf('spot') >= 0;
                     const extendedQuery = this.extend(query, {

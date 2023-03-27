@@ -9,6 +9,7 @@ import bitfinexRest from '../bitfinex.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
+import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 export default class bitfinex extends bitfinexRest {
     describe() {
@@ -418,7 +419,7 @@ export default class bitfinex extends bitfinexRest {
         if (authenticated === undefined) {
             const nonce = this.milliseconds();
             const payload = 'AUTH' + nonce.toString();
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha384', 'hex');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384, 'hex');
             const request = {
                 'apiKey': this.apiKey,
                 'authSig': signature,

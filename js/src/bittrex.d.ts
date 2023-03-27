@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bittrex.js';
 export default class bittrex extends Exchange {
     describe(): any;
     feeToPrecision(symbol: any, fee: any): any;

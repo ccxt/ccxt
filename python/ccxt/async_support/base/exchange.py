@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.29'
+__version__ = '3.0.38'
 
 # -----------------------------------------------------------------------------
 
@@ -649,7 +649,7 @@ class Exchange(BaseExchange):
                     currencyPrecision = self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision)
                     currency = {
                         'id': self.safe_string_2(market, 'baseId', 'base'),
-                        'numericId': self.safe_string(market, 'baseNumericId'),
+                        'numericId': self.safe_integer(market, 'baseNumericId'),
                         'code': self.safe_string(market, 'base'),
                         'precision': currencyPrecision,
                     }
@@ -658,7 +658,7 @@ class Exchange(BaseExchange):
                     currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision)
                     currency = {
                         'id': self.safe_string_2(market, 'quoteId', 'quote'),
-                        'numericId': self.safe_string(market, 'quoteNumericId'),
+                        'numericId': self.safe_integer(market, 'quoteNumericId'),
                         'code': self.safe_string(market, 'quote'),
                         'precision': currencyPrecision,
                     }
@@ -1720,11 +1720,12 @@ class Exchange(BaseExchange):
                 if numMarkets == 1:
                     return markets[0]
                 else:
-                    if marketType is None:
+                    if (marketType is None) and (market is None):
                         raise ArgumentsRequired(self.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id')
+                    inferredMarketType = market['type'] if (marketType is None) else marketType
                     for i in range(0, len(markets)):
                         market = markets[i]
-                        if market[marketType]:
+                        if market[inferredMarketType]:
                             return market
             elif delimiter is not None:
                 parts = marketId.split(delimiter)

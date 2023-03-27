@@ -1,10 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/zaif.js';
 import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -153,7 +154,7 @@ export default class zaif extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const markets = await (this as any).publicGetCurrencyPairsAll (params);
+        const markets = await this.publicGetCurrencyPairsAll (params);
         //
         //     [
         //         {
@@ -275,7 +276,7 @@ export default class zaif extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGetInfo (params);
+        const response = await this.privatePostGetInfo (params);
         return this.parseBalance (response);
     }
 
@@ -294,7 +295,7 @@ export default class zaif extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).publicGetDepthPair (this.extend (request, params));
+        const response = await this.publicGetDepthPair (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol']);
     }
 
@@ -354,7 +355,7 @@ export default class zaif extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const ticker = await (this as any).publicGetTickerPair (this.extend (request, params));
+        const ticker = await this.publicGetTickerPair (this.extend (request, params));
         //
         // {
         //     "last": 9e-08,
@@ -423,7 +424,7 @@ export default class zaif extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        let response = await (this as any).publicGetTradesPair (this.extend (request, params));
+        let response = await this.publicGetTradesPair (this.extend (request, params));
         //
         //      [
         //          {
@@ -470,7 +471,7 @@ export default class zaif extends Exchange {
             'amount': amount,
             'price': price,
         };
-        const response = await (this as any).privatePostTrade (this.extend (request, params));
+        const response = await this.privatePostTrade (this.extend (request, params));
         return this.safeOrder ({
             'info': response,
             'id': response['return']['order_id'].toString (),
@@ -490,7 +491,7 @@ export default class zaif extends Exchange {
         const request = {
             'order_id': id,
         };
-        return await (this as any).privatePostCancelOrder (this.extend (request, params));
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     parseOrder (order, market = undefined) {
@@ -559,7 +560,7 @@ export default class zaif extends Exchange {
             market = this.market (symbol);
             request['currency_pair'] = market['id'];
         }
-        const response = await (this as any).privatePostActiveOrders (this.extend (request, params));
+        const response = await this.privatePostActiveOrders (this.extend (request, params));
         return this.parseOrders (response['return'], market, since, limit);
     }
 
@@ -590,7 +591,7 @@ export default class zaif extends Exchange {
             market = this.market (symbol);
             request['currency_pair'] = market['id'];
         }
-        const response = await (this as any).privatePostTradeHistory (this.extend (request, params));
+        const response = await this.privatePostTradeHistory (this.extend (request, params));
         return this.parseOrders (response['return'], market, since, limit);
     }
 
@@ -623,7 +624,7 @@ export default class zaif extends Exchange {
         if (tag !== undefined) {
             request['message'] = tag;
         }
-        const result = await (this as any).privatePostWithdraw (this.extend (request, params));
+        const result = await this.privatePostWithdraw (this.extend (request, params));
         //
         //     {
         //         "success": 1,
@@ -719,7 +720,7 @@ export default class zaif extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                'Sign': this.hmac (this.encode (body), this.encode (this.secret), sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

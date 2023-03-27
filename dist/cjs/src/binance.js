@@ -1,13 +1,15 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var binance$1 = require('./abstract/binance.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var rsa = require('./base/functions/rsa.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class binance extends Exchange["default"] {
+class binance extends binance$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'binance',
@@ -198,6 +200,7 @@ class binance extends Exchange["default"] {
                         'asset/assetDetail': 0.1,
                         'asset/tradeFee': 0.1,
                         'asset/ledger-transfer/cloud-mining/queryByPage': 4,
+                        'asset/convert-transfer/queryByPage': 0.033335,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -279,12 +282,14 @@ class binance extends Exchange["default"] {
                         'sub-account/transfer/subUserHistory': 0.1,
                         'sub-account/universalTransfer': 0.1,
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 1,
+                        'sub-account/transaction-tatistics': 0.4,
                         'managed-subaccount/asset': 0.1,
                         'managed-subaccount/accountSnapshot': 240,
                         'managed-subaccount/queryTransLogForInvestor': 0.1,
                         'managed-subaccount/queryTransLogForTradeParent': 0.1,
                         'managed-subaccount/fetch-future-asset': 0.1,
                         'managed-subaccount/marginAsset': 0.1,
+                        'managed-subaccount/info': 0.4,
                         // lending endpoints
                         'lending/daily/product/list': 0.1,
                         'lending/daily/userLeftQuota': 0.1,
@@ -381,7 +386,6 @@ class binance extends Exchange["default"] {
                         'asset/transfer': 0.1,
                         'asset/get-funding-asset': 0.1,
                         'asset/convert-transfer': 0.033335,
-                        'asset/convert-transfer/queryByPage': 0.033335,
                         'account/disableFastWithdrawSwitch': 0.1,
                         'account/enableFastWithdrawSwitch': 0.1,
                         // 'account/apiRestrictions/ipRestriction': 1, discontinued
@@ -1447,13 +1451,14 @@ class binance extends Exchange["default"] {
             base = this.safeString(optionParts, 0);
         }
         const expiry = this.safeString(optionParts, 1);
-        const strike = this.safeString(optionParts, 2);
+        const strike = this.safeInteger(optionParts, 2);
+        const strikeAsString = this.safeString(optionParts, 2);
         const optionType = this.safeString(optionParts, 3);
         const datetime = this.convertExpireDate(expiry);
         const timestamp = this.parse8601(datetime);
         return {
-            'id': base + '-' + expiry + '-' + strike + '-' + optionType,
-            'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'id': base + '-' + expiry + '-' + strikeAsString + '-' + optionType,
+            'symbol': base + '/' + settle + ':' + settle + '-' + expiry + '-' + strikeAsString + '-' + optionType,
             'base': base,
             'quote': settle,
             'baseId': base,
@@ -7405,10 +7410,10 @@ class binance extends Exchange["default"] {
             }
             let signature = undefined;
             if (this.secret.indexOf('PRIVATE KEY') > -1) {
-                signature = this.encodeURIComponent(this.rsa(query, this.secret));
+                signature = this.encodeURIComponent(rsa.rsa(query, this.secret, sha256.sha256));
             }
             else {
-                signature = this.hmac(this.encode(query), this.encode(this.secret));
+                signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
             }
             query += '&' + 'signature=' + signature;
             headers = {

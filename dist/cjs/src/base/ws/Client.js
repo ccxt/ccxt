@@ -1,13 +1,14 @@
 'use strict';
 
 var errors = require('../errors.js');
-var functions = require('./functions.js');
+var browser = require('../../static_dependencies/fflake/browser.js');
 var Future = require('./Future.js');
 var platform = require('../functions/platform.js');
 var generic = require('../functions/generic.js');
 var encode = require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
+var index = require('../../static_dependencies/scure-base/index.js');
 
 class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
@@ -226,22 +227,30 @@ class Client {
     close() {
         throw new errors.NotSupported('close() not implemented yet');
     }
-    onMessage(message) {
+    onMessage(messageEvent) {
         // if we use onmessage we get MessageEvent objects
         // MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
-        message = message.data;
-        if (message.byteLength !== undefined) {
+        let message = messageEvent.data;
+        let arrayBuffer;
+        if (this.gunzip || this.inflate) {
+            if (typeof message === 'string') {
+                arrayBuffer = index.utf8.decode(message);
+            }
+            else {
+                arrayBuffer = new Uint8Array(message.buffer.slice(message.byteOffset));
+            }
             if (this.gunzip) {
-                message = functions.gunzip(message);
+                arrayBuffer = browser.gunzipSync(arrayBuffer);
             }
             else if (this.inflate) {
-                message = functions.inflate(message);
+                arrayBuffer = browser.inflateSync(arrayBuffer);
             }
+            message = index.utf8.encode(arrayBuffer);
+        }
+        if (typeof message !== 'string') {
+            message = message.toString();
         }
         try {
-            if (message instanceof Buffer) {
-                message = message.toString();
-            }
             if (encode.isJsonEncodedObject(message)) {
                 message = JSON.parse(message.replace(/:(\d{15,}),/g, ':"$1",'));
             }

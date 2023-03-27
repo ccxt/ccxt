@@ -3,6 +3,7 @@
 var currencycom$1 = require('../currencycom.js');
 var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
+var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -316,7 +317,7 @@ class currencycom extends currencycom$1 {
             'correlationId': requestId,
             'payload': payload,
         }, params);
-        request['payload']['signature'] = this.hmac(this.encode(auth), this.encode(this.secret));
+        request['payload']['signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
         const subscription = this.extend(request, {
             'messageHash': messageHash,
         });

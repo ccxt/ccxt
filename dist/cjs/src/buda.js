@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var buda$1 = require('./abstract/buda.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class buda extends Exchange["default"] {
+class buda extends buda$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'buda',
@@ -1095,11 +1096,11 @@ class buda extends Exchange["default"] {
             const components = [method, '/api/' + this.version + '/' + request];
             if (body) {
                 const base64Body = this.stringToBase64(body);
-                components.push(this.decode(base64Body));
+                components.push(base64Body);
             }
             components.push(nonce);
             const message = components.join(' ');
-            const signature = this.hmac(this.encode(message), this.encode(this.secret), 'sha384');
+            const signature = this.hmac(this.encode(message), this.encode(this.secret), sha512.sha384);
             headers = {
                 'X-SBTC-APIKEY': this.apiKey,
                 'X-SBTC-SIGNATURE': signature,

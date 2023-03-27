@@ -1,9 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/novadax.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired, AccountNotEnabled } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { md5 } from './static_dependencies/noble-hashes/md5.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -199,7 +201,7 @@ export default class novadax extends Exchange {
          * @param {object} params extra parameters specific to the novadax api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetCommonTimestamp (params);
+        const response = await this.publicGetCommonTimestamp (params);
         //
         //     {
         //         "code":"A10000",
@@ -218,7 +220,7 @@ export default class novadax extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetCommonSymbols (params);
+        const response = await this.publicGetCommonSymbols (params);
         //
         //     {
         //         "code":"A10000",
@@ -363,7 +365,7 @@ export default class novadax extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetMarketTicker (this.extend (request, params));
+        const response = await this.publicGetMarketTicker (this.extend (request, params));
         //
         //     {
         //         "code":"A10000",
@@ -397,7 +399,7 @@ export default class novadax extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).publicGetMarketTickers (params);
+        const response = await this.publicGetMarketTickers (params);
         //
         //     {
         //         "code":"A10000",
@@ -446,7 +448,7 @@ export default class novadax extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 20
         }
-        const response = await (this as any).publicGetMarketDepth (this.extend (request, params));
+        const response = await this.publicGetMarketDepth (this.extend (request, params));
         //
         //     {
         //         "code":"A10000",
@@ -569,7 +571,7 @@ export default class novadax extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const response = await (this as any).publicGetMarketTrades (this.extend (request, params));
+        const response = await this.publicGetMarketTrades (this.extend (request, params));
         //
         //     {
         //         "code":"A10000",
@@ -616,7 +618,7 @@ export default class novadax extends Exchange {
             request['from'] = startFrom;
             request['to'] = this.sum (startFrom, limit * duration);
         }
-        const response = await (this as any).publicGetMarketKlineHistory (this.extend (request, params));
+        const response = await this.publicGetMarketKlineHistory (this.extend (request, params));
         //
         //     {
         //         "code": "A10000",
@@ -695,7 +697,7 @@ export default class novadax extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccountGetBalance (params);
+        const response = await this.privateGetAccountGetBalance (params);
         //
         //     {
         //         "code": "A10000",
@@ -779,7 +781,7 @@ export default class novadax extends Exchange {
             }
         }
         request['type'] = uppercaseType;
-        const response = await (this as any).privatePostOrdersCreate (this.extend (request, params));
+        const response = await this.privatePostOrdersCreate (this.extend (request, params));
         //
         //     {
         //         "code": "A10000",
@@ -821,7 +823,7 @@ export default class novadax extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privatePostOrdersCancel (this.extend (request, params));
+        const response = await this.privatePostOrdersCancel (this.extend (request, params));
         //
         //     {
         //         "code": "A10000",
@@ -848,7 +850,7 @@ export default class novadax extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateGetOrdersGet (this.extend (request, params));
+        const response = await this.privateGetOrdersGet (this.extend (request, params));
         //
         //     {
         //         "code": "A10000",
@@ -906,7 +908,7 @@ export default class novadax extends Exchange {
         if (since !== undefined) {
             request['fromTimestamp'] = since;
         }
-        const response = await (this as any).privateGetOrdersList (this.extend (request, params));
+        const response = await this.privateGetOrdersList (this.extend (request, params));
         //
         //     {
         //         "code": "A10000",
@@ -984,7 +986,7 @@ export default class novadax extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateGetOrdersFill (this.extend (request, params));
+        const response = await this.privateGetOrdersFill (this.extend (request, params));
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1128,7 +1130,7 @@ export default class novadax extends Exchange {
             'subId': (type === 'master-transfer-in') ? toAccount : fromAccount,
             'transferType': type,
         };
-        const response = await (this as any).privatePostAccountSubsTransfer (this.extend (request, params));
+        const response = await this.privatePostAccountSubsTransfer (this.extend (request, params));
         //
         //    {
         //        "code":"A10000",
@@ -1202,7 +1204,7 @@ export default class novadax extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const response = await (this as any).privatePostAccountWithdrawCoin (this.extend (request, params));
+        const response = await this.privatePostAccountWithdrawCoin (this.extend (request, params));
         //
         //     {
         //         "code":"A10000",
@@ -1221,7 +1223,7 @@ export default class novadax extends Exchange {
          * @param {object} params extra parameters specific to the novadax api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
-        const response = await (this as any).privateGetAccountSubs (params);
+        const response = await this.privateGetAccountSubs (params);
         //
         //     {
         //         "code": "A10000",
@@ -1313,7 +1315,7 @@ export default class novadax extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await (this as any).privateGetWalletQueryDepositWithdraw (this.extend (request, params));
+        const response = await this.privateGetWalletQueryDepositWithdraw (this.extend (request, params));
         //
         //     {
         //         "code": "A10000",
@@ -1453,7 +1455,7 @@ export default class novadax extends Exchange {
         if (since !== undefined) {
             request['fromTimestamp'] = since;
         }
-        const response = await (this as any).privateGetOrdersFills (this.extend (request, params));
+        const response = await this.privateGetOrdersFills (this.extend (request, params));
         //
         //      {
         //          "code": "A10000",
@@ -1497,7 +1499,7 @@ export default class novadax extends Exchange {
             let queryString = undefined;
             if (method === 'POST') {
                 body = this.json (query);
-                queryString = this.hash (this.encode (body), 'md5');
+                queryString = this.hash (this.encode (body), md5);
                 headers['Content-Type'] = 'application/json';
             } else {
                 if (Object.keys (query).length) {
@@ -1506,7 +1508,7 @@ export default class novadax extends Exchange {
                 queryString = this.urlencode (this.keysort (query));
             }
             const auth = method + "\n" + request + "\n" + queryString + "\n" + timestamp; // eslint-disable-line quotes
-            headers['X-Nova-Signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
+            headers['X-Nova-Signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

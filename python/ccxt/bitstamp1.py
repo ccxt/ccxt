@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -342,11 +343,7 @@ class bitstamp1(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        pair = market['id'] if market else 'all'
-        request = {
-            'id': pair,
-        }
-        response = self.privatePostOpenOrdersId(self.extend(request, params))
+        response = self.privatePostUserTransactions(params)
         return self.parse_trades(response, market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -359,7 +356,7 @@ class bitstamp1(Exchange):
             self.check_required_credentials()
             nonce = str(self.nonce())
             auth = nonce + self.uid + self.apiKey
-            signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             query = self.extend({
                 'key': self.apiKey,
                 'signature': signature.upper(),

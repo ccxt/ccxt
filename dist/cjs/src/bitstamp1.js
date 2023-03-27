@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bitstamp1$1 = require('./abstract/bitstamp1.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitstamp1 extends Exchange["default"] {
+class bitstamp1 extends bitstamp1$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitstamp1',
@@ -359,11 +360,7 @@ class bitstamp1 extends Exchange["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const pair = market ? market['id'] : 'all';
-        const request = {
-            'id': pair,
-        };
-        const response = await this.privatePostOpenOrdersId(this.extend(request, params));
+        const response = await this.privatePostUserTransactions(params);
         return this.parseTrades(response, market, since, limit);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -378,7 +375,7 @@ class bitstamp1 extends Exchange["default"] {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const auth = nonce + this.uid + this.apiKey;
-            const signature = this.encode(this.hmac(this.encode(auth), this.encode(this.secret)));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
             query = this.extend({
                 'key': this.apiKey,
                 'signature': signature.toUpperCase(),

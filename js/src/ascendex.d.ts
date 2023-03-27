@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/ascendex.js';
 export default class ascendex extends Exchange {
     describe(): any;
     getAccount(params?: {}): string;

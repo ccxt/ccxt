@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bitrue$1 = require('./abstract/bitrue.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitrue extends Exchange["default"] {
+class bitrue extends bitrue$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitrue',
@@ -1929,7 +1930,7 @@ class bitrue extends Exchange["default"] {
                 'timestamp': this.nonce(),
                 'recvWindow': recvWindow,
             }, params));
-            const signature = this.hmac(this.encode(query), this.encode(this.secret));
+            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,

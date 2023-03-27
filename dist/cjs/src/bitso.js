@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bitso$1 = require('./abstract/bitso.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitso extends Exchange["default"] {
+class bitso extends bitso$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitso',
@@ -149,9 +150,6 @@ class bitso extends Exchange["default"] {
                         'bitcoin_withdrawal',
                         'debit_card_withdrawal',
                         'ether_withdrawal',
-                        'ripple_withdrawal',
-                        'bcash_withdrawal',
-                        'litecoin_withdrawal',
                         'orders',
                         'phone_number',
                         'phone_verification',
@@ -1684,7 +1682,7 @@ class bitso extends Exchange["default"] {
                     request += body;
                 }
             }
-            const signature = this.hmac(this.encode(request), this.encode(this.secret));
+            const signature = this.hmac(this.encode(request), this.encode(this.secret), sha256.sha256);
             const auth = this.apiKey + ':' + nonce + ':' + signature;
             headers = {
                 'Authorization': 'Bitso ' + auth,

@@ -3,6 +3,7 @@
 var gate$1 = require('../gate.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1085,7 +1086,7 @@ class gate extends gate$1 {
         const time = this.seconds();
         const event = 'subscribe';
         const signaturePayload = 'channel=' + subscriptionHash + '&' + 'event=' + event + '&' + 'time=' + time.toString();
-        const signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), 'sha512', 'hex');
+        const signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512.sha512, 'hex');
         const auth = {
             'method': 'api_key',
             'KEY': this.apiKey,

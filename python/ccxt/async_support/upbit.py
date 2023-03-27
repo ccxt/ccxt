@@ -1661,9 +1661,9 @@ class upbit(Exchange):
                 hash = self.hash(self.encode(auth), 'sha512')
                 request['query_hash'] = hash
                 request['query_hash_alg'] = 'SHA512'
-            jwt = self.jwt(request, self.encode(self.secret))
+            token = self.jwt(request, self.encode(self.secret), 'sha256')
             headers = {
-                'Authorization': 'Bearer ' + jwt,
+                'Authorization': 'Bearer ' + token,
             }
             if (method != 'GET') and (method != 'DELETE'):
                 body = self.json(params)

@@ -4,6 +4,7 @@ var cex$1 = require('../cex.js');
 var errors = require('../base/errors.js');
 var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
+var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1184,7 +1185,7 @@ class cex extends cex$1 {
             this.checkRequiredCredentials();
             const nonce = this.seconds().toString();
             const auth = nonce + this.apiKey;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
             const request = {
                 'e': 'auth',
                 'auth': {

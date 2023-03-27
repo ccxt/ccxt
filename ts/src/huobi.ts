@@ -1,10 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/huobi.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -366,7 +367,6 @@ export default class huobi extends Exchange {
                             'market/depth': 1,
                             'market/trade': 1,
                             'market/history/trade': 1,
-                            'market/detail/': 1,
                             'market/etp': 1, // Get real-time equity of leveraged ETP
                             // ETP
                             'v2/etp/reference': 1,
@@ -1315,7 +1315,7 @@ export default class huobi extends Exchange {
         const request = {
             'symbols': market['id'], // trading symbols comma-separated
         };
-        const response = await (this as any).spotPrivateGetV2ReferenceTransactFeeRate (this.extend (request, params));
+        const response = await this.spotPrivateGetV2ReferenceTransactFeeRate (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -1356,7 +1356,7 @@ export default class huobi extends Exchange {
         const request = {
             'symbol': id,
         };
-        const response = await (this as any).spotPublicGetV1CommonExchange (this.extend (request, params));
+        const response = await this.spotPublicGetV1CommonExchange (this.extend (request, params));
         //
         //     { status:   "ok",
         //         data: {                                  symbol: "aidocbtc",
@@ -2326,7 +2326,7 @@ export default class huobi extends Exchange {
         const request = {
             'order-id': id,
         };
-        const response = await (this as any).spotPrivateGetV1OrderOrdersOrderIdMatchresults (this.extend (request, params));
+        const response = await this.spotPrivateGetV1OrderOrdersOrderIdMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], undefined, since, limit);
     }
 
@@ -2712,7 +2712,7 @@ export default class huobi extends Exchange {
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         await this.loadMarkets ();
-        const response = await (this as any).spotPrivateGetV1AccountAccounts (params);
+        const response = await this.spotPrivateGetV1AccountAccounts (params);
         //
         //     {
         //         "status":"ok",
@@ -2766,7 +2766,7 @@ export default class huobi extends Exchange {
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).spotPublicGetV2ReferenceCurrencies (params);
+        const response = await this.spotPublicGetV2ReferenceCurrencies (params);
         //
         //    {
         //        "code": 200,
@@ -4214,7 +4214,7 @@ export default class huobi extends Exchange {
         if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await (this as any).spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
+        const response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
         //
         // spot
         //
@@ -4728,7 +4728,7 @@ export default class huobi extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).spotPrivateGetV2AccountDepositAddress (this.extend (request, params));
+        const response = await this.spotPrivateGetV2AccountDepositAddress (this.extend (request, params));
         //
         //     {
         //         code: 200,
@@ -4770,7 +4770,7 @@ export default class huobi extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).spotPrivateGetV2AccountWithdrawAddress (this.extend (request, params));
+        const response = await this.spotPrivateGetV2AccountWithdrawAddress (this.extend (request, params));
         //
         //     {
         //         code: 200,
@@ -4829,7 +4829,7 @@ export default class huobi extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // max 100
         }
-        const response = await (this as any).spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
+        const response = await this.spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
         //
         //    {
         //         "status": "ok",
@@ -4889,7 +4889,7 @@ export default class huobi extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // max 100
         }
-        const response = await (this as any).spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
+        const response = await this.spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
         //
         //    {
         //         "status": "ok",
@@ -5080,7 +5080,7 @@ export default class huobi extends Exchange {
             amount = parseFloat (this.currencyToPrecision (code, amountSubtracted, networkCode));
         }
         request['amount'] = amount;
-        const response = await (this as any).spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
+        const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -5214,7 +5214,7 @@ export default class huobi extends Exchange {
          * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} indexed by market symbol
          */
         await this.loadMarkets ();
-        const response = await (this as any).spotPrivateGetV1MarginLoanInfo (params);
+        const response = await this.spotPrivateGetV1MarginLoanInfo (params);
         //
         //    {
         //        "status": "ok",
@@ -5281,7 +5281,7 @@ export default class huobi extends Exchange {
          * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).spotPrivateGetV1MarginLoanInfo (params);
+        const response = await this.spotPrivateGetV1MarginLoanInfo (params);
         // {
         //     "status": "ok",
         //     "data": [
@@ -5687,7 +5687,7 @@ export default class huobi extends Exchange {
                 let auth = this.urlencode (sortedRequest);
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [ method, this.hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
-                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
                 auth += '&' + this.urlencode ({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {
@@ -5745,7 +5745,7 @@ export default class huobi extends Exchange {
                 let auth = this.urlencode (request);
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [ method, hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
-                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
                 auth += '&' + this.urlencode ({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {
@@ -6551,7 +6551,7 @@ export default class huobi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 500
         }
-        const response = await (this as any).spotPrivateGetV2AccountLedger (this.extend (request, params));
+        const response = await this.spotPrivateGetV2AccountLedger (this.extend (request, params));
         //
         //     {
         //         "code": 200,
@@ -6598,7 +6598,7 @@ export default class huobi extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).contractPublicGetLinearSwapApiV1SwapAdjustfactor (params);
+        const response = await this.contractPublicGetLinearSwapApiV1SwapAdjustfactor (params);
         //
         //    {
         //        "status": "ok",
@@ -6650,7 +6650,7 @@ export default class huobi extends Exchange {
             }
             request['contract_code'] = market['id'];
         }
-        const response = await (this as any).contractPublicGetLinearSwapApiV1SwapAdjustfactor (this.extend (request, params));
+        const response = await this.contractPublicGetLinearSwapApiV1SwapAdjustfactor (this.extend (request, params));
         //
         //    {
         //        "status": "ok",
@@ -7091,7 +7091,7 @@ export default class huobi extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
             'accountId': accountId,
         };
-        const response = await (this as any).v2PrivatePostAccountRepayment (this.extend (request, params));
+        const response = await this.v2PrivatePostAccountRepayment (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -7265,7 +7265,7 @@ export default class huobi extends Exchange {
          * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).spotPublicGetV2ReferenceCurrencies (params);
+        const response = await this.spotPublicGetV2ReferenceCurrencies (params);
         //
         //    {
         //        "code": 200,

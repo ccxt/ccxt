@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitbns.js';
 export default class bitbns extends Exchange {
     describe(): any;
     fetchStatus(params?: {}): Promise<{

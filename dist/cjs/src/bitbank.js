@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bitbank$1 = require('./abstract/bitbank.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitbank extends Exchange["default"] {
+class bitbank extends bitbank$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitbank',
@@ -868,7 +869,7 @@ class bitbank extends Exchange["default"] {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-NONCE': nonce,
-                'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret)),
+                'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

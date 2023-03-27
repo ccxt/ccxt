@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/paymium.js';
 export default class paymium extends Exchange {
     describe(): any;
     parseBalance(response: any): import("./base/types.js").Balances;

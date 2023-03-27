@@ -229,7 +229,7 @@ function fromRawHeaders(headers = []) {
             validateHeaderValue(name, String(value));
             return true;
         }
-        catch (_a) {
+        catch {
             return false;
         }
     }));
