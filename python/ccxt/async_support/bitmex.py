@@ -2629,9 +2629,10 @@ class bitmex(Exchange):
                 'Content-Type': 'application/json',
                 'api-key': self.apiKey,
             }
-            expires = self.sum(self.seconds(), str(expires))
-            auth += expires
-            headers['api-expires'] = expires
+            expires = self.sum(self.seconds(), expires)
+            stringExpires = str(expires)
+            auth += stringExpires
+            headers['api-expires'] = stringExpires
             if method == 'POST' or method == 'PUT' or method == 'DELETE':
                 if params:
                     body = self.json(params)

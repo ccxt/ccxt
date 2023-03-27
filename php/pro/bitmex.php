@@ -1152,10 +1152,21 @@ class bitmex extends \ccxt\async\bitmex {
         //         $table => 'orderBookL2',
         //         $action => 'update',
         //         $data => array(
-        //             array( $symbol => 'XBTUSD', $id => 8799285100, $side => 'Sell', $size => 70590 ),
-        //             array( $symbol => 'XBTUSD', $id => 8799285550, $side => 'Sell', $size => 217652 ),
-        //             array( $symbol => 'XBTUSD', $id => 8799288950, $side => 'Buy', $size => 47552 ),
-        //             array( $symbol => 'XBTUSD', $id => 8799289250, $side => 'Buy', $size => 78217 ),
+        //             {
+        //               $table => 'orderBookL2',
+        //               $action => 'insert',
+        //               $data => array(
+        //                 {
+        //                   $symbol => 'ETH_USDT',
+        //                   $id => 85499965912,
+        //                   $side => 'Buy',
+        //                   $size => 83000000,
+        //                   $price => 1704.4,
+        //                   timestamp => '2023-03-26T22:29:00.299Z'
+        //                 }
+        //               )
+        //             }
+        //             ...
         //         )
         //     }
         //
@@ -1176,6 +1187,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $this->orderbooks[$symbol] = $this->indexed_order_book(array(), 10);
             }
             $orderbook = $this->orderbooks[$symbol];
+            $orderbook['symbol'] = $symbol;
             for ($i = 0; $i < count($data); $i++) {
                 $price = $this->safe_float($data[$i], 'price');
                 $size = $this->safe_float($data[$i], 'size');
@@ -1184,6 +1196,9 @@ class bitmex extends \ccxt\async\bitmex {
                 $side = ($side === 'Buy') ? 'bids' : 'asks';
                 $bookside = $orderbook[$side];
                 $bookside->store ($price, $size, $id);
+                $datetime = $this->safe_string($data[$i], 'timestamp');
+                $orderbook['timestamp'] = $this->parse8601($datetime);
+                $orderbook['datetime'] = $datetime;
             }
             $messageHash = $table . ':' . $marketId;
             $client->resolve ($orderbook, $messageHash);
@@ -1199,12 +1214,15 @@ class bitmex extends \ccxt\async\bitmex {
                 $symbol = $market['symbol'];
                 $orderbook = $this->orderbooks[$symbol];
                 $price = $this->safe_float($data[$i], 'price');
-                $size = $this->safe_float($data[$i], 'size', 0);
+                $size = ($action === 'delete') ? 0 : $this->safe_float($data[$i], 'size', 0);
                 $id = $this->safe_string($data[$i], 'id');
                 $side = $this->safe_string($data[$i], 'side');
                 $side = ($side === 'Buy') ? 'bids' : 'asks';
                 $bookside = $orderbook[$side];
                 $bookside->store ($price, $size, $id);
+                $datetime = $this->safe_string($data[$i], 'timestamp');
+                $orderbook['timestamp'] = $this->parse8601($datetime);
+                $orderbook['datetime'] = $datetime;
             }
             $marketIds = is_array($numUpdatesByMarketId) ? array_keys($numUpdatesByMarketId) : array();
             for ($i = 0; $i < count($marketIds); $i++) {

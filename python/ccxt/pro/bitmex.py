@@ -1092,10 +1092,21 @@ class bitmex(ccxt.async_support.bitmex):
         #         table: 'orderBookL2',
         #         action: 'update',
         #         data: [
-        #             {symbol: 'XBTUSD', id: 8799285100, side: 'Sell', size: 70590},
-        #             {symbol: 'XBTUSD', id: 8799285550, side: 'Sell', size: 217652},
-        #             {symbol: 'XBTUSD', id: 8799288950, side: 'Buy', size: 47552},
-        #             {symbol: 'XBTUSD', id: 8799289250, side: 'Buy', size: 78217},
+        #             {
+        #               table: 'orderBookL2',
+        #               action: 'insert',
+        #               data: [
+        #                 {
+        #                   symbol: 'ETH_USDT',
+        #                   id: 85499965912,
+        #                   side: 'Buy',
+        #                   size: 83000000,
+        #                   price: 1704.4,
+        #                   timestamp: '2023-03-26T22:29:00.299Z'
+        #                 }
+        #               ]
+        #             }
+        #             ...
         #         ]
         #     }
         #
@@ -1115,6 +1126,7 @@ class bitmex(ccxt.async_support.bitmex):
             elif table == 'orderBook10':
                 self.orderbooks[symbol] = self.indexed_order_book({}, 10)
             orderbook = self.orderbooks[symbol]
+            orderbook['symbol'] = symbol
             for i in range(0, len(data)):
                 price = self.safe_float(data[i], 'price')
                 size = self.safe_float(data[i], 'size')
@@ -1123,6 +1135,9 @@ class bitmex(ccxt.async_support.bitmex):
                 side = 'bids' if (side == 'Buy') else 'asks'
                 bookside = orderbook[side]
                 bookside.store(price, size, id)
+                datetime = self.safe_string(data[i], 'timestamp')
+                orderbook['timestamp'] = self.parse8601(datetime)
+                orderbook['datetime'] = datetime
             messageHash = table + ':' + marketId
             client.resolve(orderbook, messageHash)
         else:
@@ -1136,12 +1151,15 @@ class bitmex(ccxt.async_support.bitmex):
                 symbol = market['symbol']
                 orderbook = self.orderbooks[symbol]
                 price = self.safe_float(data[i], 'price')
-                size = self.safe_float(data[i], 'size', 0)
+                size = 0 if (action == 'delete') else self.safe_float(data[i], 'size', 0)
                 id = self.safe_string(data[i], 'id')
                 side = self.safe_string(data[i], 'side')
                 side = 'bids' if (side == 'Buy') else 'asks'
                 bookside = orderbook[side]
                 bookside.store(price, size, id)
+                datetime = self.safe_string(data[i], 'timestamp')
+                orderbook['timestamp'] = self.parse8601(datetime)
+                orderbook['datetime'] = datetime
             marketIds = list(numUpdatesByMarketId.keys())
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]

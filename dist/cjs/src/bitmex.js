@@ -2772,9 +2772,10 @@ class bitmex extends bitmex$1 {
                 'Content-Type': 'application/json',
                 'api-key': this.apiKey,
             };
-            expires = this.sum(this.seconds(), expires).toString();
-            auth += expires;
-            headers['api-expires'] = expires;
+            expires = this.sum(this.seconds(), expires);
+            const stringExpires = expires.toString();
+            auth += stringExpires;
+            headers['api-expires'] = stringExpires;
             if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                 if (Object.keys(params).length) {
                     body = this.json(params);
