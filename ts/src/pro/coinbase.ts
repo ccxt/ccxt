@@ -359,8 +359,9 @@ export default class coinbase extends coinbaseRest {
         const event = this.safeValue (events, 0);
         const trades = this.safeValue (event, 'trades');
         const trade = this.safeValue (trades, 0);
-        const messageHash = 'market_trades:' + trade['id'];
-        const symbol = trade['symbol'];
+        const marketId = this.safeString (trade, 'product_id');
+        const messageHash = 'market_trades:' + marketId;
+        const symbol = this.safeSymbol (marketId);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
