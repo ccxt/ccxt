@@ -8,36 +8,36 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetCurrencies (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesticksInstrumentCode (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetFees (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetInstruments (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderBookInstrumentCode (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketTickerInstrumentCode (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPriceTicksInstrumentCode (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTime (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountBalances (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountDepositCryptoCurrencyCode (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountDepositFiatEUR (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountDeposits (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountDepositsBitpanda (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountWithdrawals (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountWithdrawalsBitpanda (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountFees (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountOrdersOrderIdTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountTradesTradeId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountTradingVolume (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountDepositCrypto (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountWithdrawCrypto (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountWithdrawFiat (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountFees (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteAccountOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteAccountOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteAccountOrdersClientClientId (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetCurrencies (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencies'] (params); }
+    publicGetCandlesticksInstrumentCode (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesticksInstrumentCode'] (params); }
+    publicGetFees (params?: {}): Promise<implicitReturnType> { return this['publicGetFees'] (params); }
+    publicGetInstruments (params?: {}): Promise<implicitReturnType> { return this['publicGetInstruments'] (params); }
+    publicGetOrderBookInstrumentCode (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderBookInstrumentCode'] (params); }
+    publicGetMarketTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketTicker'] (params); }
+    publicGetMarketTickerInstrumentCode (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketTickerInstrumentCode'] (params); }
+    publicGetPriceTicksInstrumentCode (params?: {}): Promise<implicitReturnType> { return this['publicGetPriceTicksInstrumentCode'] (params); }
+    publicGetTime (params?: {}): Promise<implicitReturnType> { return this['publicGetTime'] (params); }
+    privateGetAccountBalances (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountBalances'] (params); }
+    privateGetAccountDepositCryptoCurrencyCode (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountDepositCryptoCurrencyCode'] (params); }
+    privateGetAccountDepositFiatEUR (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountDepositFiatEUR'] (params); }
+    privateGetAccountDeposits (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountDeposits'] (params); }
+    privateGetAccountDepositsBitpanda (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountDepositsBitpanda'] (params); }
+    privateGetAccountWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountWithdrawals'] (params); }
+    privateGetAccountWithdrawalsBitpanda (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountWithdrawalsBitpanda'] (params); }
+    privateGetAccountFees (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountFees'] (params); }
+    privateGetAccountOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountOrders'] (params); }
+    privateGetAccountOrdersOrderId (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountOrdersOrderId'] (params); }
+    privateGetAccountOrdersOrderIdTrades (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountOrdersOrderIdTrades'] (params); }
+    privateGetAccountTrades (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountTrades'] (params); }
+    privateGetAccountTradesTradeId (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountTradesTradeId'] (params); }
+    privateGetAccountTradingVolume (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountTradingVolume'] (params); }
+    privatePostAccountDepositCrypto (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountDepositCrypto'] (params); }
+    privatePostAccountWithdrawCrypto (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountWithdrawCrypto'] (params); }
+    privatePostAccountWithdrawFiat (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountWithdrawFiat'] (params); }
+    privatePostAccountFees (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountFees'] (params); }
+    privatePostAccountOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountOrders'] (params); }
+    privateDeleteAccountOrders (params?: {}): Promise<implicitReturnType> { return this['privateDeleteAccountOrders'] (params); }
+    privateDeleteAccountOrdersOrderId (params?: {}): Promise<implicitReturnType> { return this['privateDeleteAccountOrdersOrderId'] (params); }
+    privateDeleteAccountOrdersClientClientId (params?: {}): Promise<implicitReturnType> { return this['privateDeleteAccountOrdersClientClientId'] (params); }
 }

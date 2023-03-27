@@ -10,7 +10,6 @@ import { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, Order
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class hitbtc extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

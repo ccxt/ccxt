@@ -5,7 +5,6 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-// @ts-expect-error
 class timex extends timex$1 {
     describe() {
         return this.deepExtend(super.describe(), {

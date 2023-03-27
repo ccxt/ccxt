@@ -8,139 +8,139 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetConfConfig (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubActionObject (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubActionObjectDetail (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubMapObject (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubMapObjectDetail (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubMapCurrencyDetail (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubMapCurrencySym (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubMapCurrencyLabel (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubMapCurrencyUnit (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubMapCurrencyUndl (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubMapCurrencyPool (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubMapCurrencyExplorer (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubMapCurrencyTxFee (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubMapTxMethod (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubListObject (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubListObjectDetail (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubListCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubListPairExchange (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubListPairMargin (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubListPairFutures (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubListCompetitions (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubInfoObject (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubInfoObjectDetail (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubInfoPair (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubInfoPairFutures (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubInfoTxStatus (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetConfPubFees (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPlatformStatus (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickers (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickerSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickersHist (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTradesSymbolHist (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetBookSymbolPrecision (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetBookSymbolP0 (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetBookSymbolP1 (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetBookSymbolP2 (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetBookSymbolP3 (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetBookSymbolR0 (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetStats1KeySizeSymbolSideSection (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetStats1KeySizeSymbolSideLast (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetStats1KeySizeSymbolSideHist (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetStats1KeySizeSymbolSection (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetStats1KeySizeSymbolLast (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetStats1KeySizeSymbolHist (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetStats1KeySizeSymbolLongLast (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetStats1KeySizeSymbolLongHist (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetStats1KeySizeSymbolShortLast (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetStats1KeySizeSymbolShortHist (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesTradeTimeframeSymbolPeriodSection (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesTradeTimeframeSymbolSection (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesTradeTimeframeSymbolLast (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesTradeTimeframeSymbolHist (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetStatusType (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetStatusDeriv (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetLiquidationsHist (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetRankingsKeyTimeframeSymbolSection (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetRankingsKeyTimeframeSymbolHist (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPulseHist (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPulseProfileNickname (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetFundingStatsSymbolHist (params?: {}): Promise<implicitReturnType>;
-    abstract publicPostCalcTradeAvg (params?: {}): Promise<implicitReturnType>;
-    abstract publicPostCalcFx (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRWallets (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRWalletsHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthROrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthROrdersSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWOrderSubmit (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWOrderUpdate (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWOrderCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWOrderMulti (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWOrderCancelMulti (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthROrdersSymbolHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthROrdersHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthROrderSymbolIdTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRTradesSymbolHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRTradesHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRLedgersCurrencyHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRLedgersHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRInfoMarginKey (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRInfoMarginBase (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRInfoMarginSymAll (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRPositions (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWPositionClaim (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWPositionIncrease (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRPositionIncreaseInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRPositionsHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRPositionsAudit (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRPositionsSnap (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWDerivCollateralSet (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWDerivCollateralLimits (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRFundingOffers (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRFundingOffersSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWFundingOfferSubmit (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWFundingOfferCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWFundingOfferCancelAll (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWFundingClose (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWFundingAuto (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWFundingKeep (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRFundingOffersSymbolHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRFundingOffersHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRFundingLoans (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRFundingLoansHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRFundingLoansSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRFundingLoansSymbolHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRFundingCredits (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRFundingCreditsHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRFundingCreditsSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRFundingCreditsSymbolHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRFundingTradesSymbolHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRFundingTradesHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRInfoFundingKey (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRInfoUser (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRSummary (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRLoginsHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRPermissions (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWToken (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRAuditHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWDepositInvoice (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWWithdraw (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRMovementsCurrencyHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRMovementsHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRAlerts (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWAlertSet (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWAlertPriceSymbolPriceDel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWAlertTypeSymbolPriceDel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthCalcOrderAvail (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWSettingsSet (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRSettings (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWSettingsDel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthRPulseHist (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWPulseAdd (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthWPulseDel (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetConfConfig (params?: {}): Promise<implicitReturnType> { return this['publicGetConfConfig'] (params); }
+    publicGetConfPubActionObject (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubActionObject'] (params); }
+    publicGetConfPubActionObjectDetail (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubActionObjectDetail'] (params); }
+    publicGetConfPubMapObject (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubMapObject'] (params); }
+    publicGetConfPubMapObjectDetail (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubMapObjectDetail'] (params); }
+    publicGetConfPubMapCurrencyDetail (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubMapCurrencyDetail'] (params); }
+    publicGetConfPubMapCurrencySym (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubMapCurrencySym'] (params); }
+    publicGetConfPubMapCurrencyLabel (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubMapCurrencyLabel'] (params); }
+    publicGetConfPubMapCurrencyUnit (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubMapCurrencyUnit'] (params); }
+    publicGetConfPubMapCurrencyUndl (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubMapCurrencyUndl'] (params); }
+    publicGetConfPubMapCurrencyPool (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubMapCurrencyPool'] (params); }
+    publicGetConfPubMapCurrencyExplorer (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubMapCurrencyExplorer'] (params); }
+    publicGetConfPubMapCurrencyTxFee (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubMapCurrencyTxFee'] (params); }
+    publicGetConfPubMapTxMethod (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubMapTxMethod'] (params); }
+    publicGetConfPubListObject (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubListObject'] (params); }
+    publicGetConfPubListObjectDetail (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubListObjectDetail'] (params); }
+    publicGetConfPubListCurrency (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubListCurrency'] (params); }
+    publicGetConfPubListPairExchange (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubListPairExchange'] (params); }
+    publicGetConfPubListPairMargin (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubListPairMargin'] (params); }
+    publicGetConfPubListPairFutures (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubListPairFutures'] (params); }
+    publicGetConfPubListCompetitions (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubListCompetitions'] (params); }
+    publicGetConfPubInfoObject (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubInfoObject'] (params); }
+    publicGetConfPubInfoObjectDetail (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubInfoObjectDetail'] (params); }
+    publicGetConfPubInfoPair (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubInfoPair'] (params); }
+    publicGetConfPubInfoPairFutures (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubInfoPairFutures'] (params); }
+    publicGetConfPubInfoTxStatus (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubInfoTxStatus'] (params); }
+    publicGetConfPubFees (params?: {}): Promise<implicitReturnType> { return this['publicGetConfPubFees'] (params); }
+    publicGetPlatformStatus (params?: {}): Promise<implicitReturnType> { return this['publicGetPlatformStatus'] (params); }
+    publicGetTickers (params?: {}): Promise<implicitReturnType> { return this['publicGetTickers'] (params); }
+    publicGetTickerSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetTickerSymbol'] (params); }
+    publicGetTickersHist (params?: {}): Promise<implicitReturnType> { return this['publicGetTickersHist'] (params); }
+    publicGetTradesSymbolHist (params?: {}): Promise<implicitReturnType> { return this['publicGetTradesSymbolHist'] (params); }
+    publicGetBookSymbolPrecision (params?: {}): Promise<implicitReturnType> { return this['publicGetBookSymbolPrecision'] (params); }
+    publicGetBookSymbolP0 (params?: {}): Promise<implicitReturnType> { return this['publicGetBookSymbolP0'] (params); }
+    publicGetBookSymbolP1 (params?: {}): Promise<implicitReturnType> { return this['publicGetBookSymbolP1'] (params); }
+    publicGetBookSymbolP2 (params?: {}): Promise<implicitReturnType> { return this['publicGetBookSymbolP2'] (params); }
+    publicGetBookSymbolP3 (params?: {}): Promise<implicitReturnType> { return this['publicGetBookSymbolP3'] (params); }
+    publicGetBookSymbolR0 (params?: {}): Promise<implicitReturnType> { return this['publicGetBookSymbolR0'] (params); }
+    publicGetStats1KeySizeSymbolSideSection (params?: {}): Promise<implicitReturnType> { return this['publicGetStats1KeySizeSymbolSideSection'] (params); }
+    publicGetStats1KeySizeSymbolSideLast (params?: {}): Promise<implicitReturnType> { return this['publicGetStats1KeySizeSymbolSideLast'] (params); }
+    publicGetStats1KeySizeSymbolSideHist (params?: {}): Promise<implicitReturnType> { return this['publicGetStats1KeySizeSymbolSideHist'] (params); }
+    publicGetStats1KeySizeSymbolSection (params?: {}): Promise<implicitReturnType> { return this['publicGetStats1KeySizeSymbolSection'] (params); }
+    publicGetStats1KeySizeSymbolLast (params?: {}): Promise<implicitReturnType> { return this['publicGetStats1KeySizeSymbolLast'] (params); }
+    publicGetStats1KeySizeSymbolHist (params?: {}): Promise<implicitReturnType> { return this['publicGetStats1KeySizeSymbolHist'] (params); }
+    publicGetStats1KeySizeSymbolLongLast (params?: {}): Promise<implicitReturnType> { return this['publicGetStats1KeySizeSymbolLongLast'] (params); }
+    publicGetStats1KeySizeSymbolLongHist (params?: {}): Promise<implicitReturnType> { return this['publicGetStats1KeySizeSymbolLongHist'] (params); }
+    publicGetStats1KeySizeSymbolShortLast (params?: {}): Promise<implicitReturnType> { return this['publicGetStats1KeySizeSymbolShortLast'] (params); }
+    publicGetStats1KeySizeSymbolShortHist (params?: {}): Promise<implicitReturnType> { return this['publicGetStats1KeySizeSymbolShortHist'] (params); }
+    publicGetCandlesTradeTimeframeSymbolPeriodSection (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesTradeTimeframeSymbolPeriodSection'] (params); }
+    publicGetCandlesTradeTimeframeSymbolSection (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesTradeTimeframeSymbolSection'] (params); }
+    publicGetCandlesTradeTimeframeSymbolLast (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesTradeTimeframeSymbolLast'] (params); }
+    publicGetCandlesTradeTimeframeSymbolHist (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesTradeTimeframeSymbolHist'] (params); }
+    publicGetStatusType (params?: {}): Promise<implicitReturnType> { return this['publicGetStatusType'] (params); }
+    publicGetStatusDeriv (params?: {}): Promise<implicitReturnType> { return this['publicGetStatusDeriv'] (params); }
+    publicGetLiquidationsHist (params?: {}): Promise<implicitReturnType> { return this['publicGetLiquidationsHist'] (params); }
+    publicGetRankingsKeyTimeframeSymbolSection (params?: {}): Promise<implicitReturnType> { return this['publicGetRankingsKeyTimeframeSymbolSection'] (params); }
+    publicGetRankingsKeyTimeframeSymbolHist (params?: {}): Promise<implicitReturnType> { return this['publicGetRankingsKeyTimeframeSymbolHist'] (params); }
+    publicGetPulseHist (params?: {}): Promise<implicitReturnType> { return this['publicGetPulseHist'] (params); }
+    publicGetPulseProfileNickname (params?: {}): Promise<implicitReturnType> { return this['publicGetPulseProfileNickname'] (params); }
+    publicGetFundingStatsSymbolHist (params?: {}): Promise<implicitReturnType> { return this['publicGetFundingStatsSymbolHist'] (params); }
+    publicPostCalcTradeAvg (params?: {}): Promise<implicitReturnType> { return this['publicPostCalcTradeAvg'] (params); }
+    publicPostCalcFx (params?: {}): Promise<implicitReturnType> { return this['publicPostCalcFx'] (params); }
+    privatePostAuthRWallets (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRWallets'] (params); }
+    privatePostAuthRWalletsHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRWalletsHist'] (params); }
+    privatePostAuthROrders (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthROrders'] (params); }
+    privatePostAuthROrdersSymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthROrdersSymbol'] (params); }
+    privatePostAuthWOrderSubmit (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWOrderSubmit'] (params); }
+    privatePostAuthWOrderUpdate (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWOrderUpdate'] (params); }
+    privatePostAuthWOrderCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWOrderCancel'] (params); }
+    privatePostAuthWOrderMulti (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWOrderMulti'] (params); }
+    privatePostAuthWOrderCancelMulti (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWOrderCancelMulti'] (params); }
+    privatePostAuthROrdersSymbolHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthROrdersSymbolHist'] (params); }
+    privatePostAuthROrdersHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthROrdersHist'] (params); }
+    privatePostAuthROrderSymbolIdTrades (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthROrderSymbolIdTrades'] (params); }
+    privatePostAuthRTradesSymbolHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRTradesSymbolHist'] (params); }
+    privatePostAuthRTradesHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRTradesHist'] (params); }
+    privatePostAuthRLedgersCurrencyHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRLedgersCurrencyHist'] (params); }
+    privatePostAuthRLedgersHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRLedgersHist'] (params); }
+    privatePostAuthRInfoMarginKey (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRInfoMarginKey'] (params); }
+    privatePostAuthRInfoMarginBase (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRInfoMarginBase'] (params); }
+    privatePostAuthRInfoMarginSymAll (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRInfoMarginSymAll'] (params); }
+    privatePostAuthRPositions (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRPositions'] (params); }
+    privatePostAuthWPositionClaim (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWPositionClaim'] (params); }
+    privatePostAuthWPositionIncrease (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWPositionIncrease'] (params); }
+    privatePostAuthRPositionIncreaseInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRPositionIncreaseInfo'] (params); }
+    privatePostAuthRPositionsHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRPositionsHist'] (params); }
+    privatePostAuthRPositionsAudit (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRPositionsAudit'] (params); }
+    privatePostAuthRPositionsSnap (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRPositionsSnap'] (params); }
+    privatePostAuthWDerivCollateralSet (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWDerivCollateralSet'] (params); }
+    privatePostAuthWDerivCollateralLimits (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWDerivCollateralLimits'] (params); }
+    privatePostAuthRFundingOffers (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRFundingOffers'] (params); }
+    privatePostAuthRFundingOffersSymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRFundingOffersSymbol'] (params); }
+    privatePostAuthWFundingOfferSubmit (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWFundingOfferSubmit'] (params); }
+    privatePostAuthWFundingOfferCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWFundingOfferCancel'] (params); }
+    privatePostAuthWFundingOfferCancelAll (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWFundingOfferCancelAll'] (params); }
+    privatePostAuthWFundingClose (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWFundingClose'] (params); }
+    privatePostAuthWFundingAuto (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWFundingAuto'] (params); }
+    privatePostAuthWFundingKeep (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWFundingKeep'] (params); }
+    privatePostAuthRFundingOffersSymbolHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRFundingOffersSymbolHist'] (params); }
+    privatePostAuthRFundingOffersHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRFundingOffersHist'] (params); }
+    privatePostAuthRFundingLoans (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRFundingLoans'] (params); }
+    privatePostAuthRFundingLoansHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRFundingLoansHist'] (params); }
+    privatePostAuthRFundingLoansSymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRFundingLoansSymbol'] (params); }
+    privatePostAuthRFundingLoansSymbolHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRFundingLoansSymbolHist'] (params); }
+    privatePostAuthRFundingCredits (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRFundingCredits'] (params); }
+    privatePostAuthRFundingCreditsHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRFundingCreditsHist'] (params); }
+    privatePostAuthRFundingCreditsSymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRFundingCreditsSymbol'] (params); }
+    privatePostAuthRFundingCreditsSymbolHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRFundingCreditsSymbolHist'] (params); }
+    privatePostAuthRFundingTradesSymbolHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRFundingTradesSymbolHist'] (params); }
+    privatePostAuthRFundingTradesHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRFundingTradesHist'] (params); }
+    privatePostAuthRInfoFundingKey (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRInfoFundingKey'] (params); }
+    privatePostAuthRInfoUser (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRInfoUser'] (params); }
+    privatePostAuthRSummary (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRSummary'] (params); }
+    privatePostAuthRLoginsHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRLoginsHist'] (params); }
+    privatePostAuthRPermissions (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRPermissions'] (params); }
+    privatePostAuthWToken (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWToken'] (params); }
+    privatePostAuthRAuditHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRAuditHist'] (params); }
+    privatePostAuthWTransfer (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWTransfer'] (params); }
+    privatePostAuthWDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWDepositAddress'] (params); }
+    privatePostAuthWDepositInvoice (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWDepositInvoice'] (params); }
+    privatePostAuthWWithdraw (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWWithdraw'] (params); }
+    privatePostAuthRMovementsCurrencyHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRMovementsCurrencyHist'] (params); }
+    privatePostAuthRMovementsHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRMovementsHist'] (params); }
+    privatePostAuthRAlerts (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRAlerts'] (params); }
+    privatePostAuthWAlertSet (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWAlertSet'] (params); }
+    privatePostAuthWAlertPriceSymbolPriceDel (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWAlertPriceSymbolPriceDel'] (params); }
+    privatePostAuthWAlertTypeSymbolPriceDel (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWAlertTypeSymbolPriceDel'] (params); }
+    privatePostAuthCalcOrderAvail (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthCalcOrderAvail'] (params); }
+    privatePostAuthWSettingsSet (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWSettingsSet'] (params); }
+    privatePostAuthRSettings (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRSettings'] (params); }
+    privatePostAuthWSettingsDel (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWSettingsDel'] (params); }
+    privatePostAuthRPulseHist (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthRPulseHist'] (params); }
+    privatePostAuthWPulseAdd (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWPulseAdd'] (params); }
+    privatePostAuthWPulseDel (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthWPulseDel'] (params); }
 }

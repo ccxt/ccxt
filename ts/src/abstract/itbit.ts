@@ -8,22 +8,22 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetMarketsSymbolTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsSymbolOrderBook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsSymbolTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWallets (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWalletsWalletId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWalletsWalletIdBalancesCurrencyCode (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWalletsWalletIdFundingHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWalletsWalletIdTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWalletsWalletIdOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWalletsWalletIdOrdersId (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWalletTransfers (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWallets (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWalletsWalletIdCryptocurrencyDeposits (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWalletsWalletIdCryptocurrencyWithdrawals (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWalletsWalletIdOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWireWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteWalletsWalletIdOrdersId (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetMarketsSymbolTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsSymbolTicker'] (params); }
+    publicGetMarketsSymbolOrderBook (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsSymbolOrderBook'] (params); }
+    publicGetMarketsSymbolTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsSymbolTrades'] (params); }
+    privateGetWallets (params?: {}): Promise<implicitReturnType> { return this['privateGetWallets'] (params); }
+    privateGetWalletsWalletId (params?: {}): Promise<implicitReturnType> { return this['privateGetWalletsWalletId'] (params); }
+    privateGetWalletsWalletIdBalancesCurrencyCode (params?: {}): Promise<implicitReturnType> { return this['privateGetWalletsWalletIdBalancesCurrencyCode'] (params); }
+    privateGetWalletsWalletIdFundingHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetWalletsWalletIdFundingHistory'] (params); }
+    privateGetWalletsWalletIdTrades (params?: {}): Promise<implicitReturnType> { return this['privateGetWalletsWalletIdTrades'] (params); }
+    privateGetWalletsWalletIdOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetWalletsWalletIdOrders'] (params); }
+    privateGetWalletsWalletIdOrdersId (params?: {}): Promise<implicitReturnType> { return this['privateGetWalletsWalletIdOrdersId'] (params); }
+    privatePostWalletTransfers (params?: {}): Promise<implicitReturnType> { return this['privatePostWalletTransfers'] (params); }
+    privatePostWallets (params?: {}): Promise<implicitReturnType> { return this['privatePostWallets'] (params); }
+    privatePostWalletsWalletIdCryptocurrencyDeposits (params?: {}): Promise<implicitReturnType> { return this['privatePostWalletsWalletIdCryptocurrencyDeposits'] (params); }
+    privatePostWalletsWalletIdCryptocurrencyWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privatePostWalletsWalletIdCryptocurrencyWithdrawals'] (params); }
+    privatePostWalletsWalletIdOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostWalletsWalletIdOrders'] (params); }
+    privatePostWireWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostWireWithdrawal'] (params); }
+    privateDeleteWalletsWalletIdOrdersId (params?: {}): Promise<implicitReturnType> { return this['privateDeleteWalletsWalletIdOrdersId'] (params); }
 }

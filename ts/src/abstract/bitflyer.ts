@@ -8,39 +8,39 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetGetmarketsUsa (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetmarketsEu (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetmarkets (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetboard (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetticker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetexecutions (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGethealth (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetboardstate (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetchats (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetpermissions (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetbalance (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetbalancehistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetcollateral (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetcollateralhistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetcollateralaccounts (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetaddresses (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetcoinins (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetcoinouts (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetbankaccounts (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetdeposits (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetwithdrawals (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetchildorders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetparentorders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetparentorder (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetexecutions (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetpositions (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGettradingcommission (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostSendcoin (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWithdraw (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostSendchildorder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelchildorder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostSendparentorder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelparentorder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelallchildorders (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetGetmarketsUsa (params?: {}): Promise<implicitReturnType> { return this['publicGetGetmarketsUsa'] (params); }
+    publicGetGetmarketsEu (params?: {}): Promise<implicitReturnType> { return this['publicGetGetmarketsEu'] (params); }
+    publicGetGetmarkets (params?: {}): Promise<implicitReturnType> { return this['publicGetGetmarkets'] (params); }
+    publicGetGetboard (params?: {}): Promise<implicitReturnType> { return this['publicGetGetboard'] (params); }
+    publicGetGetticker (params?: {}): Promise<implicitReturnType> { return this['publicGetGetticker'] (params); }
+    publicGetGetexecutions (params?: {}): Promise<implicitReturnType> { return this['publicGetGetexecutions'] (params); }
+    publicGetGethealth (params?: {}): Promise<implicitReturnType> { return this['publicGetGethealth'] (params); }
+    publicGetGetboardstate (params?: {}): Promise<implicitReturnType> { return this['publicGetGetboardstate'] (params); }
+    publicGetGetchats (params?: {}): Promise<implicitReturnType> { return this['publicGetGetchats'] (params); }
+    privateGetGetpermissions (params?: {}): Promise<implicitReturnType> { return this['privateGetGetpermissions'] (params); }
+    privateGetGetbalance (params?: {}): Promise<implicitReturnType> { return this['privateGetGetbalance'] (params); }
+    privateGetGetbalancehistory (params?: {}): Promise<implicitReturnType> { return this['privateGetGetbalancehistory'] (params); }
+    privateGetGetcollateral (params?: {}): Promise<implicitReturnType> { return this['privateGetGetcollateral'] (params); }
+    privateGetGetcollateralhistory (params?: {}): Promise<implicitReturnType> { return this['privateGetGetcollateralhistory'] (params); }
+    privateGetGetcollateralaccounts (params?: {}): Promise<implicitReturnType> { return this['privateGetGetcollateralaccounts'] (params); }
+    privateGetGetaddresses (params?: {}): Promise<implicitReturnType> { return this['privateGetGetaddresses'] (params); }
+    privateGetGetcoinins (params?: {}): Promise<implicitReturnType> { return this['privateGetGetcoinins'] (params); }
+    privateGetGetcoinouts (params?: {}): Promise<implicitReturnType> { return this['privateGetGetcoinouts'] (params); }
+    privateGetGetbankaccounts (params?: {}): Promise<implicitReturnType> { return this['privateGetGetbankaccounts'] (params); }
+    privateGetGetdeposits (params?: {}): Promise<implicitReturnType> { return this['privateGetGetdeposits'] (params); }
+    privateGetGetwithdrawals (params?: {}): Promise<implicitReturnType> { return this['privateGetGetwithdrawals'] (params); }
+    privateGetGetchildorders (params?: {}): Promise<implicitReturnType> { return this['privateGetGetchildorders'] (params); }
+    privateGetGetparentorders (params?: {}): Promise<implicitReturnType> { return this['privateGetGetparentorders'] (params); }
+    privateGetGetparentorder (params?: {}): Promise<implicitReturnType> { return this['privateGetGetparentorder'] (params); }
+    privateGetGetexecutions (params?: {}): Promise<implicitReturnType> { return this['privateGetGetexecutions'] (params); }
+    privateGetGetpositions (params?: {}): Promise<implicitReturnType> { return this['privateGetGetpositions'] (params); }
+    privateGetGettradingcommission (params?: {}): Promise<implicitReturnType> { return this['privateGetGettradingcommission'] (params); }
+    privatePostSendcoin (params?: {}): Promise<implicitReturnType> { return this['privatePostSendcoin'] (params); }
+    privatePostWithdraw (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdraw'] (params); }
+    privatePostSendchildorder (params?: {}): Promise<implicitReturnType> { return this['privatePostSendchildorder'] (params); }
+    privatePostCancelchildorder (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelchildorder'] (params); }
+    privatePostSendparentorder (params?: {}): Promise<implicitReturnType> { return this['privatePostSendparentorder'] (params); }
+    privatePostCancelparentorder (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelparentorder'] (params); }
+    privatePostCancelallchildorders (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelallchildorders'] (params); }
 }

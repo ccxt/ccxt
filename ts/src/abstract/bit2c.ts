@@ -8,28 +8,28 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetExchangesPairTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetExchangesPairOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetExchangesPairTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetExchangesPairLasttrades (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMerchantCreateCheckout (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostFundsAddCoinFundsRequest (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderAddFund (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderAddOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderGetById (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderAddOrderMarketPriceBuy (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderAddOrderMarketPriceSell (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderCancelOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderAddCoinFundsRequest (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderAddStopOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostPaymentGetMyId (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostPaymentSend (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostPaymentPay (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountBalanceV2 (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrderMyOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrderGetById (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrderAccountHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrderOrderHistory (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetExchangesPairTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetExchangesPairTicker'] (params); }
+    publicGetExchangesPairOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetExchangesPairOrderbook'] (params); }
+    publicGetExchangesPairTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetExchangesPairTrades'] (params); }
+    publicGetExchangesPairLasttrades (params?: {}): Promise<implicitReturnType> { return this['publicGetExchangesPairLasttrades'] (params); }
+    privatePostMerchantCreateCheckout (params?: {}): Promise<implicitReturnType> { return this['privatePostMerchantCreateCheckout'] (params); }
+    privatePostFundsAddCoinFundsRequest (params?: {}): Promise<implicitReturnType> { return this['privatePostFundsAddCoinFundsRequest'] (params); }
+    privatePostOrderAddFund (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderAddFund'] (params); }
+    privatePostOrderAddOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderAddOrder'] (params); }
+    privatePostOrderGetById (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderGetById'] (params); }
+    privatePostOrderAddOrderMarketPriceBuy (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderAddOrderMarketPriceBuy'] (params); }
+    privatePostOrderAddOrderMarketPriceSell (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderAddOrderMarketPriceSell'] (params); }
+    privatePostOrderCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderCancelOrder'] (params); }
+    privatePostOrderAddCoinFundsRequest (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderAddCoinFundsRequest'] (params); }
+    privatePostOrderAddStopOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderAddStopOrder'] (params); }
+    privatePostPaymentGetMyId (params?: {}): Promise<implicitReturnType> { return this['privatePostPaymentGetMyId'] (params); }
+    privatePostPaymentSend (params?: {}): Promise<implicitReturnType> { return this['privatePostPaymentSend'] (params); }
+    privatePostPaymentPay (params?: {}): Promise<implicitReturnType> { return this['privatePostPaymentPay'] (params); }
+    privateGetAccountBalance (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountBalance'] (params); }
+    privateGetAccountBalanceV2 (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountBalanceV2'] (params); }
+    privateGetOrderMyOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetOrderMyOrders'] (params); }
+    privateGetOrderGetById (params?: {}): Promise<implicitReturnType> { return this['privateGetOrderGetById'] (params); }
+    privateGetOrderAccountHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetOrderAccountHistory'] (params); }
+    privateGetOrderOrderHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetOrderOrderHistory'] (params); }
 }

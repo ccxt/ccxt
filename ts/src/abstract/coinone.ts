@@ -8,26 +8,26 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountBtcDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountDailyBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountUserInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountVirtualAccount (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderCancelAll (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderLimitBuy (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderLimitSell (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderCompleteOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderLimitOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderOrderInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTransactionAuthNumber (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTransactionHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTransactionKrwHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTransactionBtc (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTransactionCoin (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderbook'] (params); }
+    publicGetTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetTrades'] (params); }
+    publicGetTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetTicker'] (params); }
+    privatePostAccountDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountDepositAddress'] (params); }
+    privatePostAccountBtcDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountBtcDepositAddress'] (params); }
+    privatePostAccountBalance (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountBalance'] (params); }
+    privatePostAccountDailyBalance (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountDailyBalance'] (params); }
+    privatePostAccountUserInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountUserInfo'] (params); }
+    privatePostAccountVirtualAccount (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountVirtualAccount'] (params); }
+    privatePostOrderCancelAll (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderCancelAll'] (params); }
+    privatePostOrderCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderCancel'] (params); }
+    privatePostOrderLimitBuy (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderLimitBuy'] (params); }
+    privatePostOrderLimitSell (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderLimitSell'] (params); }
+    privatePostOrderCompleteOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderCompleteOrders'] (params); }
+    privatePostOrderLimitOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderLimitOrders'] (params); }
+    privatePostOrderOrderInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderOrderInfo'] (params); }
+    privatePostTransactionAuthNumber (params?: {}): Promise<implicitReturnType> { return this['privatePostTransactionAuthNumber'] (params); }
+    privatePostTransactionHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostTransactionHistory'] (params); }
+    privatePostTransactionKrwHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostTransactionKrwHistory'] (params); }
+    privatePostTransactionBtc (params?: {}): Promise<implicitReturnType> { return this['privatePostTransactionBtc'] (params); }
+    privatePostTransactionCoin (params?: {}): Promise<implicitReturnType> { return this['privatePostTransactionCoin'] (params); }
 }

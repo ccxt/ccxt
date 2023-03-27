@@ -8,211 +8,211 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract generalGetTime (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetWallet (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetSubAccount (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetAssetValuation (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetWalletCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetWithdrawalHistory (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetWithdrawalHistoryCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetLedger (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetDepositHistory (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetDepositHistoryCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetCurrencies (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetWithdrawalFee (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetDepositLightning (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetWithdrawalLightning (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetFiatDepositDetail (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetFiatDepositDetails (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetFiatWithdrawDetail (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetFiatWithdrawDetails (params?: {}): Promise<implicitReturnType>;
-    abstract accountGetFiatChannel (params?: {}): Promise<implicitReturnType>;
-    abstract accountPostTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract accountPostWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract accountPostFiatCancelDeposit (params?: {}): Promise<implicitReturnType>;
-    abstract accountPostFiatDeposit (params?: {}): Promise<implicitReturnType>;
-    abstract accountPostFiatWithdraw (params?: {}): Promise<implicitReturnType>;
-    abstract accountPostFiatCancelWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract otcGetRfqInstruments (params?: {}): Promise<implicitReturnType>;
-    abstract otcGetRfqTrade (params?: {}): Promise<implicitReturnType>;
-    abstract otcGetRfqHistory (params?: {}): Promise<implicitReturnType>;
-    abstract otcPostRfqQuote (params?: {}): Promise<implicitReturnType>;
-    abstract otcPostRfqTrade (params?: {}): Promise<implicitReturnType>;
-    abstract usersGetSubaccountInfo (params?: {}): Promise<implicitReturnType>;
-    abstract usersGetAccountInfo (params?: {}): Promise<implicitReturnType>;
-    abstract usersGetSubaccountApikey (params?: {}): Promise<implicitReturnType>;
-    abstract usersPostCreateSubaccount (params?: {}): Promise<implicitReturnType>;
-    abstract usersPostDeleteSubaccount (params?: {}): Promise<implicitReturnType>;
-    abstract usersPostSubaccountApikey (params?: {}): Promise<implicitReturnType>;
-    abstract usersPostSubacountDeleteApikey (params?: {}): Promise<implicitReturnType>;
-    abstract usersPostSubacountModifyApikey (params?: {}): Promise<implicitReturnType>;
-    abstract earningGetOffers (params?: {}): Promise<implicitReturnType>;
-    abstract earningGetOrders (params?: {}): Promise<implicitReturnType>;
-    abstract earningGetPositions (params?: {}): Promise<implicitReturnType>;
-    abstract earningPostPurchase (params?: {}): Promise<implicitReturnType>;
-    abstract earningPostRedeem (params?: {}): Promise<implicitReturnType>;
-    abstract earningPostCancel (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetAccounts (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetAccountsCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetAccountsCurrencyLedger (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetOrders (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetOrdersPending (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetOrdersClientOid (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetTradeFee (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetFills (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetAlgo (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetInstruments (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetInstrumentsInstrumentIdBook (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetInstrumentsTicker (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetInstrumentsInstrumentIdTicker (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetInstrumentsInstrumentIdTrades (params?: {}): Promise<implicitReturnType>;
-    abstract spotGetInstrumentsInstrumentIdCandles (params?: {}): Promise<implicitReturnType>;
-    abstract spotPostOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    abstract spotPostOrders (params?: {}): Promise<implicitReturnType>;
-    abstract spotPostBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract spotPostCancelOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract spotPostCancelOrdersClientOid (params?: {}): Promise<implicitReturnType>;
-    abstract spotPostCancelBatchAlgos (params?: {}): Promise<implicitReturnType>;
-    abstract spotPostCancelBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract spotPostAmendOrderInstrumentId (params?: {}): Promise<implicitReturnType>;
-    abstract spotPostAmendBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract marginGetAccounts (params?: {}): Promise<implicitReturnType>;
-    abstract marginGetAccountsInstrumentId (params?: {}): Promise<implicitReturnType>;
-    abstract marginGetAccountsInstrumentIdLedger (params?: {}): Promise<implicitReturnType>;
-    abstract marginGetAccountsAvailability (params?: {}): Promise<implicitReturnType>;
-    abstract marginGetAccountsInstrumentIdAvailability (params?: {}): Promise<implicitReturnType>;
-    abstract marginGetAccountsBorrowed (params?: {}): Promise<implicitReturnType>;
-    abstract marginGetAccountsInstrumentIdBorrowed (params?: {}): Promise<implicitReturnType>;
-    abstract marginGetOrders (params?: {}): Promise<implicitReturnType>;
-    abstract marginGetAccountsInstrumentIdLeverage (params?: {}): Promise<implicitReturnType>;
-    abstract marginGetOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract marginGetOrdersClientOid (params?: {}): Promise<implicitReturnType>;
-    abstract marginGetOrdersPending (params?: {}): Promise<implicitReturnType>;
-    abstract marginGetFills (params?: {}): Promise<implicitReturnType>;
-    abstract marginGetInstrumentsInstrumentIdMarkPrice (params?: {}): Promise<implicitReturnType>;
-    abstract marginPostAccountsBorrow (params?: {}): Promise<implicitReturnType>;
-    abstract marginPostAccountsRepayment (params?: {}): Promise<implicitReturnType>;
-    abstract marginPostOrders (params?: {}): Promise<implicitReturnType>;
-    abstract marginPostBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract marginPostCancelOrders (params?: {}): Promise<implicitReturnType>;
-    abstract marginPostCancelOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract marginPostCancelOrdersClientOid (params?: {}): Promise<implicitReturnType>;
-    abstract marginPostCancelBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract marginPostAmendOrderInstrumentId (params?: {}): Promise<implicitReturnType>;
-    abstract marginPostAmendBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract marginPostAccountsInstrumentIdLeverage (params?: {}): Promise<implicitReturnType>;
-    abstract systemGetStatus (params?: {}): Promise<implicitReturnType>;
-    abstract marketGetOracle (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetPosition (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetInstrumentIdPosition (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetAccounts (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetAccountsUnderlying (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetAccountsUnderlyingLeverage (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetAccountsUnderlyingLedger (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetOrderAlgoInstrumentId (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetOrdersInstrumentId (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetOrdersInstrumentIdOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetOrdersInstrumentIdClientOid (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetFills (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetTradeFee (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetAccountsInstrumentIdHolds (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetInstruments (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetInstrumentsInstrumentIdBook (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetInstrumentsTicker (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetInstrumentsInstrumentIdTicker (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetInstrumentsInstrumentIdTrades (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetInstrumentsInstrumentIdCandles (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetInstrumentsInstrumentIdHistoryCandles (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetInstrumentsInstrumentIdIndex (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetRate (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetInstrumentsInstrumentIdEstimatedPrice (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetInstrumentsInstrumentIdOpenInterest (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetInstrumentsInstrumentIdPriceLimit (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetInstrumentsInstrumentIdMarkPrice (params?: {}): Promise<implicitReturnType>;
-    abstract futuresGetInstrumentsInstrumentIdLiquidation (params?: {}): Promise<implicitReturnType>;
-    abstract futuresPostAccountsUnderlyingLeverage (params?: {}): Promise<implicitReturnType>;
-    abstract futuresPostOrder (params?: {}): Promise<implicitReturnType>;
-    abstract futuresPostAmendOrderInstrumentId (params?: {}): Promise<implicitReturnType>;
-    abstract futuresPostOrders (params?: {}): Promise<implicitReturnType>;
-    abstract futuresPostCancelOrderInstrumentIdOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract futuresPostCancelOrderInstrumentIdClientOid (params?: {}): Promise<implicitReturnType>;
-    abstract futuresPostCancelBatchOrdersInstrumentId (params?: {}): Promise<implicitReturnType>;
-    abstract futuresPostAccountsMarginMode (params?: {}): Promise<implicitReturnType>;
-    abstract futuresPostClosePosition (params?: {}): Promise<implicitReturnType>;
-    abstract futuresPostCancelAll (params?: {}): Promise<implicitReturnType>;
-    abstract futuresPostOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    abstract futuresPostCancelAlgos (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetPosition (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentIdPosition (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetAccounts (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentIdAccounts (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetAccountsInstrumentIdSettings (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetAccountsInstrumentIdLedger (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetOrdersInstrumentId (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetOrdersInstrumentIdOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetOrdersInstrumentIdClientOid (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetFills (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetAccountsInstrumentIdHolds (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetTradeFee (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetOrderAlgoInstrumentId (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstruments (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentsInstrumentIdDepth (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentsTicker (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentsInstrumentIdTicker (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentsInstrumentIdTrades (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentsInstrumentIdCandles (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentsInstrumentIdHistoryCandles (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentsInstrumentIdIndex (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetRate (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentsInstrumentIdOpenInterest (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentsInstrumentIdPriceLimit (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentsInstrumentIdLiquidation (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentsInstrumentIdFundingTime (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentsInstrumentIdMarkPrice (params?: {}): Promise<implicitReturnType>;
-    abstract swapGetInstrumentsInstrumentIdHistoricalFundingRate (params?: {}): Promise<implicitReturnType>;
-    abstract swapPostAccountsInstrumentIdLeverage (params?: {}): Promise<implicitReturnType>;
-    abstract swapPostOrder (params?: {}): Promise<implicitReturnType>;
-    abstract swapPostAmendOrderInstrumentId (params?: {}): Promise<implicitReturnType>;
-    abstract swapPostOrders (params?: {}): Promise<implicitReturnType>;
-    abstract swapPostCancelOrderInstrumentIdOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract swapPostCancelOrderInstrumentIdClientOid (params?: {}): Promise<implicitReturnType>;
-    abstract swapPostCancelBatchOrdersInstrumentId (params?: {}): Promise<implicitReturnType>;
-    abstract swapPostOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    abstract swapPostCancelAlgos (params?: {}): Promise<implicitReturnType>;
-    abstract swapPostClosePosition (params?: {}): Promise<implicitReturnType>;
-    abstract swapPostCancelAll (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetAccounts (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetPosition (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetUnderlyingPosition (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetAccountsUnderlying (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetOrdersUnderlying (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetFillsUnderlying (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetAccountsUnderlyingLedger (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetTradeFee (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetOrdersUnderlyingOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetOrdersUnderlyingClientOid (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetUnderlying (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetInstrumentsUnderlying (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetInstrumentsUnderlyingSummary (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetInstrumentsUnderlyingSummaryInstrumentId (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetInstrumentsInstrumentIdBook (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetInstrumentsInstrumentIdTrades (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetInstrumentsInstrumentIdTicker (params?: {}): Promise<implicitReturnType>;
-    abstract optionGetInstrumentsInstrumentIdCandles (params?: {}): Promise<implicitReturnType>;
-    abstract optionPostOrder (params?: {}): Promise<implicitReturnType>;
-    abstract optionPostOrders (params?: {}): Promise<implicitReturnType>;
-    abstract optionPostCancelOrderUnderlyingOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract optionPostCancelOrderUnderlyingClientOid (params?: {}): Promise<implicitReturnType>;
-    abstract optionPostCancelBatchOrdersUnderlying (params?: {}): Promise<implicitReturnType>;
-    abstract optionPostAmendOrderUnderlying (params?: {}): Promise<implicitReturnType>;
-    abstract optionPostAmendBatchOrdersUnderlying (params?: {}): Promise<implicitReturnType>;
-    abstract informationGetCurrencyLongShortRatio (params?: {}): Promise<implicitReturnType>;
-    abstract informationGetCurrencyVolume (params?: {}): Promise<implicitReturnType>;
-    abstract informationGetCurrencyTaker (params?: {}): Promise<implicitReturnType>;
-    abstract informationGetCurrencySentiment (params?: {}): Promise<implicitReturnType>;
-    abstract informationGetCurrencyMargin (params?: {}): Promise<implicitReturnType>;
-    abstract indexGetInstrumentIdConstituents (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    generalGetTime (params?: {}): Promise<implicitReturnType> { return this['generalGetTime'] (params); }
+    accountGetWallet (params?: {}): Promise<implicitReturnType> { return this['accountGetWallet'] (params); }
+    accountGetSubAccount (params?: {}): Promise<implicitReturnType> { return this['accountGetSubAccount'] (params); }
+    accountGetAssetValuation (params?: {}): Promise<implicitReturnType> { return this['accountGetAssetValuation'] (params); }
+    accountGetWalletCurrency (params?: {}): Promise<implicitReturnType> { return this['accountGetWalletCurrency'] (params); }
+    accountGetWithdrawalHistory (params?: {}): Promise<implicitReturnType> { return this['accountGetWithdrawalHistory'] (params); }
+    accountGetWithdrawalHistoryCurrency (params?: {}): Promise<implicitReturnType> { return this['accountGetWithdrawalHistoryCurrency'] (params); }
+    accountGetLedger (params?: {}): Promise<implicitReturnType> { return this['accountGetLedger'] (params); }
+    accountGetDepositAddress (params?: {}): Promise<implicitReturnType> { return this['accountGetDepositAddress'] (params); }
+    accountGetDepositHistory (params?: {}): Promise<implicitReturnType> { return this['accountGetDepositHistory'] (params); }
+    accountGetDepositHistoryCurrency (params?: {}): Promise<implicitReturnType> { return this['accountGetDepositHistoryCurrency'] (params); }
+    accountGetCurrencies (params?: {}): Promise<implicitReturnType> { return this['accountGetCurrencies'] (params); }
+    accountGetWithdrawalFee (params?: {}): Promise<implicitReturnType> { return this['accountGetWithdrawalFee'] (params); }
+    accountGetDepositLightning (params?: {}): Promise<implicitReturnType> { return this['accountGetDepositLightning'] (params); }
+    accountGetWithdrawalLightning (params?: {}): Promise<implicitReturnType> { return this['accountGetWithdrawalLightning'] (params); }
+    accountGetFiatDepositDetail (params?: {}): Promise<implicitReturnType> { return this['accountGetFiatDepositDetail'] (params); }
+    accountGetFiatDepositDetails (params?: {}): Promise<implicitReturnType> { return this['accountGetFiatDepositDetails'] (params); }
+    accountGetFiatWithdrawDetail (params?: {}): Promise<implicitReturnType> { return this['accountGetFiatWithdrawDetail'] (params); }
+    accountGetFiatWithdrawDetails (params?: {}): Promise<implicitReturnType> { return this['accountGetFiatWithdrawDetails'] (params); }
+    accountGetFiatChannel (params?: {}): Promise<implicitReturnType> { return this['accountGetFiatChannel'] (params); }
+    accountPostTransfer (params?: {}): Promise<implicitReturnType> { return this['accountPostTransfer'] (params); }
+    accountPostWithdrawal (params?: {}): Promise<implicitReturnType> { return this['accountPostWithdrawal'] (params); }
+    accountPostFiatCancelDeposit (params?: {}): Promise<implicitReturnType> { return this['accountPostFiatCancelDeposit'] (params); }
+    accountPostFiatDeposit (params?: {}): Promise<implicitReturnType> { return this['accountPostFiatDeposit'] (params); }
+    accountPostFiatWithdraw (params?: {}): Promise<implicitReturnType> { return this['accountPostFiatWithdraw'] (params); }
+    accountPostFiatCancelWithdrawal (params?: {}): Promise<implicitReturnType> { return this['accountPostFiatCancelWithdrawal'] (params); }
+    otcGetRfqInstruments (params?: {}): Promise<implicitReturnType> { return this['otcGetRfqInstruments'] (params); }
+    otcGetRfqTrade (params?: {}): Promise<implicitReturnType> { return this['otcGetRfqTrade'] (params); }
+    otcGetRfqHistory (params?: {}): Promise<implicitReturnType> { return this['otcGetRfqHistory'] (params); }
+    otcPostRfqQuote (params?: {}): Promise<implicitReturnType> { return this['otcPostRfqQuote'] (params); }
+    otcPostRfqTrade (params?: {}): Promise<implicitReturnType> { return this['otcPostRfqTrade'] (params); }
+    usersGetSubaccountInfo (params?: {}): Promise<implicitReturnType> { return this['usersGetSubaccountInfo'] (params); }
+    usersGetAccountInfo (params?: {}): Promise<implicitReturnType> { return this['usersGetAccountInfo'] (params); }
+    usersGetSubaccountApikey (params?: {}): Promise<implicitReturnType> { return this['usersGetSubaccountApikey'] (params); }
+    usersPostCreateSubaccount (params?: {}): Promise<implicitReturnType> { return this['usersPostCreateSubaccount'] (params); }
+    usersPostDeleteSubaccount (params?: {}): Promise<implicitReturnType> { return this['usersPostDeleteSubaccount'] (params); }
+    usersPostSubaccountApikey (params?: {}): Promise<implicitReturnType> { return this['usersPostSubaccountApikey'] (params); }
+    usersPostSubacountDeleteApikey (params?: {}): Promise<implicitReturnType> { return this['usersPostSubacountDeleteApikey'] (params); }
+    usersPostSubacountModifyApikey (params?: {}): Promise<implicitReturnType> { return this['usersPostSubacountModifyApikey'] (params); }
+    earningGetOffers (params?: {}): Promise<implicitReturnType> { return this['earningGetOffers'] (params); }
+    earningGetOrders (params?: {}): Promise<implicitReturnType> { return this['earningGetOrders'] (params); }
+    earningGetPositions (params?: {}): Promise<implicitReturnType> { return this['earningGetPositions'] (params); }
+    earningPostPurchase (params?: {}): Promise<implicitReturnType> { return this['earningPostPurchase'] (params); }
+    earningPostRedeem (params?: {}): Promise<implicitReturnType> { return this['earningPostRedeem'] (params); }
+    earningPostCancel (params?: {}): Promise<implicitReturnType> { return this['earningPostCancel'] (params); }
+    spotGetAccounts (params?: {}): Promise<implicitReturnType> { return this['spotGetAccounts'] (params); }
+    spotGetAccountsCurrency (params?: {}): Promise<implicitReturnType> { return this['spotGetAccountsCurrency'] (params); }
+    spotGetAccountsCurrencyLedger (params?: {}): Promise<implicitReturnType> { return this['spotGetAccountsCurrencyLedger'] (params); }
+    spotGetOrders (params?: {}): Promise<implicitReturnType> { return this['spotGetOrders'] (params); }
+    spotGetOrdersPending (params?: {}): Promise<implicitReturnType> { return this['spotGetOrdersPending'] (params); }
+    spotGetOrdersOrderId (params?: {}): Promise<implicitReturnType> { return this['spotGetOrdersOrderId'] (params); }
+    spotGetOrdersClientOid (params?: {}): Promise<implicitReturnType> { return this['spotGetOrdersClientOid'] (params); }
+    spotGetTradeFee (params?: {}): Promise<implicitReturnType> { return this['spotGetTradeFee'] (params); }
+    spotGetFills (params?: {}): Promise<implicitReturnType> { return this['spotGetFills'] (params); }
+    spotGetAlgo (params?: {}): Promise<implicitReturnType> { return this['spotGetAlgo'] (params); }
+    spotGetInstruments (params?: {}): Promise<implicitReturnType> { return this['spotGetInstruments'] (params); }
+    spotGetInstrumentsInstrumentIdBook (params?: {}): Promise<implicitReturnType> { return this['spotGetInstrumentsInstrumentIdBook'] (params); }
+    spotGetInstrumentsTicker (params?: {}): Promise<implicitReturnType> { return this['spotGetInstrumentsTicker'] (params); }
+    spotGetInstrumentsInstrumentIdTicker (params?: {}): Promise<implicitReturnType> { return this['spotGetInstrumentsInstrumentIdTicker'] (params); }
+    spotGetInstrumentsInstrumentIdTrades (params?: {}): Promise<implicitReturnType> { return this['spotGetInstrumentsInstrumentIdTrades'] (params); }
+    spotGetInstrumentsInstrumentIdCandles (params?: {}): Promise<implicitReturnType> { return this['spotGetInstrumentsInstrumentIdCandles'] (params); }
+    spotPostOrderAlgo (params?: {}): Promise<implicitReturnType> { return this['spotPostOrderAlgo'] (params); }
+    spotPostOrders (params?: {}): Promise<implicitReturnType> { return this['spotPostOrders'] (params); }
+    spotPostBatchOrders (params?: {}): Promise<implicitReturnType> { return this['spotPostBatchOrders'] (params); }
+    spotPostCancelOrdersOrderId (params?: {}): Promise<implicitReturnType> { return this['spotPostCancelOrdersOrderId'] (params); }
+    spotPostCancelOrdersClientOid (params?: {}): Promise<implicitReturnType> { return this['spotPostCancelOrdersClientOid'] (params); }
+    spotPostCancelBatchAlgos (params?: {}): Promise<implicitReturnType> { return this['spotPostCancelBatchAlgos'] (params); }
+    spotPostCancelBatchOrders (params?: {}): Promise<implicitReturnType> { return this['spotPostCancelBatchOrders'] (params); }
+    spotPostAmendOrderInstrumentId (params?: {}): Promise<implicitReturnType> { return this['spotPostAmendOrderInstrumentId'] (params); }
+    spotPostAmendBatchOrders (params?: {}): Promise<implicitReturnType> { return this['spotPostAmendBatchOrders'] (params); }
+    marginGetAccounts (params?: {}): Promise<implicitReturnType> { return this['marginGetAccounts'] (params); }
+    marginGetAccountsInstrumentId (params?: {}): Promise<implicitReturnType> { return this['marginGetAccountsInstrumentId'] (params); }
+    marginGetAccountsInstrumentIdLedger (params?: {}): Promise<implicitReturnType> { return this['marginGetAccountsInstrumentIdLedger'] (params); }
+    marginGetAccountsAvailability (params?: {}): Promise<implicitReturnType> { return this['marginGetAccountsAvailability'] (params); }
+    marginGetAccountsInstrumentIdAvailability (params?: {}): Promise<implicitReturnType> { return this['marginGetAccountsInstrumentIdAvailability'] (params); }
+    marginGetAccountsBorrowed (params?: {}): Promise<implicitReturnType> { return this['marginGetAccountsBorrowed'] (params); }
+    marginGetAccountsInstrumentIdBorrowed (params?: {}): Promise<implicitReturnType> { return this['marginGetAccountsInstrumentIdBorrowed'] (params); }
+    marginGetOrders (params?: {}): Promise<implicitReturnType> { return this['marginGetOrders'] (params); }
+    marginGetAccountsInstrumentIdLeverage (params?: {}): Promise<implicitReturnType> { return this['marginGetAccountsInstrumentIdLeverage'] (params); }
+    marginGetOrdersOrderId (params?: {}): Promise<implicitReturnType> { return this['marginGetOrdersOrderId'] (params); }
+    marginGetOrdersClientOid (params?: {}): Promise<implicitReturnType> { return this['marginGetOrdersClientOid'] (params); }
+    marginGetOrdersPending (params?: {}): Promise<implicitReturnType> { return this['marginGetOrdersPending'] (params); }
+    marginGetFills (params?: {}): Promise<implicitReturnType> { return this['marginGetFills'] (params); }
+    marginGetInstrumentsInstrumentIdMarkPrice (params?: {}): Promise<implicitReturnType> { return this['marginGetInstrumentsInstrumentIdMarkPrice'] (params); }
+    marginPostAccountsBorrow (params?: {}): Promise<implicitReturnType> { return this['marginPostAccountsBorrow'] (params); }
+    marginPostAccountsRepayment (params?: {}): Promise<implicitReturnType> { return this['marginPostAccountsRepayment'] (params); }
+    marginPostOrders (params?: {}): Promise<implicitReturnType> { return this['marginPostOrders'] (params); }
+    marginPostBatchOrders (params?: {}): Promise<implicitReturnType> { return this['marginPostBatchOrders'] (params); }
+    marginPostCancelOrders (params?: {}): Promise<implicitReturnType> { return this['marginPostCancelOrders'] (params); }
+    marginPostCancelOrdersOrderId (params?: {}): Promise<implicitReturnType> { return this['marginPostCancelOrdersOrderId'] (params); }
+    marginPostCancelOrdersClientOid (params?: {}): Promise<implicitReturnType> { return this['marginPostCancelOrdersClientOid'] (params); }
+    marginPostCancelBatchOrders (params?: {}): Promise<implicitReturnType> { return this['marginPostCancelBatchOrders'] (params); }
+    marginPostAmendOrderInstrumentId (params?: {}): Promise<implicitReturnType> { return this['marginPostAmendOrderInstrumentId'] (params); }
+    marginPostAmendBatchOrders (params?: {}): Promise<implicitReturnType> { return this['marginPostAmendBatchOrders'] (params); }
+    marginPostAccountsInstrumentIdLeverage (params?: {}): Promise<implicitReturnType> { return this['marginPostAccountsInstrumentIdLeverage'] (params); }
+    systemGetStatus (params?: {}): Promise<implicitReturnType> { return this['systemGetStatus'] (params); }
+    marketGetOracle (params?: {}): Promise<implicitReturnType> { return this['marketGetOracle'] (params); }
+    futuresGetPosition (params?: {}): Promise<implicitReturnType> { return this['futuresGetPosition'] (params); }
+    futuresGetInstrumentIdPosition (params?: {}): Promise<implicitReturnType> { return this['futuresGetInstrumentIdPosition'] (params); }
+    futuresGetAccounts (params?: {}): Promise<implicitReturnType> { return this['futuresGetAccounts'] (params); }
+    futuresGetAccountsUnderlying (params?: {}): Promise<implicitReturnType> { return this['futuresGetAccountsUnderlying'] (params); }
+    futuresGetAccountsUnderlyingLeverage (params?: {}): Promise<implicitReturnType> { return this['futuresGetAccountsUnderlyingLeverage'] (params); }
+    futuresGetAccountsUnderlyingLedger (params?: {}): Promise<implicitReturnType> { return this['futuresGetAccountsUnderlyingLedger'] (params); }
+    futuresGetOrderAlgoInstrumentId (params?: {}): Promise<implicitReturnType> { return this['futuresGetOrderAlgoInstrumentId'] (params); }
+    futuresGetOrdersInstrumentId (params?: {}): Promise<implicitReturnType> { return this['futuresGetOrdersInstrumentId'] (params); }
+    futuresGetOrdersInstrumentIdOrderId (params?: {}): Promise<implicitReturnType> { return this['futuresGetOrdersInstrumentIdOrderId'] (params); }
+    futuresGetOrdersInstrumentIdClientOid (params?: {}): Promise<implicitReturnType> { return this['futuresGetOrdersInstrumentIdClientOid'] (params); }
+    futuresGetFills (params?: {}): Promise<implicitReturnType> { return this['futuresGetFills'] (params); }
+    futuresGetTradeFee (params?: {}): Promise<implicitReturnType> { return this['futuresGetTradeFee'] (params); }
+    futuresGetAccountsInstrumentIdHolds (params?: {}): Promise<implicitReturnType> { return this['futuresGetAccountsInstrumentIdHolds'] (params); }
+    futuresGetInstruments (params?: {}): Promise<implicitReturnType> { return this['futuresGetInstruments'] (params); }
+    futuresGetInstrumentsInstrumentIdBook (params?: {}): Promise<implicitReturnType> { return this['futuresGetInstrumentsInstrumentIdBook'] (params); }
+    futuresGetInstrumentsTicker (params?: {}): Promise<implicitReturnType> { return this['futuresGetInstrumentsTicker'] (params); }
+    futuresGetInstrumentsInstrumentIdTicker (params?: {}): Promise<implicitReturnType> { return this['futuresGetInstrumentsInstrumentIdTicker'] (params); }
+    futuresGetInstrumentsInstrumentIdTrades (params?: {}): Promise<implicitReturnType> { return this['futuresGetInstrumentsInstrumentIdTrades'] (params); }
+    futuresGetInstrumentsInstrumentIdCandles (params?: {}): Promise<implicitReturnType> { return this['futuresGetInstrumentsInstrumentIdCandles'] (params); }
+    futuresGetInstrumentsInstrumentIdHistoryCandles (params?: {}): Promise<implicitReturnType> { return this['futuresGetInstrumentsInstrumentIdHistoryCandles'] (params); }
+    futuresGetInstrumentsInstrumentIdIndex (params?: {}): Promise<implicitReturnType> { return this['futuresGetInstrumentsInstrumentIdIndex'] (params); }
+    futuresGetRate (params?: {}): Promise<implicitReturnType> { return this['futuresGetRate'] (params); }
+    futuresGetInstrumentsInstrumentIdEstimatedPrice (params?: {}): Promise<implicitReturnType> { return this['futuresGetInstrumentsInstrumentIdEstimatedPrice'] (params); }
+    futuresGetInstrumentsInstrumentIdOpenInterest (params?: {}): Promise<implicitReturnType> { return this['futuresGetInstrumentsInstrumentIdOpenInterest'] (params); }
+    futuresGetInstrumentsInstrumentIdPriceLimit (params?: {}): Promise<implicitReturnType> { return this['futuresGetInstrumentsInstrumentIdPriceLimit'] (params); }
+    futuresGetInstrumentsInstrumentIdMarkPrice (params?: {}): Promise<implicitReturnType> { return this['futuresGetInstrumentsInstrumentIdMarkPrice'] (params); }
+    futuresGetInstrumentsInstrumentIdLiquidation (params?: {}): Promise<implicitReturnType> { return this['futuresGetInstrumentsInstrumentIdLiquidation'] (params); }
+    futuresPostAccountsUnderlyingLeverage (params?: {}): Promise<implicitReturnType> { return this['futuresPostAccountsUnderlyingLeverage'] (params); }
+    futuresPostOrder (params?: {}): Promise<implicitReturnType> { return this['futuresPostOrder'] (params); }
+    futuresPostAmendOrderInstrumentId (params?: {}): Promise<implicitReturnType> { return this['futuresPostAmendOrderInstrumentId'] (params); }
+    futuresPostOrders (params?: {}): Promise<implicitReturnType> { return this['futuresPostOrders'] (params); }
+    futuresPostCancelOrderInstrumentIdOrderId (params?: {}): Promise<implicitReturnType> { return this['futuresPostCancelOrderInstrumentIdOrderId'] (params); }
+    futuresPostCancelOrderInstrumentIdClientOid (params?: {}): Promise<implicitReturnType> { return this['futuresPostCancelOrderInstrumentIdClientOid'] (params); }
+    futuresPostCancelBatchOrdersInstrumentId (params?: {}): Promise<implicitReturnType> { return this['futuresPostCancelBatchOrdersInstrumentId'] (params); }
+    futuresPostAccountsMarginMode (params?: {}): Promise<implicitReturnType> { return this['futuresPostAccountsMarginMode'] (params); }
+    futuresPostClosePosition (params?: {}): Promise<implicitReturnType> { return this['futuresPostClosePosition'] (params); }
+    futuresPostCancelAll (params?: {}): Promise<implicitReturnType> { return this['futuresPostCancelAll'] (params); }
+    futuresPostOrderAlgo (params?: {}): Promise<implicitReturnType> { return this['futuresPostOrderAlgo'] (params); }
+    futuresPostCancelAlgos (params?: {}): Promise<implicitReturnType> { return this['futuresPostCancelAlgos'] (params); }
+    swapGetPosition (params?: {}): Promise<implicitReturnType> { return this['swapGetPosition'] (params); }
+    swapGetInstrumentIdPosition (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentIdPosition'] (params); }
+    swapGetAccounts (params?: {}): Promise<implicitReturnType> { return this['swapGetAccounts'] (params); }
+    swapGetInstrumentIdAccounts (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentIdAccounts'] (params); }
+    swapGetAccountsInstrumentIdSettings (params?: {}): Promise<implicitReturnType> { return this['swapGetAccountsInstrumentIdSettings'] (params); }
+    swapGetAccountsInstrumentIdLedger (params?: {}): Promise<implicitReturnType> { return this['swapGetAccountsInstrumentIdLedger'] (params); }
+    swapGetOrdersInstrumentId (params?: {}): Promise<implicitReturnType> { return this['swapGetOrdersInstrumentId'] (params); }
+    swapGetOrdersInstrumentIdOrderId (params?: {}): Promise<implicitReturnType> { return this['swapGetOrdersInstrumentIdOrderId'] (params); }
+    swapGetOrdersInstrumentIdClientOid (params?: {}): Promise<implicitReturnType> { return this['swapGetOrdersInstrumentIdClientOid'] (params); }
+    swapGetFills (params?: {}): Promise<implicitReturnType> { return this['swapGetFills'] (params); }
+    swapGetAccountsInstrumentIdHolds (params?: {}): Promise<implicitReturnType> { return this['swapGetAccountsInstrumentIdHolds'] (params); }
+    swapGetTradeFee (params?: {}): Promise<implicitReturnType> { return this['swapGetTradeFee'] (params); }
+    swapGetOrderAlgoInstrumentId (params?: {}): Promise<implicitReturnType> { return this['swapGetOrderAlgoInstrumentId'] (params); }
+    swapGetInstruments (params?: {}): Promise<implicitReturnType> { return this['swapGetInstruments'] (params); }
+    swapGetInstrumentsInstrumentIdDepth (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentsInstrumentIdDepth'] (params); }
+    swapGetInstrumentsTicker (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentsTicker'] (params); }
+    swapGetInstrumentsInstrumentIdTicker (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentsInstrumentIdTicker'] (params); }
+    swapGetInstrumentsInstrumentIdTrades (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentsInstrumentIdTrades'] (params); }
+    swapGetInstrumentsInstrumentIdCandles (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentsInstrumentIdCandles'] (params); }
+    swapGetInstrumentsInstrumentIdHistoryCandles (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentsInstrumentIdHistoryCandles'] (params); }
+    swapGetInstrumentsInstrumentIdIndex (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentsInstrumentIdIndex'] (params); }
+    swapGetRate (params?: {}): Promise<implicitReturnType> { return this['swapGetRate'] (params); }
+    swapGetInstrumentsInstrumentIdOpenInterest (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentsInstrumentIdOpenInterest'] (params); }
+    swapGetInstrumentsInstrumentIdPriceLimit (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentsInstrumentIdPriceLimit'] (params); }
+    swapGetInstrumentsInstrumentIdLiquidation (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentsInstrumentIdLiquidation'] (params); }
+    swapGetInstrumentsInstrumentIdFundingTime (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentsInstrumentIdFundingTime'] (params); }
+    swapGetInstrumentsInstrumentIdMarkPrice (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentsInstrumentIdMarkPrice'] (params); }
+    swapGetInstrumentsInstrumentIdHistoricalFundingRate (params?: {}): Promise<implicitReturnType> { return this['swapGetInstrumentsInstrumentIdHistoricalFundingRate'] (params); }
+    swapPostAccountsInstrumentIdLeverage (params?: {}): Promise<implicitReturnType> { return this['swapPostAccountsInstrumentIdLeverage'] (params); }
+    swapPostOrder (params?: {}): Promise<implicitReturnType> { return this['swapPostOrder'] (params); }
+    swapPostAmendOrderInstrumentId (params?: {}): Promise<implicitReturnType> { return this['swapPostAmendOrderInstrumentId'] (params); }
+    swapPostOrders (params?: {}): Promise<implicitReturnType> { return this['swapPostOrders'] (params); }
+    swapPostCancelOrderInstrumentIdOrderId (params?: {}): Promise<implicitReturnType> { return this['swapPostCancelOrderInstrumentIdOrderId'] (params); }
+    swapPostCancelOrderInstrumentIdClientOid (params?: {}): Promise<implicitReturnType> { return this['swapPostCancelOrderInstrumentIdClientOid'] (params); }
+    swapPostCancelBatchOrdersInstrumentId (params?: {}): Promise<implicitReturnType> { return this['swapPostCancelBatchOrdersInstrumentId'] (params); }
+    swapPostOrderAlgo (params?: {}): Promise<implicitReturnType> { return this['swapPostOrderAlgo'] (params); }
+    swapPostCancelAlgos (params?: {}): Promise<implicitReturnType> { return this['swapPostCancelAlgos'] (params); }
+    swapPostClosePosition (params?: {}): Promise<implicitReturnType> { return this['swapPostClosePosition'] (params); }
+    swapPostCancelAll (params?: {}): Promise<implicitReturnType> { return this['swapPostCancelAll'] (params); }
+    optionGetAccounts (params?: {}): Promise<implicitReturnType> { return this['optionGetAccounts'] (params); }
+    optionGetPosition (params?: {}): Promise<implicitReturnType> { return this['optionGetPosition'] (params); }
+    optionGetUnderlyingPosition (params?: {}): Promise<implicitReturnType> { return this['optionGetUnderlyingPosition'] (params); }
+    optionGetAccountsUnderlying (params?: {}): Promise<implicitReturnType> { return this['optionGetAccountsUnderlying'] (params); }
+    optionGetOrdersUnderlying (params?: {}): Promise<implicitReturnType> { return this['optionGetOrdersUnderlying'] (params); }
+    optionGetFillsUnderlying (params?: {}): Promise<implicitReturnType> { return this['optionGetFillsUnderlying'] (params); }
+    optionGetAccountsUnderlyingLedger (params?: {}): Promise<implicitReturnType> { return this['optionGetAccountsUnderlyingLedger'] (params); }
+    optionGetTradeFee (params?: {}): Promise<implicitReturnType> { return this['optionGetTradeFee'] (params); }
+    optionGetOrdersUnderlyingOrderId (params?: {}): Promise<implicitReturnType> { return this['optionGetOrdersUnderlyingOrderId'] (params); }
+    optionGetOrdersUnderlyingClientOid (params?: {}): Promise<implicitReturnType> { return this['optionGetOrdersUnderlyingClientOid'] (params); }
+    optionGetUnderlying (params?: {}): Promise<implicitReturnType> { return this['optionGetUnderlying'] (params); }
+    optionGetInstrumentsUnderlying (params?: {}): Promise<implicitReturnType> { return this['optionGetInstrumentsUnderlying'] (params); }
+    optionGetInstrumentsUnderlyingSummary (params?: {}): Promise<implicitReturnType> { return this['optionGetInstrumentsUnderlyingSummary'] (params); }
+    optionGetInstrumentsUnderlyingSummaryInstrumentId (params?: {}): Promise<implicitReturnType> { return this['optionGetInstrumentsUnderlyingSummaryInstrumentId'] (params); }
+    optionGetInstrumentsInstrumentIdBook (params?: {}): Promise<implicitReturnType> { return this['optionGetInstrumentsInstrumentIdBook'] (params); }
+    optionGetInstrumentsInstrumentIdTrades (params?: {}): Promise<implicitReturnType> { return this['optionGetInstrumentsInstrumentIdTrades'] (params); }
+    optionGetInstrumentsInstrumentIdTicker (params?: {}): Promise<implicitReturnType> { return this['optionGetInstrumentsInstrumentIdTicker'] (params); }
+    optionGetInstrumentsInstrumentIdCandles (params?: {}): Promise<implicitReturnType> { return this['optionGetInstrumentsInstrumentIdCandles'] (params); }
+    optionPostOrder (params?: {}): Promise<implicitReturnType> { return this['optionPostOrder'] (params); }
+    optionPostOrders (params?: {}): Promise<implicitReturnType> { return this['optionPostOrders'] (params); }
+    optionPostCancelOrderUnderlyingOrderId (params?: {}): Promise<implicitReturnType> { return this['optionPostCancelOrderUnderlyingOrderId'] (params); }
+    optionPostCancelOrderUnderlyingClientOid (params?: {}): Promise<implicitReturnType> { return this['optionPostCancelOrderUnderlyingClientOid'] (params); }
+    optionPostCancelBatchOrdersUnderlying (params?: {}): Promise<implicitReturnType> { return this['optionPostCancelBatchOrdersUnderlying'] (params); }
+    optionPostAmendOrderUnderlying (params?: {}): Promise<implicitReturnType> { return this['optionPostAmendOrderUnderlying'] (params); }
+    optionPostAmendBatchOrdersUnderlying (params?: {}): Promise<implicitReturnType> { return this['optionPostAmendBatchOrdersUnderlying'] (params); }
+    informationGetCurrencyLongShortRatio (params?: {}): Promise<implicitReturnType> { return this['informationGetCurrencyLongShortRatio'] (params); }
+    informationGetCurrencyVolume (params?: {}): Promise<implicitReturnType> { return this['informationGetCurrencyVolume'] (params); }
+    informationGetCurrencyTaker (params?: {}): Promise<implicitReturnType> { return this['informationGetCurrencyTaker'] (params); }
+    informationGetCurrencySentiment (params?: {}): Promise<implicitReturnType> { return this['informationGetCurrencySentiment'] (params); }
+    informationGetCurrencyMargin (params?: {}): Promise<implicitReturnType> { return this['informationGetCurrencyMargin'] (params); }
+    indexGetInstrumentIdConstituents (params?: {}): Promise<implicitReturnType> { return this['indexGetInstrumentIdConstituents'] (params); }
 }

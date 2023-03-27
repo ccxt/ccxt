@@ -8,44 +8,44 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetAvailableBooks (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderBook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOhlc (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountStatus (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFees (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFundings (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFundingsFid (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFundingDestination (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetKycDocuments (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetLedger (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetLedgerTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetLedgerFees (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetLedgerFundings (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetLedgerWithdrawals (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetMxBankCodes (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrderTradesOid (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrdersOid (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUserTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUserTradesTid (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdrawals (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdrawalsWid (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBitcoinWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostDebitCardWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostEtherWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostPhoneNumber (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostPhoneVerification (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostPhoneWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostSpeiWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRippleWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBcashWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostLitecoinWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrdersOid (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrdersAll (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetAvailableBooks (params?: {}): Promise<implicitReturnType> { return this['publicGetAvailableBooks'] (params); }
+    publicGetTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetTicker'] (params); }
+    publicGetOrderBook (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderBook'] (params); }
+    publicGetTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetTrades'] (params); }
+    publicGetOhlc (params?: {}): Promise<implicitReturnType> { return this['publicGetOhlc'] (params); }
+    privateGetAccountStatus (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountStatus'] (params); }
+    privateGetBalance (params?: {}): Promise<implicitReturnType> { return this['privateGetBalance'] (params); }
+    privateGetFees (params?: {}): Promise<implicitReturnType> { return this['privateGetFees'] (params); }
+    privateGetFundings (params?: {}): Promise<implicitReturnType> { return this['privateGetFundings'] (params); }
+    privateGetFundingsFid (params?: {}): Promise<implicitReturnType> { return this['privateGetFundingsFid'] (params); }
+    privateGetFundingDestination (params?: {}): Promise<implicitReturnType> { return this['privateGetFundingDestination'] (params); }
+    privateGetKycDocuments (params?: {}): Promise<implicitReturnType> { return this['privateGetKycDocuments'] (params); }
+    privateGetLedger (params?: {}): Promise<implicitReturnType> { return this['privateGetLedger'] (params); }
+    privateGetLedgerTrades (params?: {}): Promise<implicitReturnType> { return this['privateGetLedgerTrades'] (params); }
+    privateGetLedgerFees (params?: {}): Promise<implicitReturnType> { return this['privateGetLedgerFees'] (params); }
+    privateGetLedgerFundings (params?: {}): Promise<implicitReturnType> { return this['privateGetLedgerFundings'] (params); }
+    privateGetLedgerWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privateGetLedgerWithdrawals'] (params); }
+    privateGetMxBankCodes (params?: {}): Promise<implicitReturnType> { return this['privateGetMxBankCodes'] (params); }
+    privateGetOpenOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetOpenOrders'] (params); }
+    privateGetOrderTradesOid (params?: {}): Promise<implicitReturnType> { return this['privateGetOrderTradesOid'] (params); }
+    privateGetOrdersOid (params?: {}): Promise<implicitReturnType> { return this['privateGetOrdersOid'] (params); }
+    privateGetUserTrades (params?: {}): Promise<implicitReturnType> { return this['privateGetUserTrades'] (params); }
+    privateGetUserTradesTid (params?: {}): Promise<implicitReturnType> { return this['privateGetUserTradesTid'] (params); }
+    privateGetWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdrawals'] (params); }
+    privateGetWithdrawalsWid (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdrawalsWid'] (params); }
+    privatePostBitcoinWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostBitcoinWithdrawal'] (params); }
+    privatePostDebitCardWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostDebitCardWithdrawal'] (params); }
+    privatePostEtherWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostEtherWithdrawal'] (params); }
+    privatePostOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOrders'] (params); }
+    privatePostPhoneNumber (params?: {}): Promise<implicitReturnType> { return this['privatePostPhoneNumber'] (params); }
+    privatePostPhoneVerification (params?: {}): Promise<implicitReturnType> { return this['privatePostPhoneVerification'] (params); }
+    privatePostPhoneWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostPhoneWithdrawal'] (params); }
+    privatePostSpeiWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostSpeiWithdrawal'] (params); }
+    privatePostRippleWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostRippleWithdrawal'] (params); }
+    privatePostBcashWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostBcashWithdrawal'] (params); }
+    privatePostLitecoinWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostLitecoinWithdrawal'] (params); }
+    privateDeleteOrders (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrders'] (params); }
+    privateDeleteOrdersOid (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrdersOid'] (params); }
+    privateDeleteOrdersAll (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrdersAll'] (params); }
 }

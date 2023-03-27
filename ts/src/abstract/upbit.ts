@@ -8,38 +8,38 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetMarketAll (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesTimeframe (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesTimeframeUnit (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesMinutesUnit (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesMinutes1 (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesMinutes3 (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesMinutes5 (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesMinutes15 (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesMinutes30 (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesMinutes60 (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesMinutes240 (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesDays (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesWeeks (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesMonths (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTradesTicks (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccounts (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrdersChance (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdraws (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdraw (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdrawsChance (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDeposits (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDeposit (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDepositsCoinAddresses (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDepositsCoinAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWithdrawsCoin (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWithdrawsKrw (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostDepositsGenerateCoinAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetMarketAll (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketAll'] (params); }
+    publicGetCandlesTimeframe (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesTimeframe'] (params); }
+    publicGetCandlesTimeframeUnit (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesTimeframeUnit'] (params); }
+    publicGetCandlesMinutesUnit (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesMinutesUnit'] (params); }
+    publicGetCandlesMinutes1 (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesMinutes1'] (params); }
+    publicGetCandlesMinutes3 (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesMinutes3'] (params); }
+    publicGetCandlesMinutes5 (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesMinutes5'] (params); }
+    publicGetCandlesMinutes15 (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesMinutes15'] (params); }
+    publicGetCandlesMinutes30 (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesMinutes30'] (params); }
+    publicGetCandlesMinutes60 (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesMinutes60'] (params); }
+    publicGetCandlesMinutes240 (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesMinutes240'] (params); }
+    publicGetCandlesDays (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesDays'] (params); }
+    publicGetCandlesWeeks (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesWeeks'] (params); }
+    publicGetCandlesMonths (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesMonths'] (params); }
+    publicGetTradesTicks (params?: {}): Promise<implicitReturnType> { return this['publicGetTradesTicks'] (params); }
+    publicGetTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetTicker'] (params); }
+    publicGetOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderbook'] (params); }
+    privateGetAccounts (params?: {}): Promise<implicitReturnType> { return this['privateGetAccounts'] (params); }
+    privateGetOrdersChance (params?: {}): Promise<implicitReturnType> { return this['privateGetOrdersChance'] (params); }
+    privateGetOrder (params?: {}): Promise<implicitReturnType> { return this['privateGetOrder'] (params); }
+    privateGetOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetOrders'] (params); }
+    privateGetWithdraws (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdraws'] (params); }
+    privateGetWithdraw (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdraw'] (params); }
+    privateGetWithdrawsChance (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdrawsChance'] (params); }
+    privateGetDeposits (params?: {}): Promise<implicitReturnType> { return this['privateGetDeposits'] (params); }
+    privateGetDeposit (params?: {}): Promise<implicitReturnType> { return this['privateGetDeposit'] (params); }
+    privateGetDepositsCoinAddresses (params?: {}): Promise<implicitReturnType> { return this['privateGetDepositsCoinAddresses'] (params); }
+    privateGetDepositsCoinAddress (params?: {}): Promise<implicitReturnType> { return this['privateGetDepositsCoinAddress'] (params); }
+    privatePostOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOrders'] (params); }
+    privatePostWithdrawsCoin (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdrawsCoin'] (params); }
+    privatePostWithdrawsKrw (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdrawsKrw'] (params); }
+    privatePostDepositsGenerateCoinAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostDepositsGenerateCoinAddress'] (params); }
+    privateDeleteOrder (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrder'] (params); }
 }

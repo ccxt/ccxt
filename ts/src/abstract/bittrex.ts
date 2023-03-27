@@ -8,77 +8,77 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetPing (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCurrencies (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCurrenciesSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarkets (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsTickers (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsSummaries (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsMarketSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsMarketSymbolSummary (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsMarketSymbolOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsMarketSymbolTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsMarketSymbolTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsMarketSymbolCandlesCandleIntervalRecent (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonth (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYear (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccount (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountFeesFiat (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountFeesFiatCurrencySymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountFeesTrading (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountFeesTradingMarketSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountVolume (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountPermissionsMarkets (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountPermissionsMarketsMarketSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountPermissionsCurrencies (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountPermissionsCurrenciesCurrencySymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAddresses (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAddressesCurrencySymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetBalances (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetBalancesCurrencySymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDepositsOpen (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDepositsClosed (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDepositsByTxIdTxId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDepositsDepositId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetExecutions (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetExecutionsLastId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetExecutionsExecutionId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrdersClosed (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrdersOpen (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrdersOrderIdExecutions (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetPing (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSubaccountsSubaccountId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSubaccounts (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSubaccountsWithdrawalsOpen (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSubaccountsWithdrawalsClosed (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSubaccountsDepositsOpen (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSubaccountsDepositsClosed (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdrawalsOpen (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdrawalsClosed (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdrawalsByTxIdTxId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdrawalsWithdrawalId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdrawalsAllowedAddresses (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetConditionalOrdersConditionalOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetConditionalOrdersClosed (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetConditionalOrdersOpen (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTransfersSent (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTransfersReceived (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTransfersTransferId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFundsTransferMethodsFundsTransferMethodId (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAddresses (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostSubaccounts (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWithdrawals (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostConditionalOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTransfers (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBatch (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrdersOpen (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteWithdrawalsWithdrawalId (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteConditionalOrdersConditionalOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract signalrGetNegotiate (params?: {}): Promise<implicitReturnType>;
-    abstract signalrGetStart (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetPing (params?: {}): Promise<implicitReturnType> { return this['publicGetPing'] (params); }
+    publicGetCurrencies (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencies'] (params); }
+    publicGetCurrenciesSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrenciesSymbol'] (params); }
+    publicGetMarkets (params?: {}): Promise<implicitReturnType> { return this['publicGetMarkets'] (params); }
+    publicGetMarketsTickers (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsTickers'] (params); }
+    publicGetMarketsSummaries (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsSummaries'] (params); }
+    publicGetMarketsMarketSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketSymbol'] (params); }
+    publicGetMarketsMarketSymbolSummary (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketSymbolSummary'] (params); }
+    publicGetMarketsMarketSymbolOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketSymbolOrderbook'] (params); }
+    publicGetMarketsMarketSymbolTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketSymbolTrades'] (params); }
+    publicGetMarketsMarketSymbolTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketSymbolTicker'] (params); }
+    publicGetMarketsMarketSymbolCandlesCandleIntervalRecent (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketSymbolCandlesCandleIntervalRecent'] (params); }
+    publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay'] (params); }
+    publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonth (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonth'] (params); }
+    publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYear (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYear'] (params); }
+    privateGetAccount (params?: {}): Promise<implicitReturnType> { return this['privateGetAccount'] (params); }
+    privateGetAccountFeesFiat (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountFeesFiat'] (params); }
+    privateGetAccountFeesFiatCurrencySymbol (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountFeesFiatCurrencySymbol'] (params); }
+    privateGetAccountFeesTrading (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountFeesTrading'] (params); }
+    privateGetAccountFeesTradingMarketSymbol (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountFeesTradingMarketSymbol'] (params); }
+    privateGetAccountVolume (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountVolume'] (params); }
+    privateGetAccountPermissionsMarkets (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountPermissionsMarkets'] (params); }
+    privateGetAccountPermissionsMarketsMarketSymbol (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountPermissionsMarketsMarketSymbol'] (params); }
+    privateGetAccountPermissionsCurrencies (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountPermissionsCurrencies'] (params); }
+    privateGetAccountPermissionsCurrenciesCurrencySymbol (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountPermissionsCurrenciesCurrencySymbol'] (params); }
+    privateGetAddresses (params?: {}): Promise<implicitReturnType> { return this['privateGetAddresses'] (params); }
+    privateGetAddressesCurrencySymbol (params?: {}): Promise<implicitReturnType> { return this['privateGetAddressesCurrencySymbol'] (params); }
+    privateGetBalances (params?: {}): Promise<implicitReturnType> { return this['privateGetBalances'] (params); }
+    privateGetBalancesCurrencySymbol (params?: {}): Promise<implicitReturnType> { return this['privateGetBalancesCurrencySymbol'] (params); }
+    privateGetDepositsOpen (params?: {}): Promise<implicitReturnType> { return this['privateGetDepositsOpen'] (params); }
+    privateGetDepositsClosed (params?: {}): Promise<implicitReturnType> { return this['privateGetDepositsClosed'] (params); }
+    privateGetDepositsByTxIdTxId (params?: {}): Promise<implicitReturnType> { return this['privateGetDepositsByTxIdTxId'] (params); }
+    privateGetDepositsDepositId (params?: {}): Promise<implicitReturnType> { return this['privateGetDepositsDepositId'] (params); }
+    privateGetExecutions (params?: {}): Promise<implicitReturnType> { return this['privateGetExecutions'] (params); }
+    privateGetExecutionsLastId (params?: {}): Promise<implicitReturnType> { return this['privateGetExecutionsLastId'] (params); }
+    privateGetExecutionsExecutionId (params?: {}): Promise<implicitReturnType> { return this['privateGetExecutionsExecutionId'] (params); }
+    privateGetOrdersClosed (params?: {}): Promise<implicitReturnType> { return this['privateGetOrdersClosed'] (params); }
+    privateGetOrdersOpen (params?: {}): Promise<implicitReturnType> { return this['privateGetOrdersOpen'] (params); }
+    privateGetOrdersOrderId (params?: {}): Promise<implicitReturnType> { return this['privateGetOrdersOrderId'] (params); }
+    privateGetOrdersOrderIdExecutions (params?: {}): Promise<implicitReturnType> { return this['privateGetOrdersOrderIdExecutions'] (params); }
+    privateGetPing (params?: {}): Promise<implicitReturnType> { return this['privateGetPing'] (params); }
+    privateGetSubaccountsSubaccountId (params?: {}): Promise<implicitReturnType> { return this['privateGetSubaccountsSubaccountId'] (params); }
+    privateGetSubaccounts (params?: {}): Promise<implicitReturnType> { return this['privateGetSubaccounts'] (params); }
+    privateGetSubaccountsWithdrawalsOpen (params?: {}): Promise<implicitReturnType> { return this['privateGetSubaccountsWithdrawalsOpen'] (params); }
+    privateGetSubaccountsWithdrawalsClosed (params?: {}): Promise<implicitReturnType> { return this['privateGetSubaccountsWithdrawalsClosed'] (params); }
+    privateGetSubaccountsDepositsOpen (params?: {}): Promise<implicitReturnType> { return this['privateGetSubaccountsDepositsOpen'] (params); }
+    privateGetSubaccountsDepositsClosed (params?: {}): Promise<implicitReturnType> { return this['privateGetSubaccountsDepositsClosed'] (params); }
+    privateGetWithdrawalsOpen (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdrawalsOpen'] (params); }
+    privateGetWithdrawalsClosed (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdrawalsClosed'] (params); }
+    privateGetWithdrawalsByTxIdTxId (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdrawalsByTxIdTxId'] (params); }
+    privateGetWithdrawalsWithdrawalId (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdrawalsWithdrawalId'] (params); }
+    privateGetWithdrawalsAllowedAddresses (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdrawalsAllowedAddresses'] (params); }
+    privateGetConditionalOrdersConditionalOrderId (params?: {}): Promise<implicitReturnType> { return this['privateGetConditionalOrdersConditionalOrderId'] (params); }
+    privateGetConditionalOrdersClosed (params?: {}): Promise<implicitReturnType> { return this['privateGetConditionalOrdersClosed'] (params); }
+    privateGetConditionalOrdersOpen (params?: {}): Promise<implicitReturnType> { return this['privateGetConditionalOrdersOpen'] (params); }
+    privateGetTransfersSent (params?: {}): Promise<implicitReturnType> { return this['privateGetTransfersSent'] (params); }
+    privateGetTransfersReceived (params?: {}): Promise<implicitReturnType> { return this['privateGetTransfersReceived'] (params); }
+    privateGetTransfersTransferId (params?: {}): Promise<implicitReturnType> { return this['privateGetTransfersTransferId'] (params); }
+    privateGetFundsTransferMethodsFundsTransferMethodId (params?: {}): Promise<implicitReturnType> { return this['privateGetFundsTransferMethodsFundsTransferMethodId'] (params); }
+    privatePostAddresses (params?: {}): Promise<implicitReturnType> { return this['privatePostAddresses'] (params); }
+    privatePostOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOrders'] (params); }
+    privatePostSubaccounts (params?: {}): Promise<implicitReturnType> { return this['privatePostSubaccounts'] (params); }
+    privatePostWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdrawals'] (params); }
+    privatePostConditionalOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostConditionalOrders'] (params); }
+    privatePostTransfers (params?: {}): Promise<implicitReturnType> { return this['privatePostTransfers'] (params); }
+    privatePostBatch (params?: {}): Promise<implicitReturnType> { return this['privatePostBatch'] (params); }
+    privateDeleteOrdersOpen (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrdersOpen'] (params); }
+    privateDeleteOrdersOrderId (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrdersOrderId'] (params); }
+    privateDeleteWithdrawalsWithdrawalId (params?: {}): Promise<implicitReturnType> { return this['privateDeleteWithdrawalsWithdrawalId'] (params); }
+    privateDeleteConditionalOrdersConditionalOrderId (params?: {}): Promise<implicitReturnType> { return this['privateDeleteConditionalOrdersConditionalOrderId'] (params); }
+    signalrGetNegotiate (params?: {}): Promise<implicitReturnType> { return this['signalrGetNegotiate'] (params); }
+    signalrGetStart (params?: {}): Promise<implicitReturnType> { return this['signalrGetStart'] (params); }
 }

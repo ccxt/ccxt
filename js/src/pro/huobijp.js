@@ -9,7 +9,6 @@ import huobijpRest from '../huobijp.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 // ----------------------------------------------------------------------------
-// @ts-expect-error
 export default class huobijp extends huobijpRest {
     describe() {
         return this.deepExtend(super.describe(), {

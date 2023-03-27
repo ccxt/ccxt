@@ -8,38 +8,38 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract exchangeGetMarkets (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderbookTop (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickers (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountsIdPending (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountsIdTransactions (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetBeneficiaries (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFeeInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFundingAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetListorders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetListtrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrdersId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetQuotesId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdrawals (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdrawalsId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTransfers (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccounts (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountsIdName (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostPostorder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMarketorder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostStoporder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostFundingAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWithdrawals (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostSend (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostQuotes (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOauth2Grant (params?: {}): Promise<implicitReturnType>;
-    abstract privatePutAccountsIdName (params?: {}): Promise<implicitReturnType>;
-    abstract privatePutQuotesId (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteQuotesId (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteWithdrawalsId (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    exchangeGetMarkets (params?: {}): Promise<implicitReturnType> { return this['exchangeGetMarkets'] (params); }
+    publicGetOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderbook'] (params); }
+    publicGetOrderbookTop (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderbookTop'] (params); }
+    publicGetTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetTicker'] (params); }
+    publicGetTickers (params?: {}): Promise<implicitReturnType> { return this['publicGetTickers'] (params); }
+    publicGetTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetTrades'] (params); }
+    privateGetAccountsIdPending (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountsIdPending'] (params); }
+    privateGetAccountsIdTransactions (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountsIdTransactions'] (params); }
+    privateGetBalance (params?: {}): Promise<implicitReturnType> { return this['privateGetBalance'] (params); }
+    privateGetBeneficiaries (params?: {}): Promise<implicitReturnType> { return this['privateGetBeneficiaries'] (params); }
+    privateGetFeeInfo (params?: {}): Promise<implicitReturnType> { return this['privateGetFeeInfo'] (params); }
+    privateGetFundingAddress (params?: {}): Promise<implicitReturnType> { return this['privateGetFundingAddress'] (params); }
+    privateGetListorders (params?: {}): Promise<implicitReturnType> { return this['privateGetListorders'] (params); }
+    privateGetListtrades (params?: {}): Promise<implicitReturnType> { return this['privateGetListtrades'] (params); }
+    privateGetOrdersId (params?: {}): Promise<implicitReturnType> { return this['privateGetOrdersId'] (params); }
+    privateGetQuotesId (params?: {}): Promise<implicitReturnType> { return this['privateGetQuotesId'] (params); }
+    privateGetWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdrawals'] (params); }
+    privateGetWithdrawalsId (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdrawalsId'] (params); }
+    privateGetTransfers (params?: {}): Promise<implicitReturnType> { return this['privateGetTransfers'] (params); }
+    privatePostAccounts (params?: {}): Promise<implicitReturnType> { return this['privatePostAccounts'] (params); }
+    privatePostAccountsIdName (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountsIdName'] (params); }
+    privatePostPostorder (params?: {}): Promise<implicitReturnType> { return this['privatePostPostorder'] (params); }
+    privatePostMarketorder (params?: {}): Promise<implicitReturnType> { return this['privatePostMarketorder'] (params); }
+    privatePostStoporder (params?: {}): Promise<implicitReturnType> { return this['privatePostStoporder'] (params); }
+    privatePostFundingAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostFundingAddress'] (params); }
+    privatePostWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdrawals'] (params); }
+    privatePostSend (params?: {}): Promise<implicitReturnType> { return this['privatePostSend'] (params); }
+    privatePostQuotes (params?: {}): Promise<implicitReturnType> { return this['privatePostQuotes'] (params); }
+    privatePostOauth2Grant (params?: {}): Promise<implicitReturnType> { return this['privatePostOauth2Grant'] (params); }
+    privatePutAccountsIdName (params?: {}): Promise<implicitReturnType> { return this['privatePutAccountsIdName'] (params); }
+    privatePutQuotesId (params?: {}): Promise<implicitReturnType> { return this['privatePutQuotesId'] (params); }
+    privateDeleteQuotesId (params?: {}): Promise<implicitReturnType> { return this['privateDeleteQuotesId'] (params); }
+    privateDeleteWithdrawalsId (params?: {}): Promise<implicitReturnType> { return this['privateDeleteWithdrawalsId'] (params); }
 }

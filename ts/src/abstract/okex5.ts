@@ -8,203 +8,203 @@
 import { implicitReturnType } from '../base/types.js';
 import _okex from '../okex.js';
 
-export default abstract class okex extends _okex {
-    abstract publicGetMarketTickers (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketIndexTickers (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketBooks (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketBooksLite (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketCandles (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketHistoryCandles (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketHistoryMarkPriceCandles (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketHistoryIndexCandles (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketIndexCandles (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketMarkPriceCandles (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketPlatform24Volume (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketOpenOracle (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketIndexComponents (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketOptionInstrumentFamilyTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicInstruments (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicInstrumentTickBands (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicDeliveryExerciseHistory (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicOpenInterest (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicFundingRate (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicFundingRateHistory (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicPriceLimit (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicOptSummary (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicEstimatedPrice (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicDiscountRateInterestFreeQuota (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicTime (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicLiquidationOrders (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicMarkPrice (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicOptionTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicPositionTiers (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicUnderlying (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicInterestRateLoanQuota (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPublicVipInterestRateLoanQuota (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetRubikStatTradingDataSupportCoin (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetRubikStatTakerVolume (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetRubikStatMarginLoanRatio (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetRubikStatContractsLongShortAccountRatio (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetRubikStatContractsOpenInterestVolume (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetRubikStatOptionOpenInterestVolume (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetRubikStatOptionOpenInterestVolumeRatio (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetRubikStatOptionOpenInterestVolumeExpiry (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetRubikStatOptionOpenInterestVolumeStrike (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetRubikStatOptionTakerBlockVolume (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetSystemStatus (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetFinanceSavingsLendingRateSummary (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetFinanceSavingsLendingRateHistory (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketExchangeRate (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountAccountPositionRisk (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountPositions (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountPositionsHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountBills (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountBillsArchive (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountConfig (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountMaxSize (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountMaxAvailSize (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountLeverageInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountMaxLoan (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountTradeFee (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountInterestAccrued (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountInterestRate (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountMaxWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountRiskState (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountBorrowRepayHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountQuickMarginBorrowRepayHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountInterestLimits (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountVipInterestAccrued (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountVipLoanOrderList (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountVipLoanOrderDetail (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetAssetValuation (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetBalances (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetTransferState (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetDepositHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetWithdrawalHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetDepositWithdrawStatus (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetCurrencies (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetBills (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetPiggyBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetDepositLightning (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetNonTradableAssets (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradeOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradeOrdersPending (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradeOrdersHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradeOrdersHistoryArchive (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradeFills (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradeFillsHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradeOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradeOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradeOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountSubaccountBalances (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetSubaccountBills (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUsersSubaccountList (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUsersSubaccountApikey (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUsersEntrustSubaccountList (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetBrokerNdInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetBrokerNdSubaccountInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetBrokerNdSubaccountDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetBrokerNdSubaccountDepositHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetBrokerNdRebateDaily (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetBrokerNdSubaccountApikey (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetBrokerNdRebatePerOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetBrokerNdSubaccountWithdrawalHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetConvertCurrencies (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetConvertCurrencyPair (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetConvertEstimateQuote (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetConvertTrade (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetConvertHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountGreeks (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFinanceStakingDefiOffers (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFinanceStakingDefiOrdersActive (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFinanceStakingDefiOrdersHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFinanceSavingsBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFinanceSavingsLendingHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetRfqCounterparties (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetRfqMakerInstrumentSettings (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetRfqRfqs (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetRfqQuotes (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetRfqTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetRfqPublicTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCopytradingCurrentSubpositions (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCopytradingSubpositionsHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCopytradingInstruments (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCopytradingProfitSharingDetails (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCopytradingTotalProfitSharing (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCopytradingUnrealizedProfitSharingDetails (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradingBotGridOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradingBotGridOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradingBotGridOrdersAlgoDetails (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradingBotGridSubOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradingBotGridPositions (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradingBotGridAiParam (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountSetPositionMode (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountSetLeverage (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountPositionMarginBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountSetGreeks (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountSetIsolatedMode (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountSetRiskOffsetType (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountSimulatedMargin (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountBorrowRepay (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountQuickMarginBorrowRepay (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountActivateOption (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountSetAutoLoan (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAssetTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAssetWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAssetWithdrawalLightning (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAssetCancelWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAssetConvertDustAssets (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradeBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradeCancelOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradeCancelBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradeAmendOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradeAmendBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradeClosePosition (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradeOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradeCancelAlgos (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradeCancelAdvanceAlgos (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostUsersSubaccountDeleteApikey (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostUsersSubaccountModifyApikey (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostUsersSubaccountApikey (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostUsersSubaccountSetTransferOut (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAssetSubaccountTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBrokerNdCreateSubaccount (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBrokerNdDeleteSubaccount (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBrokerNdSetSubaccountLevel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBrokerNdSetSubaccountFeeRate (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAssetBrokerNdSubaccountDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBrokerNdSubaccountApikey (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBrokerNdSubaccountDeleteApikey (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBrokerNdSubaccountModifyApikey (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBrokerNdRebatePerOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostFinanceStakingDefiPurchase (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostFinanceStakingDefiRedeem (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostFinanceStakingDefiCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostFinanceSavingsPurchaseRedempt (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostFinanceSavingsSetLendingRate (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRfqCreateRfq (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRfqCancelRfq (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRfqCancelBatchRfqs (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRfqCancelAllRfqs (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRfqExecuteQuote (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRfqMakerInstrumentSettings (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRfqMmpReset (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRfqCreateQuote (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRfqCancelQuote (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRfqCancelBatchQuotes (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRfqCancelAllQuotes (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCopytradingAlgoOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCopytradingCloseSubposition (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCopytradingSetInstruments (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradingBotGridOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradingBotGridAmendOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradingBotGridStopOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradingBotGridWithdrawIncome (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradingBotGridComputeMarginBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradingBotGridMarginBalance (params?: {}): Promise<implicitReturnType>;
+export default class okex extends _okex {
+    publicGetMarketTickers (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketTickers'] (params); }
+    publicGetMarketTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketTicker'] (params); }
+    publicGetMarketIndexTickers (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketIndexTickers'] (params); }
+    publicGetMarketBooks (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketBooks'] (params); }
+    publicGetMarketBooksLite (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketBooksLite'] (params); }
+    publicGetMarketCandles (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketCandles'] (params); }
+    publicGetMarketHistoryCandles (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketHistoryCandles'] (params); }
+    publicGetMarketHistoryMarkPriceCandles (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketHistoryMarkPriceCandles'] (params); }
+    publicGetMarketHistoryIndexCandles (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketHistoryIndexCandles'] (params); }
+    publicGetMarketIndexCandles (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketIndexCandles'] (params); }
+    publicGetMarketMarkPriceCandles (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketMarkPriceCandles'] (params); }
+    publicGetMarketTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketTrades'] (params); }
+    publicGetMarketPlatform24Volume (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketPlatform24Volume'] (params); }
+    publicGetMarketOpenOracle (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketOpenOracle'] (params); }
+    publicGetMarketIndexComponents (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketIndexComponents'] (params); }
+    publicGetMarketOptionInstrumentFamilyTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketOptionInstrumentFamilyTrades'] (params); }
+    publicGetPublicInstruments (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicInstruments'] (params); }
+    publicGetPublicInstrumentTickBands (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicInstrumentTickBands'] (params); }
+    publicGetPublicDeliveryExerciseHistory (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicDeliveryExerciseHistory'] (params); }
+    publicGetPublicOpenInterest (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicOpenInterest'] (params); }
+    publicGetPublicFundingRate (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicFundingRate'] (params); }
+    publicGetPublicFundingRateHistory (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicFundingRateHistory'] (params); }
+    publicGetPublicPriceLimit (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicPriceLimit'] (params); }
+    publicGetPublicOptSummary (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicOptSummary'] (params); }
+    publicGetPublicEstimatedPrice (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicEstimatedPrice'] (params); }
+    publicGetPublicDiscountRateInterestFreeQuota (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicDiscountRateInterestFreeQuota'] (params); }
+    publicGetPublicTime (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicTime'] (params); }
+    publicGetPublicLiquidationOrders (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicLiquidationOrders'] (params); }
+    publicGetPublicMarkPrice (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicMarkPrice'] (params); }
+    publicGetPublicOptionTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicOptionTrades'] (params); }
+    publicGetPublicPositionTiers (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicPositionTiers'] (params); }
+    publicGetPublicUnderlying (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicUnderlying'] (params); }
+    publicGetPublicInterestRateLoanQuota (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicInterestRateLoanQuota'] (params); }
+    publicGetPublicVipInterestRateLoanQuota (params?: {}): Promise<implicitReturnType> { return this['publicGetPublicVipInterestRateLoanQuota'] (params); }
+    publicGetRubikStatTradingDataSupportCoin (params?: {}): Promise<implicitReturnType> { return this['publicGetRubikStatTradingDataSupportCoin'] (params); }
+    publicGetRubikStatTakerVolume (params?: {}): Promise<implicitReturnType> { return this['publicGetRubikStatTakerVolume'] (params); }
+    publicGetRubikStatMarginLoanRatio (params?: {}): Promise<implicitReturnType> { return this['publicGetRubikStatMarginLoanRatio'] (params); }
+    publicGetRubikStatContractsLongShortAccountRatio (params?: {}): Promise<implicitReturnType> { return this['publicGetRubikStatContractsLongShortAccountRatio'] (params); }
+    publicGetRubikStatContractsOpenInterestVolume (params?: {}): Promise<implicitReturnType> { return this['publicGetRubikStatContractsOpenInterestVolume'] (params); }
+    publicGetRubikStatOptionOpenInterestVolume (params?: {}): Promise<implicitReturnType> { return this['publicGetRubikStatOptionOpenInterestVolume'] (params); }
+    publicGetRubikStatOptionOpenInterestVolumeRatio (params?: {}): Promise<implicitReturnType> { return this['publicGetRubikStatOptionOpenInterestVolumeRatio'] (params); }
+    publicGetRubikStatOptionOpenInterestVolumeExpiry (params?: {}): Promise<implicitReturnType> { return this['publicGetRubikStatOptionOpenInterestVolumeExpiry'] (params); }
+    publicGetRubikStatOptionOpenInterestVolumeStrike (params?: {}): Promise<implicitReturnType> { return this['publicGetRubikStatOptionOpenInterestVolumeStrike'] (params); }
+    publicGetRubikStatOptionTakerBlockVolume (params?: {}): Promise<implicitReturnType> { return this['publicGetRubikStatOptionTakerBlockVolume'] (params); }
+    publicGetSystemStatus (params?: {}): Promise<implicitReturnType> { return this['publicGetSystemStatus'] (params); }
+    publicGetFinanceSavingsLendingRateSummary (params?: {}): Promise<implicitReturnType> { return this['publicGetFinanceSavingsLendingRateSummary'] (params); }
+    publicGetFinanceSavingsLendingRateHistory (params?: {}): Promise<implicitReturnType> { return this['publicGetFinanceSavingsLendingRateHistory'] (params); }
+    publicGetMarketExchangeRate (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketExchangeRate'] (params); }
+    privateGetAccountAccountPositionRisk (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountAccountPositionRisk'] (params); }
+    privateGetAccountBalance (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountBalance'] (params); }
+    privateGetAccountPositions (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountPositions'] (params); }
+    privateGetAccountPositionsHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountPositionsHistory'] (params); }
+    privateGetAccountBills (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountBills'] (params); }
+    privateGetAccountBillsArchive (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountBillsArchive'] (params); }
+    privateGetAccountConfig (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountConfig'] (params); }
+    privateGetAccountMaxSize (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountMaxSize'] (params); }
+    privateGetAccountMaxAvailSize (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountMaxAvailSize'] (params); }
+    privateGetAccountLeverageInfo (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountLeverageInfo'] (params); }
+    privateGetAccountMaxLoan (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountMaxLoan'] (params); }
+    privateGetAccountTradeFee (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountTradeFee'] (params); }
+    privateGetAccountInterestAccrued (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountInterestAccrued'] (params); }
+    privateGetAccountInterestRate (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountInterestRate'] (params); }
+    privateGetAccountMaxWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountMaxWithdrawal'] (params); }
+    privateGetAccountRiskState (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountRiskState'] (params); }
+    privateGetAccountBorrowRepayHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountBorrowRepayHistory'] (params); }
+    privateGetAccountQuickMarginBorrowRepayHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountQuickMarginBorrowRepayHistory'] (params); }
+    privateGetAccountInterestLimits (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountInterestLimits'] (params); }
+    privateGetAccountVipInterestAccrued (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountVipInterestAccrued'] (params); }
+    privateGetAccountVipLoanOrderList (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountVipLoanOrderList'] (params); }
+    privateGetAccountVipLoanOrderDetail (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountVipLoanOrderDetail'] (params); }
+    privateGetAssetAssetValuation (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetAssetValuation'] (params); }
+    privateGetAssetDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetDepositAddress'] (params); }
+    privateGetAssetBalances (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetBalances'] (params); }
+    privateGetAssetTransferState (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetTransferState'] (params); }
+    privateGetAssetDepositHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetDepositHistory'] (params); }
+    privateGetAssetWithdrawalHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetWithdrawalHistory'] (params); }
+    privateGetAssetDepositWithdrawStatus (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetDepositWithdrawStatus'] (params); }
+    privateGetAssetCurrencies (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetCurrencies'] (params); }
+    privateGetAssetBills (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetBills'] (params); }
+    privateGetAssetPiggyBalance (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetPiggyBalance'] (params); }
+    privateGetAssetDepositLightning (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetDepositLightning'] (params); }
+    privateGetAssetNonTradableAssets (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetNonTradableAssets'] (params); }
+    privateGetTradeOrder (params?: {}): Promise<implicitReturnType> { return this['privateGetTradeOrder'] (params); }
+    privateGetTradeOrdersPending (params?: {}): Promise<implicitReturnType> { return this['privateGetTradeOrdersPending'] (params); }
+    privateGetTradeOrdersHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetTradeOrdersHistory'] (params); }
+    privateGetTradeOrdersHistoryArchive (params?: {}): Promise<implicitReturnType> { return this['privateGetTradeOrdersHistoryArchive'] (params); }
+    privateGetTradeFills (params?: {}): Promise<implicitReturnType> { return this['privateGetTradeFills'] (params); }
+    privateGetTradeFillsHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetTradeFillsHistory'] (params); }
+    privateGetTradeOrdersAlgoPending (params?: {}): Promise<implicitReturnType> { return this['privateGetTradeOrdersAlgoPending'] (params); }
+    privateGetTradeOrdersAlgoHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetTradeOrdersAlgoHistory'] (params); }
+    privateGetTradeOrderAlgo (params?: {}): Promise<implicitReturnType> { return this['privateGetTradeOrderAlgo'] (params); }
+    privateGetAccountSubaccountBalances (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountSubaccountBalances'] (params); }
+    privateGetAssetSubaccountBills (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetSubaccountBills'] (params); }
+    privateGetUsersSubaccountList (params?: {}): Promise<implicitReturnType> { return this['privateGetUsersSubaccountList'] (params); }
+    privateGetUsersSubaccountApikey (params?: {}): Promise<implicitReturnType> { return this['privateGetUsersSubaccountApikey'] (params); }
+    privateGetUsersEntrustSubaccountList (params?: {}): Promise<implicitReturnType> { return this['privateGetUsersEntrustSubaccountList'] (params); }
+    privateGetBrokerNdInfo (params?: {}): Promise<implicitReturnType> { return this['privateGetBrokerNdInfo'] (params); }
+    privateGetBrokerNdSubaccountInfo (params?: {}): Promise<implicitReturnType> { return this['privateGetBrokerNdSubaccountInfo'] (params); }
+    privateGetAssetBrokerNdSubaccountDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetBrokerNdSubaccountDepositAddress'] (params); }
+    privateGetAssetBrokerNdSubaccountDepositHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetBrokerNdSubaccountDepositHistory'] (params); }
+    privateGetBrokerNdRebateDaily (params?: {}): Promise<implicitReturnType> { return this['privateGetBrokerNdRebateDaily'] (params); }
+    privateGetBrokerNdSubaccountApikey (params?: {}): Promise<implicitReturnType> { return this['privateGetBrokerNdSubaccountApikey'] (params); }
+    privateGetBrokerNdRebatePerOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetBrokerNdRebatePerOrders'] (params); }
+    privateGetAssetBrokerNdSubaccountWithdrawalHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetBrokerNdSubaccountWithdrawalHistory'] (params); }
+    privateGetAssetConvertCurrencies (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetConvertCurrencies'] (params); }
+    privateGetAssetConvertCurrencyPair (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetConvertCurrencyPair'] (params); }
+    privateGetAssetConvertEstimateQuote (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetConvertEstimateQuote'] (params); }
+    privateGetAssetConvertTrade (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetConvertTrade'] (params); }
+    privateGetAssetConvertHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetAssetConvertHistory'] (params); }
+    privateGetAccountGreeks (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountGreeks'] (params); }
+    privateGetFinanceStakingDefiOffers (params?: {}): Promise<implicitReturnType> { return this['privateGetFinanceStakingDefiOffers'] (params); }
+    privateGetFinanceStakingDefiOrdersActive (params?: {}): Promise<implicitReturnType> { return this['privateGetFinanceStakingDefiOrdersActive'] (params); }
+    privateGetFinanceStakingDefiOrdersHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetFinanceStakingDefiOrdersHistory'] (params); }
+    privateGetFinanceSavingsBalance (params?: {}): Promise<implicitReturnType> { return this['privateGetFinanceSavingsBalance'] (params); }
+    privateGetFinanceSavingsLendingHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetFinanceSavingsLendingHistory'] (params); }
+    privateGetRfqCounterparties (params?: {}): Promise<implicitReturnType> { return this['privateGetRfqCounterparties'] (params); }
+    privateGetRfqMakerInstrumentSettings (params?: {}): Promise<implicitReturnType> { return this['privateGetRfqMakerInstrumentSettings'] (params); }
+    privateGetRfqRfqs (params?: {}): Promise<implicitReturnType> { return this['privateGetRfqRfqs'] (params); }
+    privateGetRfqQuotes (params?: {}): Promise<implicitReturnType> { return this['privateGetRfqQuotes'] (params); }
+    privateGetRfqTrades (params?: {}): Promise<implicitReturnType> { return this['privateGetRfqTrades'] (params); }
+    privateGetRfqPublicTrades (params?: {}): Promise<implicitReturnType> { return this['privateGetRfqPublicTrades'] (params); }
+    privateGetCopytradingCurrentSubpositions (params?: {}): Promise<implicitReturnType> { return this['privateGetCopytradingCurrentSubpositions'] (params); }
+    privateGetCopytradingSubpositionsHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetCopytradingSubpositionsHistory'] (params); }
+    privateGetCopytradingInstruments (params?: {}): Promise<implicitReturnType> { return this['privateGetCopytradingInstruments'] (params); }
+    privateGetCopytradingProfitSharingDetails (params?: {}): Promise<implicitReturnType> { return this['privateGetCopytradingProfitSharingDetails'] (params); }
+    privateGetCopytradingTotalProfitSharing (params?: {}): Promise<implicitReturnType> { return this['privateGetCopytradingTotalProfitSharing'] (params); }
+    privateGetCopytradingUnrealizedProfitSharingDetails (params?: {}): Promise<implicitReturnType> { return this['privateGetCopytradingUnrealizedProfitSharingDetails'] (params); }
+    privateGetTradingBotGridOrdersAlgoPending (params?: {}): Promise<implicitReturnType> { return this['privateGetTradingBotGridOrdersAlgoPending'] (params); }
+    privateGetTradingBotGridOrdersAlgoHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetTradingBotGridOrdersAlgoHistory'] (params); }
+    privateGetTradingBotGridOrdersAlgoDetails (params?: {}): Promise<implicitReturnType> { return this['privateGetTradingBotGridOrdersAlgoDetails'] (params); }
+    privateGetTradingBotGridSubOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetTradingBotGridSubOrders'] (params); }
+    privateGetTradingBotGridPositions (params?: {}): Promise<implicitReturnType> { return this['privateGetTradingBotGridPositions'] (params); }
+    privateGetTradingBotGridAiParam (params?: {}): Promise<implicitReturnType> { return this['privateGetTradingBotGridAiParam'] (params); }
+    privatePostAccountSetPositionMode (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountSetPositionMode'] (params); }
+    privatePostAccountSetLeverage (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountSetLeverage'] (params); }
+    privatePostAccountPositionMarginBalance (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountPositionMarginBalance'] (params); }
+    privatePostAccountSetGreeks (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountSetGreeks'] (params); }
+    privatePostAccountSetIsolatedMode (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountSetIsolatedMode'] (params); }
+    privatePostAccountSetRiskOffsetType (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountSetRiskOffsetType'] (params); }
+    privatePostAccountSimulatedMargin (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountSimulatedMargin'] (params); }
+    privatePostAccountBorrowRepay (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountBorrowRepay'] (params); }
+    privatePostAccountQuickMarginBorrowRepay (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountQuickMarginBorrowRepay'] (params); }
+    privatePostAccountActivateOption (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountActivateOption'] (params); }
+    privatePostAccountSetAutoLoan (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountSetAutoLoan'] (params); }
+    privatePostAssetTransfer (params?: {}): Promise<implicitReturnType> { return this['privatePostAssetTransfer'] (params); }
+    privatePostAssetWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostAssetWithdrawal'] (params); }
+    privatePostAssetWithdrawalLightning (params?: {}): Promise<implicitReturnType> { return this['privatePostAssetWithdrawalLightning'] (params); }
+    privatePostAssetCancelWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostAssetCancelWithdrawal'] (params); }
+    privatePostAssetConvertDustAssets (params?: {}): Promise<implicitReturnType> { return this['privatePostAssetConvertDustAssets'] (params); }
+    privatePostTradeOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostTradeOrder'] (params); }
+    privatePostTradeBatchOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostTradeBatchOrders'] (params); }
+    privatePostTradeCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostTradeCancelOrder'] (params); }
+    privatePostTradeCancelBatchOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostTradeCancelBatchOrders'] (params); }
+    privatePostTradeAmendOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostTradeAmendOrder'] (params); }
+    privatePostTradeAmendBatchOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostTradeAmendBatchOrders'] (params); }
+    privatePostTradeClosePosition (params?: {}): Promise<implicitReturnType> { return this['privatePostTradeClosePosition'] (params); }
+    privatePostTradeOrderAlgo (params?: {}): Promise<implicitReturnType> { return this['privatePostTradeOrderAlgo'] (params); }
+    privatePostTradeCancelAlgos (params?: {}): Promise<implicitReturnType> { return this['privatePostTradeCancelAlgos'] (params); }
+    privatePostTradeCancelAdvanceAlgos (params?: {}): Promise<implicitReturnType> { return this['privatePostTradeCancelAdvanceAlgos'] (params); }
+    privatePostUsersSubaccountDeleteApikey (params?: {}): Promise<implicitReturnType> { return this['privatePostUsersSubaccountDeleteApikey'] (params); }
+    privatePostUsersSubaccountModifyApikey (params?: {}): Promise<implicitReturnType> { return this['privatePostUsersSubaccountModifyApikey'] (params); }
+    privatePostUsersSubaccountApikey (params?: {}): Promise<implicitReturnType> { return this['privatePostUsersSubaccountApikey'] (params); }
+    privatePostUsersSubaccountSetTransferOut (params?: {}): Promise<implicitReturnType> { return this['privatePostUsersSubaccountSetTransferOut'] (params); }
+    privatePostAssetSubaccountTransfer (params?: {}): Promise<implicitReturnType> { return this['privatePostAssetSubaccountTransfer'] (params); }
+    privatePostBrokerNdCreateSubaccount (params?: {}): Promise<implicitReturnType> { return this['privatePostBrokerNdCreateSubaccount'] (params); }
+    privatePostBrokerNdDeleteSubaccount (params?: {}): Promise<implicitReturnType> { return this['privatePostBrokerNdDeleteSubaccount'] (params); }
+    privatePostBrokerNdSetSubaccountLevel (params?: {}): Promise<implicitReturnType> { return this['privatePostBrokerNdSetSubaccountLevel'] (params); }
+    privatePostBrokerNdSetSubaccountFeeRate (params?: {}): Promise<implicitReturnType> { return this['privatePostBrokerNdSetSubaccountFeeRate'] (params); }
+    privatePostAssetBrokerNdSubaccountDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAssetBrokerNdSubaccountDepositAddress'] (params); }
+    privatePostBrokerNdSubaccountApikey (params?: {}): Promise<implicitReturnType> { return this['privatePostBrokerNdSubaccountApikey'] (params); }
+    privatePostBrokerNdSubaccountDeleteApikey (params?: {}): Promise<implicitReturnType> { return this['privatePostBrokerNdSubaccountDeleteApikey'] (params); }
+    privatePostBrokerNdSubaccountModifyApikey (params?: {}): Promise<implicitReturnType> { return this['privatePostBrokerNdSubaccountModifyApikey'] (params); }
+    privatePostBrokerNdRebatePerOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostBrokerNdRebatePerOrders'] (params); }
+    privatePostFinanceStakingDefiPurchase (params?: {}): Promise<implicitReturnType> { return this['privatePostFinanceStakingDefiPurchase'] (params); }
+    privatePostFinanceStakingDefiRedeem (params?: {}): Promise<implicitReturnType> { return this['privatePostFinanceStakingDefiRedeem'] (params); }
+    privatePostFinanceStakingDefiCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostFinanceStakingDefiCancel'] (params); }
+    privatePostFinanceSavingsPurchaseRedempt (params?: {}): Promise<implicitReturnType> { return this['privatePostFinanceSavingsPurchaseRedempt'] (params); }
+    privatePostFinanceSavingsSetLendingRate (params?: {}): Promise<implicitReturnType> { return this['privatePostFinanceSavingsSetLendingRate'] (params); }
+    privatePostRfqCreateRfq (params?: {}): Promise<implicitReturnType> { return this['privatePostRfqCreateRfq'] (params); }
+    privatePostRfqCancelRfq (params?: {}): Promise<implicitReturnType> { return this['privatePostRfqCancelRfq'] (params); }
+    privatePostRfqCancelBatchRfqs (params?: {}): Promise<implicitReturnType> { return this['privatePostRfqCancelBatchRfqs'] (params); }
+    privatePostRfqCancelAllRfqs (params?: {}): Promise<implicitReturnType> { return this['privatePostRfqCancelAllRfqs'] (params); }
+    privatePostRfqExecuteQuote (params?: {}): Promise<implicitReturnType> { return this['privatePostRfqExecuteQuote'] (params); }
+    privatePostRfqMakerInstrumentSettings (params?: {}): Promise<implicitReturnType> { return this['privatePostRfqMakerInstrumentSettings'] (params); }
+    privatePostRfqMmpReset (params?: {}): Promise<implicitReturnType> { return this['privatePostRfqMmpReset'] (params); }
+    privatePostRfqCreateQuote (params?: {}): Promise<implicitReturnType> { return this['privatePostRfqCreateQuote'] (params); }
+    privatePostRfqCancelQuote (params?: {}): Promise<implicitReturnType> { return this['privatePostRfqCancelQuote'] (params); }
+    privatePostRfqCancelBatchQuotes (params?: {}): Promise<implicitReturnType> { return this['privatePostRfqCancelBatchQuotes'] (params); }
+    privatePostRfqCancelAllQuotes (params?: {}): Promise<implicitReturnType> { return this['privatePostRfqCancelAllQuotes'] (params); }
+    privatePostCopytradingAlgoOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostCopytradingAlgoOrder'] (params); }
+    privatePostCopytradingCloseSubposition (params?: {}): Promise<implicitReturnType> { return this['privatePostCopytradingCloseSubposition'] (params); }
+    privatePostCopytradingSetInstruments (params?: {}): Promise<implicitReturnType> { return this['privatePostCopytradingSetInstruments'] (params); }
+    privatePostTradingBotGridOrderAlgo (params?: {}): Promise<implicitReturnType> { return this['privatePostTradingBotGridOrderAlgo'] (params); }
+    privatePostTradingBotGridAmendOrderAlgo (params?: {}): Promise<implicitReturnType> { return this['privatePostTradingBotGridAmendOrderAlgo'] (params); }
+    privatePostTradingBotGridStopOrderAlgo (params?: {}): Promise<implicitReturnType> { return this['privatePostTradingBotGridStopOrderAlgo'] (params); }
+    privatePostTradingBotGridWithdrawIncome (params?: {}): Promise<implicitReturnType> { return this['privatePostTradingBotGridWithdrawIncome'] (params); }
+    privatePostTradingBotGridComputeMarginBalance (params?: {}): Promise<implicitReturnType> { return this['privatePostTradingBotGridComputeMarginBalance'] (params); }
+    privatePostTradingBotGridMarginBalance (params?: {}): Promise<implicitReturnType> { return this['privatePostTradingBotGridMarginBalance'] (params); }
 }

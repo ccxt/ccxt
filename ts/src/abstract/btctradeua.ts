@@ -8,18 +8,18 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetDealsSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTradesSellSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTradesBuySymbol (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetJapanStatHighSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuth (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAskSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBidSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBuySymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMyOrdersSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderStatusId (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRemoveOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostSellSymbol (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetDealsSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetDealsSymbol'] (params); }
+    publicGetTradesSellSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetTradesSellSymbol'] (params); }
+    publicGetTradesBuySymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetTradesBuySymbol'] (params); }
+    publicGetJapanStatHighSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetJapanStatHighSymbol'] (params); }
+    privatePostAuth (params?: {}): Promise<implicitReturnType> { return this['privatePostAuth'] (params); }
+    privatePostAskSymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostAskSymbol'] (params); }
+    privatePostBalance (params?: {}): Promise<implicitReturnType> { return this['privatePostBalance'] (params); }
+    privatePostBidSymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostBidSymbol'] (params); }
+    privatePostBuySymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostBuySymbol'] (params); }
+    privatePostMyOrdersSymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostMyOrdersSymbol'] (params); }
+    privatePostOrderStatusId (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderStatusId'] (params); }
+    privatePostRemoveOrderId (params?: {}): Promise<implicitReturnType> { return this['privatePostRemoveOrderId'] (params); }
+    privatePostSellSymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostSellSymbol'] (params); }
 }

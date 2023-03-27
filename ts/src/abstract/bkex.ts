@@ -8,59 +8,59 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicSpotGetCommonSymbols (params?: {}): Promise<implicitReturnType>;
-    abstract publicSpotGetCommonCurrencys (params?: {}): Promise<implicitReturnType>;
-    abstract publicSpotGetCommonTimestamp (params?: {}): Promise<implicitReturnType>;
-    abstract publicSpotGetQKline (params?: {}): Promise<implicitReturnType>;
-    abstract publicSpotGetQTickers (params?: {}): Promise<implicitReturnType>;
-    abstract publicSpotGetQTickerPrice (params?: {}): Promise<implicitReturnType>;
-    abstract publicSpotGetQDepth (params?: {}): Promise<implicitReturnType>;
-    abstract publicSpotGetQDeals (params?: {}): Promise<implicitReturnType>;
-    abstract publicSwapGetMarketCandle (params?: {}): Promise<implicitReturnType>;
-    abstract publicSwapGetMarketDeals (params?: {}): Promise<implicitReturnType>;
-    abstract publicSwapGetMarketDepth (params?: {}): Promise<implicitReturnType>;
-    abstract publicSwapGetMarketFundingRate (params?: {}): Promise<implicitReturnType>;
-    abstract publicSwapGetMarketIndex (params?: {}): Promise<implicitReturnType>;
-    abstract publicSwapGetMarketRiskLimit (params?: {}): Promise<implicitReturnType>;
-    abstract publicSwapGetMarketSymbols (params?: {}): Promise<implicitReturnType>;
-    abstract publicSwapGetMarketTickerPrice (params?: {}): Promise<implicitReturnType>;
-    abstract publicSwapGetMarketTickers (params?: {}): Promise<implicitReturnType>;
-    abstract publicSwapGetServerPing (params?: {}): Promise<implicitReturnType>;
-    abstract privateSpotGetUApiInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privateSpotGetUAccountBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privateSpotGetUWalletAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privateSpotGetUWalletDepositRecord (params?: {}): Promise<implicitReturnType>;
-    abstract privateSpotGetUWalletWithdrawRecord (params?: {}): Promise<implicitReturnType>;
-    abstract privateSpotGetUOrderOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateSpotGetUOrderOpenOrderDetail (params?: {}): Promise<implicitReturnType>;
-    abstract privateSpotGetUOrderHistoryOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateSpotPostUAccountTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract privateSpotPostUWalletWithdraw (params?: {}): Promise<implicitReturnType>;
-    abstract privateSpotPostUOrderCreate (params?: {}): Promise<implicitReturnType>;
-    abstract privateSpotPostUOrderCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privateSpotPostUOrderBatchCreate (params?: {}): Promise<implicitReturnType>;
-    abstract privateSpotPostUOrderBatchCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapGetAccountBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapGetAccountBalanceRecord (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapGetAccountOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapGetAccountOrderForced (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapGetAccountPosition (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapGetEntrustFinished (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapGetEntrustUnFinish (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapGetOrderFinished (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapGetOrderFinishedInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapGetOrderUnFinish (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapGetPositionInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapPostAccountSetLeverage (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapPostEntrustAdd (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapPostEntrustCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapPostOrderBatchCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapPostOrderBatchOpen (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapPostOrderCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapPostOrderClose (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapPostOrderCloseAll (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapPostOrderOpen (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapPostPositionSetSpSl (params?: {}): Promise<implicitReturnType>;
-    abstract privateSwapPostPositionUpdate (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicSpotGetCommonSymbols (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetCommonSymbols'] (params); }
+    publicSpotGetCommonCurrencys (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetCommonCurrencys'] (params); }
+    publicSpotGetCommonTimestamp (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetCommonTimestamp'] (params); }
+    publicSpotGetQKline (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetQKline'] (params); }
+    publicSpotGetQTickers (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetQTickers'] (params); }
+    publicSpotGetQTickerPrice (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetQTickerPrice'] (params); }
+    publicSpotGetQDepth (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetQDepth'] (params); }
+    publicSpotGetQDeals (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetQDeals'] (params); }
+    publicSwapGetMarketCandle (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetMarketCandle'] (params); }
+    publicSwapGetMarketDeals (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetMarketDeals'] (params); }
+    publicSwapGetMarketDepth (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetMarketDepth'] (params); }
+    publicSwapGetMarketFundingRate (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetMarketFundingRate'] (params); }
+    publicSwapGetMarketIndex (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetMarketIndex'] (params); }
+    publicSwapGetMarketRiskLimit (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetMarketRiskLimit'] (params); }
+    publicSwapGetMarketSymbols (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetMarketSymbols'] (params); }
+    publicSwapGetMarketTickerPrice (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetMarketTickerPrice'] (params); }
+    publicSwapGetMarketTickers (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetMarketTickers'] (params); }
+    publicSwapGetServerPing (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetServerPing'] (params); }
+    privateSpotGetUApiInfo (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetUApiInfo'] (params); }
+    privateSpotGetUAccountBalance (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetUAccountBalance'] (params); }
+    privateSpotGetUWalletAddress (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetUWalletAddress'] (params); }
+    privateSpotGetUWalletDepositRecord (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetUWalletDepositRecord'] (params); }
+    privateSpotGetUWalletWithdrawRecord (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetUWalletWithdrawRecord'] (params); }
+    privateSpotGetUOrderOpenOrders (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetUOrderOpenOrders'] (params); }
+    privateSpotGetUOrderOpenOrderDetail (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetUOrderOpenOrderDetail'] (params); }
+    privateSpotGetUOrderHistoryOrders (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetUOrderHistoryOrders'] (params); }
+    privateSpotPostUAccountTransfer (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostUAccountTransfer'] (params); }
+    privateSpotPostUWalletWithdraw (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostUWalletWithdraw'] (params); }
+    privateSpotPostUOrderCreate (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostUOrderCreate'] (params); }
+    privateSpotPostUOrderCancel (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostUOrderCancel'] (params); }
+    privateSpotPostUOrderBatchCreate (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostUOrderBatchCreate'] (params); }
+    privateSpotPostUOrderBatchCancel (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostUOrderBatchCancel'] (params); }
+    privateSwapGetAccountBalance (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetAccountBalance'] (params); }
+    privateSwapGetAccountBalanceRecord (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetAccountBalanceRecord'] (params); }
+    privateSwapGetAccountOrder (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetAccountOrder'] (params); }
+    privateSwapGetAccountOrderForced (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetAccountOrderForced'] (params); }
+    privateSwapGetAccountPosition (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetAccountPosition'] (params); }
+    privateSwapGetEntrustFinished (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetEntrustFinished'] (params); }
+    privateSwapGetEntrustUnFinish (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetEntrustUnFinish'] (params); }
+    privateSwapGetOrderFinished (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetOrderFinished'] (params); }
+    privateSwapGetOrderFinishedInfo (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetOrderFinishedInfo'] (params); }
+    privateSwapGetOrderUnFinish (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetOrderUnFinish'] (params); }
+    privateSwapGetPositionInfo (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetPositionInfo'] (params); }
+    privateSwapPostAccountSetLeverage (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostAccountSetLeverage'] (params); }
+    privateSwapPostEntrustAdd (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostEntrustAdd'] (params); }
+    privateSwapPostEntrustCancel (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostEntrustCancel'] (params); }
+    privateSwapPostOrderBatchCancel (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostOrderBatchCancel'] (params); }
+    privateSwapPostOrderBatchOpen (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostOrderBatchOpen'] (params); }
+    privateSwapPostOrderCancel (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostOrderCancel'] (params); }
+    privateSwapPostOrderClose (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostOrderClose'] (params); }
+    privateSwapPostOrderCloseAll (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostOrderCloseAll'] (params); }
+    privateSwapPostOrderOpen (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostOrderOpen'] (params); }
+    privateSwapPostPositionSetSpSl (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostPositionSetSpSl'] (params); }
+    privateSwapPostPositionUpdate (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostPositionUpdate'] (params); }
 }

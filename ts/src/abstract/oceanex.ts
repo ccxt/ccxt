@@ -8,23 +8,23 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetMarkets (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickersPair (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickersMulti (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderBook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderBookMulti (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetFeesTrading (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTimestamp (params?: {}): Promise<implicitReturnType>;
-    abstract publicPostK (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetKey (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetMembersMe (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrdersFilter (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrdersMulti (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderDelete (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderDeleteMulti (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrdersClear (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetMarkets (params?: {}): Promise<implicitReturnType> { return this['publicGetMarkets'] (params); }
+    publicGetTickersPair (params?: {}): Promise<implicitReturnType> { return this['publicGetTickersPair'] (params); }
+    publicGetTickersMulti (params?: {}): Promise<implicitReturnType> { return this['publicGetTickersMulti'] (params); }
+    publicGetOrderBook (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderBook'] (params); }
+    publicGetOrderBookMulti (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderBookMulti'] (params); }
+    publicGetFeesTrading (params?: {}): Promise<implicitReturnType> { return this['publicGetFeesTrading'] (params); }
+    publicGetTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetTrades'] (params); }
+    publicGetTimestamp (params?: {}): Promise<implicitReturnType> { return this['publicGetTimestamp'] (params); }
+    publicPostK (params?: {}): Promise<implicitReturnType> { return this['publicPostK'] (params); }
+    privateGetKey (params?: {}): Promise<implicitReturnType> { return this['privateGetKey'] (params); }
+    privateGetMembersMe (params?: {}): Promise<implicitReturnType> { return this['privateGetMembersMe'] (params); }
+    privateGetOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetOrders'] (params); }
+    privateGetOrdersFilter (params?: {}): Promise<implicitReturnType> { return this['privateGetOrdersFilter'] (params); }
+    privatePostOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOrders'] (params); }
+    privatePostOrdersMulti (params?: {}): Promise<implicitReturnType> { return this['privatePostOrdersMulti'] (params); }
+    privatePostOrderDelete (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderDelete'] (params); }
+    privatePostOrderDeleteMulti (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderDeleteMulti'] (params); }
+    privatePostOrdersClear (params?: {}): Promise<implicitReturnType> { return this['privatePostOrdersClear'] (params); }
 }

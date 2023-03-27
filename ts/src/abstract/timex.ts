@@ -8,63 +8,63 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract addressbookGetMe (params?: {}): Promise<implicitReturnType>;
-    abstract addressbookPost (params?: {}): Promise<implicitReturnType>;
-    abstract addressbookPostIdId (params?: {}): Promise<implicitReturnType>;
-    abstract addressbookPostIdIdRemove (params?: {}): Promise<implicitReturnType>;
-    abstract custodyGetCredentials (params?: {}): Promise<implicitReturnType>;
-    abstract custodyGetCredentialsHHash (params?: {}): Promise<implicitReturnType>;
-    abstract custodyGetCredentialsKKey (params?: {}): Promise<implicitReturnType>;
-    abstract custodyGetCredentialsMe (params?: {}): Promise<implicitReturnType>;
-    abstract custodyGetCredentialsMeAddress (params?: {}): Promise<implicitReturnType>;
-    abstract custodyGetDepositAddresses (params?: {}): Promise<implicitReturnType>;
-    abstract custodyGetDepositAddressesHHash (params?: {}): Promise<implicitReturnType>;
-    abstract historyGetOrders (params?: {}): Promise<implicitReturnType>;
-    abstract historyGetOrdersDetails (params?: {}): Promise<implicitReturnType>;
-    abstract historyGetOrdersExportCsv (params?: {}): Promise<implicitReturnType>;
-    abstract historyGetTrades (params?: {}): Promise<implicitReturnType>;
-    abstract historyGetTradesExportCsv (params?: {}): Promise<implicitReturnType>;
-    abstract currenciesGetAAddress (params?: {}): Promise<implicitReturnType>;
-    abstract currenciesGetIId (params?: {}): Promise<implicitReturnType>;
-    abstract currenciesGetSSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract currenciesPostPerform (params?: {}): Promise<implicitReturnType>;
-    abstract currenciesPostPrepare (params?: {}): Promise<implicitReturnType>;
-    abstract currenciesPostRemovePerform (params?: {}): Promise<implicitReturnType>;
-    abstract currenciesPostSSymbolRemovePrepare (params?: {}): Promise<implicitReturnType>;
-    abstract currenciesPostSSymbolUpdatePerform (params?: {}): Promise<implicitReturnType>;
-    abstract currenciesPostSSymbolUpdatePrepare (params?: {}): Promise<implicitReturnType>;
-    abstract managerGetDeposits (params?: {}): Promise<implicitReturnType>;
-    abstract managerGetTransfers (params?: {}): Promise<implicitReturnType>;
-    abstract managerGetWithdrawals (params?: {}): Promise<implicitReturnType>;
-    abstract marketsGetIId (params?: {}): Promise<implicitReturnType>;
-    abstract marketsGetSSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract marketsPostPerform (params?: {}): Promise<implicitReturnType>;
-    abstract marketsPostPrepare (params?: {}): Promise<implicitReturnType>;
-    abstract marketsPostRemovePerform (params?: {}): Promise<implicitReturnType>;
-    abstract marketsPostSSymbolRemovePrepare (params?: {}): Promise<implicitReturnType>;
-    abstract marketsPostSSymbolUpdatePerform (params?: {}): Promise<implicitReturnType>;
-    abstract marketsPostSSymbolUpdatePrepare (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandles (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCurrencies (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarkets (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderbookRaw (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderbookV2 (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickers (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    abstract statisticsGetAddress (params?: {}): Promise<implicitReturnType>;
-    abstract tradingGetBalances (params?: {}): Promise<implicitReturnType>;
-    abstract tradingGetFees (params?: {}): Promise<implicitReturnType>;
-    abstract tradingGetOrders (params?: {}): Promise<implicitReturnType>;
-    abstract tradingPostOrders (params?: {}): Promise<implicitReturnType>;
-    abstract tradingPostOrdersJson (params?: {}): Promise<implicitReturnType>;
-    abstract tradingPutOrders (params?: {}): Promise<implicitReturnType>;
-    abstract tradingPutOrdersJson (params?: {}): Promise<implicitReturnType>;
-    abstract tradingDeleteOrders (params?: {}): Promise<implicitReturnType>;
-    abstract tradingDeleteOrdersJson (params?: {}): Promise<implicitReturnType>;
-    abstract tradingviewGetConfig (params?: {}): Promise<implicitReturnType>;
-    abstract tradingviewGetHistory (params?: {}): Promise<implicitReturnType>;
-    abstract tradingviewGetSymbolInfo (params?: {}): Promise<implicitReturnType>;
-    abstract tradingviewGetTime (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    addressbookGetMe (params?: {}): Promise<implicitReturnType> { return this['addressbookGetMe'] (params); }
+    addressbookPost (params?: {}): Promise<implicitReturnType> { return this['addressbookPost'] (params); }
+    addressbookPostIdId (params?: {}): Promise<implicitReturnType> { return this['addressbookPostIdId'] (params); }
+    addressbookPostIdIdRemove (params?: {}): Promise<implicitReturnType> { return this['addressbookPostIdIdRemove'] (params); }
+    custodyGetCredentials (params?: {}): Promise<implicitReturnType> { return this['custodyGetCredentials'] (params); }
+    custodyGetCredentialsHHash (params?: {}): Promise<implicitReturnType> { return this['custodyGetCredentialsHHash'] (params); }
+    custodyGetCredentialsKKey (params?: {}): Promise<implicitReturnType> { return this['custodyGetCredentialsKKey'] (params); }
+    custodyGetCredentialsMe (params?: {}): Promise<implicitReturnType> { return this['custodyGetCredentialsMe'] (params); }
+    custodyGetCredentialsMeAddress (params?: {}): Promise<implicitReturnType> { return this['custodyGetCredentialsMeAddress'] (params); }
+    custodyGetDepositAddresses (params?: {}): Promise<implicitReturnType> { return this['custodyGetDepositAddresses'] (params); }
+    custodyGetDepositAddressesHHash (params?: {}): Promise<implicitReturnType> { return this['custodyGetDepositAddressesHHash'] (params); }
+    historyGetOrders (params?: {}): Promise<implicitReturnType> { return this['historyGetOrders'] (params); }
+    historyGetOrdersDetails (params?: {}): Promise<implicitReturnType> { return this['historyGetOrdersDetails'] (params); }
+    historyGetOrdersExportCsv (params?: {}): Promise<implicitReturnType> { return this['historyGetOrdersExportCsv'] (params); }
+    historyGetTrades (params?: {}): Promise<implicitReturnType> { return this['historyGetTrades'] (params); }
+    historyGetTradesExportCsv (params?: {}): Promise<implicitReturnType> { return this['historyGetTradesExportCsv'] (params); }
+    currenciesGetAAddress (params?: {}): Promise<implicitReturnType> { return this['currenciesGetAAddress'] (params); }
+    currenciesGetIId (params?: {}): Promise<implicitReturnType> { return this['currenciesGetIId'] (params); }
+    currenciesGetSSymbol (params?: {}): Promise<implicitReturnType> { return this['currenciesGetSSymbol'] (params); }
+    currenciesPostPerform (params?: {}): Promise<implicitReturnType> { return this['currenciesPostPerform'] (params); }
+    currenciesPostPrepare (params?: {}): Promise<implicitReturnType> { return this['currenciesPostPrepare'] (params); }
+    currenciesPostRemovePerform (params?: {}): Promise<implicitReturnType> { return this['currenciesPostRemovePerform'] (params); }
+    currenciesPostSSymbolRemovePrepare (params?: {}): Promise<implicitReturnType> { return this['currenciesPostSSymbolRemovePrepare'] (params); }
+    currenciesPostSSymbolUpdatePerform (params?: {}): Promise<implicitReturnType> { return this['currenciesPostSSymbolUpdatePerform'] (params); }
+    currenciesPostSSymbolUpdatePrepare (params?: {}): Promise<implicitReturnType> { return this['currenciesPostSSymbolUpdatePrepare'] (params); }
+    managerGetDeposits (params?: {}): Promise<implicitReturnType> { return this['managerGetDeposits'] (params); }
+    managerGetTransfers (params?: {}): Promise<implicitReturnType> { return this['managerGetTransfers'] (params); }
+    managerGetWithdrawals (params?: {}): Promise<implicitReturnType> { return this['managerGetWithdrawals'] (params); }
+    marketsGetIId (params?: {}): Promise<implicitReturnType> { return this['marketsGetIId'] (params); }
+    marketsGetSSymbol (params?: {}): Promise<implicitReturnType> { return this['marketsGetSSymbol'] (params); }
+    marketsPostPerform (params?: {}): Promise<implicitReturnType> { return this['marketsPostPerform'] (params); }
+    marketsPostPrepare (params?: {}): Promise<implicitReturnType> { return this['marketsPostPrepare'] (params); }
+    marketsPostRemovePerform (params?: {}): Promise<implicitReturnType> { return this['marketsPostRemovePerform'] (params); }
+    marketsPostSSymbolRemovePrepare (params?: {}): Promise<implicitReturnType> { return this['marketsPostSSymbolRemovePrepare'] (params); }
+    marketsPostSSymbolUpdatePerform (params?: {}): Promise<implicitReturnType> { return this['marketsPostSSymbolUpdatePerform'] (params); }
+    marketsPostSSymbolUpdatePrepare (params?: {}): Promise<implicitReturnType> { return this['marketsPostSSymbolUpdatePrepare'] (params); }
+    publicGetCandles (params?: {}): Promise<implicitReturnType> { return this['publicGetCandles'] (params); }
+    publicGetCurrencies (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencies'] (params); }
+    publicGetMarkets (params?: {}): Promise<implicitReturnType> { return this['publicGetMarkets'] (params); }
+    publicGetOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderbook'] (params); }
+    publicGetOrderbookRaw (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderbookRaw'] (params); }
+    publicGetOrderbookV2 (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderbookV2'] (params); }
+    publicGetTickers (params?: {}): Promise<implicitReturnType> { return this['publicGetTickers'] (params); }
+    publicGetTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetTrades'] (params); }
+    statisticsGetAddress (params?: {}): Promise<implicitReturnType> { return this['statisticsGetAddress'] (params); }
+    tradingGetBalances (params?: {}): Promise<implicitReturnType> { return this['tradingGetBalances'] (params); }
+    tradingGetFees (params?: {}): Promise<implicitReturnType> { return this['tradingGetFees'] (params); }
+    tradingGetOrders (params?: {}): Promise<implicitReturnType> { return this['tradingGetOrders'] (params); }
+    tradingPostOrders (params?: {}): Promise<implicitReturnType> { return this['tradingPostOrders'] (params); }
+    tradingPostOrdersJson (params?: {}): Promise<implicitReturnType> { return this['tradingPostOrdersJson'] (params); }
+    tradingPutOrders (params?: {}): Promise<implicitReturnType> { return this['tradingPutOrders'] (params); }
+    tradingPutOrdersJson (params?: {}): Promise<implicitReturnType> { return this['tradingPutOrdersJson'] (params); }
+    tradingDeleteOrders (params?: {}): Promise<implicitReturnType> { return this['tradingDeleteOrders'] (params); }
+    tradingDeleteOrdersJson (params?: {}): Promise<implicitReturnType> { return this['tradingDeleteOrdersJson'] (params); }
+    tradingviewGetConfig (params?: {}): Promise<implicitReturnType> { return this['tradingviewGetConfig'] (params); }
+    tradingviewGetHistory (params?: {}): Promise<implicitReturnType> { return this['tradingviewGetHistory'] (params); }
+    tradingviewGetSymbolInfo (params?: {}): Promise<implicitReturnType> { return this['tradingviewGetSymbolInfo'] (params); }
+    tradingviewGetTime (params?: {}): Promise<implicitReturnType> { return this['tradingviewGetTime'] (params); }
 }

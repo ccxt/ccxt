@@ -8,147 +8,147 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract matcherGetMatcher (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherSettings (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherSettingsRates (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherBalanceReservedPublicKey (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherDebugAllSnashotOffsets (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherDebugCurrentOffset (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherDebugLastOffset (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherDebugOldestSnapshotOffset (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherOrderbookAmountAssetPriceAsset (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherOrderbookBaseIdQuoteIdOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherOrderbookBaseIdQuoteIdInfo (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherOrderbookBaseIdQuoteIdStatus (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherOrderbookBaseIdQuoteIdTradeableBalanceAddress (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherOrderbookPublicKey (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherOrderbookPublicKeyOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherOrdersAddress (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherOrdersAddressOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract matcherGetMatcherTransactionsOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract matcherPostMatcherOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract matcherPostMatcherOrderbookMarket (params?: {}): Promise<implicitReturnType>;
-    abstract matcherPostMatcherOrderbookCancel (params?: {}): Promise<implicitReturnType>;
-    abstract matcherPostMatcherOrderbookBaseIdQuoteIdCancel (params?: {}): Promise<implicitReturnType>;
-    abstract matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee (params?: {}): Promise<implicitReturnType>;
-    abstract matcherPostMatcherDebugSaveSnapshots (params?: {}): Promise<implicitReturnType>;
-    abstract matcherPostMatcherOrdersAddressCancel (params?: {}): Promise<implicitReturnType>;
-    abstract matcherPostMatcherOrdersCancelOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract matcherDeleteMatcherOrderbookBaseIdQuoteId (params?: {}): Promise<implicitReturnType>;
-    abstract matcherDeleteMatcherSettingsRatesAssetId (params?: {}): Promise<implicitReturnType>;
-    abstract matcherPutMatcherSettingsRatesAssetId (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAddresses (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAddressesBalanceAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAddressesBalanceAddressConfirmations (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAddressesBalanceDetailsAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAddressesDataAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAddressesDataAddressKey (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAddressesEffectiveBalanceAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAddressesEffectiveBalanceAddressConfirmations (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAddressesPublicKeyPublicKey (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAddressesScriptInfoAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAddressesScriptInfoAddressMeta (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAddressesSeedAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAddressesSeqFromTo (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAddressesValidateAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAliasByAddressAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAliasByAliasAlias (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAssetsAssetIdDistributionHeightLimit (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAssetsBalanceAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAssetsBalanceAddressAssetId (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAssetsDetailsAssetId (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetAssetsNftAddressLimitLimit (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetBlockchainRewards (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetBlockchainRewardsHeight (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetBlocksAddressAddressFromTo (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetBlocksAtHeight (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetBlocksDelaySignatureBlockNum (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetBlocksFirst (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetBlocksHeadersLast (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetBlocksHeadersSeqFromTo (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetBlocksHeight (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetBlocksHeightSignature (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetBlocksLast (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetBlocksSeqFromTo (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetBlocksSignatureSignature (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetConsensusAlgo (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetConsensusBasetarget (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetConsensusBasetargetBlockId (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetConsensusGeneratingbalanceAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetConsensusGenerationsignature (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetConsensusGenerationsignatureBlockId (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetDebugBalancesHistoryAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetDebugBlocksHowMany (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetDebugConfigInfo (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetDebugHistoryInfo (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetDebugInfo (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetDebugMinerInfo (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetDebugPortfoliosAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetDebugState (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetDebugStateChangesAddressAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetDebugStateChangesInfoId (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetDebugStateWavesHeight (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetLeasingActiveAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetNodeState (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetNodeVersion (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetPeersAll (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetPeersBlacklisted (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetPeersConnected (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetPeersSuspended (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetTransactionsAddressAddressLimitLimit (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetTransactionsInfoId (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetTransactionsStatus (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetTransactionsUnconfirmed (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetTransactionsUnconfirmedInfoId (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetTransactionsUnconfirmedSize (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetUtilsSeed (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetUtilsSeedLength (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetUtilsTime (params?: {}): Promise<implicitReturnType>;
-    abstract nodeGetWalletSeed (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostAddresses (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostAddressesDataAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostAddressesSignAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostAddressesSignTextAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostAddressesVerifyAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostAddressesVerifyTextAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostDebugBlacklist (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostDebugPrint (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostDebugRollback (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostDebugValidate (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostNodeStop (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostPeersClearblacklist (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostPeersConnect (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostTransactionsBroadcast (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostTransactionsCalculateFee (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostTranasctionsSign (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostTransactionsSignSignerAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostTranasctionsStatus (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostUtilsHashFast (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostUtilsHashSecure (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostUtilsScriptCompileCode (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostUtilsScriptCompileWithImports (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostUtilsScriptDecompile (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostUtilsScriptEstimate (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostUtilsSignPrivateKey (params?: {}): Promise<implicitReturnType>;
-    abstract nodePostUtilsTransactionsSerialize (params?: {}): Promise<implicitReturnType>;
-    abstract nodeDeleteAddressesAddress (params?: {}): Promise<implicitReturnType>;
-    abstract nodeDeleteDebugRollbackToSignature (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetAssets (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPairs (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandlesBaseIdQuoteId (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTransactionsExchange (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDepositAddressesCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDepositAddressesCurrencyPlatform (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetPlatforms (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDepositCurrencies (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdrawCurrencies (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdrawAddressesCurrencyAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOauth2Token (params?: {}): Promise<implicitReturnType>;
-    abstract forwardGetMatcherOrdersAddress (params?: {}): Promise<implicitReturnType>;
-    abstract forwardGetMatcherOrdersAddressOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract forwardPostMatcherOrdersWavesAddressCancel (params?: {}): Promise<implicitReturnType>;
-    abstract marketGetTickers (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    matcherGetMatcher (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcher'] (params); }
+    matcherGetMatcherSettings (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherSettings'] (params); }
+    matcherGetMatcherSettingsRates (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherSettingsRates'] (params); }
+    matcherGetMatcherBalanceReservedPublicKey (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherBalanceReservedPublicKey'] (params); }
+    matcherGetMatcherDebugAllSnashotOffsets (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherDebugAllSnashotOffsets'] (params); }
+    matcherGetMatcherDebugCurrentOffset (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherDebugCurrentOffset'] (params); }
+    matcherGetMatcherDebugLastOffset (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherDebugLastOffset'] (params); }
+    matcherGetMatcherDebugOldestSnapshotOffset (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherDebugOldestSnapshotOffset'] (params); }
+    matcherGetMatcherOrderbook (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherOrderbook'] (params); }
+    matcherGetMatcherOrderbookAmountAssetPriceAsset (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherOrderbookAmountAssetPriceAsset'] (params); }
+    matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey'] (params); }
+    matcherGetMatcherOrderbookBaseIdQuoteIdOrderId (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherOrderbookBaseIdQuoteIdOrderId'] (params); }
+    matcherGetMatcherOrderbookBaseIdQuoteIdInfo (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherOrderbookBaseIdQuoteIdInfo'] (params); }
+    matcherGetMatcherOrderbookBaseIdQuoteIdStatus (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherOrderbookBaseIdQuoteIdStatus'] (params); }
+    matcherGetMatcherOrderbookBaseIdQuoteIdTradeableBalanceAddress (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherOrderbookBaseIdQuoteIdTradeableBalanceAddress'] (params); }
+    matcherGetMatcherOrderbookPublicKey (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherOrderbookPublicKey'] (params); }
+    matcherGetMatcherOrderbookPublicKeyOrderId (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherOrderbookPublicKeyOrderId'] (params); }
+    matcherGetMatcherOrdersAddress (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherOrdersAddress'] (params); }
+    matcherGetMatcherOrdersAddressOrderId (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherOrdersAddressOrderId'] (params); }
+    matcherGetMatcherTransactionsOrderId (params?: {}): Promise<implicitReturnType> { return this['matcherGetMatcherTransactionsOrderId'] (params); }
+    matcherPostMatcherOrderbook (params?: {}): Promise<implicitReturnType> { return this['matcherPostMatcherOrderbook'] (params); }
+    matcherPostMatcherOrderbookMarket (params?: {}): Promise<implicitReturnType> { return this['matcherPostMatcherOrderbookMarket'] (params); }
+    matcherPostMatcherOrderbookCancel (params?: {}): Promise<implicitReturnType> { return this['matcherPostMatcherOrderbookCancel'] (params); }
+    matcherPostMatcherOrderbookBaseIdQuoteIdCancel (params?: {}): Promise<implicitReturnType> { return this['matcherPostMatcherOrderbookBaseIdQuoteIdCancel'] (params); }
+    matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee (params?: {}): Promise<implicitReturnType> { return this['matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee'] (params); }
+    matcherPostMatcherDebugSaveSnapshots (params?: {}): Promise<implicitReturnType> { return this['matcherPostMatcherDebugSaveSnapshots'] (params); }
+    matcherPostMatcherOrdersAddressCancel (params?: {}): Promise<implicitReturnType> { return this['matcherPostMatcherOrdersAddressCancel'] (params); }
+    matcherPostMatcherOrdersCancelOrderId (params?: {}): Promise<implicitReturnType> { return this['matcherPostMatcherOrdersCancelOrderId'] (params); }
+    matcherDeleteMatcherOrderbookBaseIdQuoteId (params?: {}): Promise<implicitReturnType> { return this['matcherDeleteMatcherOrderbookBaseIdQuoteId'] (params); }
+    matcherDeleteMatcherSettingsRatesAssetId (params?: {}): Promise<implicitReturnType> { return this['matcherDeleteMatcherSettingsRatesAssetId'] (params); }
+    matcherPutMatcherSettingsRatesAssetId (params?: {}): Promise<implicitReturnType> { return this['matcherPutMatcherSettingsRatesAssetId'] (params); }
+    nodeGetAddresses (params?: {}): Promise<implicitReturnType> { return this['nodeGetAddresses'] (params); }
+    nodeGetAddressesBalanceAddress (params?: {}): Promise<implicitReturnType> { return this['nodeGetAddressesBalanceAddress'] (params); }
+    nodeGetAddressesBalanceAddressConfirmations (params?: {}): Promise<implicitReturnType> { return this['nodeGetAddressesBalanceAddressConfirmations'] (params); }
+    nodeGetAddressesBalanceDetailsAddress (params?: {}): Promise<implicitReturnType> { return this['nodeGetAddressesBalanceDetailsAddress'] (params); }
+    nodeGetAddressesDataAddress (params?: {}): Promise<implicitReturnType> { return this['nodeGetAddressesDataAddress'] (params); }
+    nodeGetAddressesDataAddressKey (params?: {}): Promise<implicitReturnType> { return this['nodeGetAddressesDataAddressKey'] (params); }
+    nodeGetAddressesEffectiveBalanceAddress (params?: {}): Promise<implicitReturnType> { return this['nodeGetAddressesEffectiveBalanceAddress'] (params); }
+    nodeGetAddressesEffectiveBalanceAddressConfirmations (params?: {}): Promise<implicitReturnType> { return this['nodeGetAddressesEffectiveBalanceAddressConfirmations'] (params); }
+    nodeGetAddressesPublicKeyPublicKey (params?: {}): Promise<implicitReturnType> { return this['nodeGetAddressesPublicKeyPublicKey'] (params); }
+    nodeGetAddressesScriptInfoAddress (params?: {}): Promise<implicitReturnType> { return this['nodeGetAddressesScriptInfoAddress'] (params); }
+    nodeGetAddressesScriptInfoAddressMeta (params?: {}): Promise<implicitReturnType> { return this['nodeGetAddressesScriptInfoAddressMeta'] (params); }
+    nodeGetAddressesSeedAddress (params?: {}): Promise<implicitReturnType> { return this['nodeGetAddressesSeedAddress'] (params); }
+    nodeGetAddressesSeqFromTo (params?: {}): Promise<implicitReturnType> { return this['nodeGetAddressesSeqFromTo'] (params); }
+    nodeGetAddressesValidateAddress (params?: {}): Promise<implicitReturnType> { return this['nodeGetAddressesValidateAddress'] (params); }
+    nodeGetAliasByAddressAddress (params?: {}): Promise<implicitReturnType> { return this['nodeGetAliasByAddressAddress'] (params); }
+    nodeGetAliasByAliasAlias (params?: {}): Promise<implicitReturnType> { return this['nodeGetAliasByAliasAlias'] (params); }
+    nodeGetAssetsAssetIdDistributionHeightLimit (params?: {}): Promise<implicitReturnType> { return this['nodeGetAssetsAssetIdDistributionHeightLimit'] (params); }
+    nodeGetAssetsBalanceAddress (params?: {}): Promise<implicitReturnType> { return this['nodeGetAssetsBalanceAddress'] (params); }
+    nodeGetAssetsBalanceAddressAssetId (params?: {}): Promise<implicitReturnType> { return this['nodeGetAssetsBalanceAddressAssetId'] (params); }
+    nodeGetAssetsDetailsAssetId (params?: {}): Promise<implicitReturnType> { return this['nodeGetAssetsDetailsAssetId'] (params); }
+    nodeGetAssetsNftAddressLimitLimit (params?: {}): Promise<implicitReturnType> { return this['nodeGetAssetsNftAddressLimitLimit'] (params); }
+    nodeGetBlockchainRewards (params?: {}): Promise<implicitReturnType> { return this['nodeGetBlockchainRewards'] (params); }
+    nodeGetBlockchainRewardsHeight (params?: {}): Promise<implicitReturnType> { return this['nodeGetBlockchainRewardsHeight'] (params); }
+    nodeGetBlocksAddressAddressFromTo (params?: {}): Promise<implicitReturnType> { return this['nodeGetBlocksAddressAddressFromTo'] (params); }
+    nodeGetBlocksAtHeight (params?: {}): Promise<implicitReturnType> { return this['nodeGetBlocksAtHeight'] (params); }
+    nodeGetBlocksDelaySignatureBlockNum (params?: {}): Promise<implicitReturnType> { return this['nodeGetBlocksDelaySignatureBlockNum'] (params); }
+    nodeGetBlocksFirst (params?: {}): Promise<implicitReturnType> { return this['nodeGetBlocksFirst'] (params); }
+    nodeGetBlocksHeadersLast (params?: {}): Promise<implicitReturnType> { return this['nodeGetBlocksHeadersLast'] (params); }
+    nodeGetBlocksHeadersSeqFromTo (params?: {}): Promise<implicitReturnType> { return this['nodeGetBlocksHeadersSeqFromTo'] (params); }
+    nodeGetBlocksHeight (params?: {}): Promise<implicitReturnType> { return this['nodeGetBlocksHeight'] (params); }
+    nodeGetBlocksHeightSignature (params?: {}): Promise<implicitReturnType> { return this['nodeGetBlocksHeightSignature'] (params); }
+    nodeGetBlocksLast (params?: {}): Promise<implicitReturnType> { return this['nodeGetBlocksLast'] (params); }
+    nodeGetBlocksSeqFromTo (params?: {}): Promise<implicitReturnType> { return this['nodeGetBlocksSeqFromTo'] (params); }
+    nodeGetBlocksSignatureSignature (params?: {}): Promise<implicitReturnType> { return this['nodeGetBlocksSignatureSignature'] (params); }
+    nodeGetConsensusAlgo (params?: {}): Promise<implicitReturnType> { return this['nodeGetConsensusAlgo'] (params); }
+    nodeGetConsensusBasetarget (params?: {}): Promise<implicitReturnType> { return this['nodeGetConsensusBasetarget'] (params); }
+    nodeGetConsensusBasetargetBlockId (params?: {}): Promise<implicitReturnType> { return this['nodeGetConsensusBasetargetBlockId'] (params); }
+    nodeGetConsensusGeneratingbalanceAddress (params?: {}): Promise<implicitReturnType> { return this['nodeGetConsensusGeneratingbalanceAddress'] (params); }
+    nodeGetConsensusGenerationsignature (params?: {}): Promise<implicitReturnType> { return this['nodeGetConsensusGenerationsignature'] (params); }
+    nodeGetConsensusGenerationsignatureBlockId (params?: {}): Promise<implicitReturnType> { return this['nodeGetConsensusGenerationsignatureBlockId'] (params); }
+    nodeGetDebugBalancesHistoryAddress (params?: {}): Promise<implicitReturnType> { return this['nodeGetDebugBalancesHistoryAddress'] (params); }
+    nodeGetDebugBlocksHowMany (params?: {}): Promise<implicitReturnType> { return this['nodeGetDebugBlocksHowMany'] (params); }
+    nodeGetDebugConfigInfo (params?: {}): Promise<implicitReturnType> { return this['nodeGetDebugConfigInfo'] (params); }
+    nodeGetDebugHistoryInfo (params?: {}): Promise<implicitReturnType> { return this['nodeGetDebugHistoryInfo'] (params); }
+    nodeGetDebugInfo (params?: {}): Promise<implicitReturnType> { return this['nodeGetDebugInfo'] (params); }
+    nodeGetDebugMinerInfo (params?: {}): Promise<implicitReturnType> { return this['nodeGetDebugMinerInfo'] (params); }
+    nodeGetDebugPortfoliosAddress (params?: {}): Promise<implicitReturnType> { return this['nodeGetDebugPortfoliosAddress'] (params); }
+    nodeGetDebugState (params?: {}): Promise<implicitReturnType> { return this['nodeGetDebugState'] (params); }
+    nodeGetDebugStateChangesAddressAddress (params?: {}): Promise<implicitReturnType> { return this['nodeGetDebugStateChangesAddressAddress'] (params); }
+    nodeGetDebugStateChangesInfoId (params?: {}): Promise<implicitReturnType> { return this['nodeGetDebugStateChangesInfoId'] (params); }
+    nodeGetDebugStateWavesHeight (params?: {}): Promise<implicitReturnType> { return this['nodeGetDebugStateWavesHeight'] (params); }
+    nodeGetLeasingActiveAddress (params?: {}): Promise<implicitReturnType> { return this['nodeGetLeasingActiveAddress'] (params); }
+    nodeGetNodeState (params?: {}): Promise<implicitReturnType> { return this['nodeGetNodeState'] (params); }
+    nodeGetNodeVersion (params?: {}): Promise<implicitReturnType> { return this['nodeGetNodeVersion'] (params); }
+    nodeGetPeersAll (params?: {}): Promise<implicitReturnType> { return this['nodeGetPeersAll'] (params); }
+    nodeGetPeersBlacklisted (params?: {}): Promise<implicitReturnType> { return this['nodeGetPeersBlacklisted'] (params); }
+    nodeGetPeersConnected (params?: {}): Promise<implicitReturnType> { return this['nodeGetPeersConnected'] (params); }
+    nodeGetPeersSuspended (params?: {}): Promise<implicitReturnType> { return this['nodeGetPeersSuspended'] (params); }
+    nodeGetTransactionsAddressAddressLimitLimit (params?: {}): Promise<implicitReturnType> { return this['nodeGetTransactionsAddressAddressLimitLimit'] (params); }
+    nodeGetTransactionsInfoId (params?: {}): Promise<implicitReturnType> { return this['nodeGetTransactionsInfoId'] (params); }
+    nodeGetTransactionsStatus (params?: {}): Promise<implicitReturnType> { return this['nodeGetTransactionsStatus'] (params); }
+    nodeGetTransactionsUnconfirmed (params?: {}): Promise<implicitReturnType> { return this['nodeGetTransactionsUnconfirmed'] (params); }
+    nodeGetTransactionsUnconfirmedInfoId (params?: {}): Promise<implicitReturnType> { return this['nodeGetTransactionsUnconfirmedInfoId'] (params); }
+    nodeGetTransactionsUnconfirmedSize (params?: {}): Promise<implicitReturnType> { return this['nodeGetTransactionsUnconfirmedSize'] (params); }
+    nodeGetUtilsSeed (params?: {}): Promise<implicitReturnType> { return this['nodeGetUtilsSeed'] (params); }
+    nodeGetUtilsSeedLength (params?: {}): Promise<implicitReturnType> { return this['nodeGetUtilsSeedLength'] (params); }
+    nodeGetUtilsTime (params?: {}): Promise<implicitReturnType> { return this['nodeGetUtilsTime'] (params); }
+    nodeGetWalletSeed (params?: {}): Promise<implicitReturnType> { return this['nodeGetWalletSeed'] (params); }
+    nodePostAddresses (params?: {}): Promise<implicitReturnType> { return this['nodePostAddresses'] (params); }
+    nodePostAddressesDataAddress (params?: {}): Promise<implicitReturnType> { return this['nodePostAddressesDataAddress'] (params); }
+    nodePostAddressesSignAddress (params?: {}): Promise<implicitReturnType> { return this['nodePostAddressesSignAddress'] (params); }
+    nodePostAddressesSignTextAddress (params?: {}): Promise<implicitReturnType> { return this['nodePostAddressesSignTextAddress'] (params); }
+    nodePostAddressesVerifyAddress (params?: {}): Promise<implicitReturnType> { return this['nodePostAddressesVerifyAddress'] (params); }
+    nodePostAddressesVerifyTextAddress (params?: {}): Promise<implicitReturnType> { return this['nodePostAddressesVerifyTextAddress'] (params); }
+    nodePostDebugBlacklist (params?: {}): Promise<implicitReturnType> { return this['nodePostDebugBlacklist'] (params); }
+    nodePostDebugPrint (params?: {}): Promise<implicitReturnType> { return this['nodePostDebugPrint'] (params); }
+    nodePostDebugRollback (params?: {}): Promise<implicitReturnType> { return this['nodePostDebugRollback'] (params); }
+    nodePostDebugValidate (params?: {}): Promise<implicitReturnType> { return this['nodePostDebugValidate'] (params); }
+    nodePostNodeStop (params?: {}): Promise<implicitReturnType> { return this['nodePostNodeStop'] (params); }
+    nodePostPeersClearblacklist (params?: {}): Promise<implicitReturnType> { return this['nodePostPeersClearblacklist'] (params); }
+    nodePostPeersConnect (params?: {}): Promise<implicitReturnType> { return this['nodePostPeersConnect'] (params); }
+    nodePostTransactionsBroadcast (params?: {}): Promise<implicitReturnType> { return this['nodePostTransactionsBroadcast'] (params); }
+    nodePostTransactionsCalculateFee (params?: {}): Promise<implicitReturnType> { return this['nodePostTransactionsCalculateFee'] (params); }
+    nodePostTranasctionsSign (params?: {}): Promise<implicitReturnType> { return this['nodePostTranasctionsSign'] (params); }
+    nodePostTransactionsSignSignerAddress (params?: {}): Promise<implicitReturnType> { return this['nodePostTransactionsSignSignerAddress'] (params); }
+    nodePostTranasctionsStatus (params?: {}): Promise<implicitReturnType> { return this['nodePostTranasctionsStatus'] (params); }
+    nodePostUtilsHashFast (params?: {}): Promise<implicitReturnType> { return this['nodePostUtilsHashFast'] (params); }
+    nodePostUtilsHashSecure (params?: {}): Promise<implicitReturnType> { return this['nodePostUtilsHashSecure'] (params); }
+    nodePostUtilsScriptCompileCode (params?: {}): Promise<implicitReturnType> { return this['nodePostUtilsScriptCompileCode'] (params); }
+    nodePostUtilsScriptCompileWithImports (params?: {}): Promise<implicitReturnType> { return this['nodePostUtilsScriptCompileWithImports'] (params); }
+    nodePostUtilsScriptDecompile (params?: {}): Promise<implicitReturnType> { return this['nodePostUtilsScriptDecompile'] (params); }
+    nodePostUtilsScriptEstimate (params?: {}): Promise<implicitReturnType> { return this['nodePostUtilsScriptEstimate'] (params); }
+    nodePostUtilsSignPrivateKey (params?: {}): Promise<implicitReturnType> { return this['nodePostUtilsSignPrivateKey'] (params); }
+    nodePostUtilsTransactionsSerialize (params?: {}): Promise<implicitReturnType> { return this['nodePostUtilsTransactionsSerialize'] (params); }
+    nodeDeleteAddressesAddress (params?: {}): Promise<implicitReturnType> { return this['nodeDeleteAddressesAddress'] (params); }
+    nodeDeleteDebugRollbackToSignature (params?: {}): Promise<implicitReturnType> { return this['nodeDeleteDebugRollbackToSignature'] (params); }
+    publicGetAssets (params?: {}): Promise<implicitReturnType> { return this['publicGetAssets'] (params); }
+    publicGetPairs (params?: {}): Promise<implicitReturnType> { return this['publicGetPairs'] (params); }
+    publicGetCandlesBaseIdQuoteId (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesBaseIdQuoteId'] (params); }
+    publicGetTransactionsExchange (params?: {}): Promise<implicitReturnType> { return this['publicGetTransactionsExchange'] (params); }
+    privateGetDepositAddressesCurrency (params?: {}): Promise<implicitReturnType> { return this['privateGetDepositAddressesCurrency'] (params); }
+    privateGetDepositAddressesCurrencyPlatform (params?: {}): Promise<implicitReturnType> { return this['privateGetDepositAddressesCurrencyPlatform'] (params); }
+    privateGetPlatforms (params?: {}): Promise<implicitReturnType> { return this['privateGetPlatforms'] (params); }
+    privateGetDepositCurrencies (params?: {}): Promise<implicitReturnType> { return this['privateGetDepositCurrencies'] (params); }
+    privateGetWithdrawCurrencies (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdrawCurrencies'] (params); }
+    privateGetWithdrawAddressesCurrencyAddress (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdrawAddressesCurrencyAddress'] (params); }
+    privatePostOauth2Token (params?: {}): Promise<implicitReturnType> { return this['privatePostOauth2Token'] (params); }
+    forwardGetMatcherOrdersAddress (params?: {}): Promise<implicitReturnType> { return this['forwardGetMatcherOrdersAddress'] (params); }
+    forwardGetMatcherOrdersAddressOrderId (params?: {}): Promise<implicitReturnType> { return this['forwardGetMatcherOrdersAddressOrderId'] (params); }
+    forwardPostMatcherOrdersWavesAddressCancel (params?: {}): Promise<implicitReturnType> { return this['forwardPostMatcherOrdersWavesAddressCancel'] (params); }
+    marketGetTickers (params?: {}): Promise<implicitReturnType> { return this['marketGetTickers'] (params); }
 }

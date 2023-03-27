@@ -10,7 +10,6 @@ import { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrde
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class lykke extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

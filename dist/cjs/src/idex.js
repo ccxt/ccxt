@@ -9,7 +9,6 @@ var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 class idex extends idex$1 {
     describe() {
         return this.deepExtend(super.describe(), {

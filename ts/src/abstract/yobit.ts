@@ -8,17 +8,17 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetDepthPair (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetInfo (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickerPair (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTradesPair (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostActiveOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGetDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGetInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTrade (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradeHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWithdrawCoinsToAddress (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetDepthPair (params?: {}): Promise<implicitReturnType> { return this['publicGetDepthPair'] (params); }
+    publicGetInfo (params?: {}): Promise<implicitReturnType> { return this['publicGetInfo'] (params); }
+    publicGetTickerPair (params?: {}): Promise<implicitReturnType> { return this['publicGetTickerPair'] (params); }
+    publicGetTradesPair (params?: {}): Promise<implicitReturnType> { return this['publicGetTradesPair'] (params); }
+    privatePostActiveOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostActiveOrders'] (params); }
+    privatePostCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelOrder'] (params); }
+    privatePostGetDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostGetDepositAddress'] (params); }
+    privatePostGetInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostGetInfo'] (params); }
+    privatePostOrderInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderInfo'] (params); }
+    privatePostTrade (params?: {}): Promise<implicitReturnType> { return this['privatePostTrade'] (params); }
+    privatePostTradeHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostTradeHistory'] (params); }
+    privatePostWithdrawCoinsToAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdrawCoinsToAddress'] (params); }
 }

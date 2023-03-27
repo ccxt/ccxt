@@ -8,51 +8,51 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetGetLastTradesByCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetLastTradesByInstrument (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetOrderBook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickers (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetInstruments (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetTradingviewChartData (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCmcSpotSummary (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCmcSpotTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCmcSpotOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCmcMarketTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCmcContracts (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCmcContractOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCoinGeckoSpotPairs (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCoinGeckoSpotTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCoinGeckoSpotOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCoinGeckoMarketTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCoinGeckoContracts (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCoinGeckoContractOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetPerpetualLeverageBracket (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetPerpetualLeverageBracketAll (params?: {}): Promise<implicitReturnType>;
-    abstract publicPostAuth (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetDepositRecord (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetWithdrawRecord (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetPosition (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetPositions (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetOpenOrdersByCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetOpenOrdersByInstrument (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetOrderHistoryByCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetOrderHistoryByInstrument (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetOrderState (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetUserTradesByCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetUserTradesByInstrument (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetUserTradesByOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetPerpetualUserConfig (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostLogout (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGetAssetsInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAddWithdrawAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBuy (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostSell (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelAllByCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelAllByInstrument (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostClosePosition (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAdjustPerpetualLeverage (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAdjustPerpetualMarginType (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostSubmitTransfer (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetGetLastTradesByCurrency (params?: {}): Promise<implicitReturnType> { return this['publicGetGetLastTradesByCurrency'] (params); }
+    publicGetGetLastTradesByInstrument (params?: {}): Promise<implicitReturnType> { return this['publicGetGetLastTradesByInstrument'] (params); }
+    publicGetGetOrderBook (params?: {}): Promise<implicitReturnType> { return this['publicGetGetOrderBook'] (params); }
+    publicGetTickers (params?: {}): Promise<implicitReturnType> { return this['publicGetTickers'] (params); }
+    publicGetGetInstruments (params?: {}): Promise<implicitReturnType> { return this['publicGetGetInstruments'] (params); }
+    publicGetGetTradingviewChartData (params?: {}): Promise<implicitReturnType> { return this['publicGetGetTradingviewChartData'] (params); }
+    publicGetCmcSpotSummary (params?: {}): Promise<implicitReturnType> { return this['publicGetCmcSpotSummary'] (params); }
+    publicGetCmcSpotTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetCmcSpotTicker'] (params); }
+    publicGetCmcSpotOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetCmcSpotOrderbook'] (params); }
+    publicGetCmcMarketTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetCmcMarketTrades'] (params); }
+    publicGetCmcContracts (params?: {}): Promise<implicitReturnType> { return this['publicGetCmcContracts'] (params); }
+    publicGetCmcContractOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetCmcContractOrderbook'] (params); }
+    publicGetCoinGeckoSpotPairs (params?: {}): Promise<implicitReturnType> { return this['publicGetCoinGeckoSpotPairs'] (params); }
+    publicGetCoinGeckoSpotTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetCoinGeckoSpotTicker'] (params); }
+    publicGetCoinGeckoSpotOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetCoinGeckoSpotOrderbook'] (params); }
+    publicGetCoinGeckoMarketTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetCoinGeckoMarketTrades'] (params); }
+    publicGetCoinGeckoContracts (params?: {}): Promise<implicitReturnType> { return this['publicGetCoinGeckoContracts'] (params); }
+    publicGetCoinGeckoContractOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetCoinGeckoContractOrderbook'] (params); }
+    publicGetGetPerpetualLeverageBracket (params?: {}): Promise<implicitReturnType> { return this['publicGetGetPerpetualLeverageBracket'] (params); }
+    publicGetGetPerpetualLeverageBracketAll (params?: {}): Promise<implicitReturnType> { return this['publicGetGetPerpetualLeverageBracketAll'] (params); }
+    publicPostAuth (params?: {}): Promise<implicitReturnType> { return this['publicPostAuth'] (params); }
+    privateGetGetDepositRecord (params?: {}): Promise<implicitReturnType> { return this['privateGetGetDepositRecord'] (params); }
+    privateGetGetWithdrawRecord (params?: {}): Promise<implicitReturnType> { return this['privateGetGetWithdrawRecord'] (params); }
+    privateGetGetPosition (params?: {}): Promise<implicitReturnType> { return this['privateGetGetPosition'] (params); }
+    privateGetGetPositions (params?: {}): Promise<implicitReturnType> { return this['privateGetGetPositions'] (params); }
+    privateGetGetOpenOrdersByCurrency (params?: {}): Promise<implicitReturnType> { return this['privateGetGetOpenOrdersByCurrency'] (params); }
+    privateGetGetOpenOrdersByInstrument (params?: {}): Promise<implicitReturnType> { return this['privateGetGetOpenOrdersByInstrument'] (params); }
+    privateGetGetOrderHistoryByCurrency (params?: {}): Promise<implicitReturnType> { return this['privateGetGetOrderHistoryByCurrency'] (params); }
+    privateGetGetOrderHistoryByInstrument (params?: {}): Promise<implicitReturnType> { return this['privateGetGetOrderHistoryByInstrument'] (params); }
+    privateGetGetOrderState (params?: {}): Promise<implicitReturnType> { return this['privateGetGetOrderState'] (params); }
+    privateGetGetUserTradesByCurrency (params?: {}): Promise<implicitReturnType> { return this['privateGetGetUserTradesByCurrency'] (params); }
+    privateGetGetUserTradesByInstrument (params?: {}): Promise<implicitReturnType> { return this['privateGetGetUserTradesByInstrument'] (params); }
+    privateGetGetUserTradesByOrder (params?: {}): Promise<implicitReturnType> { return this['privateGetGetUserTradesByOrder'] (params); }
+    privateGetGetPerpetualUserConfig (params?: {}): Promise<implicitReturnType> { return this['privateGetGetPerpetualUserConfig'] (params); }
+    privatePostLogout (params?: {}): Promise<implicitReturnType> { return this['privatePostLogout'] (params); }
+    privatePostGetAssetsInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostGetAssetsInfo'] (params); }
+    privatePostAddWithdrawAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAddWithdrawAddress'] (params); }
+    privatePostBuy (params?: {}): Promise<implicitReturnType> { return this['privatePostBuy'] (params); }
+    privatePostSell (params?: {}): Promise<implicitReturnType> { return this['privatePostSell'] (params); }
+    privatePostCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostCancel'] (params); }
+    privatePostCancelAllByCurrency (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelAllByCurrency'] (params); }
+    privatePostCancelAllByInstrument (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelAllByInstrument'] (params); }
+    privatePostClosePosition (params?: {}): Promise<implicitReturnType> { return this['privatePostClosePosition'] (params); }
+    privatePostAdjustPerpetualLeverage (params?: {}): Promise<implicitReturnType> { return this['privatePostAdjustPerpetualLeverage'] (params); }
+    privatePostAdjustPerpetualMarginType (params?: {}): Promise<implicitReturnType> { return this['privatePostAdjustPerpetualMarginType'] (params); }
+    privatePostSubmitTransfer (params?: {}): Promise<implicitReturnType> { return this['privatePostSubmitTransfer'] (params); }
 }

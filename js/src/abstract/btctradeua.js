@@ -7,4 +7,17 @@
 // -------------------------------------------------------------------------------
 import { Exchange as _Exchange } from '../base/Exchange.js';
 export default class Exchange extends _Exchange {
+    publicGetDealsSymbol(params) { return this['publicGetDealsSymbol'](params); }
+    publicGetTradesSellSymbol(params) { return this['publicGetTradesSellSymbol'](params); }
+    publicGetTradesBuySymbol(params) { return this['publicGetTradesBuySymbol'](params); }
+    publicGetJapanStatHighSymbol(params) { return this['publicGetJapanStatHighSymbol'](params); }
+    privatePostAuth(params) { return this['privatePostAuth'](params); }
+    privatePostAskSymbol(params) { return this['privatePostAskSymbol'](params); }
+    privatePostBalance(params) { return this['privatePostBalance'](params); }
+    privatePostBidSymbol(params) { return this['privatePostBidSymbol'](params); }
+    privatePostBuySymbol(params) { return this['privatePostBuySymbol'](params); }
+    privatePostMyOrdersSymbol(params) { return this['privatePostMyOrdersSymbol'](params); }
+    privatePostOrderStatusId(params) { return this['privatePostOrderStatusId'](params); }
+    privatePostRemoveOrderId(params) { return this['privatePostRemoveOrderId'](params); }
+    privatePostSellSymbol(params) { return this['privatePostSellSymbol'](params); }
 }

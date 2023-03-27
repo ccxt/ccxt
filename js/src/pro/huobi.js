@@ -10,7 +10,6 @@ import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, 
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class huobi extends huobiRest {
     describe() {
         return this.deepExtend(super.describe(), {

@@ -8,126 +8,126 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetAuth (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetExchangeToken (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetForkToken (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetSetHeartbeat (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetDisableHeartbeat (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetTime (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetHello (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetStatus (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTest (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetSubscribe (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetUnsubscribe (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetUnsubscribeAll (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetAnnouncements (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetBookSummaryByCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetBookSummaryByInstrument (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetContractSize (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetCurrencies (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetDeliveryPrices (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetFundingChartData (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetFundingRateHistory (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetFundingRateValue (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetHistoricalVolatility (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetIndex (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetIndexPrice (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetIndexPriceNames (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetInstrument (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetInstruments (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetLastSettlementsByCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetLastSettlementsByInstrument (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetLastTradesByCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetLastTradesByCurrencyAndTime (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetLastTradesByInstrument (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetLastTradesByInstrumentAndTime (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetMarkPriceHistory (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetOrderBook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetTradeVolumes (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetTradingviewChartData (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetGetVolatilityIndexData (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetLogout (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetEnableCancelOnDisconnect (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDisableCancelOnDisconnect (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetCancelOnDisconnect (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSubscribe (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUnsubscribe (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUnsubscribeAll (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetChangeApiKeyName (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetChangeScopeInApiKey (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetChangeSubaccountName (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCreateApiKey (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCreateSubaccount (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDisableApiKey (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDisableTfaForSubaccount (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetEnableAffiliateProgram (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetEnableApiKey (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetAccessLog (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetAccountSummary (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetAffiliateProgramInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetEmailLanguage (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetNewAnnouncements (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetPortfolioMargins (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetPosition (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetPositions (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetSubaccounts (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetSubaccountsDetails (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetTransactionLog (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetListApiKeys (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetRemoveApiKey (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetRemoveSubaccount (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetResetApiKey (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSetAnnouncementAsRead (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSetApiKeyAsDefault (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSetEmailForSubaccount (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSetEmailLanguage (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSetPasswordForSubaccount (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetToggleNotificationsFromSubaccount (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetToggleSubaccountLogin (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetExecuteBlockTrade (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetBlockTrade (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetLastBlockTradesByCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetInvalidateBlockTradeSignature (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetVerifyBlockTrade (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetBuy (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSell (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetEdit (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetEditByLabel (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCancelAll (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCancelAllByCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCancelAllByInstrument (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCancelByLabel (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetClosePosition (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetMargins (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetMmpConfig (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetOpenOrdersByCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetOpenOrdersByInstrument (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetOrderHistoryByCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetOrderHistoryByInstrument (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetOrderMarginByIds (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetOrderState (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetStopOrderHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetTriggerOrderHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetUserTradesByCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetUserTradesByCurrencyAndTime (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetUserTradesByInstrument (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetUserTradesByInstrumentAndTime (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetUserTradesByOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetResetMmp (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSetMmpConfig (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetSettlementHistoryByInstrument (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetSettlementHistoryByCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCancelTransferById (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCancelWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetCreateDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetCurrentDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetDeposits (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetTransfers (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetGetWithdrawals (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSubmitTransferToSubaccount (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetSubmitTransferToUser (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdraw (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetAuth (params?: {}): Promise<implicitReturnType> { return this['publicGetAuth'] (params); }
+    publicGetExchangeToken (params?: {}): Promise<implicitReturnType> { return this['publicGetExchangeToken'] (params); }
+    publicGetForkToken (params?: {}): Promise<implicitReturnType> { return this['publicGetForkToken'] (params); }
+    publicGetSetHeartbeat (params?: {}): Promise<implicitReturnType> { return this['publicGetSetHeartbeat'] (params); }
+    publicGetDisableHeartbeat (params?: {}): Promise<implicitReturnType> { return this['publicGetDisableHeartbeat'] (params); }
+    publicGetGetTime (params?: {}): Promise<implicitReturnType> { return this['publicGetGetTime'] (params); }
+    publicGetHello (params?: {}): Promise<implicitReturnType> { return this['publicGetHello'] (params); }
+    publicGetStatus (params?: {}): Promise<implicitReturnType> { return this['publicGetStatus'] (params); }
+    publicGetTest (params?: {}): Promise<implicitReturnType> { return this['publicGetTest'] (params); }
+    publicGetSubscribe (params?: {}): Promise<implicitReturnType> { return this['publicGetSubscribe'] (params); }
+    publicGetUnsubscribe (params?: {}): Promise<implicitReturnType> { return this['publicGetUnsubscribe'] (params); }
+    publicGetUnsubscribeAll (params?: {}): Promise<implicitReturnType> { return this['publicGetUnsubscribeAll'] (params); }
+    publicGetGetAnnouncements (params?: {}): Promise<implicitReturnType> { return this['publicGetGetAnnouncements'] (params); }
+    publicGetGetBookSummaryByCurrency (params?: {}): Promise<implicitReturnType> { return this['publicGetGetBookSummaryByCurrency'] (params); }
+    publicGetGetBookSummaryByInstrument (params?: {}): Promise<implicitReturnType> { return this['publicGetGetBookSummaryByInstrument'] (params); }
+    publicGetGetContractSize (params?: {}): Promise<implicitReturnType> { return this['publicGetGetContractSize'] (params); }
+    publicGetGetCurrencies (params?: {}): Promise<implicitReturnType> { return this['publicGetGetCurrencies'] (params); }
+    publicGetGetDeliveryPrices (params?: {}): Promise<implicitReturnType> { return this['publicGetGetDeliveryPrices'] (params); }
+    publicGetGetFundingChartData (params?: {}): Promise<implicitReturnType> { return this['publicGetGetFundingChartData'] (params); }
+    publicGetGetFundingRateHistory (params?: {}): Promise<implicitReturnType> { return this['publicGetGetFundingRateHistory'] (params); }
+    publicGetGetFundingRateValue (params?: {}): Promise<implicitReturnType> { return this['publicGetGetFundingRateValue'] (params); }
+    publicGetGetHistoricalVolatility (params?: {}): Promise<implicitReturnType> { return this['publicGetGetHistoricalVolatility'] (params); }
+    publicGetGetIndex (params?: {}): Promise<implicitReturnType> { return this['publicGetGetIndex'] (params); }
+    publicGetGetIndexPrice (params?: {}): Promise<implicitReturnType> { return this['publicGetGetIndexPrice'] (params); }
+    publicGetGetIndexPriceNames (params?: {}): Promise<implicitReturnType> { return this['publicGetGetIndexPriceNames'] (params); }
+    publicGetGetInstrument (params?: {}): Promise<implicitReturnType> { return this['publicGetGetInstrument'] (params); }
+    publicGetGetInstruments (params?: {}): Promise<implicitReturnType> { return this['publicGetGetInstruments'] (params); }
+    publicGetGetLastSettlementsByCurrency (params?: {}): Promise<implicitReturnType> { return this['publicGetGetLastSettlementsByCurrency'] (params); }
+    publicGetGetLastSettlementsByInstrument (params?: {}): Promise<implicitReturnType> { return this['publicGetGetLastSettlementsByInstrument'] (params); }
+    publicGetGetLastTradesByCurrency (params?: {}): Promise<implicitReturnType> { return this['publicGetGetLastTradesByCurrency'] (params); }
+    publicGetGetLastTradesByCurrencyAndTime (params?: {}): Promise<implicitReturnType> { return this['publicGetGetLastTradesByCurrencyAndTime'] (params); }
+    publicGetGetLastTradesByInstrument (params?: {}): Promise<implicitReturnType> { return this['publicGetGetLastTradesByInstrument'] (params); }
+    publicGetGetLastTradesByInstrumentAndTime (params?: {}): Promise<implicitReturnType> { return this['publicGetGetLastTradesByInstrumentAndTime'] (params); }
+    publicGetGetMarkPriceHistory (params?: {}): Promise<implicitReturnType> { return this['publicGetGetMarkPriceHistory'] (params); }
+    publicGetGetOrderBook (params?: {}): Promise<implicitReturnType> { return this['publicGetGetOrderBook'] (params); }
+    publicGetGetTradeVolumes (params?: {}): Promise<implicitReturnType> { return this['publicGetGetTradeVolumes'] (params); }
+    publicGetGetTradingviewChartData (params?: {}): Promise<implicitReturnType> { return this['publicGetGetTradingviewChartData'] (params); }
+    publicGetGetVolatilityIndexData (params?: {}): Promise<implicitReturnType> { return this['publicGetGetVolatilityIndexData'] (params); }
+    publicGetTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetTicker'] (params); }
+    privateGetLogout (params?: {}): Promise<implicitReturnType> { return this['privateGetLogout'] (params); }
+    privateGetEnableCancelOnDisconnect (params?: {}): Promise<implicitReturnType> { return this['privateGetEnableCancelOnDisconnect'] (params); }
+    privateGetDisableCancelOnDisconnect (params?: {}): Promise<implicitReturnType> { return this['privateGetDisableCancelOnDisconnect'] (params); }
+    privateGetGetCancelOnDisconnect (params?: {}): Promise<implicitReturnType> { return this['privateGetGetCancelOnDisconnect'] (params); }
+    privateGetSubscribe (params?: {}): Promise<implicitReturnType> { return this['privateGetSubscribe'] (params); }
+    privateGetUnsubscribe (params?: {}): Promise<implicitReturnType> { return this['privateGetUnsubscribe'] (params); }
+    privateGetUnsubscribeAll (params?: {}): Promise<implicitReturnType> { return this['privateGetUnsubscribeAll'] (params); }
+    privateGetChangeApiKeyName (params?: {}): Promise<implicitReturnType> { return this['privateGetChangeApiKeyName'] (params); }
+    privateGetChangeScopeInApiKey (params?: {}): Promise<implicitReturnType> { return this['privateGetChangeScopeInApiKey'] (params); }
+    privateGetChangeSubaccountName (params?: {}): Promise<implicitReturnType> { return this['privateGetChangeSubaccountName'] (params); }
+    privateGetCreateApiKey (params?: {}): Promise<implicitReturnType> { return this['privateGetCreateApiKey'] (params); }
+    privateGetCreateSubaccount (params?: {}): Promise<implicitReturnType> { return this['privateGetCreateSubaccount'] (params); }
+    privateGetDisableApiKey (params?: {}): Promise<implicitReturnType> { return this['privateGetDisableApiKey'] (params); }
+    privateGetDisableTfaForSubaccount (params?: {}): Promise<implicitReturnType> { return this['privateGetDisableTfaForSubaccount'] (params); }
+    privateGetEnableAffiliateProgram (params?: {}): Promise<implicitReturnType> { return this['privateGetEnableAffiliateProgram'] (params); }
+    privateGetEnableApiKey (params?: {}): Promise<implicitReturnType> { return this['privateGetEnableApiKey'] (params); }
+    privateGetGetAccessLog (params?: {}): Promise<implicitReturnType> { return this['privateGetGetAccessLog'] (params); }
+    privateGetGetAccountSummary (params?: {}): Promise<implicitReturnType> { return this['privateGetGetAccountSummary'] (params); }
+    privateGetGetAffiliateProgramInfo (params?: {}): Promise<implicitReturnType> { return this['privateGetGetAffiliateProgramInfo'] (params); }
+    privateGetGetEmailLanguage (params?: {}): Promise<implicitReturnType> { return this['privateGetGetEmailLanguage'] (params); }
+    privateGetGetNewAnnouncements (params?: {}): Promise<implicitReturnType> { return this['privateGetGetNewAnnouncements'] (params); }
+    privateGetGetPortfolioMargins (params?: {}): Promise<implicitReturnType> { return this['privateGetGetPortfolioMargins'] (params); }
+    privateGetGetPosition (params?: {}): Promise<implicitReturnType> { return this['privateGetGetPosition'] (params); }
+    privateGetGetPositions (params?: {}): Promise<implicitReturnType> { return this['privateGetGetPositions'] (params); }
+    privateGetGetSubaccounts (params?: {}): Promise<implicitReturnType> { return this['privateGetGetSubaccounts'] (params); }
+    privateGetGetSubaccountsDetails (params?: {}): Promise<implicitReturnType> { return this['privateGetGetSubaccountsDetails'] (params); }
+    privateGetGetTransactionLog (params?: {}): Promise<implicitReturnType> { return this['privateGetGetTransactionLog'] (params); }
+    privateGetListApiKeys (params?: {}): Promise<implicitReturnType> { return this['privateGetListApiKeys'] (params); }
+    privateGetRemoveApiKey (params?: {}): Promise<implicitReturnType> { return this['privateGetRemoveApiKey'] (params); }
+    privateGetRemoveSubaccount (params?: {}): Promise<implicitReturnType> { return this['privateGetRemoveSubaccount'] (params); }
+    privateGetResetApiKey (params?: {}): Promise<implicitReturnType> { return this['privateGetResetApiKey'] (params); }
+    privateGetSetAnnouncementAsRead (params?: {}): Promise<implicitReturnType> { return this['privateGetSetAnnouncementAsRead'] (params); }
+    privateGetSetApiKeyAsDefault (params?: {}): Promise<implicitReturnType> { return this['privateGetSetApiKeyAsDefault'] (params); }
+    privateGetSetEmailForSubaccount (params?: {}): Promise<implicitReturnType> { return this['privateGetSetEmailForSubaccount'] (params); }
+    privateGetSetEmailLanguage (params?: {}): Promise<implicitReturnType> { return this['privateGetSetEmailLanguage'] (params); }
+    privateGetSetPasswordForSubaccount (params?: {}): Promise<implicitReturnType> { return this['privateGetSetPasswordForSubaccount'] (params); }
+    privateGetToggleNotificationsFromSubaccount (params?: {}): Promise<implicitReturnType> { return this['privateGetToggleNotificationsFromSubaccount'] (params); }
+    privateGetToggleSubaccountLogin (params?: {}): Promise<implicitReturnType> { return this['privateGetToggleSubaccountLogin'] (params); }
+    privateGetExecuteBlockTrade (params?: {}): Promise<implicitReturnType> { return this['privateGetExecuteBlockTrade'] (params); }
+    privateGetGetBlockTrade (params?: {}): Promise<implicitReturnType> { return this['privateGetGetBlockTrade'] (params); }
+    privateGetGetLastBlockTradesByCurrency (params?: {}): Promise<implicitReturnType> { return this['privateGetGetLastBlockTradesByCurrency'] (params); }
+    privateGetInvalidateBlockTradeSignature (params?: {}): Promise<implicitReturnType> { return this['privateGetInvalidateBlockTradeSignature'] (params); }
+    privateGetVerifyBlockTrade (params?: {}): Promise<implicitReturnType> { return this['privateGetVerifyBlockTrade'] (params); }
+    privateGetBuy (params?: {}): Promise<implicitReturnType> { return this['privateGetBuy'] (params); }
+    privateGetSell (params?: {}): Promise<implicitReturnType> { return this['privateGetSell'] (params); }
+    privateGetEdit (params?: {}): Promise<implicitReturnType> { return this['privateGetEdit'] (params); }
+    privateGetEditByLabel (params?: {}): Promise<implicitReturnType> { return this['privateGetEditByLabel'] (params); }
+    privateGetCancel (params?: {}): Promise<implicitReturnType> { return this['privateGetCancel'] (params); }
+    privateGetCancelAll (params?: {}): Promise<implicitReturnType> { return this['privateGetCancelAll'] (params); }
+    privateGetCancelAllByCurrency (params?: {}): Promise<implicitReturnType> { return this['privateGetCancelAllByCurrency'] (params); }
+    privateGetCancelAllByInstrument (params?: {}): Promise<implicitReturnType> { return this['privateGetCancelAllByInstrument'] (params); }
+    privateGetCancelByLabel (params?: {}): Promise<implicitReturnType> { return this['privateGetCancelByLabel'] (params); }
+    privateGetClosePosition (params?: {}): Promise<implicitReturnType> { return this['privateGetClosePosition'] (params); }
+    privateGetGetMargins (params?: {}): Promise<implicitReturnType> { return this['privateGetGetMargins'] (params); }
+    privateGetGetMmpConfig (params?: {}): Promise<implicitReturnType> { return this['privateGetGetMmpConfig'] (params); }
+    privateGetGetOpenOrdersByCurrency (params?: {}): Promise<implicitReturnType> { return this['privateGetGetOpenOrdersByCurrency'] (params); }
+    privateGetGetOpenOrdersByInstrument (params?: {}): Promise<implicitReturnType> { return this['privateGetGetOpenOrdersByInstrument'] (params); }
+    privateGetGetOrderHistoryByCurrency (params?: {}): Promise<implicitReturnType> { return this['privateGetGetOrderHistoryByCurrency'] (params); }
+    privateGetGetOrderHistoryByInstrument (params?: {}): Promise<implicitReturnType> { return this['privateGetGetOrderHistoryByInstrument'] (params); }
+    privateGetGetOrderMarginByIds (params?: {}): Promise<implicitReturnType> { return this['privateGetGetOrderMarginByIds'] (params); }
+    privateGetGetOrderState (params?: {}): Promise<implicitReturnType> { return this['privateGetGetOrderState'] (params); }
+    privateGetGetStopOrderHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetGetStopOrderHistory'] (params); }
+    privateGetGetTriggerOrderHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetGetTriggerOrderHistory'] (params); }
+    privateGetGetUserTradesByCurrency (params?: {}): Promise<implicitReturnType> { return this['privateGetGetUserTradesByCurrency'] (params); }
+    privateGetGetUserTradesByCurrencyAndTime (params?: {}): Promise<implicitReturnType> { return this['privateGetGetUserTradesByCurrencyAndTime'] (params); }
+    privateGetGetUserTradesByInstrument (params?: {}): Promise<implicitReturnType> { return this['privateGetGetUserTradesByInstrument'] (params); }
+    privateGetGetUserTradesByInstrumentAndTime (params?: {}): Promise<implicitReturnType> { return this['privateGetGetUserTradesByInstrumentAndTime'] (params); }
+    privateGetGetUserTradesByOrder (params?: {}): Promise<implicitReturnType> { return this['privateGetGetUserTradesByOrder'] (params); }
+    privateGetResetMmp (params?: {}): Promise<implicitReturnType> { return this['privateGetResetMmp'] (params); }
+    privateGetSetMmpConfig (params?: {}): Promise<implicitReturnType> { return this['privateGetSetMmpConfig'] (params); }
+    privateGetGetSettlementHistoryByInstrument (params?: {}): Promise<implicitReturnType> { return this['privateGetGetSettlementHistoryByInstrument'] (params); }
+    privateGetGetSettlementHistoryByCurrency (params?: {}): Promise<implicitReturnType> { return this['privateGetGetSettlementHistoryByCurrency'] (params); }
+    privateGetCancelTransferById (params?: {}): Promise<implicitReturnType> { return this['privateGetCancelTransferById'] (params); }
+    privateGetCancelWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privateGetCancelWithdrawal'] (params); }
+    privateGetCreateDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privateGetCreateDepositAddress'] (params); }
+    privateGetGetCurrentDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privateGetGetCurrentDepositAddress'] (params); }
+    privateGetGetDeposits (params?: {}): Promise<implicitReturnType> { return this['privateGetGetDeposits'] (params); }
+    privateGetGetTransfers (params?: {}): Promise<implicitReturnType> { return this['privateGetGetTransfers'] (params); }
+    privateGetGetWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privateGetGetWithdrawals'] (params); }
+    privateGetSubmitTransferToSubaccount (params?: {}): Promise<implicitReturnType> { return this['privateGetSubmitTransferToSubaccount'] (params); }
+    privateGetSubmitTransferToUser (params?: {}): Promise<implicitReturnType> { return this['privateGetSubmitTransferToUser'] (params); }
+    privateGetWithdraw (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdraw'] (params); }
 }

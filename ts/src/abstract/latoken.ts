@@ -8,57 +8,57 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetBookCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetChartWeek (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetChartWeekCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCurrencyAvailable (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCurrencyQuotes (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCurrencyCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPair (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPairAvailable (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickerBaseQuote (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTime (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTradeHistoryCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTradeFeeCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTradeFeeLevels (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTransactionBindings (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthAccount (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthAccountCurrencyCurrencyType (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthOrderGetOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthOrderPairCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthOrderPairCurrencyQuoteActive (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthStopOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthStopOrderGetOrderId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthStopOrderPairCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthStopOrderPairCurrencyQuoteActive (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthTrade (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthTradePairCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthTradeFeeCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthTransaction (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthTransactionBindings (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthTransactionBindingsCurrency (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthTransactionId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAuthTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthOrderCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthOrderCancelAll (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthOrderCancelAllCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthOrderPlace (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthSpotDeposit (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthSpotWithdraw (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthStopOrderCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthStopOrderCancelAll (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthStopOrderCancelAllCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthStopOrderPlace (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthTransactionDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthTransactionWithdraw (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthTransactionWithdrawCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthTransactionWithdrawConfirm (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthTransactionWithdrawResendCode (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthTransferEmail (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthTransferId (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAuthTransferPhone (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetBookCurrencyQuote (params?: {}): Promise<implicitReturnType> { return this['publicGetBookCurrencyQuote'] (params); }
+    publicGetChartWeek (params?: {}): Promise<implicitReturnType> { return this['publicGetChartWeek'] (params); }
+    publicGetChartWeekCurrencyQuote (params?: {}): Promise<implicitReturnType> { return this['publicGetChartWeekCurrencyQuote'] (params); }
+    publicGetCurrency (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrency'] (params); }
+    publicGetCurrencyAvailable (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencyAvailable'] (params); }
+    publicGetCurrencyQuotes (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencyQuotes'] (params); }
+    publicGetCurrencyCurrency (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencyCurrency'] (params); }
+    publicGetPair (params?: {}): Promise<implicitReturnType> { return this['publicGetPair'] (params); }
+    publicGetPairAvailable (params?: {}): Promise<implicitReturnType> { return this['publicGetPairAvailable'] (params); }
+    publicGetTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetTicker'] (params); }
+    publicGetTickerBaseQuote (params?: {}): Promise<implicitReturnType> { return this['publicGetTickerBaseQuote'] (params); }
+    publicGetTime (params?: {}): Promise<implicitReturnType> { return this['publicGetTime'] (params); }
+    publicGetTradeHistoryCurrencyQuote (params?: {}): Promise<implicitReturnType> { return this['publicGetTradeHistoryCurrencyQuote'] (params); }
+    publicGetTradeFeeCurrencyQuote (params?: {}): Promise<implicitReturnType> { return this['publicGetTradeFeeCurrencyQuote'] (params); }
+    publicGetTradeFeeLevels (params?: {}): Promise<implicitReturnType> { return this['publicGetTradeFeeLevels'] (params); }
+    publicGetTransactionBindings (params?: {}): Promise<implicitReturnType> { return this['publicGetTransactionBindings'] (params); }
+    privateGetAuthAccount (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthAccount'] (params); }
+    privateGetAuthAccountCurrencyCurrencyType (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthAccountCurrencyCurrencyType'] (params); }
+    privateGetAuthOrder (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthOrder'] (params); }
+    privateGetAuthOrderGetOrderId (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthOrderGetOrderId'] (params); }
+    privateGetAuthOrderPairCurrencyQuote (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthOrderPairCurrencyQuote'] (params); }
+    privateGetAuthOrderPairCurrencyQuoteActive (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthOrderPairCurrencyQuoteActive'] (params); }
+    privateGetAuthStopOrder (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthStopOrder'] (params); }
+    privateGetAuthStopOrderGetOrderId (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthStopOrderGetOrderId'] (params); }
+    privateGetAuthStopOrderPairCurrencyQuote (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthStopOrderPairCurrencyQuote'] (params); }
+    privateGetAuthStopOrderPairCurrencyQuoteActive (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthStopOrderPairCurrencyQuoteActive'] (params); }
+    privateGetAuthTrade (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthTrade'] (params); }
+    privateGetAuthTradePairCurrencyQuote (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthTradePairCurrencyQuote'] (params); }
+    privateGetAuthTradeFeeCurrencyQuote (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthTradeFeeCurrencyQuote'] (params); }
+    privateGetAuthTransaction (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthTransaction'] (params); }
+    privateGetAuthTransactionBindings (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthTransactionBindings'] (params); }
+    privateGetAuthTransactionBindingsCurrency (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthTransactionBindingsCurrency'] (params); }
+    privateGetAuthTransactionId (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthTransactionId'] (params); }
+    privateGetAuthTransfer (params?: {}): Promise<implicitReturnType> { return this['privateGetAuthTransfer'] (params); }
+    privatePostAuthOrderCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthOrderCancel'] (params); }
+    privatePostAuthOrderCancelAll (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthOrderCancelAll'] (params); }
+    privatePostAuthOrderCancelAllCurrencyQuote (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthOrderCancelAllCurrencyQuote'] (params); }
+    privatePostAuthOrderPlace (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthOrderPlace'] (params); }
+    privatePostAuthSpotDeposit (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthSpotDeposit'] (params); }
+    privatePostAuthSpotWithdraw (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthSpotWithdraw'] (params); }
+    privatePostAuthStopOrderCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthStopOrderCancel'] (params); }
+    privatePostAuthStopOrderCancelAll (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthStopOrderCancelAll'] (params); }
+    privatePostAuthStopOrderCancelAllCurrencyQuote (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthStopOrderCancelAllCurrencyQuote'] (params); }
+    privatePostAuthStopOrderPlace (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthStopOrderPlace'] (params); }
+    privatePostAuthTransactionDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthTransactionDepositAddress'] (params); }
+    privatePostAuthTransactionWithdraw (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthTransactionWithdraw'] (params); }
+    privatePostAuthTransactionWithdrawCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthTransactionWithdrawCancel'] (params); }
+    privatePostAuthTransactionWithdrawConfirm (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthTransactionWithdrawConfirm'] (params); }
+    privatePostAuthTransactionWithdrawResendCode (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthTransactionWithdrawResendCode'] (params); }
+    privatePostAuthTransferEmail (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthTransferEmail'] (params); }
+    privatePostAuthTransferId (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthTransferId'] (params); }
+    privatePostAuthTransferPhone (params?: {}): Promise<implicitReturnType> { return this['privatePostAuthTransferPhone'] (params); }
 }

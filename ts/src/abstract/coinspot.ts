@@ -8,29 +8,29 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetLatest (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrdersHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMyCoinDeposit (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMyCoinSend (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostQuoteBuy (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostQuoteSell (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMyBalances (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMyOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMyBuy (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMySell (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMyBuyCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMySellCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRoMyBalances (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRoMyBalancesCointype (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRoMyDeposits (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRoMyWithdrawals (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRoMyTransactions (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRoMyTransactionsCointype (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRoMyTransactionsOpen (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRoMyTransactionsCointypeOpen (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRoMySendreceive (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRoMyAffiliatepayments (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRoMyReferralpayments (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetLatest (params?: {}): Promise<implicitReturnType> { return this['publicGetLatest'] (params); }
+    privatePostOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOrders'] (params); }
+    privatePostOrdersHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostOrdersHistory'] (params); }
+    privatePostMyCoinDeposit (params?: {}): Promise<implicitReturnType> { return this['privatePostMyCoinDeposit'] (params); }
+    privatePostMyCoinSend (params?: {}): Promise<implicitReturnType> { return this['privatePostMyCoinSend'] (params); }
+    privatePostQuoteBuy (params?: {}): Promise<implicitReturnType> { return this['privatePostQuoteBuy'] (params); }
+    privatePostQuoteSell (params?: {}): Promise<implicitReturnType> { return this['privatePostQuoteSell'] (params); }
+    privatePostMyBalances (params?: {}): Promise<implicitReturnType> { return this['privatePostMyBalances'] (params); }
+    privatePostMyOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostMyOrders'] (params); }
+    privatePostMyBuy (params?: {}): Promise<implicitReturnType> { return this['privatePostMyBuy'] (params); }
+    privatePostMySell (params?: {}): Promise<implicitReturnType> { return this['privatePostMySell'] (params); }
+    privatePostMyBuyCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostMyBuyCancel'] (params); }
+    privatePostMySellCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostMySellCancel'] (params); }
+    privatePostRoMyBalances (params?: {}): Promise<implicitReturnType> { return this['privatePostRoMyBalances'] (params); }
+    privatePostRoMyBalancesCointype (params?: {}): Promise<implicitReturnType> { return this['privatePostRoMyBalancesCointype'] (params); }
+    privatePostRoMyDeposits (params?: {}): Promise<implicitReturnType> { return this['privatePostRoMyDeposits'] (params); }
+    privatePostRoMyWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privatePostRoMyWithdrawals'] (params); }
+    privatePostRoMyTransactions (params?: {}): Promise<implicitReturnType> { return this['privatePostRoMyTransactions'] (params); }
+    privatePostRoMyTransactionsCointype (params?: {}): Promise<implicitReturnType> { return this['privatePostRoMyTransactionsCointype'] (params); }
+    privatePostRoMyTransactionsOpen (params?: {}): Promise<implicitReturnType> { return this['privatePostRoMyTransactionsOpen'] (params); }
+    privatePostRoMyTransactionsCointypeOpen (params?: {}): Promise<implicitReturnType> { return this['privatePostRoMyTransactionsCointypeOpen'] (params); }
+    privatePostRoMySendreceive (params?: {}): Promise<implicitReturnType> { return this['privatePostRoMySendreceive'] (params); }
+    privatePostRoMyAffiliatepayments (params?: {}): Promise<implicitReturnType> { return this['privatePostRoMyAffiliatepayments'] (params); }
+    privatePostRoMyReferralpayments (params?: {}): Promise<implicitReturnType> { return this['privatePostRoMyReferralpayments'] (params); }
 }

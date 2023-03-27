@@ -8,18 +8,18 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetServerExchangeinfo (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUsersBalances (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAllOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUsersTransactionsTrade (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
-    abstract graphGetOhlcs (params?: {}): Promise<implicitReturnType>;
-    abstract graphGetKlinesHistory (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderbook'] (params); }
+    publicGetTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetTicker'] (params); }
+    publicGetTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetTrades'] (params); }
+    publicGetServerExchangeinfo (params?: {}): Promise<implicitReturnType> { return this['publicGetServerExchangeinfo'] (params); }
+    privateGetUsersBalances (params?: {}): Promise<implicitReturnType> { return this['privateGetUsersBalances'] (params); }
+    privateGetOpenOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetOpenOrders'] (params); }
+    privateGetAllOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetAllOrders'] (params); }
+    privateGetUsersTransactionsTrade (params?: {}): Promise<implicitReturnType> { return this['privateGetUsersTransactionsTrade'] (params); }
+    privatePostOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostOrder'] (params); }
+    privatePostCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelOrder'] (params); }
+    privateDeleteOrder (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrder'] (params); }
+    graphGetOhlcs (params?: {}): Promise<implicitReturnType> { return this['graphGetOhlcs'] (params); }
+    graphGetKlinesHistory (params?: {}): Promise<implicitReturnType> { return this['graphGetKlinesHistory'] (params); }
 }

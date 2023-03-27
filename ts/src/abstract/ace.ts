@@ -8,16 +8,16 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetOapiV2ListTradePrice (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOapiV2ListMarketPair (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOpenV2PublicGetOrderBook (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2CoinCustomerAccount (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2KlineGetKline (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2OrderOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2OrderCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2OrderGetOrderList (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2OrderShowOrderStatus (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2OrderShowOrderHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2OrderGetTradeList (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetOapiV2ListTradePrice (params?: {}): Promise<implicitReturnType> { return this['publicGetOapiV2ListTradePrice'] (params); }
+    publicGetOapiV2ListMarketPair (params?: {}): Promise<implicitReturnType> { return this['publicGetOapiV2ListMarketPair'] (params); }
+    publicGetOpenV2PublicGetOrderBook (params?: {}): Promise<implicitReturnType> { return this['publicGetOpenV2PublicGetOrderBook'] (params); }
+    privatePostV2CoinCustomerAccount (params?: {}): Promise<implicitReturnType> { return this['privatePostV2CoinCustomerAccount'] (params); }
+    privatePostV2KlineGetKline (params?: {}): Promise<implicitReturnType> { return this['privatePostV2KlineGetKline'] (params); }
+    privatePostV2OrderOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostV2OrderOrder'] (params); }
+    privatePostV2OrderCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostV2OrderCancel'] (params); }
+    privatePostV2OrderGetOrderList (params?: {}): Promise<implicitReturnType> { return this['privatePostV2OrderGetOrderList'] (params); }
+    privatePostV2OrderShowOrderStatus (params?: {}): Promise<implicitReturnType> { return this['privatePostV2OrderShowOrderStatus'] (params); }
+    privatePostV2OrderShowOrderHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostV2OrderShowOrderHistory'] (params); }
+    privatePostV2OrderGetTradeList (params?: {}): Promise<implicitReturnType> { return this['privatePostV2OrderGetTradeList'] (params); }
 }

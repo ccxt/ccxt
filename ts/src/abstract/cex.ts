@@ -8,34 +8,34 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetCurrencyProfile (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCurrencyLimits (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetLastPricePair (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetLastPricesCurrencies (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOhlcvHdYyyymmddPair (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderBookPair (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickerPair (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickersCurrencies (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTradeHistoryPair (params?: {}): Promise<implicitReturnType>;
-    abstract publicPostConvertPair (params?: {}): Promise<implicitReturnType>;
-    abstract publicPostPriceStatsPair (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostActiveOrdersStatus (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostArchivedOrdersPair (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelOrdersPair (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelReplaceOrderPair (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostClosePositionPair (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGetAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGetCryptoAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGetMyfee (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGetOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGetOrderTx (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOpenOrdersPair (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOpenPositionPair (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOpenPositionsPair (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostPlaceOrderPair (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRawTxHistory (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetCurrencyProfile (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencyProfile'] (params); }
+    publicGetCurrencyLimits (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencyLimits'] (params); }
+    publicGetLastPricePair (params?: {}): Promise<implicitReturnType> { return this['publicGetLastPricePair'] (params); }
+    publicGetLastPricesCurrencies (params?: {}): Promise<implicitReturnType> { return this['publicGetLastPricesCurrencies'] (params); }
+    publicGetOhlcvHdYyyymmddPair (params?: {}): Promise<implicitReturnType> { return this['publicGetOhlcvHdYyyymmddPair'] (params); }
+    publicGetOrderBookPair (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderBookPair'] (params); }
+    publicGetTickerPair (params?: {}): Promise<implicitReturnType> { return this['publicGetTickerPair'] (params); }
+    publicGetTickersCurrencies (params?: {}): Promise<implicitReturnType> { return this['publicGetTickersCurrencies'] (params); }
+    publicGetTradeHistoryPair (params?: {}): Promise<implicitReturnType> { return this['publicGetTradeHistoryPair'] (params); }
+    publicPostConvertPair (params?: {}): Promise<implicitReturnType> { return this['publicPostConvertPair'] (params); }
+    publicPostPriceStatsPair (params?: {}): Promise<implicitReturnType> { return this['publicPostPriceStatsPair'] (params); }
+    privatePostActiveOrdersStatus (params?: {}): Promise<implicitReturnType> { return this['privatePostActiveOrdersStatus'] (params); }
+    privatePostArchivedOrdersPair (params?: {}): Promise<implicitReturnType> { return this['privatePostArchivedOrdersPair'] (params); }
+    privatePostBalance (params?: {}): Promise<implicitReturnType> { return this['privatePostBalance'] (params); }
+    privatePostCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelOrder'] (params); }
+    privatePostCancelOrdersPair (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelOrdersPair'] (params); }
+    privatePostCancelReplaceOrderPair (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelReplaceOrderPair'] (params); }
+    privatePostClosePositionPair (params?: {}): Promise<implicitReturnType> { return this['privatePostClosePositionPair'] (params); }
+    privatePostGetAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostGetAddress'] (params); }
+    privatePostGetCryptoAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostGetCryptoAddress'] (params); }
+    privatePostGetMyfee (params?: {}): Promise<implicitReturnType> { return this['privatePostGetMyfee'] (params); }
+    privatePostGetOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostGetOrder'] (params); }
+    privatePostGetOrderTx (params?: {}): Promise<implicitReturnType> { return this['privatePostGetOrderTx'] (params); }
+    privatePostOpenOrdersPair (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenOrdersPair'] (params); }
+    privatePostOpenOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenOrders'] (params); }
+    privatePostOpenPositionPair (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenPositionPair'] (params); }
+    privatePostOpenPositionsPair (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenPositionsPair'] (params); }
+    privatePostPlaceOrderPair (params?: {}): Promise<implicitReturnType> { return this['privatePostPlaceOrderPair'] (params); }
+    privatePostRawTxHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostRawTxHistory'] (params); }
 }

@@ -8,20 +8,20 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetMarketTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketOrderbook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMarketMoneyDepthFull (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMarketMoneyOrderAdd (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMarketMoneyOrderCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMarketMoneyOrderResult (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMarketMoneyOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMarketMoneyOrdersHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostMarketMoneyTradesFetch (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGENMKTMoneyInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGENMKTMoneyDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGENMKTMoneyNewDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGENMKTMoneyWalletHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGENMKTMoneyWithdraw (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    publicGetMarketTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketTicker'] (params); }
+    publicGetMarketOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketOrderbook'] (params); }
+    publicGetMarketTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketTrades'] (params); }
+    privatePostMarketMoneyDepthFull (params?: {}): Promise<implicitReturnType> { return this['privatePostMarketMoneyDepthFull'] (params); }
+    privatePostMarketMoneyOrderAdd (params?: {}): Promise<implicitReturnType> { return this['privatePostMarketMoneyOrderAdd'] (params); }
+    privatePostMarketMoneyOrderCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostMarketMoneyOrderCancel'] (params); }
+    privatePostMarketMoneyOrderResult (params?: {}): Promise<implicitReturnType> { return this['privatePostMarketMoneyOrderResult'] (params); }
+    privatePostMarketMoneyOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostMarketMoneyOrders'] (params); }
+    privatePostMarketMoneyOrdersHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostMarketMoneyOrdersHistory'] (params); }
+    privatePostMarketMoneyTradesFetch (params?: {}): Promise<implicitReturnType> { return this['privatePostMarketMoneyTradesFetch'] (params); }
+    privatePostGENMKTMoneyInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostGENMKTMoneyInfo'] (params); }
+    privatePostGENMKTMoneyDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostGENMKTMoneyDepositAddress'] (params); }
+    privatePostGENMKTMoneyNewDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostGENMKTMoneyNewDepositAddress'] (params); }
+    privatePostGENMKTMoneyWalletHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostGENMKTMoneyWalletHistory'] (params); }
+    privatePostGENMKTMoneyWithdraw (params?: {}): Promise<implicitReturnType> { return this['privatePostGENMKTMoneyWithdraw'] (params); }
 }
