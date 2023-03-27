@@ -1518,6 +1518,7 @@ export default class Exchange {
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
             },
+            'unifiedTimeInForceKeys': [ 'GTC', 'IOC', 'FOK', 'PO' ],
         };
     }
 
@@ -3725,9 +3726,9 @@ export default class Exchange {
         return [ false, params ];
     }
 
-    handleRequestTif (accountMarketType: string, orderType: string, params: any = {}) {
+    handleRequestTif (groupTitle: string, orderType: string, params: any = {}) {
         //
-        // inside optins, we excepts such structure
+        // inside options, we except such structure
         //
         // 'options': {
         //     'timeInForceMap': {
@@ -3757,22 +3758,21 @@ export default class Exchange {
         const isMarketOrder = orderType === 'market';
         // get exchange TIF mappings
         const tifOptionsAllMarkets = this.safeValue (this.options, 'timeInForceMap', {});
-        // accountMarketType might 'spot', 'swap', 'unified', 'whatever_custom' ...
-        const tifOptions = this.safeValue (tifOptionsAllMarkets, accountMarketType, {});
-        // get exchangeSpecific TIF key
-        const exchangeSpecificTifKey = this.safeString (tifOptions, 'exchangeSpecificKey');
+        // you can call groupTitle anything (i.e. 'spot', 'v2unified', 'swap', 'whatever_custom') which are just parent-keys for the reference to the specific options-group
+        const tifOptions = this.safeValue (tifOptionsAllMarkets, groupTitle, {});
         // get unified-to-exchangeSpecific TIF values map
-        const tifMapUnifiedToEx = this.safeValue (tifOptions, 'strings');
-        // get exchangeSpecific-to-unified TIF values map
-        const tifMapExToUnified = this.invertStringDictionary (tifMapUnifiedToEx);
+        const tifMapUnifiedToEx = this.safeValue (tifOptions, 'unifiedToExchange');
+        // get exchangeSpecific TIF key
+        const exchangeSpecificTifKey = this.safeString (tifOptions, 'exchangeSpecificTifKey');
         // unified or exchangeSpecific TIF value (if set in PARAMS)
         let providedTifValue = this.safeString2 (params, exchangeSpecificTifKey, 'timeInForce');
         if (providedTifValue === undefined) {
             // support for TIF values in orderType i.e. OKX, where you can `.createOrder ('BTC/USDT', 'ioc', 'buy', ...)`
-            if (tifMapExToUnified !== undefined && orderType in tifMapExToUnified) {
-                providedTifValue = orderType;
-            }
+            // if (tifMapExToUnified !== undefined && orderType in tifMapExToUnified) {
+            //     providedTifValue = orderType;
+            // }
         }
+        // unifiedTimeInForceKeys
         let matchingUnifiedTIF = undefined;
         if (this.inArray (providedTifValue, [ 'IOC', 'FOK', 'PO', 'GTC' ])) {
             matchingUnifiedTIF = providedTifValue;
@@ -3782,9 +3782,7 @@ export default class Exchange {
                 matchingUnifiedTIF = tifMapExToUnified[providedTifValue];
             }
         }
-        //
         // ############### BOOLEAN CHECK ############### //
-        //
         // check if unified POST-ONLY flag (if set in PARAMS) is set to true
         const unifiedBoolPoProvided = this.safeValue (params, 'postOnly');
         // exchangeSpecific value for post-only flag (if such exists)
@@ -3810,13 +3808,12 @@ export default class Exchange {
         //
         // ############### set final value ############### //
         //
-        if (isPo && providedPoValue === false) {
-            throw new InvalidOrder (this.id + ' if postOnly is set to false, timeInForce can not be postOnly value');
-        }
         let prepareForRequestKey = undefined;
         let prepareForRequestTifValue = undefined;
         if (isPo) {
-            if (isMarketOrder) {
+            if (providedPoValue === false) {
+                throw new InvalidOrder (this.id + ' if postOnly is set to false, timeInForce can not be postOnly value');
+            } else if (isMarketOrder) {
                 throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
             } else if (matchingUnifiedTIF === 'IOC' || matchingUnifiedTIF === 'FOK') {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + providedTifValue);

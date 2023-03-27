@@ -1023,6 +1023,25 @@ export default class huobi extends Exchange {
                         'sell-stop-limit-fok': true,
                     },
                 },
+                'timeInForceMap': {
+                    'spot': {
+                        'exchangeSpecificKey': 'type',
+                        'strings': {
+                            'GTC': undefined,
+                            'IOC': 'ioc',
+                            'FOK': 'fok',
+                            'PO': 'maker',
+                            'buy-ioc': 'ioc',
+                            'sell-ioc': 'ioc',
+                            'buy-limit-maker': 'maker',
+                            'sell-limit-maker': 'maker',
+                            'buy-limit-fok': 'fok',
+                            'sell-limit-fok': 'fok',
+                            'buy-stop-limit-fok': 'fok',
+                            'sell-stop-limit-fok': 'fok',
+                        },
+                    },
+                },
             },
             'commonCurrencies': {
                 // https://github.com/ccxt/ccxt/issues/6081
@@ -4156,29 +4175,35 @@ export default class huobi extends Exchange {
         let orderType = type.replace ('buy-', '');
         orderType = orderType.replace ('sell-', '');
         const options = this.safeValue (this.options, market['type'], {});
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop-price');
-        if (stopPrice === undefined) {
+        const handledTif = this.handleRequestTif ('spot', type, params);
+        params = handledTif['params'];
+        const stopPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop-price' ]);
+        // type spot for regular:
+        // buy-market, sell-market, buy-limit, sell-limit
+        // buy-stop-limit, sell-stop-limit
+        // buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-limit-fok, sell-limit-fok buy-stop-limit-fok, sell-stop-limit-fok
+        const isTriggerOrder = (stopPrice !== undefined);
+        if (!isTriggerOrder) {
             const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter for a stop order');
             }
         } else {
             const stopOperator = this.safeString (params, 'operator');
             if (stopOperator === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires an operator parameter "gte" or "lte" for a stop order');
             }
-            params = this.omit (params, [ 'stopPrice', 'stop-price' ]);
-            request['stop-price'] = this.priceToPrecision (symbol, stopPrice);
             request['operator'] = stopOperator;
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stop-price', 'operator' ]);
+            request['stop-price'] = this.priceToPrecision (symbol, stopPrice);
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
                 orderType = 'stop-' + orderType;
             } else if ((orderType !== 'stop-limit') && (orderType !== 'stop-limit-fok')) {
                 throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' orders');
             }
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly) {
-            orderType = 'limit-maker';
+        if (handledTif['calculatedRequestTifValue'] !== undefined) {
+            orderType = orderType + '-' + handledTif['calculatedRequestTifValue'];
         }
         request['type'] = side + '-' + orderType;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours

@@ -1103,9 +1103,9 @@ export default class bybit extends Exchange {
                     '1d': '1d',
                 },
                 'timeInForceMap': {
-                    'unified': {
+                    'v5unified': {
                         'exchangeSpecificKey': 'timeInForce',
-                        'strings': {
+                        'unifiedToExchange': {
                             'GTC': 'GTC',
                             'IOC': 'IOC',
                             'FOK': 'FOK',
@@ -3504,7 +3504,7 @@ export default class bybit extends Exchange {
         if (isLimit) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const handledTif = this.handleRequestTif ('unified', lowerCaseType, params);
+        const handledTif = this.handleRequestTif ('v5unified', lowerCaseType, params);
         params = handledTif['params'];
         if (handledTif['calculatedRequestTifKey'] !== undefined) {
             request[handledTif['calculatedRequestTifKey']] = handledTif['calculatedRequestTifValue'];

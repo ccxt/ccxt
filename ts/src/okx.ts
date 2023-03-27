@@ -822,7 +822,12 @@ export default class okx extends Exchange {
                             'IOC': 'ioc',
                             'FOK': 'fok',
                             'PO': 'post_only',
-                            'optimal_limit_ioc': 'optimal_limit_ioc',
+                        },
+                        'orderTypesMap': {
+                            post_only: Post-only order
+                            fok: Fill-or-kill order
+                            ioc: Immediate-or-cancel order
+                            optimal_limit_ioc
                         },
                     },
                 },
