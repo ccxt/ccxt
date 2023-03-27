@@ -154,4 +154,40 @@ public class BaseTest
             Assert.Equal(symbol, (string)orderbook["symbol"]);
         }
     }
+
+    [Fact]
+    public async void TestFetchTrades()
+    {
+        var symbol = "BTC/USDT";
+        var promises = new List<Task<object>>();
+        foreach (var exchange in exchanges)
+        {
+            var has = exchange.has as dict;
+            if (has == null || !(bool)has["fetchTrades"] || ignore.Contains(exchange.id))
+            {
+                Helper.Warn($"Skipping {exchange.id}: fetchTrades {symbol}");
+                continue;
+            }
+            Helper.Green($"Testing {exchange.id}: fetchTrades {symbol}");
+            var markets = await exchange.loadMarkets();
+            var market = exchange.market(symbol);
+            if (market == null)
+            {
+                Helper.Warn($"Skipping: market does not exist {exchange}: fetchTrades {symbol}");
+                continue;
+            }
+            promises.Add(exchange.fetchTrades(symbol));
+        }
+        var resolved = await Task.WhenAll(promises);
+        for (int j = 0; j < resolved.Length; j++)
+        {
+            var result = resolved[j];
+            var exchangeId = exchangesId[j];
+            Helper.Green($"Asserting trades: {exchangeId}");
+            var orderbook = (dict)result;
+            Assert.NotNull(result);
+            Assert.NotNull(orderbook);
+            Assert.Equal(symbol, (string)orderbook["symbol"]);
+        }
+    }
 }
