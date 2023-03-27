@@ -81,7 +81,7 @@ function createImplicitMethods(){
         const methodNames = storedResult[exchange];
 
         const methods =  methodNames.map(method=> {
-            return [`${IDEN}${method} (params?: {}): Promise<implicitReturnType> { return this["${method}"] (params); }`,
+            return [`${IDEN}${method} (params?: {}): Promise<implicitReturnType> { return this['${method}'] (params); }`,
             ].join ('\n')
         });
         methods.push ('}')
