@@ -6831,7 +6831,7 @@ class binance(Exchange):
                 query = self.urlencode(extendedParams)
             signature = None
             if self.secret.find('PRIVATE KEY') > -1:
-                signature = self.encode_uri_component(rsa(query, self.secret, 'sha256'))
+                signature = self.encode_uri_component(self.rsa(query, self.secret, 'sha256'))
             else:
                 signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
             query += '&' + 'signature=' + signature
