@@ -91,7 +91,7 @@ public static class Program
 
         // var parameters = new List<object> { };
 
-        instance.setSandboxMode(true);
+        // instance.setSandboxMode(true);
 
         InitOptions(instance, flags);
         SetCredentials(instance);
