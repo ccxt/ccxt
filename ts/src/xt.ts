@@ -40,6 +40,7 @@ export default class xt extends Exchange {
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -328,6 +329,12 @@ export default class xt extends Exchange {
                     'TRC20': 'Tron',
                     'BEP20': 'BNB Smart Chain',
                     'BEP2': 'BNB-BEP2',
+                    'ETH': 'Ethereum',
+                    'TRON': 'Tron',
+                    'BNB': 'BNB Smart Chain',
+                    'AVAX': 'AVAX C-Chain',
+                    'GAL': 'GAL(FT)',
+                    'ALEO': 'ALEO(IOU)',
                     'BTC': 'Bitcoin',
                     'FIO': 'FIO',
                     'XT': 'XT Smart Chain',
@@ -2942,6 +2949,60 @@ export default class xt extends Exchange {
             'ADL': 'auto-deleveraging',
         };
         return this.safeString (ledgerType, type, type);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const currency = this.currency (code);
+        const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
+        const networkId = this.safeString2 (networkIdsByCodes, networkCode, code);
+        const request = {
+            'currency': currency['id'],
+            'chain': networkId,
+        };
+        const response = await this.privateSpotGetDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {
+        //             "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
+        //             "memo": ""
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseDepositAddress (result, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
+        //         "memo": ""
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'address': address,
+            'tag': this.safeString (depositAddress, 'memo'),
+            'network': undefined,
+            'info': depositAddress,
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
