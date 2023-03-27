@@ -3819,19 +3819,6 @@ export default class Exchange {
                 throw new InvalidOrder (this.id + ' exchange does not support postOnly order');
             }
         }
-        // some exchanges (i.e. gate) needs to have TIF value set for market orders. in case user does not provide any TIF value, we set it to default value (configurable from options)
-        if (isMarketOrder) {
-            if (detectedUnifiedTif === undefined) {
-                // get default unified TIF value for market orders
-                const defaulUnifiedTifForMarketOrder = this.safeString (tifOptions, 'marketOrderRequiredTif');
-                // convert unified TIF to exchange-specific TIF
-                const defaultExTifForMarketOrder = this.safeString (tifsUnifiedToEx, defaulUnifiedTifForMarketOrder);
-                if (defaultExTifForMarketOrder !== undefined) {
-                    exPreparedRequestKey = exchangeSpecificKeyForTif;
-                    exPreparedRequestValue = defaultExTifForMarketOrder;
-                }
-            }
-        }
         // returns: object, object, boolean, string
         return {
             'params': params,
