@@ -104,6 +104,7 @@ export default abstract class Exchange extends _Exchange {
     abstract publicGetV5MarketDeliveryPrice (params?: {}): Promise<implicitReturnType>;
     abstract publicGetV5SpotLeverTokenInfo (params?: {}): Promise<implicitReturnType>;
     abstract publicGetV5SpotLeverTokenReference (params?: {}): Promise<implicitReturnType>;
+    abstract publicGetV5AnnouncementsIndex (params?: {}): Promise<implicitReturnType>;
     abstract privateGetV2PrivateOrderList (params?: {}): Promise<implicitReturnType>;
     abstract privateGetV2PrivateOrder (params?: {}): Promise<implicitReturnType>;
     abstract privateGetV2PrivateStopOrderList (params?: {}): Promise<implicitReturnType>;

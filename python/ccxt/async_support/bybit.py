@@ -248,6 +248,7 @@ class bybit(Exchange):
                         'v5/market/delivery-price': 1,
                         'v5/spot-lever-token/info': 1,
                         'v5/spot-lever-token/reference': 1,
+                        'v5/announcements/index': 1,
                     },
                 },
                 'private': {
