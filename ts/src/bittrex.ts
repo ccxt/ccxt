@@ -1096,6 +1096,17 @@ export default class bittrex extends Exchange {
             // 'clineConditionalOrderId': 'f03d5e98-b5ac-48fb-8647-dd4db828a297', // STOP
         };
         let method = 'privatePostOrders';
+        const timeInForceParam = this.safeString (params, 'timeInForce');
+        let timeInForce = undefined;
+        let isPostOnlyTif = false;
+        if (timeInForceParam === 'PO') {
+            isPostOnlyTif = true;
+            params = this.omit (params, 'timeInForce');
+        }
+        const isPostOnly = this.safeValue (params, 'postOnly', isPostOnlyTif);
+        if (isPostOnly) {
+            timeInForce = 'POST_ONLY_GOOD_TIL_CANCELLED';
+        }
         if (stop || stopPrice) {
             method = 'privatePostConditionalOrders';
             const operand = this.safeString (params, 'operand');
@@ -1114,7 +1125,6 @@ export default class bittrex extends Exchange {
                 const isCeilingOrder = isCeilingLimit || isCeilingMarket;
                 let ceiling = undefined;
                 let limit = undefined;
-                let timeInForce = undefined;
                 if (isCeilingOrder) {
                     let cost = undefined;
                     if (isCeilingLimit) {
@@ -1187,14 +1197,14 @@ export default class bittrex extends Exchange {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
                 if (uppercaseType === 'LIMIT') {
                     request['limit'] = this.priceToPrecision (symbol, price);
-                    request['timeInForce'] = 'GOOD_TIL_CANCELLED';
+                    request['timeInForce'] = (timeInForce !== undefined) ? timeInForce : 'GOOD_TIL_CANCELLED';
                 } else {
                     // bittrex does not allow GOOD_TIL_CANCELLED for market orders
-                    request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
+                    request['timeInForce'] = (timeInForce !== undefined) ? timeInForce : 'IMMEDIATE_OR_CANCEL';
                 }
             }
         }
-        const query = this.omit (params, [ 'stop', 'stopPrice', 'ceiling', 'cost', 'operand', 'trailingStopPercent', 'orderToCreate', 'orderToCancel' ]);
+        const query = this.omit (params, [ 'stop', 'stopPrice', 'ceiling', 'cost', 'operand', 'trailingStopPercent', 'orderToCreate', 'orderToCancel', 'timeInForce' ]);
         const response = await this[method] (this.extend (request, query));
         //
         // Spot
