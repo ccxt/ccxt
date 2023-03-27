@@ -8,6 +8,7 @@ import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class idex extends idexRest {
     describe () {
         return this.deepExtend (super.describe (), {

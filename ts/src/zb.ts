@@ -11,6 +11,7 @@ import { md5 } from './static_dependencies/noble-hashes/md5.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class zb extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

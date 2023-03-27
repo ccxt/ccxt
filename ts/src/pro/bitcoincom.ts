@@ -5,6 +5,7 @@ import hitbtc from './hitbtc.js';
 
 // ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class bitcoincom extends hitbtc {
     describe () {
         return this.deepExtend (super.describe (), {

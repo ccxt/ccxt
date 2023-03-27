@@ -8,6 +8,7 @@ import kucoin from './abstract/kucoinfutures.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class kucoinfutures extends kucoin {
     describe () {
         return this.deepExtend (super.describe (), {

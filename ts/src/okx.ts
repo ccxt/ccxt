@@ -9,6 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class okx extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

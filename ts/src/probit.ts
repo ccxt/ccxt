@@ -8,6 +8,7 @@ import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class probit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
