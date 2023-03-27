@@ -32,6 +32,10 @@ export default class coinbase extends coinbaseRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'myTradesLimit': 1000,
+                'sides': {
+                    'bid': 'bids',
+                    'offer': 'asks',
+                },
             },
         });
     }
@@ -305,29 +309,11 @@ export default class coinbase extends coinbaseRest {
          * @param {object} params extra parameters specific to the coinbasepro api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
-        const name = 'level2';
         await this.loadMarkets ();
+        const name = 'level2';
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const messageHash = name + ':' + market['id'];
-        const url = this.urls['api']['ws'];
-        const subscribe = {
-            'type': 'subscribe',
-            'product_ids': [
-                market['id'],
-            ],
-            'channels': [
-                name,
-            ],
-        };
-        const request = this.extend (subscribe, params);
-        const subscription = {
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'marketId': market['id'],
-            'limit': limit,
-        };
-        const orderbook = await this.watch (url, messageHash, request, messageHash, subscription);
+        const orderbook = await this.subscribe (name, symbol, params);
         return orderbook.limit ();
     }
 
@@ -489,7 +475,8 @@ export default class coinbase extends coinbaseRest {
     handleOrderBookHelper (orderbook, updates) {
         for (let i = 0; i < updates.length; i++) {
             const trade = updates[i];
-            const side = this.safeString (trade, 'side') + 's';
+            const sideId = this.safeString (trade, 'side');
+            const side = this.safeString (this.options['sides'], sideId);
             const price = this.safeNumber (trade, 'price_level');
             const amount = this.safeNumber (trade, 'new_quantity');
             orderbook[side].store (price, amount);
@@ -542,12 +529,14 @@ export default class coinbase extends coinbaseRest {
                 this.handleOrderBookHelper (orderbook, updates);
                 orderbook['timestamp'] = undefined;
                 orderbook['datetime'] = undefined;
+                orderbook['symbol'] = symbol;
                 client.resolve (orderbook, messageHash);
-            } else if (type === 'level2') {
+            } else if (type === 'update') {
                 const orderbook = this.orderbooks[symbol];
                 this.handleOrderBookHelper (orderbook, updates);
                 orderbook['datetime'] = datetime;
                 orderbook['timestamp'] = this.parse8601 (datetime);
+                orderbook['symbol'] = symbol;
                 client.resolve (orderbook, messageHash);
             }
         }
