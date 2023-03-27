@@ -2777,7 +2777,7 @@ class Exchange {
                     $currencyPrecision = $this->safe_value_2($marketPrecision, 'base', 'amount', $defaultCurrencyPrecision);
                     $currency = array(
                         'id' => $this->safe_string_2($market, 'baseId', 'base'),
-                        'numericId' => $this->safe_string($market, 'baseNumericId'),
+                        'numericId' => $this->safe_integer($market, 'baseNumericId'),
                         'code' => $this->safe_string($market, 'base'),
                         'precision' => $currencyPrecision,
                     );
@@ -2787,7 +2787,7 @@ class Exchange {
                     $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'price', $defaultCurrencyPrecision);
                     $currency = array(
                         'id' => $this->safe_string_2($market, 'quoteId', 'quote'),
-                        'numericId' => $this->safe_string($market, 'quoteNumericId'),
+                        'numericId' => $this->safe_integer($market, 'quoteNumericId'),
                         'code' => $this->safe_string($market, 'quote'),
                         'precision' => $currencyPrecision,
                     );

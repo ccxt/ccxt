@@ -649,7 +649,7 @@ class Exchange(BaseExchange):
                     currencyPrecision = self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision)
                     currency = {
                         'id': self.safe_string_2(market, 'baseId', 'base'),
-                        'numericId': self.safe_string(market, 'baseNumericId'),
+                        'numericId': self.safe_integer(market, 'baseNumericId'),
                         'code': self.safe_string(market, 'base'),
                         'precision': currencyPrecision,
                     }
@@ -658,7 +658,7 @@ class Exchange(BaseExchange):
                     currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision)
                     currency = {
                         'id': self.safe_string_2(market, 'quoteId', 'quote'),
-                        'numericId': self.safe_string(market, 'quoteNumericId'),
+                        'numericId': self.safe_integer(market, 'quoteNumericId'),
                         'code': self.safe_string(market, 'quote'),
                         'precision': currencyPrecision,
                     }

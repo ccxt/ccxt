@@ -1319,7 +1319,7 @@ export default class Exchange {
                     const currencyPrecision = this.safeValue2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
                     const currency = {
                         'id': this.safeString2(market, 'baseId', 'base'),
-                        'numericId': this.safeString(market, 'baseNumericId'),
+                        'numericId': this.safeInteger(market, 'baseNumericId'),
                         'code': this.safeString(market, 'base'),
                         'precision': currencyPrecision,
                     };
@@ -1329,7 +1329,7 @@ export default class Exchange {
                     const currencyPrecision = this.safeValue2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
                     const currency = {
                         'id': this.safeString2(market, 'quoteId', 'quote'),
-                        'numericId': this.safeString(market, 'quoteNumericId'),
+                        'numericId': this.safeInteger(market, 'quoteNumericId'),
                         'code': this.safeString(market, 'quote'),
                         'precision': currencyPrecision,
                     };
