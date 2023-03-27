@@ -8,7 +8,6 @@ import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class idex extends idexRest {
     describe () {
         return this.deepExtend (super.describe (), {

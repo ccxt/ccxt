@@ -10,7 +10,6 @@ import { rsa } from './base/functions/rsa.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class lbank extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

@@ -9,7 +9,6 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
 // ---------------------------------------------------------------------------
 
-
 export default class ndax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

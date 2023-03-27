@@ -8,7 +8,6 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 
 // -----------------------------------------------------------------------------
 
-
 export default class binance extends binanceRest {
     describe () {
         return this.deepExtend (super.describe (), {

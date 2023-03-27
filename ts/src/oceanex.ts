@@ -9,7 +9,6 @@ import { jwt } from './base/functions/rsa.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class oceanex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

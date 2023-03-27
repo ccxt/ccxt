@@ -5,7 +5,6 @@ import hitbtc from './hitbtc.js';
 
 // ---------------------------------------------------------------------------
 
-
 export default class bitcoincom extends hitbtc {
     describe () {
         return this.deepExtend (super.describe (), {

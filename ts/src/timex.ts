@@ -3,7 +3,6 @@ import { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
-
 export default class timex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

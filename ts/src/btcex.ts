@@ -5,7 +5,6 @@ import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class btcex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

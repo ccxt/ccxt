@@ -6,7 +6,6 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class kucoinfutures extends kucoinfuturesRest {
     describe () {
         return this.deepExtend (super.describe (), {

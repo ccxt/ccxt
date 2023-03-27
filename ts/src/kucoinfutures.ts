@@ -8,7 +8,6 @@ import kucoin from './abstract/kucoinfutures.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class kucoinfutures extends kucoin {
     describe () {
         return this.deepExtend (super.describe (), {

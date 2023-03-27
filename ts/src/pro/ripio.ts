@@ -6,7 +6,6 @@ import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class ripio extends ripioRest {
     describe () {
         return this.deepExtend (super.describe (), {

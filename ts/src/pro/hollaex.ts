@@ -8,7 +8,6 @@ import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class hollaex extends hollaexRest {
     describe () {
         return this.deepExtend (super.describe (), {

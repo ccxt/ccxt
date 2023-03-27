@@ -6,7 +6,6 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../ba
 
 //  ---------------------------------------------------------------------------
 
-
 export default class alpaca extends alpacaRest {
     describe () {
         return this.deepExtend (super.describe (), {

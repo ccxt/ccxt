@@ -11,7 +11,6 @@ import { jwt } from './base/functions/rsa.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class upbit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

@@ -8,7 +8,6 @@ import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class stex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

@@ -5,7 +5,6 @@ import hitbtc from './hitbtc.js';
 
 // ---------------------------------------------------------------------------
 
-
 export default class bequant extends hitbtc {
     describe () {
         return this.deepExtend (super.describe (), {

@@ -5,7 +5,6 @@ import coinbasepro from './coinbasepro.js';
 
 // ---------------------------------------------------------------------------
 
-
 export default class coinbaseprime extends coinbasepro {
     describe () {
         return this.deepExtend (super.describe (), {

@@ -9,7 +9,6 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class bithumb extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

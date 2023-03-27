@@ -11,7 +11,6 @@ import { rsa } from './base/functions/rsa.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class binance extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

@@ -9,7 +9,6 @@ import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class gemini extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

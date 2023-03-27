@@ -10,7 +10,6 @@ import { md5 } from './static_dependencies/noble-hashes/md5.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class coinex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

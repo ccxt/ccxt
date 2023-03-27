@@ -7,7 +7,6 @@ import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
-
 export default class deribit extends deribitRest {
     describe () {
         return this.deepExtend (super.describe (), {

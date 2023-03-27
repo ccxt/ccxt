@@ -10,7 +10,6 @@ import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js
 
 // ---------------------------------------------------------------------------
 
-
 export default class idex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
