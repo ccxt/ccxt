@@ -36,7 +36,9 @@ export default class poloniex extends poloniexRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
-                'watchOrderBookMethod': 'book_lv2', // can also be 'book'
+                'watchOrderBook': {
+                    'name': 'book_lv2', // can also be 'book'
+                },
                 'connectionsLimit': 2000, // 2000 public, 2000 private, 4000 total, only for subscribe events, unsubscribe not restricted
                 'requestsLimit': 500, // per second, only for subscribe events, unsubscribe not restricted
                 'channelToTimeframe': {
@@ -261,8 +263,8 @@ export default class poloniex extends poloniexRest {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
-        let name = this.safeString (this.options, 'watchOrderBookMethod', 'book_lv2');
-        [ name, params ] = this.handleOptionAndParams (params, 'watchOrderBookMethod', 'name', name);
+        let name = this.safeString (this.options.watchOrderBook, 'name', 'book_lv2');
+        [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
         const orderbook = await this.subscribe (name, false, [ symbol ], params);
         return orderbook.limit ();
     }
