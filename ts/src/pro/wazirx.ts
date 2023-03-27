@@ -6,7 +6,6 @@ import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../ba
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class wazirx extends wazirxRest {
     describe () {
         return this.deepExtend (super.describe (), {
