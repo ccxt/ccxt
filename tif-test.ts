@@ -10,7 +10,7 @@ const exec = (func)=>{
         result = e.message; 
         sign = '🔴' ;
     }
-    console.log ('  ✍  ' + func.toString().replace(/(.*?)g, o, /,''), ` ${sign} `, result, '\n');
+    console.log (' ✍  input:' + func.toString().replace(/(.*?)g, o, /,''), ` ${sign} `, result, '\n');
 };
 
 async function test(){ 
@@ -30,8 +30,8 @@ async function test(){
         exec(()=>e.handleRequestTif (g, o, {'postOnly': false }));
         exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO'}));
         exec(()=>e.handleRequestTif (g, o, {'timeInForce': exPoStr}));
-        exec(()=>e.handleRequestTif (g, o, {simulatedTifKey: 'PO'}));
-        exec(()=>e.handleRequestTif (g, o, {simulatedTifKey: exPoStr}));
+        exec(()=>e.handleRequestTif (g, o, {[simulatedTifKey]: 'PO'}));
+        exec(()=>e.handleRequestTif (g, o, {[simulatedTifKey]: exPoStr}));
         exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO', 'postOnly': false }));
         exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO', 'postOnly': true }));
         // others
