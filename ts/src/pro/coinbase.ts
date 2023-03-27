@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 import coinbaseRest from '../coinbase.js';
-import { BadSymbol } from '../base/errors.js';
+import { ArgumentsRequired, BadSymbol } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -99,6 +99,9 @@ export default class coinbase extends coinbaseRest {
          * @param {object} params extra parameters specific to the coinbasepro api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchTickers requires a symbols argument');
+        }
         const name = 'ticker_batch';
         const tickers = await this.subscribe (name, symbols, params);
         return tickers;
@@ -199,6 +202,7 @@ export default class coinbase extends coinbaseRest {
                 const messageHash = channel + ':' + wsMarketId;
                 client.resolve (result, messageHash);
             }
+            client.resolve (this.tickers, 'ticker_batch');
         }
     }
 
@@ -574,6 +578,11 @@ export default class coinbase extends coinbaseRest {
             'user': this.handleOrder,
             'l2_data': this.handleOrderBook,
         };
+        const type = this.safeString (message, 'type');
+        if (type === 'error') {
+            const errorMessage = this.safeString (message, 'message');
+            throw new Error (errorMessage);
+        }
         const method = this.safeValue (methods, channel);
         return method.call (this, client, message);
     }
