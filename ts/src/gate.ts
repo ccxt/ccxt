@@ -3233,10 +3233,10 @@ export default class gate extends Exchange {
         if (market['spot'] || market['contract'] || market['option']) {
             // eslint-disable-next-line
             const accountTitle = market['option'] ? 'options' : (market['contract'] ? 'contract' : 'spot');
-            const handledTif = this.handlePoTif (accountTitle, type, params);
+            const handledTif = this.handleRequestTif (accountTitle, type, params);
             params = handledTif['params'];
-            tifKey = handledTif['tifKey'];
-            tifValue = handledTif['tifValue'];
+            tifKey = handledTif['calculatedRequestTifKey'];
+            tifValue = handledTif['calculatedRequestTifValue'];
         }
         if (isMarketOrder) {
             if (contract) {

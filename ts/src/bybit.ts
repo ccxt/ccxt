@@ -3504,10 +3504,10 @@ export default class bybit extends Exchange {
         if (isLimit) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const handledTif = this.handlePoTif ('unified', lowerCaseType, params);
+        const handledTif = this.handleRequestTif ('unified', lowerCaseType, params);
         params = handledTif['params'];
-        if (handledTif['requestValue'] !== undefined) {
-            request[handledTif['requestKey']] = handledTif['requestValue'];
+        if (handledTif['calculatedRequestTifKey'] !== undefined) {
+            request[handledTif['calculatedRequestTifKey']] = handledTif['calculatedRequestTifValue'];
         }
         let triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');

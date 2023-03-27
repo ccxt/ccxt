@@ -2184,10 +2184,10 @@ export default class okx extends Exchange {
         }
         const isMarketOrder = type === 'market';
         params = this.omit (params, [ 'currency', 'ccy', 'marginMode', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin' ]);
-        const handledTif = this.handlePoTif ('default', type, params);
+        const handledTif = this.handleRequestTif ('default', type, params);
         params = handledTif['params'];
-        if (handledTif['requestValue'] !== undefined) {
-            request[handledTif['requestKey']] = handledTif['requestValue'];
+        if (handledTif['calculatedRequestTifKey'] !== undefined) {
+            request[handledTif['calculatedRequestTifKey']] = handledTif['calculatedRequestTifValue'];
         }
         const ioc = handledTif['timeInForce'] === 'IOC';
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
