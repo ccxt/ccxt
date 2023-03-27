@@ -35,6 +35,27 @@ public static class Program
             instance.setSandboxMode(true);
         }
     }
+
+    public static void SetCredentials(Exchange instance)
+    {
+        var credentials = instance.requiredCredentials as dict;
+        foreach (var credential in credentials)
+        {
+            var key = credential.Key;
+            var value = credential.Value;
+            var boolValue = (bool)value;
+            if (boolValue)
+            {
+                var parsedKey = instance.id.ToUpper() + "_" + key.ToUpper();
+                var env = Environment.GetEnvironmentVariable(parsedKey);
+                if (env != null)
+                {
+                    instance.GetType().GetProperty(key).SetValue(instance, env, null);
+                }
+            }
+        }
+    }
+
     public static void Main(string[] args)
     {
 
@@ -70,6 +91,7 @@ public static class Program
         // var parameters = new List<object> { "BTC/USDT" };
 
         InitOptions(instance, flags);
+        SetCredentials(instance);
 
         foreach (var parameter in parameters)
         {
