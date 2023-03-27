@@ -1148,10 +1148,21 @@ export default class bitmex extends bitmexRest {
         //         table: 'orderBookL2',
         //         action: 'update',
         //         data: [
-        //             { symbol: 'XBTUSD', id: 8799285100, side: 'Sell', size: 70590 },
-        //             { symbol: 'XBTUSD', id: 8799285550, side: 'Sell', size: 217652 },
-        //             { symbol: 'XBTUSD', id: 8799288950, side: 'Buy', size: 47552 },
-        //             { symbol: 'XBTUSD', id: 8799289250, side: 'Buy', size: 78217 },
+        //             {
+        //               table: 'orderBookL2',
+        //               action: 'insert',
+        //               data: [
+        //                 {
+        //                   symbol: 'ETH_USDT',
+        //                   id: 85499965912,
+        //                   side: 'Buy',
+        //                   size: 83000000,
+        //                   price: 1704.4,
+        //                   timestamp: '2023-03-26T22:29:00.299Z'
+        //                 }
+        //               ]
+        //             }
+        //             ...
         //         ]
         //     }
         //
@@ -1172,6 +1183,7 @@ export default class bitmex extends bitmexRest {
                 this.orderbooks[symbol] = this.indexedOrderBook ({}, 10);
             }
             const orderbook = this.orderbooks[symbol];
+            orderbook['symbol'] = symbol;
             for (let i = 0; i < data.length; i++) {
                 const price = this.safeFloat (data[i], 'price');
                 const size = this.safeFloat (data[i], 'size');
@@ -1180,6 +1192,9 @@ export default class bitmex extends bitmexRest {
                 side = (side === 'Buy') ? 'bids' : 'asks';
                 const bookside = orderbook[side];
                 bookside.store (price, size, id);
+                const datetime = this.safeString (data[i], 'timestamp');
+                orderbook['timestamp'] = this.parse8601 (datetime);
+                orderbook['datetime'] = datetime;
             }
             const messageHash = table + ':' + marketId;
             client.resolve (orderbook, messageHash);
@@ -1195,12 +1210,15 @@ export default class bitmex extends bitmexRest {
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];
                 const price = this.safeFloat (data[i], 'price');
-                const size = this.safeFloat (data[i], 'size', 0);
+                const size = (action === 'delete') ? 0 : this.safeFloat (data[i], 'size', 0);
                 const id = this.safeString (data[i], 'id');
                 let side = this.safeString (data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
                 const bookside = orderbook[side];
                 bookside.store (price, size, id);
+                const datetime = this.safeString (data[i], 'timestamp');
+                orderbook['timestamp'] = this.parse8601 (datetime);
+                orderbook['datetime'] = datetime;
             }
             const marketIds = Object.keys (numUpdatesByMarketId);
             for (let i = 0; i < marketIds.length; i++) {
