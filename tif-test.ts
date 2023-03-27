@@ -1,27 +1,43 @@
 
-async function test(){ 
-    const exName = 'bybit';
-    const e = await excInit(exName, false) as any; 
-    //await e.loadMarkets(); 
-    e.verbose = true;
-    const go = (func)=>{
-        let result = undefined;
-        try { 
-            result += func(); 
-        }
-        catch(e:any) { 
-            result += e.message; 
-        }
-        console.log (func.toString(), result);
-    };
-    //
-    //
-    //
-    const isMarketOrder = true;
-    go(()=>e.handlePoTif ('unified', isMarketOrder, {'postOnly': true }));
+const exec = (func)=>{
+    let result:any = undefined;
+    let sign = '';
+    try { 
+        result = JSON.stringify(func()); 
+        sign = '🟢' ;
+    }
+    catch(e:any) { 
+        result = e.message; 
+        sign = '🔴' ;
+    }
+    console.log ('  ✍  ' + func.toString().replace(/(.*?)g, isM, /,''), ` ${sign} `, result, '\n  ------------ ');
+};
 
+async function test(){ 
+    const exNames = [
+        'bybit' /* https://bybit-exchange.github.io/docs/spot/enum#timeinforce */
+    ];
+    for (const exName of exNames) { 
+        const e = await excInit(exName, false) as any; 
+        const g = 'v5unified'; //groupName
+        const exPoTif = 'PostOnly';
+        let isM = true; // marketOrder (change this to test !)
+        //
+        exec(()=>e.handleRequestTif (g, isM, {'postOnly': true }));
+        exec(()=>e.handleRequestTif (g, isM, {'postOnly': false }));
+        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': 'PO'}));
+        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': exPoTif}));
+        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': 'PO',    'postOnly': false }));
+        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': exPoTif, 'postOnly': false }));
+        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': 'PO',    'postOnly': true }));
+        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': exPoTif, 'postOnly': true }));
+        // others
+        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': 'FOK', 'postOnly': true }));
+        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': 'FOK', 'postOnly': false }));
+        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': 'IOC', 'postOnly': true }));
+        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': 'IOC', 'postOnly': false }));
+    }
     //var o = await e.createOrder ('DOGE/USDT', 'limit', 'buy', 200, 0.061, {'triggerPrice':0.056, operator:'lte', 'timeInForce':'PO'});
-    debugger;
 }
 setTimeout(test, 20);
 
