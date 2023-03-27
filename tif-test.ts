@@ -10,7 +10,7 @@ const exec = (func)=>{
         result = e.message; 
         sign = '🔴' ;
     }
-    console.log ('  ✍  ' + func.toString().replace(/(.*?)g, isM, /,''), ` ${sign} `, result, '\n  ------------ ');
+    console.log ('  ✍  ' + func.toString().replace(/(.*?)g, o, /,''), ` ${sign} `, result, '\n  ------------ ');
 };
 
 async function test(){ 
@@ -21,21 +21,19 @@ async function test(){
         const e = await excInit(exName, false) as any; 
         const g = 'v5unified'; //groupName
         const exPoTif = 'PostOnly';
-        let isM = true; // marketOrder (change this to test !)
+        let o = 'market'; // market order (change this to test !)
         //
-        exec(()=>e.handleRequestTif (g, isM, {'postOnly': true }));
-        exec(()=>e.handleRequestTif (g, isM, {'postOnly': false }));
-        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': 'PO'}));
-        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': exPoTif}));
-        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': 'PO',    'postOnly': false }));
-        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': exPoTif, 'postOnly': false }));
-        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': 'PO',    'postOnly': true }));
-        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': exPoTif, 'postOnly': true }));
+        exec(()=>e.handleRequestTif (g, o, {'postOnly': true }));
+        exec(()=>e.handleRequestTif (g, o, {'postOnly': false }));
+        exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO'}));
+        exec(()=>e.handleRequestTif (g, o, {'timeInForce': exPoTif}));
+        exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO', 'postOnly': false }));
+        exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO', 'postOnly': true }));
         // others
-        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': 'FOK', 'postOnly': true }));
-        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': 'FOK', 'postOnly': false }));
-        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': 'IOC', 'postOnly': true }));
-        exec(()=>e.handleRequestTif (g, isM, {'timeInForce': 'IOC', 'postOnly': false }));
+        exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'FOK', 'postOnly': true }));
+        exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'FOK', 'postOnly': false }));
+        exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'IOC', 'postOnly': true }));
+        exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'IOC', 'postOnly': false }));
     }
     //var o = await e.createOrder ('DOGE/USDT', 'limit', 'buy', 200, 0.061, {'triggerPrice':0.056, operator:'lte', 'timeInForce':'PO'});
 }
