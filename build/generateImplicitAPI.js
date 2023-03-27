@@ -81,7 +81,7 @@ function createImplicitMethods(){
         const methodNames = storedResult[exchange];
 
         const methods =  methodNames.map(method=> {
-            return `${IDEN} ${method}? (params?: {}): Promise<implicitReturnType>;`
+            return `${IDEN} ${method} (params?: {}): Promise<implicitReturnType>;`
         });
         methods.push ('}')
         const footer = storedMethods[exchange].pop ()
