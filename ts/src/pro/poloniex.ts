@@ -1,16 +1,15 @@
-'use strict';
+//  ---------------------------------------------------------------------------
+
+import poloniexRest from '../poloniex.js';
+import { BadRequest, AuthenticationError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Precise } from '../base/Precise.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
-const poloniexRest = require ('../poloniex.js');
-const { BadRequest } = require ('../base/errors');
-const { AuthenticationError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
-const Precise = require ('../base/Precise');
-
-//  ---------------------------------------------------------------------------
-
-module.exports = class poloniex extends poloniexRest {
+// @ts-expect-error
+export default class poloniex extends poloniexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -95,7 +94,7 @@ module.exports = class poloniex extends poloniexRest {
             const requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
             // let expires = this.milliseconds () + 10000;
             // expires = expires.toString ();
-            const signature = this.hmac (this.encode (requestString), this.encode (this.secret), 'sha256', 'base64');
+            const signature = this.hmac (this.encode (requestString), this.encode (this.secret), sha256, 'base64');
             const request = {
                 'event': 'subscribe',
                 'channel': [ 'auth' ],
@@ -962,5 +961,5 @@ module.exports = class poloniex extends poloniexRest {
         client.lastPong = this.milliseconds ();
         return message;
     }
-};
+}
 
