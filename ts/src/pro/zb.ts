@@ -7,7 +7,6 @@ import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class zb extends zbRest {
     describe () {
         return this.deepExtend (super.describe (), {
