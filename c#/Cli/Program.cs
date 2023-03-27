@@ -66,11 +66,11 @@ public static class Program
         List<string> strings = ids.Select(s => (string)s).ToList();
         exchangesId = strings;
 
-        // var exchangeName = args[0];
-        // var methodName = args[1];
+        var exchangeName = args[0];
+        var methodName = args[1];
 
-        var exchangeName = "bybit";
-        var methodName = "fetchBalance";
+        // var exchangeName = "bybit";
+        // var methodName = "fetchBalance";
 
         if (!exchangesId.Contains(exchangeName))
         {
@@ -85,11 +85,11 @@ public static class Program
             .Where(x => x.StartsWith("-"))
             .ToList();
 
-        // var parameters = args[2..]
-        //     .Where(x => !x.StartsWith("-"))
-        //     .ToList();
+        var parameters = args[2..]
+            .Where(x => !x.StartsWith("-"))
+            .ToList();
 
-        var parameters = new List<object> { };
+        // var parameters = new List<object> { };
 
         instance.setSandboxMode(true);
 
