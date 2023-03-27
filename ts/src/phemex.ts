@@ -1940,7 +1940,7 @@ export default class phemex extends Exchange {
         const amount = this.fromEv (this.safeString (order, 'baseQtyEv'), market);
         const remaining = this.omitZero (this.fromEv (this.safeString (order, 'leavesBaseQtyEv'), market));
         const filled = this.fromEv (this.safeString2 (order, 'cumBaseQtyEv', 'cumBaseValueEv'), market);
-        const cost = this.fromEv (this.safeString2 (order, 'cumQuoteValueEv', 'quoteQtyEv'), market);
+        const cost = this.fromEr (this.safeString2 (order, 'cumQuoteValueEv', 'quoteQtyEv'), market);
         const average = this.fromEp (this.safeString (order, 'avgPriceEp'), market);
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
