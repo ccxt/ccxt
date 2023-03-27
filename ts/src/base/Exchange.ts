@@ -3794,24 +3794,20 @@ export default class Exchange {
         let providedTifValue = this.safeString2 (params, exchangeSpecificTifKey, 'timeInForce');
         if (providedTifValue === undefined) {
             // support for TIF values in orderType i.e. OKX, where you can `.createOrder ('BTC/USDT', 'ioc', 'buy', ...)`
-            if (orderType in tifMapUnifiedToEx) {
+            if (tifMapExToUnified !== undefined && orderType in tifMapExToUnified) {
                 providedTifValue = orderType;
             }
         }
-        // exchangeSpecific values for different TIME IN FORCE values
-        const exTifValue_IOC = this.safeString (tifMapUnifiedToEx, 'IOC');
-        const exTifValue_FOK = this.safeString (tifMapUnifiedToEx, 'FOK');
-        const exTifValue_PO = this.safeString (tifMapUnifiedToEx, 'PO');
-        const exTifValue_GTC = this.safeString (tifMapUnifiedToEx, 'GTC');
-        //
-        // ############### STRING TIF CHECK ############### //
-        //
-        // check if unified 'timeInForce' (if set in PARAMS) matches to either unified or exchange-specific value
-        const is_TIF_IOC = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ 'IOC', exTifValue_IOC ]);
-        const is_TIF_FOK = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ 'FOK', exTifValue_FOK ]);
-        const is_TIF_PO = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ 'PO', exTifValue_PO ]);
-        // eslint-disable-next-line no-unused-vars
-        const is_TIF_GTC = (providedTifValue !== undefined) && this.inArray (providedTifValue, [ 'GTC', exTifValue_GTC ]);
+        let matchingUnifiedTIF = undefined;
+        if (this.inArray (providedTifValue, [ 'IOC', 'FOK', 'PO', 'GTC' ])) {
+            matchingUnifiedTIF = providedTifValue;
+        } else {
+            // check if exchangeSpecific TIF value matches to unified TIF value
+            if (tifMapExToUnified !== undefined && providedTifValue in tifMapExToUnified) {
+                matchingUnifiedTIF = tifMapExToUnified[providedTifValue];
+            }
+        }
+        const exchangeSpecificTifValue = this.safeString (tifMapUnifiedToEx, matchingUnifiedTIF);
         //
         // ############### BOOLEAN CHECK ############### //
         //
@@ -3833,14 +3829,14 @@ export default class Exchange {
         //
         // ############### set final value ############### //
         //
-        if (is_TIF_PO && providedPoValue === false) {
+        if (matchingUnifiedTIF === 'PO' && providedPoValue === false) {
             throw new InvalidOrder (this.id + ' if postOnly is set to false, timeInForce can not be postOnly value');
         }
         let setRequestTifKey = undefined;
         let setRequestTifValue = undefined;
-        const isAnyPo = is_TIF_PO || is_BOOL_PO;
+        const isAnyPo = matchingUnifiedTIF === 'PO' || is_BOOL_PO;
         if (isAnyPo) {
-            if (is_TIF_IOC || is_TIF_FOK) {
+            if (matchingUnifiedTIF === 'IOC' || matchingUnifiedTIF === 'FOK') {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + providedTifValue);
             } else if (isMarketOrder) {
                 throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
@@ -3848,17 +3844,11 @@ export default class Exchange {
                 if (exchangeSpecificBoolPo) {
                     setRequestTifKey = exchangeSpecificPoKey;
                     setRequestTifValue = true;
-                } else if (exTifValue_PO !== undefined) {
+                } else if ((matchingUnifiedTIF === 'PO') && (exchangeSpecificTifValue !== undefined)) {
                     setRequestTifKey = exchangeSpecificTifKey;
-                    setRequestTifValue = exTifValue_PO;
+                    setRequestTifValue = exchangeSpecificTifValue;
                 }
             }
-        }
-        let providedTifUnifiedValue = undefined;
-        if (providedTifValue !== undefined) {
-            const tifValueToSend = this.safeString (tifMapUnifiedToEx, providedTifValue, providedTifValue);
-            setRequestTifValue = tifValueToSend;
-            providedTifUnifiedValue = this.safeString (tifMapExToUnified, providedTifValue);
         }
         const defaultMarketOrderTif = this.safeString (tifOptions, 'defaultMarketOrderTimeInForce');
         if (defaultMarketOrderTif !== exchangeSpecificTifKey) {
@@ -3870,11 +3860,11 @@ export default class Exchange {
         const paramsOmited = this.omit (params, [ 'postOnly', exchangeSpecificPoKey, 'timeInForce', exchangeSpecificTifKey ]);
         // returns: object, object, boolean, string
         return {
+            'params': paramsOmited,
             'setRequestTifKey': setRequestTifKey,
             'setRequestTifValue': setRequestTifValue,
-            'params': paramsOmited,
             'isPostOnly': isAnyPo,
-            'timeInForce': providedTifUnifiedValue,
+            'timeInForce': matchingUnifiedTIF,
         };
     }
 
