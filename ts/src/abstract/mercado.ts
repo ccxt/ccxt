@@ -8,26 +8,29 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetCoins (params?: {}): Promise<implicitReturnType> { return this['publicGetCoins'] (params); }
-    publicGetCoinOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetCoinOrderbook'] (params); }
-    publicGetCoinTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetCoinTicker'] (params); }
-    publicGetCoinTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetCoinTrades'] (params); }
-    publicGetCoinTradesFrom (params?: {}): Promise<implicitReturnType> { return this['publicGetCoinTradesFrom'] (params); }
-    publicGetCoinTradesFromTo (params?: {}): Promise<implicitReturnType> { return this['publicGetCoinTradesFromTo'] (params); }
-    publicGetCoinDaySummaryYearMonthDay (params?: {}): Promise<implicitReturnType> { return this['publicGetCoinDaySummaryYearMonthDay'] (params); }
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelOrder'] (params); }
-    privatePostGetAccountInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostGetAccountInfo'] (params); }
-    privatePostGetOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostGetOrder'] (params); }
-    privatePostGetWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostGetWithdrawal'] (params); }
-    privatePostListSystemMessages (params?: {}): Promise<implicitReturnType> { return this['privatePostListSystemMessages'] (params); }
-    privatePostListOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostListOrders'] (params); }
-    privatePostListOrderbook (params?: {}): Promise<implicitReturnType> { return this['privatePostListOrderbook'] (params); }
-    privatePostPlaceBuyOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostPlaceBuyOrder'] (params); }
-    privatePostPlaceSellOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostPlaceSellOrder'] (params); }
-    privatePostPlaceMarketBuyOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostPlaceMarketBuyOrder'] (params); }
-    privatePostPlaceMarketSellOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostPlaceMarketSellOrder'] (params); }
-    privatePostWithdrawCoin (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdrawCoin'] (params); }
-    v4PublicGetCoinCandle (params?: {}): Promise<implicitReturnType> { return this['v4PublicGetCoinCandle'] (params); }
-    v4PublicNetGetCandles (params?: {}): Promise<implicitReturnType> { return this['v4PublicNetGetCandles'] (params); }
+interface Exchange {
+     publicGetCoins? (params?: {}): Promise<implicitReturnType>;
+     publicGetCoinOrderbook? (params?: {}): Promise<implicitReturnType>;
+     publicGetCoinTicker? (params?: {}): Promise<implicitReturnType>;
+     publicGetCoinTrades? (params?: {}): Promise<implicitReturnType>;
+     publicGetCoinTradesFrom? (params?: {}): Promise<implicitReturnType>;
+     publicGetCoinTradesFromTo? (params?: {}): Promise<implicitReturnType>;
+     publicGetCoinDaySummaryYearMonthDay? (params?: {}): Promise<implicitReturnType>;
+     privatePostCancelOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostGetAccountInfo? (params?: {}): Promise<implicitReturnType>;
+     privatePostGetOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostGetWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostListSystemMessages? (params?: {}): Promise<implicitReturnType>;
+     privatePostListOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostListOrderbook? (params?: {}): Promise<implicitReturnType>;
+     privatePostPlaceBuyOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostPlaceSellOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostPlaceMarketBuyOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostPlaceMarketSellOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostWithdrawCoin? (params?: {}): Promise<implicitReturnType>;
+     v4PublicGetCoinCandle? (params?: {}): Promise<implicitReturnType>;
+     v4PublicNetGetCandles? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

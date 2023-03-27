@@ -8,33 +8,36 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    klinePublicGetPublicJson (params?: {}): Promise<implicitReturnType> { return this['klinePublicGetPublicJson'] (params); }
-    klinePublicGetPublicCurrencyJson (params?: {}): Promise<implicitReturnType> { return this['klinePublicGetPublicCurrencyJson'] (params); }
-    v1PublicGetPing (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetPing'] (params); }
-    v1PublicGetTime (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetTime'] (params); }
-    v1PublicGetExchangeInfo (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetExchangeInfo'] (params); }
-    v1PublicGetDepth (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetDepth'] (params); }
-    v1PublicGetTrades (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetTrades'] (params); }
-    v1PublicGetHistoricalTrades (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetHistoricalTrades'] (params); }
-    v1PublicGetAggTrades (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetAggTrades'] (params); }
-    v1PublicGetTicker24hr (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetTicker24hr'] (params); }
-    v1PublicGetTickerPrice (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetTickerPrice'] (params); }
-    v1PublicGetTickerBookTicker (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetTickerBookTicker'] (params); }
-    v1PublicGetMarketKline (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetMarketKline'] (params); }
-    v1PrivateGetOrder (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetOrder'] (params); }
-    v1PrivateGetOpenOrders (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetOpenOrders'] (params); }
-    v1PrivateGetAllOrders (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetAllOrders'] (params); }
-    v1PrivateGetAccount (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetAccount'] (params); }
-    v1PrivateGetMyTrades (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetMyTrades'] (params); }
-    v1PrivateGetEtfNetValueSymbol (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetEtfNetValueSymbol'] (params); }
-    v1PrivateGetWithdrawHistory (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetWithdrawHistory'] (params); }
-    v1PrivateGetDepositHistory (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetDepositHistory'] (params); }
-    v1PrivatePostOrder (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostOrder'] (params); }
-    v1PrivatePostWithdrawCommit (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostWithdrawCommit'] (params); }
-    v1PrivateDeleteOrder (params?: {}): Promise<implicitReturnType> { return this['v1PrivateDeleteOrder'] (params); }
-    v2PrivateGetMyTrades (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetMyTrades'] (params); }
-    openPrivatePostPoseidonApiV1ListenKey (params?: {}): Promise<implicitReturnType> { return this['openPrivatePostPoseidonApiV1ListenKey'] (params); }
-    openPrivatePutPoseidonApiV1ListenKeyListenKey (params?: {}): Promise<implicitReturnType> { return this['openPrivatePutPoseidonApiV1ListenKeyListenKey'] (params); }
-    openPrivateDeletePoseidonApiV1ListenKeyListenKey (params?: {}): Promise<implicitReturnType> { return this['openPrivateDeletePoseidonApiV1ListenKeyListenKey'] (params); }
+interface Exchange {
+     klinePublicGetPublicJson? (params?: {}): Promise<implicitReturnType>;
+     klinePublicGetPublicCurrencyJson? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetPing? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetTime? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetExchangeInfo? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetDepth? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetTrades? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetHistoricalTrades? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetAggTrades? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetTicker24hr? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetTickerPrice? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetTickerBookTicker? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetMarketKline? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetOrder? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetOpenOrders? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetAllOrders? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetAccount? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetMyTrades? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetEtfNetValueSymbol? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetWithdrawHistory? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetDepositHistory? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostOrder? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostWithdrawCommit? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateDeleteOrder? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetMyTrades? (params?: {}): Promise<implicitReturnType>;
+     openPrivatePostPoseidonApiV1ListenKey? (params?: {}): Promise<implicitReturnType>;
+     openPrivatePutPoseidonApiV1ListenKeyListenKey? (params?: {}): Promise<implicitReturnType>;
+     openPrivateDeletePoseidonApiV1ListenKeyListenKey? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

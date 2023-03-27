@@ -8,28 +8,31 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetCountries (params?: {}): Promise<implicitReturnType> { return this['publicGetCountries'] (params); }
-    publicGetDataCurrencyTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetDataCurrencyTicker'] (params); }
-    publicGetDataCurrencyTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetDataCurrencyTrades'] (params); }
-    publicGetDataCurrencyDepth (params?: {}): Promise<implicitReturnType> { return this['publicGetDataCurrencyDepth'] (params); }
-    publicGetBitcoinChartsIdTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetBitcoinChartsIdTrades'] (params); }
-    publicGetBitcoinChartsIdDepth (params?: {}): Promise<implicitReturnType> { return this['publicGetBitcoinChartsIdDepth'] (params); }
-    privateGetUser (params?: {}): Promise<implicitReturnType> { return this['privateGetUser'] (params); }
-    privateGetUserAddresses (params?: {}): Promise<implicitReturnType> { return this['privateGetUserAddresses'] (params); }
-    privateGetUserAddressesAddress (params?: {}): Promise<implicitReturnType> { return this['privateGetUserAddressesAddress'] (params); }
-    privateGetUserOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetUserOrders'] (params); }
-    privateGetUserOrdersUuid (params?: {}): Promise<implicitReturnType> { return this['privateGetUserOrdersUuid'] (params); }
-    privateGetUserPriceAlerts (params?: {}): Promise<implicitReturnType> { return this['privateGetUserPriceAlerts'] (params); }
-    privateGetMerchantGetPaymentUuid (params?: {}): Promise<implicitReturnType> { return this['privateGetMerchantGetPaymentUuid'] (params); }
-    privatePostUserAddresses (params?: {}): Promise<implicitReturnType> { return this['privatePostUserAddresses'] (params); }
-    privatePostUserOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostUserOrders'] (params); }
-    privatePostUserWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privatePostUserWithdrawals'] (params); }
-    privatePostUserEmailTransfers (params?: {}): Promise<implicitReturnType> { return this['privatePostUserEmailTransfers'] (params); }
-    privatePostUserPaymentRequests (params?: {}): Promise<implicitReturnType> { return this['privatePostUserPaymentRequests'] (params); }
-    privatePostUserPriceAlerts (params?: {}): Promise<implicitReturnType> { return this['privatePostUserPriceAlerts'] (params); }
-    privatePostMerchantCreatePayment (params?: {}): Promise<implicitReturnType> { return this['privatePostMerchantCreatePayment'] (params); }
-    privateDeleteUserOrdersUuid (params?: {}): Promise<implicitReturnType> { return this['privateDeleteUserOrdersUuid'] (params); }
-    privateDeleteUserOrdersUuidCancel (params?: {}): Promise<implicitReturnType> { return this['privateDeleteUserOrdersUuidCancel'] (params); }
-    privateDeleteUserPriceAlertsId (params?: {}): Promise<implicitReturnType> { return this['privateDeleteUserPriceAlertsId'] (params); }
+interface Exchange {
+     publicGetCountries? (params?: {}): Promise<implicitReturnType>;
+     publicGetDataCurrencyTicker? (params?: {}): Promise<implicitReturnType>;
+     publicGetDataCurrencyTrades? (params?: {}): Promise<implicitReturnType>;
+     publicGetDataCurrencyDepth? (params?: {}): Promise<implicitReturnType>;
+     publicGetBitcoinChartsIdTrades? (params?: {}): Promise<implicitReturnType>;
+     publicGetBitcoinChartsIdDepth? (params?: {}): Promise<implicitReturnType>;
+     privateGetUser? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserAddresses? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserAddressesAddress? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserOrdersUuid? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserPriceAlerts? (params?: {}): Promise<implicitReturnType>;
+     privateGetMerchantGetPaymentUuid? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserAddresses? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserWithdrawals? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserEmailTransfers? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserPaymentRequests? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserPriceAlerts? (params?: {}): Promise<implicitReturnType>;
+     privatePostMerchantCreatePayment? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteUserOrdersUuid? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteUserOrdersUuidCancel? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteUserPriceAlertsId? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

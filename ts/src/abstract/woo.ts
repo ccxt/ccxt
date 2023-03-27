@@ -8,65 +8,68 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    v1PubGetHistKline (params?: {}): Promise<implicitReturnType> { return this['v1PubGetHistKline'] (params); }
-    v1PubGetHistTrades (params?: {}): Promise<implicitReturnType> { return this['v1PubGetHistTrades'] (params); }
-    v1PublicGetInfo (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetInfo'] (params); }
-    v1PublicGetInfoSymbol (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetInfoSymbol'] (params); }
-    v1PublicGetSystemInfo (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetSystemInfo'] (params); }
-    v1PublicGetMarketTrades (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetMarketTrades'] (params); }
-    v1PublicGetToken (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetToken'] (params); }
-    v1PublicGetTokenNetwork (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetTokenNetwork'] (params); }
-    v1PublicGetFundingRates (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetFundingRates'] (params); }
-    v1PublicGetFundingRateSymbol (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetFundingRateSymbol'] (params); }
-    v1PublicGetFundingRateHistory (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetFundingRateHistory'] (params); }
-    v1PublicGetFutures (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetFutures'] (params); }
-    v1PublicGetFuturesSymbol (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetFuturesSymbol'] (params); }
-    v1PrivateGetClientToken (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetClientToken'] (params); }
-    v1PrivateGetOrderOid (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetOrderOid'] (params); }
-    v1PrivateGetClientOrderClientOrderId (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetClientOrderClientOrderId'] (params); }
-    v1PrivateGetOrders (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetOrders'] (params); }
-    v1PrivateGetOrderbookSymbol (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetOrderbookSymbol'] (params); }
-    v1PrivateGetKline (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetKline'] (params); }
-    v1PrivateGetClientTradeTid (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetClientTradeTid'] (params); }
-    v1PrivateGetOrderOidTrades (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetOrderOidTrades'] (params); }
-    v1PrivateGetClientTrades (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetClientTrades'] (params); }
-    v1PrivateGetClientInfo (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetClientInfo'] (params); }
-    v1PrivateGetAssetDeposit (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetAssetDeposit'] (params); }
-    v1PrivateGetAssetHistory (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetAssetHistory'] (params); }
-    v1PrivateGetSubAccountAll (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetSubAccountAll'] (params); }
-    v1PrivateGetSubAccountAssets (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetSubAccountAssets'] (params); }
-    v1PrivateGetTokenInterest (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetTokenInterest'] (params); }
-    v1PrivateGetTokenInterestToken (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetTokenInterestToken'] (params); }
-    v1PrivateGetInterestHistory (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetInterestHistory'] (params); }
-    v1PrivateGetInterestRepay (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetInterestRepay'] (params); }
-    v1PrivateGetFundingFeeHistory (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetFundingFeeHistory'] (params); }
-    v1PrivateGetPositions (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetPositions'] (params); }
-    v1PrivateGetPositionSymbol (params?: {}): Promise<implicitReturnType> { return this['v1PrivateGetPositionSymbol'] (params); }
-    v1PrivatePostOrder (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostOrder'] (params); }
-    v1PrivatePostAssetMainSubTransfer (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostAssetMainSubTransfer'] (params); }
-    v1PrivatePostAssetWithdraw (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostAssetWithdraw'] (params); }
-    v1PrivatePostInterestRepay (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostInterestRepay'] (params); }
-    v1PrivatePostClientAccountMode (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostClientAccountMode'] (params); }
-    v1PrivatePostClientLeverage (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostClientLeverage'] (params); }
-    v1PrivateDeleteOrder (params?: {}): Promise<implicitReturnType> { return this['v1PrivateDeleteOrder'] (params); }
-    v1PrivateDeleteClientOrder (params?: {}): Promise<implicitReturnType> { return this['v1PrivateDeleteClientOrder'] (params); }
-    v1PrivateDeleteOrders (params?: {}): Promise<implicitReturnType> { return this['v1PrivateDeleteOrders'] (params); }
-    v1PrivateDeleteAssetWithdraw (params?: {}): Promise<implicitReturnType> { return this['v1PrivateDeleteAssetWithdraw'] (params); }
-    v2PrivateGetClientHolding (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetClientHolding'] (params); }
-    v3PrivateGetAlgoOrderOid (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetAlgoOrderOid'] (params); }
-    v3PrivateGetAlgoOrders (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetAlgoOrders'] (params); }
-    v3PrivateGetBalances (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetBalances'] (params); }
-    v3PrivateGetAccountinfo (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetAccountinfo'] (params); }
-    v3PrivateGetPositions (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetPositions'] (params); }
-    v3PrivateGetBuypower (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetBuypower'] (params); }
-    v3PrivatePostAlgoOrder (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAlgoOrder'] (params); }
-    v3PrivatePutOrderOid (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePutOrderOid'] (params); }
-    v3PrivatePutOrderClientOid (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePutOrderClientOid'] (params); }
-    v3PrivatePutAlgoOrderOid (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePutAlgoOrderOid'] (params); }
-    v3PrivatePutAlgoOrderClientOid (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePutAlgoOrderClientOid'] (params); }
-    v3PrivateDeleteAlgoOrderOid (params?: {}): Promise<implicitReturnType> { return this['v3PrivateDeleteAlgoOrderOid'] (params); }
-    v3PrivateDeleteAlgoOrdersPending (params?: {}): Promise<implicitReturnType> { return this['v3PrivateDeleteAlgoOrdersPending'] (params); }
-    v3PrivateDeleteAlgoOrdersPendingSymbol (params?: {}): Promise<implicitReturnType> { return this['v3PrivateDeleteAlgoOrdersPendingSymbol'] (params); }
-    v3PrivateDeleteOrdersPending (params?: {}): Promise<implicitReturnType> { return this['v3PrivateDeleteOrdersPending'] (params); }
+interface Exchange {
+     v1PubGetHistKline? (params?: {}): Promise<implicitReturnType>;
+     v1PubGetHistTrades? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetInfo? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetInfoSymbol? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetSystemInfo? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetMarketTrades? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetToken? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetTokenNetwork? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetFundingRates? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetFundingRateSymbol? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetFundingRateHistory? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetFutures? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetFuturesSymbol? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetClientToken? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetOrderOid? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetClientOrderClientOrderId? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetOrders? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetOrderbookSymbol? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetKline? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetClientTradeTid? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetOrderOidTrades? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetClientTrades? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetClientInfo? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetAssetDeposit? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetAssetHistory? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetSubAccountAll? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetSubAccountAssets? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetTokenInterest? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetTokenInterestToken? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetInterestHistory? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetInterestRepay? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetFundingFeeHistory? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetPositions? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateGetPositionSymbol? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostOrder? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostAssetMainSubTransfer? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostAssetWithdraw? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostInterestRepay? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostClientAccountMode? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostClientLeverage? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateDeleteOrder? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateDeleteClientOrder? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateDeleteOrders? (params?: {}): Promise<implicitReturnType>;
+     v1PrivateDeleteAssetWithdraw? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetClientHolding? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetAlgoOrderOid? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetAlgoOrders? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetBalances? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetAccountinfo? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetPositions? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetBuypower? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAlgoOrder? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePutOrderOid? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePutOrderClientOid? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePutAlgoOrderOid? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePutAlgoOrderClientOid? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateDeleteAlgoOrderOid? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateDeleteAlgoOrdersPending? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateDeleteAlgoOrdersPendingSymbol? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateDeleteOrdersPending? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

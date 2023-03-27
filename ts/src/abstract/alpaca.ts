@@ -8,21 +8,24 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    marketsGetAssetsPublicBeta (params?: {}): Promise<implicitReturnType> { return this['marketsGetAssetsPublicBeta'] (params); }
-    privateGetAccount (params?: {}): Promise<implicitReturnType> { return this['privateGetAccount'] (params); }
-    privateGetOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetOrders'] (params); }
-    privateGetOrdersOrderId (params?: {}): Promise<implicitReturnType> { return this['privateGetOrdersOrderId'] (params); }
-    privateGetPositions (params?: {}): Promise<implicitReturnType> { return this['privateGetPositions'] (params); }
-    privateGetPositionsSymbol (params?: {}): Promise<implicitReturnType> { return this['privateGetPositionsSymbol'] (params); }
-    privateGetAccountActivitiesActivityType (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountActivitiesActivityType'] (params); }
-    privatePostOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOrders'] (params); }
-    privateDeleteOrders (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrders'] (params); }
-    privateDeleteOrdersOrderId (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrdersOrderId'] (params); }
-    cryptoPublicGetCryptoLatestOrderbooks (params?: {}): Promise<implicitReturnType> { return this['cryptoPublicGetCryptoLatestOrderbooks'] (params); }
-    cryptoPublicGetCryptoTrades (params?: {}): Promise<implicitReturnType> { return this['cryptoPublicGetCryptoTrades'] (params); }
-    cryptoPublicGetCryptoQuotes (params?: {}): Promise<implicitReturnType> { return this['cryptoPublicGetCryptoQuotes'] (params); }
-    cryptoPublicGetCryptoLatestQuotes (params?: {}): Promise<implicitReturnType> { return this['cryptoPublicGetCryptoLatestQuotes'] (params); }
-    cryptoPublicGetCryptoBars (params?: {}): Promise<implicitReturnType> { return this['cryptoPublicGetCryptoBars'] (params); }
-    cryptoPublicGetCryptoSnapshots (params?: {}): Promise<implicitReturnType> { return this['cryptoPublicGetCryptoSnapshots'] (params); }
+interface Exchange {
+     marketsGetAssetsPublicBeta? (params?: {}): Promise<implicitReturnType>;
+     privateGetAccount? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrdersOrderId? (params?: {}): Promise<implicitReturnType>;
+     privateGetPositions? (params?: {}): Promise<implicitReturnType>;
+     privateGetPositionsSymbol? (params?: {}): Promise<implicitReturnType>;
+     privateGetAccountActivitiesActivityType? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrders? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteOrders? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteOrdersOrderId? (params?: {}): Promise<implicitReturnType>;
+     cryptoPublicGetCryptoLatestOrderbooks? (params?: {}): Promise<implicitReturnType>;
+     cryptoPublicGetCryptoTrades? (params?: {}): Promise<implicitReturnType>;
+     cryptoPublicGetCryptoQuotes? (params?: {}): Promise<implicitReturnType>;
+     cryptoPublicGetCryptoLatestQuotes? (params?: {}): Promise<implicitReturnType>;
+     cryptoPublicGetCryptoBars? (params?: {}): Promise<implicitReturnType>;
+     cryptoPublicGetCryptoSnapshots? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

@@ -8,31 +8,34 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetHealth (params?: {}): Promise<implicitReturnType> { return this['publicGetHealth'] (params); }
-    publicGetConstants (params?: {}): Promise<implicitReturnType> { return this['publicGetConstants'] (params); }
-    publicGetKit (params?: {}): Promise<implicitReturnType> { return this['publicGetKit'] (params); }
-    publicGetTiers (params?: {}): Promise<implicitReturnType> { return this['publicGetTiers'] (params); }
-    publicGetTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetTicker'] (params); }
-    publicGetTickers (params?: {}): Promise<implicitReturnType> { return this['publicGetTickers'] (params); }
-    publicGetOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderbook'] (params); }
-    publicGetOrderbooks (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderbooks'] (params); }
-    publicGetTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetTrades'] (params); }
-    publicGetChart (params?: {}): Promise<implicitReturnType> { return this['publicGetChart'] (params); }
-    publicGetCharts (params?: {}): Promise<implicitReturnType> { return this['publicGetCharts'] (params); }
-    publicGetUdfConfig (params?: {}): Promise<implicitReturnType> { return this['publicGetUdfConfig'] (params); }
-    publicGetUdfHistory (params?: {}): Promise<implicitReturnType> { return this['publicGetUdfHistory'] (params); }
-    publicGetUdfSymbols (params?: {}): Promise<implicitReturnType> { return this['publicGetUdfSymbols'] (params); }
-    privateGetUser (params?: {}): Promise<implicitReturnType> { return this['privateGetUser'] (params); }
-    privateGetUserBalance (params?: {}): Promise<implicitReturnType> { return this['privateGetUserBalance'] (params); }
-    privateGetUserDeposits (params?: {}): Promise<implicitReturnType> { return this['privateGetUserDeposits'] (params); }
-    privateGetUserWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privateGetUserWithdrawals'] (params); }
-    privateGetUserWithdrawalFee (params?: {}): Promise<implicitReturnType> { return this['privateGetUserWithdrawalFee'] (params); }
-    privateGetUserTrades (params?: {}): Promise<implicitReturnType> { return this['privateGetUserTrades'] (params); }
-    privateGetOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetOrders'] (params); }
-    privateGetOrder (params?: {}): Promise<implicitReturnType> { return this['privateGetOrder'] (params); }
-    privatePostUserWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostUserWithdrawal'] (params); }
-    privatePostOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostOrder'] (params); }
-    privateDeleteOrderAll (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrderAll'] (params); }
-    privateDeleteOrder (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrder'] (params); }
+interface Exchange {
+     publicGetHealth? (params?: {}): Promise<implicitReturnType>;
+     publicGetConstants? (params?: {}): Promise<implicitReturnType>;
+     publicGetKit? (params?: {}): Promise<implicitReturnType>;
+     publicGetTiers? (params?: {}): Promise<implicitReturnType>;
+     publicGetTicker? (params?: {}): Promise<implicitReturnType>;
+     publicGetTickers? (params?: {}): Promise<implicitReturnType>;
+     publicGetOrderbook? (params?: {}): Promise<implicitReturnType>;
+     publicGetOrderbooks? (params?: {}): Promise<implicitReturnType>;
+     publicGetTrades? (params?: {}): Promise<implicitReturnType>;
+     publicGetChart? (params?: {}): Promise<implicitReturnType>;
+     publicGetCharts? (params?: {}): Promise<implicitReturnType>;
+     publicGetUdfConfig? (params?: {}): Promise<implicitReturnType>;
+     publicGetUdfHistory? (params?: {}): Promise<implicitReturnType>;
+     publicGetUdfSymbols? (params?: {}): Promise<implicitReturnType>;
+     privateGetUser? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserBalance? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserDeposits? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserWithdrawals? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserWithdrawalFee? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserTrades? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrder? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteOrderAll? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteOrder? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

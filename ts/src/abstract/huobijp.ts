@@ -8,115 +8,118 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    v2PublicGetReferenceCurrencies (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetReferenceCurrencies'] (params); }
-    v2PublicGetMarketStatus (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetMarketStatus'] (params); }
-    v2PrivateGetAccountLedger (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountLedger'] (params); }
-    v2PrivateGetAccountWithdrawQuota (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountWithdrawQuota'] (params); }
-    v2PrivateGetAccountWithdrawAddress (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountWithdrawAddress'] (params); }
-    v2PrivateGetAccountDepositAddress (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountDepositAddress'] (params); }
-    v2PrivateGetAccountRepayment (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountRepayment'] (params); }
-    v2PrivateGetReferenceTransactFeeRate (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetReferenceTransactFeeRate'] (params); }
-    v2PrivateGetAccountAssetValuation (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountAssetValuation'] (params); }
-    v2PrivateGetPointAccount (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetPointAccount'] (params); }
-    v2PrivateGetSubUserUserList (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetSubUserUserList'] (params); }
-    v2PrivateGetSubUserUserState (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetSubUserUserState'] (params); }
-    v2PrivateGetSubUserAccountList (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetSubUserAccountList'] (params); }
-    v2PrivateGetSubUserDepositAddress (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetSubUserDepositAddress'] (params); }
-    v2PrivateGetSubUserQueryDeposit (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetSubUserQueryDeposit'] (params); }
-    v2PrivateGetUserApiKey (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetUserApiKey'] (params); }
-    v2PrivateGetUserUid (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetUserUid'] (params); }
-    v2PrivateGetAlgoOrdersOpening (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAlgoOrdersOpening'] (params); }
-    v2PrivateGetAlgoOrdersHistory (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAlgoOrdersHistory'] (params); }
-    v2PrivateGetAlgoOrdersSpecific (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAlgoOrdersSpecific'] (params); }
-    v2PrivateGetC2cOffers (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetC2cOffers'] (params); }
-    v2PrivateGetC2cOffer (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetC2cOffer'] (params); }
-    v2PrivateGetC2cTransactions (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetC2cTransactions'] (params); }
-    v2PrivateGetC2cRepayment (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetC2cRepayment'] (params); }
-    v2PrivateGetC2cAccount (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetC2cAccount'] (params); }
-    v2PrivateGetEtpReference (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetEtpReference'] (params); }
-    v2PrivateGetEtpTransactions (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetEtpTransactions'] (params); }
-    v2PrivateGetEtpTransaction (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetEtpTransaction'] (params); }
-    v2PrivateGetEtpRebalance (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetEtpRebalance'] (params); }
-    v2PrivateGetEtpLimit (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetEtpLimit'] (params); }
-    v2PrivatePostAccountTransfer (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountTransfer'] (params); }
-    v2PrivatePostAccountRepayment (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountRepayment'] (params); }
-    v2PrivatePostPointTransfer (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostPointTransfer'] (params); }
-    v2PrivatePostSubUserManagement (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostSubUserManagement'] (params); }
-    v2PrivatePostSubUserCreation (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostSubUserCreation'] (params); }
-    v2PrivatePostSubUserTradableMarket (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostSubUserTradableMarket'] (params); }
-    v2PrivatePostSubUserTransferability (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostSubUserTransferability'] (params); }
-    v2PrivatePostSubUserApiKeyGeneration (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostSubUserApiKeyGeneration'] (params); }
-    v2PrivatePostSubUserApiKeyModification (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostSubUserApiKeyModification'] (params); }
-    v2PrivatePostSubUserApiKeyDeletion (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostSubUserApiKeyDeletion'] (params); }
-    v2PrivatePostSubUserDeductMode (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostSubUserDeductMode'] (params); }
-    v2PrivatePostAlgoOrders (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAlgoOrders'] (params); }
-    v2PrivatePostAlgoOrdersCancelAllAfter (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAlgoOrdersCancelAllAfter'] (params); }
-    v2PrivatePostAlgoOrdersCancellation (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAlgoOrdersCancellation'] (params); }
-    v2PrivatePostC2cOffer (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostC2cOffer'] (params); }
-    v2PrivatePostC2cCancellation (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostC2cCancellation'] (params); }
-    v2PrivatePostC2cCancelAll (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostC2cCancelAll'] (params); }
-    v2PrivatePostC2cRepayment (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostC2cRepayment'] (params); }
-    v2PrivatePostC2cTransfer (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostC2cTransfer'] (params); }
-    v2PrivatePostEtpCreation (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostEtpCreation'] (params); }
-    v2PrivatePostEtpRedemption (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostEtpRedemption'] (params); }
-    v2PrivatePostEtpTransactIdCancel (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostEtpTransactIdCancel'] (params); }
-    v2PrivatePostEtpBatchCancel (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostEtpBatchCancel'] (params); }
-    marketGetHistoryKline (params?: {}): Promise<implicitReturnType> { return this['marketGetHistoryKline'] (params); }
-    marketGetDetailMerged (params?: {}): Promise<implicitReturnType> { return this['marketGetDetailMerged'] (params); }
-    marketGetDepth (params?: {}): Promise<implicitReturnType> { return this['marketGetDepth'] (params); }
-    marketGetTrade (params?: {}): Promise<implicitReturnType> { return this['marketGetTrade'] (params); }
-    marketGetHistoryTrade (params?: {}): Promise<implicitReturnType> { return this['marketGetHistoryTrade'] (params); }
-    marketGetDetail (params?: {}): Promise<implicitReturnType> { return this['marketGetDetail'] (params); }
-    marketGetTickers (params?: {}): Promise<implicitReturnType> { return this['marketGetTickers'] (params); }
-    marketGetEtp (params?: {}): Promise<implicitReturnType> { return this['marketGetEtp'] (params); }
-    publicGetCommonSymbols (params?: {}): Promise<implicitReturnType> { return this['publicGetCommonSymbols'] (params); }
-    publicGetCommonCurrencys (params?: {}): Promise<implicitReturnType> { return this['publicGetCommonCurrencys'] (params); }
-    publicGetCommonTimestamp (params?: {}): Promise<implicitReturnType> { return this['publicGetCommonTimestamp'] (params); }
-    publicGetCommonExchange (params?: {}): Promise<implicitReturnType> { return this['publicGetCommonExchange'] (params); }
-    publicGetSettingsCurrencys (params?: {}): Promise<implicitReturnType> { return this['publicGetSettingsCurrencys'] (params); }
-    privateGetAccountAccounts (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountAccounts'] (params); }
-    privateGetAccountAccountsIdBalance (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountAccountsIdBalance'] (params); }
-    privateGetAccountAccountsSubUid (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountAccountsSubUid'] (params); }
-    privateGetAccountHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountHistory'] (params); }
-    privateGetCrossMarginLoanInfo (params?: {}): Promise<implicitReturnType> { return this['privateGetCrossMarginLoanInfo'] (params); }
-    privateGetMarginLoanInfo (params?: {}): Promise<implicitReturnType> { return this['privateGetMarginLoanInfo'] (params); }
-    privateGetFeeFeeRateGet (params?: {}): Promise<implicitReturnType> { return this['privateGetFeeFeeRateGet'] (params); }
-    privateGetOrderOpenOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetOrderOpenOrders'] (params); }
-    privateGetOrderOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetOrderOrders'] (params); }
-    privateGetOrderOrdersId (params?: {}): Promise<implicitReturnType> { return this['privateGetOrderOrdersId'] (params); }
-    privateGetOrderOrdersIdMatchresults (params?: {}): Promise<implicitReturnType> { return this['privateGetOrderOrdersIdMatchresults'] (params); }
-    privateGetOrderOrdersGetClientOrder (params?: {}): Promise<implicitReturnType> { return this['privateGetOrderOrdersGetClientOrder'] (params); }
-    privateGetOrderHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetOrderHistory'] (params); }
-    privateGetOrderMatchresults (params?: {}): Promise<implicitReturnType> { return this['privateGetOrderMatchresults'] (params); }
-    privateGetQueryDepositWithdraw (params?: {}): Promise<implicitReturnType> { return this['privateGetQueryDepositWithdraw'] (params); }
-    privateGetMarginLoanOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetMarginLoanOrders'] (params); }
-    privateGetMarginAccountsBalance (params?: {}): Promise<implicitReturnType> { return this['privateGetMarginAccountsBalance'] (params); }
-    privateGetCrossMarginLoanOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetCrossMarginLoanOrders'] (params); }
-    privateGetCrossMarginAccountsBalance (params?: {}): Promise<implicitReturnType> { return this['privateGetCrossMarginAccountsBalance'] (params); }
-    privateGetPointsActions (params?: {}): Promise<implicitReturnType> { return this['privateGetPointsActions'] (params); }
-    privateGetPointsOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetPointsOrders'] (params); }
-    privateGetSubuserAggregateBalance (params?: {}): Promise<implicitReturnType> { return this['privateGetSubuserAggregateBalance'] (params); }
-    privateGetStableCoinExchangeRate (params?: {}): Promise<implicitReturnType> { return this['privateGetStableCoinExchangeRate'] (params); }
-    privateGetStableCoinQuote (params?: {}): Promise<implicitReturnType> { return this['privateGetStableCoinQuote'] (params); }
-    privatePostAccountTransfer (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountTransfer'] (params); }
-    privatePostFuturesTransfer (params?: {}): Promise<implicitReturnType> { return this['privatePostFuturesTransfer'] (params); }
-    privatePostOrderBatchOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderBatchOrders'] (params); }
-    privatePostOrderOrdersPlace (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderOrdersPlace'] (params); }
-    privatePostOrderOrdersSubmitCancelClientOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderOrdersSubmitCancelClientOrder'] (params); }
-    privatePostOrderOrdersBatchCancelOpenOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderOrdersBatchCancelOpenOrders'] (params); }
-    privatePostOrderOrdersIdSubmitcancel (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderOrdersIdSubmitcancel'] (params); }
-    privatePostOrderOrdersBatchcancel (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderOrdersBatchcancel'] (params); }
-    privatePostDwWithdrawApiCreate (params?: {}): Promise<implicitReturnType> { return this['privatePostDwWithdrawApiCreate'] (params); }
-    privatePostDwWithdrawVirtualIdCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostDwWithdrawVirtualIdCancel'] (params); }
-    privatePostDwTransferInMargin (params?: {}): Promise<implicitReturnType> { return this['privatePostDwTransferInMargin'] (params); }
-    privatePostDwTransferOutMargin (params?: {}): Promise<implicitReturnType> { return this['privatePostDwTransferOutMargin'] (params); }
-    privatePostMarginOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginOrders'] (params); }
-    privatePostMarginOrdersIdRepay (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginOrdersIdRepay'] (params); }
-    privatePostCrossMarginTransferIn (params?: {}): Promise<implicitReturnType> { return this['privatePostCrossMarginTransferIn'] (params); }
-    privatePostCrossMarginTransferOut (params?: {}): Promise<implicitReturnType> { return this['privatePostCrossMarginTransferOut'] (params); }
-    privatePostCrossMarginOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostCrossMarginOrders'] (params); }
-    privatePostCrossMarginOrdersIdRepay (params?: {}): Promise<implicitReturnType> { return this['privatePostCrossMarginOrdersIdRepay'] (params); }
-    privatePostStableCoinExchange (params?: {}): Promise<implicitReturnType> { return this['privatePostStableCoinExchange'] (params); }
-    privatePostSubuserTransfer (params?: {}): Promise<implicitReturnType> { return this['privatePostSubuserTransfer'] (params); }
+interface Exchange {
+     v2PublicGetReferenceCurrencies? (params?: {}): Promise<implicitReturnType>;
+     v2PublicGetMarketStatus? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountLedger? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountWithdrawQuota? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountWithdrawAddress? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountDepositAddress? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountRepayment? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetReferenceTransactFeeRate? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountAssetValuation? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetPointAccount? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetSubUserUserList? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetSubUserUserState? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetSubUserAccountList? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetSubUserDepositAddress? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetSubUserQueryDeposit? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetUserApiKey? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetUserUid? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAlgoOrdersOpening? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAlgoOrdersHistory? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAlgoOrdersSpecific? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetC2cOffers? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetC2cOffer? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetC2cTransactions? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetC2cRepayment? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetC2cAccount? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetEtpReference? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetEtpTransactions? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetEtpTransaction? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetEtpRebalance? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetEtpLimit? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountTransfer? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountRepayment? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostPointTransfer? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostSubUserManagement? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostSubUserCreation? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostSubUserTradableMarket? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostSubUserTransferability? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostSubUserApiKeyGeneration? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostSubUserApiKeyModification? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostSubUserApiKeyDeletion? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostSubUserDeductMode? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAlgoOrders? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAlgoOrdersCancelAllAfter? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAlgoOrdersCancellation? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostC2cOffer? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostC2cCancellation? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostC2cCancelAll? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostC2cRepayment? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostC2cTransfer? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostEtpCreation? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostEtpRedemption? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostEtpTransactIdCancel? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostEtpBatchCancel? (params?: {}): Promise<implicitReturnType>;
+     marketGetHistoryKline? (params?: {}): Promise<implicitReturnType>;
+     marketGetDetailMerged? (params?: {}): Promise<implicitReturnType>;
+     marketGetDepth? (params?: {}): Promise<implicitReturnType>;
+     marketGetTrade? (params?: {}): Promise<implicitReturnType>;
+     marketGetHistoryTrade? (params?: {}): Promise<implicitReturnType>;
+     marketGetDetail? (params?: {}): Promise<implicitReturnType>;
+     marketGetTickers? (params?: {}): Promise<implicitReturnType>;
+     marketGetEtp? (params?: {}): Promise<implicitReturnType>;
+     publicGetCommonSymbols? (params?: {}): Promise<implicitReturnType>;
+     publicGetCommonCurrencys? (params?: {}): Promise<implicitReturnType>;
+     publicGetCommonTimestamp? (params?: {}): Promise<implicitReturnType>;
+     publicGetCommonExchange? (params?: {}): Promise<implicitReturnType>;
+     publicGetSettingsCurrencys? (params?: {}): Promise<implicitReturnType>;
+     privateGetAccountAccounts? (params?: {}): Promise<implicitReturnType>;
+     privateGetAccountAccountsIdBalance? (params?: {}): Promise<implicitReturnType>;
+     privateGetAccountAccountsSubUid? (params?: {}): Promise<implicitReturnType>;
+     privateGetAccountHistory? (params?: {}): Promise<implicitReturnType>;
+     privateGetCrossMarginLoanInfo? (params?: {}): Promise<implicitReturnType>;
+     privateGetMarginLoanInfo? (params?: {}): Promise<implicitReturnType>;
+     privateGetFeeFeeRateGet? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrderOpenOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrderOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrderOrdersId? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrderOrdersIdMatchresults? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrderOrdersGetClientOrder? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrderHistory? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrderMatchresults? (params?: {}): Promise<implicitReturnType>;
+     privateGetQueryDepositWithdraw? (params?: {}): Promise<implicitReturnType>;
+     privateGetMarginLoanOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetMarginAccountsBalance? (params?: {}): Promise<implicitReturnType>;
+     privateGetCrossMarginLoanOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetCrossMarginAccountsBalance? (params?: {}): Promise<implicitReturnType>;
+     privateGetPointsActions? (params?: {}): Promise<implicitReturnType>;
+     privateGetPointsOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetSubuserAggregateBalance? (params?: {}): Promise<implicitReturnType>;
+     privateGetStableCoinExchangeRate? (params?: {}): Promise<implicitReturnType>;
+     privateGetStableCoinQuote? (params?: {}): Promise<implicitReturnType>;
+     privatePostAccountTransfer? (params?: {}): Promise<implicitReturnType>;
+     privatePostFuturesTransfer? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderBatchOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderOrdersPlace? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderOrdersSubmitCancelClientOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderOrdersBatchCancelOpenOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderOrdersIdSubmitcancel? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderOrdersBatchcancel? (params?: {}): Promise<implicitReturnType>;
+     privatePostDwWithdrawApiCreate? (params?: {}): Promise<implicitReturnType>;
+     privatePostDwWithdrawVirtualIdCancel? (params?: {}): Promise<implicitReturnType>;
+     privatePostDwTransferInMargin? (params?: {}): Promise<implicitReturnType>;
+     privatePostDwTransferOutMargin? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginOrdersIdRepay? (params?: {}): Promise<implicitReturnType>;
+     privatePostCrossMarginTransferIn? (params?: {}): Promise<implicitReturnType>;
+     privatePostCrossMarginTransferOut? (params?: {}): Promise<implicitReturnType>;
+     privatePostCrossMarginOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostCrossMarginOrdersIdRepay? (params?: {}): Promise<implicitReturnType>;
+     privatePostStableCoinExchange? (params?: {}): Promise<implicitReturnType>;
+     privatePostSubuserTransfer? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

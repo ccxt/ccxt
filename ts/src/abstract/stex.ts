@@ -8,89 +8,92 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetCurrencies (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencies'] (params); }
-    publicGetCurrenciesCurrencyId (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrenciesCurrencyId'] (params); }
-    publicGetMarkets (params?: {}): Promise<implicitReturnType> { return this['publicGetMarkets'] (params); }
-    publicGetPairsGroups (params?: {}): Promise<implicitReturnType> { return this['publicGetPairsGroups'] (params); }
-    publicGetCurrencyPairsListCode (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencyPairsListCode'] (params); }
-    publicGetCurrencyPairsGroupCurrencyPairGroupId (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencyPairsGroupCurrencyPairGroupId'] (params); }
-    publicGetCurrencyPairsCurrencyPairId (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencyPairsCurrencyPairId'] (params); }
-    publicGetTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetTicker'] (params); }
-    publicGetTickerCurrencyPairId (params?: {}): Promise<implicitReturnType> { return this['publicGetTickerCurrencyPairId'] (params); }
-    publicGetTradesCurrencyPairId (params?: {}): Promise<implicitReturnType> { return this['publicGetTradesCurrencyPairId'] (params); }
-    publicGetOrderbookCurrencyPairId (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderbookCurrencyPairId'] (params); }
-    publicGetChartCurrencyPairIdCandlesType (params?: {}): Promise<implicitReturnType> { return this['publicGetChartCurrencyPairIdCandlesType'] (params); }
-    publicGetDepositStatuses (params?: {}): Promise<implicitReturnType> { return this['publicGetDepositStatuses'] (params); }
-    publicGetDepositStatusesStatusId (params?: {}): Promise<implicitReturnType> { return this['publicGetDepositStatusesStatusId'] (params); }
-    publicGetWithdrawalStatuses (params?: {}): Promise<implicitReturnType> { return this['publicGetWithdrawalStatuses'] (params); }
-    publicGetWithdrawalStatusesStatusId (params?: {}): Promise<implicitReturnType> { return this['publicGetWithdrawalStatusesStatusId'] (params); }
-    publicGetPing (params?: {}): Promise<implicitReturnType> { return this['publicGetPing'] (params); }
-    publicGetMobileVersions (params?: {}): Promise<implicitReturnType> { return this['publicGetMobileVersions'] (params); }
-    publicGetTwitter (params?: {}): Promise<implicitReturnType> { return this['publicGetTwitter'] (params); }
-    tradingGetFeesCurrencyPairId (params?: {}): Promise<implicitReturnType> { return this['tradingGetFeesCurrencyPairId'] (params); }
-    tradingGetOrders (params?: {}): Promise<implicitReturnType> { return this['tradingGetOrders'] (params); }
-    tradingGetOrdersCurrencyPairId (params?: {}): Promise<implicitReturnType> { return this['tradingGetOrdersCurrencyPairId'] (params); }
-    tradingGetOrderOrderId (params?: {}): Promise<implicitReturnType> { return this['tradingGetOrderOrderId'] (params); }
-    tradingPostOrdersCurrencyPairId (params?: {}): Promise<implicitReturnType> { return this['tradingPostOrdersCurrencyPairId'] (params); }
-    tradingPostOrdersBulkCurrencyPairId (params?: {}): Promise<implicitReturnType> { return this['tradingPostOrdersBulkCurrencyPairId'] (params); }
-    tradingDeleteOrders (params?: {}): Promise<implicitReturnType> { return this['tradingDeleteOrders'] (params); }
-    tradingDeleteOrdersCurrencyPairId (params?: {}): Promise<implicitReturnType> { return this['tradingDeleteOrdersCurrencyPairId'] (params); }
-    tradingDeleteOrderOrderId (params?: {}): Promise<implicitReturnType> { return this['tradingDeleteOrderOrderId'] (params); }
-    reportsGetCurrencies (params?: {}): Promise<implicitReturnType> { return this['reportsGetCurrencies'] (params); }
-    reportsGetCurrencyPairs (params?: {}): Promise<implicitReturnType> { return this['reportsGetCurrencyPairs'] (params); }
-    reportsGetOrders (params?: {}): Promise<implicitReturnType> { return this['reportsGetOrders'] (params); }
-    reportsGetOrdersOrderId (params?: {}): Promise<implicitReturnType> { return this['reportsGetOrdersOrderId'] (params); }
-    reportsGetTradesCurrencyPairId (params?: {}): Promise<implicitReturnType> { return this['reportsGetTradesCurrencyPairId'] (params); }
-    reportsGetBackgroundListMode (params?: {}): Promise<implicitReturnType> { return this['reportsGetBackgroundListMode'] (params); }
-    reportsGetBackgroundId (params?: {}): Promise<implicitReturnType> { return this['reportsGetBackgroundId'] (params); }
-    reportsGetBackgroundDownloadId (params?: {}): Promise<implicitReturnType> { return this['reportsGetBackgroundDownloadId'] (params); }
-    reportsPostBackgroundCreate (params?: {}): Promise<implicitReturnType> { return this['reportsPostBackgroundCreate'] (params); }
-    reportsDeleteBackgroundId (params?: {}): Promise<implicitReturnType> { return this['reportsDeleteBackgroundId'] (params); }
-    profileGetInfo (params?: {}): Promise<implicitReturnType> { return this['profileGetInfo'] (params); }
-    profileGetWallets (params?: {}): Promise<implicitReturnType> { return this['profileGetWallets'] (params); }
-    profileGetWalletsWalletId (params?: {}): Promise<implicitReturnType> { return this['profileGetWalletsWalletId'] (params); }
-    profileGetWalletsAddressWalletId (params?: {}): Promise<implicitReturnType> { return this['profileGetWalletsAddressWalletId'] (params); }
-    profileGetDeposits (params?: {}): Promise<implicitReturnType> { return this['profileGetDeposits'] (params); }
-    profileGetDepositsId (params?: {}): Promise<implicitReturnType> { return this['profileGetDepositsId'] (params); }
-    profileGetRewards (params?: {}): Promise<implicitReturnType> { return this['profileGetRewards'] (params); }
-    profileGetRewardsId (params?: {}): Promise<implicitReturnType> { return this['profileGetRewardsId'] (params); }
-    profileGetAddressbook (params?: {}): Promise<implicitReturnType> { return this['profileGetAddressbook'] (params); }
-    profileGetAddressbookItemId (params?: {}): Promise<implicitReturnType> { return this['profileGetAddressbookItemId'] (params); }
-    profileGetWithdrawals (params?: {}): Promise<implicitReturnType> { return this['profileGetWithdrawals'] (params); }
-    profileGetWithdrawalsId (params?: {}): Promise<implicitReturnType> { return this['profileGetWithdrawalsId'] (params); }
-    profileGetNotifications (params?: {}): Promise<implicitReturnType> { return this['profileGetNotifications'] (params); }
-    profileGetNotificationsPrice (params?: {}): Promise<implicitReturnType> { return this['profileGetNotificationsPrice'] (params); }
-    profileGetFavoriteCurrencyPairs (params?: {}): Promise<implicitReturnType> { return this['profileGetFavoriteCurrencyPairs'] (params); }
-    profileGetTokenScopes (params?: {}): Promise<implicitReturnType> { return this['profileGetTokenScopes'] (params); }
-    profilePostWalletsBurnWalletId (params?: {}): Promise<implicitReturnType> { return this['profilePostWalletsBurnWalletId'] (params); }
-    profilePostWalletsWalletIdHoldAmount (params?: {}): Promise<implicitReturnType> { return this['profilePostWalletsWalletIdHoldAmount'] (params); }
-    profilePostWalletsCurrencyId (params?: {}): Promise<implicitReturnType> { return this['profilePostWalletsCurrencyId'] (params); }
-    profilePostWalletsAddressWalletId (params?: {}): Promise<implicitReturnType> { return this['profilePostWalletsAddressWalletId'] (params); }
-    profilePostAddressbookDisableItemItemId (params?: {}): Promise<implicitReturnType> { return this['profilePostAddressbookDisableItemItemId'] (params); }
-    profilePostAddressbookEnableItemItemId (params?: {}): Promise<implicitReturnType> { return this['profilePostAddressbookEnableItemItemId'] (params); }
-    profilePostAddressbookEnableStrictWd (params?: {}): Promise<implicitReturnType> { return this['profilePostAddressbookEnableStrictWd'] (params); }
-    profilePostAddressbookDisableStrictWd (params?: {}): Promise<implicitReturnType> { return this['profilePostAddressbookDisableStrictWd'] (params); }
-    profilePostWithdraw (params?: {}): Promise<implicitReturnType> { return this['profilePostWithdraw'] (params); }
-    profilePostNotificationsPrice (params?: {}): Promise<implicitReturnType> { return this['profilePostNotificationsPrice'] (params); }
-    profilePostReferralProgram (params?: {}): Promise<implicitReturnType> { return this['profilePostReferralProgram'] (params); }
-    profilePostReferralInsertCode (params?: {}): Promise<implicitReturnType> { return this['profilePostReferralInsertCode'] (params); }
-    profilePostReferralBonusTransferCurrencyId (params?: {}): Promise<implicitReturnType> { return this['profilePostReferralBonusTransferCurrencyId'] (params); }
-    profilePutFavoriteCurrencyPairsSet (params?: {}): Promise<implicitReturnType> { return this['profilePutFavoriteCurrencyPairsSet'] (params); }
-    profileDeleteAddressbookItemId (params?: {}): Promise<implicitReturnType> { return this['profileDeleteAddressbookItemId'] (params); }
-    profileDeleteWithdrawWithdrawalId (params?: {}): Promise<implicitReturnType> { return this['profileDeleteWithdrawWithdrawalId'] (params); }
-    profileDeleteNotificationsPricePriceAlertId (params?: {}): Promise<implicitReturnType> { return this['profileDeleteNotificationsPricePriceAlertId'] (params); }
-    verificationGetCountries (params?: {}): Promise<implicitReturnType> { return this['verificationGetCountries'] (params); }
-    verificationGetStatus (params?: {}): Promise<implicitReturnType> { return this['verificationGetStatus'] (params); }
-    verificationGetFractalUrl (params?: {}): Promise<implicitReturnType> { return this['verificationGetFractalUrl'] (params); }
-    verificationGetSmartId (params?: {}): Promise<implicitReturnType> { return this['verificationGetSmartId'] (params); }
-    verificationGetStex (params?: {}): Promise<implicitReturnType> { return this['verificationGetStex'] (params); }
-    verificationGetCryptonomicaCode (params?: {}): Promise<implicitReturnType> { return this['verificationGetCryptonomicaCode'] (params); }
-    verificationPostSmartId (params?: {}): Promise<implicitReturnType> { return this['verificationPostSmartId'] (params); }
-    verificationPostStex (params?: {}): Promise<implicitReturnType> { return this['verificationPostStex'] (params); }
-    verificationPostCryptonomica (params?: {}): Promise<implicitReturnType> { return this['verificationPostCryptonomica'] (params); }
-    settingsGetNotificationsEvent (params?: {}): Promise<implicitReturnType> { return this['settingsGetNotificationsEvent'] (params); }
-    settingsGetNotifications (params?: {}): Promise<implicitReturnType> { return this['settingsGetNotifications'] (params); }
-    settingsPutNotifications (params?: {}): Promise<implicitReturnType> { return this['settingsPutNotifications'] (params); }
-    settingsPutNotificationsSet (params?: {}): Promise<implicitReturnType> { return this['settingsPutNotificationsSet'] (params); }
+interface Exchange {
+     publicGetCurrencies? (params?: {}): Promise<implicitReturnType>;
+     publicGetCurrenciesCurrencyId? (params?: {}): Promise<implicitReturnType>;
+     publicGetMarkets? (params?: {}): Promise<implicitReturnType>;
+     publicGetPairsGroups? (params?: {}): Promise<implicitReturnType>;
+     publicGetCurrencyPairsListCode? (params?: {}): Promise<implicitReturnType>;
+     publicGetCurrencyPairsGroupCurrencyPairGroupId? (params?: {}): Promise<implicitReturnType>;
+     publicGetCurrencyPairsCurrencyPairId? (params?: {}): Promise<implicitReturnType>;
+     publicGetTicker? (params?: {}): Promise<implicitReturnType>;
+     publicGetTickerCurrencyPairId? (params?: {}): Promise<implicitReturnType>;
+     publicGetTradesCurrencyPairId? (params?: {}): Promise<implicitReturnType>;
+     publicGetOrderbookCurrencyPairId? (params?: {}): Promise<implicitReturnType>;
+     publicGetChartCurrencyPairIdCandlesType? (params?: {}): Promise<implicitReturnType>;
+     publicGetDepositStatuses? (params?: {}): Promise<implicitReturnType>;
+     publicGetDepositStatusesStatusId? (params?: {}): Promise<implicitReturnType>;
+     publicGetWithdrawalStatuses? (params?: {}): Promise<implicitReturnType>;
+     publicGetWithdrawalStatusesStatusId? (params?: {}): Promise<implicitReturnType>;
+     publicGetPing? (params?: {}): Promise<implicitReturnType>;
+     publicGetMobileVersions? (params?: {}): Promise<implicitReturnType>;
+     publicGetTwitter? (params?: {}): Promise<implicitReturnType>;
+     tradingGetFeesCurrencyPairId? (params?: {}): Promise<implicitReturnType>;
+     tradingGetOrders? (params?: {}): Promise<implicitReturnType>;
+     tradingGetOrdersCurrencyPairId? (params?: {}): Promise<implicitReturnType>;
+     tradingGetOrderOrderId? (params?: {}): Promise<implicitReturnType>;
+     tradingPostOrdersCurrencyPairId? (params?: {}): Promise<implicitReturnType>;
+     tradingPostOrdersBulkCurrencyPairId? (params?: {}): Promise<implicitReturnType>;
+     tradingDeleteOrders? (params?: {}): Promise<implicitReturnType>;
+     tradingDeleteOrdersCurrencyPairId? (params?: {}): Promise<implicitReturnType>;
+     tradingDeleteOrderOrderId? (params?: {}): Promise<implicitReturnType>;
+     reportsGetCurrencies? (params?: {}): Promise<implicitReturnType>;
+     reportsGetCurrencyPairs? (params?: {}): Promise<implicitReturnType>;
+     reportsGetOrders? (params?: {}): Promise<implicitReturnType>;
+     reportsGetOrdersOrderId? (params?: {}): Promise<implicitReturnType>;
+     reportsGetTradesCurrencyPairId? (params?: {}): Promise<implicitReturnType>;
+     reportsGetBackgroundListMode? (params?: {}): Promise<implicitReturnType>;
+     reportsGetBackgroundId? (params?: {}): Promise<implicitReturnType>;
+     reportsGetBackgroundDownloadId? (params?: {}): Promise<implicitReturnType>;
+     reportsPostBackgroundCreate? (params?: {}): Promise<implicitReturnType>;
+     reportsDeleteBackgroundId? (params?: {}): Promise<implicitReturnType>;
+     profileGetInfo? (params?: {}): Promise<implicitReturnType>;
+     profileGetWallets? (params?: {}): Promise<implicitReturnType>;
+     profileGetWalletsWalletId? (params?: {}): Promise<implicitReturnType>;
+     profileGetWalletsAddressWalletId? (params?: {}): Promise<implicitReturnType>;
+     profileGetDeposits? (params?: {}): Promise<implicitReturnType>;
+     profileGetDepositsId? (params?: {}): Promise<implicitReturnType>;
+     profileGetRewards? (params?: {}): Promise<implicitReturnType>;
+     profileGetRewardsId? (params?: {}): Promise<implicitReturnType>;
+     profileGetAddressbook? (params?: {}): Promise<implicitReturnType>;
+     profileGetAddressbookItemId? (params?: {}): Promise<implicitReturnType>;
+     profileGetWithdrawals? (params?: {}): Promise<implicitReturnType>;
+     profileGetWithdrawalsId? (params?: {}): Promise<implicitReturnType>;
+     profileGetNotifications? (params?: {}): Promise<implicitReturnType>;
+     profileGetNotificationsPrice? (params?: {}): Promise<implicitReturnType>;
+     profileGetFavoriteCurrencyPairs? (params?: {}): Promise<implicitReturnType>;
+     profileGetTokenScopes? (params?: {}): Promise<implicitReturnType>;
+     profilePostWalletsBurnWalletId? (params?: {}): Promise<implicitReturnType>;
+     profilePostWalletsWalletIdHoldAmount? (params?: {}): Promise<implicitReturnType>;
+     profilePostWalletsCurrencyId? (params?: {}): Promise<implicitReturnType>;
+     profilePostWalletsAddressWalletId? (params?: {}): Promise<implicitReturnType>;
+     profilePostAddressbookDisableItemItemId? (params?: {}): Promise<implicitReturnType>;
+     profilePostAddressbookEnableItemItemId? (params?: {}): Promise<implicitReturnType>;
+     profilePostAddressbookEnableStrictWd? (params?: {}): Promise<implicitReturnType>;
+     profilePostAddressbookDisableStrictWd? (params?: {}): Promise<implicitReturnType>;
+     profilePostWithdraw? (params?: {}): Promise<implicitReturnType>;
+     profilePostNotificationsPrice? (params?: {}): Promise<implicitReturnType>;
+     profilePostReferralProgram? (params?: {}): Promise<implicitReturnType>;
+     profilePostReferralInsertCode? (params?: {}): Promise<implicitReturnType>;
+     profilePostReferralBonusTransferCurrencyId? (params?: {}): Promise<implicitReturnType>;
+     profilePutFavoriteCurrencyPairsSet? (params?: {}): Promise<implicitReturnType>;
+     profileDeleteAddressbookItemId? (params?: {}): Promise<implicitReturnType>;
+     profileDeleteWithdrawWithdrawalId? (params?: {}): Promise<implicitReturnType>;
+     profileDeleteNotificationsPricePriceAlertId? (params?: {}): Promise<implicitReturnType>;
+     verificationGetCountries? (params?: {}): Promise<implicitReturnType>;
+     verificationGetStatus? (params?: {}): Promise<implicitReturnType>;
+     verificationGetFractalUrl? (params?: {}): Promise<implicitReturnType>;
+     verificationGetSmartId? (params?: {}): Promise<implicitReturnType>;
+     verificationGetStex? (params?: {}): Promise<implicitReturnType>;
+     verificationGetCryptonomicaCode? (params?: {}): Promise<implicitReturnType>;
+     verificationPostSmartId? (params?: {}): Promise<implicitReturnType>;
+     verificationPostStex? (params?: {}): Promise<implicitReturnType>;
+     verificationPostCryptonomica? (params?: {}): Promise<implicitReturnType>;
+     settingsGetNotificationsEvent? (params?: {}): Promise<implicitReturnType>;
+     settingsGetNotifications? (params?: {}): Promise<implicitReturnType>;
+     settingsPutNotifications? (params?: {}): Promise<implicitReturnType>;
+     settingsPutNotificationsSet? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

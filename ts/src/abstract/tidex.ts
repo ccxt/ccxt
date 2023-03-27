@@ -8,26 +8,29 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    webGetCurrency (params?: {}): Promise<implicitReturnType> { return this['webGetCurrency'] (params); }
-    webGetPairs (params?: {}): Promise<implicitReturnType> { return this['webGetPairs'] (params); }
-    webGetTickers (params?: {}): Promise<implicitReturnType> { return this['webGetTickers'] (params); }
-    webGetOrders (params?: {}): Promise<implicitReturnType> { return this['webGetOrders'] (params); }
-    webGetOrdershistory (params?: {}): Promise<implicitReturnType> { return this['webGetOrdershistory'] (params); }
-    webGetTradeData (params?: {}): Promise<implicitReturnType> { return this['webGetTradeData'] (params); }
-    webGetTradeDataId (params?: {}): Promise<implicitReturnType> { return this['webGetTradeDataId'] (params); }
-    publicGetInfo (params?: {}): Promise<implicitReturnType> { return this['publicGetInfo'] (params); }
-    publicGetTickerPair (params?: {}): Promise<implicitReturnType> { return this['publicGetTickerPair'] (params); }
-    publicGetDepthPair (params?: {}): Promise<implicitReturnType> { return this['publicGetDepthPair'] (params); }
-    publicGetTradesPair (params?: {}): Promise<implicitReturnType> { return this['publicGetTradesPair'] (params); }
-    privatePostGetInfoExt (params?: {}): Promise<implicitReturnType> { return this['privatePostGetInfoExt'] (params); }
-    privatePostGetInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostGetInfo'] (params); }
-    privatePostTrade (params?: {}): Promise<implicitReturnType> { return this['privatePostTrade'] (params); }
-    privatePostActiveOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostActiveOrders'] (params); }
-    privatePostOrderInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderInfo'] (params); }
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelOrder'] (params); }
-    privatePostTradeHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostTradeHistory'] (params); }
-    privatePostGetDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostGetDepositAddress'] (params); }
-    privatePostCreateWithdraw (params?: {}): Promise<implicitReturnType> { return this['privatePostCreateWithdraw'] (params); }
-    privatePostGetWithdraw (params?: {}): Promise<implicitReturnType> { return this['privatePostGetWithdraw'] (params); }
+interface Exchange {
+     webGetCurrency? (params?: {}): Promise<implicitReturnType>;
+     webGetPairs? (params?: {}): Promise<implicitReturnType>;
+     webGetTickers? (params?: {}): Promise<implicitReturnType>;
+     webGetOrders? (params?: {}): Promise<implicitReturnType>;
+     webGetOrdershistory? (params?: {}): Promise<implicitReturnType>;
+     webGetTradeData? (params?: {}): Promise<implicitReturnType>;
+     webGetTradeDataId? (params?: {}): Promise<implicitReturnType>;
+     publicGetInfo? (params?: {}): Promise<implicitReturnType>;
+     publicGetTickerPair? (params?: {}): Promise<implicitReturnType>;
+     publicGetDepthPair? (params?: {}): Promise<implicitReturnType>;
+     publicGetTradesPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostGetInfoExt? (params?: {}): Promise<implicitReturnType>;
+     privatePostGetInfo? (params?: {}): Promise<implicitReturnType>;
+     privatePostTrade? (params?: {}): Promise<implicitReturnType>;
+     privatePostActiveOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderInfo? (params?: {}): Promise<implicitReturnType>;
+     privatePostCancelOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostTradeHistory? (params?: {}): Promise<implicitReturnType>;
+     privatePostGetDepositAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostCreateWithdraw? (params?: {}): Promise<implicitReturnType>;
+     privatePostGetWithdraw? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

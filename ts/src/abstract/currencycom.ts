@@ -8,68 +8,71 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetV1Time (params?: {}): Promise<implicitReturnType> { return this['publicGetV1Time'] (params); }
-    publicGetV1ExchangeInfo (params?: {}): Promise<implicitReturnType> { return this['publicGetV1ExchangeInfo'] (params); }
-    publicGetV1Depth (params?: {}): Promise<implicitReturnType> { return this['publicGetV1Depth'] (params); }
-    publicGetV1AggTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetV1AggTrades'] (params); }
-    publicGetV1Klines (params?: {}): Promise<implicitReturnType> { return this['publicGetV1Klines'] (params); }
-    publicGetV1Ticker24hr (params?: {}): Promise<implicitReturnType> { return this['publicGetV1Ticker24hr'] (params); }
-    publicGetV2Time (params?: {}): Promise<implicitReturnType> { return this['publicGetV2Time'] (params); }
-    publicGetV2ExchangeInfo (params?: {}): Promise<implicitReturnType> { return this['publicGetV2ExchangeInfo'] (params); }
-    publicGetV2Depth (params?: {}): Promise<implicitReturnType> { return this['publicGetV2Depth'] (params); }
-    publicGetV2AggTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetV2AggTrades'] (params); }
-    publicGetV2Klines (params?: {}): Promise<implicitReturnType> { return this['publicGetV2Klines'] (params); }
-    publicGetV2Ticker24hr (params?: {}): Promise<implicitReturnType> { return this['publicGetV2Ticker24hr'] (params); }
-    marketcapGetV1Assets (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1Assets'] (params); }
-    marketcapGetV1Candles (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1Candles'] (params); }
-    marketcapGetV1Orderbook (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1Orderbook'] (params); }
-    marketcapGetV1Summary (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1Summary'] (params); }
-    marketcapGetV1Ticker (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1Ticker'] (params); }
-    marketcapGetV1TokenAssets (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1TokenAssets'] (params); }
-    marketcapGetV1TokenOrderbook (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1TokenOrderbook'] (params); }
-    marketcapGetV1TokenSummary (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1TokenSummary'] (params); }
-    marketcapGetV1TokenTicker (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1TokenTicker'] (params); }
-    marketcapGetV1TokenTrades (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1TokenTrades'] (params); }
-    marketcapGetV1TokenCryptoOHLC (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1TokenCryptoOHLC'] (params); }
-    marketcapGetV1TokenCryptoAssets (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1TokenCryptoAssets'] (params); }
-    marketcapGetV1TokenCryptoOrderbook (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1TokenCryptoOrderbook'] (params); }
-    marketcapGetV1TokenCryptoSummary (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1TokenCryptoSummary'] (params); }
-    marketcapGetV1TokenCryptoTicker (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1TokenCryptoTicker'] (params); }
-    marketcapGetV1TokenCryptoTrades (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1TokenCryptoTrades'] (params); }
-    marketcapGetV1Trades (params?: {}): Promise<implicitReturnType> { return this['marketcapGetV1Trades'] (params); }
-    privateGetV1Account (params?: {}): Promise<implicitReturnType> { return this['privateGetV1Account'] (params); }
-    privateGetV1Currencies (params?: {}): Promise<implicitReturnType> { return this['privateGetV1Currencies'] (params); }
-    privateGetV1Deposits (params?: {}): Promise<implicitReturnType> { return this['privateGetV1Deposits'] (params); }
-    privateGetV1DepositAddress (params?: {}): Promise<implicitReturnType> { return this['privateGetV1DepositAddress'] (params); }
-    privateGetV1Ledger (params?: {}): Promise<implicitReturnType> { return this['privateGetV1Ledger'] (params); }
-    privateGetV1LeverageSettings (params?: {}): Promise<implicitReturnType> { return this['privateGetV1LeverageSettings'] (params); }
-    privateGetV1MyTrades (params?: {}): Promise<implicitReturnType> { return this['privateGetV1MyTrades'] (params); }
-    privateGetV1OpenOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetV1OpenOrders'] (params); }
-    privateGetV1TradingPositions (params?: {}): Promise<implicitReturnType> { return this['privateGetV1TradingPositions'] (params); }
-    privateGetV1TradingPositionsHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetV1TradingPositionsHistory'] (params); }
-    privateGetV1Transactions (params?: {}): Promise<implicitReturnType> { return this['privateGetV1Transactions'] (params); }
-    privateGetV1Withdrawals (params?: {}): Promise<implicitReturnType> { return this['privateGetV1Withdrawals'] (params); }
-    privateGetV2Account (params?: {}): Promise<implicitReturnType> { return this['privateGetV2Account'] (params); }
-    privateGetV2Currencies (params?: {}): Promise<implicitReturnType> { return this['privateGetV2Currencies'] (params); }
-    privateGetV2Deposits (params?: {}): Promise<implicitReturnType> { return this['privateGetV2Deposits'] (params); }
-    privateGetV2DepositAddress (params?: {}): Promise<implicitReturnType> { return this['privateGetV2DepositAddress'] (params); }
-    privateGetV2Ledger (params?: {}): Promise<implicitReturnType> { return this['privateGetV2Ledger'] (params); }
-    privateGetV2LeverageSettings (params?: {}): Promise<implicitReturnType> { return this['privateGetV2LeverageSettings'] (params); }
-    privateGetV2MyTrades (params?: {}): Promise<implicitReturnType> { return this['privateGetV2MyTrades'] (params); }
-    privateGetV2OpenOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetV2OpenOrders'] (params); }
-    privateGetV2TradingPositions (params?: {}): Promise<implicitReturnType> { return this['privateGetV2TradingPositions'] (params); }
-    privateGetV2TradingPositionsHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetV2TradingPositionsHistory'] (params); }
-    privateGetV2Transactions (params?: {}): Promise<implicitReturnType> { return this['privateGetV2Transactions'] (params); }
-    privateGetV2Withdrawals (params?: {}): Promise<implicitReturnType> { return this['privateGetV2Withdrawals'] (params); }
-    privatePostV1Order (params?: {}): Promise<implicitReturnType> { return this['privatePostV1Order'] (params); }
-    privatePostV1UpdateTradingPosition (params?: {}): Promise<implicitReturnType> { return this['privatePostV1UpdateTradingPosition'] (params); }
-    privatePostV1UpdateTradingOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostV1UpdateTradingOrder'] (params); }
-    privatePostV1CloseTradingPosition (params?: {}): Promise<implicitReturnType> { return this['privatePostV1CloseTradingPosition'] (params); }
-    privatePostV2Order (params?: {}): Promise<implicitReturnType> { return this['privatePostV2Order'] (params); }
-    privatePostV2UpdateTradingPosition (params?: {}): Promise<implicitReturnType> { return this['privatePostV2UpdateTradingPosition'] (params); }
-    privatePostV2UpdateTradingOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostV2UpdateTradingOrder'] (params); }
-    privatePostV2CloseTradingPosition (params?: {}): Promise<implicitReturnType> { return this['privatePostV2CloseTradingPosition'] (params); }
-    privateDeleteV1Order (params?: {}): Promise<implicitReturnType> { return this['privateDeleteV1Order'] (params); }
-    privateDeleteV2Order (params?: {}): Promise<implicitReturnType> { return this['privateDeleteV2Order'] (params); }
+interface Exchange {
+     publicGetV1Time? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1ExchangeInfo? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1Depth? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1AggTrades? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1Klines? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1Ticker24hr? (params?: {}): Promise<implicitReturnType>;
+     publicGetV2Time? (params?: {}): Promise<implicitReturnType>;
+     publicGetV2ExchangeInfo? (params?: {}): Promise<implicitReturnType>;
+     publicGetV2Depth? (params?: {}): Promise<implicitReturnType>;
+     publicGetV2AggTrades? (params?: {}): Promise<implicitReturnType>;
+     publicGetV2Klines? (params?: {}): Promise<implicitReturnType>;
+     publicGetV2Ticker24hr? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1Assets? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1Candles? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1Orderbook? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1Summary? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1Ticker? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1TokenAssets? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1TokenOrderbook? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1TokenSummary? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1TokenTicker? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1TokenTrades? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1TokenCryptoOHLC? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1TokenCryptoAssets? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1TokenCryptoOrderbook? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1TokenCryptoSummary? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1TokenCryptoTicker? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1TokenCryptoTrades? (params?: {}): Promise<implicitReturnType>;
+     marketcapGetV1Trades? (params?: {}): Promise<implicitReturnType>;
+     privateGetV1Account? (params?: {}): Promise<implicitReturnType>;
+     privateGetV1Currencies? (params?: {}): Promise<implicitReturnType>;
+     privateGetV1Deposits? (params?: {}): Promise<implicitReturnType>;
+     privateGetV1DepositAddress? (params?: {}): Promise<implicitReturnType>;
+     privateGetV1Ledger? (params?: {}): Promise<implicitReturnType>;
+     privateGetV1LeverageSettings? (params?: {}): Promise<implicitReturnType>;
+     privateGetV1MyTrades? (params?: {}): Promise<implicitReturnType>;
+     privateGetV1OpenOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetV1TradingPositions? (params?: {}): Promise<implicitReturnType>;
+     privateGetV1TradingPositionsHistory? (params?: {}): Promise<implicitReturnType>;
+     privateGetV1Transactions? (params?: {}): Promise<implicitReturnType>;
+     privateGetV1Withdrawals? (params?: {}): Promise<implicitReturnType>;
+     privateGetV2Account? (params?: {}): Promise<implicitReturnType>;
+     privateGetV2Currencies? (params?: {}): Promise<implicitReturnType>;
+     privateGetV2Deposits? (params?: {}): Promise<implicitReturnType>;
+     privateGetV2DepositAddress? (params?: {}): Promise<implicitReturnType>;
+     privateGetV2Ledger? (params?: {}): Promise<implicitReturnType>;
+     privateGetV2LeverageSettings? (params?: {}): Promise<implicitReturnType>;
+     privateGetV2MyTrades? (params?: {}): Promise<implicitReturnType>;
+     privateGetV2OpenOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetV2TradingPositions? (params?: {}): Promise<implicitReturnType>;
+     privateGetV2TradingPositionsHistory? (params?: {}): Promise<implicitReturnType>;
+     privateGetV2Transactions? (params?: {}): Promise<implicitReturnType>;
+     privateGetV2Withdrawals? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1Order? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1UpdateTradingPosition? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1UpdateTradingOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1CloseTradingPosition? (params?: {}): Promise<implicitReturnType>;
+     privatePostV2Order? (params?: {}): Promise<implicitReturnType>;
+     privatePostV2UpdateTradingPosition? (params?: {}): Promise<implicitReturnType>;
+     privatePostV2UpdateTradingOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostV2CloseTradingPosition? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteV1Order? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteV2Order? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

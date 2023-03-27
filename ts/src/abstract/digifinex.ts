@@ -8,78 +8,81 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicSpotGetMarketSymbols (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetMarketSymbols'] (params); }
-    publicSpotGetKline (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetKline'] (params); }
-    publicSpotGetMarginCurrencies (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetMarginCurrencies'] (params); }
-    publicSpotGetMarginSymbols (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetMarginSymbols'] (params); }
-    publicSpotGetMarkets (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetMarkets'] (params); }
-    publicSpotGetOrderBook (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetOrderBook'] (params); }
-    publicSpotGetPing (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetPing'] (params); }
-    publicSpotGetSpotSymbols (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetSpotSymbols'] (params); }
-    publicSpotGetTime (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetTime'] (params); }
-    publicSpotGetTrades (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetTrades'] (params); }
-    publicSpotGetTradesSymbols (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetTradesSymbols'] (params); }
-    publicSpotGetTicker (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetTicker'] (params); }
-    publicSpotGetCurrencies (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetCurrencies'] (params); }
-    publicSwapGetPublicApiWeight (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetPublicApiWeight'] (params); }
-    publicSwapGetPublicCandles (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetPublicCandles'] (params); }
-    publicSwapGetPublicCandlesHistory (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetPublicCandlesHistory'] (params); }
-    publicSwapGetPublicDepth (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetPublicDepth'] (params); }
-    publicSwapGetPublicFundingRate (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetPublicFundingRate'] (params); }
-    publicSwapGetPublicFundingRateHistory (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetPublicFundingRateHistory'] (params); }
-    publicSwapGetPublicInstrument (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetPublicInstrument'] (params); }
-    publicSwapGetPublicInstruments (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetPublicInstruments'] (params); }
-    publicSwapGetPublicTicker (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetPublicTicker'] (params); }
-    publicSwapGetPublicTickers (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetPublicTickers'] (params); }
-    publicSwapGetPublicTime (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetPublicTime'] (params); }
-    publicSwapGetPublicTrades (params?: {}): Promise<implicitReturnType> { return this['publicSwapGetPublicTrades'] (params); }
-    privateSpotGetMarketFinancelog (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetMarketFinancelog'] (params); }
-    privateSpotGetMarketMytrades (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetMarketMytrades'] (params); }
-    privateSpotGetMarketOrder (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetMarketOrder'] (params); }
-    privateSpotGetMarketOrderDetail (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetMarketOrderDetail'] (params); }
-    privateSpotGetMarketOrderCurrent (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetMarketOrderCurrent'] (params); }
-    privateSpotGetMarketOrderHistory (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetMarketOrderHistory'] (params); }
-    privateSpotGetMarginAssets (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetMarginAssets'] (params); }
-    privateSpotGetMarginFinancelog (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetMarginFinancelog'] (params); }
-    privateSpotGetMarginMytrades (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetMarginMytrades'] (params); }
-    privateSpotGetMarginOrder (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetMarginOrder'] (params); }
-    privateSpotGetMarginOrderCurrent (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetMarginOrderCurrent'] (params); }
-    privateSpotGetMarginOrderHistory (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetMarginOrderHistory'] (params); }
-    privateSpotGetMarginPositions (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetMarginPositions'] (params); }
-    privateSpotGetOtcFinancelog (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetOtcFinancelog'] (params); }
-    privateSpotGetSpotAssets (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetSpotAssets'] (params); }
-    privateSpotGetSpotFinancelog (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetSpotFinancelog'] (params); }
-    privateSpotGetSpotMytrades (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetSpotMytrades'] (params); }
-    privateSpotGetSpotOrder (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetSpotOrder'] (params); }
-    privateSpotGetSpotOrderCurrent (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetSpotOrderCurrent'] (params); }
-    privateSpotGetSpotOrderHistory (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetSpotOrderHistory'] (params); }
-    privateSpotGetDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetDepositAddress'] (params); }
-    privateSpotGetDepositHistory (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetDepositHistory'] (params); }
-    privateSpotGetWithdrawHistory (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetWithdrawHistory'] (params); }
-    privateSpotPostMarketOrderCancel (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostMarketOrderCancel'] (params); }
-    privateSpotPostMarketOrderNew (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostMarketOrderNew'] (params); }
-    privateSpotPostMarketOrderBatchNew (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostMarketOrderBatchNew'] (params); }
-    privateSpotPostMarginOrderCancel (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostMarginOrderCancel'] (params); }
-    privateSpotPostMarginOrderNew (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostMarginOrderNew'] (params); }
-    privateSpotPostMarginPositionClose (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostMarginPositionClose'] (params); }
-    privateSpotPostSpotOrderCancel (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostSpotOrderCancel'] (params); }
-    privateSpotPostSpotOrderNew (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostSpotOrderNew'] (params); }
-    privateSpotPostTransfer (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostTransfer'] (params); }
-    privateSpotPostWithdrawNew (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostWithdrawNew'] (params); }
-    privateSpotPostWithdrawCancel (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostWithdrawCancel'] (params); }
-    privateSwapGetAccountBalance (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetAccountBalance'] (params); }
-    privateSwapGetAccountPositions (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetAccountPositions'] (params); }
-    privateSwapGetAccountFinanceRecord (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetAccountFinanceRecord'] (params); }
-    privateSwapGetAccountTradingFeeRate (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetAccountTradingFeeRate'] (params); }
-    privateSwapGetAccountTransferRecord (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetAccountTransferRecord'] (params); }
-    privateSwapGetTradeHistoryOrders (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetTradeHistoryOrders'] (params); }
-    privateSwapGetTradeHistoryTrades (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetTradeHistoryTrades'] (params); }
-    privateSwapGetTradeOpenOrders (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetTradeOpenOrders'] (params); }
-    privateSwapGetTradeOrderInfo (params?: {}): Promise<implicitReturnType> { return this['privateSwapGetTradeOrderInfo'] (params); }
-    privateSwapPostAccountLeverage (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostAccountLeverage'] (params); }
-    privateSwapPostTradeBatchCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostTradeBatchCancelOrder'] (params); }
-    privateSwapPostTradeBatchOrder (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostTradeBatchOrder'] (params); }
-    privateSwapPostTradeCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostTradeCancelOrder'] (params); }
-    privateSwapPostTradeOrderPlace (params?: {}): Promise<implicitReturnType> { return this['privateSwapPostTradeOrderPlace'] (params); }
+interface Exchange {
+     publicSpotGetMarketSymbols? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetKline? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetMarginCurrencies? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetMarginSymbols? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetMarkets? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetOrderBook? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetPing? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetSpotSymbols? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetTime? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetTrades? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetTradesSymbols? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetTicker? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetCurrencies? (params?: {}): Promise<implicitReturnType>;
+     publicSwapGetPublicApiWeight? (params?: {}): Promise<implicitReturnType>;
+     publicSwapGetPublicCandles? (params?: {}): Promise<implicitReturnType>;
+     publicSwapGetPublicCandlesHistory? (params?: {}): Promise<implicitReturnType>;
+     publicSwapGetPublicDepth? (params?: {}): Promise<implicitReturnType>;
+     publicSwapGetPublicFundingRate? (params?: {}): Promise<implicitReturnType>;
+     publicSwapGetPublicFundingRateHistory? (params?: {}): Promise<implicitReturnType>;
+     publicSwapGetPublicInstrument? (params?: {}): Promise<implicitReturnType>;
+     publicSwapGetPublicInstruments? (params?: {}): Promise<implicitReturnType>;
+     publicSwapGetPublicTicker? (params?: {}): Promise<implicitReturnType>;
+     publicSwapGetPublicTickers? (params?: {}): Promise<implicitReturnType>;
+     publicSwapGetPublicTime? (params?: {}): Promise<implicitReturnType>;
+     publicSwapGetPublicTrades? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetMarketFinancelog? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetMarketMytrades? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetMarketOrder? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetMarketOrderDetail? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetMarketOrderCurrent? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetMarketOrderHistory? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetMarginAssets? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetMarginFinancelog? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetMarginMytrades? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetMarginOrder? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetMarginOrderCurrent? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetMarginOrderHistory? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetMarginPositions? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetOtcFinancelog? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetSpotAssets? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetSpotFinancelog? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetSpotMytrades? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetSpotOrder? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetSpotOrderCurrent? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetSpotOrderHistory? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetDepositAddress? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetDepositHistory? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetWithdrawHistory? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostMarketOrderCancel? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostMarketOrderNew? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostMarketOrderBatchNew? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostMarginOrderCancel? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostMarginOrderNew? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostMarginPositionClose? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostSpotOrderCancel? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostSpotOrderNew? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostTransfer? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostWithdrawNew? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostWithdrawCancel? (params?: {}): Promise<implicitReturnType>;
+     privateSwapGetAccountBalance? (params?: {}): Promise<implicitReturnType>;
+     privateSwapGetAccountPositions? (params?: {}): Promise<implicitReturnType>;
+     privateSwapGetAccountFinanceRecord? (params?: {}): Promise<implicitReturnType>;
+     privateSwapGetAccountTradingFeeRate? (params?: {}): Promise<implicitReturnType>;
+     privateSwapGetAccountTransferRecord? (params?: {}): Promise<implicitReturnType>;
+     privateSwapGetTradeHistoryOrders? (params?: {}): Promise<implicitReturnType>;
+     privateSwapGetTradeHistoryTrades? (params?: {}): Promise<implicitReturnType>;
+     privateSwapGetTradeOpenOrders? (params?: {}): Promise<implicitReturnType>;
+     privateSwapGetTradeOrderInfo? (params?: {}): Promise<implicitReturnType>;
+     privateSwapPostAccountLeverage? (params?: {}): Promise<implicitReturnType>;
+     privateSwapPostTradeBatchCancelOrder? (params?: {}): Promise<implicitReturnType>;
+     privateSwapPostTradeBatchOrder? (params?: {}): Promise<implicitReturnType>;
+     privateSwapPostTradeCancelOrder? (params?: {}): Promise<implicitReturnType>;
+     privateSwapPostTradeOrderPlace? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

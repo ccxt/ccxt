@@ -8,51 +8,54 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetOrderBook (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderBook'] (params); }
-    publicGetTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetTicker'] (params); }
-    publicGetTransactions (params?: {}): Promise<implicitReturnType> { return this['publicGetTransactions'] (params); }
-    publicGetTradingPairs (params?: {}): Promise<implicitReturnType> { return this['publicGetTradingPairs'] (params); }
-    privatePostBalances (params?: {}): Promise<implicitReturnType> { return this['privatePostBalances'] (params); }
-    privatePostBitcoinCashWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostBitcoinCashWithdrawal'] (params); }
-    privatePostBitcoinCashDepositAddresses (params?: {}): Promise<implicitReturnType> { return this['privatePostBitcoinCashDepositAddresses'] (params); }
-    privatePostBitcoinDepositAddresses (params?: {}): Promise<implicitReturnType> { return this['privatePostBitcoinDepositAddresses'] (params); }
-    privatePostBitcoinWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostBitcoinWithdrawal'] (params); }
-    privatePostBitcoinWithdrawalFees (params?: {}): Promise<implicitReturnType> { return this['privatePostBitcoinWithdrawalFees'] (params); }
-    privatePostBuyInstant (params?: {}): Promise<implicitReturnType> { return this['privatePostBuyInstant'] (params); }
-    privatePostBuyLimit (params?: {}): Promise<implicitReturnType> { return this['privatePostBuyLimit'] (params); }
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelOrder'] (params); }
-    privatePostCancelOrderWithInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelOrderWithInfo'] (params); }
-    privatePostCreateVoucher (params?: {}): Promise<implicitReturnType> { return this['privatePostCreateVoucher'] (params); }
-    privatePostDashDepositAddresses (params?: {}): Promise<implicitReturnType> { return this['privatePostDashDepositAddresses'] (params); }
-    privatePostDashWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostDashWithdrawal'] (params); }
-    privatePostEthereumWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostEthereumWithdrawal'] (params); }
-    privatePostEthereumDepositAddresses (params?: {}): Promise<implicitReturnType> { return this['privatePostEthereumDepositAddresses'] (params); }
-    privatePostLitecoinWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostLitecoinWithdrawal'] (params); }
-    privatePostLitecoinDepositAddresses (params?: {}): Promise<implicitReturnType> { return this['privatePostLitecoinDepositAddresses'] (params); }
-    privatePostOpenOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenOrders'] (params); }
-    privatePostOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostOrder'] (params); }
-    privatePostOrderHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderHistory'] (params); }
-    privatePostOrderById (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderById'] (params); }
-    privatePostPusherAuth (params?: {}): Promise<implicitReturnType> { return this['privatePostPusherAuth'] (params); }
-    privatePostRedeemVoucher (params?: {}): Promise<implicitReturnType> { return this['privatePostRedeemVoucher'] (params); }
-    privatePostReplaceByBuyLimit (params?: {}): Promise<implicitReturnType> { return this['privatePostReplaceByBuyLimit'] (params); }
-    privatePostReplaceByBuyInstant (params?: {}): Promise<implicitReturnType> { return this['privatePostReplaceByBuyInstant'] (params); }
-    privatePostReplaceBySellLimit (params?: {}): Promise<implicitReturnType> { return this['privatePostReplaceBySellLimit'] (params); }
-    privatePostReplaceBySellInstant (params?: {}): Promise<implicitReturnType> { return this['privatePostReplaceBySellInstant'] (params); }
-    privatePostRippleDepositAddresses (params?: {}): Promise<implicitReturnType> { return this['privatePostRippleDepositAddresses'] (params); }
-    privatePostRippleWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostRippleWithdrawal'] (params); }
-    privatePostSellInstant (params?: {}): Promise<implicitReturnType> { return this['privatePostSellInstant'] (params); }
-    privatePostSellLimit (params?: {}): Promise<implicitReturnType> { return this['privatePostSellLimit'] (params); }
-    privatePostTransactionHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostTransactionHistory'] (params); }
-    privatePostTraderFees (params?: {}): Promise<implicitReturnType> { return this['privatePostTraderFees'] (params); }
-    privatePostTradeHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostTradeHistory'] (params); }
-    privatePostTransfer (params?: {}): Promise<implicitReturnType> { return this['privatePostTransfer'] (params); }
-    privatePostTransferHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostTransferHistory'] (params); }
-    privatePostUnconfirmedBitcoinDeposits (params?: {}): Promise<implicitReturnType> { return this['privatePostUnconfirmedBitcoinDeposits'] (params); }
-    privatePostUnconfirmedBitcoinCashDeposits (params?: {}): Promise<implicitReturnType> { return this['privatePostUnconfirmedBitcoinCashDeposits'] (params); }
-    privatePostUnconfirmedDashDeposits (params?: {}): Promise<implicitReturnType> { return this['privatePostUnconfirmedDashDeposits'] (params); }
-    privatePostUnconfirmedEthereumDeposits (params?: {}): Promise<implicitReturnType> { return this['privatePostUnconfirmedEthereumDeposits'] (params); }
-    privatePostUnconfirmedLitecoinDeposits (params?: {}): Promise<implicitReturnType> { return this['privatePostUnconfirmedLitecoinDeposits'] (params); }
-    privatePostUnconfirmedRippleDeposits (params?: {}): Promise<implicitReturnType> { return this['privatePostUnconfirmedRippleDeposits'] (params); }
+interface Exchange {
+     publicGetOrderBook? (params?: {}): Promise<implicitReturnType>;
+     publicGetTicker? (params?: {}): Promise<implicitReturnType>;
+     publicGetTransactions? (params?: {}): Promise<implicitReturnType>;
+     publicGetTradingPairs? (params?: {}): Promise<implicitReturnType>;
+     privatePostBalances? (params?: {}): Promise<implicitReturnType>;
+     privatePostBitcoinCashWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostBitcoinCashDepositAddresses? (params?: {}): Promise<implicitReturnType>;
+     privatePostBitcoinDepositAddresses? (params?: {}): Promise<implicitReturnType>;
+     privatePostBitcoinWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostBitcoinWithdrawalFees? (params?: {}): Promise<implicitReturnType>;
+     privatePostBuyInstant? (params?: {}): Promise<implicitReturnType>;
+     privatePostBuyLimit? (params?: {}): Promise<implicitReturnType>;
+     privatePostCancelOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostCancelOrderWithInfo? (params?: {}): Promise<implicitReturnType>;
+     privatePostCreateVoucher? (params?: {}): Promise<implicitReturnType>;
+     privatePostDashDepositAddresses? (params?: {}): Promise<implicitReturnType>;
+     privatePostDashWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostEthereumWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostEthereumDepositAddresses? (params?: {}): Promise<implicitReturnType>;
+     privatePostLitecoinWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostLitecoinDepositAddresses? (params?: {}): Promise<implicitReturnType>;
+     privatePostOpenOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderHistory? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderById? (params?: {}): Promise<implicitReturnType>;
+     privatePostPusherAuth? (params?: {}): Promise<implicitReturnType>;
+     privatePostRedeemVoucher? (params?: {}): Promise<implicitReturnType>;
+     privatePostReplaceByBuyLimit? (params?: {}): Promise<implicitReturnType>;
+     privatePostReplaceByBuyInstant? (params?: {}): Promise<implicitReturnType>;
+     privatePostReplaceBySellLimit? (params?: {}): Promise<implicitReturnType>;
+     privatePostReplaceBySellInstant? (params?: {}): Promise<implicitReturnType>;
+     privatePostRippleDepositAddresses? (params?: {}): Promise<implicitReturnType>;
+     privatePostRippleWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostSellInstant? (params?: {}): Promise<implicitReturnType>;
+     privatePostSellLimit? (params?: {}): Promise<implicitReturnType>;
+     privatePostTransactionHistory? (params?: {}): Promise<implicitReturnType>;
+     privatePostTraderFees? (params?: {}): Promise<implicitReturnType>;
+     privatePostTradeHistory? (params?: {}): Promise<implicitReturnType>;
+     privatePostTransfer? (params?: {}): Promise<implicitReturnType>;
+     privatePostTransferHistory? (params?: {}): Promise<implicitReturnType>;
+     privatePostUnconfirmedBitcoinDeposits? (params?: {}): Promise<implicitReturnType>;
+     privatePostUnconfirmedBitcoinCashDeposits? (params?: {}): Promise<implicitReturnType>;
+     privatePostUnconfirmedDashDeposits? (params?: {}): Promise<implicitReturnType>;
+     privatePostUnconfirmedEthereumDeposits? (params?: {}): Promise<implicitReturnType>;
+     privatePostUnconfirmedLitecoinDeposits? (params?: {}): Promise<implicitReturnType>;
+     privatePostUnconfirmedRippleDeposits? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

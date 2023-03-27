@@ -8,16 +8,19 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetOapiV2ListTradePrice (params?: {}): Promise<implicitReturnType> { return this['publicGetOapiV2ListTradePrice'] (params); }
-    publicGetOapiV2ListMarketPair (params?: {}): Promise<implicitReturnType> { return this['publicGetOapiV2ListMarketPair'] (params); }
-    publicGetOpenV2PublicGetOrderBook (params?: {}): Promise<implicitReturnType> { return this['publicGetOpenV2PublicGetOrderBook'] (params); }
-    privatePostV2CoinCustomerAccount (params?: {}): Promise<implicitReturnType> { return this['privatePostV2CoinCustomerAccount'] (params); }
-    privatePostV2KlineGetKline (params?: {}): Promise<implicitReturnType> { return this['privatePostV2KlineGetKline'] (params); }
-    privatePostV2OrderOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostV2OrderOrder'] (params); }
-    privatePostV2OrderCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostV2OrderCancel'] (params); }
-    privatePostV2OrderGetOrderList (params?: {}): Promise<implicitReturnType> { return this['privatePostV2OrderGetOrderList'] (params); }
-    privatePostV2OrderShowOrderStatus (params?: {}): Promise<implicitReturnType> { return this['privatePostV2OrderShowOrderStatus'] (params); }
-    privatePostV2OrderShowOrderHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostV2OrderShowOrderHistory'] (params); }
-    privatePostV2OrderGetTradeList (params?: {}): Promise<implicitReturnType> { return this['privatePostV2OrderGetTradeList'] (params); }
+interface Exchange {
+     publicGetOapiV2ListTradePrice? (params?: {}): Promise<implicitReturnType>;
+     publicGetOapiV2ListMarketPair? (params?: {}): Promise<implicitReturnType>;
+     publicGetOpenV2PublicGetOrderBook? (params?: {}): Promise<implicitReturnType>;
+     privatePostV2CoinCustomerAccount? (params?: {}): Promise<implicitReturnType>;
+     privatePostV2KlineGetKline? (params?: {}): Promise<implicitReturnType>;
+     privatePostV2OrderOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostV2OrderCancel? (params?: {}): Promise<implicitReturnType>;
+     privatePostV2OrderGetOrderList? (params?: {}): Promise<implicitReturnType>;
+     privatePostV2OrderShowOrderStatus? (params?: {}): Promise<implicitReturnType>;
+     privatePostV2OrderShowOrderHistory? (params?: {}): Promise<implicitReturnType>;
+     privatePostV2OrderGetTradeList? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

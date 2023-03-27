@@ -8,34 +8,37 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetCurrencyProfile (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencyProfile'] (params); }
-    publicGetCurrencyLimits (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencyLimits'] (params); }
-    publicGetLastPricePair (params?: {}): Promise<implicitReturnType> { return this['publicGetLastPricePair'] (params); }
-    publicGetLastPricesCurrencies (params?: {}): Promise<implicitReturnType> { return this['publicGetLastPricesCurrencies'] (params); }
-    publicGetOhlcvHdYyyymmddPair (params?: {}): Promise<implicitReturnType> { return this['publicGetOhlcvHdYyyymmddPair'] (params); }
-    publicGetOrderBookPair (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderBookPair'] (params); }
-    publicGetTickerPair (params?: {}): Promise<implicitReturnType> { return this['publicGetTickerPair'] (params); }
-    publicGetTickersCurrencies (params?: {}): Promise<implicitReturnType> { return this['publicGetTickersCurrencies'] (params); }
-    publicGetTradeHistoryPair (params?: {}): Promise<implicitReturnType> { return this['publicGetTradeHistoryPair'] (params); }
-    publicPostConvertPair (params?: {}): Promise<implicitReturnType> { return this['publicPostConvertPair'] (params); }
-    publicPostPriceStatsPair (params?: {}): Promise<implicitReturnType> { return this['publicPostPriceStatsPair'] (params); }
-    privatePostActiveOrdersStatus (params?: {}): Promise<implicitReturnType> { return this['privatePostActiveOrdersStatus'] (params); }
-    privatePostArchivedOrdersPair (params?: {}): Promise<implicitReturnType> { return this['privatePostArchivedOrdersPair'] (params); }
-    privatePostBalance (params?: {}): Promise<implicitReturnType> { return this['privatePostBalance'] (params); }
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelOrder'] (params); }
-    privatePostCancelOrdersPair (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelOrdersPair'] (params); }
-    privatePostCancelReplaceOrderPair (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelReplaceOrderPair'] (params); }
-    privatePostClosePositionPair (params?: {}): Promise<implicitReturnType> { return this['privatePostClosePositionPair'] (params); }
-    privatePostGetAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostGetAddress'] (params); }
-    privatePostGetCryptoAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostGetCryptoAddress'] (params); }
-    privatePostGetMyfee (params?: {}): Promise<implicitReturnType> { return this['privatePostGetMyfee'] (params); }
-    privatePostGetOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostGetOrder'] (params); }
-    privatePostGetOrderTx (params?: {}): Promise<implicitReturnType> { return this['privatePostGetOrderTx'] (params); }
-    privatePostOpenOrdersPair (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenOrdersPair'] (params); }
-    privatePostOpenOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenOrders'] (params); }
-    privatePostOpenPositionPair (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenPositionPair'] (params); }
-    privatePostOpenPositionsPair (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenPositionsPair'] (params); }
-    privatePostPlaceOrderPair (params?: {}): Promise<implicitReturnType> { return this['privatePostPlaceOrderPair'] (params); }
-    privatePostRawTxHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostRawTxHistory'] (params); }
+interface Exchange {
+     publicGetCurrencyProfile? (params?: {}): Promise<implicitReturnType>;
+     publicGetCurrencyLimits? (params?: {}): Promise<implicitReturnType>;
+     publicGetLastPricePair? (params?: {}): Promise<implicitReturnType>;
+     publicGetLastPricesCurrencies? (params?: {}): Promise<implicitReturnType>;
+     publicGetOhlcvHdYyyymmddPair? (params?: {}): Promise<implicitReturnType>;
+     publicGetOrderBookPair? (params?: {}): Promise<implicitReturnType>;
+     publicGetTickerPair? (params?: {}): Promise<implicitReturnType>;
+     publicGetTickersCurrencies? (params?: {}): Promise<implicitReturnType>;
+     publicGetTradeHistoryPair? (params?: {}): Promise<implicitReturnType>;
+     publicPostConvertPair? (params?: {}): Promise<implicitReturnType>;
+     publicPostPriceStatsPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostActiveOrdersStatus? (params?: {}): Promise<implicitReturnType>;
+     privatePostArchivedOrdersPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostBalance? (params?: {}): Promise<implicitReturnType>;
+     privatePostCancelOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostCancelOrdersPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostCancelReplaceOrderPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostClosePositionPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostGetAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostGetCryptoAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostGetMyfee? (params?: {}): Promise<implicitReturnType>;
+     privatePostGetOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostGetOrderTx? (params?: {}): Promise<implicitReturnType>;
+     privatePostOpenOrdersPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostOpenOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostOpenPositionPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostOpenPositionsPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostPlaceOrderPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostRawTxHistory? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

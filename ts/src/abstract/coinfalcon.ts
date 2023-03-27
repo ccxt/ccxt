@@ -8,24 +8,27 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetMarkets (params?: {}): Promise<implicitReturnType> { return this['publicGetMarkets'] (params); }
-    publicGetMarketsMarket (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarket'] (params); }
-    publicGetMarketsMarketOrders (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketOrders'] (params); }
-    publicGetMarketsMarketTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketTrades'] (params); }
-    privateGetUserAccounts (params?: {}): Promise<implicitReturnType> { return this['privateGetUserAccounts'] (params); }
-    privateGetUserOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetUserOrders'] (params); }
-    privateGetUserOrdersId (params?: {}): Promise<implicitReturnType> { return this['privateGetUserOrdersId'] (params); }
-    privateGetUserOrdersIdTrades (params?: {}): Promise<implicitReturnType> { return this['privateGetUserOrdersIdTrades'] (params); }
-    privateGetUserTrades (params?: {}): Promise<implicitReturnType> { return this['privateGetUserTrades'] (params); }
-    privateGetUserFees (params?: {}): Promise<implicitReturnType> { return this['privateGetUserFees'] (params); }
-    privateGetAccountWithdrawalsId (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountWithdrawalsId'] (params); }
-    privateGetAccountWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountWithdrawals'] (params); }
-    privateGetAccountDepositId (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountDepositId'] (params); }
-    privateGetAccountDeposits (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountDeposits'] (params); }
-    privateGetAccountDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privateGetAccountDepositAddress'] (params); }
-    privatePostUserOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostUserOrders'] (params); }
-    privatePostAccountWithdraw (params?: {}): Promise<implicitReturnType> { return this['privatePostAccountWithdraw'] (params); }
-    privateDeleteUserOrdersId (params?: {}): Promise<implicitReturnType> { return this['privateDeleteUserOrdersId'] (params); }
-    privateDeleteAccountWithdrawalsId (params?: {}): Promise<implicitReturnType> { return this['privateDeleteAccountWithdrawalsId'] (params); }
+interface Exchange {
+     publicGetMarkets? (params?: {}): Promise<implicitReturnType>;
+     publicGetMarketsMarket? (params?: {}): Promise<implicitReturnType>;
+     publicGetMarketsMarketOrders? (params?: {}): Promise<implicitReturnType>;
+     publicGetMarketsMarketTrades? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserAccounts? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserOrdersId? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserOrdersIdTrades? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserTrades? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserFees? (params?: {}): Promise<implicitReturnType>;
+     privateGetAccountWithdrawalsId? (params?: {}): Promise<implicitReturnType>;
+     privateGetAccountWithdrawals? (params?: {}): Promise<implicitReturnType>;
+     privateGetAccountDepositId? (params?: {}): Promise<implicitReturnType>;
+     privateGetAccountDeposits? (params?: {}): Promise<implicitReturnType>;
+     privateGetAccountDepositAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostAccountWithdraw? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteUserOrdersId? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteAccountWithdrawalsId? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

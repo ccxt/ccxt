@@ -8,99 +8,102 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicSpotGetPublicTime (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetPublicTime'] (params); }
-    publicSpotGetPublicCurrencies (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetPublicCurrencies'] (params); }
-    publicSpotGetPublicProducts (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetPublicProducts'] (params); }
-    publicSpotGetPublicProduct (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetPublicProduct'] (params); }
-    publicSpotGetMarketTicker (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetMarketTicker'] (params); }
-    publicSpotGetMarketTickers (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetMarketTickers'] (params); }
-    publicSpotGetMarketFills (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetMarketFills'] (params); }
-    publicSpotGetMarketCandles (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetMarketCandles'] (params); }
-    publicSpotGetMarketDepth (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetMarketDepth'] (params); }
-    publicSpotGetMarketSpotVipLevel (params?: {}): Promise<implicitReturnType> { return this['publicSpotGetMarketSpotVipLevel'] (params); }
-    publicMixGetMarketContracts (params?: {}): Promise<implicitReturnType> { return this['publicMixGetMarketContracts'] (params); }
-    publicMixGetMarketDepth (params?: {}): Promise<implicitReturnType> { return this['publicMixGetMarketDepth'] (params); }
-    publicMixGetMarketTicker (params?: {}): Promise<implicitReturnType> { return this['publicMixGetMarketTicker'] (params); }
-    publicMixGetMarketTickers (params?: {}): Promise<implicitReturnType> { return this['publicMixGetMarketTickers'] (params); }
-    publicMixGetMarketFills (params?: {}): Promise<implicitReturnType> { return this['publicMixGetMarketFills'] (params); }
-    publicMixGetMarketCandles (params?: {}): Promise<implicitReturnType> { return this['publicMixGetMarketCandles'] (params); }
-    publicMixGetMarketIndex (params?: {}): Promise<implicitReturnType> { return this['publicMixGetMarketIndex'] (params); }
-    publicMixGetMarketFundingTime (params?: {}): Promise<implicitReturnType> { return this['publicMixGetMarketFundingTime'] (params); }
-    publicMixGetMarketHistoryFundRate (params?: {}): Promise<implicitReturnType> { return this['publicMixGetMarketHistoryFundRate'] (params); }
-    publicMixGetMarketCurrentFundRate (params?: {}): Promise<implicitReturnType> { return this['publicMixGetMarketCurrentFundRate'] (params); }
-    publicMixGetMarketOpenInterest (params?: {}): Promise<implicitReturnType> { return this['publicMixGetMarketOpenInterest'] (params); }
-    publicMixGetMarketMarkPrice (params?: {}): Promise<implicitReturnType> { return this['publicMixGetMarketMarkPrice'] (params); }
-    publicMixGetMarketSymbolLeverage (params?: {}): Promise<implicitReturnType> { return this['publicMixGetMarketSymbolLeverage'] (params); }
-    publicMixGetMarketContractVipLevel (params?: {}): Promise<implicitReturnType> { return this['publicMixGetMarketContractVipLevel'] (params); }
-    privateSpotGetAccountGetInfo (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetAccountGetInfo'] (params); }
-    privateSpotGetAccountAssets (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetAccountAssets'] (params); }
-    privateSpotGetAccountTransferRecords (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetAccountTransferRecords'] (params); }
-    privateSpotGetWalletDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetWalletDepositAddress'] (params); }
-    privateSpotGetWalletWithdrawalInner (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetWalletWithdrawalInner'] (params); }
-    privateSpotGetWalletWithdrawalList (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetWalletWithdrawalList'] (params); }
-    privateSpotGetWalletDepositList (params?: {}): Promise<implicitReturnType> { return this['privateSpotGetWalletDepositList'] (params); }
-    privateSpotPostAccountBills (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostAccountBills'] (params); }
-    privateSpotPostAccountSubAccountSpotAssets (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostAccountSubAccountSpotAssets'] (params); }
-    privateSpotPostTradeOrders (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostTradeOrders'] (params); }
-    privateSpotPostTradeBatchOrders (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostTradeBatchOrders'] (params); }
-    privateSpotPostTradeCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostTradeCancelOrder'] (params); }
-    privateSpotPostTradeCancelBatchOrders (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostTradeCancelBatchOrders'] (params); }
-    privateSpotPostTradeOrderInfo (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostTradeOrderInfo'] (params); }
-    privateSpotPostTradeOpenOrders (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostTradeOpenOrders'] (params); }
-    privateSpotPostTradeHistory (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostTradeHistory'] (params); }
-    privateSpotPostTradeFills (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostTradeFills'] (params); }
-    privateSpotPostWalletTransfer (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostWalletTransfer'] (params); }
-    privateSpotPostWalletWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostWalletWithdrawal'] (params); }
-    privateSpotPostWalletSubTransfer (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostWalletSubTransfer'] (params); }
-    privateSpotPostPlanPlacePlan (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostPlanPlacePlan'] (params); }
-    privateSpotPostPlanModifyPlan (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostPlanModifyPlan'] (params); }
-    privateSpotPostPlanCancelPlan (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostPlanCancelPlan'] (params); }
-    privateSpotPostPlanCurrentPlan (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostPlanCurrentPlan'] (params); }
-    privateSpotPostPlanHistoryPlan (params?: {}): Promise<implicitReturnType> { return this['privateSpotPostPlanHistoryPlan'] (params); }
-    privateMixGetAccountAccount (params?: {}): Promise<implicitReturnType> { return this['privateMixGetAccountAccount'] (params); }
-    privateMixGetAccountAccounts (params?: {}): Promise<implicitReturnType> { return this['privateMixGetAccountAccounts'] (params); }
-    privateMixGetAccountAccountBill (params?: {}): Promise<implicitReturnType> { return this['privateMixGetAccountAccountBill'] (params); }
-    privateMixGetAccountAccountBusinessBill (params?: {}): Promise<implicitReturnType> { return this['privateMixGetAccountAccountBusinessBill'] (params); }
-    privateMixGetAccountOpenCount (params?: {}): Promise<implicitReturnType> { return this['privateMixGetAccountOpenCount'] (params); }
-    privateMixGetOrderCurrent (params?: {}): Promise<implicitReturnType> { return this['privateMixGetOrderCurrent'] (params); }
-    privateMixGetOrderHistory (params?: {}): Promise<implicitReturnType> { return this['privateMixGetOrderHistory'] (params); }
-    privateMixGetOrderDetail (params?: {}): Promise<implicitReturnType> { return this['privateMixGetOrderDetail'] (params); }
-    privateMixGetOrderFills (params?: {}): Promise<implicitReturnType> { return this['privateMixGetOrderFills'] (params); }
-    privateMixGetOrderHistoryProductType (params?: {}): Promise<implicitReturnType> { return this['privateMixGetOrderHistoryProductType'] (params); }
-    privateMixGetOrderAllFills (params?: {}): Promise<implicitReturnType> { return this['privateMixGetOrderAllFills'] (params); }
-    privateMixGetPlanCurrentPlan (params?: {}): Promise<implicitReturnType> { return this['privateMixGetPlanCurrentPlan'] (params); }
-    privateMixGetPlanHistoryPlan (params?: {}): Promise<implicitReturnType> { return this['privateMixGetPlanHistoryPlan'] (params); }
-    privateMixGetPositionSinglePosition (params?: {}): Promise<implicitReturnType> { return this['privateMixGetPositionSinglePosition'] (params); }
-    privateMixGetPositionAllPosition (params?: {}): Promise<implicitReturnType> { return this['privateMixGetPositionAllPosition'] (params); }
-    privateMixGetTraceCurrentTrack (params?: {}): Promise<implicitReturnType> { return this['privateMixGetTraceCurrentTrack'] (params); }
-    privateMixGetTraceFollowerOrder (params?: {}): Promise<implicitReturnType> { return this['privateMixGetTraceFollowerOrder'] (params); }
-    privateMixGetTraceHistoryTrack (params?: {}): Promise<implicitReturnType> { return this['privateMixGetTraceHistoryTrack'] (params); }
-    privateMixGetTraceSummary (params?: {}): Promise<implicitReturnType> { return this['privateMixGetTraceSummary'] (params); }
-    privateMixGetTraceProfitSettleTokenIdGroup (params?: {}): Promise<implicitReturnType> { return this['privateMixGetTraceProfitSettleTokenIdGroup'] (params); }
-    privateMixGetTraceProfitDateGroupList (params?: {}): Promise<implicitReturnType> { return this['privateMixGetTraceProfitDateGroupList'] (params); }
-    privateMixGetTradeProfitDateList (params?: {}): Promise<implicitReturnType> { return this['privateMixGetTradeProfitDateList'] (params); }
-    privateMixGetTraceWaitProfitDateList (params?: {}): Promise<implicitReturnType> { return this['privateMixGetTraceWaitProfitDateList'] (params); }
-    privateMixGetTraceTraderSymbols (params?: {}): Promise<implicitReturnType> { return this['privateMixGetTraceTraderSymbols'] (params); }
-    privateMixGetOrderMarginCoinCurrent (params?: {}): Promise<implicitReturnType> { return this['privateMixGetOrderMarginCoinCurrent'] (params); }
-    privateMixPostAccountSetLeverage (params?: {}): Promise<implicitReturnType> { return this['privateMixPostAccountSetLeverage'] (params); }
-    privateMixPostAccountSetMargin (params?: {}): Promise<implicitReturnType> { return this['privateMixPostAccountSetMargin'] (params); }
-    privateMixPostAccountSetMarginMode (params?: {}): Promise<implicitReturnType> { return this['privateMixPostAccountSetMarginMode'] (params); }
-    privateMixPostAccountSetPositionMode (params?: {}): Promise<implicitReturnType> { return this['privateMixPostAccountSetPositionMode'] (params); }
-    privateMixPostOrderPlaceOrder (params?: {}): Promise<implicitReturnType> { return this['privateMixPostOrderPlaceOrder'] (params); }
-    privateMixPostOrderBatchOrders (params?: {}): Promise<implicitReturnType> { return this['privateMixPostOrderBatchOrders'] (params); }
-    privateMixPostOrderCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privateMixPostOrderCancelOrder'] (params); }
-    privateMixPostOrderCancelAllOrders (params?: {}): Promise<implicitReturnType> { return this['privateMixPostOrderCancelAllOrders'] (params); }
-    privateMixPostOrderCancelBatchOrders (params?: {}): Promise<implicitReturnType> { return this['privateMixPostOrderCancelBatchOrders'] (params); }
-    privateMixPostPlanPlacePlan (params?: {}): Promise<implicitReturnType> { return this['privateMixPostPlanPlacePlan'] (params); }
-    privateMixPostPlanModifyPlan (params?: {}): Promise<implicitReturnType> { return this['privateMixPostPlanModifyPlan'] (params); }
-    privateMixPostPlanModifyPlanPreset (params?: {}): Promise<implicitReturnType> { return this['privateMixPostPlanModifyPlanPreset'] (params); }
-    privateMixPostPlanPlaceTPSL (params?: {}): Promise<implicitReturnType> { return this['privateMixPostPlanPlaceTPSL'] (params); }
-    privateMixPostPlanPlaceTrailStop (params?: {}): Promise<implicitReturnType> { return this['privateMixPostPlanPlaceTrailStop'] (params); }
-    privateMixPostPlanPlacePositionsTPSL (params?: {}): Promise<implicitReturnType> { return this['privateMixPostPlanPlacePositionsTPSL'] (params); }
-    privateMixPostPlanModifyTPSLPlan (params?: {}): Promise<implicitReturnType> { return this['privateMixPostPlanModifyTPSLPlan'] (params); }
-    privateMixPostPlanCancelPlan (params?: {}): Promise<implicitReturnType> { return this['privateMixPostPlanCancelPlan'] (params); }
-    privateMixPostPlanCancelAllPlan (params?: {}): Promise<implicitReturnType> { return this['privateMixPostPlanCancelAllPlan'] (params); }
-    privateMixPostTraceCloseTrackOrder (params?: {}): Promise<implicitReturnType> { return this['privateMixPostTraceCloseTrackOrder'] (params); }
-    privateMixPostTraceSetUpCopySymbols (params?: {}): Promise<implicitReturnType> { return this['privateMixPostTraceSetUpCopySymbols'] (params); }
+interface Exchange {
+     publicSpotGetPublicTime? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetPublicCurrencies? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetPublicProducts? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetPublicProduct? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetMarketTicker? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetMarketTickers? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetMarketFills? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetMarketCandles? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetMarketDepth? (params?: {}): Promise<implicitReturnType>;
+     publicSpotGetMarketSpotVipLevel? (params?: {}): Promise<implicitReturnType>;
+     publicMixGetMarketContracts? (params?: {}): Promise<implicitReturnType>;
+     publicMixGetMarketDepth? (params?: {}): Promise<implicitReturnType>;
+     publicMixGetMarketTicker? (params?: {}): Promise<implicitReturnType>;
+     publicMixGetMarketTickers? (params?: {}): Promise<implicitReturnType>;
+     publicMixGetMarketFills? (params?: {}): Promise<implicitReturnType>;
+     publicMixGetMarketCandles? (params?: {}): Promise<implicitReturnType>;
+     publicMixGetMarketIndex? (params?: {}): Promise<implicitReturnType>;
+     publicMixGetMarketFundingTime? (params?: {}): Promise<implicitReturnType>;
+     publicMixGetMarketHistoryFundRate? (params?: {}): Promise<implicitReturnType>;
+     publicMixGetMarketCurrentFundRate? (params?: {}): Promise<implicitReturnType>;
+     publicMixGetMarketOpenInterest? (params?: {}): Promise<implicitReturnType>;
+     publicMixGetMarketMarkPrice? (params?: {}): Promise<implicitReturnType>;
+     publicMixGetMarketSymbolLeverage? (params?: {}): Promise<implicitReturnType>;
+     publicMixGetMarketContractVipLevel? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetAccountGetInfo? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetAccountAssets? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetAccountTransferRecords? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetWalletDepositAddress? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetWalletWithdrawalInner? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetWalletWithdrawalList? (params?: {}): Promise<implicitReturnType>;
+     privateSpotGetWalletDepositList? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostAccountBills? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostAccountSubAccountSpotAssets? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostTradeOrders? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostTradeBatchOrders? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostTradeCancelOrder? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostTradeCancelBatchOrders? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostTradeOrderInfo? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostTradeOpenOrders? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostTradeHistory? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostTradeFills? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostWalletTransfer? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostWalletWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostWalletSubTransfer? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostPlanPlacePlan? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostPlanModifyPlan? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostPlanCancelPlan? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostPlanCurrentPlan? (params?: {}): Promise<implicitReturnType>;
+     privateSpotPostPlanHistoryPlan? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetAccountAccount? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetAccountAccounts? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetAccountAccountBill? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetAccountAccountBusinessBill? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetAccountOpenCount? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetOrderCurrent? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetOrderHistory? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetOrderDetail? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetOrderFills? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetOrderHistoryProductType? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetOrderAllFills? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetPlanCurrentPlan? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetPlanHistoryPlan? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetPositionSinglePosition? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetPositionAllPosition? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetTraceCurrentTrack? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetTraceFollowerOrder? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetTraceHistoryTrack? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetTraceSummary? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetTraceProfitSettleTokenIdGroup? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetTraceProfitDateGroupList? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetTradeProfitDateList? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetTraceWaitProfitDateList? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetTraceTraderSymbols? (params?: {}): Promise<implicitReturnType>;
+     privateMixGetOrderMarginCoinCurrent? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostAccountSetLeverage? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostAccountSetMargin? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostAccountSetMarginMode? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostAccountSetPositionMode? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostOrderPlaceOrder? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostOrderBatchOrders? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostOrderCancelOrder? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostOrderCancelAllOrders? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostOrderCancelBatchOrders? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostPlanPlacePlan? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostPlanModifyPlan? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostPlanModifyPlanPreset? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostPlanPlaceTPSL? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostPlanPlaceTrailStop? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostPlanPlacePositionsTPSL? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostPlanModifyTPSLPlan? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostPlanCancelPlan? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostPlanCancelAllPlan? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostTraceCloseTrackOrder? (params?: {}): Promise<implicitReturnType>;
+     privateMixPostTraceSetUpCopySymbols? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

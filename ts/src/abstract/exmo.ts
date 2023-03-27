@@ -8,56 +8,59 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    webGetCtrlFeesAndLimits (params?: {}): Promise<implicitReturnType> { return this['webGetCtrlFeesAndLimits'] (params); }
-    webGetEnDocsFees (params?: {}): Promise<implicitReturnType> { return this['webGetEnDocsFees'] (params); }
-    publicGetCurrency (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrency'] (params); }
-    publicGetCurrencyListExtended (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencyListExtended'] (params); }
-    publicGetOrderBook (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderBook'] (params); }
-    publicGetPairSettings (params?: {}): Promise<implicitReturnType> { return this['publicGetPairSettings'] (params); }
-    publicGetTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetTicker'] (params); }
-    publicGetTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetTrades'] (params); }
-    publicGetCandlesHistory (params?: {}): Promise<implicitReturnType> { return this['publicGetCandlesHistory'] (params); }
-    publicGetRequiredAmount (params?: {}): Promise<implicitReturnType> { return this['publicGetRequiredAmount'] (params); }
-    publicGetPaymentsProvidersCryptoList (params?: {}): Promise<implicitReturnType> { return this['publicGetPaymentsProvidersCryptoList'] (params); }
-    privatePostUserInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostUserInfo'] (params); }
-    privatePostOrderCreate (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderCreate'] (params); }
-    privatePostOrderCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderCancel'] (params); }
-    privatePostStopMarketOrderCreate (params?: {}): Promise<implicitReturnType> { return this['privatePostStopMarketOrderCreate'] (params); }
-    privatePostStopMarketOrderCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostStopMarketOrderCancel'] (params); }
-    privatePostUserOpenOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostUserOpenOrders'] (params); }
-    privatePostUserTrades (params?: {}): Promise<implicitReturnType> { return this['privatePostUserTrades'] (params); }
-    privatePostUserCancelledOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostUserCancelledOrders'] (params); }
-    privatePostOrderTrades (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderTrades'] (params); }
-    privatePostDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostDepositAddress'] (params); }
-    privatePostWithdrawCrypt (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdrawCrypt'] (params); }
-    privatePostWithdrawGetTxid (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdrawGetTxid'] (params); }
-    privatePostExcodeCreate (params?: {}): Promise<implicitReturnType> { return this['privatePostExcodeCreate'] (params); }
-    privatePostExcodeLoad (params?: {}): Promise<implicitReturnType> { return this['privatePostExcodeLoad'] (params); }
-    privatePostCodeCheck (params?: {}): Promise<implicitReturnType> { return this['privatePostCodeCheck'] (params); }
-    privatePostWalletHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostWalletHistory'] (params); }
-    privatePostWalletOperations (params?: {}): Promise<implicitReturnType> { return this['privatePostWalletOperations'] (params); }
-    privatePostMarginUserOrderCreate (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserOrderCreate'] (params); }
-    privatePostMarginUserOrderUpdate (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserOrderUpdate'] (params); }
-    privatePostMarginUserOrderCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserOrderCancel'] (params); }
-    privatePostMarginUserPositionClose (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserPositionClose'] (params); }
-    privatePostMarginUserPositionMarginAdd (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserPositionMarginAdd'] (params); }
-    privatePostMarginUserPositionMarginRemove (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserPositionMarginRemove'] (params); }
-    privatePostMarginCurrencyList (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginCurrencyList'] (params); }
-    privatePostMarginPairList (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginPairList'] (params); }
-    privatePostMarginSettings (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginSettings'] (params); }
-    privatePostMarginFundingList (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginFundingList'] (params); }
-    privatePostMarginUserInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserInfo'] (params); }
-    privatePostMarginUserOrderList (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserOrderList'] (params); }
-    privatePostMarginUserOrderHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserOrderHistory'] (params); }
-    privatePostMarginUserOrderTrades (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserOrderTrades'] (params); }
-    privatePostMarginUserOrderMaxQuantity (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserOrderMaxQuantity'] (params); }
-    privatePostMarginUserPositionList (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserPositionList'] (params); }
-    privatePostMarginUserPositionMarginRemoveInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserPositionMarginRemoveInfo'] (params); }
-    privatePostMarginUserPositionMarginAddInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserPositionMarginAddInfo'] (params); }
-    privatePostMarginUserWalletList (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserWalletList'] (params); }
-    privatePostMarginUserWalletHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserWalletHistory'] (params); }
-    privatePostMarginUserTradeList (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginUserTradeList'] (params); }
-    privatePostMarginTrades (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginTrades'] (params); }
-    privatePostMarginLiquidationFeed (params?: {}): Promise<implicitReturnType> { return this['privatePostMarginLiquidationFeed'] (params); }
+interface Exchange {
+     webGetCtrlFeesAndLimits? (params?: {}): Promise<implicitReturnType>;
+     webGetEnDocsFees? (params?: {}): Promise<implicitReturnType>;
+     publicGetCurrency? (params?: {}): Promise<implicitReturnType>;
+     publicGetCurrencyListExtended? (params?: {}): Promise<implicitReturnType>;
+     publicGetOrderBook? (params?: {}): Promise<implicitReturnType>;
+     publicGetPairSettings? (params?: {}): Promise<implicitReturnType>;
+     publicGetTicker? (params?: {}): Promise<implicitReturnType>;
+     publicGetTrades? (params?: {}): Promise<implicitReturnType>;
+     publicGetCandlesHistory? (params?: {}): Promise<implicitReturnType>;
+     publicGetRequiredAmount? (params?: {}): Promise<implicitReturnType>;
+     publicGetPaymentsProvidersCryptoList? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserInfo? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderCreate? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderCancel? (params?: {}): Promise<implicitReturnType>;
+     privatePostStopMarketOrderCreate? (params?: {}): Promise<implicitReturnType>;
+     privatePostStopMarketOrderCancel? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserOpenOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserTrades? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserCancelledOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderTrades? (params?: {}): Promise<implicitReturnType>;
+     privatePostDepositAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostWithdrawCrypt? (params?: {}): Promise<implicitReturnType>;
+     privatePostWithdrawGetTxid? (params?: {}): Promise<implicitReturnType>;
+     privatePostExcodeCreate? (params?: {}): Promise<implicitReturnType>;
+     privatePostExcodeLoad? (params?: {}): Promise<implicitReturnType>;
+     privatePostCodeCheck? (params?: {}): Promise<implicitReturnType>;
+     privatePostWalletHistory? (params?: {}): Promise<implicitReturnType>;
+     privatePostWalletOperations? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserOrderCreate? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserOrderUpdate? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserOrderCancel? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserPositionClose? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserPositionMarginAdd? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserPositionMarginRemove? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginCurrencyList? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginPairList? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginSettings? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginFundingList? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserInfo? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserOrderList? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserOrderHistory? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserOrderTrades? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserOrderMaxQuantity? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserPositionList? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserPositionMarginRemoveInfo? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserPositionMarginAddInfo? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserWalletList? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserWalletHistory? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginUserTradeList? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginTrades? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarginLiquidationFeed? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

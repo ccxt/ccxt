@@ -8,197 +8,200 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetOhlcPair (params?: {}): Promise<implicitReturnType> { return this['publicGetOhlcPair'] (params); }
-    publicGetOrderBookPair (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderBookPair'] (params); }
-    publicGetTickerHourPair (params?: {}): Promise<implicitReturnType> { return this['publicGetTickerHourPair'] (params); }
-    publicGetTickerPair (params?: {}): Promise<implicitReturnType> { return this['publicGetTickerPair'] (params); }
-    publicGetTransactionsPair (params?: {}): Promise<implicitReturnType> { return this['publicGetTransactionsPair'] (params); }
-    publicGetTradingPairsInfo (params?: {}): Promise<implicitReturnType> { return this['publicGetTradingPairsInfo'] (params); }
-    privatePostBalance (params?: {}): Promise<implicitReturnType> { return this['privatePostBalance'] (params); }
-    privatePostBalancePair (params?: {}): Promise<implicitReturnType> { return this['privatePostBalancePair'] (params); }
-    privatePostBchWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostBchWithdrawal'] (params); }
-    privatePostBchAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostBchAddress'] (params); }
-    privatePostUserTransactions (params?: {}): Promise<implicitReturnType> { return this['privatePostUserTransactions'] (params); }
-    privatePostUserTransactionsPair (params?: {}): Promise<implicitReturnType> { return this['privatePostUserTransactionsPair'] (params); }
-    privatePostOpenOrdersAll (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenOrdersAll'] (params); }
-    privatePostOpenOrdersPair (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenOrdersPair'] (params); }
-    privatePostOrderStatus (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderStatus'] (params); }
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelOrder'] (params); }
-    privatePostCancelAllOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelAllOrders'] (params); }
-    privatePostCancelAllOrdersPair (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelAllOrdersPair'] (params); }
-    privatePostBuyPair (params?: {}): Promise<implicitReturnType> { return this['privatePostBuyPair'] (params); }
-    privatePostBuyMarketPair (params?: {}): Promise<implicitReturnType> { return this['privatePostBuyMarketPair'] (params); }
-    privatePostBuyInstantPair (params?: {}): Promise<implicitReturnType> { return this['privatePostBuyInstantPair'] (params); }
-    privatePostSellPair (params?: {}): Promise<implicitReturnType> { return this['privatePostSellPair'] (params); }
-    privatePostSellMarketPair (params?: {}): Promise<implicitReturnType> { return this['privatePostSellMarketPair'] (params); }
-    privatePostSellInstantPair (params?: {}): Promise<implicitReturnType> { return this['privatePostSellInstantPair'] (params); }
-    privatePostTransferToMain (params?: {}): Promise<implicitReturnType> { return this['privatePostTransferToMain'] (params); }
-    privatePostTransferFromMain (params?: {}): Promise<implicitReturnType> { return this['privatePostTransferFromMain'] (params); }
-    privatePostWithdrawalRequests (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdrawalRequests'] (params); }
-    privatePostWithdrawalOpen (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdrawalOpen'] (params); }
-    privatePostWithdrawalStatus (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdrawalStatus'] (params); }
-    privatePostWithdrawalCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdrawalCancel'] (params); }
-    privatePostLiquidationAddressNew (params?: {}): Promise<implicitReturnType> { return this['privatePostLiquidationAddressNew'] (params); }
-    privatePostLiquidationAddressInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostLiquidationAddressInfo'] (params); }
-    privatePostBtcUnconfirmed (params?: {}): Promise<implicitReturnType> { return this['privatePostBtcUnconfirmed'] (params); }
-    privatePostWebsocketsToken (params?: {}): Promise<implicitReturnType> { return this['privatePostWebsocketsToken'] (params); }
-    privatePostBtcWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostBtcWithdrawal'] (params); }
-    privatePostBtcAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostBtcAddress'] (params); }
-    privatePostRippleWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostRippleWithdrawal'] (params); }
-    privatePostRippleAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostRippleAddress'] (params); }
-    privatePostLtcWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostLtcWithdrawal'] (params); }
-    privatePostLtcAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostLtcAddress'] (params); }
-    privatePostEthWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostEthWithdrawal'] (params); }
-    privatePostEthAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostEthAddress'] (params); }
-    privatePostXrpWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostXrpWithdrawal'] (params); }
-    privatePostXrpAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostXrpAddress'] (params); }
-    privatePostXlmWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostXlmWithdrawal'] (params); }
-    privatePostXlmAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostXlmAddress'] (params); }
-    privatePostPaxWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostPaxWithdrawal'] (params); }
-    privatePostPaxAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostPaxAddress'] (params); }
-    privatePostLinkWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostLinkWithdrawal'] (params); }
-    privatePostLinkAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostLinkAddress'] (params); }
-    privatePostUsdcWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostUsdcWithdrawal'] (params); }
-    privatePostUsdcAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostUsdcAddress'] (params); }
-    privatePostOmgWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostOmgWithdrawal'] (params); }
-    privatePostOmgAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostOmgAddress'] (params); }
-    privatePostDaiWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostDaiWithdrawal'] (params); }
-    privatePostDaiAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostDaiAddress'] (params); }
-    privatePostKncWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostKncWithdrawal'] (params); }
-    privatePostKncAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostKncAddress'] (params); }
-    privatePostMkrWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostMkrWithdrawal'] (params); }
-    privatePostMkrAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostMkrAddress'] (params); }
-    privatePostZrxWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostZrxWithdrawal'] (params); }
-    privatePostZrxAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostZrxAddress'] (params); }
-    privatePostGusdWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostGusdWithdrawal'] (params); }
-    privatePostGusdAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostGusdAddress'] (params); }
-    privatePostAaveWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostAaveWithdrawal'] (params); }
-    privatePostAaveAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAaveAddress'] (params); }
-    privatePostBatWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostBatWithdrawal'] (params); }
-    privatePostBatAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostBatAddress'] (params); }
-    privatePostUmaWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostUmaWithdrawal'] (params); }
-    privatePostUmaAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostUmaAddress'] (params); }
-    privatePostSnxWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostSnxWithdrawal'] (params); }
-    privatePostSnxAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostSnxAddress'] (params); }
-    privatePostUniWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostUniWithdrawal'] (params); }
-    privatePostUniAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostUniAddress'] (params); }
-    privatePostYfiWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostYfiWithdrawal'] (params); }
-    privatePostYfiAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostYfiAddress'] (params); }
-    privatePostAudioWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostAudioWithdrawal'] (params); }
-    privatePostAudioAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAudioAddress'] (params); }
-    privatePostCrvWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostCrvWithdrawal'] (params); }
-    privatePostCrvAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostCrvAddress'] (params); }
-    privatePostAlgoWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostAlgoWithdrawal'] (params); }
-    privatePostAlgoAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAlgoAddress'] (params); }
-    privatePostCompWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostCompWithdrawal'] (params); }
-    privatePostCompAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostCompAddress'] (params); }
-    privatePostGrtWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostGrtWithdrawal'] (params); }
-    privatePostGrtAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostGrtAddress'] (params); }
-    privatePostUsdtWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostUsdtWithdrawal'] (params); }
-    privatePostUsdtAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostUsdtAddress'] (params); }
-    privatePostEurtWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostEurtWithdrawal'] (params); }
-    privatePostEurtAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostEurtAddress'] (params); }
-    privatePostMaticWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostMaticWithdrawal'] (params); }
-    privatePostMaticAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostMaticAddress'] (params); }
-    privatePostSushiWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostSushiWithdrawal'] (params); }
-    privatePostSushiAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostSushiAddress'] (params); }
-    privatePostChzWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostChzWithdrawal'] (params); }
-    privatePostChzAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostChzAddress'] (params); }
-    privatePostEnjWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostEnjWithdrawal'] (params); }
-    privatePostEnjAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostEnjAddress'] (params); }
-    privatePostAlphaWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostAlphaWithdrawal'] (params); }
-    privatePostAlphaAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAlphaAddress'] (params); }
-    privatePostFttWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostFttWithdrawal'] (params); }
-    privatePostFttAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostFttAddress'] (params); }
-    privatePostStorjWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostStorjWithdrawal'] (params); }
-    privatePostStorjAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostStorjAddress'] (params); }
-    privatePostAxsWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostAxsWithdrawal'] (params); }
-    privatePostAxsAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAxsAddress'] (params); }
-    privatePostSandWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostSandWithdrawal'] (params); }
-    privatePostSandAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostSandAddress'] (params); }
-    privatePostHbarWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostHbarWithdrawal'] (params); }
-    privatePostHbarAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostHbarAddress'] (params); }
-    privatePostRgtWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostRgtWithdrawal'] (params); }
-    privatePostRgtAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostRgtAddress'] (params); }
-    privatePostFetWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostFetWithdrawal'] (params); }
-    privatePostFetAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostFetAddress'] (params); }
-    privatePostSklWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostSklWithdrawal'] (params); }
-    privatePostSklAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostSklAddress'] (params); }
-    privatePostCelWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostCelWithdrawal'] (params); }
-    privatePostCelAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostCelAddress'] (params); }
-    privatePostSxpWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostSxpWithdrawal'] (params); }
-    privatePostSxpAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostSxpAddress'] (params); }
-    privatePostAdaWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostAdaWithdrawal'] (params); }
-    privatePostAdaAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAdaAddress'] (params); }
-    privatePostSlpWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostSlpWithdrawal'] (params); }
-    privatePostSlpAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostSlpAddress'] (params); }
-    privatePostFtmWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostFtmWithdrawal'] (params); }
-    privatePostFtmAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostFtmAddress'] (params); }
-    privatePostPerpWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostPerpWithdrawal'] (params); }
-    privatePostPerpAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostPerpAddress'] (params); }
-    privatePostDydxWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostDydxWithdrawal'] (params); }
-    privatePostDydxAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostDydxAddress'] (params); }
-    privatePostGalaWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostGalaWithdrawal'] (params); }
-    privatePostGalaAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostGalaAddress'] (params); }
-    privatePostShibWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostShibWithdrawal'] (params); }
-    privatePostShibAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostShibAddress'] (params); }
-    privatePostAmpWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostAmpWithdrawal'] (params); }
-    privatePostAmpAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAmpAddress'] (params); }
-    privatePostSgbWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostSgbWithdrawal'] (params); }
-    privatePostSgbAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostSgbAddress'] (params); }
-    privatePostAvaxWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostAvaxWithdrawal'] (params); }
-    privatePostAvaxAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAvaxAddress'] (params); }
-    privatePostWbtcWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostWbtcWithdrawal'] (params); }
-    privatePostWbtcAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostWbtcAddress'] (params); }
-    privatePostCtsiWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostCtsiWithdrawal'] (params); }
-    privatePostCtsiAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostCtsiAddress'] (params); }
-    privatePostCvxWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostCvxWithdrawal'] (params); }
-    privatePostCvxAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostCvxAddress'] (params); }
-    privatePostImxWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostImxWithdrawal'] (params); }
-    privatePostImxAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostImxAddress'] (params); }
-    privatePostNexoWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostNexoWithdrawal'] (params); }
-    privatePostNexoAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostNexoAddress'] (params); }
-    privatePostUstWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostUstWithdrawal'] (params); }
-    privatePostUstAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostUstAddress'] (params); }
-    privatePostAntWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostAntWithdrawal'] (params); }
-    privatePostAntAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostAntAddress'] (params); }
-    privatePostGodsWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostGodsWithdrawal'] (params); }
-    privatePostGodsAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostGodsAddress'] (params); }
-    privatePostRadWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostRadWithdrawal'] (params); }
-    privatePostRadAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostRadAddress'] (params); }
-    privatePostBandWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostBandWithdrawal'] (params); }
-    privatePostBandAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostBandAddress'] (params); }
-    privatePostInjWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostInjWithdrawal'] (params); }
-    privatePostInjAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostInjAddress'] (params); }
-    privatePostRlyWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostRlyWithdrawal'] (params); }
-    privatePostRlyAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostRlyAddress'] (params); }
-    privatePostRndrWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostRndrWithdrawal'] (params); }
-    privatePostRndrAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostRndrAddress'] (params); }
-    privatePostVegaWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostVegaWithdrawal'] (params); }
-    privatePostVegaAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostVegaAddress'] (params); }
-    privatePost1inchWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePost1inchWithdrawal'] (params); }
-    privatePost1inchAddress (params?: {}): Promise<implicitReturnType> { return this['privatePost1inchAddress'] (params); }
-    privatePostEnsWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostEnsWithdrawal'] (params); }
-    privatePostEnsAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostEnsAddress'] (params); }
-    privatePostManaWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostManaWithdrawal'] (params); }
-    privatePostManaAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostManaAddress'] (params); }
-    privatePostLrcWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostLrcWithdrawal'] (params); }
-    privatePostLrcAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostLrcAddress'] (params); }
-    privatePostApeWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostApeWithdrawal'] (params); }
-    privatePostApeAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostApeAddress'] (params); }
-    privatePostMplWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostMplWithdrawal'] (params); }
-    privatePostMplAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostMplAddress'] (params); }
-    privatePostEurocWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostEurocWithdrawal'] (params); }
-    privatePostEurocAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostEurocAddress'] (params); }
-    privatePostSolWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostSolWithdrawal'] (params); }
-    privatePostSolAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostSolAddress'] (params); }
-    privatePostDotWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostDotWithdrawal'] (params); }
-    privatePostDotAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostDotAddress'] (params); }
-    privatePostNearWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostNearWithdrawal'] (params); }
-    privatePostNearAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostNearAddress'] (params); }
-    privatePostDogeWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostDogeWithdrawal'] (params); }
-    privatePostDogeAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostDogeAddress'] (params); }
-    privatePostFlrWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostFlrWithdrawal'] (params); }
-    privatePostFlrAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostFlrAddress'] (params); }
+interface Exchange {
+     publicGetOhlcPair? (params?: {}): Promise<implicitReturnType>;
+     publicGetOrderBookPair? (params?: {}): Promise<implicitReturnType>;
+     publicGetTickerHourPair? (params?: {}): Promise<implicitReturnType>;
+     publicGetTickerPair? (params?: {}): Promise<implicitReturnType>;
+     publicGetTransactionsPair? (params?: {}): Promise<implicitReturnType>;
+     publicGetTradingPairsInfo? (params?: {}): Promise<implicitReturnType>;
+     privatePostBalance? (params?: {}): Promise<implicitReturnType>;
+     privatePostBalancePair? (params?: {}): Promise<implicitReturnType>;
+     privatePostBchWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostBchAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserTransactions? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserTransactionsPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostOpenOrdersAll? (params?: {}): Promise<implicitReturnType>;
+     privatePostOpenOrdersPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderStatus? (params?: {}): Promise<implicitReturnType>;
+     privatePostCancelOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostCancelAllOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostCancelAllOrdersPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostBuyPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostBuyMarketPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostBuyInstantPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostSellPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostSellMarketPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostSellInstantPair? (params?: {}): Promise<implicitReturnType>;
+     privatePostTransferToMain? (params?: {}): Promise<implicitReturnType>;
+     privatePostTransferFromMain? (params?: {}): Promise<implicitReturnType>;
+     privatePostWithdrawalRequests? (params?: {}): Promise<implicitReturnType>;
+     privatePostWithdrawalOpen? (params?: {}): Promise<implicitReturnType>;
+     privatePostWithdrawalStatus? (params?: {}): Promise<implicitReturnType>;
+     privatePostWithdrawalCancel? (params?: {}): Promise<implicitReturnType>;
+     privatePostLiquidationAddressNew? (params?: {}): Promise<implicitReturnType>;
+     privatePostLiquidationAddressInfo? (params?: {}): Promise<implicitReturnType>;
+     privatePostBtcUnconfirmed? (params?: {}): Promise<implicitReturnType>;
+     privatePostWebsocketsToken? (params?: {}): Promise<implicitReturnType>;
+     privatePostBtcWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostBtcAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostRippleWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostRippleAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostLtcWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostLtcAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostEthWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostEthAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostXrpWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostXrpAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostXlmWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostXlmAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostPaxWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostPaxAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostLinkWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostLinkAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostUsdcWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostUsdcAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostOmgWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostOmgAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostDaiWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostDaiAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostKncWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostKncAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostMkrWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostMkrAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostZrxWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostZrxAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostGusdWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostGusdAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostAaveWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostAaveAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostBatWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostBatAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostUmaWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostUmaAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostSnxWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostSnxAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostUniWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostUniAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostYfiWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostYfiAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostAudioWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostAudioAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostCrvWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostCrvAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostAlgoWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostAlgoAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostCompWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostCompAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostGrtWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostGrtAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostUsdtWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostUsdtAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostEurtWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostEurtAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostMaticWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostMaticAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostSushiWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostSushiAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostChzWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostChzAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostEnjWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostEnjAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostAlphaWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostAlphaAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostFttWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostFttAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostStorjWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostStorjAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostAxsWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostAxsAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostSandWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostSandAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostHbarWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostHbarAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostRgtWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostRgtAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostFetWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostFetAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostSklWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostSklAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostCelWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostCelAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostSxpWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostSxpAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostAdaWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostAdaAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostSlpWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostSlpAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostFtmWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostFtmAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostPerpWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostPerpAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostDydxWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostDydxAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostGalaWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostGalaAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostShibWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostShibAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostAmpWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostAmpAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostSgbWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostSgbAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostAvaxWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostAvaxAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostWbtcWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostWbtcAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostCtsiWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostCtsiAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostCvxWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostCvxAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostImxWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostImxAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostNexoWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostNexoAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostUstWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostUstAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostAntWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostAntAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostGodsWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostGodsAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostRadWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostRadAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostBandWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostBandAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostInjWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostInjAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostRlyWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostRlyAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostRndrWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostRndrAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostVegaWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostVegaAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePost1inchWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePost1inchAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostEnsWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostEnsAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostManaWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostManaAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostLrcWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostLrcAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostApeWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostApeAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostMplWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostMplAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostEurocWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostEurocAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostSolWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostSolAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostDotWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostDotAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostNearWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostNearAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostDogeWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostDogeAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostFlrWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostFlrAddress? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

@@ -8,46 +8,49 @@
 import { implicitReturnType } from '../base/types.js';
 import _zonda from '../zonda.js';
 
-export default class zonda extends _zonda {
-    publicGetIdAll (params?: {}): Promise<implicitReturnType> { return this['publicGetIdAll'] (params); }
-    publicGetIdMarket (params?: {}): Promise<implicitReturnType> { return this['publicGetIdMarket'] (params); }
-    publicGetIdOrderbook (params?: {}): Promise<implicitReturnType> { return this['publicGetIdOrderbook'] (params); }
-    publicGetIdTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetIdTicker'] (params); }
-    publicGetIdTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetIdTrades'] (params); }
-    privatePostInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostInfo'] (params); }
-    privatePostTrade (params?: {}): Promise<implicitReturnType> { return this['privatePostTrade'] (params); }
-    privatePostCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostCancel'] (params); }
-    privatePostOrderbook (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderbook'] (params); }
-    privatePostOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOrders'] (params); }
-    privatePostTransfer (params?: {}): Promise<implicitReturnType> { return this['privatePostTransfer'] (params); }
-    privatePostWithdraw (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdraw'] (params); }
-    privatePostHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostHistory'] (params); }
-    privatePostTransactions (params?: {}): Promise<implicitReturnType> { return this['privatePostTransactions'] (params); }
-    v1_01PublicGetTradingTicker (params?: {}): Promise<implicitReturnType> { return this['v1_01PublicGetTradingTicker'] (params); }
-    v1_01PublicGetTradingTickerSymbol (params?: {}): Promise<implicitReturnType> { return this['v1_01PublicGetTradingTickerSymbol'] (params); }
-    v1_01PublicGetTradingStats (params?: {}): Promise<implicitReturnType> { return this['v1_01PublicGetTradingStats'] (params); }
-    v1_01PublicGetTradingStatsSymbol (params?: {}): Promise<implicitReturnType> { return this['v1_01PublicGetTradingStatsSymbol'] (params); }
-    v1_01PublicGetTradingOrderbookSymbol (params?: {}): Promise<implicitReturnType> { return this['v1_01PublicGetTradingOrderbookSymbol'] (params); }
-    v1_01PublicGetTradingTransactionsSymbol (params?: {}): Promise<implicitReturnType> { return this['v1_01PublicGetTradingTransactionsSymbol'] (params); }
-    v1_01PublicGetTradingCandleHistorySymbolResolution (params?: {}): Promise<implicitReturnType> { return this['v1_01PublicGetTradingCandleHistorySymbolResolution'] (params); }
-    v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivateGetApiPaymentsDepositsCryptoAddresses'] (params); }
-    v1_01PrivateGetPaymentsWithdrawalDetailId (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivateGetPaymentsWithdrawalDetailId'] (params); }
-    v1_01PrivateGetPaymentsDepositDetailId (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivateGetPaymentsDepositDetailId'] (params); }
-    v1_01PrivateGetTradingOffer (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivateGetTradingOffer'] (params); }
-    v1_01PrivateGetTradingStopOffer (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivateGetTradingStopOffer'] (params); }
-    v1_01PrivateGetTradingConfigSymbol (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivateGetTradingConfigSymbol'] (params); }
-    v1_01PrivateGetTradingHistoryTransactions (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivateGetTradingHistoryTransactions'] (params); }
-    v1_01PrivateGetBalancesBITBAYHistory (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivateGetBalancesBITBAYHistory'] (params); }
-    v1_01PrivateGetBalancesBITBAYBalance (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivateGetBalancesBITBAYBalance'] (params); }
-    v1_01PrivateGetFiatCantorRateBaseIdQuoteId (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivateGetFiatCantorRateBaseIdQuoteId'] (params); }
-    v1_01PrivateGetFiatCantorHistory (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivateGetFiatCantorHistory'] (params); }
-    v1_01PrivatePostTradingOfferSymbol (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivatePostTradingOfferSymbol'] (params); }
-    v1_01PrivatePostTradingStopOfferSymbol (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivatePostTradingStopOfferSymbol'] (params); }
-    v1_01PrivatePostTradingConfigSymbol (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivatePostTradingConfigSymbol'] (params); }
-    v1_01PrivatePostBalancesBITBAYBalance (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivatePostBalancesBITBAYBalance'] (params); }
-    v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination'] (params); }
-    v1_01PrivatePostFiatCantorExchange (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivatePostFiatCantorExchange'] (params); }
-    v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivateDeleteTradingOfferSymbolIdSidePrice'] (params); }
-    v1_01PrivateDeleteTradingStopOfferSymbolIdSidePrice (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivateDeleteTradingStopOfferSymbolIdSidePrice'] (params); }
-    v1_01PrivatePutBalancesBITBAYBalanceId (params?: {}): Promise<implicitReturnType> { return this['v1_01PrivatePutBalancesBITBAYBalanceId'] (params); }
+interface zonda {
+     publicGetIdAll? (params?: {}): Promise<implicitReturnType>;
+     publicGetIdMarket? (params?: {}): Promise<implicitReturnType>;
+     publicGetIdOrderbook? (params?: {}): Promise<implicitReturnType>;
+     publicGetIdTicker? (params?: {}): Promise<implicitReturnType>;
+     publicGetIdTrades? (params?: {}): Promise<implicitReturnType>;
+     privatePostInfo? (params?: {}): Promise<implicitReturnType>;
+     privatePostTrade? (params?: {}): Promise<implicitReturnType>;
+     privatePostCancel? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderbook? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostTransfer? (params?: {}): Promise<implicitReturnType>;
+     privatePostWithdraw? (params?: {}): Promise<implicitReturnType>;
+     privatePostHistory? (params?: {}): Promise<implicitReturnType>;
+     privatePostTransactions? (params?: {}): Promise<implicitReturnType>;
+     v1_01PublicGetTradingTicker? (params?: {}): Promise<implicitReturnType>;
+     v1_01PublicGetTradingTickerSymbol? (params?: {}): Promise<implicitReturnType>;
+     v1_01PublicGetTradingStats? (params?: {}): Promise<implicitReturnType>;
+     v1_01PublicGetTradingStatsSymbol? (params?: {}): Promise<implicitReturnType>;
+     v1_01PublicGetTradingOrderbookSymbol? (params?: {}): Promise<implicitReturnType>;
+     v1_01PublicGetTradingTransactionsSymbol? (params?: {}): Promise<implicitReturnType>;
+     v1_01PublicGetTradingCandleHistorySymbolResolution? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivateGetApiPaymentsDepositsCryptoAddresses? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivateGetPaymentsWithdrawalDetailId? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivateGetPaymentsDepositDetailId? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivateGetTradingOffer? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivateGetTradingStopOffer? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivateGetTradingConfigSymbol? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivateGetTradingHistoryTransactions? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivateGetBalancesBITBAYHistory? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivateGetBalancesBITBAYBalance? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivateGetFiatCantorRateBaseIdQuoteId? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivateGetFiatCantorHistory? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivatePostTradingOfferSymbol? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivatePostTradingStopOfferSymbol? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivatePostTradingConfigSymbol? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivatePostBalancesBITBAYBalance? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivatePostFiatCantorExchange? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivateDeleteTradingOfferSymbolIdSidePrice? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivateDeleteTradingStopOfferSymbolIdSidePrice? (params?: {}): Promise<implicitReturnType>;
+     v1_01PrivatePutBalancesBITBAYBalanceId? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class zonda extends _zonda {}
+
+export default zonda

@@ -8,147 +8,150 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    xreserveGetNonce (params?: {}): Promise<implicitReturnType> { return this['xreserveGetNonce'] (params); }
-    xreserveGetFee (params?: {}): Promise<implicitReturnType> { return this['xreserveGetFee'] (params); }
-    xreserveGetDelegatedTransactions (params?: {}): Promise<implicitReturnType> { return this['xreserveGetDelegatedTransactions'] (params); }
-    xreservePostDelegateTransfer (params?: {}): Promise<implicitReturnType> { return this['xreservePostDelegateTransfer'] (params); }
-    v3PublicGetTimestamp (params?: {}): Promise<implicitReturnType> { return this['v3PublicGetTimestamp'] (params); }
-    v3PublicGetCurrencies (params?: {}): Promise<implicitReturnType> { return this['v3PublicGetCurrencies'] (params); }
-    v3PublicGetMarkets (params?: {}): Promise<implicitReturnType> { return this['v3PublicGetMarkets'] (params); }
-    v3PublicGetTickers (params?: {}): Promise<implicitReturnType> { return this['v3PublicGetTickers'] (params); }
-    v3PublicGetK (params?: {}): Promise<implicitReturnType> { return this['v3PublicGetK'] (params); }
-    v3PublicGetTradesHistory (params?: {}): Promise<implicitReturnType> { return this['v3PublicGetTradesHistory'] (params); }
-    v3PublicGetFees (params?: {}): Promise<implicitReturnType> { return this['v3PublicGetFees'] (params); }
-    v3PublicGetExchangeRates (params?: {}): Promise<implicitReturnType> { return this['v3PublicGetExchangeRates'] (params); }
-    v3PublicGetExchangeRatesCurrency (params?: {}): Promise<implicitReturnType> { return this['v3PublicGetExchangeRatesCurrency'] (params); }
-    v3PublicGetBookMarket (params?: {}): Promise<implicitReturnType> { return this['v3PublicGetBookMarket'] (params); }
-    v3PublicGetKunaCodesCodeCheck (params?: {}): Promise<implicitReturnType> { return this['v3PublicGetKunaCodesCodeCheck'] (params); }
-    v3PublicGetLandingPageStatistic (params?: {}): Promise<implicitReturnType> { return this['v3PublicGetLandingPageStatistic'] (params); }
-    v3PublicGetTranslationsLocale (params?: {}): Promise<implicitReturnType> { return this['v3PublicGetTranslationsLocale'] (params); }
-    v3PublicGetTradesMarketHist (params?: {}): Promise<implicitReturnType> { return this['v3PublicGetTradesMarketHist'] (params); }
-    v3PublicPostHttpTest (params?: {}): Promise<implicitReturnType> { return this['v3PublicPostHttpTest'] (params); }
-    v3PublicPostDepositChannels (params?: {}): Promise<implicitReturnType> { return this['v3PublicPostDepositChannels'] (params); }
-    v3PublicPostWithdrawChannels (params?: {}): Promise<implicitReturnType> { return this['v3PublicPostWithdrawChannels'] (params); }
-    v3PublicPostSubscriptionPlans (params?: {}): Promise<implicitReturnType> { return this['v3PublicPostSubscriptionPlans'] (params); }
-    v3PublicPostSendTo (params?: {}): Promise<implicitReturnType> { return this['v3PublicPostSendTo'] (params); }
-    v3PublicPostConfirmToken (params?: {}): Promise<implicitReturnType> { return this['v3PublicPostConfirmToken'] (params); }
-    v3PublicPostKunaid (params?: {}): Promise<implicitReturnType> { return this['v3PublicPostKunaid'] (params); }
-    v3PublicPostWithdrawPrerequest (params?: {}): Promise<implicitReturnType> { return this['v3PublicPostWithdrawPrerequest'] (params); }
-    v3PublicPostDepositPrerequest (params?: {}): Promise<implicitReturnType> { return this['v3PublicPostDepositPrerequest'] (params); }
-    v3PublicPostDepositExchangeRates (params?: {}): Promise<implicitReturnType> { return this['v3PublicPostDepositExchangeRates'] (params); }
-    v3SignGetResetPasswordToken (params?: {}): Promise<implicitReturnType> { return this['v3SignGetResetPasswordToken'] (params); }
-    v3SignPostSignupGoogle (params?: {}): Promise<implicitReturnType> { return this['v3SignPostSignupGoogle'] (params); }
-    v3SignPostSignupResendConfirmation (params?: {}): Promise<implicitReturnType> { return this['v3SignPostSignupResendConfirmation'] (params); }
-    v3SignPostSignup (params?: {}): Promise<implicitReturnType> { return this['v3SignPostSignup'] (params); }
-    v3SignPostSignin (params?: {}): Promise<implicitReturnType> { return this['v3SignPostSignin'] (params); }
-    v3SignPostSigninTwoFactor (params?: {}): Promise<implicitReturnType> { return this['v3SignPostSigninTwoFactor'] (params); }
-    v3SignPostSigninResendConfirmDevice (params?: {}): Promise<implicitReturnType> { return this['v3SignPostSigninResendConfirmDevice'] (params); }
-    v3SignPostSigninConfirmDevice (params?: {}): Promise<implicitReturnType> { return this['v3SignPostSigninConfirmDevice'] (params); }
-    v3SignPostResetPassword (params?: {}): Promise<implicitReturnType> { return this['v3SignPostResetPassword'] (params); }
-    v3SignPostCoolSignin (params?: {}): Promise<implicitReturnType> { return this['v3SignPostCoolSignin'] (params); }
-    v3SignPutResetPasswordToken (params?: {}): Promise<implicitReturnType> { return this['v3SignPutResetPasswordToken'] (params); }
-    v3SignPutSignupCodeConfirm (params?: {}): Promise<implicitReturnType> { return this['v3SignPutSignupCodeConfirm'] (params); }
-    v3PrivatePostAuthWOrderSubmit (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthWOrderSubmit'] (params); }
-    v3PrivatePostAuthROrders (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthROrders'] (params); }
-    v3PrivatePostAuthROrdersMarket (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthROrdersMarket'] (params); }
-    v3PrivatePostAuthROrdersMarkets (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthROrdersMarkets'] (params); }
-    v3PrivatePostAuthApiTokensDelete (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthApiTokensDelete'] (params); }
-    v3PrivatePostAuthApiTokensCreate (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthApiTokensCreate'] (params); }
-    v3PrivatePostAuthApiTokens (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthApiTokens'] (params); }
-    v3PrivatePostAuthSigninHistoryUniq (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthSigninHistoryUniq'] (params); }
-    v3PrivatePostAuthSigninHistory (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthSigninHistory'] (params); }
-    v3PrivatePostAuthDisableWithdrawConfirmation (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthDisableWithdrawConfirmation'] (params); }
-    v3PrivatePostAuthChangePassword (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthChangePassword'] (params); }
-    v3PrivatePostAuthDepositAddress (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthDepositAddress'] (params); }
-    v3PrivatePostAuthAnnouncementsAccept (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthAnnouncementsAccept'] (params); }
-    v3PrivatePostAuthAnnouncementsUnaccepted (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthAnnouncementsUnaccepted'] (params); }
-    v3PrivatePostAuthOtpDeactivate (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthOtpDeactivate'] (params); }
-    v3PrivatePostAuthOtpActivate (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthOtpActivate'] (params); }
-    v3PrivatePostAuthOtpSecret (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthOtpSecret'] (params); }
-    v3PrivatePostAuthROrderMarketOrderIdTrades (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthROrderMarketOrderIdTrades'] (params); }
-    v3PrivatePostAuthROrdersMarketHist (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthROrdersMarketHist'] (params); }
-    v3PrivatePostAuthROrdersHist (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthROrdersHist'] (params); }
-    v3PrivatePostAuthROrdersHistMarkets (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthROrdersHistMarkets'] (params); }
-    v3PrivatePostAuthROrdersDetails (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthROrdersDetails'] (params); }
-    v3PrivatePostAuthAssetsHistory (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthAssetsHistory'] (params); }
-    v3PrivatePostAuthAssetsHistoryWithdraws (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthAssetsHistoryWithdraws'] (params); }
-    v3PrivatePostAuthAssetsHistoryDeposits (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthAssetsHistoryDeposits'] (params); }
-    v3PrivatePostAuthRWallets (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthRWallets'] (params); }
-    v3PrivatePostAuthMarketsFavorites (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthMarketsFavorites'] (params); }
-    v3PrivatePostAuthMarketsFavoritesList (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthMarketsFavoritesList'] (params); }
-    v3PrivatePostAuthMeUpdate (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthMeUpdate'] (params); }
-    v3PrivatePostAuthMe (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthMe'] (params); }
-    v3PrivatePostAuthFundSources (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthFundSources'] (params); }
-    v3PrivatePostAuthFundSourcesList (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthFundSourcesList'] (params); }
-    v3PrivatePostAuthWithdrawResendConfirmation (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthWithdrawResendConfirmation'] (params); }
-    v3PrivatePostAuthWithdraw (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthWithdraw'] (params); }
-    v3PrivatePostAuthWithdrawDetails (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthWithdrawDetails'] (params); }
-    v3PrivatePostAuthWithdrawInfo (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthWithdrawInfo'] (params); }
-    v3PrivatePostAuthPaymentAddresses (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthPaymentAddresses'] (params); }
-    v3PrivatePostAuthDepositPrerequest (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthDepositPrerequest'] (params); }
-    v3PrivatePostAuthDepositExchangeRates (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthDepositExchangeRates'] (params); }
-    v3PrivatePostAuthDeposit (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthDeposit'] (params); }
-    v3PrivatePostAuthDepositDetails (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthDepositDetails'] (params); }
-    v3PrivatePostAuthDepositInfo (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthDepositInfo'] (params); }
-    v3PrivatePostAuthKunaCodesCount (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthKunaCodesCount'] (params); }
-    v3PrivatePostAuthKunaCodesDetails (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthKunaCodesDetails'] (params); }
-    v3PrivatePostAuthKunaCodesEdit (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthKunaCodesEdit'] (params); }
-    v3PrivatePostAuthKunaCodesSendPdf (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthKunaCodesSendPdf'] (params); }
-    v3PrivatePostAuthKunaCodes (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthKunaCodes'] (params); }
-    v3PrivatePostAuthKunaCodesRedeemedByMe (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthKunaCodesRedeemedByMe'] (params); }
-    v3PrivatePostAuthKunaCodesIssuedByMe (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthKunaCodesIssuedByMe'] (params); }
-    v3PrivatePostAuthPaymentRequestsInvoice (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthPaymentRequestsInvoice'] (params); }
-    v3PrivatePostAuthPaymentRequestsType (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthPaymentRequestsType'] (params); }
-    v3PrivatePostAuthReferralProgramWeeklyEarnings (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthReferralProgramWeeklyEarnings'] (params); }
-    v3PrivatePostAuthReferralProgramStats (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthReferralProgramStats'] (params); }
-    v3PrivatePostAuthMerchantPayoutServices (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthMerchantPayoutServices'] (params); }
-    v3PrivatePostAuthMerchantWithdraw (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthMerchantWithdraw'] (params); }
-    v3PrivatePostAuthMerchantPaymentServices (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthMerchantPaymentServices'] (params); }
-    v3PrivatePostAuthMerchantDeposit (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthMerchantDeposit'] (params); }
-    v3PrivatePostAuthVerificationAuthToken (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthVerificationAuthToken'] (params); }
-    v3PrivatePostAuthKunaidPurchaseCreate (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthKunaidPurchaseCreate'] (params); }
-    v3PrivatePostAuthDevicesList (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthDevicesList'] (params); }
-    v3PrivatePostAuthSessionsList (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthSessionsList'] (params); }
-    v3PrivatePostAuthSubscriptionsReactivate (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthSubscriptionsReactivate'] (params); }
-    v3PrivatePostAuthSubscriptionsCancel (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthSubscriptionsCancel'] (params); }
-    v3PrivatePostAuthSubscriptionsProlong (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthSubscriptionsProlong'] (params); }
-    v3PrivatePostAuthSubscriptionsCreate (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthSubscriptionsCreate'] (params); }
-    v3PrivatePostAuthSubscriptionsList (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthSubscriptionsList'] (params); }
-    v3PrivatePostAuthKunaIdsList (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostAuthKunaIdsList'] (params); }
-    v3PrivatePostOrderCancelMulti (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostOrderCancelMulti'] (params); }
-    v3PrivatePostOrderCancel (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostOrderCancel'] (params); }
-    v3PrivatePutAuthFundSourcesId (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePutAuthFundSourcesId'] (params); }
-    v3PrivatePutAuthKunaCodesRedeem (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePutAuthKunaCodesRedeem'] (params); }
-    v3PrivateDeleteAuthMarketsFavorites (params?: {}): Promise<implicitReturnType> { return this['v3PrivateDeleteAuthMarketsFavorites'] (params); }
-    v3PrivateDeleteAuthFundSources (params?: {}): Promise<implicitReturnType> { return this['v3PrivateDeleteAuthFundSources'] (params); }
-    v3PrivateDeleteAuthDevices (params?: {}): Promise<implicitReturnType> { return this['v3PrivateDeleteAuthDevices'] (params); }
-    v3PrivateDeleteAuthDevicesList (params?: {}): Promise<implicitReturnType> { return this['v3PrivateDeleteAuthDevicesList'] (params); }
-    v3PrivateDeleteAuthSessionsList (params?: {}): Promise<implicitReturnType> { return this['v3PrivateDeleteAuthSessionsList'] (params); }
-    v3PrivateDeleteAuthSessions (params?: {}): Promise<implicitReturnType> { return this['v3PrivateDeleteAuthSessions'] (params); }
-    publicGetDepth (params?: {}): Promise<implicitReturnType> { return this['publicGetDepth'] (params); }
-    publicGetKWithPendingTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetKWithPendingTrades'] (params); }
-    publicGetK (params?: {}): Promise<implicitReturnType> { return this['publicGetK'] (params); }
-    publicGetMarkets (params?: {}): Promise<implicitReturnType> { return this['publicGetMarkets'] (params); }
-    publicGetOrderBook (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderBook'] (params); }
-    publicGetOrderBookMarket (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderBookMarket'] (params); }
-    publicGetTickers (params?: {}): Promise<implicitReturnType> { return this['publicGetTickers'] (params); }
-    publicGetTickersMarket (params?: {}): Promise<implicitReturnType> { return this['publicGetTickersMarket'] (params); }
-    publicGetTimestamp (params?: {}): Promise<implicitReturnType> { return this['publicGetTimestamp'] (params); }
-    publicGetTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetTrades'] (params); }
-    publicGetTradesMarket (params?: {}): Promise<implicitReturnType> { return this['publicGetTradesMarket'] (params); }
-    privateGetMembersMe (params?: {}): Promise<implicitReturnType> { return this['privateGetMembersMe'] (params); }
-    privateGetDeposits (params?: {}): Promise<implicitReturnType> { return this['privateGetDeposits'] (params); }
-    privateGetDeposit (params?: {}): Promise<implicitReturnType> { return this['privateGetDeposit'] (params); }
-    privateGetDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privateGetDepositAddress'] (params); }
-    privateGetOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetOrders'] (params); }
-    privateGetOrder (params?: {}): Promise<implicitReturnType> { return this['privateGetOrder'] (params); }
-    privateGetTradesMy (params?: {}): Promise<implicitReturnType> { return this['privateGetTradesMy'] (params); }
-    privateGetWithdraws (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdraws'] (params); }
-    privateGetWithdraw (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdraw'] (params); }
-    privatePostOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOrders'] (params); }
-    privatePostOrdersMulti (params?: {}): Promise<implicitReturnType> { return this['privatePostOrdersMulti'] (params); }
-    privatePostOrdersClear (params?: {}): Promise<implicitReturnType> { return this['privatePostOrdersClear'] (params); }
-    privatePostOrderDelete (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderDelete'] (params); }
-    privatePostWithdraw (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdraw'] (params); }
+interface Exchange {
+     xreserveGetNonce? (params?: {}): Promise<implicitReturnType>;
+     xreserveGetFee? (params?: {}): Promise<implicitReturnType>;
+     xreserveGetDelegatedTransactions? (params?: {}): Promise<implicitReturnType>;
+     xreservePostDelegateTransfer? (params?: {}): Promise<implicitReturnType>;
+     v3PublicGetTimestamp? (params?: {}): Promise<implicitReturnType>;
+     v3PublicGetCurrencies? (params?: {}): Promise<implicitReturnType>;
+     v3PublicGetMarkets? (params?: {}): Promise<implicitReturnType>;
+     v3PublicGetTickers? (params?: {}): Promise<implicitReturnType>;
+     v3PublicGetK? (params?: {}): Promise<implicitReturnType>;
+     v3PublicGetTradesHistory? (params?: {}): Promise<implicitReturnType>;
+     v3PublicGetFees? (params?: {}): Promise<implicitReturnType>;
+     v3PublicGetExchangeRates? (params?: {}): Promise<implicitReturnType>;
+     v3PublicGetExchangeRatesCurrency? (params?: {}): Promise<implicitReturnType>;
+     v3PublicGetBookMarket? (params?: {}): Promise<implicitReturnType>;
+     v3PublicGetKunaCodesCodeCheck? (params?: {}): Promise<implicitReturnType>;
+     v3PublicGetLandingPageStatistic? (params?: {}): Promise<implicitReturnType>;
+     v3PublicGetTranslationsLocale? (params?: {}): Promise<implicitReturnType>;
+     v3PublicGetTradesMarketHist? (params?: {}): Promise<implicitReturnType>;
+     v3PublicPostHttpTest? (params?: {}): Promise<implicitReturnType>;
+     v3PublicPostDepositChannels? (params?: {}): Promise<implicitReturnType>;
+     v3PublicPostWithdrawChannels? (params?: {}): Promise<implicitReturnType>;
+     v3PublicPostSubscriptionPlans? (params?: {}): Promise<implicitReturnType>;
+     v3PublicPostSendTo? (params?: {}): Promise<implicitReturnType>;
+     v3PublicPostConfirmToken? (params?: {}): Promise<implicitReturnType>;
+     v3PublicPostKunaid? (params?: {}): Promise<implicitReturnType>;
+     v3PublicPostWithdrawPrerequest? (params?: {}): Promise<implicitReturnType>;
+     v3PublicPostDepositPrerequest? (params?: {}): Promise<implicitReturnType>;
+     v3PublicPostDepositExchangeRates? (params?: {}): Promise<implicitReturnType>;
+     v3SignGetResetPasswordToken? (params?: {}): Promise<implicitReturnType>;
+     v3SignPostSignupGoogle? (params?: {}): Promise<implicitReturnType>;
+     v3SignPostSignupResendConfirmation? (params?: {}): Promise<implicitReturnType>;
+     v3SignPostSignup? (params?: {}): Promise<implicitReturnType>;
+     v3SignPostSignin? (params?: {}): Promise<implicitReturnType>;
+     v3SignPostSigninTwoFactor? (params?: {}): Promise<implicitReturnType>;
+     v3SignPostSigninResendConfirmDevice? (params?: {}): Promise<implicitReturnType>;
+     v3SignPostSigninConfirmDevice? (params?: {}): Promise<implicitReturnType>;
+     v3SignPostResetPassword? (params?: {}): Promise<implicitReturnType>;
+     v3SignPostCoolSignin? (params?: {}): Promise<implicitReturnType>;
+     v3SignPutResetPasswordToken? (params?: {}): Promise<implicitReturnType>;
+     v3SignPutSignupCodeConfirm? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthWOrderSubmit? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthROrders? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthROrdersMarket? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthROrdersMarkets? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthApiTokensDelete? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthApiTokensCreate? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthApiTokens? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthSigninHistoryUniq? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthSigninHistory? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthDisableWithdrawConfirmation? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthChangePassword? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthDepositAddress? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthAnnouncementsAccept? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthAnnouncementsUnaccepted? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthOtpDeactivate? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthOtpActivate? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthOtpSecret? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthROrderMarketOrderIdTrades? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthROrdersMarketHist? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthROrdersHist? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthROrdersHistMarkets? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthROrdersDetails? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthAssetsHistory? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthAssetsHistoryWithdraws? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthAssetsHistoryDeposits? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthRWallets? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthMarketsFavorites? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthMarketsFavoritesList? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthMeUpdate? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthMe? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthFundSources? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthFundSourcesList? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthWithdrawResendConfirmation? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthWithdraw? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthWithdrawDetails? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthWithdrawInfo? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthPaymentAddresses? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthDepositPrerequest? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthDepositExchangeRates? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthDeposit? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthDepositDetails? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthDepositInfo? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthKunaCodesCount? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthKunaCodesDetails? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthKunaCodesEdit? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthKunaCodesSendPdf? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthKunaCodes? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthKunaCodesRedeemedByMe? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthKunaCodesIssuedByMe? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthPaymentRequestsInvoice? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthPaymentRequestsType? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthReferralProgramWeeklyEarnings? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthReferralProgramStats? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthMerchantPayoutServices? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthMerchantWithdraw? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthMerchantPaymentServices? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthMerchantDeposit? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthVerificationAuthToken? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthKunaidPurchaseCreate? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthDevicesList? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthSessionsList? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthSubscriptionsReactivate? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthSubscriptionsCancel? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthSubscriptionsProlong? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthSubscriptionsCreate? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthSubscriptionsList? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostAuthKunaIdsList? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostOrderCancelMulti? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostOrderCancel? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePutAuthFundSourcesId? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePutAuthKunaCodesRedeem? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateDeleteAuthMarketsFavorites? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateDeleteAuthFundSources? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateDeleteAuthDevices? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateDeleteAuthDevicesList? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateDeleteAuthSessionsList? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateDeleteAuthSessions? (params?: {}): Promise<implicitReturnType>;
+     publicGetDepth? (params?: {}): Promise<implicitReturnType>;
+     publicGetKWithPendingTrades? (params?: {}): Promise<implicitReturnType>;
+     publicGetK? (params?: {}): Promise<implicitReturnType>;
+     publicGetMarkets? (params?: {}): Promise<implicitReturnType>;
+     publicGetOrderBook? (params?: {}): Promise<implicitReturnType>;
+     publicGetOrderBookMarket? (params?: {}): Promise<implicitReturnType>;
+     publicGetTickers? (params?: {}): Promise<implicitReturnType>;
+     publicGetTickersMarket? (params?: {}): Promise<implicitReturnType>;
+     publicGetTimestamp? (params?: {}): Promise<implicitReturnType>;
+     publicGetTrades? (params?: {}): Promise<implicitReturnType>;
+     publicGetTradesMarket? (params?: {}): Promise<implicitReturnType>;
+     privateGetMembersMe? (params?: {}): Promise<implicitReturnType>;
+     privateGetDeposits? (params?: {}): Promise<implicitReturnType>;
+     privateGetDeposit? (params?: {}): Promise<implicitReturnType>;
+     privateGetDepositAddress? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrder? (params?: {}): Promise<implicitReturnType>;
+     privateGetTradesMy? (params?: {}): Promise<implicitReturnType>;
+     privateGetWithdraws? (params?: {}): Promise<implicitReturnType>;
+     privateGetWithdraw? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrdersMulti? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrdersClear? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderDelete? (params?: {}): Promise<implicitReturnType>;
+     privatePostWithdraw? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

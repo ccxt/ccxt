@@ -8,24 +8,27 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetTicker'] (params); }
-    publicGetTickerHour (params?: {}): Promise<implicitReturnType> { return this['publicGetTickerHour'] (params); }
-    publicGetOrderBook (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderBook'] (params); }
-    publicGetTransactions (params?: {}): Promise<implicitReturnType> { return this['publicGetTransactions'] (params); }
-    publicGetEurUsd (params?: {}): Promise<implicitReturnType> { return this['publicGetEurUsd'] (params); }
-    privatePostBalance (params?: {}): Promise<implicitReturnType> { return this['privatePostBalance'] (params); }
-    privatePostUserTransactions (params?: {}): Promise<implicitReturnType> { return this['privatePostUserTransactions'] (params); }
-    privatePostOpenOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenOrders'] (params); }
-    privatePostOrderStatus (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderStatus'] (params); }
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelOrder'] (params); }
-    privatePostCancelAllOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostCancelAllOrders'] (params); }
-    privatePostBuy (params?: {}): Promise<implicitReturnType> { return this['privatePostBuy'] (params); }
-    privatePostSell (params?: {}): Promise<implicitReturnType> { return this['privatePostSell'] (params); }
-    privatePostBitcoinDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostBitcoinDepositAddress'] (params); }
-    privatePostUnconfirmedBtc (params?: {}): Promise<implicitReturnType> { return this['privatePostUnconfirmedBtc'] (params); }
-    privatePostRippleWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostRippleWithdrawal'] (params); }
-    privatePostRippleAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostRippleAddress'] (params); }
-    privatePostWithdrawalRequests (params?: {}): Promise<implicitReturnType> { return this['privatePostWithdrawalRequests'] (params); }
-    privatePostBitcoinWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostBitcoinWithdrawal'] (params); }
+interface Exchange {
+     publicGetTicker? (params?: {}): Promise<implicitReturnType>;
+     publicGetTickerHour? (params?: {}): Promise<implicitReturnType>;
+     publicGetOrderBook? (params?: {}): Promise<implicitReturnType>;
+     publicGetTransactions? (params?: {}): Promise<implicitReturnType>;
+     publicGetEurUsd? (params?: {}): Promise<implicitReturnType>;
+     privatePostBalance? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserTransactions? (params?: {}): Promise<implicitReturnType>;
+     privatePostOpenOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderStatus? (params?: {}): Promise<implicitReturnType>;
+     privatePostCancelOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostCancelAllOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostBuy? (params?: {}): Promise<implicitReturnType>;
+     privatePostSell? (params?: {}): Promise<implicitReturnType>;
+     privatePostBitcoinDepositAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostUnconfirmedBtc? (params?: {}): Promise<implicitReturnType>;
+     privatePostRippleWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostRippleAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostWithdrawalRequests? (params?: {}): Promise<implicitReturnType>;
+     privatePostBitcoinWithdrawal? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

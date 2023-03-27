@@ -8,35 +8,38 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetPairs (params?: {}): Promise<implicitReturnType> { return this['publicGetPairs'] (params); }
-    publicGetMarkets (params?: {}): Promise<implicitReturnType> { return this['publicGetMarkets'] (params); }
-    publicGetCurrencies (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrencies'] (params); }
-    publicGetMarketsMarket (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarket'] (params); }
-    publicGetMarketsMarketTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketTicker'] (params); }
-    publicGetMarketsMarketVolume (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketVolume'] (params); }
-    publicGetMarketsMarketOrderBook (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketOrderBook'] (params); }
-    publicGetMarketsMarketTrades (params?: {}): Promise<implicitReturnType> { return this['publicGetMarketsMarketTrades'] (params); }
-    publicGetCurrenciesCurrencyFeesDeposit (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrenciesCurrencyFeesDeposit'] (params); }
-    publicGetCurrenciesCurrencyFeesWithdrawal (params?: {}): Promise<implicitReturnType> { return this['publicGetCurrenciesCurrencyFeesWithdrawal'] (params); }
-    publicGetTvHistory (params?: {}): Promise<implicitReturnType> { return this['publicGetTvHistory'] (params); }
-    publicPostMarketsMarketQuotations (params?: {}): Promise<implicitReturnType> { return this['publicPostMarketsMarketQuotations'] (params); }
-    privateGetBalances (params?: {}): Promise<implicitReturnType> { return this['privateGetBalances'] (params); }
-    privateGetBalancesCurrency (params?: {}): Promise<implicitReturnType> { return this['privateGetBalancesCurrency'] (params); }
-    privateGetCurrenciesCurrencyBalances (params?: {}): Promise<implicitReturnType> { return this['privateGetCurrenciesCurrencyBalances'] (params); }
-    privateGetOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetOrders'] (params); }
-    privateGetOrdersId (params?: {}): Promise<implicitReturnType> { return this['privateGetOrdersId'] (params); }
-    privateGetMarketsMarketOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetMarketsMarketOrders'] (params); }
-    privateGetDeposits (params?: {}): Promise<implicitReturnType> { return this['privateGetDeposits'] (params); }
-    privateGetCurrenciesCurrencyDeposits (params?: {}): Promise<implicitReturnType> { return this['privateGetCurrenciesCurrencyDeposits'] (params); }
-    privateGetWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privateGetWithdrawals'] (params); }
-    privateGetCurrenciesCurrencyWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privateGetCurrenciesCurrencyWithdrawals'] (params); }
-    privateGetCurrenciesCurrencyReceiveAddresses (params?: {}): Promise<implicitReturnType> { return this['privateGetCurrenciesCurrencyReceiveAddresses'] (params); }
-    privateGetCurrenciesCurrencyReceiveAddressesId (params?: {}): Promise<implicitReturnType> { return this['privateGetCurrenciesCurrencyReceiveAddressesId'] (params); }
-    privatePostMarketsMarketOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostMarketsMarketOrders'] (params); }
-    privatePostCurrenciesCurrencyDeposits (params?: {}): Promise<implicitReturnType> { return this['privatePostCurrenciesCurrencyDeposits'] (params); }
-    privatePostCurrenciesCurrencyWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privatePostCurrenciesCurrencyWithdrawals'] (params); }
-    privatePostCurrenciesCurrencySimulatedWithdrawals (params?: {}): Promise<implicitReturnType> { return this['privatePostCurrenciesCurrencySimulatedWithdrawals'] (params); }
-    privatePostCurrenciesCurrencyReceiveAddresses (params?: {}): Promise<implicitReturnType> { return this['privatePostCurrenciesCurrencyReceiveAddresses'] (params); }
-    privatePutOrdersId (params?: {}): Promise<implicitReturnType> { return this['privatePutOrdersId'] (params); }
+interface Exchange {
+     publicGetPairs? (params?: {}): Promise<implicitReturnType>;
+     publicGetMarkets? (params?: {}): Promise<implicitReturnType>;
+     publicGetCurrencies? (params?: {}): Promise<implicitReturnType>;
+     publicGetMarketsMarket? (params?: {}): Promise<implicitReturnType>;
+     publicGetMarketsMarketTicker? (params?: {}): Promise<implicitReturnType>;
+     publicGetMarketsMarketVolume? (params?: {}): Promise<implicitReturnType>;
+     publicGetMarketsMarketOrderBook? (params?: {}): Promise<implicitReturnType>;
+     publicGetMarketsMarketTrades? (params?: {}): Promise<implicitReturnType>;
+     publicGetCurrenciesCurrencyFeesDeposit? (params?: {}): Promise<implicitReturnType>;
+     publicGetCurrenciesCurrencyFeesWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     publicGetTvHistory? (params?: {}): Promise<implicitReturnType>;
+     publicPostMarketsMarketQuotations? (params?: {}): Promise<implicitReturnType>;
+     privateGetBalances? (params?: {}): Promise<implicitReturnType>;
+     privateGetBalancesCurrency? (params?: {}): Promise<implicitReturnType>;
+     privateGetCurrenciesCurrencyBalances? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrdersId? (params?: {}): Promise<implicitReturnType>;
+     privateGetMarketsMarketOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetDeposits? (params?: {}): Promise<implicitReturnType>;
+     privateGetCurrenciesCurrencyDeposits? (params?: {}): Promise<implicitReturnType>;
+     privateGetWithdrawals? (params?: {}): Promise<implicitReturnType>;
+     privateGetCurrenciesCurrencyWithdrawals? (params?: {}): Promise<implicitReturnType>;
+     privateGetCurrenciesCurrencyReceiveAddresses? (params?: {}): Promise<implicitReturnType>;
+     privateGetCurrenciesCurrencyReceiveAddressesId? (params?: {}): Promise<implicitReturnType>;
+     privatePostMarketsMarketOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostCurrenciesCurrencyDeposits? (params?: {}): Promise<implicitReturnType>;
+     privatePostCurrenciesCurrencyWithdrawals? (params?: {}): Promise<implicitReturnType>;
+     privatePostCurrenciesCurrencySimulatedWithdrawals? (params?: {}): Promise<implicitReturnType>;
+     privatePostCurrenciesCurrencyReceiveAddresses? (params?: {}): Promise<implicitReturnType>;
+     privatePutOrdersId? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

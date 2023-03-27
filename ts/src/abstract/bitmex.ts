@@ -8,81 +8,84 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetAnnouncement (params?: {}): Promise<implicitReturnType> { return this['publicGetAnnouncement'] (params); }
-    publicGetAnnouncementUrgent (params?: {}): Promise<implicitReturnType> { return this['publicGetAnnouncementUrgent'] (params); }
-    publicGetFunding (params?: {}): Promise<implicitReturnType> { return this['publicGetFunding'] (params); }
-    publicGetInstrument (params?: {}): Promise<implicitReturnType> { return this['publicGetInstrument'] (params); }
-    publicGetInstrumentActive (params?: {}): Promise<implicitReturnType> { return this['publicGetInstrumentActive'] (params); }
-    publicGetInstrumentActiveAndIndices (params?: {}): Promise<implicitReturnType> { return this['publicGetInstrumentActiveAndIndices'] (params); }
-    publicGetInstrumentActiveIntervals (params?: {}): Promise<implicitReturnType> { return this['publicGetInstrumentActiveIntervals'] (params); }
-    publicGetInstrumentCompositeIndex (params?: {}): Promise<implicitReturnType> { return this['publicGetInstrumentCompositeIndex'] (params); }
-    publicGetInstrumentIndices (params?: {}): Promise<implicitReturnType> { return this['publicGetInstrumentIndices'] (params); }
-    publicGetInsurance (params?: {}): Promise<implicitReturnType> { return this['publicGetInsurance'] (params); }
-    publicGetLeaderboard (params?: {}): Promise<implicitReturnType> { return this['publicGetLeaderboard'] (params); }
-    publicGetLiquidation (params?: {}): Promise<implicitReturnType> { return this['publicGetLiquidation'] (params); }
-    publicGetOrderBook (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderBook'] (params); }
-    publicGetOrderBookL2 (params?: {}): Promise<implicitReturnType> { return this['publicGetOrderBookL2'] (params); }
-    publicGetQuote (params?: {}): Promise<implicitReturnType> { return this['publicGetQuote'] (params); }
-    publicGetQuoteBucketed (params?: {}): Promise<implicitReturnType> { return this['publicGetQuoteBucketed'] (params); }
-    publicGetSchema (params?: {}): Promise<implicitReturnType> { return this['publicGetSchema'] (params); }
-    publicGetSchemaWebsocketHelp (params?: {}): Promise<implicitReturnType> { return this['publicGetSchemaWebsocketHelp'] (params); }
-    publicGetSettlement (params?: {}): Promise<implicitReturnType> { return this['publicGetSettlement'] (params); }
-    publicGetStats (params?: {}): Promise<implicitReturnType> { return this['publicGetStats'] (params); }
-    publicGetStatsHistory (params?: {}): Promise<implicitReturnType> { return this['publicGetStatsHistory'] (params); }
-    publicGetTrade (params?: {}): Promise<implicitReturnType> { return this['publicGetTrade'] (params); }
-    publicGetTradeBucketed (params?: {}): Promise<implicitReturnType> { return this['publicGetTradeBucketed'] (params); }
-    publicGetWalletAssets (params?: {}): Promise<implicitReturnType> { return this['publicGetWalletAssets'] (params); }
-    publicGetWalletNetworks (params?: {}): Promise<implicitReturnType> { return this['publicGetWalletNetworks'] (params); }
-    privateGetApiKey (params?: {}): Promise<implicitReturnType> { return this['privateGetApiKey'] (params); }
-    privateGetChat (params?: {}): Promise<implicitReturnType> { return this['privateGetChat'] (params); }
-    privateGetChatChannels (params?: {}): Promise<implicitReturnType> { return this['privateGetChatChannels'] (params); }
-    privateGetChatConnected (params?: {}): Promise<implicitReturnType> { return this['privateGetChatConnected'] (params); }
-    privateGetExecution (params?: {}): Promise<implicitReturnType> { return this['privateGetExecution'] (params); }
-    privateGetExecutionTradeHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetExecutionTradeHistory'] (params); }
-    privateGetNotification (params?: {}): Promise<implicitReturnType> { return this['privateGetNotification'] (params); }
-    privateGetOrder (params?: {}): Promise<implicitReturnType> { return this['privateGetOrder'] (params); }
-    privateGetPosition (params?: {}): Promise<implicitReturnType> { return this['privateGetPosition'] (params); }
-    privateGetUser (params?: {}): Promise<implicitReturnType> { return this['privateGetUser'] (params); }
-    privateGetUserAffiliateStatus (params?: {}): Promise<implicitReturnType> { return this['privateGetUserAffiliateStatus'] (params); }
-    privateGetUserCheckReferralCode (params?: {}): Promise<implicitReturnType> { return this['privateGetUserCheckReferralCode'] (params); }
-    privateGetUserCommission (params?: {}): Promise<implicitReturnType> { return this['privateGetUserCommission'] (params); }
-    privateGetUserDepositAddress (params?: {}): Promise<implicitReturnType> { return this['privateGetUserDepositAddress'] (params); }
-    privateGetUserExecutionHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetUserExecutionHistory'] (params); }
-    privateGetUserMargin (params?: {}): Promise<implicitReturnType> { return this['privateGetUserMargin'] (params); }
-    privateGetUserMinWithdrawalFee (params?: {}): Promise<implicitReturnType> { return this['privateGetUserMinWithdrawalFee'] (params); }
-    privateGetUserWallet (params?: {}): Promise<implicitReturnType> { return this['privateGetUserWallet'] (params); }
-    privateGetUserWalletHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetUserWalletHistory'] (params); }
-    privateGetUserWalletSummary (params?: {}): Promise<implicitReturnType> { return this['privateGetUserWalletSummary'] (params); }
-    privateGetWalletAssets (params?: {}): Promise<implicitReturnType> { return this['privateGetWalletAssets'] (params); }
-    privateGetWalletNetworks (params?: {}): Promise<implicitReturnType> { return this['privateGetWalletNetworks'] (params); }
-    privateGetUserEvent (params?: {}): Promise<implicitReturnType> { return this['privateGetUserEvent'] (params); }
-    privatePostApiKey (params?: {}): Promise<implicitReturnType> { return this['privatePostApiKey'] (params); }
-    privatePostApiKeyDisable (params?: {}): Promise<implicitReturnType> { return this['privatePostApiKeyDisable'] (params); }
-    privatePostApiKeyEnable (params?: {}): Promise<implicitReturnType> { return this['privatePostApiKeyEnable'] (params); }
-    privatePostChat (params?: {}): Promise<implicitReturnType> { return this['privatePostChat'] (params); }
-    privatePostOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostOrder'] (params); }
-    privatePostOrderBulk (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderBulk'] (params); }
-    privatePostOrderCancelAllAfter (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderCancelAllAfter'] (params); }
-    privatePostOrderClosePosition (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderClosePosition'] (params); }
-    privatePostPositionIsolate (params?: {}): Promise<implicitReturnType> { return this['privatePostPositionIsolate'] (params); }
-    privatePostPositionLeverage (params?: {}): Promise<implicitReturnType> { return this['privatePostPositionLeverage'] (params); }
-    privatePostPositionRiskLimit (params?: {}): Promise<implicitReturnType> { return this['privatePostPositionRiskLimit'] (params); }
-    privatePostPositionTransferMargin (params?: {}): Promise<implicitReturnType> { return this['privatePostPositionTransferMargin'] (params); }
-    privatePostUserCancelWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostUserCancelWithdrawal'] (params); }
-    privatePostUserConfirmEmail (params?: {}): Promise<implicitReturnType> { return this['privatePostUserConfirmEmail'] (params); }
-    privatePostUserConfirmEnableTFA (params?: {}): Promise<implicitReturnType> { return this['privatePostUserConfirmEnableTFA'] (params); }
-    privatePostUserConfirmWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostUserConfirmWithdrawal'] (params); }
-    privatePostUserDisableTFA (params?: {}): Promise<implicitReturnType> { return this['privatePostUserDisableTFA'] (params); }
-    privatePostUserLogout (params?: {}): Promise<implicitReturnType> { return this['privatePostUserLogout'] (params); }
-    privatePostUserLogoutAll (params?: {}): Promise<implicitReturnType> { return this['privatePostUserLogoutAll'] (params); }
-    privatePostUserPreferences (params?: {}): Promise<implicitReturnType> { return this['privatePostUserPreferences'] (params); }
-    privatePostUserRequestEnableTFA (params?: {}): Promise<implicitReturnType> { return this['privatePostUserRequestEnableTFA'] (params); }
-    privatePostUserRequestWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostUserRequestWithdrawal'] (params); }
-    privatePutOrder (params?: {}): Promise<implicitReturnType> { return this['privatePutOrder'] (params); }
-    privatePutOrderBulk (params?: {}): Promise<implicitReturnType> { return this['privatePutOrderBulk'] (params); }
-    privatePutUser (params?: {}): Promise<implicitReturnType> { return this['privatePutUser'] (params); }
-    privateDeleteApiKey (params?: {}): Promise<implicitReturnType> { return this['privateDeleteApiKey'] (params); }
-    privateDeleteOrder (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrder'] (params); }
-    privateDeleteOrderAll (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrderAll'] (params); }
+interface Exchange {
+     publicGetAnnouncement? (params?: {}): Promise<implicitReturnType>;
+     publicGetAnnouncementUrgent? (params?: {}): Promise<implicitReturnType>;
+     publicGetFunding? (params?: {}): Promise<implicitReturnType>;
+     publicGetInstrument? (params?: {}): Promise<implicitReturnType>;
+     publicGetInstrumentActive? (params?: {}): Promise<implicitReturnType>;
+     publicGetInstrumentActiveAndIndices? (params?: {}): Promise<implicitReturnType>;
+     publicGetInstrumentActiveIntervals? (params?: {}): Promise<implicitReturnType>;
+     publicGetInstrumentCompositeIndex? (params?: {}): Promise<implicitReturnType>;
+     publicGetInstrumentIndices? (params?: {}): Promise<implicitReturnType>;
+     publicGetInsurance? (params?: {}): Promise<implicitReturnType>;
+     publicGetLeaderboard? (params?: {}): Promise<implicitReturnType>;
+     publicGetLiquidation? (params?: {}): Promise<implicitReturnType>;
+     publicGetOrderBook? (params?: {}): Promise<implicitReturnType>;
+     publicGetOrderBookL2? (params?: {}): Promise<implicitReturnType>;
+     publicGetQuote? (params?: {}): Promise<implicitReturnType>;
+     publicGetQuoteBucketed? (params?: {}): Promise<implicitReturnType>;
+     publicGetSchema? (params?: {}): Promise<implicitReturnType>;
+     publicGetSchemaWebsocketHelp? (params?: {}): Promise<implicitReturnType>;
+     publicGetSettlement? (params?: {}): Promise<implicitReturnType>;
+     publicGetStats? (params?: {}): Promise<implicitReturnType>;
+     publicGetStatsHistory? (params?: {}): Promise<implicitReturnType>;
+     publicGetTrade? (params?: {}): Promise<implicitReturnType>;
+     publicGetTradeBucketed? (params?: {}): Promise<implicitReturnType>;
+     publicGetWalletAssets? (params?: {}): Promise<implicitReturnType>;
+     publicGetWalletNetworks? (params?: {}): Promise<implicitReturnType>;
+     privateGetApiKey? (params?: {}): Promise<implicitReturnType>;
+     privateGetChat? (params?: {}): Promise<implicitReturnType>;
+     privateGetChatChannels? (params?: {}): Promise<implicitReturnType>;
+     privateGetChatConnected? (params?: {}): Promise<implicitReturnType>;
+     privateGetExecution? (params?: {}): Promise<implicitReturnType>;
+     privateGetExecutionTradeHistory? (params?: {}): Promise<implicitReturnType>;
+     privateGetNotification? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrder? (params?: {}): Promise<implicitReturnType>;
+     privateGetPosition? (params?: {}): Promise<implicitReturnType>;
+     privateGetUser? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserAffiliateStatus? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserCheckReferralCode? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserCommission? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserDepositAddress? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserExecutionHistory? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserMargin? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserMinWithdrawalFee? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserWallet? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserWalletHistory? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserWalletSummary? (params?: {}): Promise<implicitReturnType>;
+     privateGetWalletAssets? (params?: {}): Promise<implicitReturnType>;
+     privateGetWalletNetworks? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserEvent? (params?: {}): Promise<implicitReturnType>;
+     privatePostApiKey? (params?: {}): Promise<implicitReturnType>;
+     privatePostApiKeyDisable? (params?: {}): Promise<implicitReturnType>;
+     privatePostApiKeyEnable? (params?: {}): Promise<implicitReturnType>;
+     privatePostChat? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderBulk? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderCancelAllAfter? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderClosePosition? (params?: {}): Promise<implicitReturnType>;
+     privatePostPositionIsolate? (params?: {}): Promise<implicitReturnType>;
+     privatePostPositionLeverage? (params?: {}): Promise<implicitReturnType>;
+     privatePostPositionRiskLimit? (params?: {}): Promise<implicitReturnType>;
+     privatePostPositionTransferMargin? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserCancelWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserConfirmEmail? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserConfirmEnableTFA? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserConfirmWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserDisableTFA? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserLogout? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserLogoutAll? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserPreferences? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserRequestEnableTFA? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserRequestWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     privatePutOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePutOrderBulk? (params?: {}): Promise<implicitReturnType>;
+     privatePutUser? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteApiKey? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteOrder? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteOrderAll? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

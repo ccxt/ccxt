@@ -8,35 +8,38 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetAssets (params?: {}): Promise<implicitReturnType> { return this['publicGetAssets'] (params); }
-    publicGetSettings (params?: {}): Promise<implicitReturnType> { return this['publicGetSettings'] (params); }
-    publicGetIndices (params?: {}): Promise<implicitReturnType> { return this['publicGetIndices'] (params); }
-    publicGetProducts (params?: {}): Promise<implicitReturnType> { return this['publicGetProducts'] (params); }
-    publicGetTickers (params?: {}): Promise<implicitReturnType> { return this['publicGetTickers'] (params); }
-    publicGetTickersSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetTickersSymbol'] (params); }
-    publicGetL2orderbookSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetL2orderbookSymbol'] (params); }
-    publicGetTradesSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetTradesSymbol'] (params); }
-    publicGetHistoryCandles (params?: {}): Promise<implicitReturnType> { return this['publicGetHistoryCandles'] (params); }
-    publicGetHistorySparklines (params?: {}): Promise<implicitReturnType> { return this['publicGetHistorySparklines'] (params); }
-    privateGetOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetOrders'] (params); }
-    privateGetOrdersLeverage (params?: {}): Promise<implicitReturnType> { return this['privateGetOrdersLeverage'] (params); }
-    privateGetPositions (params?: {}): Promise<implicitReturnType> { return this['privateGetPositions'] (params); }
-    privateGetPositionsMargined (params?: {}): Promise<implicitReturnType> { return this['privateGetPositionsMargined'] (params); }
-    privateGetOrdersHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetOrdersHistory'] (params); }
-    privateGetFills (params?: {}): Promise<implicitReturnType> { return this['privateGetFills'] (params); }
-    privateGetFillsHistoryDownloadCsv (params?: {}): Promise<implicitReturnType> { return this['privateGetFillsHistoryDownloadCsv'] (params); }
-    privateGetWalletBalances (params?: {}): Promise<implicitReturnType> { return this['privateGetWalletBalances'] (params); }
-    privateGetWalletTransactions (params?: {}): Promise<implicitReturnType> { return this['privateGetWalletTransactions'] (params); }
-    privateGetWalletTransactionsDownload (params?: {}): Promise<implicitReturnType> { return this['privateGetWalletTransactionsDownload'] (params); }
-    privateGetDepositsAddress (params?: {}): Promise<implicitReturnType> { return this['privateGetDepositsAddress'] (params); }
-    privatePostOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostOrders'] (params); }
-    privatePostOrdersBatch (params?: {}): Promise<implicitReturnType> { return this['privatePostOrdersBatch'] (params); }
-    privatePostOrdersLeverage (params?: {}): Promise<implicitReturnType> { return this['privatePostOrdersLeverage'] (params); }
-    privatePostPositionsChangeMargin (params?: {}): Promise<implicitReturnType> { return this['privatePostPositionsChangeMargin'] (params); }
-    privatePutOrders (params?: {}): Promise<implicitReturnType> { return this['privatePutOrders'] (params); }
-    privatePutOrdersBatch (params?: {}): Promise<implicitReturnType> { return this['privatePutOrdersBatch'] (params); }
-    privateDeleteOrders (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrders'] (params); }
-    privateDeleteOrdersAll (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrdersAll'] (params); }
-    privateDeleteOrdersBatch (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOrdersBatch'] (params); }
+interface Exchange {
+     publicGetAssets? (params?: {}): Promise<implicitReturnType>;
+     publicGetSettings? (params?: {}): Promise<implicitReturnType>;
+     publicGetIndices? (params?: {}): Promise<implicitReturnType>;
+     publicGetProducts? (params?: {}): Promise<implicitReturnType>;
+     publicGetTickers? (params?: {}): Promise<implicitReturnType>;
+     publicGetTickersSymbol? (params?: {}): Promise<implicitReturnType>;
+     publicGetL2orderbookSymbol? (params?: {}): Promise<implicitReturnType>;
+     publicGetTradesSymbol? (params?: {}): Promise<implicitReturnType>;
+     publicGetHistoryCandles? (params?: {}): Promise<implicitReturnType>;
+     publicGetHistorySparklines? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrdersLeverage? (params?: {}): Promise<implicitReturnType>;
+     privateGetPositions? (params?: {}): Promise<implicitReturnType>;
+     privateGetPositionsMargined? (params?: {}): Promise<implicitReturnType>;
+     privateGetOrdersHistory? (params?: {}): Promise<implicitReturnType>;
+     privateGetFills? (params?: {}): Promise<implicitReturnType>;
+     privateGetFillsHistoryDownloadCsv? (params?: {}): Promise<implicitReturnType>;
+     privateGetWalletBalances? (params?: {}): Promise<implicitReturnType>;
+     privateGetWalletTransactions? (params?: {}): Promise<implicitReturnType>;
+     privateGetWalletTransactionsDownload? (params?: {}): Promise<implicitReturnType>;
+     privateGetDepositsAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrdersBatch? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrdersLeverage? (params?: {}): Promise<implicitReturnType>;
+     privatePostPositionsChangeMargin? (params?: {}): Promise<implicitReturnType>;
+     privatePutOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePutOrdersBatch? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteOrders? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteOrdersAll? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteOrdersBatch? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

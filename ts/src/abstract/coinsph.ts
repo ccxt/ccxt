@@ -8,30 +8,33 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetOpenapiV1Ping (params?: {}): Promise<implicitReturnType> { return this['publicGetOpenapiV1Ping'] (params); }
-    publicGetOpenapiV1Time (params?: {}): Promise<implicitReturnType> { return this['publicGetOpenapiV1Time'] (params); }
-    publicGetOpenapiQuoteV1Ticker24hr (params?: {}): Promise<implicitReturnType> { return this['publicGetOpenapiQuoteV1Ticker24hr'] (params); }
-    publicGetOpenapiQuoteV1TickerPrice (params?: {}): Promise<implicitReturnType> { return this['publicGetOpenapiQuoteV1TickerPrice'] (params); }
-    publicGetOpenapiQuoteV1TickerBookTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetOpenapiQuoteV1TickerBookTicker'] (params); }
-    publicGetOpenapiV1ExchangeInfo (params?: {}): Promise<implicitReturnType> { return this['publicGetOpenapiV1ExchangeInfo'] (params); }
-    publicGetOpenapiQuoteV1Depth (params?: {}): Promise<implicitReturnType> { return this['publicGetOpenapiQuoteV1Depth'] (params); }
-    publicGetOpenapiQuoteV1Klines (params?: {}): Promise<implicitReturnType> { return this['publicGetOpenapiQuoteV1Klines'] (params); }
-    publicGetOpenapiQuoteV1Trades (params?: {}): Promise<implicitReturnType> { return this['publicGetOpenapiQuoteV1Trades'] (params); }
-    publicGetOpenapiV1Pairs (params?: {}): Promise<implicitReturnType> { return this['publicGetOpenapiV1Pairs'] (params); }
-    publicGetOpenapiQuoteV1AvgPrice (params?: {}): Promise<implicitReturnType> { return this['publicGetOpenapiQuoteV1AvgPrice'] (params); }
-    privateGetOpenapiV1Account (params?: {}): Promise<implicitReturnType> { return this['privateGetOpenapiV1Account'] (params); }
-    privateGetOpenapiV1OpenOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetOpenapiV1OpenOrders'] (params); }
-    privateGetOpenapiV1AssetTradeFee (params?: {}): Promise<implicitReturnType> { return this['privateGetOpenapiV1AssetTradeFee'] (params); }
-    privateGetOpenapiV1Order (params?: {}): Promise<implicitReturnType> { return this['privateGetOpenapiV1Order'] (params); }
-    privateGetOpenapiV1HistoryOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetOpenapiV1HistoryOrders'] (params); }
-    privateGetOpenapiV1MyTrades (params?: {}): Promise<implicitReturnType> { return this['privateGetOpenapiV1MyTrades'] (params); }
-    privateGetOpenapiV1CapitalDepositHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetOpenapiV1CapitalDepositHistory'] (params); }
-    privateGetOpenapiV1CapitalWithdrawHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetOpenapiV1CapitalWithdrawHistory'] (params); }
-    privatePostOpenapiV1OrderTest (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenapiV1OrderTest'] (params); }
-    privatePostOpenapiV1Order (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenapiV1Order'] (params); }
-    privatePostOpenapiV1CapitalWithdrawApply (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenapiV1CapitalWithdrawApply'] (params); }
-    privatePostOpenapiV1CapitalDepositApply (params?: {}): Promise<implicitReturnType> { return this['privatePostOpenapiV1CapitalDepositApply'] (params); }
-    privateDeleteOpenapiV1Order (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOpenapiV1Order'] (params); }
-    privateDeleteOpenapiV1OpenOrders (params?: {}): Promise<implicitReturnType> { return this['privateDeleteOpenapiV1OpenOrders'] (params); }
+interface Exchange {
+     publicGetOpenapiV1Ping? (params?: {}): Promise<implicitReturnType>;
+     publicGetOpenapiV1Time? (params?: {}): Promise<implicitReturnType>;
+     publicGetOpenapiQuoteV1Ticker24hr? (params?: {}): Promise<implicitReturnType>;
+     publicGetOpenapiQuoteV1TickerPrice? (params?: {}): Promise<implicitReturnType>;
+     publicGetOpenapiQuoteV1TickerBookTicker? (params?: {}): Promise<implicitReturnType>;
+     publicGetOpenapiV1ExchangeInfo? (params?: {}): Promise<implicitReturnType>;
+     publicGetOpenapiQuoteV1Depth? (params?: {}): Promise<implicitReturnType>;
+     publicGetOpenapiQuoteV1Klines? (params?: {}): Promise<implicitReturnType>;
+     publicGetOpenapiQuoteV1Trades? (params?: {}): Promise<implicitReturnType>;
+     publicGetOpenapiV1Pairs? (params?: {}): Promise<implicitReturnType>;
+     publicGetOpenapiQuoteV1AvgPrice? (params?: {}): Promise<implicitReturnType>;
+     privateGetOpenapiV1Account? (params?: {}): Promise<implicitReturnType>;
+     privateGetOpenapiV1OpenOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetOpenapiV1AssetTradeFee? (params?: {}): Promise<implicitReturnType>;
+     privateGetOpenapiV1Order? (params?: {}): Promise<implicitReturnType>;
+     privateGetOpenapiV1HistoryOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetOpenapiV1MyTrades? (params?: {}): Promise<implicitReturnType>;
+     privateGetOpenapiV1CapitalDepositHistory? (params?: {}): Promise<implicitReturnType>;
+     privateGetOpenapiV1CapitalWithdrawHistory? (params?: {}): Promise<implicitReturnType>;
+     privatePostOpenapiV1OrderTest? (params?: {}): Promise<implicitReturnType>;
+     privatePostOpenapiV1Order? (params?: {}): Promise<implicitReturnType>;
+     privatePostOpenapiV1CapitalWithdrawApply? (params?: {}): Promise<implicitReturnType>;
+     privatePostOpenapiV1CapitalDepositApply? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteOpenapiV1Order? (params?: {}): Promise<implicitReturnType>;
+     privateDeleteOpenapiV1OpenOrders? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

@@ -8,61 +8,64 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    v2PublicGetCurrencies (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetCurrencies'] (params); }
-    v2PublicGetTime (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetTime'] (params); }
-    v2PublicGetExchangeRates (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetExchangeRates'] (params); }
-    v2PublicGetUsersUserId (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetUsersUserId'] (params); }
-    v2PublicGetPricesSymbolBuy (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetPricesSymbolBuy'] (params); }
-    v2PublicGetPricesSymbolSell (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetPricesSymbolSell'] (params); }
-    v2PublicGetPricesSymbolSpot (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetPricesSymbolSpot'] (params); }
-    v2PrivateGetAccounts (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccounts'] (params); }
-    v2PrivateGetAccountsAccountId (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountsAccountId'] (params); }
-    v2PrivateGetAccountsAccountIdAddresses (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountsAccountIdAddresses'] (params); }
-    v2PrivateGetAccountsAccountIdAddressesAddressId (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountsAccountIdAddressesAddressId'] (params); }
-    v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions'] (params); }
-    v2PrivateGetAccountsAccountIdTransactions (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountsAccountIdTransactions'] (params); }
-    v2PrivateGetAccountsAccountIdTransactionsTransactionId (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountsAccountIdTransactionsTransactionId'] (params); }
-    v2PrivateGetAccountsAccountIdBuys (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountsAccountIdBuys'] (params); }
-    v2PrivateGetAccountsAccountIdBuysBuyId (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountsAccountIdBuysBuyId'] (params); }
-    v2PrivateGetAccountsAccountIdSells (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountsAccountIdSells'] (params); }
-    v2PrivateGetAccountsAccountIdSellsSellId (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountsAccountIdSellsSellId'] (params); }
-    v2PrivateGetAccountsAccountIdDeposits (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountsAccountIdDeposits'] (params); }
-    v2PrivateGetAccountsAccountIdDepositsDepositId (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountsAccountIdDepositsDepositId'] (params); }
-    v2PrivateGetAccountsAccountIdWithdrawals (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountsAccountIdWithdrawals'] (params); }
-    v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId'] (params); }
-    v2PrivateGetPaymentMethods (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetPaymentMethods'] (params); }
-    v2PrivateGetPaymentMethodsPaymentMethodId (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetPaymentMethodsPaymentMethodId'] (params); }
-    v2PrivateGetUser (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetUser'] (params); }
-    v2PrivateGetUserAuth (params?: {}): Promise<implicitReturnType> { return this['v2PrivateGetUserAuth'] (params); }
-    v2PrivatePostAccounts (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccounts'] (params); }
-    v2PrivatePostAccountsAccountIdPrimary (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountsAccountIdPrimary'] (params); }
-    v2PrivatePostAccountsAccountIdAddresses (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountsAccountIdAddresses'] (params); }
-    v2PrivatePostAccountsAccountIdTransactions (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountsAccountIdTransactions'] (params); }
-    v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete'] (params); }
-    v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend'] (params); }
-    v2PrivatePostAccountsAccountIdBuys (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountsAccountIdBuys'] (params); }
-    v2PrivatePostAccountsAccountIdBuysBuyIdCommit (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountsAccountIdBuysBuyIdCommit'] (params); }
-    v2PrivatePostAccountsAccountIdSells (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountsAccountIdSells'] (params); }
-    v2PrivatePostAccountsAccountIdSellsSellIdCommit (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountsAccountIdSellsSellIdCommit'] (params); }
-    v2PrivatePostAccountsAccountIdDeposits (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountsAccountIdDeposits'] (params); }
-    v2PrivatePostAccountsAccountIdDepositsDepositIdCommit (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountsAccountIdDepositsDepositIdCommit'] (params); }
-    v2PrivatePostAccountsAccountIdWithdrawals (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountsAccountIdWithdrawals'] (params); }
-    v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit'] (params); }
-    v2PrivatePutAccountsAccountId (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePutAccountsAccountId'] (params); }
-    v2PrivatePutUser (params?: {}): Promise<implicitReturnType> { return this['v2PrivatePutUser'] (params); }
-    v2PrivateDeleteAccountsId (params?: {}): Promise<implicitReturnType> { return this['v2PrivateDeleteAccountsId'] (params); }
-    v2PrivateDeleteAccountsAccountIdTransactionsTransactionId (params?: {}): Promise<implicitReturnType> { return this['v2PrivateDeleteAccountsAccountIdTransactionsTransactionId'] (params); }
-    v3PrivateGetBrokerageAccounts (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetBrokerageAccounts'] (params); }
-    v3PrivateGetBrokerageAccountsAccountUuid (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetBrokerageAccountsAccountUuid'] (params); }
-    v3PrivateGetBrokerageOrdersHistoricalBatch (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetBrokerageOrdersHistoricalBatch'] (params); }
-    v3PrivateGetBrokerageOrdersHistoricalFills (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetBrokerageOrdersHistoricalFills'] (params); }
-    v3PrivateGetBrokerageOrdersHistoricalOrderId (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetBrokerageOrdersHistoricalOrderId'] (params); }
-    v3PrivateGetBrokerageProducts (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetBrokerageProducts'] (params); }
-    v3PrivateGetBrokerageProductsProductId (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetBrokerageProductsProductId'] (params); }
-    v3PrivateGetBrokerageProductsProductIdCandles (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetBrokerageProductsProductIdCandles'] (params); }
-    v3PrivateGetBrokerageProductsProductIdTicker (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetBrokerageProductsProductIdTicker'] (params); }
-    v3PrivateGetBrokerageTransactionSummary (params?: {}): Promise<implicitReturnType> { return this['v3PrivateGetBrokerageTransactionSummary'] (params); }
-    v3PrivatePostBrokerageOrders (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostBrokerageOrders'] (params); }
-    v3PrivatePostBrokerageOrdersBatchCancel (params?: {}): Promise<implicitReturnType> { return this['v3PrivatePostBrokerageOrdersBatchCancel'] (params); }
+interface Exchange {
+     v2PublicGetCurrencies? (params?: {}): Promise<implicitReturnType>;
+     v2PublicGetTime? (params?: {}): Promise<implicitReturnType>;
+     v2PublicGetExchangeRates? (params?: {}): Promise<implicitReturnType>;
+     v2PublicGetUsersUserId? (params?: {}): Promise<implicitReturnType>;
+     v2PublicGetPricesSymbolBuy? (params?: {}): Promise<implicitReturnType>;
+     v2PublicGetPricesSymbolSell? (params?: {}): Promise<implicitReturnType>;
+     v2PublicGetPricesSymbolSpot? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccounts? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountsAccountId? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountsAccountIdAddresses? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountsAccountIdAddressesAddressId? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountsAccountIdTransactions? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountsAccountIdTransactionsTransactionId? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountsAccountIdBuys? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountsAccountIdBuysBuyId? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountsAccountIdSells? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountsAccountIdSellsSellId? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountsAccountIdDeposits? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountsAccountIdDepositsDepositId? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountsAccountIdWithdrawals? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetPaymentMethods? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetPaymentMethodsPaymentMethodId? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetUser? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateGetUserAuth? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccounts? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountsAccountIdPrimary? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountsAccountIdAddresses? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountsAccountIdTransactions? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountsAccountIdBuys? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountsAccountIdBuysBuyIdCommit? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountsAccountIdSells? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountsAccountIdSellsSellIdCommit? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountsAccountIdDeposits? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountsAccountIdDepositsDepositIdCommit? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountsAccountIdWithdrawals? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePutAccountsAccountId? (params?: {}): Promise<implicitReturnType>;
+     v2PrivatePutUser? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateDeleteAccountsId? (params?: {}): Promise<implicitReturnType>;
+     v2PrivateDeleteAccountsAccountIdTransactionsTransactionId? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetBrokerageAccounts? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetBrokerageAccountsAccountUuid? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetBrokerageOrdersHistoricalBatch? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetBrokerageOrdersHistoricalFills? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetBrokerageOrdersHistoricalOrderId? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetBrokerageProducts? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetBrokerageProductsProductId? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetBrokerageProductsProductIdCandles? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetBrokerageProductsProductIdTicker? (params?: {}): Promise<implicitReturnType>;
+     v3PrivateGetBrokerageTransactionSummary? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostBrokerageOrders? (params?: {}): Promise<implicitReturnType>;
+     v3PrivatePostBrokerageOrdersBatchCancel? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

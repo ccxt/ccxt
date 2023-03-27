@@ -8,21 +8,24 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetPairTicker (params?: {}): Promise<implicitReturnType> { return this['publicGetPairTicker'] (params); }
-    publicGetPairDepth (params?: {}): Promise<implicitReturnType> { return this['publicGetPairDepth'] (params); }
-    publicGetPairTransactions (params?: {}): Promise<implicitReturnType> { return this['publicGetPairTransactions'] (params); }
-    publicGetPairTransactionsYyyymmdd (params?: {}): Promise<implicitReturnType> { return this['publicGetPairTransactionsYyyymmdd'] (params); }
-    publicGetPairCandlestickCandletypeYyyymmdd (params?: {}): Promise<implicitReturnType> { return this['publicGetPairCandlestickCandletypeYyyymmdd'] (params); }
-    privateGetUserAssets (params?: {}): Promise<implicitReturnType> { return this['privateGetUserAssets'] (params); }
-    privateGetUserSpotOrder (params?: {}): Promise<implicitReturnType> { return this['privateGetUserSpotOrder'] (params); }
-    privateGetUserSpotActiveOrders (params?: {}): Promise<implicitReturnType> { return this['privateGetUserSpotActiveOrders'] (params); }
-    privateGetUserSpotTradeHistory (params?: {}): Promise<implicitReturnType> { return this['privateGetUserSpotTradeHistory'] (params); }
-    privateGetUserWithdrawalAccount (params?: {}): Promise<implicitReturnType> { return this['privateGetUserWithdrawalAccount'] (params); }
-    privatePostUserSpotOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostUserSpotOrder'] (params); }
-    privatePostUserSpotCancelOrder (params?: {}): Promise<implicitReturnType> { return this['privatePostUserSpotCancelOrder'] (params); }
-    privatePostUserSpotCancelOrders (params?: {}): Promise<implicitReturnType> { return this['privatePostUserSpotCancelOrders'] (params); }
-    privatePostUserSpotOrdersInfo (params?: {}): Promise<implicitReturnType> { return this['privatePostUserSpotOrdersInfo'] (params); }
-    privatePostUserRequestWithdrawal (params?: {}): Promise<implicitReturnType> { return this['privatePostUserRequestWithdrawal'] (params); }
-    marketsGetSpotPairs (params?: {}): Promise<implicitReturnType> { return this['marketsGetSpotPairs'] (params); }
+interface Exchange {
+     publicGetPairTicker? (params?: {}): Promise<implicitReturnType>;
+     publicGetPairDepth? (params?: {}): Promise<implicitReturnType>;
+     publicGetPairTransactions? (params?: {}): Promise<implicitReturnType>;
+     publicGetPairTransactionsYyyymmdd? (params?: {}): Promise<implicitReturnType>;
+     publicGetPairCandlestickCandletypeYyyymmdd? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserAssets? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserSpotOrder? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserSpotActiveOrders? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserSpotTradeHistory? (params?: {}): Promise<implicitReturnType>;
+     privateGetUserWithdrawalAccount? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserSpotOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserSpotCancelOrder? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserSpotCancelOrders? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserSpotOrdersInfo? (params?: {}): Promise<implicitReturnType>;
+     privatePostUserRequestWithdrawal? (params?: {}): Promise<implicitReturnType>;
+     marketsGetSpotPairs? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

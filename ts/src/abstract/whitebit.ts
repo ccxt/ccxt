@@ -8,68 +8,71 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    webGetV1Healthcheck (params?: {}): Promise<implicitReturnType> { return this['webGetV1Healthcheck'] (params); }
-    v1PublicGetMarkets (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetMarkets'] (params); }
-    v1PublicGetTickers (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetTickers'] (params); }
-    v1PublicGetTicker (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetTicker'] (params); }
-    v1PublicGetSymbols (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetSymbols'] (params); }
-    v1PublicGetDepthResult (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetDepthResult'] (params); }
-    v1PublicGetHistory (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetHistory'] (params); }
-    v1PublicGetKline (params?: {}): Promise<implicitReturnType> { return this['v1PublicGetKline'] (params); }
-    v1PrivatePostAccountBalance (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostAccountBalance'] (params); }
-    v1PrivatePostOrderNew (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostOrderNew'] (params); }
-    v1PrivatePostOrderCancel (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostOrderCancel'] (params); }
-    v1PrivatePostOrders (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostOrders'] (params); }
-    v1PrivatePostAccountOrderHistory (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostAccountOrderHistory'] (params); }
-    v1PrivatePostAccountExecutedHistory (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostAccountExecutedHistory'] (params); }
-    v1PrivatePostAccountExecutedHistoryAll (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostAccountExecutedHistoryAll'] (params); }
-    v1PrivatePostAccountOrder (params?: {}): Promise<implicitReturnType> { return this['v1PrivatePostAccountOrder'] (params); }
-    v2PublicGetMarkets (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetMarkets'] (params); }
-    v2PublicGetTicker (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetTicker'] (params); }
-    v2PublicGetAssets (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetAssets'] (params); }
-    v2PublicGetFee (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetFee'] (params); }
-    v2PublicGetDepthMarket (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetDepthMarket'] (params); }
-    v2PublicGetTradesMarket (params?: {}): Promise<implicitReturnType> { return this['v2PublicGetTradesMarket'] (params); }
-    v4PublicGetAssets (params?: {}): Promise<implicitReturnType> { return this['v4PublicGetAssets'] (params); }
-    v4PublicGetCollateralMarkets (params?: {}): Promise<implicitReturnType> { return this['v4PublicGetCollateralMarkets'] (params); }
-    v4PublicGetFee (params?: {}): Promise<implicitReturnType> { return this['v4PublicGetFee'] (params); }
-    v4PublicGetOrderbookMarket (params?: {}): Promise<implicitReturnType> { return this['v4PublicGetOrderbookMarket'] (params); }
-    v4PublicGetTicker (params?: {}): Promise<implicitReturnType> { return this['v4PublicGetTicker'] (params); }
-    v4PublicGetTradesMarket (params?: {}): Promise<implicitReturnType> { return this['v4PublicGetTradesMarket'] (params); }
-    v4PublicGetTime (params?: {}): Promise<implicitReturnType> { return this['v4PublicGetTime'] (params); }
-    v4PublicGetPing (params?: {}): Promise<implicitReturnType> { return this['v4PublicGetPing'] (params); }
-    v4PublicGetMarkets (params?: {}): Promise<implicitReturnType> { return this['v4PublicGetMarkets'] (params); }
-    v4PrivatePostCollateralAccountBalance (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostCollateralAccountBalance'] (params); }
-    v4PrivatePostCollateralAccountPositionsHistory (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostCollateralAccountPositionsHistory'] (params); }
-    v4PrivatePostCollateralAccountLeverage (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostCollateralAccountLeverage'] (params); }
-    v4PrivatePostCollateralAccountPositionsOpen (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostCollateralAccountPositionsOpen'] (params); }
-    v4PrivatePostCollateralAccountSummary (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostCollateralAccountSummary'] (params); }
-    v4PrivatePostMainAccountAddress (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostMainAccountAddress'] (params); }
-    v4PrivatePostMainAccountBalance (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostMainAccountBalance'] (params); }
-    v4PrivatePostMainAccountCreateNewAddress (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostMainAccountCreateNewAddress'] (params); }
-    v4PrivatePostMainAccountCodes (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostMainAccountCodes'] (params); }
-    v4PrivatePostMainAccountCodesApply (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostMainAccountCodesApply'] (params); }
-    v4PrivatePostMainAccountCodesMy (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostMainAccountCodesMy'] (params); }
-    v4PrivatePostMainAccountCodesHistory (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostMainAccountCodesHistory'] (params); }
-    v4PrivatePostMainAccountFiatDepositUrl (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostMainAccountFiatDepositUrl'] (params); }
-    v4PrivatePostMainAccountHistory (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostMainAccountHistory'] (params); }
-    v4PrivatePostMainAccountWithdraw (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostMainAccountWithdraw'] (params); }
-    v4PrivatePostMainAccountWithdrawPay (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostMainAccountWithdrawPay'] (params); }
-    v4PrivatePostMainAccountTransfer (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostMainAccountTransfer'] (params); }
-    v4PrivatePostTradeAccountBalance (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostTradeAccountBalance'] (params); }
-    v4PrivatePostTradeAccountExecutedHistory (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostTradeAccountExecutedHistory'] (params); }
-    v4PrivatePostTradeAccountOrder (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostTradeAccountOrder'] (params); }
-    v4PrivatePostTradeAccountOrderHistory (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostTradeAccountOrderHistory'] (params); }
-    v4PrivatePostOrderCollateralLimit (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostOrderCollateralLimit'] (params); }
-    v4PrivatePostOrderCollateralMarket (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostOrderCollateralMarket'] (params); }
-    v4PrivatePostOrderCollateralTriggerMarket (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostOrderCollateralTriggerMarket'] (params); }
-    v4PrivatePostOrderNew (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostOrderNew'] (params); }
-    v4PrivatePostOrderMarket (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostOrderMarket'] (params); }
-    v4PrivatePostOrderStockMarket (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostOrderStockMarket'] (params); }
-    v4PrivatePostOrderStopLimit (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostOrderStopLimit'] (params); }
-    v4PrivatePostOrderStopMarket (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostOrderStopMarket'] (params); }
-    v4PrivatePostOrderCancel (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostOrderCancel'] (params); }
-    v4PrivatePostOrders (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostOrders'] (params); }
-    v4PrivatePostProfileWebsocketToken (params?: {}): Promise<implicitReturnType> { return this['v4PrivatePostProfileWebsocketToken'] (params); }
+interface Exchange {
+     webGetV1Healthcheck? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetMarkets? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetTickers? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetTicker? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetSymbols? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetDepthResult? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetHistory? (params?: {}): Promise<implicitReturnType>;
+     v1PublicGetKline? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostAccountBalance? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostOrderNew? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostOrderCancel? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostOrders? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostAccountOrderHistory? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostAccountExecutedHistory? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostAccountExecutedHistoryAll? (params?: {}): Promise<implicitReturnType>;
+     v1PrivatePostAccountOrder? (params?: {}): Promise<implicitReturnType>;
+     v2PublicGetMarkets? (params?: {}): Promise<implicitReturnType>;
+     v2PublicGetTicker? (params?: {}): Promise<implicitReturnType>;
+     v2PublicGetAssets? (params?: {}): Promise<implicitReturnType>;
+     v2PublicGetFee? (params?: {}): Promise<implicitReturnType>;
+     v2PublicGetDepthMarket? (params?: {}): Promise<implicitReturnType>;
+     v2PublicGetTradesMarket? (params?: {}): Promise<implicitReturnType>;
+     v4PublicGetAssets? (params?: {}): Promise<implicitReturnType>;
+     v4PublicGetCollateralMarkets? (params?: {}): Promise<implicitReturnType>;
+     v4PublicGetFee? (params?: {}): Promise<implicitReturnType>;
+     v4PublicGetOrderbookMarket? (params?: {}): Promise<implicitReturnType>;
+     v4PublicGetTicker? (params?: {}): Promise<implicitReturnType>;
+     v4PublicGetTradesMarket? (params?: {}): Promise<implicitReturnType>;
+     v4PublicGetTime? (params?: {}): Promise<implicitReturnType>;
+     v4PublicGetPing? (params?: {}): Promise<implicitReturnType>;
+     v4PublicGetMarkets? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostCollateralAccountBalance? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostCollateralAccountPositionsHistory? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostCollateralAccountLeverage? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostCollateralAccountPositionsOpen? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostCollateralAccountSummary? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostMainAccountAddress? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostMainAccountBalance? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostMainAccountCreateNewAddress? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostMainAccountCodes? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostMainAccountCodesApply? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostMainAccountCodesMy? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostMainAccountCodesHistory? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostMainAccountFiatDepositUrl? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostMainAccountHistory? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostMainAccountWithdraw? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostMainAccountWithdrawPay? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostMainAccountTransfer? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostTradeAccountBalance? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostTradeAccountExecutedHistory? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostTradeAccountOrder? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostTradeAccountOrderHistory? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostOrderCollateralLimit? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostOrderCollateralMarket? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostOrderCollateralTriggerMarket? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostOrderNew? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostOrderMarket? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostOrderStockMarket? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostOrderStopLimit? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostOrderStopMarket? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostOrderCancel? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostOrders? (params?: {}): Promise<implicitReturnType>;
+     v4PrivatePostProfileWebsocketToken? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

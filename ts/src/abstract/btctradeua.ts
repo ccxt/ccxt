@@ -8,18 +8,21 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    publicGetDealsSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetDealsSymbol'] (params); }
-    publicGetTradesSellSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetTradesSellSymbol'] (params); }
-    publicGetTradesBuySymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetTradesBuySymbol'] (params); }
-    publicGetJapanStatHighSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetJapanStatHighSymbol'] (params); }
-    privatePostAuth (params?: {}): Promise<implicitReturnType> { return this['privatePostAuth'] (params); }
-    privatePostAskSymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostAskSymbol'] (params); }
-    privatePostBalance (params?: {}): Promise<implicitReturnType> { return this['privatePostBalance'] (params); }
-    privatePostBidSymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostBidSymbol'] (params); }
-    privatePostBuySymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostBuySymbol'] (params); }
-    privatePostMyOrdersSymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostMyOrdersSymbol'] (params); }
-    privatePostOrderStatusId (params?: {}): Promise<implicitReturnType> { return this['privatePostOrderStatusId'] (params); }
-    privatePostRemoveOrderId (params?: {}): Promise<implicitReturnType> { return this['privatePostRemoveOrderId'] (params); }
-    privatePostSellSymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostSellSymbol'] (params); }
+interface Exchange {
+     publicGetDealsSymbol? (params?: {}): Promise<implicitReturnType>;
+     publicGetTradesSellSymbol? (params?: {}): Promise<implicitReturnType>;
+     publicGetTradesBuySymbol? (params?: {}): Promise<implicitReturnType>;
+     publicGetJapanStatHighSymbol? (params?: {}): Promise<implicitReturnType>;
+     privatePostAuth? (params?: {}): Promise<implicitReturnType>;
+     privatePostAskSymbol? (params?: {}): Promise<implicitReturnType>;
+     privatePostBalance? (params?: {}): Promise<implicitReturnType>;
+     privatePostBidSymbol? (params?: {}): Promise<implicitReturnType>;
+     privatePostBuySymbol? (params?: {}): Promise<implicitReturnType>;
+     privatePostMyOrdersSymbol? (params?: {}): Promise<implicitReturnType>;
+     privatePostOrderStatusId? (params?: {}): Promise<implicitReturnType>;
+     privatePostRemoveOrderId? (params?: {}): Promise<implicitReturnType>;
+     privatePostSellSymbol? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

@@ -8,58 +8,61 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default class Exchange extends _Exchange {
-    webGetRestApi (params?: {}): Promise<implicitReturnType> { return this['webGetRestApi'] (params); }
-    publicGetV1Symbols (params?: {}): Promise<implicitReturnType> { return this['publicGetV1Symbols'] (params); }
-    publicGetV1SymbolsDetailsSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetV1SymbolsDetailsSymbol'] (params); }
-    publicGetV1StakingRates (params?: {}): Promise<implicitReturnType> { return this['publicGetV1StakingRates'] (params); }
-    publicGetV1PubtickerSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetV1PubtickerSymbol'] (params); }
-    publicGetV2TickerSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetV2TickerSymbol'] (params); }
-    publicGetV2CandlesSymbolTimeframe (params?: {}): Promise<implicitReturnType> { return this['publicGetV2CandlesSymbolTimeframe'] (params); }
-    publicGetV1TradesSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetV1TradesSymbol'] (params); }
-    publicGetV1AuctionSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetV1AuctionSymbol'] (params); }
-    publicGetV1AuctionSymbolHistory (params?: {}): Promise<implicitReturnType> { return this['publicGetV1AuctionSymbolHistory'] (params); }
-    publicGetV1Pricefeed (params?: {}): Promise<implicitReturnType> { return this['publicGetV1Pricefeed'] (params); }
-    publicGetV1BookSymbol (params?: {}): Promise<implicitReturnType> { return this['publicGetV1BookSymbol'] (params); }
-    publicGetV1EarnRates (params?: {}): Promise<implicitReturnType> { return this['publicGetV1EarnRates'] (params); }
-    privatePostV1StakingUnstake (params?: {}): Promise<implicitReturnType> { return this['privatePostV1StakingUnstake'] (params); }
-    privatePostV1StakingStake (params?: {}): Promise<implicitReturnType> { return this['privatePostV1StakingStake'] (params); }
-    privatePostV1StakingRewards (params?: {}): Promise<implicitReturnType> { return this['privatePostV1StakingRewards'] (params); }
-    privatePostV1StakingHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostV1StakingHistory'] (params); }
-    privatePostV1OrderNew (params?: {}): Promise<implicitReturnType> { return this['privatePostV1OrderNew'] (params); }
-    privatePostV1OrderCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostV1OrderCancel'] (params); }
-    privatePostV1WrapSymbol (params?: {}): Promise<implicitReturnType> { return this['privatePostV1WrapSymbol'] (params); }
-    privatePostV1OrderCancelSession (params?: {}): Promise<implicitReturnType> { return this['privatePostV1OrderCancelSession'] (params); }
-    privatePostV1OrderCancelAll (params?: {}): Promise<implicitReturnType> { return this['privatePostV1OrderCancelAll'] (params); }
-    privatePostV1OrderStatus (params?: {}): Promise<implicitReturnType> { return this['privatePostV1OrderStatus'] (params); }
-    privatePostV1Orders (params?: {}): Promise<implicitReturnType> { return this['privatePostV1Orders'] (params); }
-    privatePostV1Mytrades (params?: {}): Promise<implicitReturnType> { return this['privatePostV1Mytrades'] (params); }
-    privatePostV1Notionalvolume (params?: {}): Promise<implicitReturnType> { return this['privatePostV1Notionalvolume'] (params); }
-    privatePostV1Tradevolume (params?: {}): Promise<implicitReturnType> { return this['privatePostV1Tradevolume'] (params); }
-    privatePostV1ClearingNew (params?: {}): Promise<implicitReturnType> { return this['privatePostV1ClearingNew'] (params); }
-    privatePostV1ClearingStatus (params?: {}): Promise<implicitReturnType> { return this['privatePostV1ClearingStatus'] (params); }
-    privatePostV1ClearingCancel (params?: {}): Promise<implicitReturnType> { return this['privatePostV1ClearingCancel'] (params); }
-    privatePostV1ClearingConfirm (params?: {}): Promise<implicitReturnType> { return this['privatePostV1ClearingConfirm'] (params); }
-    privatePostV1Balances (params?: {}): Promise<implicitReturnType> { return this['privatePostV1Balances'] (params); }
-    privatePostV1BalancesStaking (params?: {}): Promise<implicitReturnType> { return this['privatePostV1BalancesStaking'] (params); }
-    privatePostV1NotionalbalancesCurrency (params?: {}): Promise<implicitReturnType> { return this['privatePostV1NotionalbalancesCurrency'] (params); }
-    privatePostV1Transfers (params?: {}): Promise<implicitReturnType> { return this['privatePostV1Transfers'] (params); }
-    privatePostV1AddressesNetwork (params?: {}): Promise<implicitReturnType> { return this['privatePostV1AddressesNetwork'] (params); }
-    privatePostV1DepositNetworkNewAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostV1DepositNetworkNewAddress'] (params); }
-    privatePostV1DepositCurrencyNewAddress (params?: {}): Promise<implicitReturnType> { return this['privatePostV1DepositCurrencyNewAddress'] (params); }
-    privatePostV1WithdrawCurrency (params?: {}): Promise<implicitReturnType> { return this['privatePostV1WithdrawCurrency'] (params); }
-    privatePostV1AccountTransferCurrency (params?: {}): Promise<implicitReturnType> { return this['privatePostV1AccountTransferCurrency'] (params); }
-    privatePostV1PaymentsAddbank (params?: {}): Promise<implicitReturnType> { return this['privatePostV1PaymentsAddbank'] (params); }
-    privatePostV1PaymentsMethods (params?: {}): Promise<implicitReturnType> { return this['privatePostV1PaymentsMethods'] (params); }
-    privatePostV1PaymentsSenWithdraw (params?: {}): Promise<implicitReturnType> { return this['privatePostV1PaymentsSenWithdraw'] (params); }
-    privatePostV1BalancesEarn (params?: {}): Promise<implicitReturnType> { return this['privatePostV1BalancesEarn'] (params); }
-    privatePostV1EarnInterest (params?: {}): Promise<implicitReturnType> { return this['privatePostV1EarnInterest'] (params); }
-    privatePostV1EarnHistory (params?: {}): Promise<implicitReturnType> { return this['privatePostV1EarnHistory'] (params); }
-    privatePostV1ApprovedAddressesNetworkRequest (params?: {}): Promise<implicitReturnType> { return this['privatePostV1ApprovedAddressesNetworkRequest'] (params); }
-    privatePostV1ApprovedAddressesAccountNetwork (params?: {}): Promise<implicitReturnType> { return this['privatePostV1ApprovedAddressesAccountNetwork'] (params); }
-    privatePostV1ApprovedAddressesNetworkRemove (params?: {}): Promise<implicitReturnType> { return this['privatePostV1ApprovedAddressesNetworkRemove'] (params); }
-    privatePostV1Account (params?: {}): Promise<implicitReturnType> { return this['privatePostV1Account'] (params); }
-    privatePostV1AccountCreate (params?: {}): Promise<implicitReturnType> { return this['privatePostV1AccountCreate'] (params); }
-    privatePostV1AccountList (params?: {}): Promise<implicitReturnType> { return this['privatePostV1AccountList'] (params); }
-    privatePostV1Heartbeat (params?: {}): Promise<implicitReturnType> { return this['privatePostV1Heartbeat'] (params); }
+interface Exchange {
+     webGetRestApi? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1Symbols? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1SymbolsDetailsSymbol? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1StakingRates? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1PubtickerSymbol? (params?: {}): Promise<implicitReturnType>;
+     publicGetV2TickerSymbol? (params?: {}): Promise<implicitReturnType>;
+     publicGetV2CandlesSymbolTimeframe? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1TradesSymbol? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1AuctionSymbol? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1AuctionSymbolHistory? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1Pricefeed? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1BookSymbol? (params?: {}): Promise<implicitReturnType>;
+     publicGetV1EarnRates? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1StakingUnstake? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1StakingStake? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1StakingRewards? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1StakingHistory? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1OrderNew? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1OrderCancel? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1WrapSymbol? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1OrderCancelSession? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1OrderCancelAll? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1OrderStatus? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1Orders? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1Mytrades? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1Notionalvolume? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1Tradevolume? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1ClearingNew? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1ClearingStatus? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1ClearingCancel? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1ClearingConfirm? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1Balances? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1BalancesStaking? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1NotionalbalancesCurrency? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1Transfers? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1AddressesNetwork? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1DepositNetworkNewAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1DepositCurrencyNewAddress? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1WithdrawCurrency? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1AccountTransferCurrency? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1PaymentsAddbank? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1PaymentsMethods? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1PaymentsSenWithdraw? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1BalancesEarn? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1EarnInterest? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1EarnHistory? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1ApprovedAddressesNetworkRequest? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1ApprovedAddressesAccountNetwork? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1ApprovedAddressesNetworkRemove? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1Account? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1AccountCreate? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1AccountList? (params?: {}): Promise<implicitReturnType>;
+     privatePostV1Heartbeat? (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange
