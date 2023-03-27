@@ -18,6 +18,7 @@ export default abstract class Exchange extends _Exchange {
     abstract publicGetMarketIndexComponents(params?: {}): Promise<implicitReturnType>;
     abstract publicGetMarketOptionInstrumentFamilyTrades(params?: {}): Promise<implicitReturnType>;
     abstract publicGetPublicInstruments(params?: {}): Promise<implicitReturnType>;
+    abstract publicGetPublicInstrumentTickBands(params?: {}): Promise<implicitReturnType>;
     abstract publicGetPublicDeliveryExerciseHistory(params?: {}): Promise<implicitReturnType>;
     abstract publicGetPublicOpenInterest(params?: {}): Promise<implicitReturnType>;
     abstract publicGetPublicFundingRate(params?: {}): Promise<implicitReturnType>;
@@ -45,8 +46,8 @@ export default abstract class Exchange extends _Exchange {
     abstract publicGetRubikStatOptionOpenInterestVolumeStrike(params?: {}): Promise<implicitReturnType>;
     abstract publicGetRubikStatOptionTakerBlockVolume(params?: {}): Promise<implicitReturnType>;
     abstract publicGetSystemStatus(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetAssetLendingRateSummary(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetAssetLendingRateHistory(params?: {}): Promise<implicitReturnType>;
+    abstract publicGetFinanceSavingsLendingRateSummary(params?: {}): Promise<implicitReturnType>;
+    abstract publicGetFinanceSavingsLendingRateHistory(params?: {}): Promise<implicitReturnType>;
     abstract publicGetMarketExchangeRate(params?: {}): Promise<implicitReturnType>;
     abstract privateGetAccountAccountPositionRisk(params?: {}): Promise<implicitReturnType>;
     abstract privateGetAccountBalance(params?: {}): Promise<implicitReturnType>;
@@ -81,8 +82,6 @@ export default abstract class Exchange extends _Exchange {
     abstract privateGetAssetBills(params?: {}): Promise<implicitReturnType>;
     abstract privateGetAssetPiggyBalance(params?: {}): Promise<implicitReturnType>;
     abstract privateGetAssetDepositLightning(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetLendingHistory(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAssetSavingBalance(params?: {}): Promise<implicitReturnType>;
     abstract privateGetAssetNonTradableAssets(params?: {}): Promise<implicitReturnType>;
     abstract privateGetTradeOrder(params?: {}): Promise<implicitReturnType>;
     abstract privateGetTradeOrdersPending(params?: {}): Promise<implicitReturnType>;
@@ -115,6 +114,8 @@ export default abstract class Exchange extends _Exchange {
     abstract privateGetFinanceStakingDefiOffers(params?: {}): Promise<implicitReturnType>;
     abstract privateGetFinanceStakingDefiOrdersActive(params?: {}): Promise<implicitReturnType>;
     abstract privateGetFinanceStakingDefiOrdersHistory(params?: {}): Promise<implicitReturnType>;
+    abstract privateGetFinanceSavingsBalance(params?: {}): Promise<implicitReturnType>;
+    abstract privateGetFinanceSavingsLendingHistory(params?: {}): Promise<implicitReturnType>;
     abstract privateGetRfqCounterparties(params?: {}): Promise<implicitReturnType>;
     abstract privateGetRfqMakerInstrumentSettings(params?: {}): Promise<implicitReturnType>;
     abstract privateGetRfqRfqs(params?: {}): Promise<implicitReturnType>;
@@ -146,9 +147,7 @@ export default abstract class Exchange extends _Exchange {
     abstract privatePostAccountSetAutoLoan(params?: {}): Promise<implicitReturnType>;
     abstract privatePostAssetTransfer(params?: {}): Promise<implicitReturnType>;
     abstract privatePostAssetWithdrawal(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAssetPurchaseRedempt(params?: {}): Promise<implicitReturnType>;
     abstract privatePostAssetWithdrawalLightning(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAssetSetLendingRate(params?: {}): Promise<implicitReturnType>;
     abstract privatePostAssetCancelWithdrawal(params?: {}): Promise<implicitReturnType>;
     abstract privatePostAssetConvertDustAssets(params?: {}): Promise<implicitReturnType>;
     abstract privatePostTradeOrder(params?: {}): Promise<implicitReturnType>;
@@ -178,6 +177,8 @@ export default abstract class Exchange extends _Exchange {
     abstract privatePostFinanceStakingDefiPurchase(params?: {}): Promise<implicitReturnType>;
     abstract privatePostFinanceStakingDefiRedeem(params?: {}): Promise<implicitReturnType>;
     abstract privatePostFinanceStakingDefiCancel(params?: {}): Promise<implicitReturnType>;
+    abstract privatePostFinanceSavingsPurchaseRedempt(params?: {}): Promise<implicitReturnType>;
+    abstract privatePostFinanceSavingsSetLendingRate(params?: {}): Promise<implicitReturnType>;
     abstract privatePostRfqCreateRfq(params?: {}): Promise<implicitReturnType>;
     abstract privatePostRfqCancelRfq(params?: {}): Promise<implicitReturnType>;
     abstract privatePostRfqCancelBatchRfqs(params?: {}): Promise<implicitReturnType>;
