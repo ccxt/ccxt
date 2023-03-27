@@ -10,7 +10,7 @@ const exec = (func)=>{
         result = e.message; 
         sign = '🔴' ;
     }
-    console.log (' ✍  input:' + func.toString().replace(/(.*?)g, o, /,''), ` ${sign} `, result, '\n');
+    console.log (' ✍  input:' + func.toString().replace(/(.*?)g, o, /,''), ` ${sign} `, result);
 };
 
 async function test(){ 
@@ -25,7 +25,7 @@ async function test(){
         // you can comment below two lines to test without simulating exchange-specific tif key
         const simulatedTifKey = 'tiim_in_foo'; // simulate any exchange-specific tif key
         e.options.timeInForceMap[g].exchangeSpecificTifKey = simulatedTifKey;
-        //
+        // mixed exchange-specific and unified key&value
         exec(()=>e.handleRequestTif (g, o, {'postOnly': true }));
         exec(()=>e.handleRequestTif (g, o, {'postOnly': false }));
         exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO'}));
