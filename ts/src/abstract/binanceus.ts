@@ -101,12 +101,14 @@ export default abstract class binance extends _binance {
     abstract sapiGetSubAccountTransferSubUserHistory (params?: {}): Promise<implicitReturnType>;
     abstract sapiGetSubAccountUniversalTransfer (params?: {}): Promise<implicitReturnType>;
     abstract sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (params?: {}): Promise<implicitReturnType>;
+    abstract sapiGetSubAccountTransactionTatistics (params?: {}): Promise<implicitReturnType>;
     abstract sapiGetManagedSubaccountAsset (params?: {}): Promise<implicitReturnType>;
     abstract sapiGetManagedSubaccountAccountSnapshot (params?: {}): Promise<implicitReturnType>;
     abstract sapiGetManagedSubaccountQueryTransLogForInvestor (params?: {}): Promise<implicitReturnType>;
     abstract sapiGetManagedSubaccountQueryTransLogForTradeParent (params?: {}): Promise<implicitReturnType>;
     abstract sapiGetManagedSubaccountFetchFutureAsset (params?: {}): Promise<implicitReturnType>;
     abstract sapiGetManagedSubaccountMarginAsset (params?: {}): Promise<implicitReturnType>;
+    abstract sapiGetManagedSubaccountInfo (params?: {}): Promise<implicitReturnType>;
     abstract sapiGetLendingDailyProductList (params?: {}): Promise<implicitReturnType>;
     abstract sapiGetLendingDailyUserLeftQuota (params?: {}): Promise<implicitReturnType>;
     abstract sapiGetLendingDailyUserRedemptionQuota (params?: {}): Promise<implicitReturnType>;
