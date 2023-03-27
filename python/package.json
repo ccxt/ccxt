@@ -24,9 +24,8 @@
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
-    "generateImplicitApi": "node build/generateImplicitAPI.js",
-    "tsBuild": "(npm run generateImplicitApi && tsc) || true",
-    "emitTypes": "node build/emitTypes.js",
+    "tsBuild": "tsc || true",
+    "emitTypes": "node build/generateImplicitAPI.js && node build/emitTypes.js",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
     "force-build": "npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
     "force-build-slow": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",

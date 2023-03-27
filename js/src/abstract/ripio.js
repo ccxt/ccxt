@@ -6,18 +6,6 @@
 
 // -------------------------------------------------------------------------------
 import { Exchange as _Exchange } from '../base/Exchange.js';
-export default class Exchange extends _Exchange {
-    publicGetRateAll(params) { return this['publicGetRateAll'](params); }
-    publicGetRatePair(params) { return this['publicGetRatePair'](params); }
-    publicGetOrderbookPair(params) { return this['publicGetOrderbookPair'](params); }
-    publicGetTradehistoryPair(params) { return this['publicGetTradehistoryPair'](params); }
-    publicGetPair(params) { return this['publicGetPair'](params); }
-    publicGetCurrency(params) { return this['publicGetCurrency'](params); }
-    publicGetOrderbookPairDepth(params) { return this['publicGetOrderbookPairDepth'](params); }
-    privateGetBalancesExchangeBalances(params) { return this['privateGetBalancesExchangeBalances'](params); }
-    privateGetOrderPairOrderId(params) { return this['privateGetOrderPairOrderId'](params); }
-    privateGetOrderPair(params) { return this['privateGetOrderPair'](params); }
-    privateGetTradePair(params) { return this['privateGetTradePair'](params); }
-    privatePostOrderPair(params) { return this['privatePostOrderPair'](params); }
-    privatePostOrderPairOrderIdCancel(params) { return this['privatePostOrderPairOrderIdCancel'](params); }
+class Exchange extends _Exchange {
 }
+export default Exchange;
