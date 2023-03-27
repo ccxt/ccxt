@@ -639,7 +639,14 @@ public partial class Exchange
 
     public void throwDynamicException(object exception, object message)
     {
-        throw new Exception((string)message); // implement it properly later
+        var Exception = NewException((Type)exception, (string)message);
+        throw Exception;
+    }
+
+    // This function is the salient bit here
+    public Exception NewException(Type exception, String message)
+    {
+        return Activator.CreateInstance(exception, message) as Exception;
     }
 
     public object toFixed(object number, object decimals)

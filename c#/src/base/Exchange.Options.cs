@@ -97,27 +97,7 @@ public partial class Exchange
 
     public object headers { get; set; } = new dict();
 
-
-    // public class exchangeError : Exception { }
-    // public class dDoSProtection : Exception { }
-    // public class rateLimitExceeded : Exception { }
-    // public class exchangeNotAvailable : Exception { }
-    // public class requestTimeout : Exception { }
-    // public class authenticationError : Exception { }
-    // public class badSymbol : Exception { }
-    // public class permissionDenied : Exception { }
-
-    // public Type ExchangeError = typeof(exchangeError);
-    // public Type DoSProtection = typeof(dDoSProtection);
-    // public Type RateLimitExceeded = typeof(rateLimitExceeded);
-    // public Type ExchangeNotAvailable = typeof(exchangeNotAvailable);
-    // public Type RequestTimeout = typeof(requestTimeout);
-    // public Type BadSymbol = typeof(badSymbol);
-    // public Type AuthenticationError = typeof(authenticationError);
-    // public Type InsufficientFunds = typeof(authenticationError);
-    // public Type PermissionDenied = typeof(authenticationError);
-    // public Type BadRequest = typeof(authenticationError);
-    // public Type InvalidOrder = typeof(authenticationError);
+    public dict httpExceptions { get; set; } = new dict();
 
     public virtual object describe()
     {
@@ -346,5 +326,7 @@ public partial class Exchange
         this.timeframes = this.safeValue(properties, "timeframes") as dict;
         this.fees = this.safeValue(properties, "fees") as dict;
         this.has = this.safeValue(properties, "has") as dict;
+        this.httpExceptions = this.safeValue(properties, "httpExceptions") as dict;
+        this.exceptions = this.safeValue(properties, "exceptions") as dict;
     }
 }

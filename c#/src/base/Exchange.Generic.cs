@@ -30,6 +30,25 @@ public partial class Exchange
         }
     }
 
+    public List<object> sortBy2(object array, object key1, object key2, object desc2 = null)
+    {
+        // todo :: check this later
+        desc2 ??= false;
+        var desc = (bool)desc2;
+        var list = (List<object>)array;
+
+        if (key1.GetType() == typeof(string))
+        {
+            var orderByResult = (from s in list
+                                 orderby ((dict)s)[(string)key1], ((dict)s)[(string)key2]
+                                 select s).ToList();
+            if (desc)
+                orderByResult.Reverse();
+            return orderByResult;
+        }
+        return null;
+    }
+
     public List<object> filterBy(object aa, object key, object value)
     {
         var a = (List<object>)aa;
@@ -137,30 +156,6 @@ public partial class Exchange
             }
         }
         return outDict;
-    }
-
-    public List<object> sortBy2(object aa, string k1, string k2)
-    {
-        // todo :: this is wrong fix it later
-        var a = (List<object>)aa;
-        var outList = new List<object>();
-        var keys = new List<string>();
-        foreach (object elem in a)
-        {
-            keys.Add(((dict)elem)[k1].ToString() + ((dict)elem)[k2].ToString());
-        }
-        keys.Sort();
-        foreach (string key in keys)
-        {
-            foreach (object elem in a)
-            {
-                if (((dict)elem)[k1].ToString() + ((dict)elem)[k2].ToString() == key)
-                {
-                    outList.Add(elem);
-                }
-            }
-        }
-        return outList;
     }
 
     public dict groupBy(object trades, object key2)

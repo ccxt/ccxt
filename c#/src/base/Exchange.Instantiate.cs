@@ -13,4 +13,28 @@ public partial class Exchange
 
         return Activator.CreateInstance(type) as Exchange;
     }
+
+    public static object DynamicallyCallMethod(Exchange instance, string methodName, object[] parameters)
+    {
+        var method = instance.GetType().GetMethod(methodName);
+        var paramsLength = method.GetParameters().Count();
+        if (parameters.Count() < paramsLength)
+        {
+            var appendedMissingArgs = new object[paramsLength];
+            for (int i = 0; i < paramsLength; i++)
+            {
+                if (i < parameters.Count())
+                {
+                    appendedMissingArgs[i] = parameters[i];
+                }
+                else
+                {
+                    appendedMissingArgs[i] = null;
+                }
+            }
+            return method.Invoke(instance, appendedMissingArgs);
+
+        }
+        return method.Invoke(instance, parameters);
+    }
 }

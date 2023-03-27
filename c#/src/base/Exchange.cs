@@ -100,6 +100,18 @@ public partial class Exchange
         }
     }
 
+    public void handleHttpStatusCode(object code, object reason, object url, object method, object body)
+    {
+        var codeString = code.ToString();
+        var codeInHttpExceptions = safeValue(this.httpExceptions, codeString);
+        if (codeInHttpExceptions != null)
+        {
+            var errorMessage = this.id + ' ' + method + ' ' + url + ' ' + codeString + ' ' + reason + ' ' + body;
+            var Exception = NewException(codeInHttpExceptions as Type, errorMessage);
+            throw Exception;
+        }
+    }
+
     public async virtual Task<object> fetch(object url2, object method2, object headers2, object body2)
     {
         var url = url2 as String;
@@ -137,6 +149,7 @@ public partial class Exchange
 
         var result = "";
         HttpResponseMessage response = null;
+        object responseBody = null;
         try
         {
             if (method == "GET")
@@ -155,7 +168,7 @@ public partial class Exchange
             }
 
             var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
-            var httpStatusCode = response?.StatusCode;
+            var httpStatusCode = (int)response?.StatusCode;
             var httpStatusText = response?.ReasonPhrase;
 
             if (this.verbose)
@@ -163,7 +176,11 @@ public partial class Exchange
                 this.log("handleRestResponse:\n" + this.id + method + url + " " + httpStatusCode + " " + httpStatusText + "\nResponseHeaders:\n" + this.stringifyObject(responseHeaders) + "\nResponseBody:\n" + result + "\n");
             }
 
-            // handleErrors(httpStatusCode, httpStatusText, url, method, headers, body, result);
+            responseBody = JsonHelper.Deserialize(result);
+
+            var res = handleErrors(httpStatusCode, httpStatusText, url, method, responseHeaders, result, responseBody, headers, body);
+            if (res == null)
+                handleHttpStatusCode(httpStatusCode, httpStatusText, url, method, result);
 
         }
         catch (Exception e)
@@ -171,8 +188,7 @@ public partial class Exchange
             Console.WriteLine(e);
         }
 
-        var converted = JsonHelper.Deserialize(result);
-        return converted;
+        return responseBody;
     }
 
     public async virtual Task<object> fetch2(string path, string api, string method, dict headers, dict body, dict parameters, dict config, dict context = null)
@@ -286,9 +302,6 @@ public partial class Exchange
 
     public virtual Task<object> loadMarkets(dynamic reload2 = null, object parameters2 = null)
     {
-        // parameters ??= new dict();
-        // await fetch("", "", new dict(), new dict());
-        // return new dict();
         reload2 ??= false;
         var reload = (bool)reload2;
         parameters2 ??= new dict();
@@ -349,11 +362,50 @@ public partial class Exchange
         return;
     }
 
-    public virtual void setSandboxMode(object enable)
+    public virtual void setSandboxMode(object enable2)
     {
-        // this.enableRateLimit = enable;
-        // this.enableRateLimit = true;
-        // stub implement later
+        var enable = (bool)enable2;
+        var urls = safeValue(this.urls, "api");
+        var apiBackup = safeValue(this.urls, "apiBackup");
+        if (enable)
+        {
+            var urlsDict = this.urls as dict;
+            var test = safeValue(urlsDict, "test");
+            var api = safeValue(urlsDict, "api");
+            if (test != null)
+            {
+                if (api.GetType() == typeof(string))
+                {
+                    urlsDict["apiBackup"] = urls;
+                    ((dict)this.urls)["api"] = test as dict;
+
+                }
+                else
+                {
+                    urlsDict["apiBackup"] = api;
+                    ((dict)this.urls)["api"] = test; // clone here?
+                }
+            }
+            else
+            {
+                throw new NotSupported("Sandbox mode is not supported by this exchange");
+
+            }
+
+        }
+        else if (apiBackup != null)
+        {
+            if (api.GetType() == typeof(string))
+            {
+                api = apiBackup as dict;
+
+            }
+            else
+            {
+                api = apiBackup as dict; // clone this
+            }
+        }
+
     }
 
     public void throwDynamicException(object broad, object str, object message)

@@ -17,8 +17,7 @@ public partial class Exchange
     public string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex")
     {
         var request = request2 as String;
-        var secretBytes = secret2 as byte[];
-        // var secretBytes = Encoding.UTF8.GetBytes(secret);
+        var secretBytes = Encoding.ASCII.GetBytes((string)secret2);
 
         var algorithm = "md5";
         if (algorithm2 != null)
