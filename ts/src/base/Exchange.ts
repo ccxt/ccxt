@@ -3833,7 +3833,7 @@ export default class Exchange {
                 }
             }
         }
-        const defaultMarketOrderTif = this.safeString (tifOptions, 'defaultMarketOrderTimeInForce');
+        const defaultMarketOrderTif = this.safeString (tifOptions, 'marketOrderRequiredTif');
         if (defaultMarketOrderTif !== exchangeSpecificTifKey) {
             if (isMarketOrder && setRequestTifValue === undefined) {
                 setRequestTifKey = exchangeSpecificTifKey;

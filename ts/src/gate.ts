@@ -512,7 +512,7 @@ export default class gate extends Exchange {
                             'FOK': 'fok',
                             'PO': 'poc',
                         },
-                        'defaultMarketOrderTimeInForce': 'GTC',
+                        'marketOrderRequiredTif': 'GTC',
                     },
                     'contract': {
                         'exchangeSpecificKey': 'tif',
@@ -522,7 +522,7 @@ export default class gate extends Exchange {
                             'FOK': 'fok',
                             'PO': 'poc',
                         },
-                        'defaultMarketOrderTimeInForce': 'GTC',
+                        'marketOrderRequiredTif': 'GTC',
                     },
                     'options': {
                         'exchangeSpecificKey': 'tif',
