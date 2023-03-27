@@ -225,6 +225,7 @@ class binance(Exchange):
                         'asset/assetDetail': 0.1,
                         'asset/tradeFee': 0.1,
                         'asset/ledger-transfer/cloud-mining/queryByPage': 4,
+                        'asset/convert-transfer/queryByPage': 0.033335,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -410,7 +411,6 @@ class binance(Exchange):
                         'asset/transfer': 0.1,
                         'asset/get-funding-asset': 0.1,
                         'asset/convert-transfer': 0.033335,
-                        'asset/convert-transfer/queryByPage': 0.033335,
                         'account/disableFastWithdrawSwitch': 0.1,
                         'account/enableFastWithdrawSwitch': 0.1,
                         # 'account/apiRestrictions/ipRestriction': 1, discontinued

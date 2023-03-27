@@ -14,6 +14,7 @@ export default abstract class binance extends _binance {
     abstract sapiGetAssetAssetDetail(params?: {}): Promise<implicitReturnType>;
     abstract sapiGetAssetTradeFee(params?: {}): Promise<implicitReturnType>;
     abstract sapiGetAssetLedgerTransferCloudMiningQueryByPage(params?: {}): Promise<implicitReturnType>;
+    abstract sapiGetAssetConvertTransferQueryByPage(params?: {}): Promise<implicitReturnType>;
     abstract sapiGetMarginLoan(params?: {}): Promise<implicitReturnType>;
     abstract sapiGetMarginRepay(params?: {}): Promise<implicitReturnType>;
     abstract sapiGetMarginAccount(params?: {}): Promise<implicitReturnType>;
@@ -184,7 +185,6 @@ export default abstract class binance extends _binance {
     abstract sapiPostAssetTransfer(params?: {}): Promise<implicitReturnType>;
     abstract sapiPostAssetGetFundingAsset(params?: {}): Promise<implicitReturnType>;
     abstract sapiPostAssetConvertTransfer(params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostAssetConvertTransferQueryByPage(params?: {}): Promise<implicitReturnType>;
     abstract sapiPostAccountDisableFastWithdrawSwitch(params?: {}): Promise<implicitReturnType>;
     abstract sapiPostAccountEnableFastWithdrawSwitch(params?: {}): Promise<implicitReturnType>;
     abstract sapiPostCapitalWithdrawApply(params?: {}): Promise<implicitReturnType>;
