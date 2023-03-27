@@ -41,6 +41,7 @@ export default class okx extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -2286,6 +2287,70 @@ export default class okx extends Exchange {
             'side': side,
         });
     }
+    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#editOrder
+         * @description edit a trade order
+         * @see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' editOrder() requires a symbol argument');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new NotSupported(this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+        }
+        const request = {
+            'instId': market['id'],
+        };
+        const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clOrdId'] = clientOrderId;
+        }
+        else {
+            request['ordId'] = id;
+        }
+        params = this.omit(params, ['clOrdId', 'clientOrderId']);
+        if (amount !== undefined) {
+            request['newSz'] = this.amountToPrecision(symbol, amount);
+        }
+        if (price !== undefined) {
+            request['newPx'] = this.priceToPrecision(symbol, price);
+        }
+        const response = await this.privatePostTradeAmendOrder(this.extend(request, params));
+        //
+        //     {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                 "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        //                 "ordId": "559176536793178112",
+        //                 "reqId": "",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //            }
+        //        ],
+        //        "msg": ""
+        //     }
+        //
+        const data = this.safeValue(response, 'data', []);
+        const first = this.safeValue(data, 0);
+        const order = this.parseOrder(first, market);
+        return this.extend(order, {
+            'type': type,
+            'side': side,
+        });
+    }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
@@ -2450,6 +2515,16 @@ export default class okx extends Exchange {
         //         "clOrdId": "oktswap6",
         //         "ordId": "312269865356374016",
         //         "tag": "",
+        //         "sCode": "0",
+        //         "sMsg": ""
+        //     }
+        //
+        // editOrder
+        //
+        //     {
+        //         "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        //         "ordId": "559176536793178112",
+        //         "reqId": "",
         //         "sCode": "0",
         //         "sMsg": ""
         //     }

@@ -37,6 +37,7 @@ class okx extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -2258,6 +2259,68 @@ class okx extends Exchange {
         ));
     }
 
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * edit a trade $order
+         * @see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-$order
+         * @param {string} $id $order $id
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of the currency you want to trade in units of the base currency
+         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+        }
+        $request = array(
+            'instId' => $market['id'],
+        );
+        $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clOrdId'] = $clientOrderId;
+        } else {
+            $request['ordId'] = $id;
+        }
+        $params = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
+        if ($amount !== null) {
+            $request['newSz'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if ($price !== null) {
+            $request['newPx'] = $this->price_to_precision($symbol, $price);
+        }
+        $response = $this->privatePostTradeAmendOrder (array_merge($request, $params));
+        //
+        //     {
+        //        "code" => "0",
+        //        "data" => array(
+        //            {
+        //                 "clOrdId" => "e847386590ce4dBCc1a045253497a547",
+        //                 "ordId" => "559176536793178112",
+        //                 "reqId" => "",
+        //                 "sCode" => "0",
+        //                 "sMsg" => ""
+        //            }
+        //        ),
+        //        "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $first = $this->safe_value($data, 0);
+        $order = $this->parse_order($first, $market);
+        return array_merge($order, array(
+            'type' => $type,
+            'side' => $side,
+        ));
+    }
+
     public function cancel_order($id, $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
@@ -2416,6 +2479,16 @@ class okx extends Exchange {
         //         "clOrdId" => "oktswap6",
         //         "ordId" => "312269865356374016",
         //         "tag" => "",
+        //         "sCode" => "0",
+        //         "sMsg" => ""
+        //     }
+        //
+        // editOrder
+        //
+        //     {
+        //         "clOrdId" => "e847386590ce4dBCc1a045253497a547",
+        //         "ordId" => "559176536793178112",
+        //         "reqId" => "",
         //         "sCode" => "0",
         //         "sMsg" => ""
         //     }

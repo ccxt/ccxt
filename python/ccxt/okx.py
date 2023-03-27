@@ -59,6 +59,7 @@ class okx(Exchange):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -2188,6 +2189,62 @@ class okx(Exchange):
             'side': side,
         })
 
+    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order
+        see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
+        request = {
+            'instId': market['id'],
+        }
+        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        if clientOrderId is not None:
+            request['clOrdId'] = clientOrderId
+        else:
+            request['ordId'] = id
+        params = self.omit(params, ['clOrdId', 'clientOrderId'])
+        if amount is not None:
+            request['newSz'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['newPx'] = self.price_to_precision(symbol, price)
+        response = self.privatePostTradeAmendOrder(self.extend(request, params))
+        #
+        #     {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                 "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        #                 "ordId": "559176536793178112",
+        #                 "reqId": "",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #            }
+        #        ],
+        #        "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        first = self.safe_value(data, 0)
+        order = self.parse_order(first, market)
+        return self.extend(order, {
+            'type': type,
+            'side': side,
+        })
+
     def cancel_order(self, id, symbol=None, params={}):
         """
         cancels an open order
@@ -2330,6 +2387,16 @@ class okx(Exchange):
         #         "clOrdId": "oktswap6",
         #         "ordId": "312269865356374016",
         #         "tag": "",
+        #         "sCode": "0",
+        #         "sMsg": ""
+        #     }
+        #
+        # editOrder
+        #
+        #     {
+        #         "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        #         "ordId": "559176536793178112",
+        #         "reqId": "",
         #         "sCode": "0",
         #         "sMsg": ""
         #     }
