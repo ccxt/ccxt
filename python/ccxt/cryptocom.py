@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
@@ -54,6 +55,8 @@ class cryptocom(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRates': False,
@@ -308,6 +311,17 @@ class cryptocom(Exchange):
                     'swap': 'DERIVATIVES',
                     'future': 'DERIVATIVES',
                 },
+                'networks': {
+                    'BEP20': 'BSC',
+                    'ERC20': 'ETH',
+                    'TRX': 'TRON',
+                    'TRC20': 'TRON',
+                },
+                'networksById': {
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'TRON': 'TRC20',
+                },
             },
             # https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -366,6 +380,7 @@ class cryptocom(Exchange):
         :returns [dict]: an array of objects representing market data
         """
         promises = [self.fetch_spot_markets(params), self.fetch_derivatives_markets(params)]
+        # @ts-ignore
         promises = promises
         spotMarkets = promises[0]
         derivativeMarkets = promises[1]
@@ -1116,6 +1131,10 @@ class cryptocom(Exchange):
         }
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId:
+            request['client_oid'] = clientOrderId
+            params = self.omit(params, ['clientOrderId'])
         postOnly = self.safe_value(params, 'postOnly', False)
         if postOnly:
             request['exec_inst'] = 'POST_ONLY'
@@ -2313,6 +2332,66 @@ class cryptocom(Exchange):
                 marginMode = 'cross'
         return [marginMode, params]
 
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        full_name: 'Alchemix',
+        #        default_network: 'ETH',
+        #        network_list: [
+        #          {
+        #            network_id: 'ETH',
+        #            withdrawal_fee: '0.25000000',
+        #            withdraw_enabled: True,
+        #            min_withdrawal_amount: '0.5',
+        #            deposit_enabled: True,
+        #            confirmation_required: '0'
+        #          }
+        #        ]
+        #    }
+        #
+        networkList = self.safe_value(fee, 'network_list')
+        networkListLength = len(networkList)
+        result = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        if networkList is not None:
+            for i in range(0, networkListLength):
+                networkInfo = networkList[i]
+                networkId = self.safe_string(networkInfo, 'network_id')
+                currencyCode = self.safe_string(currency, 'code')
+                networkCode = self.network_id_to_code(networkId, currencyCode)
+                result['networks'][networkCode] = {
+                    'deposit': {'fee': None, 'percentage': None},
+                    'withdraw': {'fee': self.safe_number(networkInfo, 'withdrawal_fee'), 'percentage': False},
+                }
+                if networkListLength == 1:
+                    result['withdraw']['fee'] = self.safe_number(networkInfo, 'withdrawal_fee')
+                    result['withdraw']['percentage'] = False
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.v2PrivatePostPrivateGetCurrencyNetworks(params)
+        data = self.safe_value(response, 'result')
+        currencyMap = self.safe_value(data, 'currency_map')
+        return self.parse_deposit_withdraw_fees(currencyMap, codes, 'full_name')
+
     def nonce(self):
         return self.milliseconds()
 
@@ -2333,7 +2412,7 @@ class cryptocom(Exchange):
             for i in range(0, len(paramsKeys)):
                 strSortKey = strSortKey + str(paramsKeys[i]) + str(requestParams[paramsKeys[i]])
             payload = path + nonce + self.apiKey + strSortKey + nonce
-            signature = self.hmac(self.encode(payload), self.encode(self.secret))
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
             paramsKeysLength = len(paramsKeys)
             body = self.json({
                 'id': nonce,

@@ -3,11 +3,12 @@
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var kucoin = require('./kucoin.js');
+var kucoinfutures$1 = require('./abstract/kucoinfutures.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class kucoinfutures extends kucoin {
+// @ts-expect-error
+class kucoinfutures extends kucoinfutures$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'kucoinfutures',

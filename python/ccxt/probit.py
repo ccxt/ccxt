@@ -1489,7 +1489,7 @@ class probit(Exchange):
             auth = self.apiKey + ':' + self.secret
             auth64 = self.string_to_base64(auth)
             headers = {
-                'Authorization': 'Basic ' + self.decode(auth64),
+                'Authorization': 'Basic ' + auth64,
                 'Content-Type': 'application/json',
             }
             if query:

@@ -1,13 +1,16 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/lbank2.js';
 import { ExchangeError, InvalidAddress, DuplicateOrderId, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { rsa } from './base/functions/rsa.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class lbank2 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -279,7 +282,7 @@ export default class lbank2 extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         // needs to return a list of unified market structures
-        const response = await (this as any).publicGetAccuracy ();
+        const response = await this.publicGetAccuracy ();
         const data = this.safeValue (response, 'data');
         //      [
         //          {
@@ -423,7 +426,7 @@ export default class lbank2 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetTicker24hr (this.extend (request, params));
+        const response = await this.publicGetTicker24hr (this.extend (request, params));
         //
         //      {
         //          "result":"true",
@@ -462,7 +465,7 @@ export default class lbank2 extends Exchange {
         const request = {
             'symbol': 'all',
         };
-        const response = await (this as any).publicGetTicker24hr (this.extend (request, params));
+        const response = await this.publicGetTicker24hr (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
@@ -486,7 +489,7 @@ export default class lbank2 extends Exchange {
             'symbol': market['id'],
             'size': limit,
         };
-        const response = await (this as any).publicGetDepth (this.extend (request, params));
+        const response = await this.publicGetDepth (this.extend (request, params));
         const orderbook = response['data'];
         const timestamp = this.milliseconds ();
         return this.parseOrderBook (orderbook, market['symbol'], timestamp);
@@ -694,7 +697,7 @@ export default class lbank2 extends Exchange {
             'time': this.parseToInt (since / 1000),
             'size': limit, // max 2000
         };
-        const response = await (this as any).publicGetKline (this.extend (request, params));
+        const response = await this.publicGetKline (this.extend (request, params));
         const ohlcvs = this.safeValue (response, 'data', []);
         //
         //
@@ -941,7 +944,7 @@ export default class lbank2 extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await (this as any).privatePostSupplementCustomerTradeFee (this.extend (request, params));
+        const response = await this.privatePostSupplementCustomerTradeFee (this.extend (request, params));
         const fees = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < fees.length; i++) {
@@ -1208,7 +1211,7 @@ export default class lbank2 extends Exchange {
             'symbol': market['id'],
             'orderId': id,
         };
-        const response = await (this as any).privatePostSupplementOrdersInfo (this.extend (request, params));
+        const response = await this.privatePostSupplementOrdersInfo (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1245,7 +1248,7 @@ export default class lbank2 extends Exchange {
             'symbol': market['id'],
             'order_id': id,
         };
-        const response = await (this as any).privatePostOrdersInfo (this.extend (request, params));
+        const response = await this.privatePostOrdersInfo (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1313,7 +1316,7 @@ export default class lbank2 extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.ymd (since, '-'); // max query 2 days ago
         }
-        const response = await (this as any).privatePostTransactionHistory (this.extend (request, params));
+        const response = await this.privatePostTransactionHistory (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1365,7 +1368,7 @@ export default class lbank2 extends Exchange {
             'page_length': limit,
             // 'status'  -1: Cancelled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and cancelled, 4: Cancellation is being processed
         };
-        const response = await (this as any).privatePostSupplementOrdersInfoHistory (this.extend (request, params));
+        const response = await this.privatePostSupplementOrdersInfoHistory (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1422,7 +1425,7 @@ export default class lbank2 extends Exchange {
             'current_page': 1,
             'page_length': limit,
         };
-        const response = await (this as any).privatePostSupplementOrdersInfoNoDeal (this.extend (request, params));
+        const response = await this.privatePostSupplementOrdersInfoNoDeal (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1479,7 +1482,7 @@ export default class lbank2 extends Exchange {
             request['origClientOrderId'] = clientOrderId;
         }
         request['orderId'] = id;
-        const response = await (this as any).privatePostSupplementCancelOrder (this.extend (request, params));
+        const response = await this.privatePostSupplementCancelOrder (this.extend (request, params));
         //
         //   {
         //      "result":true,
@@ -1514,7 +1517,7 @@ export default class lbank2 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).privatePostSupplementCancelOrderBySymbol (this.extend (request, params));
+        const response = await this.privatePostSupplementCancelOrderBySymbol (this.extend (request, params));
         //
         //      {
         //          "result":"true",
@@ -1575,7 +1578,7 @@ export default class lbank2 extends Exchange {
             request['netWork'] = network; // ... yes, really lol
             params = this.omit (params, 'network');
         }
-        const response = await (this as any).privatePostGetDepositAddress (this.extend (request, params));
+        const response = await this.privatePostGetDepositAddress (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1618,7 +1621,7 @@ export default class lbank2 extends Exchange {
             request['networkName'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await (this as any).privatePostSupplementGetDepositAddress (this.extend (request, params));
+        const response = await this.privatePostSupplementGetDepositAddress (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1688,7 +1691,7 @@ export default class lbank2 extends Exchange {
         if (networkId !== undefined) {
             request['networkName'] = networkId;
         }
-        const response = await (this as any).privatePostSupplementWithdraw (this.extend (request, params));
+        const response = await this.privatePostSupplementWithdraw (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1836,7 +1839,7 @@ export default class lbank2 extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await (this as any).privatePostSupplementDepositHistory (this.extend (request, params));
+        const response = await this.privatePostSupplementDepositHistory (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1890,7 +1893,7 @@ export default class lbank2 extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await (this as any).privatePostSupplementWithdraws (this.extend (request, params));
+        const response = await this.privatePostSupplementWithdraws (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1953,7 +1956,7 @@ export default class lbank2 extends Exchange {
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
-        const response = await (this as any).privatePostSupplementUserInfo ();
+        const response = await this.privatePostSupplementUserInfo ();
         //
         //    {
         //        "result": "true",
@@ -2020,7 +2023,7 @@ export default class lbank2 extends Exchange {
             const currency = this.currency (code);
             request['assetCode'] = currency['id'];
         }
-        const response = await (this as any).publicGetWithdrawConfigs (this.extend (request, params));
+        const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
         //
         //    {
         //        result: 'true',
@@ -2098,7 +2101,7 @@ export default class lbank2 extends Exchange {
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
-        const response = await (this as any).privatePostSupplementUserInfo (params);
+        const response = await this.privatePostSupplementUserInfo (params);
         //
         //    {
         //        "result": "true",
@@ -2138,7 +2141,7 @@ export default class lbank2 extends Exchange {
         // vast majority fees undefined
         await this.loadMarkets ();
         const request = {};
-        const response = await (this as any).publicGetWithdrawConfigs (this.extend (request, params));
+        const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
         //
         //    {
         //        result: 'true',
@@ -2308,7 +2311,7 @@ export default class lbank2 extends Exchange {
                 'timestamp': timestamp,
             }, query)));
             const encoded = this.encode (auth);
-            const hash = this.hash (encoded);
+            const hash = this.hash (encoded, sha256);
             const uppercaseHash = hash.toUpperCase ();
             let sign = undefined;
             if (signatureMethod === 'RSA') {
@@ -2323,9 +2326,9 @@ export default class lbank2 extends Exchange {
                 } else {
                     pem = this.convertSecretToPem (this.encode (this.secret));
                 }
-                sign = this.rsa (uppercaseHash, pem);
+                sign = rsa (uppercaseHash, pem, sha256);
             } else if (signatureMethod === 'HmacSHA256') {
-                sign = this.hmac (this.encode (uppercaseHash), this.encode (this.secret));
+                sign = this.hmac (this.encode (uppercaseHash), this.encode (this.secret), sha256);
             }
             query['sign'] = sign;
             body = this.urlencode (this.keysort (query));

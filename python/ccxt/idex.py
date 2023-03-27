@@ -1062,7 +1062,7 @@ class idex(Exchange):
             self.base16_to_binary(noPrefix),
         ]
         binary = self.binary_concat_array(byteArray)
-        hash = self.hash(binary, 'keccak', 'hex')
+        hash = self.hash(binary, keccak, 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
         # {
         #   address: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
@@ -1173,7 +1173,7 @@ class idex(Exchange):
             self.number_to_be(orderVersion, 1),
             self.base16_to_binary(nonce),
             self.base16_to_binary(walletBytes),
-            self.encode(market['id']),  # TODO: refactor to remove either encode or stringToBinary
+            self.encode(market['id']),
             self.number_to_be(typeEnum, 1),
             self.number_to_be(sideEnum, 1),
             self.encode(amountString),
@@ -1195,7 +1195,7 @@ class idex(Exchange):
         ]
         allBytes = self.array_concat(byteArray, after)
         binary = self.binary_concat_array(allBytes)
-        hash = self.hash(binary, 'keccak', 'hex')
+        hash = self.hash(binary, keccak, 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
         request = {
             'parameters': {
@@ -1279,7 +1279,7 @@ class idex(Exchange):
             self.number_to_be(1, 1),  # bool set to True
         ]
         binary = self.binary_concat_array(byteArray)
-        hash = self.hash(binary, 'keccak', 'hex')
+        hash = self.hash(binary, keccak, 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
         request = {
             'parameters': {
@@ -1333,7 +1333,7 @@ class idex(Exchange):
             byteArray.append(self.encode(market['id']))
             request['parameters']['market'] = market['id']
         binary = self.binary_concat_array(byteArray)
-        hash = self.hash(binary, 'keccak', 'hex')
+        hash = self.hash(binary, keccak, 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
         request['signature'] = signature
         # [{orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e'}]
@@ -1361,7 +1361,7 @@ class idex(Exchange):
             self.encode(id),
         ]
         binary = self.binary_concat_array(byteArray)
-        hash = self.hash(binary, 'keccak', 'hex')
+        hash = self.hash(binary, keccak, 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
         request = {
             'parameters': {

@@ -5,7 +5,7 @@ export default class coinbasepro extends coinbaseproRest {
         timestamp: number;
         key: string;
         signature: any;
-        passphrase: any;
+        passphrase: string;
     };
     subscribe(name: any, symbol: any, messageHashStart: any, params?: {}): Promise<any>;
     watchTicker(symbol: any, params?: {}): Promise<any>;

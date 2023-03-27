@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/tidex.js';
 export default class tidex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;

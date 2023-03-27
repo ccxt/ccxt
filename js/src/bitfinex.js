@@ -5,11 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitfinex.js';
 import { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
+import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class bitfinex extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1619,10 +1621,10 @@ export default class bitfinex extends Exchange {
             body = this.json(query);
             const payload = this.stringToBase64(body);
             const secret = this.encode(this.secret);
-            const signature = this.hmac(payload, secret, 'sha384');
+            const signature = this.hmac(payload, secret, sha384);
             headers = {
                 'X-BFX-APIKEY': this.apiKey,
-                'X-BFX-PAYLOAD': this.decode(payload),
+                'X-BFX-PAYLOAD': payload,
                 'X-BFX-SIGNATURE': signature,
                 'Content-Type': 'application/json',
             };

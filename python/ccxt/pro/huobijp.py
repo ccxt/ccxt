@@ -552,10 +552,18 @@ class huobijp(ccxt.async_support.huobijp):
             #
             #     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             #
-            if 'id' in message:
+            #           ________________________
+            #
+            # sometimes huobijp responds with half of a JSON response like
+            #
+            #     ' {"ch":"market.ethbtc.m '
+            #
+            # self is passed to handleMessage string since it failed to be decoded
+            #
+            if self.safe_string(message, 'id') is not None:
                 self.handle_subscription_status(client, message)
-            elif 'ch' in message:
+            elif self.safe_string(message, 'ch') is not None:
                 # route by channel aka topic aka subject
                 self.handle_subject(client, message)
-            elif 'ping' in message:
+            elif self.safe_string(message, 'ping') is not None:
                 self.handle_ping(client, message)

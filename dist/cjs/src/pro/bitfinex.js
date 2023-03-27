@@ -4,9 +4,11 @@ var bitfinex$1 = require('../bitfinex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var Precise = require('../base/Precise.js');
+var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 class bitfinex extends bitfinex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -415,7 +417,7 @@ class bitfinex extends bitfinex$1 {
         if (authenticated === undefined) {
             const nonce = this.milliseconds();
             const payload = 'AUTH' + nonce.toString();
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha384', 'hex');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384, 'hex');
             const request = {
                 'apiKey': this.apiKey,
                 'authSig': signature,

@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
 import numbers
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -214,7 +215,6 @@ class phemex(Exchange):
                         'assets/spots/sub-accounts/transfer',  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/futures/sub-accounts/transfer',  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote',  # ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
-                        'assets/convert',  # ?fromCurrency=<currency>&toCurrency=<currency>&startTime=<start>&endTime=<end>&limit=<limit>&offset=<offset>
                     ],
                     'post': [
                         # spot
@@ -3591,7 +3591,7 @@ class phemex(Exchange):
                 body = payload
                 headers['Content-Type'] = 'application/json'
             auth = requestPath + queryString + expiryString + payload
-            headers['x-phemex-request-signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
+            headers['x-phemex-request-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         url = self.implode_hostname(self.urls['api'][api]) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

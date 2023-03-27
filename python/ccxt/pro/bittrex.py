@@ -815,7 +815,7 @@ class bittrex(ccxt.async_support.bittrex):
                 else:
                     A = self.safe_value(M[i], 'A', [])
                     for k in range(0, len(A)):
-                        inflated = self.inflate64(A[k])
+                        inflated = self.decode(self.inflate(self.base64_to_binary(A[k])))
                         update = json.loads(inflated)
                         method(client, update)
         # resolve invocations by request id

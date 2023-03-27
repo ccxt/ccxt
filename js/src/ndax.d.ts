@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/ndax.js';
 export default class ndax extends Exchange {
     describe(): any;
     signIn(params?: {}): Promise<any>;

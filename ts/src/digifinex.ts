@@ -1,13 +1,15 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/digifinex.js';
 import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class digifinex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -359,7 +361,7 @@ export default class digifinex extends Exchange {
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicSpotGetCurrencies (params);
+        const response = await this.publicSpotGetCurrencies (params);
         //
         //     {
         //         "data":[
@@ -533,7 +535,7 @@ export default class digifinex extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMarketsV2', params);
         const method = (marginMode !== undefined) ? 'publicSpotGetMarginSymbols' : 'publicSpotGetTradesSymbols';
-        let promises = [ this[method] (query), (this as any).publicSwapGetPublicInstruments (params) ];
+        let promises = [ this[method] (query), this.publicSwapGetPublicInstruments (params) ];
         promises = await Promise.all (promises);
         const spotMarkets = promises[0];
         const swapMarkets = promises[1];
@@ -683,7 +685,7 @@ export default class digifinex extends Exchange {
     }
 
     async fetchMarketsV1 (params = {}) {
-        const response = await (this as any).publicSpotGetMarkets (params);
+        const response = await this.publicSpotGetMarkets (params);
         //
         //     {
         //         "data": [
@@ -1329,7 +1331,7 @@ export default class digifinex extends Exchange {
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicSpotGetTime (params);
+        const response = await this.publicSpotGetTime (params);
         //
         //     {
         //         "server_time": 1589873762,
@@ -1347,7 +1349,7 @@ export default class digifinex extends Exchange {
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
-        const response = await (this as any).publicSpotGetPing (params);
+        const response = await this.publicSpotGetPing (params);
         //
         //     {
         //         "msg": "pong",
@@ -1755,7 +1757,7 @@ export default class digifinex extends Exchange {
             'market': orderType,
             'order_id': ids.join (','),
         };
-        const response = await (this as any).privateSpotPostCancelOrder (this.extend (request, params));
+        const response = await this.privateSpotPostSpotOrderCancel (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -2497,7 +2499,7 @@ export default class digifinex extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privateSpotGetDepositAddress (this.extend (request, params));
+        const response = await this.privateSpotGetDepositAddress (this.extend (request, params));
         //
         //     {
         //         "data":[
@@ -2737,7 +2739,7 @@ export default class digifinex extends Exchange {
             'from': fromId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
             'to': toId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
         };
-        const response = await (this as any).privateSpotPostTransfer (this.extend (request, params));
+        const response = await this.privateSpotPostTransfer (this.extend (request, params));
         //
         //     {
         //         "code": 0
@@ -2771,7 +2773,7 @@ export default class digifinex extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const response = await (this as any).privateSpotPostWithdrawNew (this.extend (request, params));
+        const response = await this.privateSpotPostWithdrawNew (this.extend (request, params));
         //
         //     {
         //         "code": 200,
@@ -2789,7 +2791,7 @@ export default class digifinex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await (this as any).privateSpotGetMarginPositions (this.extend (request, params));
+        const response = await this.privateSpotGetMarginPositions (this.extend (request, params));
         //
         //     {
         //         "margin": "45.71246418952618",
@@ -2851,7 +2853,7 @@ export default class digifinex extends Exchange {
     async fetchBorrowRate (code, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        const response = await (this as any).privateSpotGetMarginAssets (this.extend (request, params));
+        const response = await this.privateSpotGetMarginAssets (this.extend (request, params));
         //
         //     {
         //         "list": [
@@ -2890,7 +2892,7 @@ export default class digifinex extends Exchange {
          * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateSpotGetMarginAssets (params);
+        const response = await this.privateSpotGetMarginAssets (params);
         //
         //     {
         //         "list": [
@@ -2971,7 +2973,7 @@ export default class digifinex extends Exchange {
         const request = {
             'instrument_id': market['id'],
         };
-        const response = await (this as any).publicSwapGetPublicFundingRate (this.extend (request, params));
+        const response = await this.publicSwapGetPublicFundingRate (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -3048,7 +3050,7 @@ export default class digifinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicSwapGetPublicFundingRateHistory (this.extend (request, params));
+        const response = await this.publicSwapGetPublicFundingRateHistory (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -3102,7 +3104,7 @@ export default class digifinex extends Exchange {
         const request = {
             'instrument_id': market['id'],
         };
-        const response = await (this as any).privateSwapGetAccountTradingFeeRate (this.extend (request, params));
+        const response = await this.privateSwapGetAccountTradingFeeRate (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -3457,7 +3459,7 @@ export default class digifinex extends Exchange {
                 this.checkRequiredArgument ('setLeverage', side, 'side', [ 'long', 'short' ]);
             }
         }
-        return await (this as any).privateSwapPostAccountLeverage (this.extend (request, params));
+        return await this.privateSwapPostAccountLeverage (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -3496,7 +3498,7 @@ export default class digifinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20 max 100
         }
-        const response = await (this as any).privateSwapGetAccountTransferRecord (this.extend (request, params));
+        const response = await this.privateSwapGetAccountTransferRecord (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -3527,7 +3529,7 @@ export default class digifinex extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicSwapGetPublicInstruments (params);
+        const response = await this.publicSwapGetPublicInstruments (params);
         //
         //     {
         //         "code": 0,
@@ -3629,7 +3631,7 @@ export default class digifinex extends Exchange {
         const request = {
             'instrument_id': market['id'],
         };
-        const response = await (this as any).publicSwapGetPublicInstrument (this.extend (request, params));
+        const response = await this.publicSwapGetPublicInstrument (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -3740,7 +3742,7 @@ export default class digifinex extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicSpotGetCurrencies (params);
+        const response = await this.publicSpotGetCurrencies (params);
         //
         //   {
         //       "data": [
@@ -3873,7 +3875,7 @@ export default class digifinex extends Exchange {
                 nonce = this.nonce ().toString ();
                 auth = urlencoded;
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             if (method === 'GET') {
                 if (urlencoded) {
                     url += '?' + urlencoded;

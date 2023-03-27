@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -401,34 +402,27 @@ class bitmex(Exchange):
             # so let's take the settlCurrency first and then adjust if needed
             type = None
             future = False
-            prediction = False
-            index = False
             symbol = base + '/' + quote + ':' + settle
             expiryDatetime = self.safe_string(market, 'expiry')
             expiry = self.parse8601(expiryDatetime)
             inverse = self.safe_value(market, 'isInverse')
             status = self.safe_string(market, 'state')
             active = status != 'Unlisted'
+            contract = True
             if swap:
                 type = 'swap'
-            elif id.find('B_') >= 0:
-                prediction = True
-                type = 'prediction'
-                symbol = id
             elif expiry is not None:
                 future = True
                 type = 'future'
                 symbol = symbol + '-' + self.yymmdd(expiry)
             else:
-                index = True
-                type = 'index'
-                symbol = id
+                symbol = base + '/' + quote
                 active = False
+                contract = False
             positionId = self.safe_string_2(market, 'positionCurrency', 'underlying')
             position = self.safe_currency_code(positionId)
             positionIsQuote = (position == quote)
             maxOrderQty = self.safe_number(market, 'maxOrderQty')
-            contract = not index
             initMargin = self.safe_string(market, 'initMargin', '1')
             maxLeverage = self.parse_number(Precise.string_div('1', initMargin))
             multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
@@ -447,8 +441,6 @@ class bitmex(Exchange):
                 'swap': swap,
                 'future': future,
                 'option': False,
-                'prediction': prediction,
-                'index': index,
                 'active': active,
                 'contract': contract,
                 'linear': not inverse if contract else None,
@@ -2637,12 +2629,13 @@ class bitmex(Exchange):
                 'Content-Type': 'application/json',
                 'api-key': self.apiKey,
             }
-            expires = self.sum(self.seconds(), str(expires))
-            auth += expires
-            headers['api-expires'] = expires
+            expires = self.sum(self.seconds(), expires)
+            stringExpires = str(expires)
+            auth += stringExpires
+            headers['api-expires'] = stringExpires
             if method == 'POST' or method == 'PUT' or method == 'DELETE':
                 if params:
                     body = self.json(params)
                     auth += body
-            headers['api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
+            headers['api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

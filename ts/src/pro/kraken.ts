@@ -8,6 +8,7 @@ import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class kraken extends krakenRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -556,7 +557,7 @@ export default class kraken extends krakenRest {
         const authenticated = 'authenticated';
         let subscription = this.safeValue (client.subscriptions, authenticated);
         if (subscription === undefined) {
-            const response = await (this as any).privatePostGetWebSocketsToken (params);
+            const response = await this.privatePostGetWebSocketsToken (params);
             //
             //     {
             //         "error":[],

@@ -1,13 +1,15 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btctradeua.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class btctradeua extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -128,7 +130,7 @@ export default class btctradeua extends Exchange {
          * @param {object} params extra parameters specific to the btctradeua api endpoint
          * @returns response from exchange
          */
-        return await (this as any).privatePostAuth (params);
+        return await this.privatePostAuth (params);
     }
 
     parseBalance (response) {
@@ -154,7 +156,7 @@ export default class btctradeua extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostBalance (params);
+        const response = await this.privatePostBalance (params);
         return this.parseBalance (response);
     }
 
@@ -173,8 +175,8 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const bids = await (this as any).publicGetTradesBuySymbol (this.extend (request, params));
-        const asks = await (this as any).publicGetTradesSellSymbol (this.extend (request, params));
+        const bids = await this.publicGetTradesBuySymbol (this.extend (request, params));
+        const asks = await this.publicGetTradesSellSymbol (this.extend (request, params));
         const orderbook = {
             'bids': [],
             'asks': [],
@@ -267,7 +269,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetJapanStatHighSymbol (this.extend (request, params));
+        const response = await this.publicGetJapanStatHighSymbol (this.extend (request, params));
         const ticker = this.safeValue (response, 'trades');
         //
         // {
@@ -393,7 +395,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetDealsSymbol (this.extend (request, params));
+        const response = await this.publicGetDealsSymbol (this.extend (request, params));
         // they report each trade twice (once for both of the two sides of the fill)
         // deduplicate trades for that reason
         const trades = [];
@@ -447,7 +449,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'id': id,
         };
-        return await (this as any).privatePostRemoveOrderId (this.extend (request, params));
+        return await this.privatePostRemoveOrderId (this.extend (request, params));
     }
 
     parseOrder (order, market = undefined) {
@@ -502,7 +504,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).privatePostMyOrdersSymbol (this.extend (request, params));
+        const response = await this.privatePostMyOrdersSymbol (this.extend (request, params));
         const orders = this.safeValue (response, 'your_open_orders');
         return this.parseOrders (orders, market, since, limit);
     }
@@ -528,7 +530,7 @@ export default class btctradeua extends Exchange {
             const auth = body + this.secret;
             headers = {
                 'public-key': this.apiKey,
-                'api-sign': this.hash (this.encode (auth), 'sha256'),
+                'api-sign': this.hash (this.encode (auth), sha256),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }

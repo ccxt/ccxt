@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.precise import Precise
@@ -1126,7 +1127,7 @@ class cex(ccxt.async_support.cex):
             self.check_required_credentials()
             nonce = str(self.seconds())
             auth = nonce + self.apiKey
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             request = {
                 'e': 'auth',
                 'auth': {

@@ -16,7 +16,7 @@ export default async (exchange) => {
         'ccex',
         'liqui',
         'dsx',
-    ]).reduce((params, id) => (Object.assign(Object.assign({}, params), { [id]: [randomSymbols] })), {});
+    ]).reduce((params, id) => ({ ...params, [id]: [randomSymbols] }), {});
     const args = (exchange.id in customExchangeParams) ? customExchangeParams[exchange.id] : [];
     if (exchange.has[method]) {
         const orderbooks = await exchange[method](...args);

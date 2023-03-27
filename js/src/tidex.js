@@ -4,10 +4,12 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/tidex.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+// @ts-expect-error
 export default class tidex extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -974,7 +976,7 @@ export default class tidex extends Exchange {
                 'nonce': nonce,
                 'method': path,
             }, query));
-            const signature = this.hmac(this.encode(body), this.encode(this.secret), 'sha512');
+            const signature = this.hmac(this.encode(body), this.encode(this.secret), sha512);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,

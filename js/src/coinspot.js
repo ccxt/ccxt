@@ -5,10 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coinspot.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class coinspot extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -436,7 +438,7 @@ export default class coinspot extends Exchange {
             headers = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,
-                'sign': this.hmac(this.encode(body), this.encode(this.secret), 'sha512'),
+                'sign': this.hmac(this.encode(body), this.encode(this.secret), sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

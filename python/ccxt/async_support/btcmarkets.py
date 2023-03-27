@@ -635,7 +635,7 @@ class btcmarkets(Exchange):
         request = {
             'id': market['id'],
         }
-        response = await self.publicGetMarketIdTick(self.extend(request, params))
+        response = await self.publicGetMarketsMarketIdTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
@@ -1104,7 +1104,7 @@ class btcmarkets(Exchange):
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
-            secret = self.base64_to_binary(self.encode(self.secret))
+            secret = self.base64_to_binary(self.secret)
             auth = method + request + nonce
             if (method == 'GET') or (method == 'DELETE'):
                 if query:

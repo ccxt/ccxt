@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitrue.js';
 export default class bitrue extends Exchange {
     describe(): any;
     costToPrecision(symbol: any, cost: any): any;

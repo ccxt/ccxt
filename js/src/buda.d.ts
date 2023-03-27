@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/buda.js';
 export default class buda extends Exchange {
     describe(): any;
     fetchCurrencyInfo(currency: any, currencies?: any): Promise<any>;

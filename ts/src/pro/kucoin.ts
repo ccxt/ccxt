@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class kucoin extends kucoinRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -58,7 +59,7 @@ export default class kucoin extends kucoinRest {
         let response = undefined;
         const connectId = privateChannel ? 'private' : 'public';
         if (privateChannel) {
-            response = await (this as any).privatePostBulletPrivate (params);
+            response = await this.privatePostBulletPrivate (params);
             //
             //     {
             //         code: "200000",
@@ -77,7 +78,7 @@ export default class kucoin extends kucoinRest {
             //     }
             //
         } else {
-            response = await (this as any).publicPostBulletPublic (params);
+            response = await this.publicPostBulletPublic (params);
         }
         const data = this.safeValue (response, 'data', {});
         const instanceServers = this.safeValue (data, 'instanceServers', []);

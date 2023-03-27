@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
@@ -296,7 +297,7 @@ class ndax(Exchange):
                 raise AuthenticationError(self.id + ' signIn() requires exchange.twofa credentials')
             self.options['pending2faToken'] = pending2faToken
             request = {
-                'Code': self.oath(),
+                'Code': self.totp(self.twofa),
             }
             response = await self.publicGetAuthenticate2FA(self.extend(request, params))
             #
@@ -2219,7 +2220,7 @@ class ndax(Exchange):
         }
         withdrawRequest = {
             'TfaType': 'Google',
-            'TFaCode': self.oath(),
+            'TFaCode': self.totp(self.twofa),
             'Payload': self.json(withdrawPayload),
         }
         response = await self.privatePostCreateWithdrawTicket(self.deep_extend(withdrawRequest, params))
@@ -2236,7 +2237,7 @@ class ndax(Exchange):
                 auth = self.login + ':' + self.password
                 auth64 = self.string_to_base64(auth)
                 headers = {
-                    'Authorization': 'Basic ' + self.decode(auth64),
+                    'Authorization': 'Basic ' + auth64,
                     # 'Content-Type': 'application/json',
                 }
             elif path == 'Authenticate2FA':
@@ -2255,7 +2256,7 @@ class ndax(Exchange):
             if sessionToken is None:
                 nonce = str(self.nonce())
                 auth = nonce + self.uid + self.apiKey
-                signature = self.hmac(self.encode(auth), self.encode(self.secret))
+                signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 headers = {
                     'Nonce': nonce,
                     'APIKey': self.apiKey,

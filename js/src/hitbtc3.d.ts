@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/hitbtc3.js';
 export default class hitbtc3 extends Exchange {
     describe(): any;
     nonce(): number;

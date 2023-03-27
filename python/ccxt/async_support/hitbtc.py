@@ -1387,10 +1387,10 @@ class hitbtc(Exchange):
                     url += '?' + self.urlencode(query)
             elif query:
                 body = self.json(query)
-            payload = self.encode(self.apiKey + ':' + self.secret)
+            payload = self.apiKey + ':' + self.secret
             auth = self.string_to_base64(payload)
             headers = {
-                'Authorization': 'Basic ' + self.decode(auth),
+                'Authorization': 'Basic ' + auth,
                 'Content-Type': 'application/json',
             }
         url = self.urls['api'][api] + url

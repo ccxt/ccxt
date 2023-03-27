@@ -2637,6 +2637,6 @@ class hitbtc3(Exchange):
             payloadString = ''.join(payload)
             signature = self.hmac(self.encode(payloadString), self.encode(self.secret), hashlib.sha256, 'hex')
             secondPayload = self.apiKey + ':' + signature + ':' + timestamp
-            encoded = self.decode(self.string_to_base64(secondPayload))
+            encoded = self.string_to_base64(secondPayload)
             headers['Authorization'] = 'HS256 ' + encoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

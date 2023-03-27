@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var alpaca$1 = require('./abstract/alpaca.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------xs
-class alpaca extends Exchange["default"] {
+// @ts-expect-error
+class alpaca extends alpaca$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'alpaca',

@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/mexc3.js';
 export default class mexc3 extends Exchange {
     describe(): any;
     fetchStatus(params?: {}): Promise<{

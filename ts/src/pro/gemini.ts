@@ -3,8 +3,10 @@
 import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError } from '../base/errors.js';
+import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 export default class gemini extends geminiRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -639,8 +641,8 @@ export default class gemini extends geminiRest {
             'request': request,
             'nonce': this.nonce (),
         };
-        const b64 = this.stringToBase64 (this.encode (this.json (payload)));
-        const signature = this.hmac (b64, this.encode (this.secret), 'sha384', 'hex');
+        const b64 = this.stringToBase64 (this.json (payload));
+        const signature = this.hmac (b64, this.encode (this.secret), sha384, 'hex');
         const defaultOptions = {
             'ws': {
                 'options': {
@@ -652,7 +654,7 @@ export default class gemini extends geminiRest {
         const originalHeaders = this.options['ws']['options']['headers'];
         const headers = {
             'X-GEMINI-APIKEY': this.apiKey,
-            'X-GEMINI-PAYLOAD': this.decode (b64),
+            'X-GEMINI-PAYLOAD': b64,
             'X-GEMINI-SIGNATURE': signature,
         };
         this.options['ws']['options']['headers'] = headers;

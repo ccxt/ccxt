@@ -187,3 +187,8 @@ export interface DepositAddressResponse {
 
 /** [ timestamp, open, high, low, close, volume ] */
 export type OHLCV = [number, number, number, number, number, number];
+
+/** [ timestamp, open, high, low, close, volume, count ] */
+export type OHLCVC = [number, number, number, number, number, number, number];
+
+export type implicitReturnType = any;

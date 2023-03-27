@@ -1,12 +1,14 @@
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/ace.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class ace extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -168,7 +170,7 @@ export default class ace extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetOapiV2ListMarketPair ();
+        const response = await this.publicGetOapiV2ListMarketPair ();
         //
         //     [
         //         {
@@ -291,7 +293,7 @@ export default class ace extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await (this as any).publicGetOapiV2ListTradePrice (params);
+        const response = await this.publicGetOapiV2ListTradePrice (params);
         const marketId = market['id'];
         const ticker = this.safeValue (response, marketId, {});
         //
@@ -317,7 +319,7 @@ export default class ace extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetOapiV2ListTradePrice ();
+        const response = await this.publicGetOapiV2ListTradePrice ();
         //
         //     {
         //         "BTC/USDT":{
@@ -359,7 +361,7 @@ export default class ace extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const response = await (this as any).publicGetOpenV2PublicGetOrderBook (this.extend (request, params));
+        const response = await this.publicGetOpenV2PublicGetOrderBook (this.extend (request, params));
         //
         //     {
         //         "attachment": {
@@ -457,7 +459,7 @@ export default class ace extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await (this as any).privatePostV2KlineGetKline (this.extend (request, params));
+        const response = await this.privatePostV2KlineGetKline (this.extend (request, params));
         const data = this.safeValue (response, 'attachment', []);
         //
         //     {
@@ -614,7 +616,7 @@ export default class ace extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await (this as any).privatePostV2OrderOrder (this.extend (request, params), params);
+        const response = await this.privatePostV2OrderOrder (this.extend (request, params));
         //
         //     {
         //         "attachment": "15697850529570392100421100482693",
@@ -642,7 +644,7 @@ export default class ace extends Exchange {
         const request = {
             'orderNo': id,
         };
-        const response = await (this as any).privatePostV2OrderCancel (this.extend (request, params));
+        const response = await this.privatePostV2OrderCancel (this.extend (request, params));
         //
         //     {
         //         "attachment": 200,
@@ -668,7 +670,7 @@ export default class ace extends Exchange {
         const request = {
             'orderNo': id,
         };
-        const response = await (this as any).privatePostV2OrderShowOrderStatus (this.extend (request, params));
+        const response = await this.privatePostV2OrderShowOrderStatus (this.extend (request, params));
         //
         //     {
         //         "attachment": {
@@ -720,7 +722,7 @@ export default class ace extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await (this as any).privatePostV2OrderGetOrderList (this.extend (request, params), params);
+        const response = await this.privatePostV2OrderGetOrderList (this.extend (request, params));
         const orders = this.safeValue (response, 'attachment');
         //
         //     {
@@ -852,7 +854,7 @@ export default class ace extends Exchange {
         const request = {
             'orderNo': id,
         };
-        const response = await (this as any).privatePostV2OrderShowOrderHistory (this.extend (request, params));
+        const response = await this.privatePostV2OrderShowOrderHistory (this.extend (request, params));
         //
         //     {
         //         "attachment": {
@@ -919,7 +921,7 @@ export default class ace extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default 10, max 500
         }
-        const response = await (this as any).privatePostV2OrderGetTradeList (this.extend (request, params));
+        const response = await this.privatePostV2OrderGetTradeList (this.extend (request, params));
         //
         //     {
         //         "attachment": [
@@ -994,7 +996,7 @@ export default class ace extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostV2CoinCustomerAccount (params);
+        const response = await this.privatePostV2CoinCustomerAccount (params);
         const balances = this.safeValue (response, 'attachment', []);
         //
         //     {
@@ -1035,7 +1037,7 @@ export default class ace extends Exchange {
                 const key = sortedDataKeys[i];
                 auth += this.safeString (data, key);
             }
-            const signature = this.hash (this.encode (auth), 'sha256', 'hex');
+            const signature = this.hash (this.encode (auth), sha256, 'hex');
             data['signKey'] = signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

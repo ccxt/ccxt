@@ -1,13 +1,15 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/okcoin.js';
 import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class okcoin extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -255,7 +257,6 @@ export default class okcoin extends Exchange {
                         'fills',
                         'trade_fee',
                         'accounts/{instrument_id}/holds',
-                        'order_algo/{instrument_id}',
                         // public
                         'instruments',
                         'instruments/{instrument_id}/book',
@@ -331,8 +332,6 @@ export default class okcoin extends Exchange {
                         'cancel_algos',
                         'close_position',
                         'cancel_all',
-                        'order_algo',
-                        'cancel_algos',
                     ],
                 },
                 'option': {
@@ -788,7 +787,7 @@ export default class okcoin extends Exchange {
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).generalGetTime (params);
+        const response = await this.generalGetTime (params);
         //
         //     {
         //         "iso": "2015-01-07T23:47:25.201Z",
@@ -1003,10 +1002,10 @@ export default class okcoin extends Exchange {
 
     async fetchMarketsByType (type, params = {}) {
         if (type === 'option') {
-            const underlying = await (this as any).optionGetUnderlying (params);
+            const underlying = await this.optionGetUnderlying (params);
             let result = [];
             for (let i = 0; i < underlying.length; i++) {
-                const response = await (this as any).optionGetInstrumentsUnderlying ({
+                const response = await this.optionGetInstrumentsUnderlying ({
                     'underlying': underlying[i],
                 });
                 //
@@ -1117,7 +1116,7 @@ export default class okcoin extends Exchange {
             }
             return undefined;
         } else {
-            const response = await (this as any).accountGetCurrencies (params);
+            const response = await this.accountGetCurrencies (params);
             //
             //     [
             //         {
@@ -2564,7 +2563,7 @@ export default class okcoin extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).accountGetDepositAddress (this.extend (request, params));
+        const response = await this.accountGetDepositAddress (this.extend (request, params));
         //
         //     [
         //         {
@@ -2615,7 +2614,7 @@ export default class okcoin extends Exchange {
             request['from'] = '0';
             request['to'] = '6';
         }
-        const response = await (this as any).accountPostTransfer (this.extend (request, params));
+        const response = await this.accountPostTransfer (this.extend (request, params));
         //
         //      {
         //          "transfer_id": "754147",
@@ -2702,7 +2701,7 @@ export default class okcoin extends Exchange {
         if (!('trade_pwd' in request)) {
             throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a password / trade_pwd parameter');
         }
-        const response = await (this as any).accountPostWithdrawal (this.extend (request, query));
+        const response = await this.accountPostWithdrawal (this.extend (request, query));
         //
         //     {
         //         "amount":"0.1",
@@ -3810,7 +3809,7 @@ export default class okcoin extends Exchange {
                 }
                 headers['Content-Type'] = 'application/json';
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             headers['OK-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

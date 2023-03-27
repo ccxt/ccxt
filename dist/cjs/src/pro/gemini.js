@@ -3,9 +3,11 @@
 var gemini$1 = require('../gemini.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
+var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+// @ts-expect-error
 class gemini extends gemini$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -623,8 +625,8 @@ class gemini extends gemini$1 {
             'request': request,
             'nonce': this.nonce(),
         };
-        const b64 = this.stringToBase64(this.encode(this.json(payload)));
-        const signature = this.hmac(b64, this.encode(this.secret), 'sha384', 'hex');
+        const b64 = this.stringToBase64(this.json(payload));
+        const signature = this.hmac(b64, this.encode(this.secret), sha512.sha384, 'hex');
         const defaultOptions = {
             'ws': {
                 'options': {
@@ -636,7 +638,7 @@ class gemini extends gemini$1 {
         const originalHeaders = this.options['ws']['options']['headers'];
         const headers = {
             'X-GEMINI-APIKEY': this.apiKey,
-            'X-GEMINI-PAYLOAD': this.decode(b64),
+            'X-GEMINI-PAYLOAD': b64,
             'X-GEMINI-SIGNATURE': signature,
         };
         this.options['ws']['options']['headers'] = headers;

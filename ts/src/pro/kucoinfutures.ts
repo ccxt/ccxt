@@ -6,6 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class kucoinfutures extends kucoinfuturesRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -67,7 +68,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         let response = undefined;
         const connectId = privateChannel ? 'private' : 'public';
         if (privateChannel) {
-            response = await (this as any).futuresPrivatePostBulletPrivate (params);
+            response = await this.futuresPrivatePostBulletPrivate (params);
             //
             //     {
             //         code: "200000",
@@ -86,7 +87,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             //     }
             //
         } else {
-            response = await (this as any).futuresPublicPostBulletPublic (params);
+            response = await this.futuresPublicPostBulletPublic (params);
         }
         const data = this.safeValue (response, 'data', {});
         const instanceServers = this.safeValue (data, 'instanceServers', []);

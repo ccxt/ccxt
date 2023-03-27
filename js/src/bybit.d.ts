@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bybit.js';
 export default class bybit extends Exchange {
     describe(): any;
     nonce(): number;

@@ -6,6 +6,7 @@ import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class ripio extends ripioRest {
     describe () {
         return this.deepExtend (super.describe (), {
