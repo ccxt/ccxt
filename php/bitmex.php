@@ -390,35 +390,28 @@ class bitmex extends Exchange {
             // so let's take the settlCurrency first and then adjust if needed
             $type = null;
             $future = false;
-            $prediction = false;
-            $index = false;
             $symbol = $base . '/' . $quote . ':' . $settle;
             $expiryDatetime = $this->safe_string($market, 'expiry');
             $expiry = $this->parse8601($expiryDatetime);
             $inverse = $this->safe_value($market, 'isInverse');
             $status = $this->safe_string($market, 'state');
             $active = $status !== 'Unlisted';
+            $contract = true;
             if ($swap) {
                 $type = 'swap';
-            } elseif (mb_strpos($id, 'B_') !== false) {
-                $prediction = true;
-                $type = 'prediction';
-                $symbol = $id;
             } elseif ($expiry !== null) {
                 $future = true;
                 $type = 'future';
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
             } else {
-                $index = true;
-                $type = 'index';
-                $symbol = $id;
+                $symbol = $base . '/' . $quote;
                 $active = false;
+                $contract = false;
             }
             $positionId = $this->safe_string_2($market, 'positionCurrency', 'underlying');
             $position = $this->safe_currency_code($positionId);
             $positionIsQuote = ($position === $quote);
             $maxOrderQty = $this->safe_number($market, 'maxOrderQty');
-            $contract = !$index;
             $initMargin = $this->safe_string($market, 'initMargin', '1');
             $maxLeverage = $this->parse_number(Precise::string_div('1', $initMargin));
             $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
@@ -437,8 +430,6 @@ class bitmex extends Exchange {
                 'swap' => $swap,
                 'future' => $future,
                 'option' => false,
-                'prediction' => $prediction,
-                'index' => $index,
                 'active' => $active,
                 'contract' => $contract,
                 'linear' => $contract ? !$inverse : null,
