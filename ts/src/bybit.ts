@@ -1104,7 +1104,7 @@ export default class bybit extends Exchange {
                 },
                 'timeInForceMap': {
                     'v5unified': {
-                        'exchangeSpecificKey': 'timeInForce',
+                        'exchangeSpecificTifKey': 'timeInForce',
                         'unifiedToExchange': {
                             'GTC': 'GTC',
                             'IOC': 'IOC',
