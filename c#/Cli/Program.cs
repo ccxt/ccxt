@@ -19,8 +19,8 @@ public static class Program
         public bool Sandbox { get; set; }
     }
 
-    // public static string exchangesPath = "exchanges.json";
-    public static string exchangesPath = "../../exchanges.json"; // when using debugguer
+    public static string exchangesPath = "exchanges.json";
+    // public static string exchangesPath = "../../exchanges.json"; // when using debugguer
 
     public static List<string> exchangesId;
     public static List<Exchange> exchanges = new List<Exchange>();
