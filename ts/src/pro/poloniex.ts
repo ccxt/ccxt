@@ -94,8 +94,6 @@ export default class poloniex extends poloniexRest {
         if (future === undefined) {
             const accessPath = '/ws';
             const requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
-            // let expires = this.milliseconds () + 10000;
-            // expires = expires.toString ();
             const signature = this.hmac (this.encode (requestString), this.encode (this.secret), sha256, 'base64');
             const request = {
                 'event': 'subscribe',
