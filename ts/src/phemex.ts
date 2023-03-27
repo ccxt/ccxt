@@ -589,8 +589,11 @@ export default class phemex extends Exchange {
         //
         //     {
         //         "symbol":"sBTCUSDT",
+        //         "code":1001,
         //         "displaySymbol":"BTC / USDT",
         //         "quoteCurrency":"USDT",
+        //         "priceScale":8,
+        //         "ratioScale":8,
         //         "pricePrecision":2,
         //         "type":"Spot",
         //         "baseCurrency":"BTC",
@@ -611,8 +614,11 @@ export default class phemex extends Exchange {
         //         "baseQtyPrecision":6,
         //         "quoteQtyPrecision":2,
         //         "status":"Listed",
-        //         "tipOrderQty":20
-        //     }
+        //         "tipOrderQty":2,
+        //         "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        //         "leverage":5
+        //         "valueScale":8,
+        //     },
         //
         const type = this.safeStringLower (market, 'type');
         const id = this.safeString (market, 'symbol');
@@ -649,9 +655,9 @@ export default class phemex extends Exchange {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
-            'priceScale': 8,
-            'valueScale': 8,
-            'ratioScale': 8,
+            'priceScale': this.safeNumber (market, 'priceScale'),
+            'valueScale': this.safeNumber (market, 'valueScale'),
+            'ratioScale': this.safeNumber (market, 'ratioScale'),
             'precision': {
                 'amount': precisionAmount,
                 'price': precisionPrice,
@@ -694,9 +700,9 @@ export default class phemex extends Exchange {
         //         "data":{
         //             "ratioScale":8,
         //             "currencies":[
-        //                 {"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
-        //                 {"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
-        //                 {"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
+        //                 {"code":1,"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
+        //                 {"code":2,"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
+        //                 {"code":3,"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
         //             ],
         //             "products":[
         //                 {
@@ -722,8 +728,11 @@ export default class phemex extends Exchange {
         //                 },
         //                 {
         //                     "symbol":"sBTCUSDT",
+        //                     "code":1001,
         //                     "displaySymbol":"BTC / USDT",
         //                     "quoteCurrency":"USDT",
+        //                     "priceScale":8,
+        //                     "ratioScale":8,
         //                     "pricePrecision":2,
         //                     "type":"Spot",
         //                     "baseCurrency":"BTC",
@@ -742,7 +751,11 @@ export default class phemex extends Exchange {
         //                     "defaultMakerFee":"0.001",
         //                     "defaultMakerFeeEr":100000,
         //                     "baseQtyPrecision":6,
-        //                     "quoteQtyPrecision":2
+        //                     "quoteQtyPrecision":2,
+        //                     "status":"Listed",
+        //                     "tipOrderQty":2,
+        //                     "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        //                     "leverage":5
         //                 },
         //             ],
         //             "riskLimits":[
@@ -804,8 +817,10 @@ export default class phemex extends Exchange {
         const v2ProductsData = this.safeValue (v2Products, 'data', {});
         const products = this.safeValue (v2ProductsData, 'products', []);
         const riskLimits = this.safeValue (v2ProductsData, 'riskLimits', []);
+        const currencies = this.safeValue (v2ProductsData, 'currencies', []);
         const riskLimitsById = this.indexBy (riskLimits, 'symbol');
         const v1ProductsById = this.indexBy (v1ProductsData, 'symbol');
+        const currenciesByCode = this.indexBy (currencies, 'currency');
         const result = [];
         for (let i = 0; i < products.length; i++) {
             let market = products[i];
@@ -818,6 +833,10 @@ export default class phemex extends Exchange {
                 market = this.extend (market, v1ProductsValues);
                 market = this.parseSwapMarket (market);
             } else {
+                const baseCurrency = this.safeString (market, 'baseCurrency');
+                const currencyValues = this.safeValue (currenciesByCode, baseCurrency, {});
+                const valueScale = this.safeString (currencyValues, 'valueScale', '8');
+                market = this.extend (market, {'valueScale': valueScale});
                 market = this.parseSpotMarket (market);
             }
             result.push (market);
