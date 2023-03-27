@@ -8,488 +8,488 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract sapiGetSystemStatus (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAccountSnapshot (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginAsset (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginPair (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginAllAssets (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginAllPairs (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginPriceIndex (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAssetAssetDividend (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAssetDribblet (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAssetAssetDetail (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAssetTradeFee (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAssetLedgerTransferCloudMiningQueryByPage (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAssetConvertTransferQueryByPage (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginLoan (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginRepay (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginAccount (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginInterestHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginForceLiquidationRec (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginOrder (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginAllOrders (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginMyTrades (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginMaxBorrowable (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginMaxTransferable (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginTradeCoeff (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginIsolatedTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginIsolatedAccount (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginIsolatedPair (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginIsolatedAllPairs (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginIsolatedAccountLimit (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginInterestRateHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginOrderList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginAllOrderList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginOpenOrderList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginCrossMarginData (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginIsolatedMarginData (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginIsolatedMarginTier (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginRateLimitOrder (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginDribblet (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginCrossMarginCollateralRatio (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginExchangeSmallLiability (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginExchangeSmallLiabilityHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMarginNextHourlyInterestRate (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLoanIncome (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLoanOngoingOrders (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLoanLtvAdjustmentHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLoanBorrowHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLoanRepayHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLoanLoanableData (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLoanCollateralData (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLoanRepayCollateralRate (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLoanVipOngoingOrders (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLoanVipRepayHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLoanVipCollateralAccount (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetFiatOrders (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetFiatPayments (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetFuturesTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetFuturesLoanBorrowHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetFuturesLoanRepayHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetFuturesLoanWallet (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetFuturesLoanAdjustCollateralHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetFuturesLoanLiquidationHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetRebateTaxQuery (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetCapitalConfigGetall (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetCapitalDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetCapitalDepositSubAddress (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetCapitalDepositSubHisrec (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetCapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetCapitalContractConvertibleCoins (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetConvertTradeFlow (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetConvertExchangeInfo (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetConvertAssetInfo (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetConvertOrderStatus (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAccountStatus (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAccountApiTradingStatus (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAccountApiRestrictionsIpRestriction (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBnbBurn (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetSubAccountFuturesAccount (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetSubAccountFuturesAccountSummary (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetSubAccountFuturesPositionRisk (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetSubAccountFuturesInternalTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetSubAccountList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetSubAccountMarginAccount (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetSubAccountMarginAccountSummary (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetSubAccountSpotSummary (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetSubAccountStatus (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetSubAccountSubTransferHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetSubAccountTransferSubUserHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetSubAccountUniversalTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetSubAccountTransactionTatistics (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetManagedSubaccountAsset (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetManagedSubaccountAccountSnapshot (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetManagedSubaccountQueryTransLogForInvestor (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetManagedSubaccountQueryTransLogForTradeParent (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetManagedSubaccountFetchFutureAsset (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetManagedSubaccountMarginAsset (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetManagedSubaccountInfo (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLendingDailyProductList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLendingDailyUserLeftQuota (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLendingDailyUserRedemptionQuota (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLendingDailyTokenPosition (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLendingUnionAccount (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLendingUnionPurchaseRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLendingUnionRedemptionRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLendingUnionInterestHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLendingProjectList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetLendingProjectPositionList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMiningPubAlgoList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMiningPubCoinList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMiningWorkerDetail (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMiningWorkerList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMiningPaymentList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMiningStatisticsUserStatus (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMiningStatisticsUserList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetMiningPaymentUid (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBswapPools (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBswapLiquidity (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBswapLiquidityOps (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBswapQuote (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBswapSwap (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBswapPoolConfigure (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBswapAddLiquidityPreview (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBswapRemoveLiquidityPreview (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBswapUnclaimedRewards (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBswapClaimedHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBlvtTokenInfo (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBlvtSubscribeRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBlvtRedeemRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBlvtUserLimit (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetApiReferralIfNewUser (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetApiReferralCustomization (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetApiReferralUserCustomization (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetApiReferralRebateRecentRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetApiReferralRebateHistoricalRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetApiReferralKickbackRecentRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetApiReferralKickbackHistoricalRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerSubAccountApi (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerSubAccount (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerSubAccountApiCommissionFutures (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerSubAccountApiCommissionCoinFutures (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerInfo (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerTransferFutures (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerRebateRecentRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerRebateHistoricalRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerSubAccountBnbBurnStatus (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerSubAccountDepositHist (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerSubAccountSpotSummary (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerSubAccountMarginSummary (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerSubAccountFuturesSummary (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerRebateFuturesRecentRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerSubAccountApiIpRestriction (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetBrokerUniversalTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAccountApiRestrictions (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetC2cOrderMatchListUserOrderHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetNftHistoryTransactions (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetNftHistoryDeposit (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetNftHistoryWithdraw (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetNftUserGetAsset (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetPayTransactions (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetGiftcardVerify (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetGiftcardCryptographyRsaPublicKey (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetGiftcardBuyCodeTokenLimit (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAlgoFuturesOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAlgoFuturesHistoricalOrders (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetAlgoFuturesSubOrders (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetPortfolioAccount (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetPortfolioCollateralRate (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetPortfolioPmLoan (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetPortfolioInterestHistory (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetPortfolioInterestRate (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetStakingProductList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetStakingPosition (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetStakingStakingRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiGetStakingPersonalLeftQuota (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostAssetDust (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostAssetDustBtc (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostAssetTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostAssetGetFundingAsset (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostAssetConvertTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostAccountDisableFastWithdrawSwitch (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostAccountEnableFastWithdrawSwitch (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostCapitalWithdrawApply (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostCapitalContractConvertibleCoins (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostMarginTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostMarginLoan (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostMarginRepay (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostMarginOrder (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostMarginOrderOco (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostMarginExchangeSmallLiability (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostMarginIsolatedTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostMarginIsolatedAccount (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBnbBurn (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostSubAccountVirtualSubAccount (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostSubAccountMarginTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostSubAccountMarginEnable (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostSubAccountFuturesEnable (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostSubAccountFuturesTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostSubAccountFuturesInternalTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostSubAccountTransferSubToSub (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostSubAccountTransferSubToMaster (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostSubAccountUniversalTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostManagedSubaccountDeposit (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostManagedSubaccountWithdraw (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostUserDataStream (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostUserDataStreamIsolated (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostFuturesTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostLendingCustomizedFixedPurchase (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostLendingDailyPurchase (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostLendingDailyRedeem (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBswapLiquidityAdd (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBswapLiquidityRemove (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBswapSwap (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBswapClaimRewards (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBlvtSubscribe (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBlvtRedeem (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostApiReferralCustomization (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostApiReferralUserCustomization (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostApiReferralRebateHistoricalRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostApiReferralKickbackHistoricalRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccount (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccountMargin (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccountFutures (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccountApi (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccountApiPermission (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccountApiCommission (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccountApiCommissionFutures (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccountApiCommissionCoinFutures (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerTransferFutures (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerRebateHistoricalRecord (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccountBnbBurnSpot (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccountBnbBurnMarginInterest (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccountBlvt (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccountApiIpRestriction (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccountApiIpRestrictionIpList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerUniversalTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccountApiPermissionUniversalTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostBrokerSubAccountApiPermissionVanillaOptions (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostGiftcardCreateCode (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostGiftcardRedeemCode (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostGiftcardBuyCode (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostAlgoFuturesNewOrderVp (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostAlgoFuturesNewOrderTwap (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostStakingPurchase (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostStakingRedeem (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostStakingSetAutoStaking (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostPortfolioRepay (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostLoanBorrow (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostLoanRepay (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostLoanAdjustLtv (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostLoanCustomizeMarginCall (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostLoanVipRepay (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostConvertGetQuote (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPostConvertAcceptQuote (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPutUserDataStream (params?: {}): Promise<implicitReturnType>;
-    abstract sapiPutUserDataStreamIsolated (params?: {}): Promise<implicitReturnType>;
-    abstract sapiDeleteMarginOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract sapiDeleteMarginOrder (params?: {}): Promise<implicitReturnType>;
-    abstract sapiDeleteMarginOrderList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiDeleteMarginIsolatedAccount (params?: {}): Promise<implicitReturnType>;
-    abstract sapiDeleteUserDataStream (params?: {}): Promise<implicitReturnType>;
-    abstract sapiDeleteUserDataStreamIsolated (params?: {}): Promise<implicitReturnType>;
-    abstract sapiDeleteBrokerSubAccountApi (params?: {}): Promise<implicitReturnType>;
-    abstract sapiDeleteBrokerSubAccountApiIpRestrictionIpList (params?: {}): Promise<implicitReturnType>;
-    abstract sapiDeleteAlgoFuturesOrder (params?: {}): Promise<implicitReturnType>;
-    abstract sapiV2GetSubAccountFuturesAccount (params?: {}): Promise<implicitReturnType>;
-    abstract sapiV2GetSubAccountFuturesPositionRisk (params?: {}): Promise<implicitReturnType>;
-    abstract sapiV3GetSubAccountAssets (params?: {}): Promise<implicitReturnType>;
-    abstract sapiV3PostAssetGetUserAsset (params?: {}): Promise<implicitReturnType>;
-    abstract sapiV4GetSubAccountAssets (params?: {}): Promise<implicitReturnType>;
-    abstract wapiPostWithdraw (params?: {}): Promise<implicitReturnType>;
-    abstract wapiPostSubAccountTransfer (params?: {}): Promise<implicitReturnType>;
-    abstract wapiGetDepositHistory (params?: {}): Promise<implicitReturnType>;
-    abstract wapiGetWithdrawHistory (params?: {}): Promise<implicitReturnType>;
-    abstract wapiGetDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract wapiGetAccountStatus (params?: {}): Promise<implicitReturnType>;
-    abstract wapiGetSystemStatus (params?: {}): Promise<implicitReturnType>;
-    abstract wapiGetApiTradingStatus (params?: {}): Promise<implicitReturnType>;
-    abstract wapiGetUserAssetDribbletLog (params?: {}): Promise<implicitReturnType>;
-    abstract wapiGetTradeFee (params?: {}): Promise<implicitReturnType>;
-    abstract wapiGetAssetDetail (params?: {}): Promise<implicitReturnType>;
-    abstract wapiGetSubAccountList (params?: {}): Promise<implicitReturnType>;
-    abstract wapiGetSubAccountTransferHistory (params?: {}): Promise<implicitReturnType>;
-    abstract wapiGetSubAccountAssets (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetPing (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetTime (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetExchangeInfo (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetDepth (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetTrades (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetHistoricalTrades (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetAggTrades (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetPremiumIndex (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetFundingRate (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetKlines (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetContinuousKlines (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetIndexPriceKlines (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetMarkPriceKlines (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetTicker24hr (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetTickerBookTicker (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetOpenInterest (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPublicGetPmExchangeInfo (params?: {}): Promise<implicitReturnType>;
-    abstract dapiDataGetOpenInterestHist (params?: {}): Promise<implicitReturnType>;
-    abstract dapiDataGetTopLongShortAccountRatio (params?: {}): Promise<implicitReturnType>;
-    abstract dapiDataGetTopLongShortPositionRatio (params?: {}): Promise<implicitReturnType>;
-    abstract dapiDataGetGlobalLongShortAccountRatio (params?: {}): Promise<implicitReturnType>;
-    abstract dapiDataGetTakerBuySellVol (params?: {}): Promise<implicitReturnType>;
-    abstract dapiDataGetBasis (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetPositionSideDual (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetOrder (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetOpenOrder (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetAllOrders (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetBalance (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetAccount (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetPositionMarginHistory (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetPositionRisk (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetUserTrades (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetIncome (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetLeverageBracket (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetForceOrders (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetAdlQuantile (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetOrderAmendment (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateGetPmAccountInfo (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivatePostPositionSideDual (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivatePostCountdownCancelAll (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivatePostLeverage (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivatePostMarginType (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivatePostPositionMargin (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivatePostListenKey (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivatePutListenKey (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivatePutOrder (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivatePutBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateDeleteOrder (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateDeleteAllOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateDeleteBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateDeleteListenKey (params?: {}): Promise<implicitReturnType>;
-    abstract dapiPrivateV2GetLeverageBracket (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetPing (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetTime (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetExchangeInfo (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetDepth (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetTrades (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetHistoricalTrades (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetAggTrades (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetKlines (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetContinuousKlines (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetMarkPriceKlines (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetIndexPriceKlines (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetFundingRate (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetPremiumIndex (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetTicker24hr (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetTickerBookTicker (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetOpenInterest (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetIndexInfo (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetApiTradingStatus (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetLvtKlines (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPublicGetPmExchangeInfo (params?: {}): Promise<implicitReturnType>;
-    abstract fapiDataGetOpenInterestHist (params?: {}): Promise<implicitReturnType>;
-    abstract fapiDataGetTopLongShortAccountRatio (params?: {}): Promise<implicitReturnType>;
-    abstract fapiDataGetTopLongShortPositionRatio (params?: {}): Promise<implicitReturnType>;
-    abstract fapiDataGetGlobalLongShortAccountRatio (params?: {}): Promise<implicitReturnType>;
-    abstract fapiDataGetTakerlongshortRatio (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetForceOrders (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetAllOrders (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetOpenOrder (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetOrder (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetAccount (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetBalance (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetLeverageBracket (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetPositionMarginHistory (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetPositionRisk (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetPositionSideDual (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetUserTrades (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetIncome (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetCommissionRate (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetApiTradingStatus (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetMultiAssetsMargin (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetApiReferralIfNewUser (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetApiReferralCustomization (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetApiReferralUserCustomization (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetApiReferralTraderNum (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetApiReferralOverview (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetApiReferralTradeVol (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetApiReferralRebateVol (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetApiReferralTraderSummary (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetAdlQuantile (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateGetPmAccountInfo (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivatePostPositionSideDual (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivatePostPositionMargin (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivatePostMarginType (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivatePostLeverage (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivatePostListenKey (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivatePostCountdownCancelAll (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivatePostMultiAssetsMargin (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivatePostApiReferralCustomization (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivatePostApiReferralUserCustomization (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivatePutListenKey (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateDeleteBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateDeleteOrder (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateDeleteAllOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateDeleteListenKey (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateV2GetAccount (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateV2GetBalance (params?: {}): Promise<implicitReturnType>;
-    abstract fapiPrivateV2GetPositionRisk (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPublicGetPing (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPublicGetTime (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPublicGetExchangeInfo (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPublicGetIndex (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPublicGetTicker (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPublicGetMark (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPublicGetDepth (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPublicGetKlines (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPublicGetTrades (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPublicGetHistoricalTrades (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPublicGetExerciseHistory (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPublicGetOpenInterest (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateGetAccount (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateGetPosition (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateGetHistoryOrders (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateGetUserTrades (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateGetExerciseRecord (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateGetBill (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateGetMarginAccount (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateGetMmp (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateGetCountdownCancelAll (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateGetOrder (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivatePostListenKey (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivatePostMmpSet (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivatePostMmpReset (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivatePostCountdownCancelAll (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivatePostCountdownCancelAllHeartBeat (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivatePutListenKey (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateDeleteOrder (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateDeleteBatchOrders (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateDeleteAllOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateDeleteAllOpenOrdersByUnderlying (params?: {}): Promise<implicitReturnType>;
-    abstract eapiPrivateDeleteListenKey (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetPing (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTime (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetDepth (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetAggTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetHistoricalTrades (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetKlines (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTicker24hr (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickerBookTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetExchangeInfo (params?: {}): Promise<implicitReturnType>;
-    abstract publicPutUserDataStream (params?: {}): Promise<implicitReturnType>;
-    abstract publicPostUserDataStream (params?: {}): Promise<implicitReturnType>;
-    abstract publicDeleteUserDataStream (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAllOrderList (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOpenOrderList (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrderList (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAllOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccount (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetMyTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetRateLimitOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetMyPreventedMatches (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderOco (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderCancelReplace (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderTest (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrderList (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
+export default class Exchange extends _Exchange {
+    sapiGetSystemStatus (params?: {}): Promise<implicitReturnType> { return this["sapiGetSystemStatus"] (params); }
+    sapiGetAccountSnapshot (params?: {}): Promise<implicitReturnType> { return this["sapiGetAccountSnapshot"] (params); }
+    sapiGetMarginAsset (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginAsset"] (params); }
+    sapiGetMarginPair (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginPair"] (params); }
+    sapiGetMarginAllAssets (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginAllAssets"] (params); }
+    sapiGetMarginAllPairs (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginAllPairs"] (params); }
+    sapiGetMarginPriceIndex (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginPriceIndex"] (params); }
+    sapiGetAssetAssetDividend (params?: {}): Promise<implicitReturnType> { return this["sapiGetAssetAssetDividend"] (params); }
+    sapiGetAssetDribblet (params?: {}): Promise<implicitReturnType> { return this["sapiGetAssetDribblet"] (params); }
+    sapiGetAssetTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiGetAssetTransfer"] (params); }
+    sapiGetAssetAssetDetail (params?: {}): Promise<implicitReturnType> { return this["sapiGetAssetAssetDetail"] (params); }
+    sapiGetAssetTradeFee (params?: {}): Promise<implicitReturnType> { return this["sapiGetAssetTradeFee"] (params); }
+    sapiGetAssetLedgerTransferCloudMiningQueryByPage (params?: {}): Promise<implicitReturnType> { return this["sapiGetAssetLedgerTransferCloudMiningQueryByPage"] (params); }
+    sapiGetAssetConvertTransferQueryByPage (params?: {}): Promise<implicitReturnType> { return this["sapiGetAssetConvertTransferQueryByPage"] (params); }
+    sapiGetMarginLoan (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginLoan"] (params); }
+    sapiGetMarginRepay (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginRepay"] (params); }
+    sapiGetMarginAccount (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginAccount"] (params); }
+    sapiGetMarginTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginTransfer"] (params); }
+    sapiGetMarginInterestHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginInterestHistory"] (params); }
+    sapiGetMarginForceLiquidationRec (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginForceLiquidationRec"] (params); }
+    sapiGetMarginOrder (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginOrder"] (params); }
+    sapiGetMarginOpenOrders (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginOpenOrders"] (params); }
+    sapiGetMarginAllOrders (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginAllOrders"] (params); }
+    sapiGetMarginMyTrades (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginMyTrades"] (params); }
+    sapiGetMarginMaxBorrowable (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginMaxBorrowable"] (params); }
+    sapiGetMarginMaxTransferable (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginMaxTransferable"] (params); }
+    sapiGetMarginTradeCoeff (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginTradeCoeff"] (params); }
+    sapiGetMarginIsolatedTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginIsolatedTransfer"] (params); }
+    sapiGetMarginIsolatedAccount (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginIsolatedAccount"] (params); }
+    sapiGetMarginIsolatedPair (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginIsolatedPair"] (params); }
+    sapiGetMarginIsolatedAllPairs (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginIsolatedAllPairs"] (params); }
+    sapiGetMarginIsolatedAccountLimit (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginIsolatedAccountLimit"] (params); }
+    sapiGetMarginInterestRateHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginInterestRateHistory"] (params); }
+    sapiGetMarginOrderList (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginOrderList"] (params); }
+    sapiGetMarginAllOrderList (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginAllOrderList"] (params); }
+    sapiGetMarginOpenOrderList (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginOpenOrderList"] (params); }
+    sapiGetMarginCrossMarginData (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginCrossMarginData"] (params); }
+    sapiGetMarginIsolatedMarginData (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginIsolatedMarginData"] (params); }
+    sapiGetMarginIsolatedMarginTier (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginIsolatedMarginTier"] (params); }
+    sapiGetMarginRateLimitOrder (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginRateLimitOrder"] (params); }
+    sapiGetMarginDribblet (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginDribblet"] (params); }
+    sapiGetMarginCrossMarginCollateralRatio (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginCrossMarginCollateralRatio"] (params); }
+    sapiGetMarginExchangeSmallLiability (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginExchangeSmallLiability"] (params); }
+    sapiGetMarginExchangeSmallLiabilityHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginExchangeSmallLiabilityHistory"] (params); }
+    sapiGetMarginNextHourlyInterestRate (params?: {}): Promise<implicitReturnType> { return this["sapiGetMarginNextHourlyInterestRate"] (params); }
+    sapiGetLoanIncome (params?: {}): Promise<implicitReturnType> { return this["sapiGetLoanIncome"] (params); }
+    sapiGetLoanOngoingOrders (params?: {}): Promise<implicitReturnType> { return this["sapiGetLoanOngoingOrders"] (params); }
+    sapiGetLoanLtvAdjustmentHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetLoanLtvAdjustmentHistory"] (params); }
+    sapiGetLoanBorrowHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetLoanBorrowHistory"] (params); }
+    sapiGetLoanRepayHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetLoanRepayHistory"] (params); }
+    sapiGetLoanLoanableData (params?: {}): Promise<implicitReturnType> { return this["sapiGetLoanLoanableData"] (params); }
+    sapiGetLoanCollateralData (params?: {}): Promise<implicitReturnType> { return this["sapiGetLoanCollateralData"] (params); }
+    sapiGetLoanRepayCollateralRate (params?: {}): Promise<implicitReturnType> { return this["sapiGetLoanRepayCollateralRate"] (params); }
+    sapiGetLoanVipOngoingOrders (params?: {}): Promise<implicitReturnType> { return this["sapiGetLoanVipOngoingOrders"] (params); }
+    sapiGetLoanVipRepayHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetLoanVipRepayHistory"] (params); }
+    sapiGetLoanVipCollateralAccount (params?: {}): Promise<implicitReturnType> { return this["sapiGetLoanVipCollateralAccount"] (params); }
+    sapiGetFiatOrders (params?: {}): Promise<implicitReturnType> { return this["sapiGetFiatOrders"] (params); }
+    sapiGetFiatPayments (params?: {}): Promise<implicitReturnType> { return this["sapiGetFiatPayments"] (params); }
+    sapiGetFuturesTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiGetFuturesTransfer"] (params); }
+    sapiGetFuturesLoanBorrowHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetFuturesLoanBorrowHistory"] (params); }
+    sapiGetFuturesLoanRepayHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetFuturesLoanRepayHistory"] (params); }
+    sapiGetFuturesLoanWallet (params?: {}): Promise<implicitReturnType> { return this["sapiGetFuturesLoanWallet"] (params); }
+    sapiGetFuturesLoanAdjustCollateralHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetFuturesLoanAdjustCollateralHistory"] (params); }
+    sapiGetFuturesLoanLiquidationHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetFuturesLoanLiquidationHistory"] (params); }
+    sapiGetRebateTaxQuery (params?: {}): Promise<implicitReturnType> { return this["sapiGetRebateTaxQuery"] (params); }
+    sapiGetCapitalConfigGetall (params?: {}): Promise<implicitReturnType> { return this["sapiGetCapitalConfigGetall"] (params); }
+    sapiGetCapitalDepositAddress (params?: {}): Promise<implicitReturnType> { return this["sapiGetCapitalDepositAddress"] (params); }
+    sapiGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType> { return this["sapiGetCapitalDepositHisrec"] (params); }
+    sapiGetCapitalDepositSubAddress (params?: {}): Promise<implicitReturnType> { return this["sapiGetCapitalDepositSubAddress"] (params); }
+    sapiGetCapitalDepositSubHisrec (params?: {}): Promise<implicitReturnType> { return this["sapiGetCapitalDepositSubHisrec"] (params); }
+    sapiGetCapitalWithdrawHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetCapitalWithdrawHistory"] (params); }
+    sapiGetCapitalContractConvertibleCoins (params?: {}): Promise<implicitReturnType> { return this["sapiGetCapitalContractConvertibleCoins"] (params); }
+    sapiGetConvertTradeFlow (params?: {}): Promise<implicitReturnType> { return this["sapiGetConvertTradeFlow"] (params); }
+    sapiGetConvertExchangeInfo (params?: {}): Promise<implicitReturnType> { return this["sapiGetConvertExchangeInfo"] (params); }
+    sapiGetConvertAssetInfo (params?: {}): Promise<implicitReturnType> { return this["sapiGetConvertAssetInfo"] (params); }
+    sapiGetConvertOrderStatus (params?: {}): Promise<implicitReturnType> { return this["sapiGetConvertOrderStatus"] (params); }
+    sapiGetAccountStatus (params?: {}): Promise<implicitReturnType> { return this["sapiGetAccountStatus"] (params); }
+    sapiGetAccountApiTradingStatus (params?: {}): Promise<implicitReturnType> { return this["sapiGetAccountApiTradingStatus"] (params); }
+    sapiGetAccountApiRestrictionsIpRestriction (params?: {}): Promise<implicitReturnType> { return this["sapiGetAccountApiRestrictionsIpRestriction"] (params); }
+    sapiGetBnbBurn (params?: {}): Promise<implicitReturnType> { return this["sapiGetBnbBurn"] (params); }
+    sapiGetSubAccountFuturesAccount (params?: {}): Promise<implicitReturnType> { return this["sapiGetSubAccountFuturesAccount"] (params); }
+    sapiGetSubAccountFuturesAccountSummary (params?: {}): Promise<implicitReturnType> { return this["sapiGetSubAccountFuturesAccountSummary"] (params); }
+    sapiGetSubAccountFuturesPositionRisk (params?: {}): Promise<implicitReturnType> { return this["sapiGetSubAccountFuturesPositionRisk"] (params); }
+    sapiGetSubAccountFuturesInternalTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiGetSubAccountFuturesInternalTransfer"] (params); }
+    sapiGetSubAccountList (params?: {}): Promise<implicitReturnType> { return this["sapiGetSubAccountList"] (params); }
+    sapiGetSubAccountMarginAccount (params?: {}): Promise<implicitReturnType> { return this["sapiGetSubAccountMarginAccount"] (params); }
+    sapiGetSubAccountMarginAccountSummary (params?: {}): Promise<implicitReturnType> { return this["sapiGetSubAccountMarginAccountSummary"] (params); }
+    sapiGetSubAccountSpotSummary (params?: {}): Promise<implicitReturnType> { return this["sapiGetSubAccountSpotSummary"] (params); }
+    sapiGetSubAccountStatus (params?: {}): Promise<implicitReturnType> { return this["sapiGetSubAccountStatus"] (params); }
+    sapiGetSubAccountSubTransferHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetSubAccountSubTransferHistory"] (params); }
+    sapiGetSubAccountTransferSubUserHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetSubAccountTransferSubUserHistory"] (params); }
+    sapiGetSubAccountUniversalTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiGetSubAccountUniversalTransfer"] (params); }
+    sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (params?: {}): Promise<implicitReturnType> { return this["sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList"] (params); }
+    sapiGetSubAccountTransactionTatistics (params?: {}): Promise<implicitReturnType> { return this["sapiGetSubAccountTransactionTatistics"] (params); }
+    sapiGetManagedSubaccountAsset (params?: {}): Promise<implicitReturnType> { return this["sapiGetManagedSubaccountAsset"] (params); }
+    sapiGetManagedSubaccountAccountSnapshot (params?: {}): Promise<implicitReturnType> { return this["sapiGetManagedSubaccountAccountSnapshot"] (params); }
+    sapiGetManagedSubaccountQueryTransLogForInvestor (params?: {}): Promise<implicitReturnType> { return this["sapiGetManagedSubaccountQueryTransLogForInvestor"] (params); }
+    sapiGetManagedSubaccountQueryTransLogForTradeParent (params?: {}): Promise<implicitReturnType> { return this["sapiGetManagedSubaccountQueryTransLogForTradeParent"] (params); }
+    sapiGetManagedSubaccountFetchFutureAsset (params?: {}): Promise<implicitReturnType> { return this["sapiGetManagedSubaccountFetchFutureAsset"] (params); }
+    sapiGetManagedSubaccountMarginAsset (params?: {}): Promise<implicitReturnType> { return this["sapiGetManagedSubaccountMarginAsset"] (params); }
+    sapiGetManagedSubaccountInfo (params?: {}): Promise<implicitReturnType> { return this["sapiGetManagedSubaccountInfo"] (params); }
+    sapiGetLendingDailyProductList (params?: {}): Promise<implicitReturnType> { return this["sapiGetLendingDailyProductList"] (params); }
+    sapiGetLendingDailyUserLeftQuota (params?: {}): Promise<implicitReturnType> { return this["sapiGetLendingDailyUserLeftQuota"] (params); }
+    sapiGetLendingDailyUserRedemptionQuota (params?: {}): Promise<implicitReturnType> { return this["sapiGetLendingDailyUserRedemptionQuota"] (params); }
+    sapiGetLendingDailyTokenPosition (params?: {}): Promise<implicitReturnType> { return this["sapiGetLendingDailyTokenPosition"] (params); }
+    sapiGetLendingUnionAccount (params?: {}): Promise<implicitReturnType> { return this["sapiGetLendingUnionAccount"] (params); }
+    sapiGetLendingUnionPurchaseRecord (params?: {}): Promise<implicitReturnType> { return this["sapiGetLendingUnionPurchaseRecord"] (params); }
+    sapiGetLendingUnionRedemptionRecord (params?: {}): Promise<implicitReturnType> { return this["sapiGetLendingUnionRedemptionRecord"] (params); }
+    sapiGetLendingUnionInterestHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetLendingUnionInterestHistory"] (params); }
+    sapiGetLendingProjectList (params?: {}): Promise<implicitReturnType> { return this["sapiGetLendingProjectList"] (params); }
+    sapiGetLendingProjectPositionList (params?: {}): Promise<implicitReturnType> { return this["sapiGetLendingProjectPositionList"] (params); }
+    sapiGetMiningPubAlgoList (params?: {}): Promise<implicitReturnType> { return this["sapiGetMiningPubAlgoList"] (params); }
+    sapiGetMiningPubCoinList (params?: {}): Promise<implicitReturnType> { return this["sapiGetMiningPubCoinList"] (params); }
+    sapiGetMiningWorkerDetail (params?: {}): Promise<implicitReturnType> { return this["sapiGetMiningWorkerDetail"] (params); }
+    sapiGetMiningWorkerList (params?: {}): Promise<implicitReturnType> { return this["sapiGetMiningWorkerList"] (params); }
+    sapiGetMiningPaymentList (params?: {}): Promise<implicitReturnType> { return this["sapiGetMiningPaymentList"] (params); }
+    sapiGetMiningStatisticsUserStatus (params?: {}): Promise<implicitReturnType> { return this["sapiGetMiningStatisticsUserStatus"] (params); }
+    sapiGetMiningStatisticsUserList (params?: {}): Promise<implicitReturnType> { return this["sapiGetMiningStatisticsUserList"] (params); }
+    sapiGetMiningPaymentUid (params?: {}): Promise<implicitReturnType> { return this["sapiGetMiningPaymentUid"] (params); }
+    sapiGetBswapPools (params?: {}): Promise<implicitReturnType> { return this["sapiGetBswapPools"] (params); }
+    sapiGetBswapLiquidity (params?: {}): Promise<implicitReturnType> { return this["sapiGetBswapLiquidity"] (params); }
+    sapiGetBswapLiquidityOps (params?: {}): Promise<implicitReturnType> { return this["sapiGetBswapLiquidityOps"] (params); }
+    sapiGetBswapQuote (params?: {}): Promise<implicitReturnType> { return this["sapiGetBswapQuote"] (params); }
+    sapiGetBswapSwap (params?: {}): Promise<implicitReturnType> { return this["sapiGetBswapSwap"] (params); }
+    sapiGetBswapPoolConfigure (params?: {}): Promise<implicitReturnType> { return this["sapiGetBswapPoolConfigure"] (params); }
+    sapiGetBswapAddLiquidityPreview (params?: {}): Promise<implicitReturnType> { return this["sapiGetBswapAddLiquidityPreview"] (params); }
+    sapiGetBswapRemoveLiquidityPreview (params?: {}): Promise<implicitReturnType> { return this["sapiGetBswapRemoveLiquidityPreview"] (params); }
+    sapiGetBswapUnclaimedRewards (params?: {}): Promise<implicitReturnType> { return this["sapiGetBswapUnclaimedRewards"] (params); }
+    sapiGetBswapClaimedHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetBswapClaimedHistory"] (params); }
+    sapiGetBlvtTokenInfo (params?: {}): Promise<implicitReturnType> { return this["sapiGetBlvtTokenInfo"] (params); }
+    sapiGetBlvtSubscribeRecord (params?: {}): Promise<implicitReturnType> { return this["sapiGetBlvtSubscribeRecord"] (params); }
+    sapiGetBlvtRedeemRecord (params?: {}): Promise<implicitReturnType> { return this["sapiGetBlvtRedeemRecord"] (params); }
+    sapiGetBlvtUserLimit (params?: {}): Promise<implicitReturnType> { return this["sapiGetBlvtUserLimit"] (params); }
+    sapiGetApiReferralIfNewUser (params?: {}): Promise<implicitReturnType> { return this["sapiGetApiReferralIfNewUser"] (params); }
+    sapiGetApiReferralCustomization (params?: {}): Promise<implicitReturnType> { return this["sapiGetApiReferralCustomization"] (params); }
+    sapiGetApiReferralUserCustomization (params?: {}): Promise<implicitReturnType> { return this["sapiGetApiReferralUserCustomization"] (params); }
+    sapiGetApiReferralRebateRecentRecord (params?: {}): Promise<implicitReturnType> { return this["sapiGetApiReferralRebateRecentRecord"] (params); }
+    sapiGetApiReferralRebateHistoricalRecord (params?: {}): Promise<implicitReturnType> { return this["sapiGetApiReferralRebateHistoricalRecord"] (params); }
+    sapiGetApiReferralKickbackRecentRecord (params?: {}): Promise<implicitReturnType> { return this["sapiGetApiReferralKickbackRecentRecord"] (params); }
+    sapiGetApiReferralKickbackHistoricalRecord (params?: {}): Promise<implicitReturnType> { return this["sapiGetApiReferralKickbackHistoricalRecord"] (params); }
+    sapiGetBrokerSubAccountApi (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerSubAccountApi"] (params); }
+    sapiGetBrokerSubAccount (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerSubAccount"] (params); }
+    sapiGetBrokerSubAccountApiCommissionFutures (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerSubAccountApiCommissionFutures"] (params); }
+    sapiGetBrokerSubAccountApiCommissionCoinFutures (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerSubAccountApiCommissionCoinFutures"] (params); }
+    sapiGetBrokerInfo (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerInfo"] (params); }
+    sapiGetBrokerTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerTransfer"] (params); }
+    sapiGetBrokerTransferFutures (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerTransferFutures"] (params); }
+    sapiGetBrokerRebateRecentRecord (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerRebateRecentRecord"] (params); }
+    sapiGetBrokerRebateHistoricalRecord (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerRebateHistoricalRecord"] (params); }
+    sapiGetBrokerSubAccountBnbBurnStatus (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerSubAccountBnbBurnStatus"] (params); }
+    sapiGetBrokerSubAccountDepositHist (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerSubAccountDepositHist"] (params); }
+    sapiGetBrokerSubAccountSpotSummary (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerSubAccountSpotSummary"] (params); }
+    sapiGetBrokerSubAccountMarginSummary (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerSubAccountMarginSummary"] (params); }
+    sapiGetBrokerSubAccountFuturesSummary (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerSubAccountFuturesSummary"] (params); }
+    sapiGetBrokerRebateFuturesRecentRecord (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerRebateFuturesRecentRecord"] (params); }
+    sapiGetBrokerSubAccountApiIpRestriction (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerSubAccountApiIpRestriction"] (params); }
+    sapiGetBrokerUniversalTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiGetBrokerUniversalTransfer"] (params); }
+    sapiGetAccountApiRestrictions (params?: {}): Promise<implicitReturnType> { return this["sapiGetAccountApiRestrictions"] (params); }
+    sapiGetC2cOrderMatchListUserOrderHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetC2cOrderMatchListUserOrderHistory"] (params); }
+    sapiGetNftHistoryTransactions (params?: {}): Promise<implicitReturnType> { return this["sapiGetNftHistoryTransactions"] (params); }
+    sapiGetNftHistoryDeposit (params?: {}): Promise<implicitReturnType> { return this["sapiGetNftHistoryDeposit"] (params); }
+    sapiGetNftHistoryWithdraw (params?: {}): Promise<implicitReturnType> { return this["sapiGetNftHistoryWithdraw"] (params); }
+    sapiGetNftUserGetAsset (params?: {}): Promise<implicitReturnType> { return this["sapiGetNftUserGetAsset"] (params); }
+    sapiGetPayTransactions (params?: {}): Promise<implicitReturnType> { return this["sapiGetPayTransactions"] (params); }
+    sapiGetGiftcardVerify (params?: {}): Promise<implicitReturnType> { return this["sapiGetGiftcardVerify"] (params); }
+    sapiGetGiftcardCryptographyRsaPublicKey (params?: {}): Promise<implicitReturnType> { return this["sapiGetGiftcardCryptographyRsaPublicKey"] (params); }
+    sapiGetGiftcardBuyCodeTokenLimit (params?: {}): Promise<implicitReturnType> { return this["sapiGetGiftcardBuyCodeTokenLimit"] (params); }
+    sapiGetAlgoFuturesOpenOrders (params?: {}): Promise<implicitReturnType> { return this["sapiGetAlgoFuturesOpenOrders"] (params); }
+    sapiGetAlgoFuturesHistoricalOrders (params?: {}): Promise<implicitReturnType> { return this["sapiGetAlgoFuturesHistoricalOrders"] (params); }
+    sapiGetAlgoFuturesSubOrders (params?: {}): Promise<implicitReturnType> { return this["sapiGetAlgoFuturesSubOrders"] (params); }
+    sapiGetPortfolioAccount (params?: {}): Promise<implicitReturnType> { return this["sapiGetPortfolioAccount"] (params); }
+    sapiGetPortfolioCollateralRate (params?: {}): Promise<implicitReturnType> { return this["sapiGetPortfolioCollateralRate"] (params); }
+    sapiGetPortfolioPmLoan (params?: {}): Promise<implicitReturnType> { return this["sapiGetPortfolioPmLoan"] (params); }
+    sapiGetPortfolioInterestHistory (params?: {}): Promise<implicitReturnType> { return this["sapiGetPortfolioInterestHistory"] (params); }
+    sapiGetPortfolioInterestRate (params?: {}): Promise<implicitReturnType> { return this["sapiGetPortfolioInterestRate"] (params); }
+    sapiGetStakingProductList (params?: {}): Promise<implicitReturnType> { return this["sapiGetStakingProductList"] (params); }
+    sapiGetStakingPosition (params?: {}): Promise<implicitReturnType> { return this["sapiGetStakingPosition"] (params); }
+    sapiGetStakingStakingRecord (params?: {}): Promise<implicitReturnType> { return this["sapiGetStakingStakingRecord"] (params); }
+    sapiGetStakingPersonalLeftQuota (params?: {}): Promise<implicitReturnType> { return this["sapiGetStakingPersonalLeftQuota"] (params); }
+    sapiPostAssetDust (params?: {}): Promise<implicitReturnType> { return this["sapiPostAssetDust"] (params); }
+    sapiPostAssetDustBtc (params?: {}): Promise<implicitReturnType> { return this["sapiPostAssetDustBtc"] (params); }
+    sapiPostAssetTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiPostAssetTransfer"] (params); }
+    sapiPostAssetGetFundingAsset (params?: {}): Promise<implicitReturnType> { return this["sapiPostAssetGetFundingAsset"] (params); }
+    sapiPostAssetConvertTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiPostAssetConvertTransfer"] (params); }
+    sapiPostAccountDisableFastWithdrawSwitch (params?: {}): Promise<implicitReturnType> { return this["sapiPostAccountDisableFastWithdrawSwitch"] (params); }
+    sapiPostAccountEnableFastWithdrawSwitch (params?: {}): Promise<implicitReturnType> { return this["sapiPostAccountEnableFastWithdrawSwitch"] (params); }
+    sapiPostCapitalWithdrawApply (params?: {}): Promise<implicitReturnType> { return this["sapiPostCapitalWithdrawApply"] (params); }
+    sapiPostCapitalContractConvertibleCoins (params?: {}): Promise<implicitReturnType> { return this["sapiPostCapitalContractConvertibleCoins"] (params); }
+    sapiPostMarginTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiPostMarginTransfer"] (params); }
+    sapiPostMarginLoan (params?: {}): Promise<implicitReturnType> { return this["sapiPostMarginLoan"] (params); }
+    sapiPostMarginRepay (params?: {}): Promise<implicitReturnType> { return this["sapiPostMarginRepay"] (params); }
+    sapiPostMarginOrder (params?: {}): Promise<implicitReturnType> { return this["sapiPostMarginOrder"] (params); }
+    sapiPostMarginOrderOco (params?: {}): Promise<implicitReturnType> { return this["sapiPostMarginOrderOco"] (params); }
+    sapiPostMarginExchangeSmallLiability (params?: {}): Promise<implicitReturnType> { return this["sapiPostMarginExchangeSmallLiability"] (params); }
+    sapiPostMarginIsolatedTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiPostMarginIsolatedTransfer"] (params); }
+    sapiPostMarginIsolatedAccount (params?: {}): Promise<implicitReturnType> { return this["sapiPostMarginIsolatedAccount"] (params); }
+    sapiPostBnbBurn (params?: {}): Promise<implicitReturnType> { return this["sapiPostBnbBurn"] (params); }
+    sapiPostSubAccountVirtualSubAccount (params?: {}): Promise<implicitReturnType> { return this["sapiPostSubAccountVirtualSubAccount"] (params); }
+    sapiPostSubAccountMarginTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiPostSubAccountMarginTransfer"] (params); }
+    sapiPostSubAccountMarginEnable (params?: {}): Promise<implicitReturnType> { return this["sapiPostSubAccountMarginEnable"] (params); }
+    sapiPostSubAccountFuturesEnable (params?: {}): Promise<implicitReturnType> { return this["sapiPostSubAccountFuturesEnable"] (params); }
+    sapiPostSubAccountFuturesTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiPostSubAccountFuturesTransfer"] (params); }
+    sapiPostSubAccountFuturesInternalTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiPostSubAccountFuturesInternalTransfer"] (params); }
+    sapiPostSubAccountTransferSubToSub (params?: {}): Promise<implicitReturnType> { return this["sapiPostSubAccountTransferSubToSub"] (params); }
+    sapiPostSubAccountTransferSubToMaster (params?: {}): Promise<implicitReturnType> { return this["sapiPostSubAccountTransferSubToMaster"] (params); }
+    sapiPostSubAccountUniversalTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiPostSubAccountUniversalTransfer"] (params); }
+    sapiPostManagedSubaccountDeposit (params?: {}): Promise<implicitReturnType> { return this["sapiPostManagedSubaccountDeposit"] (params); }
+    sapiPostManagedSubaccountWithdraw (params?: {}): Promise<implicitReturnType> { return this["sapiPostManagedSubaccountWithdraw"] (params); }
+    sapiPostUserDataStream (params?: {}): Promise<implicitReturnType> { return this["sapiPostUserDataStream"] (params); }
+    sapiPostUserDataStreamIsolated (params?: {}): Promise<implicitReturnType> { return this["sapiPostUserDataStreamIsolated"] (params); }
+    sapiPostFuturesTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiPostFuturesTransfer"] (params); }
+    sapiPostLendingCustomizedFixedPurchase (params?: {}): Promise<implicitReturnType> { return this["sapiPostLendingCustomizedFixedPurchase"] (params); }
+    sapiPostLendingDailyPurchase (params?: {}): Promise<implicitReturnType> { return this["sapiPostLendingDailyPurchase"] (params); }
+    sapiPostLendingDailyRedeem (params?: {}): Promise<implicitReturnType> { return this["sapiPostLendingDailyRedeem"] (params); }
+    sapiPostBswapLiquidityAdd (params?: {}): Promise<implicitReturnType> { return this["sapiPostBswapLiquidityAdd"] (params); }
+    sapiPostBswapLiquidityRemove (params?: {}): Promise<implicitReturnType> { return this["sapiPostBswapLiquidityRemove"] (params); }
+    sapiPostBswapSwap (params?: {}): Promise<implicitReturnType> { return this["sapiPostBswapSwap"] (params); }
+    sapiPostBswapClaimRewards (params?: {}): Promise<implicitReturnType> { return this["sapiPostBswapClaimRewards"] (params); }
+    sapiPostBlvtSubscribe (params?: {}): Promise<implicitReturnType> { return this["sapiPostBlvtSubscribe"] (params); }
+    sapiPostBlvtRedeem (params?: {}): Promise<implicitReturnType> { return this["sapiPostBlvtRedeem"] (params); }
+    sapiPostApiReferralCustomization (params?: {}): Promise<implicitReturnType> { return this["sapiPostApiReferralCustomization"] (params); }
+    sapiPostApiReferralUserCustomization (params?: {}): Promise<implicitReturnType> { return this["sapiPostApiReferralUserCustomization"] (params); }
+    sapiPostApiReferralRebateHistoricalRecord (params?: {}): Promise<implicitReturnType> { return this["sapiPostApiReferralRebateHistoricalRecord"] (params); }
+    sapiPostApiReferralKickbackHistoricalRecord (params?: {}): Promise<implicitReturnType> { return this["sapiPostApiReferralKickbackHistoricalRecord"] (params); }
+    sapiPostBrokerSubAccount (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccount"] (params); }
+    sapiPostBrokerSubAccountMargin (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccountMargin"] (params); }
+    sapiPostBrokerSubAccountFutures (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccountFutures"] (params); }
+    sapiPostBrokerSubAccountApi (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccountApi"] (params); }
+    sapiPostBrokerSubAccountApiPermission (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccountApiPermission"] (params); }
+    sapiPostBrokerSubAccountApiCommission (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccountApiCommission"] (params); }
+    sapiPostBrokerSubAccountApiCommissionFutures (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccountApiCommissionFutures"] (params); }
+    sapiPostBrokerSubAccountApiCommissionCoinFutures (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccountApiCommissionCoinFutures"] (params); }
+    sapiPostBrokerTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerTransfer"] (params); }
+    sapiPostBrokerTransferFutures (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerTransferFutures"] (params); }
+    sapiPostBrokerRebateHistoricalRecord (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerRebateHistoricalRecord"] (params); }
+    sapiPostBrokerSubAccountBnbBurnSpot (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccountBnbBurnSpot"] (params); }
+    sapiPostBrokerSubAccountBnbBurnMarginInterest (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccountBnbBurnMarginInterest"] (params); }
+    sapiPostBrokerSubAccountBlvt (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccountBlvt"] (params); }
+    sapiPostBrokerSubAccountApiIpRestriction (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccountApiIpRestriction"] (params); }
+    sapiPostBrokerSubAccountApiIpRestrictionIpList (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccountApiIpRestrictionIpList"] (params); }
+    sapiPostBrokerUniversalTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerUniversalTransfer"] (params); }
+    sapiPostBrokerSubAccountApiPermissionUniversalTransfer (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccountApiPermissionUniversalTransfer"] (params); }
+    sapiPostBrokerSubAccountApiPermissionVanillaOptions (params?: {}): Promise<implicitReturnType> { return this["sapiPostBrokerSubAccountApiPermissionVanillaOptions"] (params); }
+    sapiPostGiftcardCreateCode (params?: {}): Promise<implicitReturnType> { return this["sapiPostGiftcardCreateCode"] (params); }
+    sapiPostGiftcardRedeemCode (params?: {}): Promise<implicitReturnType> { return this["sapiPostGiftcardRedeemCode"] (params); }
+    sapiPostGiftcardBuyCode (params?: {}): Promise<implicitReturnType> { return this["sapiPostGiftcardBuyCode"] (params); }
+    sapiPostAlgoFuturesNewOrderVp (params?: {}): Promise<implicitReturnType> { return this["sapiPostAlgoFuturesNewOrderVp"] (params); }
+    sapiPostAlgoFuturesNewOrderTwap (params?: {}): Promise<implicitReturnType> { return this["sapiPostAlgoFuturesNewOrderTwap"] (params); }
+    sapiPostStakingPurchase (params?: {}): Promise<implicitReturnType> { return this["sapiPostStakingPurchase"] (params); }
+    sapiPostStakingRedeem (params?: {}): Promise<implicitReturnType> { return this["sapiPostStakingRedeem"] (params); }
+    sapiPostStakingSetAutoStaking (params?: {}): Promise<implicitReturnType> { return this["sapiPostStakingSetAutoStaking"] (params); }
+    sapiPostPortfolioRepay (params?: {}): Promise<implicitReturnType> { return this["sapiPostPortfolioRepay"] (params); }
+    sapiPostLoanBorrow (params?: {}): Promise<implicitReturnType> { return this["sapiPostLoanBorrow"] (params); }
+    sapiPostLoanRepay (params?: {}): Promise<implicitReturnType> { return this["sapiPostLoanRepay"] (params); }
+    sapiPostLoanAdjustLtv (params?: {}): Promise<implicitReturnType> { return this["sapiPostLoanAdjustLtv"] (params); }
+    sapiPostLoanCustomizeMarginCall (params?: {}): Promise<implicitReturnType> { return this["sapiPostLoanCustomizeMarginCall"] (params); }
+    sapiPostLoanVipRepay (params?: {}): Promise<implicitReturnType> { return this["sapiPostLoanVipRepay"] (params); }
+    sapiPostConvertGetQuote (params?: {}): Promise<implicitReturnType> { return this["sapiPostConvertGetQuote"] (params); }
+    sapiPostConvertAcceptQuote (params?: {}): Promise<implicitReturnType> { return this["sapiPostConvertAcceptQuote"] (params); }
+    sapiPutUserDataStream (params?: {}): Promise<implicitReturnType> { return this["sapiPutUserDataStream"] (params); }
+    sapiPutUserDataStreamIsolated (params?: {}): Promise<implicitReturnType> { return this["sapiPutUserDataStreamIsolated"] (params); }
+    sapiDeleteMarginOpenOrders (params?: {}): Promise<implicitReturnType> { return this["sapiDeleteMarginOpenOrders"] (params); }
+    sapiDeleteMarginOrder (params?: {}): Promise<implicitReturnType> { return this["sapiDeleteMarginOrder"] (params); }
+    sapiDeleteMarginOrderList (params?: {}): Promise<implicitReturnType> { return this["sapiDeleteMarginOrderList"] (params); }
+    sapiDeleteMarginIsolatedAccount (params?: {}): Promise<implicitReturnType> { return this["sapiDeleteMarginIsolatedAccount"] (params); }
+    sapiDeleteUserDataStream (params?: {}): Promise<implicitReturnType> { return this["sapiDeleteUserDataStream"] (params); }
+    sapiDeleteUserDataStreamIsolated (params?: {}): Promise<implicitReturnType> { return this["sapiDeleteUserDataStreamIsolated"] (params); }
+    sapiDeleteBrokerSubAccountApi (params?: {}): Promise<implicitReturnType> { return this["sapiDeleteBrokerSubAccountApi"] (params); }
+    sapiDeleteBrokerSubAccountApiIpRestrictionIpList (params?: {}): Promise<implicitReturnType> { return this["sapiDeleteBrokerSubAccountApiIpRestrictionIpList"] (params); }
+    sapiDeleteAlgoFuturesOrder (params?: {}): Promise<implicitReturnType> { return this["sapiDeleteAlgoFuturesOrder"] (params); }
+    sapiV2GetSubAccountFuturesAccount (params?: {}): Promise<implicitReturnType> { return this["sapiV2GetSubAccountFuturesAccount"] (params); }
+    sapiV2GetSubAccountFuturesPositionRisk (params?: {}): Promise<implicitReturnType> { return this["sapiV2GetSubAccountFuturesPositionRisk"] (params); }
+    sapiV3GetSubAccountAssets (params?: {}): Promise<implicitReturnType> { return this["sapiV3GetSubAccountAssets"] (params); }
+    sapiV3PostAssetGetUserAsset (params?: {}): Promise<implicitReturnType> { return this["sapiV3PostAssetGetUserAsset"] (params); }
+    sapiV4GetSubAccountAssets (params?: {}): Promise<implicitReturnType> { return this["sapiV4GetSubAccountAssets"] (params); }
+    wapiPostWithdraw (params?: {}): Promise<implicitReturnType> { return this["wapiPostWithdraw"] (params); }
+    wapiPostSubAccountTransfer (params?: {}): Promise<implicitReturnType> { return this["wapiPostSubAccountTransfer"] (params); }
+    wapiGetDepositHistory (params?: {}): Promise<implicitReturnType> { return this["wapiGetDepositHistory"] (params); }
+    wapiGetWithdrawHistory (params?: {}): Promise<implicitReturnType> { return this["wapiGetWithdrawHistory"] (params); }
+    wapiGetDepositAddress (params?: {}): Promise<implicitReturnType> { return this["wapiGetDepositAddress"] (params); }
+    wapiGetAccountStatus (params?: {}): Promise<implicitReturnType> { return this["wapiGetAccountStatus"] (params); }
+    wapiGetSystemStatus (params?: {}): Promise<implicitReturnType> { return this["wapiGetSystemStatus"] (params); }
+    wapiGetApiTradingStatus (params?: {}): Promise<implicitReturnType> { return this["wapiGetApiTradingStatus"] (params); }
+    wapiGetUserAssetDribbletLog (params?: {}): Promise<implicitReturnType> { return this["wapiGetUserAssetDribbletLog"] (params); }
+    wapiGetTradeFee (params?: {}): Promise<implicitReturnType> { return this["wapiGetTradeFee"] (params); }
+    wapiGetAssetDetail (params?: {}): Promise<implicitReturnType> { return this["wapiGetAssetDetail"] (params); }
+    wapiGetSubAccountList (params?: {}): Promise<implicitReturnType> { return this["wapiGetSubAccountList"] (params); }
+    wapiGetSubAccountTransferHistory (params?: {}): Promise<implicitReturnType> { return this["wapiGetSubAccountTransferHistory"] (params); }
+    wapiGetSubAccountAssets (params?: {}): Promise<implicitReturnType> { return this["wapiGetSubAccountAssets"] (params); }
+    dapiPublicGetPing (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetPing"] (params); }
+    dapiPublicGetTime (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetTime"] (params); }
+    dapiPublicGetExchangeInfo (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetExchangeInfo"] (params); }
+    dapiPublicGetDepth (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetDepth"] (params); }
+    dapiPublicGetTrades (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetTrades"] (params); }
+    dapiPublicGetHistoricalTrades (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetHistoricalTrades"] (params); }
+    dapiPublicGetAggTrades (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetAggTrades"] (params); }
+    dapiPublicGetPremiumIndex (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetPremiumIndex"] (params); }
+    dapiPublicGetFundingRate (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetFundingRate"] (params); }
+    dapiPublicGetKlines (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetKlines"] (params); }
+    dapiPublicGetContinuousKlines (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetContinuousKlines"] (params); }
+    dapiPublicGetIndexPriceKlines (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetIndexPriceKlines"] (params); }
+    dapiPublicGetMarkPriceKlines (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetMarkPriceKlines"] (params); }
+    dapiPublicGetTicker24hr (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetTicker24hr"] (params); }
+    dapiPublicGetTickerPrice (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetTickerPrice"] (params); }
+    dapiPublicGetTickerBookTicker (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetTickerBookTicker"] (params); }
+    dapiPublicGetOpenInterest (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetOpenInterest"] (params); }
+    dapiPublicGetPmExchangeInfo (params?: {}): Promise<implicitReturnType> { return this["dapiPublicGetPmExchangeInfo"] (params); }
+    dapiDataGetOpenInterestHist (params?: {}): Promise<implicitReturnType> { return this["dapiDataGetOpenInterestHist"] (params); }
+    dapiDataGetTopLongShortAccountRatio (params?: {}): Promise<implicitReturnType> { return this["dapiDataGetTopLongShortAccountRatio"] (params); }
+    dapiDataGetTopLongShortPositionRatio (params?: {}): Promise<implicitReturnType> { return this["dapiDataGetTopLongShortPositionRatio"] (params); }
+    dapiDataGetGlobalLongShortAccountRatio (params?: {}): Promise<implicitReturnType> { return this["dapiDataGetGlobalLongShortAccountRatio"] (params); }
+    dapiDataGetTakerBuySellVol (params?: {}): Promise<implicitReturnType> { return this["dapiDataGetTakerBuySellVol"] (params); }
+    dapiDataGetBasis (params?: {}): Promise<implicitReturnType> { return this["dapiDataGetBasis"] (params); }
+    dapiPrivateGetPositionSideDual (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetPositionSideDual"] (params); }
+    dapiPrivateGetOrder (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetOrder"] (params); }
+    dapiPrivateGetOpenOrder (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetOpenOrder"] (params); }
+    dapiPrivateGetOpenOrders (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetOpenOrders"] (params); }
+    dapiPrivateGetAllOrders (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetAllOrders"] (params); }
+    dapiPrivateGetBalance (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetBalance"] (params); }
+    dapiPrivateGetAccount (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetAccount"] (params); }
+    dapiPrivateGetPositionMarginHistory (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetPositionMarginHistory"] (params); }
+    dapiPrivateGetPositionRisk (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetPositionRisk"] (params); }
+    dapiPrivateGetUserTrades (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetUserTrades"] (params); }
+    dapiPrivateGetIncome (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetIncome"] (params); }
+    dapiPrivateGetLeverageBracket (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetLeverageBracket"] (params); }
+    dapiPrivateGetForceOrders (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetForceOrders"] (params); }
+    dapiPrivateGetAdlQuantile (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetAdlQuantile"] (params); }
+    dapiPrivateGetOrderAmendment (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetOrderAmendment"] (params); }
+    dapiPrivateGetPmAccountInfo (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateGetPmAccountInfo"] (params); }
+    dapiPrivatePostPositionSideDual (params?: {}): Promise<implicitReturnType> { return this["dapiPrivatePostPositionSideDual"] (params); }
+    dapiPrivatePostOrder (params?: {}): Promise<implicitReturnType> { return this["dapiPrivatePostOrder"] (params); }
+    dapiPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType> { return this["dapiPrivatePostBatchOrders"] (params); }
+    dapiPrivatePostCountdownCancelAll (params?: {}): Promise<implicitReturnType> { return this["dapiPrivatePostCountdownCancelAll"] (params); }
+    dapiPrivatePostLeverage (params?: {}): Promise<implicitReturnType> { return this["dapiPrivatePostLeverage"] (params); }
+    dapiPrivatePostMarginType (params?: {}): Promise<implicitReturnType> { return this["dapiPrivatePostMarginType"] (params); }
+    dapiPrivatePostPositionMargin (params?: {}): Promise<implicitReturnType> { return this["dapiPrivatePostPositionMargin"] (params); }
+    dapiPrivatePostListenKey (params?: {}): Promise<implicitReturnType> { return this["dapiPrivatePostListenKey"] (params); }
+    dapiPrivatePutListenKey (params?: {}): Promise<implicitReturnType> { return this["dapiPrivatePutListenKey"] (params); }
+    dapiPrivatePutOrder (params?: {}): Promise<implicitReturnType> { return this["dapiPrivatePutOrder"] (params); }
+    dapiPrivatePutBatchOrders (params?: {}): Promise<implicitReturnType> { return this["dapiPrivatePutBatchOrders"] (params); }
+    dapiPrivateDeleteOrder (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateDeleteOrder"] (params); }
+    dapiPrivateDeleteAllOpenOrders (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateDeleteAllOpenOrders"] (params); }
+    dapiPrivateDeleteBatchOrders (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateDeleteBatchOrders"] (params); }
+    dapiPrivateDeleteListenKey (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateDeleteListenKey"] (params); }
+    dapiPrivateV2GetLeverageBracket (params?: {}): Promise<implicitReturnType> { return this["dapiPrivateV2GetLeverageBracket"] (params); }
+    fapiPublicGetPing (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetPing"] (params); }
+    fapiPublicGetTime (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetTime"] (params); }
+    fapiPublicGetExchangeInfo (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetExchangeInfo"] (params); }
+    fapiPublicGetDepth (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetDepth"] (params); }
+    fapiPublicGetTrades (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetTrades"] (params); }
+    fapiPublicGetHistoricalTrades (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetHistoricalTrades"] (params); }
+    fapiPublicGetAggTrades (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetAggTrades"] (params); }
+    fapiPublicGetKlines (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetKlines"] (params); }
+    fapiPublicGetContinuousKlines (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetContinuousKlines"] (params); }
+    fapiPublicGetMarkPriceKlines (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetMarkPriceKlines"] (params); }
+    fapiPublicGetIndexPriceKlines (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetIndexPriceKlines"] (params); }
+    fapiPublicGetFundingRate (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetFundingRate"] (params); }
+    fapiPublicGetPremiumIndex (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetPremiumIndex"] (params); }
+    fapiPublicGetTicker24hr (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetTicker24hr"] (params); }
+    fapiPublicGetTickerPrice (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetTickerPrice"] (params); }
+    fapiPublicGetTickerBookTicker (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetTickerBookTicker"] (params); }
+    fapiPublicGetOpenInterest (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetOpenInterest"] (params); }
+    fapiPublicGetIndexInfo (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetIndexInfo"] (params); }
+    fapiPublicGetApiTradingStatus (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetApiTradingStatus"] (params); }
+    fapiPublicGetLvtKlines (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetLvtKlines"] (params); }
+    fapiPublicGetPmExchangeInfo (params?: {}): Promise<implicitReturnType> { return this["fapiPublicGetPmExchangeInfo"] (params); }
+    fapiDataGetOpenInterestHist (params?: {}): Promise<implicitReturnType> { return this["fapiDataGetOpenInterestHist"] (params); }
+    fapiDataGetTopLongShortAccountRatio (params?: {}): Promise<implicitReturnType> { return this["fapiDataGetTopLongShortAccountRatio"] (params); }
+    fapiDataGetTopLongShortPositionRatio (params?: {}): Promise<implicitReturnType> { return this["fapiDataGetTopLongShortPositionRatio"] (params); }
+    fapiDataGetGlobalLongShortAccountRatio (params?: {}): Promise<implicitReturnType> { return this["fapiDataGetGlobalLongShortAccountRatio"] (params); }
+    fapiDataGetTakerlongshortRatio (params?: {}): Promise<implicitReturnType> { return this["fapiDataGetTakerlongshortRatio"] (params); }
+    fapiPrivateGetForceOrders (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetForceOrders"] (params); }
+    fapiPrivateGetAllOrders (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetAllOrders"] (params); }
+    fapiPrivateGetOpenOrder (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetOpenOrder"] (params); }
+    fapiPrivateGetOpenOrders (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetOpenOrders"] (params); }
+    fapiPrivateGetOrder (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetOrder"] (params); }
+    fapiPrivateGetAccount (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetAccount"] (params); }
+    fapiPrivateGetBalance (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetBalance"] (params); }
+    fapiPrivateGetLeverageBracket (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetLeverageBracket"] (params); }
+    fapiPrivateGetPositionMarginHistory (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetPositionMarginHistory"] (params); }
+    fapiPrivateGetPositionRisk (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetPositionRisk"] (params); }
+    fapiPrivateGetPositionSideDual (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetPositionSideDual"] (params); }
+    fapiPrivateGetUserTrades (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetUserTrades"] (params); }
+    fapiPrivateGetIncome (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetIncome"] (params); }
+    fapiPrivateGetCommissionRate (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetCommissionRate"] (params); }
+    fapiPrivateGetApiTradingStatus (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetApiTradingStatus"] (params); }
+    fapiPrivateGetMultiAssetsMargin (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetMultiAssetsMargin"] (params); }
+    fapiPrivateGetApiReferralIfNewUser (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetApiReferralIfNewUser"] (params); }
+    fapiPrivateGetApiReferralCustomization (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetApiReferralCustomization"] (params); }
+    fapiPrivateGetApiReferralUserCustomization (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetApiReferralUserCustomization"] (params); }
+    fapiPrivateGetApiReferralTraderNum (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetApiReferralTraderNum"] (params); }
+    fapiPrivateGetApiReferralOverview (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetApiReferralOverview"] (params); }
+    fapiPrivateGetApiReferralTradeVol (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetApiReferralTradeVol"] (params); }
+    fapiPrivateGetApiReferralRebateVol (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetApiReferralRebateVol"] (params); }
+    fapiPrivateGetApiReferralTraderSummary (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetApiReferralTraderSummary"] (params); }
+    fapiPrivateGetAdlQuantile (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetAdlQuantile"] (params); }
+    fapiPrivateGetPmAccountInfo (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateGetPmAccountInfo"] (params); }
+    fapiPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType> { return this["fapiPrivatePostBatchOrders"] (params); }
+    fapiPrivatePostPositionSideDual (params?: {}): Promise<implicitReturnType> { return this["fapiPrivatePostPositionSideDual"] (params); }
+    fapiPrivatePostPositionMargin (params?: {}): Promise<implicitReturnType> { return this["fapiPrivatePostPositionMargin"] (params); }
+    fapiPrivatePostMarginType (params?: {}): Promise<implicitReturnType> { return this["fapiPrivatePostMarginType"] (params); }
+    fapiPrivatePostOrder (params?: {}): Promise<implicitReturnType> { return this["fapiPrivatePostOrder"] (params); }
+    fapiPrivatePostLeverage (params?: {}): Promise<implicitReturnType> { return this["fapiPrivatePostLeverage"] (params); }
+    fapiPrivatePostListenKey (params?: {}): Promise<implicitReturnType> { return this["fapiPrivatePostListenKey"] (params); }
+    fapiPrivatePostCountdownCancelAll (params?: {}): Promise<implicitReturnType> { return this["fapiPrivatePostCountdownCancelAll"] (params); }
+    fapiPrivatePostMultiAssetsMargin (params?: {}): Promise<implicitReturnType> { return this["fapiPrivatePostMultiAssetsMargin"] (params); }
+    fapiPrivatePostApiReferralCustomization (params?: {}): Promise<implicitReturnType> { return this["fapiPrivatePostApiReferralCustomization"] (params); }
+    fapiPrivatePostApiReferralUserCustomization (params?: {}): Promise<implicitReturnType> { return this["fapiPrivatePostApiReferralUserCustomization"] (params); }
+    fapiPrivatePutListenKey (params?: {}): Promise<implicitReturnType> { return this["fapiPrivatePutListenKey"] (params); }
+    fapiPrivateDeleteBatchOrders (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateDeleteBatchOrders"] (params); }
+    fapiPrivateDeleteOrder (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateDeleteOrder"] (params); }
+    fapiPrivateDeleteAllOpenOrders (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateDeleteAllOpenOrders"] (params); }
+    fapiPrivateDeleteListenKey (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateDeleteListenKey"] (params); }
+    fapiPrivateV2GetAccount (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateV2GetAccount"] (params); }
+    fapiPrivateV2GetBalance (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateV2GetBalance"] (params); }
+    fapiPrivateV2GetPositionRisk (params?: {}): Promise<implicitReturnType> { return this["fapiPrivateV2GetPositionRisk"] (params); }
+    eapiPublicGetPing (params?: {}): Promise<implicitReturnType> { return this["eapiPublicGetPing"] (params); }
+    eapiPublicGetTime (params?: {}): Promise<implicitReturnType> { return this["eapiPublicGetTime"] (params); }
+    eapiPublicGetExchangeInfo (params?: {}): Promise<implicitReturnType> { return this["eapiPublicGetExchangeInfo"] (params); }
+    eapiPublicGetIndex (params?: {}): Promise<implicitReturnType> { return this["eapiPublicGetIndex"] (params); }
+    eapiPublicGetTicker (params?: {}): Promise<implicitReturnType> { return this["eapiPublicGetTicker"] (params); }
+    eapiPublicGetMark (params?: {}): Promise<implicitReturnType> { return this["eapiPublicGetMark"] (params); }
+    eapiPublicGetDepth (params?: {}): Promise<implicitReturnType> { return this["eapiPublicGetDepth"] (params); }
+    eapiPublicGetKlines (params?: {}): Promise<implicitReturnType> { return this["eapiPublicGetKlines"] (params); }
+    eapiPublicGetTrades (params?: {}): Promise<implicitReturnType> { return this["eapiPublicGetTrades"] (params); }
+    eapiPublicGetHistoricalTrades (params?: {}): Promise<implicitReturnType> { return this["eapiPublicGetHistoricalTrades"] (params); }
+    eapiPublicGetExerciseHistory (params?: {}): Promise<implicitReturnType> { return this["eapiPublicGetExerciseHistory"] (params); }
+    eapiPublicGetOpenInterest (params?: {}): Promise<implicitReturnType> { return this["eapiPublicGetOpenInterest"] (params); }
+    eapiPrivateGetAccount (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateGetAccount"] (params); }
+    eapiPrivateGetPosition (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateGetPosition"] (params); }
+    eapiPrivateGetOpenOrders (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateGetOpenOrders"] (params); }
+    eapiPrivateGetHistoryOrders (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateGetHistoryOrders"] (params); }
+    eapiPrivateGetUserTrades (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateGetUserTrades"] (params); }
+    eapiPrivateGetExerciseRecord (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateGetExerciseRecord"] (params); }
+    eapiPrivateGetBill (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateGetBill"] (params); }
+    eapiPrivateGetMarginAccount (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateGetMarginAccount"] (params); }
+    eapiPrivateGetMmp (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateGetMmp"] (params); }
+    eapiPrivateGetCountdownCancelAll (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateGetCountdownCancelAll"] (params); }
+    eapiPrivateGetOrder (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateGetOrder"] (params); }
+    eapiPrivatePostOrder (params?: {}): Promise<implicitReturnType> { return this["eapiPrivatePostOrder"] (params); }
+    eapiPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType> { return this["eapiPrivatePostBatchOrders"] (params); }
+    eapiPrivatePostListenKey (params?: {}): Promise<implicitReturnType> { return this["eapiPrivatePostListenKey"] (params); }
+    eapiPrivatePostMmpSet (params?: {}): Promise<implicitReturnType> { return this["eapiPrivatePostMmpSet"] (params); }
+    eapiPrivatePostMmpReset (params?: {}): Promise<implicitReturnType> { return this["eapiPrivatePostMmpReset"] (params); }
+    eapiPrivatePostCountdownCancelAll (params?: {}): Promise<implicitReturnType> { return this["eapiPrivatePostCountdownCancelAll"] (params); }
+    eapiPrivatePostCountdownCancelAllHeartBeat (params?: {}): Promise<implicitReturnType> { return this["eapiPrivatePostCountdownCancelAllHeartBeat"] (params); }
+    eapiPrivatePutListenKey (params?: {}): Promise<implicitReturnType> { return this["eapiPrivatePutListenKey"] (params); }
+    eapiPrivateDeleteOrder (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateDeleteOrder"] (params); }
+    eapiPrivateDeleteBatchOrders (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateDeleteBatchOrders"] (params); }
+    eapiPrivateDeleteAllOpenOrders (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateDeleteAllOpenOrders"] (params); }
+    eapiPrivateDeleteAllOpenOrdersByUnderlying (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateDeleteAllOpenOrdersByUnderlying"] (params); }
+    eapiPrivateDeleteListenKey (params?: {}): Promise<implicitReturnType> { return this["eapiPrivateDeleteListenKey"] (params); }
+    publicGetPing (params?: {}): Promise<implicitReturnType> { return this["publicGetPing"] (params); }
+    publicGetTime (params?: {}): Promise<implicitReturnType> { return this["publicGetTime"] (params); }
+    publicGetDepth (params?: {}): Promise<implicitReturnType> { return this["publicGetDepth"] (params); }
+    publicGetTrades (params?: {}): Promise<implicitReturnType> { return this["publicGetTrades"] (params); }
+    publicGetAggTrades (params?: {}): Promise<implicitReturnType> { return this["publicGetAggTrades"] (params); }
+    publicGetHistoricalTrades (params?: {}): Promise<implicitReturnType> { return this["publicGetHistoricalTrades"] (params); }
+    publicGetKlines (params?: {}): Promise<implicitReturnType> { return this["publicGetKlines"] (params); }
+    publicGetTicker24hr (params?: {}): Promise<implicitReturnType> { return this["publicGetTicker24hr"] (params); }
+    publicGetTickerPrice (params?: {}): Promise<implicitReturnType> { return this["publicGetTickerPrice"] (params); }
+    publicGetTickerBookTicker (params?: {}): Promise<implicitReturnType> { return this["publicGetTickerBookTicker"] (params); }
+    publicGetExchangeInfo (params?: {}): Promise<implicitReturnType> { return this["publicGetExchangeInfo"] (params); }
+    publicPutUserDataStream (params?: {}): Promise<implicitReturnType> { return this["publicPutUserDataStream"] (params); }
+    publicPostUserDataStream (params?: {}): Promise<implicitReturnType> { return this["publicPostUserDataStream"] (params); }
+    publicDeleteUserDataStream (params?: {}): Promise<implicitReturnType> { return this["publicDeleteUserDataStream"] (params); }
+    privateGetAllOrderList (params?: {}): Promise<implicitReturnType> { return this["privateGetAllOrderList"] (params); }
+    privateGetOpenOrderList (params?: {}): Promise<implicitReturnType> { return this["privateGetOpenOrderList"] (params); }
+    privateGetOrderList (params?: {}): Promise<implicitReturnType> { return this["privateGetOrderList"] (params); }
+    privateGetOrder (params?: {}): Promise<implicitReturnType> { return this["privateGetOrder"] (params); }
+    privateGetOpenOrders (params?: {}): Promise<implicitReturnType> { return this["privateGetOpenOrders"] (params); }
+    privateGetAllOrders (params?: {}): Promise<implicitReturnType> { return this["privateGetAllOrders"] (params); }
+    privateGetAccount (params?: {}): Promise<implicitReturnType> { return this["privateGetAccount"] (params); }
+    privateGetMyTrades (params?: {}): Promise<implicitReturnType> { return this["privateGetMyTrades"] (params); }
+    privateGetRateLimitOrder (params?: {}): Promise<implicitReturnType> { return this["privateGetRateLimitOrder"] (params); }
+    privateGetMyPreventedMatches (params?: {}): Promise<implicitReturnType> { return this["privateGetMyPreventedMatches"] (params); }
+    privatePostOrderOco (params?: {}): Promise<implicitReturnType> { return this["privatePostOrderOco"] (params); }
+    privatePostOrder (params?: {}): Promise<implicitReturnType> { return this["privatePostOrder"] (params); }
+    privatePostOrderCancelReplace (params?: {}): Promise<implicitReturnType> { return this["privatePostOrderCancelReplace"] (params); }
+    privatePostOrderTest (params?: {}): Promise<implicitReturnType> { return this["privatePostOrderTest"] (params); }
+    privateDeleteOpenOrders (params?: {}): Promise<implicitReturnType> { return this["privateDeleteOpenOrders"] (params); }
+    privateDeleteOrderList (params?: {}): Promise<implicitReturnType> { return this["privateDeleteOrderList"] (params); }
+    privateDeleteOrder (params?: {}): Promise<implicitReturnType> { return this["privateDeleteOrder"] (params); }
 }

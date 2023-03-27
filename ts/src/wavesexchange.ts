@@ -9,7 +9,7 @@ import { eddsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
+
 export default class wavesexchange extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

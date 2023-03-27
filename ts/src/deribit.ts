@@ -9,7 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
+
 export default class deribit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

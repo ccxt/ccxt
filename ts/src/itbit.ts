@@ -10,7 +10,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
+
 export default class itbit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

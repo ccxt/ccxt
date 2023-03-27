@@ -81,7 +81,8 @@ function createImplicitMethods(){
         const methodNames = storedResult[exchange];
 
         const methods =  methodNames.map(method=> {
-            return `${IDEN}abstract ${method} (params?: {}): Promise<implicitReturnType>;`
+            return [`${IDEN}${method} (params?: {}): Promise<implicitReturnType> { return this["${method}"] (params); }`,
+            ].join ('\n')
         });
         methods.push ('}')
         storedMethods[exchange] = storedMethods[exchange].concat (methods)
@@ -115,7 +116,7 @@ async function main() {
         const importParent = (parent === 'Exchange') ?
             `import { Exchange as _Exchange } from '../base/Exchange.js';` :
             `import _${parent} from '../${parent}.js';`
-        const header = `export default abstract class ${parent} extends _${parent} {` // hotswap later
+        const header = `export default class ${parent} extends _${parent} {` // hotswap later
         storedResult[exchange] = []
         storedMethods[exchange] = [ getPreamble(), importType, importParent, '', header];
         generateImplicitMethodNames(exchange, api)

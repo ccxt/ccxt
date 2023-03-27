@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 
 // ---------------------------------------------------------------------------
 
-// @ts-expect-error
+
 export default class blockchaincom extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
