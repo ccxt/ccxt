@@ -498,15 +498,19 @@ public partial class Exchange
         }
     }
 
-    public int getIndexOf(object a, object b)
+    public int getIndexOf(object str, object target)
     {
-        if (a.GetType() == typeof(List<object>))
+        if (str.GetType() == typeof(List<object>))
         {
-            return ((List<object>)a).IndexOf(b);
+            return ((List<object>)str).IndexOf(target);
         }
-        else if (a.GetType() == typeof(List<string>))
+        else if (str.GetType() == typeof(List<string>))
         {
-            return ((List<string>)a).IndexOf((string)b);
+            return ((List<string>)str).IndexOf((string)target);
+        }
+        else if (str.GetType() == typeof(string))
+        {
+            return ((string)str).IndexOf((string)target);
         }
         else
         {

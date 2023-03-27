@@ -150,43 +150,36 @@ public partial class Exchange
         var result = "";
         HttpResponseMessage response = null;
         object responseBody = null;
-        try
+
+        if (method == "GET")
         {
-            if (method == "GET")
-            {
-                response = await this.client.GetAsync(url);
-                result = await response.Content.ReadAsStringAsync();
-            }
-            else if (method == "POST")
-            {
-                contentType = contentType == "" ? "application/json" : contentType;
-                var contentTypeHeader = new MediaTypeWithQualityHeaderValue(contentType);
-                // var stringContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(body), Encoding.UTF8, contentTypeHeader);
-                var stringContent = new StringContent(body, Encoding.UTF8, contentTypeHeader);
-                response = await this.client.PostAsync(url, stringContent);
-                result = await response.Content.ReadAsStringAsync();
-            }
-
-            var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
-            var httpStatusCode = (int)response?.StatusCode;
-            var httpStatusText = response?.ReasonPhrase;
-
-            if (this.verbose)
-            {
-                this.log("handleRestResponse:\n" + this.id + method + url + " " + httpStatusCode + " " + httpStatusText + "\nResponseHeaders:\n" + this.stringifyObject(responseHeaders) + "\nResponseBody:\n" + result + "\n");
-            }
-
-            responseBody = JsonHelper.Deserialize(result);
-
-            var res = handleErrors(httpStatusCode, httpStatusText, url, method, responseHeaders, result, responseBody, headers, body);
-            if (res == null)
-                handleHttpStatusCode(httpStatusCode, httpStatusText, url, method, result);
-
+            response = await this.client.GetAsync(url);
+            result = await response.Content.ReadAsStringAsync();
         }
-        catch (Exception e)
+        else if (method == "POST")
         {
-            Console.WriteLine(e);
+            contentType = contentType == "" ? "application/json" : contentType;
+            var contentTypeHeader = new MediaTypeWithQualityHeaderValue(contentType);
+            // var stringContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(body), Encoding.UTF8, contentTypeHeader);
+            var stringContent = new StringContent(body, Encoding.UTF8, contentTypeHeader);
+            response = await this.client.PostAsync(url, stringContent);
+            result = await response.Content.ReadAsStringAsync();
         }
+
+        var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
+        var httpStatusCode = (int)response?.StatusCode;
+        var httpStatusText = response?.ReasonPhrase;
+
+        if (this.verbose)
+        {
+            this.log("handleRestResponse:\n" + this.id + method + url + " " + httpStatusCode + " " + httpStatusText + "\nResponseHeaders:\n" + this.stringifyObject(responseHeaders) + "\nResponseBody:\n" + result + "\n");
+        }
+
+        responseBody = JsonHelper.Deserialize(result);
+
+        var res = handleErrors(httpStatusCode, httpStatusText, url, method, responseHeaders, result, responseBody, headers, body);
+        if (res == null)
+            handleHttpStatusCode(httpStatusCode, httpStatusText, url, method, result);
 
         return responseBody;
     }
@@ -406,11 +399,6 @@ public partial class Exchange
             }
         }
 
-    }
-
-    public void throwDynamicException(object broad, object str, object message)
-    {
-        //stub to implement later
     }
 
     public void checkRequiredDependencies()

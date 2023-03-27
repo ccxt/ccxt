@@ -19,7 +19,8 @@ public static class Program
         public bool Sandbox { get; set; }
     }
 
-    public static string exchangesPath = "exchanges.json";
+    // public static string exchangesPath = "exchanges.json";
+    public static string exchangesPath = "../../exchanges.json"; // when using debugguer
 
     public static List<string> exchangesId;
     public static List<Exchange> exchanges = new List<Exchange>();
@@ -65,11 +66,11 @@ public static class Program
         List<string> strings = ids.Select(s => (string)s).ToList();
         exchangesId = strings;
 
-        var exchangeName = args[0];
-        var methodName = args[1];
+        // var exchangeName = args[0];
+        // var methodName = args[1];
 
-        // var exchangeName = "binance";
-        // var methodName = "fetchTicker";
+        var exchangeName = "bybit";
+        var methodName = "fetchBalance";
 
         if (!exchangesId.Contains(exchangeName))
         {
@@ -84,11 +85,13 @@ public static class Program
             .Where(x => x.StartsWith("-"))
             .ToList();
 
-        var parameters = args[2..]
-            .Where(x => !x.StartsWith("-"))
-            .ToList();
+        // var parameters = args[2..]
+        //     .Where(x => !x.StartsWith("-"))
+        //     .ToList();
 
-        // var parameters = new List<object> { "BTC/USDT" };
+        var parameters = new List<object> { };
+
+        instance.setSandboxMode(true);
 
         InitOptions(instance, flags);
         SetCredentials(instance);
@@ -97,10 +100,20 @@ public static class Program
         {
             System.Console.WriteLine(parameter);
         }
-        var result = Exchange.DynamicallyCallMethod(instance, methodName, parameters.ToArray()) as Task<object>;
-        result.Wait();
-        var final = result.Result;
-        Console.WriteLine(JsonConvert.SerializeObject(final, Formatting.Indented));
+        try
+        {
+            var result = Exchange.DynamicallyCallMethod(instance, methodName, parameters.ToArray()) as Task<object>;
+            result.Wait();
+            // var result = instance.fetchBalance();
+            // result.Wait();
+            var final = result.Result;
+            Console.WriteLine(JsonConvert.SerializeObject(final, Formatting.Indented));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+
 
     }
 }
