@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/lbank2.js';
 export default class lbank2 extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

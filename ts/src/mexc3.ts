@@ -1,10 +1,11 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/mexc3.js';
 import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 // ---------------------------------------------------------------------------
 
@@ -457,6 +458,7 @@ export default class mexc3 extends Exchange {
                     '30005': InvalidOrder,
                     '2003': InvalidOrder,
                     '2005': InsufficientFunds,
+                    '400': BadRequest, // {"msg":"The start time cannot be earlier than 90 days","code":400}
                     '600': BadRequest,
                     '70011': PermissionDenied, // {"code":70011,"msg":"Pair user ban trade apikey."}
                     '88004': InsufficientFunds, // {"msg":"超出最大可借，最大可借币为:18.09833211","code":88004}
@@ -467,7 +469,7 @@ export default class mexc3 extends Exchange {
                     '26': ExchangeError, // operation not allowed
                     '602': AuthenticationError, // Signature verification failed
                     '10001': AuthenticationError, // user does not exist
-                    '10007': BadRequest, // bad symbol
+                    '10007': BadSymbol, // {"code":10007,"msg":"bad symbol"}
                     '10015': BadRequest, // user id cannot be null
                     '10072': BadRequest, // invalid access key
                     '10073': BadRequest, // invalid Request-Time
@@ -569,13 +571,13 @@ export default class mexc3 extends Exchange {
         let status = undefined;
         let updated = undefined;
         if (marketType === 'spot') {
-            response = await (this as any).spotPublicGetPing (query);
+            response = await this.spotPublicGetPing (query);
             //
             //     {}
             //
             status = Object.keys (response).length ? this.json (response) : 'ok';
         } else if (marketType === 'swap') {
-            response = await (this as any).contractPublicGetPing (query);
+            response = await this.contractPublicGetPing (query);
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
@@ -602,13 +604,13 @@ export default class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response = undefined;
         if (marketType === 'spot') {
-            response = await (this as any).spotPublicGetTime (query);
+            response = await this.spotPublicGetTime (query);
             //
             //     {"serverTime": "1647519277579"}
             //
             return this.safeInteger (response, 'serverTime');
         } else if (marketType === 'swap') {
-            response = await (this as any).contractPublicGetPing (query);
+            response = await this.contractPublicGetPing (query);
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
@@ -632,7 +634,7 @@ export default class mexc3 extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
         }
-        const response = await (this as any).spotPrivateGetCapitalConfigGetall (params);
+        const response = await this.spotPrivateGetCapitalConfigGetall (params);
         //
         // {
         //     coin: 'QANX',
@@ -792,7 +794,7 @@ export default class mexc3 extends Exchange {
     }
 
     async fetchSpotMarkets (params = {}) {
-        const response = await (this as any).spotPublicGetExchangeInfo (params);
+        const response = await this.spotPublicGetExchangeInfo (params);
         //
         //     {
         //         "timezone": "CST",
@@ -909,7 +911,7 @@ export default class mexc3 extends Exchange {
     }
 
     async fetchSwapMarkets (params = {}) {
-        const response = await (this as any).contractPublicGetDetail (params);
+        const response = await this.contractPublicGetDetail (params);
         //
         //     {
         //         "success":true,
@@ -1040,7 +1042,7 @@ export default class mexc3 extends Exchange {
         }
         let orderbook = undefined;
         if (market['spot']) {
-            const response = await (this as any).spotPublicGetDepth (this.extend (request, params));
+            const response = await this.spotPublicGetDepth (this.extend (request, params));
             //
             //     {
             //         "lastUpdateId": "744267132",
@@ -1057,7 +1059,7 @@ export default class mexc3 extends Exchange {
             orderbook = this.parseOrderBook (response, symbol);
             orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         } else if (market['swap']) {
-            const response = await (this as any).contractPublicGetDepthSymbol (this.extend (request, params));
+            const response = await this.contractPublicGetDepthSymbol (this.extend (request, params));
             //
             //     {
             //         "success":true,
@@ -1142,7 +1144,7 @@ export default class mexc3 extends Exchange {
             //     ]
             //
         } else if (market['swap']) {
-            const response = await (this as any).contractPublicGetDealsSymbol (this.extend (request, params));
+            const response = await this.contractPublicGetDealsSymbol (this.extend (request, params));
             //
             //     {
             //         "success": true,
@@ -1363,7 +1365,7 @@ export default class mexc3 extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const response = await (this as any).spotPublicGetKlines (this.extend (request, params));
+            const response = await this.spotPublicGetKlines (this.extend (request, params));
             //
             //     [
             //       [
@@ -1448,7 +1450,7 @@ export default class mexc3 extends Exchange {
             request['symbol'] = market['id'];
         }
         if (marketType === 'spot') {
-            tickers = await (this as any).spotPublicGetTicker24hr (this.extend (request, query));
+            tickers = await this.spotPublicGetTicker24hr (this.extend (request, query));
             //
             //     [
             //         {
@@ -1474,7 +1476,7 @@ export default class mexc3 extends Exchange {
             //     ]
             //
         } else if (marketType === 'swap') {
-            const response = await (this as any).contractPublicGetTicker (this.extend (request, query));
+            const response = await this.contractPublicGetTicker (this.extend (request, query));
             //
             //     {
             //         "success":true,
@@ -1528,7 +1530,7 @@ export default class mexc3 extends Exchange {
             'symbol': market['id'],
         };
         if (marketType === 'spot') {
-            ticker = await (this as any).spotPublicGetTicker24hr (this.extend (request, query));
+            ticker = await this.spotPublicGetTicker24hr (this.extend (request, query));
             //
             //     {
             //         "symbol": "BTCUSDT",
@@ -1552,7 +1554,7 @@ export default class mexc3 extends Exchange {
             //     }
             //
         } else if (marketType === 'swap') {
-            const response = await (this as any).contractPublicGetTicker (this.extend (request, query));
+            const response = await this.contractPublicGetTicker (this.extend (request, query));
             //
             //     {
             //         "success":true,
@@ -1721,7 +1723,7 @@ export default class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let tickers = undefined;
         if (marketType === 'spot') {
-            tickers = await (this as any).spotPublicGetTickerBookTicker (query);
+            tickers = await this.spotPublicGetTickerBookTicker (query);
             //
             //     [
             //       {
@@ -2018,7 +2020,7 @@ export default class mexc3 extends Exchange {
             //
         } else if (market['swap']) {
             request['order_id'] = id;
-            const response = await (this as any).contractPrivateGetOrderGetOrderId (this.extend (request, params));
+            const response = await this.contractPrivateGetOrderGetOrderId (this.extend (request, params));
             //
             //     {
             //         "success": true,
@@ -2160,7 +2162,7 @@ export default class mexc3 extends Exchange {
             let ordersOfRegular = [];
             let ordersOfTrigger = [];
             if (method === 'contractPrivateGetOrderListHistoryOrders') {
-                const response = await (this as any).contractPrivateGetOrderListHistoryOrders (this.extend (request, query));
+                const response = await this.contractPrivateGetOrderListHistoryOrders (this.extend (request, query));
                 //
                 //     {
                 //         "success": true,
@@ -2198,7 +2200,7 @@ export default class mexc3 extends Exchange {
                 ordersOfRegular = this.safeValue (response, 'data');
             } else {
                 // the Planorder endpoints work not only for stop-market orders, but also for stop-limit orders that were supposed to have a separate endpoint
-                const response = await (this as any).contractPrivateGetPlanorderListOrders (this.extend (request, query));
+                const response = await this.contractPrivateGetPlanorderListOrders (this.extend (request, query));
                 //
                 //     {
                 //         "success": true,
@@ -2245,7 +2247,7 @@ export default class mexc3 extends Exchange {
             throw new BadRequest (this.id + ' fetchOrdersByIds() is not supported for ' + marketType);
         } else {
             request['order_ids'] = ids.join (',');
-            const response = await (this as any).contractPrivateGetOrderBatchQuery (this.extend (request, query));
+            const response = await this.contractPrivateGetOrderBatchQuery (this.extend (request, query));
             //
             //     {
             //         "success": true,
@@ -2541,7 +2543,7 @@ export default class mexc3 extends Exchange {
         if (marketType === 'spot') {
             throw new BadRequest (this.id + ' cancelOrders() is not supported for ' + marketType);
         } else {
-            const response = await (this as any).contractPrivatePostOrderCancel (ids); // the request cannot be changed or extended. The only way to send.
+            const response = await this.contractPrivatePostOrderCancel (ids); // the request cannot be changed or extended. The only way to send.
             //
             //     {
             //         "success": true,
@@ -2886,7 +2888,7 @@ export default class mexc3 extends Exchange {
 
     async fetchAccountHelper (type, params) {
         if (type === 'spot') {
-            return await (this as any).spotPrivateGetAccount (params);
+            return await this.spotPrivateGetAccount (params);
             //
             //     {
             //         "makerCommission": "20",
@@ -2916,7 +2918,7 @@ export default class mexc3 extends Exchange {
             //     }
             //
         } else if (type === 'swap') {
-            const response = await (this as any).contractPrivateGetAccountAssets (params);
+            const response = await this.contractPrivateGetAccountAssets (params);
             //
             //     {
             //         "success":true,
@@ -3274,7 +3276,7 @@ export default class mexc3 extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            trades = await (this as any).spotPrivateGetMyTrades (this.extend (request, query));
+            trades = await this.spotPrivateGetMyTrades (this.extend (request, query));
             //
             // spot
             //
@@ -3307,7 +3309,7 @@ export default class mexc3 extends Exchange {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            const response = await (this as any).contractPrivateGetOrderListOrderDeals (this.extend (request, query));
+            const response = await this.contractPrivateGetOrderListOrderDeals (this.extend (request, query));
             //
             //     {
             //         "success": true,
@@ -3362,7 +3364,7 @@ export default class mexc3 extends Exchange {
             }
             request['symbol'] = market['id'];
             request['orderId'] = id;
-            trades = await (this as any).spotPrivateGetMyTrades (this.extend (request, query));
+            trades = await this.spotPrivateGetMyTrades (this.extend (request, query));
             //
             // spot
             //
@@ -3386,7 +3388,7 @@ export default class mexc3 extends Exchange {
             //
         } else {
             request['order_id'] = id;
-            const response = await (this as any).contractPrivateGetOrderDealDetailsOrderId (this.extend (request, query));
+            const response = await this.contractPrivateGetOrderDealDetailsOrderId (this.extend (request, query));
             //
             //     {
             //         "success": true,
@@ -3426,7 +3428,7 @@ export default class mexc3 extends Exchange {
             'amount': amount,
             'type': addOrReduce,
         };
-        const response = await (this as any).contractPrivatePostPositionChangeMargin (this.extend (request, params));
+        const response = await this.contractPrivatePostPositionChangeMargin (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -3490,7 +3492,7 @@ export default class mexc3 extends Exchange {
         } else {
             request['positionId'] = positionId;
         }
-        return await (this as any).contractPrivatePostPositionChangeLeverage (this.extend (request, params));
+        return await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
     }
 
     async fetchFundingHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
@@ -3519,7 +3521,7 @@ export default class mexc3 extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await (this as any).contractPrivateGetPositionFundingRecords (this.extend (request, params));
+        const response = await this.contractPrivateGetPositionFundingRecords (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -3624,7 +3626,7 @@ export default class mexc3 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).contractPublicGetFundingRateSymbol (this.extend (request, params));
+        const response = await this.contractPublicGetFundingRateSymbol (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -3668,7 +3670,7 @@ export default class mexc3 extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await (this as any).contractPublicGetFundingRateHistory (this.extend (request, params));
+        const response = await this.contractPublicGetFundingRateHistory (this.extend (request, params));
         //
         //    {
         //        "success": true,
@@ -3723,7 +3725,7 @@ export default class mexc3 extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).contractPublicGetDetail (params);
+        const response = await this.contractPublicGetDetail (params);
         //
         //     {
         //         "success":true,
@@ -3879,7 +3881,7 @@ export default class mexc3 extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await (this as any).spotPrivateGetCapitalDepositAddress (this.extend (request, params));
+        const response = await this.spotPrivateGetCapitalDepositAddress (this.extend (request, params));
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const depositAddress = response[i];
@@ -3940,9 +3942,6 @@ export default class mexc3 extends Exchange {
          * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
-        }
         await this.loadMarkets ();
         const request = {
             // 'coin': currency['id'] + network example: USDT-TRX,
@@ -3952,15 +3951,17 @@ export default class mexc3 extends Exchange {
             // 'limit': limit, // default 1000, maximum 1000
         };
         let currency = undefined;
-        const rawNetwork = this.safeString (params, 'network');
-        params = this.omit (params, 'network');
-        if (rawNetwork === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a network parameter when the currency is specified');
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+            // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
+            // due to that I'm applying the network parameter directly so the user can control it on its side
+            const rawNetwork = this.safeString (params, 'network');
+            if (rawNetwork !== undefined) {
+                params = this.omit (params, 'network');
+                request['coin'] += '-' + rawNetwork;
+            }
         }
-        // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
-        // due to that I'm applying the network parameter directly so the user can control it on its side
-        currency = this.currency (code);
-        request['coin'] = currency['id'] + '-' + rawNetwork;
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -3970,7 +3971,7 @@ export default class mexc3 extends Exchange {
             }
             request['limit'] = limit;
         }
-        const response = await (this as any).spotPrivateGetCapitalDepositHisrec (this.extend (request, params));
+        const response = await this.spotPrivateGetCapitalDepositHisrec (this.extend (request, params));
         //
         // [
         //     {
@@ -3979,11 +3980,11 @@ export default class mexc3 extends Exchange {
         //         network: 'TRX',
         //         status: '5',
         //         address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        //         addressTag: null,
         //         txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
         //         insertTime: '1664805021000',
         //         unlockConfirm: '200',
-        //         confirmTimes: '203'
+        //         confirmTimes: '203',
+        //         memo: 'xxyy1122'
         //     }
         // ]
         //
@@ -4002,9 +4003,6 @@ export default class mexc3 extends Exchange {
          * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
-        }
         await this.loadMarkets ();
         const request = {
             // 'coin': currency['id'],
@@ -4013,8 +4011,11 @@ export default class mexc3 extends Exchange {
             // 'endTime': this.milliseconds (),
             // 'limit': limit, // default 1000, maximum 1000
         };
-        const currency = this.currency (code);
-        request['coin'] = currency['id'];
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -4024,7 +4025,7 @@ export default class mexc3 extends Exchange {
             }
             request['limit'] = limit;
         }
-        const response = await (this as any).spotPrivateGetCapitalWithdrawHistory (this.extend (request, params));
+        const response = await this.spotPrivateGetCapitalWithdrawHistory (this.extend (request, params));
         //
         // [
         //     {
@@ -4039,7 +4040,8 @@ export default class mexc3 extends Exchange {
         //       transactionFee: '1',
         //       confirmNo: null,
         //       applyTime: '1664882739000',
-        //       remark: ''
+        //       remark: '',
+        //       memo: null
         //     }
         // ]
         //
@@ -4056,11 +4058,11 @@ export default class mexc3 extends Exchange {
         //     network: 'TRX',
         //     status: '5',
         //     address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        //     addressTag: null,
         //     txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
         //     insertTime: '1664805021000',
         //     unlockConfirm: '200',
-        //     confirmTimes: '203'
+        //     confirmTimes: '203',
+        //     memo: 'xxyy1122'
         // }
         //
         // fetchWithdrawals
@@ -4077,7 +4079,8 @@ export default class mexc3 extends Exchange {
         //     transactionFee: '1',
         //     confirmNo: null,
         //     applyTime: '1664882739000',
-        //     remark: ''
+        //     remark: '',
+        //     memo: null
         //   }
         //
         // withdraw
@@ -4089,10 +4092,11 @@ export default class mexc3 extends Exchange {
         const id = this.safeString (transaction, 'id');
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
         const timestamp = this.safeInteger2 (transaction, 'insertTime', 'applyTime');
-        const currencyId = this.safeString (transaction, 'currency');
-        const network = this.safeString (transaction, 'network');
+        const currencyWithNetwork = this.safeString (transaction, 'coin');
+        const currencyId = currencyWithNetwork.split ('-')[0];
+        const rawNetwork = this.safeString (transaction, 'network');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         let amountString = this.safeString (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'txId');
@@ -4114,7 +4118,7 @@ export default class mexc3 extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': network,
+            'network': this.safeNetwork (rawNetwork),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -4130,12 +4134,31 @@ export default class mexc3 extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
-        const statuses = {
-            'WAIT': 'pending',
-            'WAIT_PACKAGING': 'pending',
-            'SUCCESS': 'ok',
+    parseTransactionStatusByType (status, type = undefined) {
+        const statusesByType = {
+            'deposit': {
+                '1': 'failed', // SMALL
+                '2': 'pending', // TIME_DELAY
+                '3': 'pending', // LARGE_DELAY
+                '4': 'pending', // PENDING
+                '5': 'ok', // SUCCESS
+                '6': 'pending', // AUDITING
+                '7': 'failed', // REJECTED
+            },
+            'withdrawal': {
+                '1': 'pending', // APPLY
+                '2': 'pending', // AUDITING
+                '3': 'pending', // WAIT
+                '4': 'pending', // PROCESSING
+                '5': 'pending', // WAIT_PACKAGING
+                '6': 'pending', // WAIT_CONFIRM
+                '7': 'ok', // SUCCESS
+                '8': 'failed', // FAILED
+                '9': 'canceled', // CANCEL
+                '10': 'pending', // MANUAL
+            },
         };
+        const statuses = this.safeValue (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -4153,7 +4176,7 @@ export default class mexc3 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).fetchPositions (undefined, this.extend (request, params));
+        const response = await this.fetchPositions (undefined, this.extend (request, params));
         return this.safeValue (response, 0);
     }
 
@@ -4167,7 +4190,7 @@ export default class mexc3 extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).contractPrivateGetPositionOpenPositions (params);
+        const response = await this.contractPrivateGetPositionOpenPositions (params);
         //
         //     {
         //         "success": true,
@@ -4272,7 +4295,7 @@ export default class mexc3 extends Exchange {
             const request = {
                 'transact_id': id,
             };
-            const response = await (this as any).spot2PrivateGetAssetInternalTransferInfo (this.extend (request, query));
+            const response = await this.spot2PrivateGetAssetInternalTransferInfo (this.extend (request, query));
             //
             //     {
             //         code: '200',
@@ -4323,7 +4346,7 @@ export default class mexc3 extends Exchange {
                 }
                 request['page-size'] = limit;
             }
-            const response = await (this as any).spot2PrivateGetAssetInternalTransferRecord (this.extend (request, query));
+            const response = await this.spot2PrivateGetAssetInternalTransferRecord (this.extend (request, query));
             //
             //     {
             //         code: '200',
@@ -4349,7 +4372,7 @@ export default class mexc3 extends Exchange {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            const response = await (this as any).contractPrivateGetAccountTransferRecord (this.extend (request, query));
+            const response = await this.contractPrivateGetAccountTransferRecord (this.extend (request, query));
             const data = this.safeValue (response, 'data');
             resultList = this.safeValue (data, 'resultList');
             //
@@ -4426,7 +4449,7 @@ export default class mexc3 extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await (this as any).spotPrivatePostCapitalTransfer (this.extend (request, params));
+        const response = await this.spotPrivatePostCapitalTransfer (this.extend (request, params));
         //
         //     {
         //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
@@ -4548,7 +4571,7 @@ export default class mexc3 extends Exchange {
             request['network'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await (this as any).spotPrivatePostCapitalWithdrawApply (this.extend (request, params));
+        const response = await this.spotPrivatePostCapitalWithdrawApply (this.extend (request, params));
         //
         //     {
         //       "id":"7213fea8e94b4a5593d507237e5a555b"
@@ -4561,7 +4584,7 @@ export default class mexc3 extends Exchange {
         const request = {
             'positionMode': hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         };
-        const response = await (this as any).contractPrivatePostPositionChangePositionMode (this.extend (request, params));
+        const response = await this.contractPrivatePostPositionChangePositionMode (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -4572,7 +4595,7 @@ export default class mexc3 extends Exchange {
     }
 
     async fetchPositionMode (symbol: string = undefined, params = {}) {
-        const response = await (this as any).contractPrivateGetPositionPositionMode (params);
+        const response = await this.contractPrivateGetPositionPositionMode (params);
         //
         //     {
         //         "success":true,
@@ -4610,7 +4633,7 @@ export default class mexc3 extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
             'symbol': market['id'],
         };
-        const response = await (this as any).spotPrivatePostMarginLoan (this.extend (request, params));
+        const response = await this.spotPrivatePostMarginLoan (this.extend (request, params));
         //
         //     {
         //         "tranId": "762407666453712896"
@@ -4652,7 +4675,7 @@ export default class mexc3 extends Exchange {
             'borrowId': id,
             'symbol': market['id'],
         };
-        const response = await (this as any).spotPrivatePostMarginRepay (this.extend (request, params));
+        const response = await this.spotPrivatePostMarginRepay (this.extend (request, params));
         //
         //     {
         //         "tranId": "762407666453712896"
@@ -4676,7 +4699,7 @@ export default class mexc3 extends Exchange {
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).spotPrivateGetCapitalConfigGetall (params);
+        const response = await this.spotPrivateGetCapitalConfigGetall (params);
         //
         //    [
         //       {
@@ -4777,7 +4800,7 @@ export default class mexc3 extends Exchange {
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).spotPrivateGetCapitalConfigGetall (params);
+        const response = await this.spotPrivateGetCapitalConfigGetall (params);
         //
         //    [
         //       {
@@ -4910,7 +4933,7 @@ export default class mexc3 extends Exchange {
             }
             if (access === 'private') {
                 this.checkRequiredCredentials ();
-                const signature = this.hmac (this.encode (paramsEncoded), this.encode (this.secret), 'sha256');
+                const signature = this.hmac (this.encode (paramsEncoded), this.encode (this.secret), sha256);
                 url += '&' + 'signature=' + signature;
                 headers = {
                     'X-MEXC-APIKEY': this.apiKey,
@@ -4948,7 +4971,7 @@ export default class mexc3 extends Exchange {
                     }
                 }
                 auth = this.apiKey + timestamp + auth;
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 headers['Signature'] = signature;
             }
         }

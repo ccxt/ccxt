@@ -425,7 +425,7 @@ export default class bitrue extends bitrueRest {
         if (listenKey === undefined) {
             let response = undefined;
             try {
-                response = await (this as any).openPrivatePostPoseidonApiV1ListenKey (params);
+                response = await this.openPrivatePostPoseidonApiV1ListenKey (params);
             } catch (error) {
                 this.options['listenKey'] = undefined;
                 this.options['listenKeyUrl'] = undefined;
@@ -456,7 +456,7 @@ export default class bitrue extends bitrueRest {
             'listenKey': listenKey,
         };
         try {
-            await (this as any).openPrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
+            await this.openPrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
             //
             // ಠ_ಠ
             //     {

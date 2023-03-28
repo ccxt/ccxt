@@ -1,11 +1,12 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var coinsph$1 = require('./abstract/coinsph.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-class coinsph extends Exchange["default"] {
+class coinsph extends coinsph$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinsph',
@@ -1742,7 +1743,7 @@ class coinsph extends Exchange["default"] {
                 }
             }
             query = this.urlEncodeQuery(query);
-            const signature = this.hmac(this.encode(query), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
             url = url + '?' + query + '&signature=' + signature;
             headers = {
                 'X-COINS-APIKEY': this.apiKey,

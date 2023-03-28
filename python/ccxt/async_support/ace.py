@@ -586,7 +586,7 @@ class ace(Exchange):
         }
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
-        response = await self.privatePostV2OrderOrder(self.extend(request, params), params)
+        response = await self.privatePostV2OrderOrder(self.extend(request, params))
         #
         #     {
         #         "attachment": "15697850529570392100421100482693",
@@ -681,7 +681,7 @@ class ace(Exchange):
         }
         if limit is not None:
             request['size'] = limit
-        response = await self.privatePostV2OrderGetOrderList(self.extend(request, params), params)
+        response = await self.privatePostV2OrderGetOrderList(self.extend(request, params))
         orders = self.safe_value(response, 'attachment')
         #
         #     {

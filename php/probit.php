@@ -15,6 +15,7 @@ class probit extends Exchange {
             'name' => 'ProBit',
             'countries' => array( 'SC', 'KR' ), // Seychelles, South Korea
             'rateLimit' => 50, // ms
+            'pro' => true,
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
@@ -1555,7 +1556,7 @@ class probit extends Exchange {
             $auth = $this->apiKey . ':' . $this->secret;
             $auth64 = base64_encode($auth);
             $headers = array(
-                'Authorization' => 'Basic ' . $this->decode($auth64),
+                'Authorization' => 'Basic ' . $auth64,
                 'Content-Type' => 'application/json',
             );
             if ($query) {

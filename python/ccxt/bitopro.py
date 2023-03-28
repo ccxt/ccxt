@@ -969,7 +969,7 @@ class bitopro(Exchange):
         postOnly = self.is_post_only(orderType == 'MARKET', None, params)
         if postOnly:
             request['timeInForce'] = 'POST_ONLY'
-        response = self.privatePostOrdersPair(self.extend(request, params), params)
+        response = self.privatePostOrdersPair(self.extend(request, params))
         #
         #     {
         #         orderId: '2220595581',

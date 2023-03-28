@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btcalpha.js';
 export default class btcalpha extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

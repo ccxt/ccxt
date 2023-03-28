@@ -93,5 +93,5 @@ if [ "$delta" -gt $six_hours ] || grep -q -E 'Client(Trait)?\.php$|Exchange\.php
   # shellcheck disable=SC2155
   run_tests && date +%s > "$cached_timestamp_file"
 else
-  run_tests "$(sed -E -n 's:^js/([^/]+)\.js$:\1:p' <<< "$diff" | xargs)" "$(sed -E -n 's:^js/pro/([^/]+)\.js$:\1:p' <<< "$diff" | xargs)"
+  run_tests "$(sed -E -n 's:^ts/src/([^/]+)\.ts$:\1:p' <<< "$diff" | xargs)" "$(sed -E -n 's:^ts/src/pro/([^/]+)\.ts$:\1:p' <<< "$diff" | xargs)"
 fi

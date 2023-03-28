@@ -1,13 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var lykke$1 = require('./abstract/lykke.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class lykke extends Exchange["default"] {
+class lykke extends lykke$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'lykke',

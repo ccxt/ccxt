@@ -1,19 +1,20 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var probit$1 = require('./abstract/probit.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class probit extends Exchange["default"] {
+class probit extends probit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'probit',
             'name': 'ProBit',
             'countries': ['SC', 'KR'],
             'rateLimit': 50,
+            'pro': true,
             'has': {
                 'CORS': true,
                 'spot': true,
@@ -1568,7 +1569,7 @@ class probit extends Exchange["default"] {
             const auth = this.apiKey + ':' + this.secret;
             const auth64 = this.stringToBase64(auth);
             headers = {
-                'Authorization': 'Basic ' + this.decode(auth64),
+                'Authorization': 'Basic ' + auth64,
                 'Content-Type': 'application/json',
             };
             if (Object.keys(query).length) {

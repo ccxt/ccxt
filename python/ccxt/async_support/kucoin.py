@@ -459,7 +459,7 @@ class kucoin(Exchange):
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
-                            'accounts': 'v2',
+                            'accounts': 'v1',
                         },
                     },
                     'futuresPrivate': {
@@ -2925,7 +2925,7 @@ class kucoin(Exchange):
         request = {
             'currency': currency['id'],
         }
-        response = await self.privateGetMarginTradeLast(self.extend(request, params))
+        response = await self.publicGetMarginTradeLast(self.extend(request, params))
         #
         #     {
         #         "code": "200000",

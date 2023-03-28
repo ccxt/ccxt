@@ -3,6 +3,7 @@
 var exmo$1 = require('../exmo.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -640,7 +641,7 @@ class exmo extends exmo$1 {
             this.checkRequiredCredentials();
             const requestId = this.requestId();
             const signData = this.apiKey + time.toString();
-            const sign = this.hmac(this.encode(signData), this.encode(this.secret), 'sha512', 'base64');
+            const sign = this.hmac(this.encode(signData), this.encode(this.secret), sha512.sha512, 'base64');
             const request = {
                 'method': 'login',
                 'id': requestId,

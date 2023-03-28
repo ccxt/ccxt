@@ -5,10 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/zb.js';
 import { BadRequest, BadSymbol, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, NotSupported, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended, NetworkError, DDoSProtection, DuplicateOrderId, BadResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { sha1 } from './static_dependencies/noble-hashes/sha1.js';
+import { md5 } from './static_dependencies/noble-hashes/md5.js';
 //  ---------------------------------------------------------------------------
 export default class zb extends Exchange {
     describe() {
@@ -4328,8 +4331,8 @@ export default class zb extends Exchange {
                     signedString += query;
                 }
             }
-            const secret = this.hash(this.encode(this.secret), 'sha1');
-            const signature = this.hmac(this.encode(signedString), this.encode(secret), 'sha256', 'base64');
+            const secret = this.hash(this.encode(this.secret), sha1);
+            const signature = this.hmac(this.encode(signedString), this.encode(secret), sha256, 'base64');
             headers['ZB-SIGN'] = signature;
         }
         else {
@@ -4340,8 +4343,8 @@ export default class zb extends Exchange {
             const nonce = this.nonce();
             query = this.keysort(query);
             const auth = this.rawencode(query);
-            const secret = this.hash(this.encode(this.secret), 'sha1');
-            const signature = this.hmac(this.encode(auth), this.encode(secret), 'md5');
+            const secret = this.hash(this.encode(this.secret), sha1);
+            const signature = this.hmac(this.encode(auth), this.encode(secret), md5);
             const suffix = 'sign=' + signature + '&reqTime=' + nonce.toString();
             url += '/' + path + '?' + auth + '&' + suffix;
         }

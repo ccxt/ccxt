@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bitflyer$1 = require('./abstract/bitflyer.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitflyer extends Exchange["default"] {
+class bitflyer extends bitflyer$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitflyer',
@@ -732,7 +733,7 @@ class bitflyer extends Exchange["default"] {
         const request = {
             'product_code': this.marketIds(symbols),
         };
-        const response = await this.privateGetpositions(this.extend(request, params));
+        const response = await this.privateGetGetpositions(this.extend(request, params));
         //
         //     [
         //         {
@@ -980,7 +981,7 @@ class bitflyer extends Exchange["default"] {
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
-                'ACCESS-SIGN': this.hmac(this.encode(auth), this.encode(this.secret)),
+                'ACCESS-SIGN': this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256),
                 'Content-Type': 'application/json',
             };
         }

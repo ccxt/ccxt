@@ -764,7 +764,7 @@ class lbank(Exchange):
                 'api_key': self.apiKey,
             }, params))
             queryString = self.rawencode(query)
-            message = self.hash(self.encode(queryString)).upper()
+            message = self.hash(self.encode(queryString), 'sha256').upper()
             cacheSecretAsPem = self.safe_value(self.options, 'cacheSecretAsPem', True)
             pem = None
             if cacheSecretAsPem:
@@ -774,7 +774,7 @@ class lbank(Exchange):
                     self.options['pem'] = pem
             else:
                 pem = self.convert_secret_to_pem(self.secret)
-            query['sign'] = self.rsa(message, pem, 'RS256')
+            query['sign'] = self.rsa(message, pem, 'sha256')
             body = self.urlencode(query)
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

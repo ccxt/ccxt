@@ -172,6 +172,8 @@ class bybit extends Exchange {
                         'spot/v3/public/quote/ticker/bookTicker' => 1,
                         'spot/v3/public/server-time' => 1,
                         'spot/v3/public/infos' => 1,
+                        'spot/v3/public/margin-product-infos' => 1,
+                        'spot/v3/public/margin-ensure-tokens' => 1,
                         // data
                         'v2/public/time' => 1,
                         'v3/public/time' => 1,
@@ -231,6 +233,7 @@ class bybit extends Exchange {
                         'v5/market/delivery-price' => 1,
                         'v5/spot-lever-token/info' => 1,
                         'v5/spot-lever-token/reference' => 1,
+                        'v5/announcements/index' => 1,
                     ),
                 ),
                 'private' => array(
@@ -294,6 +297,9 @@ class bybit extends Exchange {
                         'spot/v3/private/cross-margin-account' => 10,
                         'spot/v3/private/cross-margin-loan-info' => 10,
                         'spot/v3/private/cross-margin-repay-history' => 10,
+                        'spot/v3/private/margin-loan-infos' => 10,
+                        'spot/v3/private/margin-repaid-infos' => 10,
+                        'spot/v3/private/margin-ltv' => 10,
                         // account
                         'asset/v1/private/transfer/list' => 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v3/private/transfer/inter-transfer/list/query' => 0.84, // 60/s
@@ -735,6 +741,7 @@ class bybit extends Exchange {
                     '131097' => '\\ccxt\\ExchangeError', // Withdrawal of this currency has been closed
                     '131098' => '\\ccxt\\ExchangeError', // Withdrawal currently is not availble from new address
                     '131099' => '\\ccxt\\ExchangeError', // Hot wallet status can cancel the withdraw
+                    '140001' => '\\ccxt\\OrderNotFound', // Order does not exist
                     '140003' => '\\ccxt\\InvalidOrder', // Order price is out of permissible range
                     '140004' => '\\ccxt\\InsufficientFunds', // Insufficient wallet balance
                     '140005' => '\\ccxt\\InvalidOrder', // position status
@@ -1552,6 +1559,7 @@ class bybit extends Exchange {
             $inverse = ($category === 'inverse');
             $contractType = $this->safe_string($market, 'contractType');
             $inverseFutures = ($contractType === 'InverseFutures');
+            $linearFutures = ($contractType === 'LinearFutures');
             $linearPerpetual = ($contractType === 'LinearPerpetual');
             $inversePerpetual = ($contractType === 'InversePerpetual');
             $id = $this->safe_string($market, 'symbol');
@@ -1574,7 +1582,7 @@ class bybit extends Exchange {
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'Trading');
             $swap = $linearPerpetual || $inversePerpetual;
-            $future = $inverseFutures;
+            $future = $inverseFutures || $linearFutures;
             $option = ($category === 'option');
             $type = null;
             if ($swap) {
@@ -1870,10 +1878,11 @@ class bybit extends Exchange {
             // 'expDate' => '', Expiry date. e.g., 25DEC22. For option only
         );
         $type = null;
+        $isTypeInParams = (is_array($params) && array_key_exists('type', $params));
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         if ($type === 'spot') {
             $request['category'] = 'spot';
-        } elseif ($type === 'swap') {
+        } elseif ($type === 'swap' || $type === 'future') {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
             $request['category'] = $subType;
@@ -1922,10 +1931,21 @@ class bybit extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $tickerList = $this->safe_value($result, 'list', array());
         $tickers = array();
+        if ($market === null && $isTypeInParams) {
+            // create a "fake" $market for the $type
+            $market = array(
+                'type' => ($type === 'swap' || $type === 'future') ? 'swap' : $type,
+            );
+        }
         for ($i = 0; $i < count($tickerList); $i++) {
             $ticker = $this->parse_ticker($tickerList[$i], $market);
             $symbol = $ticker['symbol'];
-            $tickers[$symbol] = $ticker;
+            // this is needed because bybit returns
+            // futures with $type = swap
+            $marketInner = $this->market($symbol);
+            if ($marketInner['type'] === $type) {
+                $tickers[$symbol] = $ticker;
+            }
         }
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
@@ -6758,6 +6778,7 @@ class bybit extends Exchange {
         }
         if ($enableUnified[1]) {
             $request['settleCoin'] = $settle;
+            $request['limit'] = 200;
         }
         // $market null
         list($type, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
@@ -8151,7 +8172,7 @@ class bybit extends Exchange {
                 if ($isV3UnifiedMargin || $isV3Contract) {
                     $headers['X-BAPI-SIGN-TYPE'] = '2';
                 }
-                $query = $params;
+                $query = array_merge(array(), $params);
                 $queryEncoded = $this->rawencode($query);
                 $auth_base = (string) $timestamp . $this->apiKey . (string) $this->options['recvWindow'];
                 $authFull = null;
@@ -8162,7 +8183,13 @@ class bybit extends Exchange {
                     $authFull = $auth_base . $queryEncoded;
                     $url .= '?' . $this->rawencode($query);
                 }
-                $headers['X-BAPI-SIGN'] = $this->hmac($this->encode($authFull), $this->encode($this->secret));
+                $signature = null;
+                if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
+                    $signature = $this->rsa($authFull, $this->secret, 'sha256');
+                } else {
+                    $signature = $this->hmac($this->encode($authFull), $this->encode($this->secret), 'sha256');
+                }
+                $headers['X-BAPI-SIGN'] = $signature;
             } else {
                 $query = array_merge($params, array(
                     'api_key' => $this->apiKey,
@@ -8171,7 +8198,12 @@ class bybit extends Exchange {
                 ));
                 $sortedQuery = $this->keysort($query);
                 $auth = $this->rawencode($sortedQuery);
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                $signature = null;
+                if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
+                    $signature = $this->rsa($auth, $this->secret, 'sha256');
+                } else {
+                    $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                }
                 if ($method === 'POST') {
                     $isSpot = mb_strpos($url, 'spot') !== false;
                     $extendedQuery = array_merge($query, array(

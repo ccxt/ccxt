@@ -8,6 +8,7 @@
 import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce, } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 export default class gate extends gateRest {
     describe() {
@@ -1088,7 +1089,7 @@ export default class gate extends gateRest {
         const time = this.seconds();
         const event = 'subscribe';
         const signaturePayload = 'channel=' + subscriptionHash + '&' + 'event=' + event + '&' + 'time=' + time.toString();
-        const signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), 'sha512', 'hex');
+        const signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512, 'hex');
         const auth = {
             'method': 'api_key',
             'KEY': this.apiKey,

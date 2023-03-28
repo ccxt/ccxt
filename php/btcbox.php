@@ -512,8 +512,8 @@ class btcbox extends Exchange {
                 'nonce' => $nonce,
             ), $params);
             $request = $this->urlencode($query);
-            $secret = $this->hash($this->encode($this->secret));
-            $query['signature'] = $this->hmac($this->encode($request), $this->encode($secret));
+            $secret = $this->hash($this->encode($this->secret), 'sha256');
+            $query['signature'] = $this->hmac($this->encode($request), $this->encode($secret), 'sha256');
             $body = $this->urlencode($query);
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',

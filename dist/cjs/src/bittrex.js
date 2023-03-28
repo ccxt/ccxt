@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bittrex$1 = require('./abstract/bittrex.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bittrex extends Exchange["default"] {
+class bittrex extends bittrex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bittrex',
@@ -2089,14 +2090,14 @@ class bittrex extends Exchange["default"] {
                     url += '?' + this.rawencode(params);
                 }
             }
-            const contentHash = this.hash(this.encode(hashString), 'sha512', 'hex');
+            const contentHash = this.hash(this.encode(hashString), sha512.sha512, 'hex');
             const timestamp = this.milliseconds().toString();
             let auth = timestamp + url + method + contentHash;
             const subaccountId = this.safeValue(this.options, 'subaccountId');
             if (subaccountId !== undefined) {
                 auth += subaccountId;
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha512');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512.sha512);
             headers = {
                 'Api-Key': this.apiKey,
                 'Api-Timestamp': timestamp,

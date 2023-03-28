@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
@@ -832,7 +833,7 @@ class kuna(Exchange):
                     'tonce': nonce,
                 }, params))
                 auth = method + '|' + request + '|' + query
-                signed = self.hmac(self.encode(auth), self.encode(self.secret))
+                signed = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 suffix = query + '&signature=' + signed
                 if method == 'GET':
                     url += '?' + suffix

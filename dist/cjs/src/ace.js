@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var ace$1 = require('./abstract/ace.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class ace extends Exchange["default"] {
+class ace extends ace$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ace',
@@ -603,7 +604,7 @@ class ace extends Exchange["default"] {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const response = await this.privatePostV2OrderOrder(this.extend(request, params), params);
+        const response = await this.privatePostV2OrderOrder(this.extend(request, params));
         //
         //     {
         //         "attachment": "15697850529570392100421100482693",
@@ -706,7 +707,7 @@ class ace extends Exchange["default"] {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.privatePostV2OrderGetOrderList(this.extend(request, params), params);
+        const response = await this.privatePostV2OrderGetOrderList(this.extend(request, params));
         const orders = this.safeValue(response, 'attachment');
         //
         //     {
@@ -1015,7 +1016,7 @@ class ace extends Exchange["default"] {
                 const key = sortedDataKeys[i];
                 auth += this.safeString(data, key);
             }
-            const signature = this.hash(this.encode(auth), 'sha256', 'hex');
+            const signature = this.hash(this.encode(auth), sha256.sha256, 'hex');
             data['signKey'] = signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

@@ -3,199 +3,201 @@
 var _commonjsHelpers = require('./_commonjsHelpers.js');
 
 const commonjsRegister = _commonjsHelpers.commonjsRegister;
-commonjsRegister("/$$rollup_base$$/js/src/static_dependencies/elliptic/lib/elliptic/utils.cjs", function (module, exports) {
-var utils = exports;
-var BN = _commonjsHelpers.commonjsRequire("../../../BN/bn.cjs", "/$$rollup_base$$/js/src/static_dependencies/elliptic/lib/elliptic");
-utils.assert = function (condition, errorMessage) {
-    if (!condition) {
-        throw new Error(errorMessage);
+commonjsRegister("/$$rollup_base$$/js/src/static_dependencies/qs/utils.cjs", function (module, exports) {
+var has = Object.prototype.hasOwnProperty;
+var isArray = Array.isArray;
+var hexTable = (function () {
+    var array = [];
+    for (var i = 0; i < 256; ++i) {
+        array.push('%' + ((i < 16 ? '0' : '') + i.toString(16)).toUpperCase());
+    }
+    return array;
+}());
+var compactQueue = function compactQueue(queue) {
+    while (queue.length > 1) {
+        var item = queue.pop();
+        var obj = item.obj[item.prop];
+        if (isArray(obj)) {
+            var compacted = [];
+            for (var j = 0; j < obj.length; ++j) {
+                if (typeof obj[j] !== 'undefined') {
+                    compacted.push(obj[j]);
+                }
+            }
+            item.obj[item.prop] = compacted;
+        }
     }
 };
-// Represent num in a w-NAF form
-function getNAF(num, w) {
-    var naf = [];
-    var ws = 1 << (w + 1);
-    var k = num.clone();
-    while (k.cmpn(1) >= 0) {
-        var z;
-        if (k.isOdd()) {
-            var mod = k.andln(ws - 1);
-            if (mod > (ws >> 1) - 1)
-                z = (ws >> 1) - mod;
-            else
-                z = mod;
-            k.isubn(z);
+var arrayToObject = function arrayToObject(source, options) {
+    var obj = options && options.plainObjects ? Object.create(null) : {};
+    for (var i = 0; i < source.length; ++i) {
+        if (typeof source[i] !== 'undefined') {
+            obj[i] = source[i];
+        }
+    }
+    return obj;
+};
+var merge = function merge(target, source, options) {
+    if (!source) {
+        return target;
+    }
+    if (typeof source !== 'object') {
+        if (isArray(target)) {
+            target.push(source);
+        }
+        else if (target && typeof target === 'object') {
+            if ((options && (options.plainObjects || options.allowPrototypes)) || !has.call(Object.prototype, source)) {
+                target[source] = true;
+            }
         }
         else {
-            z = 0;
+            return [target, source];
         }
-        naf.push(z);
-        // Optimization, shift by word if possible
-        var shift = (k.cmpn(0) !== 0 && k.andln(ws - 1) === 0) ? (w + 1) : 1;
-        for (var i = 1; i < shift; i++)
-            naf.push(0);
-        k.iushrn(shift);
+        return target;
     }
-    return naf;
-}
-utils.getNAF = getNAF;
-// Represent k1, k2 in a Joint Sparse Form
-function getJSF(k1, k2) {
-    var jsf = [
-        [],
-        []
-    ];
-    k1 = k1.clone();
-    k2 = k2.clone();
-    var d1 = 0;
-    var d2 = 0;
-    while (k1.cmpn(-d1) > 0 || k2.cmpn(-d2) > 0) {
-        // First phase
-        var m14 = (k1.andln(3) + d1) & 3;
-        var m24 = (k2.andln(3) + d2) & 3;
-        if (m14 === 3)
-            m14 = -1;
-        if (m24 === 3)
-            m24 = -1;
-        var u1;
-        if ((m14 & 1) === 0) {
-            u1 = 0;
-        }
-        else {
-            var m8 = (k1.andln(7) + d1) & 7;
-            if ((m8 === 3 || m8 === 5) && m24 === 2)
-                u1 = -m14;
-            else
-                u1 = m14;
-        }
-        jsf[0].push(u1);
-        var u2;
-        if ((m24 & 1) === 0) {
-            u2 = 0;
+    if (!target || typeof target !== 'object') {
+        return [target].concat(source);
+    }
+    var mergeTarget = target;
+    if (isArray(target) && !isArray(source)) {
+        mergeTarget = arrayToObject(target, options);
+    }
+    if (isArray(target) && isArray(source)) {
+        source.forEach(function (item, i) {
+            if (has.call(target, i)) {
+                var targetItem = target[i];
+                if (targetItem && typeof targetItem === 'object' && item && typeof item === 'object') {
+                    target[i] = merge(targetItem, item, options);
+                }
+                else {
+                    target.push(item);
+                }
+            }
+            else {
+                target[i] = item;
+            }
+        });
+        return target;
+    }
+    return Object.keys(source).reduce(function (acc, key) {
+        var value = source[key];
+        if (has.call(acc, key)) {
+            acc[key] = merge(acc[key], value, options);
         }
         else {
-            var m8 = (k2.andln(7) + d2) & 7;
-            if ((m8 === 3 || m8 === 5) && m14 === 2)
-                u2 = -m24;
-            else
-                u2 = m24;
+            acc[key] = value;
         }
-        jsf[1].push(u2);
-        // Second phase
-        if (2 * d1 === u1 + 1)
-            d1 = 1 - d1;
-        if (2 * d2 === u2 + 1)
-            d2 = 1 - d2;
-        k1.iushrn(1);
-        k2.iushrn(1);
+        return acc;
+    }, mergeTarget);
+};
+var assign = function assignSingleSource(target, source) {
+    return Object.keys(source).reduce(function (acc, key) {
+        acc[key] = source[key];
+        return acc;
+    }, target);
+};
+var decode = function (str, decoder, charset) {
+    var strWithoutPlus = str.replace(/\+/g, ' ');
+    if (charset === 'iso-8859-1') {
+        // unescape never throws, no try...catch needed:
+        return strWithoutPlus.replace(/%[0-9a-f]{2}/gi, unescape);
     }
-    return jsf;
-}
-utils.getJSF = getJSF;
-function cachedProperty(obj, name, computer) {
-    var key = '_' + name;
-    obj.prototype[name] = function cachedProperty() {
-        return this[key] !== undefined ? this[key] :
-            this[key] = computer.call(this);
-    };
-}
-utils.cachedProperty = cachedProperty;
-function parseBytes(bytes) {
-    return typeof bytes === 'string' ? utils.toArray(bytes, 'hex') :
-        bytes;
-}
-utils.parseBytes = parseBytes;
-function intFromLE(bytes) {
-    return new BN(bytes, 'hex', 'le');
-}
-utils.intFromLE = intFromLE;
-// used to convert `CryptoJS` wordArrays into `crypto` hex buffers
-function wordToByteArray(word, length) {
-    var ba = [], xFF = 0xFF;
-    if (length > 0)
-        ba.push(word >>> 24);
-    if (length > 1)
-        ba.push((word >>> 16) & xFF);
-    if (length > 2)
-        ba.push((word >>> 8) & xFF);
-    if (length > 3)
-        ba.push(word & xFF);
-    return ba;
-}
-function wordArrayToBuffer(wordArray) {
-    let length = undefined;
-    if (wordArray.hasOwnProperty("sigBytes") && wordArray.hasOwnProperty("words")) {
-        length = wordArray.sigBytes;
-        wordArray = wordArray.words;
+    // utf-8
+    try {
+        return decodeURIComponent(strWithoutPlus);
     }
-    else {
-        throw Error('Argument not a wordArray');
+    catch (e) {
+        return strWithoutPlus;
     }
-    const result = [];
-    let bytes = [];
-    let i = 0;
-    while (length > 0) {
-        bytes = wordToByteArray(wordArray[i], Math.min(4, length));
-        length -= bytes.length;
-        result.push(bytes);
-        i++;
+};
+var encode = function encode(str, defaultEncoder, charset) {
+    // This code was originally written by Brian White (mscdex) for the io.js core querystring library.
+    // It has been adapted here for stricter adherence to RFC 3986
+    if (str.length === 0) {
+        return str;
     }
-    return [].concat.apply([], result);
-}
-utils.wordArrayToBuffer = wordArrayToBuffer;
-// https://github.com/indutny/minimalistic-crypto-utils/blob/master/lib/utils.js
-// moved here to remove the dep
-function toArray(msg, enc) {
-    if (Array.isArray(msg))
-        return msg.slice();
-    if (!msg)
-        return [];
-    var res = [];
-    if (typeof msg !== 'string') {
-        for (var i = 0; i < msg.length; i++)
-            res[i] = msg[i] | 0;
-        return res;
+    var string = typeof str === 'string' ? str : String(str);
+    if (charset === 'iso-8859-1') {
+        return escape(string).replace(/%u[0-9a-f]{4}/gi, function ($0) {
+            return '%26%23' + parseInt($0.slice(2), 16) + '%3B';
+        });
     }
-    if (enc === 'hex') {
-        msg = msg.replace(/[^a-z0-9]+/ig, '');
-        if (msg.length % 2 !== 0)
-            msg = '0' + msg;
-        for (var i = 0; i < msg.length; i += 2)
-            res.push(parseInt(msg[i] + msg[i + 1], 16));
+    var out = '';
+    for (var i = 0; i < string.length; ++i) {
+        var c = string.charCodeAt(i);
+        if (c === 0x2D // -
+            || c === 0x2E // .
+            || c === 0x5F // _
+            || c === 0x7E // ~
+            || (c >= 0x30 && c <= 0x39) // 0-9
+            || (c >= 0x41 && c <= 0x5A) // a-z
+            || (c >= 0x61 && c <= 0x7A) // A-Z
+        ) {
+            out += string.charAt(i);
+            continue;
+        }
+        if (c < 0x80) {
+            out = out + hexTable[c];
+            continue;
+        }
+        if (c < 0x800) {
+            out = out + (hexTable[0xC0 | (c >> 6)] + hexTable[0x80 | (c & 0x3F)]);
+            continue;
+        }
+        if (c < 0xD800 || c >= 0xE000) {
+            out = out + (hexTable[0xE0 | (c >> 12)] + hexTable[0x80 | ((c >> 6) & 0x3F)] + hexTable[0x80 | (c & 0x3F)]);
+            continue;
+        }
+        i += 1;
+        c = 0x10000 + (((c & 0x3FF) << 10) | (string.charCodeAt(i) & 0x3FF));
+        out += hexTable[0xF0 | (c >> 18)]
+            + hexTable[0x80 | ((c >> 12) & 0x3F)]
+            + hexTable[0x80 | ((c >> 6) & 0x3F)]
+            + hexTable[0x80 | (c & 0x3F)];
     }
-    else {
-        for (var i = 0; i < msg.length; i++) {
-            var c = msg.charCodeAt(i);
-            var hi = c >> 8;
-            var lo = c & 0xff;
-            if (hi)
-                res.push(hi, lo);
-            else
-                res.push(lo);
+    return out;
+};
+var compact = function compact(value) {
+    var queue = [{ obj: { o: value }, prop: 'o' }];
+    var refs = [];
+    for (var i = 0; i < queue.length; ++i) {
+        var item = queue[i];
+        var obj = item.obj[item.prop];
+        var keys = Object.keys(obj);
+        for (var j = 0; j < keys.length; ++j) {
+            var key = keys[j];
+            var val = obj[key];
+            if (typeof val === 'object' && val !== null && refs.indexOf(val) === -1) {
+                queue.push({ obj: obj, prop: key });
+                refs.push(val);
+            }
         }
     }
-    return res;
-}
-utils.toArray = toArray;
-function zero2(word) {
-    if (word.length === 1)
-        return '0' + word;
-    else
-        return word;
-}
-utils.zero2 = zero2;
-function toHex(msg) {
-    var res = '';
-    for (var i = 0; i < msg.length; i++)
-        res += zero2(msg[i].toString(16));
-    return res;
-}
-utils.toHex = toHex;
-utils.encode = function encode(arr, enc) {
-    if (enc === 'hex')
-        return toHex(arr);
-    else
-        return arr;
+    compactQueue(queue);
+    return value;
+};
+var isRegExp = function isRegExp(obj) {
+    return Object.prototype.toString.call(obj) === '[object RegExp]';
+};
+var isBuffer = function isBuffer(obj) {
+    if (!obj || typeof obj !== 'object') {
+        return false;
+    }
+    return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
+};
+var combine = function combine(a, b) {
+    return [].concat(a, b);
+};
+module.exports = {
+    arrayToObject: arrayToObject,
+    assign: assign,
+    combine: combine,
+    compact: compact,
+    decode: decode,
+    encode: encode,
+    isBuffer: isBuffer,
+    isRegExp: isRegExp,
+    merge: merge
 };
 
 });

@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var independentreserve$1 = require('./abstract/independentreserve.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class independentreserve extends Exchange["default"] {
+class independentreserve extends independentreserve$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'independentreserve',
@@ -731,7 +732,7 @@ class independentreserve extends Exchange["default"] {
                 auth.push(key + '=' + value);
             }
             const message = auth.join(',');
-            const signature = this.hmac(this.encode(message), this.encode(this.secret));
+            const signature = this.hmac(this.encode(message), this.encode(this.secret), sha256.sha256);
             const query = this.ordered({});
             query['apiKey'] = this.apiKey;
             query['nonce'] = nonce;

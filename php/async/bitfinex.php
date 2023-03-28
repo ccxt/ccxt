@@ -1657,7 +1657,7 @@ class bitfinex extends Exchange {
             $signature = $this->hmac($payload, $secret, 'sha384');
             $headers = array(
                 'X-BFX-APIKEY' => $this->apiKey,
-                'X-BFX-PAYLOAD' => $this->decode($payload),
+                'X-BFX-PAYLOAD' => $payload,
                 'X-BFX-SIGNATURE' => $signature,
                 'Content-Type' => 'application/json',
             );

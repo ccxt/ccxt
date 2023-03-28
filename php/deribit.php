@@ -2562,7 +2562,7 @@ class deribit extends Exchange {
             // 'tfa' => '123456', // if enabled
         );
         if ($this->twofa !== null) {
-            $request['tfa'] = $this->oath();
+            $request['tfa'] = $this->totp($this->twofa);
         }
         $response = $this->privateGetWithdraw (array_merge($request, $params));
         return $this->parse_transaction($response, $currency);

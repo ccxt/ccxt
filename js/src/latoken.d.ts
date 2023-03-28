@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/latoken.js';
 export default class latoken extends Exchange {
     describe(): any;
     nonce(): number;

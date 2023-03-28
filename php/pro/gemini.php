@@ -644,7 +644,7 @@ class gemini extends \ccxt\async\gemini {
             'request' => $request,
             'nonce' => $this->nonce(),
         );
-        $b64 = base64_encode($this->encode($this->json($payload)));
+        $b64 = base64_encode($this->json($payload));
         $signature = $this->hmac($b64, $this->encode($this->secret), 'sha384', 'hex');
         $defaultOptions = array(
             'ws' => array(
@@ -657,7 +657,7 @@ class gemini extends \ccxt\async\gemini {
         $originalHeaders = $this->options['ws']['options']['headers'];
         $headers = array(
             'X-GEMINI-APIKEY' => $this->apiKey,
-            'X-GEMINI-PAYLOAD' => $this->decode($b64),
+            'X-GEMINI-PAYLOAD' => $b64,
             'X-GEMINI-SIGNATURE' => $signature,
         );
         $this->options['ws']['options']['headers'] = $headers;

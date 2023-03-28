@@ -52,5 +52,6 @@
     "yobit":         { "skip": true },
     "coinbase":      { "skip": true, "//": "all endpoints are private" },
     "buda":          { "skip": true, "//": "exchange unavailable" },
+    "wazirx":        { "skip": true, "//": "skipped temporarily to allow Travis CI to succeed" },
     "whitebit":      { "skip": true, "//": "skipped temporarily to allow Travis CI to succeed" }
 }

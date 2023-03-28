@@ -46,6 +46,8 @@ class cryptocom extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRates' => false,
@@ -300,6 +302,17 @@ class cryptocom extends Exchange {
                     'swap' => 'DERIVATIVES',
                     'future' => 'DERIVATIVES',
                 ),
+                'networks' => array(
+                    'BEP20' => 'BSC',
+                    'ERC20' => 'ETH',
+                    'TRX' => 'TRON',
+                    'TRC20' => 'TRON',
+                ),
+                'networksById' => array(
+                    'BSC' => 'BEP20',
+                    'ETH' => 'ERC20',
+                    'TRON' => 'TRC20',
+                ),
             ),
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies' => array(
@@ -360,6 +373,7 @@ class cryptocom extends Exchange {
              * @return {[array]} an array of objects representing market data
              */
             $promises = array( $this->fetch_spot_markets($params), $this->fetch_derivatives_markets($params) );
+            // @ts-ignore
             $promises = Async\await(Promise\all($promises));
             $spotMarkets = $promises[0];
             $derivativeMarkets = $promises[1];
@@ -1169,6 +1183,11 @@ class cryptocom extends Exchange {
             );
             if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            if ($clientOrderId) {
+                $request['client_oid'] = $clientOrderId;
+                $params = $this->omit($params, array( 'clientOrderId' ));
             }
             $postOnly = $this->safe_value($params, 'postOnly', false);
             if ($postOnly) {
@@ -2488,6 +2507,73 @@ class cryptocom extends Exchange {
         return array( $marginMode, $params );
     }
 
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    {
+        //        full_name => 'Alchemix',
+        //        default_network => 'ETH',
+        //        network_list => array(
+        //          {
+        //            network_id => 'ETH',
+        //            withdrawal_fee => '0.25000000',
+        //            withdraw_enabled => true,
+        //            min_withdrawal_amount => '0.5',
+        //            deposit_enabled => true,
+        //            confirmation_required => '0'
+        //          }
+        //        )
+        //    }
+        //
+        $networkList = $this->safe_value($fee, 'network_list');
+        $networkListLength = count($networkList);
+        $result = array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+        if ($networkList !== null) {
+            for ($i = 0; $i < $networkListLength; $i++) {
+                $networkInfo = $networkList[$i];
+                $networkId = $this->safe_string($networkInfo, 'network_id');
+                $currencyCode = $this->safe_string($currency, 'code');
+                $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+                $result['networks'][$networkCode] = array(
+                    'deposit' => array( 'fee' => null, 'percentage' => null ),
+                    'withdraw' => array( 'fee' => $this->safe_number($networkInfo, 'withdrawal_fee'), 'percentage' => false ),
+                );
+                if ($networkListLength === 1) {
+                    $result['withdraw']['fee'] = $this->safe_number($networkInfo, 'withdrawal_fee');
+                    $result['withdraw']['percentage'] = false;
+                }
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->v2PrivatePostPrivateGetCurrencyNetworks ($params));
+            $data = $this->safe_value($response, 'result');
+            $currencyMap = $this->safe_value($data, 'currency_map');
+            return $this->parse_deposit_withdraw_fees($currencyMap, $codes, 'full_name');
+        }) ();
+    }
+
     public function nonce() {
         return $this->milliseconds();
     }
@@ -2511,7 +2597,7 @@ class cryptocom extends Exchange {
                 $strSortKey = $strSortKey . (string) $paramsKeys[$i] . (string) $requestParams[$paramsKeys[$i]];
             }
             $payload = $path . $nonce . $this->apiKey . $strSortKey . $nonce;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
             $paramsKeysLength = count($paramsKeys);
             $body = $this->json(array(
                 'id' => $nonce,

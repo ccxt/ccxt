@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/gate.js';
 export default class gate extends Exchange {
     describe(): any;
     setSandboxMode(enable: any): void;

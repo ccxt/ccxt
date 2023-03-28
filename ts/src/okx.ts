@@ -1,10 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/okx.js';
 import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -37,6 +38,7 @@ export default class okx extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -163,6 +165,7 @@ export default class okx extends Exchange {
                         'market/option/instrument-family-trades': 1,
                         // 'market/oracle',
                         'public/instruments': 1,
+                        'public/instrument-tick-bands': 4,
                         'public/delivery-exercise-history': 0.5,
                         'public/open-interest': 1,
                         'public/funding-rate': 1,
@@ -193,8 +196,8 @@ export default class okx extends Exchange {
                         'rubik/stat/option/open-interest-volume-strike': 4,
                         'rubik/stat/option/taker-block-volume': 4,
                         'system/status': 100,
-                        'asset/lending-rate-summary': 5 / 3,
-                        'asset/lending-rate-history': 5 / 3,
+                        'finance/savings/lending-rate-summary': 5 / 3,
+                        'finance/savings/lending-rate-history': 5 / 3,
                         'market/exchange-rate': 20,
                     },
                 },
@@ -233,8 +236,6 @@ export default class okx extends Exchange {
                         'asset/bills': 5 / 3,
                         'asset/piggy-balance': 5 / 3,
                         'asset/deposit-lightning': 5,
-                        'asset/lending-history': 5 / 3,
-                        'asset/saving-balance': 5 / 3,
                         'asset/non-tradable-assets': 5 / 3,
                         'trade/order': 1 / 3,
                         'trade/orders-pending': 1,
@@ -271,6 +272,8 @@ export default class okx extends Exchange {
                         'finance/staking-defi/offers': 1,
                         'finance/staking-defi/orders-active': 1,
                         'finance/staking-defi/orders-history': 1,
+                        'finance/savings/balance': 5 / 3,
+                        'finance/savings/lending-history': 5 / 3,
                         'rfq/counterparties': 4,
                         'rfq/maker-instrument-settings': 4,
                         'rfq/rfqs': 10,
@@ -306,9 +309,7 @@ export default class okx extends Exchange {
                         'account/set-auto-loan': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
-                        'asset/purchase_redempt': 5 / 3,
                         'asset/withdrawal-lightning': 5,
-                        'asset/set-lending-rate': 5 / 3,
                         'asset/cancel-withdrawal': 5 / 3,
                         'asset/convert-dust-assets': 10,
                         'trade/order': 1 / 3,
@@ -340,6 +341,8 @@ export default class okx extends Exchange {
                         'finance/staking-defi/purchase': 3,
                         'finance/staking-defi/redeem': 3,
                         'finance/staking-defi/cancel': 3,
+                        'finance/savings/purchase-redempt': 5 / 3,
+                        'finance/savings/set-lending-rate': 5 / 3,
                         'rfq/create-rfq': 4,
                         'rfq/cancel-rfq': 4,
                         'rfq/cancel-batch-rfqs': 10,
@@ -629,7 +632,7 @@ export default class okx extends Exchange {
                     '58203': InvalidAddress, // Please add a withdrawal address
                     '58204': AccountSuspended, // Withdrawal suspended
                     '58205': ExchangeError, // Withdrawal amount exceeds the upper limit
-                    '58206': BadRequest, // Withdrawal amount is lower than the lower limit
+                    '58206': ExchangeError, // Withdrawal amount is lower than the lower limit
                     '58207': InvalidAddress, // Withdrawal failed due to address error
                     '58208': ExchangeError, // Withdrawal failed. Please link your email
                     '58209': ExchangeError, // Withdrawal failed. Withdraw feature is not available for sub-accounts
@@ -703,7 +706,6 @@ export default class okx extends Exchange {
                 'broad': {
                     'Internal Server Error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
                     'server error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
-                    'failure to get a peer': ExchangeNotAvailable, // {"message":"failure to get a peer from the ring-balancer"}
                 },
             },
             'httpExceptions': {
@@ -713,120 +715,25 @@ export default class okx extends Exchange {
             'options': {
                 'sandboxMode': false,
                 'defaultNetwork': 'ERC20',
-                'defaultNetworks': {
-                    'ETH': 'ERC20',
-                    'BTC': 'BTC',
-                    'USDT': 'TRC20',
-                },
-                'networksAreTitlesInsteadOfIds': true,
                 'networks': {
-                    // "network names" instead of unique currency-specific network ids
                     'BTC': 'Bitcoin',
-                    'BEP20': 'BSC',
-                    'ERC20': 'ERC20',
-                    'TRC20': 'TRC20',
-                    'CRC20': 'Crypto',
-                    // sorted
-                    'ACALA': 'Acala',
-                    'AELF': 'AELF',
-                    'ALGORAND': 'Algorand',
-                    'BHP': 'BHP',
-                    'APTOS': 'Aptos',
-                    'ARBITRUM_ONE': 'Arbitrum one',
-                    'ARK': 'ARK',
-                    'ARWEAVE': 'Arweave',
-                    'ASTAR': 'Astar',
-                    'AVALANCHE_C': 'Avalanche C-Chain',
-                    'AVALANCHE_X': 'Avalanche X-Chain',
-                    'BITCOINLIGHTNING': 'Lightning',
-                    'BCH': 'BitcoinCash',
-                    'BSV': 'Bitcoin SV',
-                    'BITCOINDIAMOND': 'Bitcoin Diamond',
-                    'BITCOINGOLD': 'BitcoinGold',
-                    'BYTOM': 'Bytom',
-                    'CARDANO': 'Cardano',
-                    'CASPER': 'Casper',
-                    'CELO': 'CELO',
-                    'CHIA': 'Chia',
-                    'CHILIZ': 'Chiliz',
-                    'CONFLUX': 'Conflux',
-                    'CORTEX': 'Cortex',
-                    'COSMOS': 'Cosmos',
-                    'MDNA': 'DNA',
-                    'STEP': 'Step Network',
-                    'EMINER': 'Eminer',
-                    'CYBERMILES': 'CyberMiles',
-                    'TRUECHAIN': 'TrueChain',
-                    'QTUM': 'Quantum',
-                    'INTCHAIN': 'INTCHAIN',
-                    'YOUCHAIN': 'YOUCHAIN',
-                    'DECRED': 'Decred',
-                    'DIGIBYTE': 'Digibyte',
-                    'DOGECOIN': 'Dogecoin',
-                    'ECASH': 'XEC',
-                    'ELROND': 'Elrond',
-                    'EOS': 'EOS',
-                    'ETC': 'Ethereum Classic',
-                    'ETHW': 'EthereumPow',
-                    'FANTOM': 'Fantom',
-                    'FILECOIN': 'Filecoin',
-                    'FLOW': 'FLOW',
-                    'FUSION': 'Fusion',
-                    'HARMONY': 'Harmony',
-                    'HEDERA': 'Hedera',
-                    'HELIUM': 'Helium',
-                    'HORIZEN': 'Horizen',
-                    'HYPERCASH': 'HyperCash',
-                    'ICON': 'ICON',
-                    'INTERNETCOMPUTER': 'Dfinity',
-                    'IOST': 'IOST',
-                    'IOTA': 'MIOTA',
-                    'KADENA': 'Kadena',
-                    'KARURA': 'KAR',
-                    'KLAYTN': 'Klaytn',
-                    'KUSAMA': 'Kusama',
-                    'LISK': 'Lisk',
+                    'OMNI': 'Omni',
+                    'SOL': 'Solana',
                     'LTC': 'Litecoin',
-                    'METIS': 'Metis',
-                    'MINA': 'Mina',
-                    'MONERO': 'Monero',
-                    'MOONBEAM': 'Moonbeam',
-                    'MOONRIVER': 'Moonriver',
-                    'NANO': 'Nano',
-                    'NEAR': 'NEAR',
-                    'NEBULAS': 'Nebulas',
-                    'NEM': 'New Economy Movement',
-                    'NULS': 'NULS',
-                    'OASYS': 'OASYS',
-                    'OKC': 'OKC',
-                    'ONTOLOGY': 'Ontology',
-                    'OPTIMISM': 'Optimism',
-                    'PLATON': 'PlatON',
-                    'POLKADOT': 'Polkadot',
-                    'POLYGON': 'Polygon',
-                    'RAVENCOIN': 'Ravencoin',
-                    'RIPPLE': 'Ripple',
-                    'RONIN': 'Ronin',
-                    'SIACOIN': 'Siacoin',
-                    'SOLANA': 'Solana',
-                    'STACKS': 'l-Stacks',
-                    'STELLAR': 'Stellar Lumens',
-                    'TERRA': 'Terra',
-                    'TERRACLASSIC': 'Terra Classic',
-                    'TEZOS': 'Tezos',
-                    'TON': 'TON',
-                    'THETA': 'Theta',
-                    'VSYSTEMS': 'VSYSTEMS',
-                    'WAVES': 'WAVES',
-                    'WAX': 'Wax',
-                    'WAYIKICHAIN': 'WGRT',
-                    'ZCASH': 'Zcash',
-                    'ZILLIQA': 'Zilliqa',
-                    'ZKSYNC': 'ZKSYNC',
-                    'YOYOW': 'YOYOW',
-                    'OEC': 'OEC',
-                    'ALGO': 'ALGO', // temporarily unavailable
-                    // undetermined : "CELO-TOKEN", "Digital Cash", "N3", Khala
+                    'MATIC': 'Polygon',
+                    'OP': 'Optimism',
+                    'ARB': 'Arbitrum one',
+                    'AVAX': 'Avalanche C-Chain',
+                },
+                'networksById': {
+                    'Bitcoin': 'BTC',
+                    'Omni': 'OMNI',
+                    'Solana': 'SOL',
+                    'Litecoin': 'LTC',
+                    'Polygon': 'MATIC',
+                    'Optimism': 'OP',
+                    'Arbitrum one': 'ARB',
+                    'Avalanche C-Chain': 'AVAX',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -909,7 +816,13 @@ export default class okx extends Exchange {
                 'brokerId': 'e847386590ce4dBC',
             },
             'commonCurrencies': {
+                // the exchange refers to ERC20 version of Aeternity (AEToken)
+                'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
+                'BOX': 'DefiBox',
+                'HOT': 'Hydro Protocol',
                 'HSR': 'HC',
+                'MAG': 'Maggie',
+                'SBTC': 'Super Bitcoin',
                 'TRADE': 'Unitrade',
                 'YOYO': 'YOYOW',
                 'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
@@ -940,7 +853,7 @@ export default class okx extends Exchange {
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
-        const response = await (this as any).publicGetSystemStatus (params);
+        const response = await this.publicGetSystemStatus (params);
         //
         // Note, if there is no maintenance around, the 'data' array is empty
         //
@@ -989,7 +902,7 @@ export default class okx extends Exchange {
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetPublicTime (params);
+        const response = await this.publicGetPublicTime (params);
         //
         //     {
         //         "code": "0",
@@ -1012,7 +925,7 @@ export default class okx extends Exchange {
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
-        const response = await (this as any).privateGetAccountConfig (params);
+        const response = await this.privateGetAccountConfig (params);
         //
         //     {
         //         "code": "0",
@@ -1238,7 +1151,7 @@ export default class okx extends Exchange {
                 request['uly'] = currencyId;
             }
         }
-        const response = await (this as any).publicGetPublicInstruments (this.extend (request, params));
+        const response = await this.publicGetPublicInstruments (this.extend (request, params));
         //
         // spot, future, swap, option
         //
@@ -1276,6 +1189,15 @@ export default class okx extends Exchange {
         return this.parseMarkets (data);
     }
 
+    safeNetwork (networkId) {
+        const networksById = {
+            'Bitcoin': 'BTC',
+            'Omni': 'OMNI',
+            'TRON': 'TRC20',
+        };
+        return this.safeString (networksById, networkId, networkId);
+    }
+
     async fetchCurrencies (params = {}) {
         /**
          * @method
@@ -1298,7 +1220,7 @@ export default class okx extends Exchange {
         //
         //     {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
         //
-        const response = await (this as any).privateGetAssetCurrencies (params);
+        const response = await this.privateGetAssetCurrencies (params);
         //
         //    {
         //        "code": "0",
@@ -1362,8 +1284,8 @@ export default class okx extends Exchange {
                 const canWithdraw = this.safeValue (chain, 'canWd');
                 const canInternal = this.safeValue (chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
-                currencyActive = (currencyActive === undefined) ? active : currencyActive;
-                const networkId = this.safeString (chain, 'chain'); // is unique per entry i.e. USDT-ERC20, USDT-TRC20
+                currencyActive = (active) ? active : currencyActive;
+                const networkId = this.safeString (chain, 'chain');
                 if (canDeposit && !depositEnabled) {
                     depositEnabled = true;
                 } else if (!canDeposit) {
@@ -1374,27 +1296,33 @@ export default class okx extends Exchange {
                 } else if (!canWithdraw) {
                     withdrawEnabled = false;
                 }
-                const networkTitle = this.getNetworkPartFromCurrencyJunction (networkId);
-                this.defineNetworkCodeNameIdMappings (code, undefined, networkTitle, networkId);
-                const networkCode = this.networkIdToCode (networkId, code);
-                const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
-                maxPrecision = (maxPrecision === undefined) ? precision : Precise.stringMin (maxPrecision, precision);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': active,
-                    'deposit': canDeposit,
-                    'withdraw': canWithdraw,
-                    'fee': this.safeNumber (chain, 'minFee'),
-                    'precision': this.parseNumber (precision),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (chain, 'minWd'),
-                            'max': this.safeNumber (chain, 'maxWd'),
+                if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
+                    const parts = networkId.split ('-');
+                    const chainPart = this.safeString (parts, 1, networkId);
+                    const networkCode = this.safeNetwork (chainPart);
+                    const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
+                    if (maxPrecision === undefined) {
+                        maxPrecision = precision;
+                    } else {
+                        maxPrecision = Precise.stringMin (maxPrecision, precision);
+                    }
+                    networks[networkCode] = {
+                        'id': networkId,
+                        'network': networkCode,
+                        'active': active,
+                        'deposit': canDeposit,
+                        'withdraw': canWithdraw,
+                        'fee': this.safeNumber (chain, 'minFee'),
+                        'precision': this.parseNumber (precision),
+                        'limits': {
+                            'withdraw': {
+                                'min': this.safeNumber (chain, 'minWd'),
+                                'max': this.safeNumber (chain, 'maxWd'),
+                            },
                         },
-                    },
-                    'info': chain,
-                };
+                        'info': chain,
+                    };
+                }
             }
             const firstChain = this.safeValue (chains, 0);
             result[code] = {
@@ -1419,17 +1347,6 @@ export default class okx extends Exchange {
         return result;
     }
 
-    getNetworkPartFromCurrencyJunction (currencyIdWithNetworkId, currencyCode = undefined) {
-        const parts = currencyIdWithNetworkId.split ('-');
-        const length = parts.length;
-        // okx network ids have one or two hyphens, i.e. USDT-ERC20, USDT-Avalanche C-Chain
-        let title = this.safeString (parts, 1);
-        if (length > 2) {
-            title = title + '-' + this.safeString (parts, 2);
-        }
-        return title;
-    }
-
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         /**
          * @method
@@ -1449,7 +1366,7 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['sz'] = limit; // max 400
         }
-        const response = await (this as any).publicGetMarketBooks (this.extend (request, params));
+        const response = await this.publicGetMarketBooks (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -1547,7 +1464,7 @@ export default class okx extends Exchange {
         const request = {
             'instId': market['id'],
         };
-        const response = await (this as any).publicGetMarketTicker (this.extend (request, params));
+        const response = await this.publicGetMarketTicker (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -1593,7 +1510,7 @@ export default class okx extends Exchange {
                 request['uly'] = currencyId;
             }
         }
-        const response = await (this as any).publicGetMarketTickers (this.extend (request, params));
+        const response = await this.publicGetMarketTickers (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -1739,7 +1656,7 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const response = await (this as any).publicGetMarketTrades (this.extend (request, params));
+        const response = await this.publicGetMarketTrades (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -1890,7 +1807,7 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetPublicFundingRateHistory (this.extend (request, params));
+        const response = await this.publicGetPublicFundingRateHistory (this.extend (request, params));
         //
         //     {
         //         "code":"0",
@@ -2030,7 +1947,7 @@ export default class okx extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchTradingFee() supports spot, swap, future or option markets only');
         }
-        const response = await (this as any).privateGetAccountTradeFee (this.extend (request, params));
+        const response = await this.privateGetAccountTradeFee (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -2371,6 +2288,70 @@ export default class okx extends Exchange {
         });
     }
 
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#editOrder
+         * @description edit a trade order
+         * @see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+        }
+        const request = {
+            'instId': market['id'],
+        };
+        const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clOrdId'] = clientOrderId;
+        } else {
+            request['ordId'] = id;
+        }
+        params = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
+        if (amount !== undefined) {
+            request['newSz'] = this.amountToPrecision (symbol, amount);
+        }
+        if (price !== undefined) {
+            request['newPx'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await (this as any).privatePostTradeAmendOrder (this.extend (request, params));
+        //
+        //     {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                 "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        //                 "ordId": "559176536793178112",
+        //                 "reqId": "",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //            }
+        //        ],
+        //        "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0);
+        const order = this.parseOrder (first, market);
+        return this.extend (order, {
+            'type': type,
+            'side': side,
+        });
+    }
+
     async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
@@ -2403,7 +2384,7 @@ export default class okx extends Exchange {
             request['ordId'] = id;
         }
         const query = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
-        const response = await (this as any).privatePostTradeCancelOrder (this.extend (request, query));
+        const response = await this.privatePostTradeCancelOrder (this.extend (request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         const data = this.safeValue (response, 'data', []);
         const order = this.safeValue (data, 0);
@@ -2535,6 +2516,16 @@ export default class okx extends Exchange {
         //         "clOrdId": "oktswap6",
         //         "ordId": "312269865356374016",
         //         "tag": "",
+        //         "sCode": "0",
+        //         "sMsg": ""
+        //     }
+        //
+        // editOrder
+        //
+        //     {
+        //         "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        //         "ordId": "559176536793178112",
+        //         "reqId": "",
         //         "sCode": "0",
         //         "sMsg": ""
         //     }
@@ -3375,7 +3366,7 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const response = await (this as any).privateGetTradeFillsHistory (this.extend (request, query));
+        const response = await this.privateGetTradeFillsHistory (this.extend (request, query));
         //
         //     {
         //         "code": "0",
@@ -3700,7 +3691,6 @@ export default class okx extends Exchange {
         //
         //     {
         //        "chain": "ETH-OKExChain",
-        //        "addrEx": { "comment": "6040348" }, // some currencies like TON may have this field
         //        "ctAddr": "72315c",
         //        "ccy": "ETH",
         //        "to": "6",
@@ -3711,21 +3701,64 @@ export default class okx extends Exchange {
         const address = this.safeString (depositAddress, 'addr');
         let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
         tag = this.safeString (depositAddress, 'memo', tag);
-        if (tag === undefined) {
-            const addrEx = this.safeValue (depositAddress, 'addrEx', {});
-            tag = this.safeString (addrEx, 'comment');
-        }
         const currencyId = this.safeString (depositAddress, 'ccy');
-        // the exchange replies with inconsistent network naming
-        // a network id may be missing in the currency structure from fetchCurrencies
-        const networkId = this.safeString (depositAddress, 'chain');
+        currency = this.safeCurrency (currencyId, currency);
+        const code = currency['code'];
+        const chain = this.safeString (depositAddress, 'chain');
+        const networks = this.safeValue (currency, 'networks', {});
+        const networksById = this.indexBy (networks, 'id');
+        let networkData = this.safeValue (networksById, chain);
+        // inconsistent naming responses from exchange
+        // with respect to network naming provided in currency info vs address chain-names and ids
+        //
+        // response from address endpoint:
+        //      {
+        //          "chain": "USDT-Polygon",
+        //          "ctAddr": "",
+        //          "ccy": "USDT",
+        //          "to":"6" ,
+        //          "addr": "0x1903441e386cc49d937f6302955b5feb4286dcfa",
+        //          "selected": true
+        //      }
+        // network information from currency['networks'] field:
+        // Polygon: {
+        //        info: {
+        //            canDep: false,
+        //            canInternal: false,
+        //            canWd: false,
+        //            ccy: 'USDT',
+        //            chain: 'USDT-Polygon-Bridge',
+        //            mainNet: false,
+        //            maxFee: '26.879528',
+        //            minFee: '13.439764',
+        //            minWd: '0.001',
+        //            name: ''
+        //        },
+        //        id: 'USDT-Polygon-Bridge',
+        //        network: 'Polygon',
+        //        active: false,
+        //        deposit: false,
+        //        withdraw: false,
+        //        fee: 13.439764,
+        //        precision: undefined,
+        //        limits: {
+        //            withdraw: {
+        //                min: 0.001,
+        //                max: undefined
+        //            }
+        //        }
+        //     },
+        //
+        if (chain === 'USDT-Polygon') {
+            networkData = this.safeValue (networksById, 'USDT-Polygon-Bridge');
+        }
+        const network = this.safeString (networkData, 'network');
         this.checkAddress (address);
-        const currencyCode = this.safeCurrencyCode (currencyId, currency);
         return {
-            'currency': currencyCode,
+            'currency': code,
             'address': address,
             'tag': tag,
-            'network': this.networkIdToCode (networkId, currencyCode),
+            'network': network,
             'info': depositAddress,
         };
     }
@@ -3744,7 +3777,7 @@ export default class okx extends Exchange {
         const request = {
             'ccy': currency['id'],
         };
-        const response = await (this as any).privateGetAssetDepositAddress (this.extend (request, params));
+        const response = await this.privateGetAssetDepositAddress (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -3781,11 +3814,36 @@ export default class okx extends Exchange {
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
-        await this.loadMarkets ();
-        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
-        const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
-        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (code, networkCode, indexedAddresses);
-        return indexedAddresses[selectedNetworkCode];
+        const rawNetwork = this.safeStringUpper (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        const network = this.safeString (networks, rawNetwork, rawNetwork);
+        params = this.omit (params, 'network');
+        const response = await this.fetchDepositAddressesByNetwork (code, params);
+        let result = undefined;
+        if (network === undefined) {
+            result = this.safeValue (response, code);
+            if (result === undefined) {
+                const alias = this.safeString (networks, code, code);
+                result = this.safeValue (response, alias);
+                if (result === undefined) {
+                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+                    result = this.safeValue (response, defaultNetwork);
+                    if (result === undefined) {
+                        const values = Object.values (response);
+                        result = this.safeValue (values, 0);
+                        if (result === undefined) {
+                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+        result = this.safeValue (response, network);
+        if (result === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
+        }
+        return result;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -3813,16 +3871,18 @@ export default class okx extends Exchange {
             'dest': '4', // 2 = OKCoin International, 3 = OKX 4 = others
             'amt': this.numberToString (amount),
         };
-        let networkCode = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode, code);
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ETH>ERC20 alias
+        if (network !== undefined) {
+            request['chain'] = currency['id'] + '-' + network;
+            params = this.omit (params, 'network');
         }
         let fee = this.safeString (params, 'fee');
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies ();
             this.currencies = this.deepExtend (this.currencies, currencies);
-            const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (networkCode), {});
+            const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (network), {});
             fee = this.safeString (targetNetwork, 'fee');
             if (fee === undefined) {
                 throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
@@ -3838,7 +3898,7 @@ export default class okx extends Exchange {
         if (!('pwd' in request)) {
             throw new ExchangeError (this.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase');
         }
-        const response = await (this as any).privatePostAssetWithdrawal (this.extend (request, query));
+        const response = await this.privatePostAssetWithdrawal (this.extend (request, query));
         //
         //     {
         //         "code": "0",
@@ -3888,7 +3948,7 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const response = await (this as any).privateGetAssetDepositHistory (this.extend (request, params));
+        const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -3951,7 +4011,7 @@ export default class okx extends Exchange {
             currency = this.currency (code);
             request['ccy'] = currency['id'];
         }
-        const response = await (this as any).privateGetAssetDepositHistory (this.extend (request, params));
+        const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const deposit = this.safeValue (data, 0, {});
         return this.parseTransaction (deposit, currency);
@@ -3988,7 +4048,7 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const response = await (this as any).privateGetAssetWithdrawalHistory (this.extend (request, params));
+        const response = await this.privateGetAssetWithdrawalHistory (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -4043,7 +4103,7 @@ export default class okx extends Exchange {
             currency = this.currency (code);
             request['ccy'] = currency['id'];
         }
-        const response = await (this as any).privateGetAssetWithdrawalHistory (this.extend (request, params));
+        const response = await this.privateGetAssetWithdrawalHistory (this.extend (request, params));
         //
         //    {
         //        code: '0',
@@ -4227,7 +4287,7 @@ export default class okx extends Exchange {
             'instId': market['id'],
             'mgnMode': marginMode,
         };
-        const response = await (this as any).privateGetAccountLeverageInfo (this.extend (request, params));
+        const response = await this.privateGetAccountLeverageInfo (this.extend (request, params));
         //
         //     {
         //        "code": "0",
@@ -4267,7 +4327,7 @@ export default class okx extends Exchange {
         if (type !== undefined) {
             request['instType'] = this.convertToInstrumentType (type);
         }
-        const response = await (this as any).privateGetAccountPositions (this.extend (request, query));
+        const response = await this.privateGetAccountPositions (this.extend (request, query));
         //
         //     {
         //         "code": "0",
@@ -4587,7 +4647,7 @@ export default class okx extends Exchange {
             request['from'] = this.safeString (params, 'from', '6');
             request['to'] = this.safeString (params, 'to', '6');
         }
-        const response = await (this as any).privatePostAssetTransfer (this.extend (request, params));
+        const response = await this.privatePostAssetTransfer (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -4665,7 +4725,7 @@ export default class okx extends Exchange {
             'transId': id,
             // 'type': 0, // default is 0 transfer within account, 1 master to sub, 2 sub to master
         };
-        const response = await (this as any).privateGetAssetTransferState (this.extend (request, params));
+        const response = await this.privateGetAssetTransferState (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -4726,7 +4786,7 @@ export default class okx extends Exchange {
                 }
                 headers['Content-Type'] = 'application/json';
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             headers['OK-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -4790,7 +4850,7 @@ export default class okx extends Exchange {
         const request = {
             'instId': market['id'],
         };
-        const response = await (this as any).publicGetPublicFundingRate (this.extend (request, params));
+        const response = await this.publicGetPublicFundingRate (this.extend (request, params));
         //
         //    {
         //        "code": "0",
@@ -4922,7 +4982,7 @@ export default class okx extends Exchange {
             request['instType'] = this.convertToInstrumentType (type);
         }
         // AccountBillsArchive has the same cost as AccountBills but supports three months of data
-        const response = await (this as any).privateGetAccountBillsArchive (this.extend (request, query));
+        const response = await this.privateGetAccountBillsArchive (this.extend (request, query));
         //
         //    {
         //        "bal": "0.0242946200998573",
@@ -5015,7 +5075,7 @@ export default class okx extends Exchange {
                 throw new BadRequest (this.id + ' setLeverage() requires the posSide argument to be either "long", "short" or "net"');
             }
         }
-        const response = await (this as any).privatePostAccountSetLeverage (this.extend (request, params));
+        const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
         //
         //     {
         //       "code": "0",
@@ -5052,7 +5112,7 @@ export default class okx extends Exchange {
         const request = {
             'posMode': hedgeMode,
         };
-        const response = await (this as any).privatePostAccountSetPositionMode (this.extend (request, params));
+        const response = await this.privatePostAccountSetPositionMode (this.extend (request, params));
         //
         //    {
         //        "code": "0",
@@ -5098,7 +5158,7 @@ export default class okx extends Exchange {
             'mgnMode': marginMode,
             'instId': market['id'],
         };
-        const response = await (this as any).privatePostAccountSetLeverage (this.extend (request, params));
+        const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
         //
         //     {
         //       "code": "0",
@@ -5125,7 +5185,7 @@ export default class okx extends Exchange {
          * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccountInterestRate (params);
+        const response = await this.privateGetAccountInterestRate (params);
         //
         //    {
         //        "code": "0",
@@ -5170,7 +5230,7 @@ export default class okx extends Exchange {
         const request = {
             'ccy': currency['id'],
         };
-        const response = await (this as any).privateGetAccountInterestRate (this.extend (request, params));
+        const response = await this.privateGetAccountInterestRate (this.extend (request, params));
         //
         //    {
         //        "code": "0",
@@ -5277,7 +5337,7 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetAssetLendingRateHistory (this.extend (request, params));
+        const response = await this.publicGetFinanceSavingsLendingRateHistory (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -5321,7 +5381,7 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetAssetLendingRateHistory (this.extend (request, params));
+        const response = await this.publicGetFinanceSavingsLendingRateHistory (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -5351,7 +5411,7 @@ export default class okx extends Exchange {
             'type': type,
             'posSide': posSide,
         };
-        const response = await (this as any).privatePostAccountPositionMarginBalance (this.extend (request, params));
+        const response = await this.privatePostAccountPositionMarginBalance (this.extend (request, params));
         //
         //     {
         //       "code": "0",
@@ -5449,7 +5509,7 @@ export default class okx extends Exchange {
         if (type === 'MARGIN') {
             request['instId'] = market['id'];
         }
-        const response = await (this as any).publicGetPublicPositionTiers (this.extend (request, params));
+        const response = await this.publicGetPublicPositionTiers (this.extend (request, params));
         //
         //    {
         //        "code": "0",
@@ -5555,7 +5615,7 @@ export default class okx extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
-        const response = await (this as any).privateGetAccountInterestAccrued (this.extend (request, params));
+        const response = await this.privateGetAccountInterestAccrued (this.extend (request, params));
         //
         //    {
         //        "code": "0",
@@ -5618,7 +5678,7 @@ export default class okx extends Exchange {
             'amt': this.currencyToPrecision (code, amount),
             'side': 'borrow',
         };
-        const response = await (this as any).privatePostAccountBorrowRepay (this.extend (request, params));
+        const response = await this.privatePostAccountBorrowRepay (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -5663,7 +5723,7 @@ export default class okx extends Exchange {
             'amt': this.currencyToPrecision (code, amount),
             'side': 'repay',
         };
-        const response = await (this as any).privatePostAccountBorrowRepay (this.extend (request, params));
+        const response = await this.privatePostAccountBorrowRepay (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -5735,7 +5795,7 @@ export default class okx extends Exchange {
             'uly': uly,
             'instId': market['id'],
         };
-        const response = await (this as any).publicGetPublicOpenInterest (this.extend (request, params));
+        const response = await this.publicGetPublicOpenInterest (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -5788,7 +5848,7 @@ export default class okx extends Exchange {
             request['end'] = until;
             params = this.omit (params, [ 'until', 'till' ]);
         }
-        const response = await (this as any).publicGetRubikStatContractsOpenInterestVolume (this.extend (request, params));
+        const response = await this.publicGetRubikStatContractsOpenInterestVolume (this.extend (request, params));
         //
         //    {
         //        code: '0',
@@ -5867,7 +5927,7 @@ export default class okx extends Exchange {
          * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAssetCurrencies (params);
+        const response = await this.privateGetAssetCurrencies (params);
         //
         //    {
         //        "code": "0",

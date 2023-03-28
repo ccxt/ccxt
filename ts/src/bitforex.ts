@@ -1,9 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitforex.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -153,7 +154,7 @@ export default class bitforex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetApiV1MarketSymbols (params);
+        const response = await this.publicGetApiV1MarketSymbols (params);
         //
         //    {
         //        "data": [
@@ -293,7 +294,7 @@ export default class bitforex extends Exchange {
             request['size'] = limit;
         }
         const market = this.market (symbol);
-        const response = await (this as any).publicGetApiV1MarketTrades (this.extend (request, params));
+        const response = await this.publicGetApiV1MarketTrades (this.extend (request, params));
         //
         // {
         //  "data":
@@ -338,7 +339,7 @@ export default class bitforex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostApiV1FundAllAccount (params);
+        const response = await this.privatePostApiV1FundAllAccount (params);
         return this.parseBalance (response);
     }
 
@@ -394,7 +395,7 @@ export default class bitforex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetApiV1MarketTickerAll (this.extend (request, params));
+        const response = await this.publicGetApiV1MarketTickerAll (this.extend (request, params));
         const ticker = this.safeValue (response, 'data');
         //
         //     {
@@ -457,7 +458,7 @@ export default class bitforex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default 1, max 600
         }
-        const response = await (this as any).publicGetApiV1MarketKline (this.extend (request, params));
+        const response = await this.publicGetApiV1MarketKline (this.extend (request, params));
         //
         //     {
         //         "data":[
@@ -491,7 +492,7 @@ export default class bitforex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await (this as any).publicGetApiV1MarketDepthAll (this.extend (request, params));
+        const response = await this.publicGetApiV1MarketDepthAll (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (response, 'time');
         return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
@@ -578,7 +579,7 @@ export default class bitforex extends Exchange {
             'symbol': this.marketId (symbol),
             'orderId': id,
         };
-        const response = await (this as any).privatePostApiV1TradeOrderInfo (this.extend (request, params));
+        const response = await this.privatePostApiV1TradeOrderInfo (this.extend (request, params));
         const order = this.parseOrder (response['data'], market);
         return order;
     }
@@ -603,7 +604,7 @@ export default class bitforex extends Exchange {
             'symbol': this.marketId (symbol),
             'state': 0,
         };
-        const response = await (this as any).privatePostApiV1TradeOrderInfos (this.extend (request, params));
+        const response = await this.privatePostApiV1TradeOrderInfos (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
@@ -627,7 +628,7 @@ export default class bitforex extends Exchange {
             'symbol': this.marketId (symbol),
             'state': 1,
         };
-        const response = await (this as any).privatePostApiV1TradeOrderInfos (this.extend (request, params));
+        const response = await this.privatePostApiV1TradeOrderInfos (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
@@ -658,7 +659,7 @@ export default class bitforex extends Exchange {
             'amount': amount,
             'tradeType': sideId,
         };
-        const response = await (this as any).privatePostApiV1TradePlaceOrder (this.extend (request, params));
+        const response = await this.privatePostApiV1TradePlaceOrder (this.extend (request, params));
         const data = response['data'];
         return this.safeOrder ({
             'info': response,
@@ -683,7 +684,7 @@ export default class bitforex extends Exchange {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        const results = await (this as any).privatePostApiV1TradeCancelOrder (this.extend (request, params));
+        const results = await this.privatePostApiV1TradeCancelOrder (this.extend (request, params));
         const success = results['success'];
         const returnVal = { 'info': results, 'success': success };
         return returnVal;
@@ -705,7 +706,7 @@ export default class bitforex extends Exchange {
             }
             // let message = '/' + 'api/' + this.version + '/' + path + '?' + payload;
             const message = '/' + path + '?' + payload;
-            const signature = this.hmac (this.encode (message), this.encode (this.secret));
+            const signature = this.hmac (this.encode (message), this.encode (this.secret), sha256);
             body = payload + '&signData=' + signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

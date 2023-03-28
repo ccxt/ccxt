@@ -939,7 +939,7 @@ class bittrex extends \ccxt\async\bittrex {
                 } else {
                     $A = $this->safe_value($M[$i], 'A', array());
                     for ($k = 0; $k < count($A); $k++) {
-                        $inflated = $this->inflate64($A[$k]);
+                        $inflated = $this->decode($this->inflate(base64_decode($A[$k])));
                         $update = json_decode($inflated, $as_associative_array = true);
                         $method($client, $update);
                     }

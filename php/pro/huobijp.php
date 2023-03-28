@@ -608,12 +608,20 @@ class huobijp extends \ccxt\async\huobijp {
             //
             //     array("id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143)
             //
-            if (is_array($message) && array_key_exists('id', $message)) {
+            //           ________________________
+            //
+            // sometimes huobijp responds with half of a JSON response like
+            //
+            //     ' {"ch":"market.ethbtc.m '
+            //
+            // this is passed to handleMessage string since it failed to be decoded
+            //
+            if ($this->safe_string($message, 'id') !== null) {
                 $this->handle_subscription_status($client, $message);
-            } elseif (is_array($message) && array_key_exists('ch', $message)) {
+            } elseif ($this->safe_string($message, 'ch') !== null) {
                 // route by channel aka topic aka subject
                 $this->handle_subject($client, $message);
-            } elseif (is_array($message) && array_key_exists('ping', $message)) {
+            } elseif ($this->safe_string($message, 'ping') !== null) {
                 $this->handle_ping($client, $message);
             }
         }

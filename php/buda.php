@@ -1088,7 +1088,7 @@ class buda extends Exchange {
             $components = array( $method, '/api/' . $this->version . '/' . $request );
             if ($body) {
                 $base64Body = base64_encode($body);
-                $components[] = $this->decode($base64Body);
+                $components[] = $base64Body;
             }
             $components[] = $nonce;
             $message = implode(' ', $components);

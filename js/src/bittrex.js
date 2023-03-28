@@ -5,9 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bittrex.js';
 import { ArgumentsRequired, BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 export default class bittrex extends Exchange {
     describe() {
@@ -2092,14 +2093,14 @@ export default class bittrex extends Exchange {
                     url += '?' + this.rawencode(params);
                 }
             }
-            const contentHash = this.hash(this.encode(hashString), 'sha512', 'hex');
+            const contentHash = this.hash(this.encode(hashString), sha512, 'hex');
             const timestamp = this.milliseconds().toString();
             let auth = timestamp + url + method + contentHash;
             const subaccountId = this.safeValue(this.options, 'subaccountId');
             if (subaccountId !== undefined) {
                 auth += subaccountId;
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha512');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
             headers = {
                 'Api-Key': this.apiKey,
                 'Api-Timestamp': timestamp,

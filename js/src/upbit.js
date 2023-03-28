@@ -5,10 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/upbit.js';
 import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { jwt } from './base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
 export default class upbit extends Exchange {
     describe() {
@@ -1751,13 +1754,13 @@ export default class upbit extends Exchange {
             };
             if (Object.keys(query).length) {
                 const auth = this.urlencode(query);
-                const hash = this.hash(this.encode(auth), 'sha512');
+                const hash = this.hash(this.encode(auth), sha512);
                 request['query_hash'] = hash;
                 request['query_hash_alg'] = 'SHA512';
             }
-            const jwt = this.jwt(request, this.encode(this.secret));
+            const token = jwt(request, this.encode(this.secret), sha256);
             headers = {
-                'Authorization': 'Bearer ' + jwt,
+                'Authorization': 'Bearer ' + token,
             };
             if ((method !== 'GET') && (method !== 'DELETE')) {
                 body = this.json(params);

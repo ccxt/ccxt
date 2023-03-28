@@ -1,11 +1,12 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var hitbtc3$1 = require('./abstract/hitbtc3.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-class hitbtc3 extends Exchange["default"] {
+class hitbtc3 extends hitbtc3$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'hitbtc3',
@@ -2808,9 +2809,9 @@ class hitbtc3 extends Exchange["default"] {
             }
             payload.push(timestamp);
             const payloadString = payload.join('');
-            const signature = this.hmac(this.encode(payloadString), this.encode(this.secret), 'sha256', 'hex');
+            const signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256.sha256, 'hex');
             const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
-            const encoded = this.decode(this.stringToBase64(secondPayload));
+            const encoded = this.stringToBase64(secondPayload);
             headers['Authorization'] = 'HS256 ' + encoded;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

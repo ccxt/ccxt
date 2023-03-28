@@ -1511,7 +1511,7 @@ class novadax extends Exchange {
                 $queryString = $this->urlencode($this->keysort($query));
             }
             $auth = $method . "\n" . $request . "\n" . $queryString . "\n" . $timestamp; // eslint-disable-line quotes
-            $headers['X-Nova-Signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $headers['X-Nova-Signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

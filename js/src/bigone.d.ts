@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bigone.js';
 export default class bigone extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

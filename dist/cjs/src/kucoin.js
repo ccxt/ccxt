@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var kucoin$1 = require('./abstract/kucoin.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class kucoin extends Exchange["default"] {
+class kucoin extends kucoin$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'kucoin',
@@ -440,7 +441,7 @@ class kucoin extends Exchange["default"] {
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
-                            'accounts': 'v2',
+                            'accounts': 'v1',
                         },
                     },
                     'futuresPrivate': {
@@ -3106,7 +3107,7 @@ class kucoin extends Exchange["default"] {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateGetMarginTradeLast(this.extend(request, params));
+        const response = await this.publicGetMarginTradeLast(this.extend(request, params));
         //
         //     {
         //         "code": "200000",
@@ -3534,14 +3535,14 @@ class kucoin extends Exchange["default"] {
             }, headers);
             const apiKeyVersion = this.safeString(headers, 'KC-API-KEY-VERSION');
             if (apiKeyVersion === '2') {
-                const passphrase = this.hmac(this.encode(this.password), this.encode(this.secret), 'sha256', 'base64');
+                const passphrase = this.hmac(this.encode(this.password), this.encode(this.secret), sha256.sha256, 'base64');
                 headers['KC-API-PASSPHRASE'] = passphrase;
             }
             else {
                 headers['KC-API-PASSPHRASE'] = this.password;
             }
             const payload = timestamp + method + endpoint + endpart;
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'base64');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
             headers['KC-API-SIGN'] = signature;
             let partner = this.safeValue(this.options, 'partner', {});
             partner = isFuturePrivate ? this.safeValue(partner, 'future', partner) : this.safeValue(partner, 'spot', partner);
@@ -3549,7 +3550,7 @@ class kucoin extends Exchange["default"] {
             const partnerSecret = this.safeString2(partner, 'secret', 'key');
             if ((partnerId !== undefined) && (partnerSecret !== undefined)) {
                 const partnerPayload = timestamp + partnerId + this.apiKey;
-                const partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), 'sha256', 'base64');
+                const partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256.sha256, 'base64');
                 headers['KC-API-PARTNER-SIGN'] = partnerSignature;
                 headers['KC-API-PARTNER'] = partnerId;
             }

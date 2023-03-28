@@ -5,9 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bl3p.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 // ---------------------------------------------------------------------------
 export default class bl3p extends Exchange {
     describe() {
@@ -394,7 +395,7 @@ export default class bl3p extends Exchange {
             const secret = this.base64ToBinary(this.secret);
             // eslint-disable-next-line quotes
             const auth = request + "\0" + body;
-            const signature = this.hmac(this.encode(auth), secret, 'sha512', 'base64');
+            const signature = this.hmac(this.encode(auth), secret, sha512, 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': this.apiKey,

@@ -1,11 +1,12 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var wazirx$1 = require('./abstract/wazirx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-class wazirx extends Exchange["default"] {
+class wazirx extends wazirx$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'wazirx',
@@ -872,7 +873,7 @@ class wazirx extends Exchange["default"] {
             const timestamp = this.milliseconds();
             let data = this.extend({ 'recvWindow': this.options['recvWindow'], 'timestamp': timestamp }, params);
             data = this.keysort(data);
-            const signature = this.hmac(this.encode(this.urlencode(data)), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(this.urlencode(data)), this.encode(this.secret), sha256.sha256);
             url += '?' + this.urlencode(data);
             url += '&' + 'signature=' + signature;
             headers = {

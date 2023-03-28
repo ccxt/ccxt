@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitstamp1.js';
 import { BadSymbol, ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class bitstamp1 extends Exchange {
     describe() {
@@ -362,11 +363,7 @@ export default class bitstamp1 extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const pair = market ? market['id'] : 'all';
-        const request = {
-            'id': pair,
-        };
-        const response = await this.privatePostOpenOrdersId(this.extend(request, params));
+        const response = await this.privatePostUserTransactions(params);
         return this.parseTrades(response, market, since, limit);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -381,7 +378,7 @@ export default class bitstamp1 extends Exchange {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const auth = nonce + this.uid + this.apiKey;
-            const signature = this.encode(this.hmac(this.encode(auth), this.encode(this.secret)));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             query = this.extend({
                 'key': this.apiKey,
                 'signature': signature.toUpperCase(),

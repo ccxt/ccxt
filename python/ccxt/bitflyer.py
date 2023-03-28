@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
@@ -685,7 +686,7 @@ class bitflyer(Exchange):
         request = {
             'product_code': self.market_ids(symbols),
         }
-        response = self.privateGetpositions(self.extend(request, params))
+        response = self.privateGetGetpositions(self.extend(request, params))
         #
         #     [
         #         {
@@ -915,7 +916,7 @@ class bitflyer(Exchange):
             headers = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
-                'ACCESS-SIGN': self.hmac(self.encode(auth), self.encode(self.secret)),
+                'ACCESS-SIGN': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

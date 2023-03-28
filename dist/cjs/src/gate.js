@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var gate$1 = require('./abstract/gate.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
-class gate extends Exchange["default"] {
+class gate extends gate$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gate',
@@ -1041,7 +1042,7 @@ class gate extends Exchange["default"] {
         const underlyings = await this.fetchOptionUnderlyings();
         for (let i = 0; i < underlyings.length; i++) {
             const underlying = underlyings[i];
-            const query = params;
+            const query = this.extend({}, params);
             query['underlying'] = underlying;
             const response = await this.publicOptionsGetContracts(query);
             //
@@ -4976,14 +4977,14 @@ class gate extends Exchange["default"] {
                 body = this.json(query);
             }
             const bodyPayload = (body === undefined) ? '' : body;
-            const bodySignature = this.hash(this.encode(bodyPayload), 'sha512');
+            const bodySignature = this.hash(this.encode(bodyPayload), sha512.sha512);
             const timestamp = this.seconds();
             const timestampString = timestamp.toString();
             const signaturePath = '/api/' + this.version + entirePath;
             const payloadArray = [method.toUpperCase(), signaturePath, queryString, bodySignature, timestampString];
             // eslint-disable-next-line quotes
             const payload = payloadArray.join("\n");
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha512');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha512);
             headers = {
                 'KEY': this.apiKey,
                 'Timestamp': timestampString,

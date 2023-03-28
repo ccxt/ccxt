@@ -1,13 +1,14 @@
 'use strict';
 
 var Precise = require('./base/Precise.js');
-var Exchange = require('./base/Exchange.js');
+var poloniexfutures$1 = require('./abstract/poloniexfutures.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class poloniexfutures extends Exchange["default"] {
+class poloniexfutures extends poloniexfutures$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'poloniexfutures',
@@ -1714,7 +1715,7 @@ class poloniexfutures extends Exchange["default"] {
                 endpart = body;
             }
             const payload = now + method + endpoint + endpart;
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'base64');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
             headers = {
                 'PF-API-SIGN': signature,
                 'PF-API-TIMESTAMP': now,

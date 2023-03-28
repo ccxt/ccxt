@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/currencycom.js';
 export default class currencycom extends Exchange {
     describe(): any;
     nonce(): number;

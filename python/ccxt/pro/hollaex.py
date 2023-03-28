@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+import hashlib
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import AuthenticationError
@@ -409,7 +410,7 @@ class hollaex(ccxt.async_support.hollaex):
             self.options['ws-expires'] = expires
         url = self.urls['api']['ws']
         auth = 'CONNECT' + '/stream' + expires
-        signature = self.hmac(self.encode(auth), self.encode(self.secret))
+        signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         authParams = {
             'api-key': self.apiKey,
             'api-signature': signature,

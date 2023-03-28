@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/upbit.js';
 export default class upbit extends Exchange {
     describe(): any;
     fetchCurrency(code: any, params?: {}): Promise<{

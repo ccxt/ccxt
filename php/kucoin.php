@@ -441,7 +441,7 @@ class kucoin extends Exchange {
                         'POST' => array(
                             'accounts/inner-transfer' => 'v2',
                             'accounts/sub-transfer' => 'v2',
-                            'accounts' => 'v2',
+                            'accounts' => 'v1',
                         ),
                     ),
                     'futuresPrivate' => array(
@@ -3063,7 +3063,7 @@ class kucoin extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->privateGetMarginTradeLast (array_merge($request, $params));
+        $response = $this->publicGetMarginTradeLast (array_merge($request, $params));
         //
         //     {
         //         "code" => "200000",

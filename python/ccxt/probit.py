@@ -30,6 +30,7 @@ class probit(Exchange):
             'name': 'ProBit',
             'countries': ['SC', 'KR'],  # Seychelles, South Korea
             'rateLimit': 50,  # ms
+            'pro': True,
             'has': {
                 'CORS': True,
                 'spot': True,
@@ -1489,7 +1490,7 @@ class probit(Exchange):
             auth = self.apiKey + ':' + self.secret
             auth64 = self.string_to_base64(auth)
             headers = {
-                'Authorization': 'Basic ' + self.decode(auth64),
+                'Authorization': 'Basic ' + auth64,
                 'Content-Type': 'application/json',
             }
             if query:

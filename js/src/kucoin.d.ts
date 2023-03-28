@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/kucoin.js';
 export default class kucoin extends Exchange {
     describe(): any;
     nonce(): number;

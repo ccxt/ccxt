@@ -9,6 +9,7 @@ import cexRest from '../cex.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class cex extends cexRest {
     describe() {
@@ -1187,7 +1188,7 @@ export default class cex extends cexRest {
             this.checkRequiredCredentials();
             const nonce = this.seconds().toString();
             const auth = nonce + this.apiKey;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             const request = {
                 'e': 'auth',
                 'auth': {

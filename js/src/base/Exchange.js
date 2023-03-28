@@ -7,8 +7,10 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable */
 import * as functions from './functions.js';
-const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, throttle, capitalize, now, buildOHLCVC, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, stringToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, totp, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, eddsa, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, jwt, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, rsa, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE } = functions;
-import { inflate, inflate64, gunzip } from './ws/functions.js';
+const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, throttle, capitalize, now, buildOHLCVC, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE } = functions;
+// TODO: remove these imports to make browser package smaller
+import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js';
+import { keccak_256 as keccak } from '../static_dependencies/noble-hashes/sha3.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
 ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded } from "./errors.js";
@@ -17,6 +19,7 @@ import { Precise } from './Precise.js';
 import WsClient from './ws/WsClient.js';
 import Future from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
+import totp from './functions/totp.js';
 // ----------------------------------------------------------------------------
 export default class Exchange {
     constructor(userConfig = {}) {
@@ -41,10 +44,6 @@ export default class Exchange {
         this.debug = false;
         this.userAgent = undefined;
         this.twofa = undefined; // two-factor authentication (2FA)
-        this.login = undefined;
-        this.privateKey = undefined; // a "0x"-prefixed hexstring private key for a wallet
-        this.walletAddress = undefined; // a wallet address "0x"-prefixed hexstring
-        this.token = undefined; // reserved for HTTP auth in some cases
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
@@ -62,12 +61,11 @@ export default class Exchange {
         this.id = undefined;
         this.markets = undefined;
         this.status = undefined;
-        this.rateLimit = undefined;
+        this.rateLimit = undefined; // milliseconds
         this.tokenBucket = undefined;
         this.throttle = undefined;
         this.enableRateLimit = undefined;
         this.httpExceptions = undefined;
-        this.fees = undefined;
         this.markets_by_id = undefined;
         this.symbols = undefined;
         this.ids = undefined;
@@ -89,7 +87,6 @@ export default class Exchange {
         this.version = undefined;
         this.marketsByAltname = undefined;
         this.name = undefined;
-        this.lastRestRequestTimestamp = undefined;
         this.targetAccount = undefined;
         this.stablePairs = {};
         // WS/PRO options
@@ -127,7 +124,6 @@ export default class Exchange {
         this.binaryToBase16 = binaryToBase16;
         this.numberToBE = numberToBE;
         this.base16ToBinary = base16ToBinary;
-        this.stringToBinary = stringToBinary;
         this.iso8601 = iso8601;
         this.omit = omit;
         this.isJsonEncodedObject = isJsonEncodedObject;
@@ -141,8 +137,6 @@ export default class Exchange {
         this.merge = merge;
         this.binaryConcat = binaryConcat;
         this.hash = hash;
-        this.ecdsa = ecdsa;
-        this.totp = totp;
         this.arrayConcat = arrayConcat;
         this.encode = encode;
         this.urlencode = urlencode;
@@ -167,7 +161,6 @@ export default class Exchange {
         this.safeIntegerProduct = safeIntegerProduct;
         this.base58ToBinary = base58ToBinary;
         this.base64ToBinary = base64ToBinary;
-        this.eddsa = eddsa;
         this.safeTimestamp2 = safeTimestamp2;
         this.rawencode = rawencode;
         this.keysort = keysort;
@@ -176,13 +169,11 @@ export default class Exchange {
         this.safeStringUpper2 = safeStringUpper2;
         this.isEmpty = isEmpty;
         this.ordered = ordered;
-        this.jwt = jwt;
         this.filterBy = filterBy;
         this.uuid16 = uuid16;
         this.urlencodeWithArrayRepeat = urlencodeWithArrayRepeat;
         this.microseconds = microseconds;
         this.binaryToBase64 = binaryToBase64;
-        this.rsa = rsa;
         this.strip = strip;
         this.toArray = toArray;
         this.safeFloatN = safeFloatN;
@@ -199,9 +190,6 @@ export default class Exchange {
         this.isArray = isArray;
         this.base64ToString = base64ToString;
         this.crc32 = crc32;
-        this.inflate = inflate;
-        this.inflate64 = inflate64;
-        this.gunzip = gunzip;
         Object.assign(this, functions);
         //
         //     if (isNode) {
@@ -215,9 +203,6 @@ export default class Exchange {
         //
         this.options = this.getDefaultOptions(); // exchange-specific options, if any
         // fetch implementation options (JS only)
-        this.fetchOptions = {
-        // keepalive: true, // does not work in Chrome, https://github.com/ccxt/ccxt/issues/6368
-        };
         // http properties
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -674,7 +659,11 @@ export default class Exchange {
         }
         if (this.fetchImplementation === undefined) {
             if (isNode) {
-                const module = await import('../static_dependencies/node-fetch/index.js');
+                const module = await import(/* webpackIgnore: true */ '../static_dependencies/node-fetch/index.js');
+                if (this.agent === undefined) {
+                    const { Agent } = await import(/* webpackIgnore: true */ 'node:https');
+                    this.agent = new Agent({ keepAlive: true });
+                }
                 this.AbortError = module.AbortError;
                 this.fetchImplementation = module.default;
                 this.FetchError = module.FetchError;
@@ -692,19 +681,13 @@ export default class Exchange {
         if (this.agent) {
             params['agent'] = this.agent;
         }
-        else if (this.httpAgent && url.indexOf('http://') === 0) {
-            params['agent'] = this.httpAgent;
-        }
-        else if (this.httpsAgent && url.indexOf('https://') === 0) {
-            params['agent'] = this.httpsAgent;
-        }
         const controller = new AbortController();
         params['signal'] = controller.signal;
         const timeout = setTimeout(() => {
             controller.abort();
         }, this.timeout);
         try {
-            const response = await fetchImplementation(url, this.extend(params, this.fetchOptions));
+            const response = await fetchImplementation(url, params);
             clearTimeout(timeout);
             return this.handleRestResponse(response, url, method, headers, body);
         }
@@ -861,11 +844,11 @@ export default class Exchange {
     hashMessage(message) {
         // takes a hex encoded message
         const binaryMessage = this.base16ToBinary(this.remove0xPrefix(message));
-        const prefix = this.stringToBinary('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes);
-        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), 'keccak', 'hex');
+        const prefix = this.encode('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength);
+        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), keccak, 'hex');
     }
     signHash(hash, privateKey) {
-        const signature = this.ecdsa(hash.slice(-64), privateKey.slice(-64), 'secp256k1', undefined);
+        const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
         return {
             'r': '0x' + signature['r'],
             's': '0x' + signature['s'],
@@ -879,7 +862,7 @@ export default class Exchange {
         // still takes the input as a hex string
         // same as above but returns a string instead of an object
         const signature = this.signMessage(message, privateKey);
-        return signature['r'] + this.remove0xPrefix(signature['s']) + this.binaryToBase16(this.numberToBE(signature['v']));
+        return signature['r'] + this.remove0xPrefix(signature['s']) + this.binaryToBase16(this.numberToBE(signature['v'], 1));
     }
     parseNumber(value, d = undefined) {
         if (value === undefined) {
@@ -969,7 +952,7 @@ export default class Exchange {
                 'throttle': throttle(this.tokenBucket),
                 // add support for proxies
                 'options': {
-                    'agent': this.agent || this.httpsAgent || this.httpAgent,
+                    'agent': this.agent,
                 }
             }, wsOptions);
             this.clients[url] = new WsClient(url, onMessage, onError, onClose, onConnected, options);
@@ -1336,7 +1319,7 @@ export default class Exchange {
                     const currencyPrecision = this.safeValue2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
                     const currency = {
                         'id': this.safeString2(market, 'baseId', 'base'),
-                        'numericId': this.safeString(market, 'baseNumericId'),
+                        'numericId': this.safeInteger(market, 'baseNumericId'),
                         'code': this.safeString(market, 'base'),
                         'precision': currencyPrecision,
                     };
@@ -1346,7 +1329,7 @@ export default class Exchange {
                     const currencyPrecision = this.safeValue2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
                     const currency = {
                         'id': this.safeString2(market, 'quoteId', 'quote'),
-                        'numericId': this.safeString(market, 'quoteNumericId'),
+                        'numericId': this.safeInteger(market, 'quoteNumericId'),
                         'code': this.safeString(market, 'quote'),
                         'precision': currencyPrecision,
                     };
@@ -2594,12 +2577,13 @@ export default class Exchange {
                     return markets[0];
                 }
                 else {
-                    if (marketType === undefined) {
+                    if ((marketType === undefined) && (market === undefined)) {
                         throw new ArgumentsRequired(this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
                     }
+                    const inferredMarketType = (marketType === undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const market = markets[i];
-                        if (market[marketType]) {
+                        if (market[inferredMarketType]) {
                             return market;
                         }
                     }
@@ -2643,7 +2627,7 @@ export default class Exchange {
     }
     oath() {
         if (this.twofa !== undefined) {
-            return this.totp(this.twofa);
+            return totp(this.twofa);
         }
         else {
             throw new ExchangeError(this.id + ' exchange.twofa has not been set for 2FA Two-Factor Authentication');

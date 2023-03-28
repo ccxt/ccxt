@@ -3,6 +3,7 @@
 var bitopro$1 = require('../bitopro.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -229,7 +230,7 @@ class bitopro extends bitopro$1 {
             'identity': this.login,
         });
         const payload = this.stringToBase64(rawData);
-        const signature = this.hmac(payload, this.encode(this.secret), 'sha384');
+        const signature = this.hmac(payload, this.encode(this.secret), sha512.sha384);
         const defaultOptions = {
             'ws': {
                 'options': {

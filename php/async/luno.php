@@ -1029,7 +1029,7 @@ class luno extends Exchange {
             $this->check_required_credentials();
             $auth = base64_encode($this->apiKey . ':' . $this->secret);
             $headers = array(
-                'Authorization' => 'Basic ' . $this->decode($auth),
+                'Authorization' => 'Basic ' . $auth,
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

@@ -5,10 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 export default class krakenfutures extends Exchange {
     describe() {
@@ -1981,9 +1983,9 @@ export default class krakenfutures extends Exchange {
         const url = this.urls['api'][api] + query;
         if (api === 'private' || access === 'private') {
             const auth = postData + '/api/' + endpoint; // 1
-            const hash = this.hash(this.encode(auth), 'sha256', 'binary'); // 2
+            const hash = this.hash(this.encode(auth), sha256, 'binary'); // 2
             const secret = this.base64ToBinary(this.secret); // 3
-            const signature = this.hmac(hash, secret, 'sha512', 'base64'); // 4-5
+            const signature = this.hmac(hash, secret, sha512, 'base64'); // 4-5
             headers = {
                 'Content-Type': 'application/json',
                 'APIKey': this.apiKey,

@@ -1,13 +1,15 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var lbank2$1 = require('./abstract/lbank2.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var rsa = require('./base/functions/rsa.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class lbank2 extends Exchange["default"] {
+class lbank2 extends lbank2$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'lbank2',
@@ -2281,7 +2283,7 @@ class lbank2 extends Exchange["default"] {
                 'timestamp': timestamp,
             }, query)));
             const encoded = this.encode(auth);
-            const hash = this.hash(encoded);
+            const hash = this.hash(encoded, sha256.sha256);
             const uppercaseHash = hash.toUpperCase();
             let sign = undefined;
             if (signatureMethod === 'RSA') {
@@ -2297,10 +2299,10 @@ class lbank2 extends Exchange["default"] {
                 else {
                     pem = this.convertSecretToPem(this.encode(this.secret));
                 }
-                sign = this.rsa(uppercaseHash, pem);
+                sign = rsa.rsa(uppercaseHash, pem, sha256.sha256);
             }
             else if (signatureMethod === 'HmacSHA256') {
-                sign = this.hmac(this.encode(uppercaseHash), this.encode(this.secret));
+                sign = this.hmac(this.encode(uppercaseHash), this.encode(this.secret), sha256.sha256);
             }
             query['sign'] = sign;
             body = this.urlencode(this.keysort(query));

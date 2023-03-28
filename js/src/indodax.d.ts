@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/indodax.js';
 export default class indodax extends Exchange {
     describe(): any;
     nonce(): number;

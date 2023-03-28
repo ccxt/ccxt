@@ -1,12 +1,12 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var ripio$1 = require('./abstract/ripio.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class ripio extends Exchange["default"] {
+class ripio extends ripio$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ripio',

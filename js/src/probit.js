@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/probit.js';
 import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
@@ -17,6 +17,7 @@ export default class probit extends Exchange {
             'name': 'ProBit',
             'countries': ['SC', 'KR'],
             'rateLimit': 50,
+            'pro': true,
             'has': {
                 'CORS': true,
                 'spot': true,
@@ -1571,7 +1572,7 @@ export default class probit extends Exchange {
             const auth = this.apiKey + ':' + this.secret;
             const auth64 = this.stringToBase64(auth);
             headers = {
-                'Authorization': 'Basic ' + this.decode(auth64),
+                'Authorization': 'Basic ' + auth64,
                 'Content-Type': 'application/json',
             };
             if (Object.keys(query).length) {
