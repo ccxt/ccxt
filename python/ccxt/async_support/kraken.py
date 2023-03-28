@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -23,6 +22,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -592,7 +592,7 @@ class kraken(Exchange):
         fetch the trading fees for a market
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -659,7 +659,7 @@ class kraken(Exchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -755,7 +755,7 @@ class kraken(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         request = {}
@@ -785,7 +785,7 @@ class kraken(Exchange):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         darkpool = symbol.find('.d') >= 0
@@ -829,16 +829,20 @@ class kraken(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
+        parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
         request = {
             'pair': market['id'],
-            'interval': self.safe_integer(self.timeframes, timeframe, timeframe),
         }
+        if parsedTimeframe is not None:
+            request['interval'] = parsedTimeframe
+        else:
+            request['interval'] = timeframe
         if since is not None:
-            request['since'] = int((since - 1) / 1000)
+            request['since'] = self.parse_to_int((since - 1) / 1000)
         response = await self.publicGetOHLC(self.extend(request, params))
         #
         #     {
@@ -899,7 +903,7 @@ class kraken(Exchange):
         time = self.safe_number(item, 'time')
         timestamp = None
         if time is not None:
-            timestamp = int(time * 1000)
+            timestamp = self.parse_to_int(time * 1000)
         return {
             'info': item,
             'id': id,
@@ -928,7 +932,7 @@ class kraken(Exchange):
         :param int|None since: timestamp in ms of the earliest ledger entry, default is None
         :param int|None limit: max number of ledger entrys to return, default is None
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         # https://www.kraken.com/features/api#get-ledgers-info
         await self.load_markets()
@@ -938,7 +942,7 @@ class kraken(Exchange):
             currency = self.currency(code)
             request['asset'] = currency['id']
         if since is not None:
-            request['start'] = int(since / 1000)
+            request['start'] = self.parse_to_int(since / 1000)
         response = await self.privatePostLedgers(self.extend(request, params))
         # { error: [],
         #   result: {ledger: {'LPUAIB-TS774-UKHP7X': {  refid: "A2B4HBV-L4MDIE-JU4N3N",
@@ -1039,7 +1043,7 @@ class kraken(Exchange):
             amount = self.safe_string(trade, 1)
             tradeLength = len(trade)
             if tradeLength > 6:
-                id = self.safe_string(trade, 6)  # artificially added as per  #1794
+                id = self.safe_string(trade, 6)  # artificially added  #1794
         elif isinstance(trade, str):
             id = trade
         elif 'ordertxid' in trade:
@@ -1179,7 +1183,7 @@ class kraken(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1444,7 +1448,7 @@ class kraken(Exchange):
         :param float amount: how much of the currency you want to trade in units of the base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1482,7 +1486,7 @@ class kraken(Exchange):
         fetches information on an order made by the user
         :param str|None symbol: not used by kraken fetchOrder
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
@@ -1549,7 +1553,7 @@ class kraken(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         orderTrades = self.safe_value(params, 'trades')
         tradeIds = []
@@ -1568,7 +1572,7 @@ class kraken(Exchange):
         options = self.safe_value(self.options, 'fetchOrderTrades', {})
         batchSize = self.safe_integer(options, 'batchSize', 20)
         numTradeIds = len(tradeIds)
-        numBatches = int(numTradeIds / batchSize)
+        numBatches = self.parse_to_int(numTradeIds / batchSize)
         numBatches = self.sum(numBatches, 1)
         result = []
         for j in range(0, numBatches):
@@ -1634,7 +1638,7 @@ class kraken(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         request = {
@@ -1645,7 +1649,7 @@ class kraken(Exchange):
             # 'ofs' = result offset
         }
         if since is not None:
-            request['start'] = int(since / 1000)
+            request['start'] = self.parse_to_int(since / 1000)
         response = await self.privatePostTradesHistory(self.extend(request, params))
         #
         #     {
@@ -1687,7 +1691,7 @@ class kraken(Exchange):
         :param str id: order id
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         response = None
@@ -1711,7 +1715,7 @@ class kraken(Exchange):
         :param [str] ids: open orders transaction ID(txid) or user reference(userref)
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'orders': ids,
@@ -1732,7 +1736,7 @@ class kraken(Exchange):
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         return await self.privatePostCancelAll(params)
@@ -1744,12 +1748,12 @@ class kraken(Exchange):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
         if since is not None:
-            request['start'] = int(since / 1000)
+            request['start'] = self.parse_to_int(since / 1000)
         query = params
         clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
         if clientOrderId is not None:
@@ -1770,12 +1774,12 @@ class kraken(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
         if since is not None:
-            request['start'] = int(since / 1000)
+            request['start'] = self.parse_to_int(since / 1000)
         query = params
         clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
         if clientOrderId is not None:
@@ -1958,7 +1962,7 @@ class kraken(Exchange):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         # https://www.kraken.com/en-us/help/api#deposit-status
         if code is None:
@@ -2011,7 +2015,7 @@ class kraken(Exchange):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         # https://www.kraken.com/en-us/help/api#withdraw-status
         if code is None:
@@ -2042,7 +2046,7 @@ class kraken(Exchange):
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         request = {
             'new': 'true',
@@ -2086,7 +2090,7 @@ class kraken(Exchange):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -2100,7 +2104,7 @@ class kraken(Exchange):
         defaultDepositMethod = self.safe_string(defaultDepositMethods, code)
         depositMethod = self.safe_string(params, 'method', defaultDepositMethod)
         # if the user has specified an exchange-specific method in params
-        # we pass it as is, otherwise we take the 'network' unified param
+        # we pass it, otherwise we take the 'network' unified param
         if depositMethod is None:
             depositMethods = await self.fetch_deposit_methods(code)
             if network is not None:
@@ -2161,7 +2165,7 @@ class kraken(Exchange):
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -2184,14 +2188,14 @@ class kraken(Exchange):
             #
             result = self.safe_value(response, 'result', {})
             return self.parse_transaction(result, currency)
-        raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, as set up on your account)")
+        raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, up on your account)")
 
     async def fetch_positions(self, symbols=None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: not used by kraken fetchPositions()
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         request = {

@@ -7,6 +7,8 @@ include_once (__DIR__.'/../../ccxt.php');
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
+// @ts-nocheck
+
 $exchange = new \ccxt\Exchange (array(
     'id' => 'regirock',
 ));

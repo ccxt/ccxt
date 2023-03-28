@@ -13,7 +13,6 @@ def test_account(exchange, account, method):
     for i in range(0, len(keys)):
         key = keys[i]
         keyInAccount = (key in account)
-        assert keyInAccount, exchange.id + ' ' + method + ' ' + key + ' missing from response'
 
     accountKeys = list(account.keys())
     assert len(keys) == len(accountKeys), exchange.id + ' ' + method + ' respone includes more keys than expected'

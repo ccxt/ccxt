@@ -11,8 +11,6 @@ use React\Async;
 
 class coinbasepro extends \ccxt\async\coinbasepro {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -84,7 +82,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} $params extra parameters specific to the coinbasepro api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             $name = 'ticker';
             return Async\await($this->subscribe($name, $symbol, $name, $params));
@@ -120,7 +118,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the coinbasepro api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             if ($symbol === null) {
                 throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
@@ -146,7 +144,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the coinbasepro api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
@@ -171,7 +169,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the coinbasepro api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             $name = 'level2';
             Async\await($this->load_markets());
@@ -318,12 +316,14 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $feeCurrency = $market['quote'];
         $feeCost = null;
         if (($parsed['cost'] !== null) && ($feeRate !== null)) {
-            $feeCost = $parsed['cost'] * $feeRate;
+            $cost = $this->safe_number($parsed, 'cost');
+            $feeCost = $cost * $feeRate;
         }
         $parsed['fee'] = array(
             'rate' => $feeRate,
             'cost' => $feeCost,
             'currency' => $feeCurrency,
+            'type' => null,
         );
         return $parsed;
     }

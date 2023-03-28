@@ -7,16 +7,14 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NetworkError;
 use ccxt\InvalidNonce;
+use ccxt\AuthenticationError;
 use React\Async;
 
 class huobi extends \ccxt\async\huobi {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -129,7 +127,7 @@ class huobi extends \ccxt\async\huobi {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -267,7 +265,7 @@ class huobi extends \ccxt\async\huobi {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -330,7 +328,7 @@ class huobi extends \ccxt\async\huobi {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -658,7 +656,7 @@ class huobi extends \ccxt\async\huobi {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             $this->check_required_credentials();
             $type = null;
@@ -756,7 +754,7 @@ class huobi extends \ccxt\async\huobi {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $type = null;
@@ -1101,14 +1099,15 @@ class huobi extends \ccxt\async\huobi {
         }
         $avgPrice = $this->safe_string($order, 'trade_avg_price');
         $rawTrades = $this->safe_value($order, 'trade');
+        $typeSideParts = array();
         if ($typeSide !== null) {
-            $typeSide = explode('-', $typeSide);
+            $typeSideParts = explode('-', $typeSide);
         }
-        $type = $this->safe_string_lower($typeSide, 1);
+        $type = $this->safe_string_lower($typeSideParts, 1);
         if ($type === null) {
             $type = $this->safe_string($order, 'order_price_type');
         }
-        $side = $this->safe_string_lower($typeSide, 0);
+        $side = $this->safe_string_lower($typeSideParts, 0);
         if ($side === null) {
             $side = $this->safe_string($order, 'direction');
         }
@@ -1520,7 +1519,7 @@ class huobi extends \ccxt\async\huobi {
     public function handle_system_status($client, $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
-        // and unified as handleStatus for any usage pattern that
+        // and unified for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -2011,9 +2010,10 @@ class huobi extends \ccxt\async\huobi {
             $takerOrMaker = $aggressor ? 'taker' : 'maker';
         }
         $type = null;
+        $orderTypeParts = array();
         if ($orderType !== null) {
-            $orderType = explode('-', $orderType);
-            $type = $this->safe_string($orderType, 1);
+            $orderTypeParts = explode('-', $orderType);
+            $type = $this->safe_string($orderTypeParts, 1);
         }
         $fee = null;
         $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'feeCurrency'));

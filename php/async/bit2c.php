@@ -262,7 +262,7 @@ class bit2c extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the bit2c api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -270,7 +270,7 @@ class bit2c extends Exchange {
                 'pair' => $market['id'],
             );
             $orderbook = Async\await($this->publicGetExchangesPairOrderbook (array_merge($request, $params)));
-            return $this->parse_order_book($orderbook, $market['symbol']);
+            return $this->parse_order_book($orderbook, $symbol);
         }) ();
     }
 
@@ -310,7 +310,7 @@ class bit2c extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the bit2c api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -339,7 +339,7 @@ class bit2c extends Exchange {
                 'pair' => $market['id'],
             );
             if ($since !== null) {
-                $request['date'] = intval($since);
+                $request['date'] = $this->parse_to_int($since);
             }
             if ($limit !== null) {
                 $request['limit'] = $limit; // max 100000
@@ -364,7 +364,7 @@ class bit2c extends Exchange {
             /**
              * fetch the trading $fees for multiple markets
              * @param {array} $params extra parameters specific to the bit2c api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetAccountBalance ($params));
@@ -418,7 +418,7 @@ class bit2c extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the bit2c api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $method = 'privatePostOrderAddOrder';
@@ -446,7 +446,7 @@ class bit2c extends Exchange {
              * @param {string} $id order $id
              * @param {string|null} $symbol Not used by bit2c cancelOrder ()
              * @param {array} $params extra parameters specific to the bit2c api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $request = array(
                 'id' => $id,
@@ -463,7 +463,7 @@ class bit2c extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open $orders for
              * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
              * @param {array} $params extra parameters specific to the bit2c api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -487,7 +487,7 @@ class bit2c extends Exchange {
              * fetches information on an order made by the user
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the bit2c api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -578,18 +578,18 @@ class bit2c extends Exchange {
         }
         // bit2c $order $type:
         // 0 = LMT,  1 = MKT
-        $type = $this->safe_integer($orderUnified, 'order_type');
-        if ($type === 0) {
+        $type = $this->safe_string($orderUnified, 'order_type');
+        if ($type === '0') {
             $type = 'limit';
-        } elseif ($type === 1) {
+        } elseif ($type === '1') {
             $type = 'market';
         }
         // bit2c $side:
         // 0 = buy, 1 = sell
-        $side = $this->safe_integer($orderUnified, 'type');
-        if ($side === 0) {
+        $side = $this->safe_string($orderUnified, 'type');
+        if ($side === '0') {
             $side = 'buy';
-        } elseif ($side === 1) {
+        } elseif ($side === '1') {
             $side = 'sell';
         }
         $price = $this->safe_string($orderUnified, 'price');
@@ -636,7 +636,7 @@ class bit2c extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
              * @param {array} $params extra parameters specific to the bit2c api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -815,7 +815,7 @@ class bit2c extends Exchange {
              * fetch the deposit address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} $params extra parameters specific to the bit2c api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
