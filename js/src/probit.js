@@ -17,6 +17,7 @@ export default class probit extends Exchange {
             'name': 'ProBit',
             'countries': ['SC', 'KR'],
             'rateLimit': 50,
+            'pro': true,
             'has': {
                 'CORS': true,
                 'spot': true,

@@ -60,6 +60,7 @@ from ccxt.pro.okcoin import okcoin                                        # noqa
 from ccxt.pro.okex import okex                                            # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
+from ccxt.pro.probit import probit                                        # noqa: F401
 from ccxt.pro.ripio import ripio                                          # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
 from ccxt.pro.wazirx import wazirx                                        # noqa: F401
@@ -116,6 +117,7 @@ exchanges = [
     'okex',
     'okx',
     'phemex',
+    'probit',
     'ripio',
     'upbit',
     'wazirx',
