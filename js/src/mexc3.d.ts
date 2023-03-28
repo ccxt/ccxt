@@ -131,7 +131,7 @@ export default class mexc3 extends Exchange {
         updated: any;
         fee: any;
     };
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatusByType(status: any, type?: any): string;
     fetchPosition(symbol: any, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): {
