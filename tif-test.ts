@@ -5,7 +5,7 @@ async function test(){
     ];
     for (const exName of exNames) { 
         const e = await exchangeInit(exName, false) as any; 
-        const g = 'v5unified'; //groupName
+        const g = 'v5unified'; // target groupName under `options->timeInForceMap`
         const exPoKey = 'tim_in_foo'; // exchange specific TIF prop name
         const exPoStr = 'PostOnly'; // exchange specific PO tif string
         let o = 'market'; // market order (change this to 'limit' too)
