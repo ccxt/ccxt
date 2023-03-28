@@ -1,24 +1,10 @@
 
-const exec = (func)=>{
-    let result:any = undefined;
-    let sign = '';
-    try { 
-        result = JSON.stringify(func()); 
-        sign = '🟢' ;
-    }
-    catch(e:any) { 
-        result = e.message; 
-        sign = '🔴' ;
-    }
-    console.log (' ✍  input:' + func.toString().replace(/(.*?)g, o, /,''), ` ${sign} `, result);
-};
-
 async function test(){ 
     const exNames = [
         'bybit' /* https://bybit-exchange.github.io/docs/spot/enum#timeinforce */
     ];
     for (const exName of exNames) { 
-        const e = await excInit(exName, false) as any; 
+        const e = await exchangeInit(exName, false) as any; 
         const g = 'v5unified'; //groupName
         const exPoStr = 'PostOnly'; // exchange specific PO tif string
         let o = 'market'; // market order (change this to test !)
@@ -42,44 +28,41 @@ async function test(){
     }
     //var o = await e.createOrder ('DOGE/USDT', 'limit', 'buy', 200, 0.061, {'triggerPrice':0.056, operator:'lte', 'timeInForce':'PO'});
 }
-setTimeout(test, 20);
-
-
-
+setTimeout(test, 1);
 
 
 
 
 import * as fs from 'fs'; 
-const u = undefined;
-import * as url from 'url';
-const __filename = url.fileURLToPath(import.meta.url);
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
-var exchange = undefined; 
-async function excInit(exchangeId: string, verbose = false) {
+async function exchangeInit(exchangeId: string, verbose = false) {
     let settingsFile: any = {};
     try {
-        const str: string = fs.readFileSync(__dirname + '/keys.local.json').toString();
-        settingsFile = JSON.parse(str);
+        settingsFile = JSON.parse(fs.readFileSync('./keys.local.json').toString());
     } catch {}
     let settings = !(exchangeId in settingsFile) ? {} : settingsFile[exchangeId] as any;
-    const timeout = 30000;
     try {
-        let exImport : any= null;
-        try {
-            exImport = await import ('./ts/src/pro/'+exchangeId+'.js');
-        } catch (e) {
-            exImport = await import ('./ts/src/'+exchangeId+'.js');
-        }
-        exchange = new exImport.default({
-            timeout,
-            newUpdates: true,
-            ...settings,
-            validateServerSsl: false
-        });
+        let exImport : any = null;
+        try       { exImport = await import ('./ts/src/pro/'+exchangeId+'.js'); }
+        catch (e) { exImport = await import ('./ts/src/'+exchangeId+'.js');     }
+        return new exImport.default({ ...settings, });
     } catch (e) {
         console.log(e);
         process.exit();
     }
-    return exchange;
 }
+
+
+
+const exec = (func)=>{
+    let result:any = undefined;
+    let sign = '';
+    try { 
+        result = JSON.stringify(func()); 
+        sign = '🟢' ;
+    }
+    catch(e:any) { 
+        result = e.message; 
+        sign = '🔴' ;
+    }
+    console.log (' ✍  input:' + func.toString().replace(/(.*?)g, o, /,''), ` ${sign} `, result);
+};
